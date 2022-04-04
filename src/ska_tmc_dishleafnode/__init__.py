@@ -13,7 +13,6 @@ A Leaf control node for DishMaster.
 """
 
 from ska_tmc_dishleadnode_mid.commands import const, utils
-
 from ska_tmc_dishleafnode_mid import release
 
 from .dish_leaf_node import DishLeafNode
