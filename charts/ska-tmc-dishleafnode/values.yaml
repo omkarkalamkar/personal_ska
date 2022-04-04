@@ -1,0 +1,76 @@
+display: ":0"
+xauthority: "~/.Xauthority"
+
+enabled: true
+
+system: SW-infrastructure
+subsystem: ska-tmc-dishleafnode
+telescope: SKA-mid
+
+subarray_count: 1
+dishes: ["01"]
+
+labels:
+  app: ska-tmc-dishleafnode
+
+global:
+  minikube: true
+  tango_host: databaseds-tango-base-test:10000
+  retry:
+  - "--tries=10"
+  - "--sleep=5"
+
+dsconfig:
+  configuration_file: data/configuration.json
+  timeout: 300s
+  image:
+      registry: artefact.skao.int
+      image: ska-tango-images-tango-dsconfig
+      tag: 1.5.5
+      pullPolicy: IfNotPresent
+
+itango:
+  image:
+    registry: artefact.skao.int
+    image: ska-tango-images-tango-itango
+    tag: 9.3.9
+    pullPolicy: IfNotPresent
+
+#TODO: We can change it from sdpleafnodes to generic name leafnodes. 
+# waiting till the TMC repository organization is agreed as a part of SP-1800
+dishleafnode:
+  image:
+    registry: artefact.skao.int
+    image: ska-tmc-dishleafnode
+    tag: 0.1.0
+    pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    cpu: 150m
+    memory: 150Mi
+  requests:
+    cpu: 50m
+    memory: 50Mi
+
+deviceServers:
+  mocks:
+    enabled: true
+    component:
+      dish: true
+    instances: ["01"]
+    file: "data/mockdevices.yaml"
+
+  dishmln:
+    enabled: true
+    instances: ["01"]
+    dish_count: 1
+    file: "data/dishleafnode.yaml"
+    SdpSubarrayFQDN: "mid_d0001/elt/master"
+
+
+nodeSelector: {}
+
+affinity: {}
+
+tolerations: []

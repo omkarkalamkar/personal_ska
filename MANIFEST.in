@@ -1,0 +1,7 @@
+recursive-include test *.py
+include *.rst
+include *.txt
+graft docs
+
+global-exclude *.pyc
+global-exclude *.pyo
