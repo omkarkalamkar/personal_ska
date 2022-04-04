@@ -1,6 +1,6 @@
 """Release information for Python Package"""
 
-name="""ska-tmc-dishleafnodes"""
+name="""ska-tmc-dishleafnode"""
 version="0.1.0"
 version_info=version.split(".")
 description="""SKA-TMC-DISHLEAFNODES"""
