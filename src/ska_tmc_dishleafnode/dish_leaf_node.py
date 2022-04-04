@@ -20,7 +20,7 @@ from ska_tmc_base import SKABaseDevice
 from ska_tmc_base.commands import ResultCode
 from ska_tmc_base.control_model import HealthState, SimulationMode
 from ska_tmc_common.tango_server_helper import TangoServerHelper
-from ska_tmc_dishleafnode_mid import release
+from ska_tmc_dishleafnode import release
 from tango import ApiUtil, AttrWriteType
 from tango.server import attribute, command, device_property, run
 

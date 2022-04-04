@@ -9,7 +9,7 @@
 
 """Release information for Python Package"""
 
-name = """ska_tmc_dishleafnode_mid"""
+name = """ska_tmc_dishleafnode"""
 version = "0.8.7"
 version_info = version.split(".")
 description = """A Leaf control node for DishMaster."""

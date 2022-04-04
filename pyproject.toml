@@ -6,7 +6,7 @@ authors = ["Team NCRA"]
 license = "BSD-3-Clause"
 
 packages = [
-    { include = "ska_tmc_dishleafnode_mid", from = "src" },
+    { include = "ska_tmc_dishleafnode", from = "src" },
 ]
 include = [
     { path = 'tests'}

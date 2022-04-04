@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   ska_tmc_dishleafnode_mid.commands
+   ska_tmc_dishleafnode.commands
 
 Submodules
 ----------
@@ -15,7 +15,7 @@ Submodules
 ska\_tmc\_dishleafnode._dish\_leaf\_node module
 ---------------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode_mid.dish_leaf_node
+.. automodule:: ska_tmc_dishleafnode.dish_leaf_node
    :members:
    :undoc-members:
    :show-inheritance:
@@ -24,7 +24,7 @@ ska\_tmc\_dishleafnode._dish\_leaf\_node module
 Module contents
 ---------------
 
-.. automodule:: ska_tmc_dishleafnode_mid
+.. automodule:: ska_tmc_dishleafnode
    :members:
    :undoc-members:
    :show-inheritance:
