@@ -7,8 +7,8 @@ system: SW-infrastructure
 subsystem: ska-tmc-dishleafnode
 telescope: SKA-mid
 
-subarray_count: 1
-dishes: ["01"]
+#subarray_count: 1
+#dishes: ["01", "02", "03", "04"]
 
 labels:
   app: ska-tmc-dishleafnode
@@ -19,6 +19,7 @@ global:
   retry:
   - "--tries=10"
   - "--sleep=5"
+  dishes: ["01", "02", "03", "04"]
 
 dsconfig:
   configuration_file: data/configuration.json
@@ -36,8 +37,6 @@ itango:
     tag: 9.3.9
     pullPolicy: IfNotPresent
 
-#TODO: We can change it from sdpleafnodes to generic name leafnodes. 
-# waiting till the TMC repository organization is agreed as a part of SP-1800
 dishleafnode:
   image:
     registry: artefact.skao.int
@@ -56,18 +55,12 @@ resources:
 deviceServers:
   mocks:
     enabled: true
-    component:
-      dish: true
-    instances: ["01"]
+    instances: ["01", "02", "03", "04"]
     file: "data/mockdevices.yaml"
-
-  dishmln:
+  dishln:
     enabled: true
-    instances: ["01"]
-    dish_count: 1
+    instances: ["01", "02", "03", "04"]
     file: "data/dishleafnode.yaml"
-    SdpSubarrayFQDN: "mid_d0001/elt/master"
-
 
 nodeSelector: {}
 

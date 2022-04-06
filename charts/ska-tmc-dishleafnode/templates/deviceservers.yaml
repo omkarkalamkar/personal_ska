@@ -7,6 +7,14 @@
 {{- if hasKey $deviceserver "file"}}
 
 {{- $filedeviceserver := tpl ($.Files.Get $deviceserver.file) $ | fromYaml }}
+
+# Determine which dish instances to use
+{{- $_ := set  $localchart.Values "coalesced_dishes" (coalesce $localchart.Values.global.dishes $deviceserver.instances $filedeviceserver.instances)  }}
+# If it's a dish device, update the instances
+{{- if has $key $localchart.Values.global.dish_devices  }}
+{{- $_ := set $filedeviceserver "instances" $localchart.Values.coalesced_dishes  }}
+{{- end }}
+
 {{- $_ := set $filedeviceserver "instances" (coalesce $localchart.Values.global.instances $deviceserver.instances $filedeviceserver.instances) }}
 {{- $context := dict "name" $key "deviceserver" $filedeviceserver "image" $deviceserver.image "local" $localchart }}
 {{ template "ska-tango-util.multidevice-config.tpl" $context }}

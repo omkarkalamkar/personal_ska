@@ -1,21 +1,19 @@
 name: "mocks-{{.Release.Name}}"
 function: testing
 domain: mocks
-instances: ["01"]
+instances: ["01", "02", "03", "04"]
 entrypoints:
   - name: "ska_tmc_common.test_helpers.helper_state_device.HelperStateDevice"
-  - name: "ska_tmc_common.test_helpers.helper_subarray_device.HelperSubArrayDevice"
-  - name: "ska_tmc_common.test_helpers.helper_subarray_leaf_device.HelperSubarrayLeafDevice"
 server:
   name: "mocks"
   instances:
-    - name: "01"
+  {{- range  .Values.coalesced_dishes }}
+    - name: "{{ . }}"
       classes:
-        - name: "HelperStateDevice"
-          devices:
-          {{- if .Values.deviceServers.mocks.component.dish }}
-          - name: "mid_d0001/elt/master"
-          {{- end }}
+      - name: "HelperStateDevice"
+        devices:
+        - name: "mid_d{{ printf "%04s" . }}/elt/master"
+  {{- end }}
 depends_on:
   - device: sys/database/2
 image:

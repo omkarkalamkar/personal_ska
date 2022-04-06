@@ -26,21 +26,11 @@ ska-tango-base:
   jive:
     enabled: false
 
-## SKUID
-ska-ser-skuid:
-  skuid:
-    use_pv: false
-    config:
-      generator_id: mvp01
-
 tmc-dishleafnode:
   deviceServers:
     mocks:
       enabled: true
-      component:
-        dish: true
-
-    dishmln:
+    dishln:
       enabled: true
 
 ska-taranta:
