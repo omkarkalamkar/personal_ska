@@ -9,7 +9,7 @@
 {{- $filedeviceserver := tpl ($.Files.Get $deviceserver.file) $ | fromYaml }}
 
 # Determine which dish instances to use
-{{- $_ := set  $localchart.Values "coalesced_dishes" (coalesce $localchart.Values.global.dishes $deviceserver.instances $filedeviceserver.instances)  }}
+{{- $_ := set  $localchart.Values "coalesced_dishes" (coalesce $localchart.Values.global.dishes $filedeviceserver.instances $deviceserver.instances)  }}
 # If it's a dish device, update the instances
 {{- if has $key $localchart.Values.global.dish_devices  }}
 {{- $_ := set $filedeviceserver "instances" $localchart.Values.coalesced_dishes  }}

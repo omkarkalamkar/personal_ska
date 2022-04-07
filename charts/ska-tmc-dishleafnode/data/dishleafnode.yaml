@@ -13,18 +13,18 @@ server:
         devices:
         - name: "ska_mid/tm_leaf_node/d{{ printf "%04s" . }}"
           properties:
-            - name: "DishMasterFQDN"
-              values:
-              - "mid_d{{ printf "%04s" . }}/elt/master"
-            - name: "SkaLevel"
-              values:
-                - "3"
-            - name: "LoggingTargetsDefault"
-              values:
-                - "tango::logger"
-            - name: "LoggingLevelDefault"
-              values:
-                - "5"
+          - name: "DishMasterFQDN"
+            values:
+            - "mid_d{{ printf "%04s" . }}/elt/master"
+          - name: "SkaLevel"
+            values:
+              - "3"
+          - name: "LoggingTargetsDefault"
+            values:
+              - "tango::logger"
+          - name: "LoggingLevelDefault"
+            values:
+              - "5"
   {{- end }}
 depends_on:
   - device: sys/database/2

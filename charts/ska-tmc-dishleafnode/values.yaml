@@ -19,7 +19,10 @@ global:
   retry:
   - "--tries=10"
   - "--sleep=5"
+  dish_devices:
+    - "dishleafnode"
   dishes: ["01", "02", "03", "04"]
+  instances : ["01", "02", "03", "04"]
 
 dsconfig:
   configuration_file: data/configuration.json
