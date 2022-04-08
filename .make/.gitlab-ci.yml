@@ -1,0 +1,100 @@
+image: $SKA_K8S_TOOLS_BUILD_DEPLOY_ALPINE
+
+variables:
+  # which ref to use for includes:
+  # check variable settings here https://gitlab.com/ska-telescope/sdi/ska-cicd-makefile/-/settings/ci_cd
+  INCLUDE_REF: master
+
+stages:
+  - lint
+  - build
+  - test
+  - pages
+
+
+default:
+  tags:
+  - k8srunner
+
+# Trigger downstream testing project
+# We are only triggering it only on master branch as
+# there's no easy way to use makefile's branch in testing repo
+
+trigger_stencil:
+  stage: test
+  trigger: ska-telescope/sdi/ska-cicd-stencil
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+lint:
+  stage: lint
+  image: alpine:3.12
+  before_script:
+    - apk update && apk add --no-cache make bash git
+    - mkdir -p build/reports
+    - make help Makefile
+    - make long-help oci
+    - make test-colours
+  script:
+  - "export TARGETS=$(make -p | grep '.PHONY' | grep -v -E '^#' | sed 's/.PHONY: //')"
+  - tests=0; cd tests; for i in ${TARGETS}; do make -n $i >../build/$i.log 2>&1; tests=$((tests+1)); done; export tests
+  - echo '<?xml version="1.0" encoding="UTF-8"?><testsuites><testsuite errors="0" failures="0" name="customlint" skipped="0" tests="'${tests}'" time="0.000" timestamp="'`date +"%Y-%m-%dT%H:%M:%S"`'"></testsuite></testsuites>' > ../build/reports/linting.xml
+  - echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="0" hostname="wattle" name="customtest" skipped="0" tests="'${tests}'" time="1.0" timestamp="'`date +"%Y-%m-%dT%H:%M:%S"`'"></testsuite></testsuites>' > ../build/reports/unit-tests.xml
+  - echo '<?xml version="1.0" ?><coverage branch-rate="0.0" branches-covered="1" branches-valid="1" complexity="0" line-rate="0.0" lines-covered="'`wc -l Makefile | awk '{print $1}'`'" lines-valid="'`wc -l Makefile | awk '{print $1}'`'" timestamp="'`date +"%s"`'" version="5.0.4"></coverage>' > ../build/reports/code-coverage.xml
+  artifacts:
+    when: always
+    paths:
+    - build
+
+lint-with-gnu-alpine:
+  extends: lint
+  before_script:
+    - apk update && apk add --no-cache make bash git gawk sed ncurses
+    - mkdir -p build/reports
+    - rm -rf /usr/bin/awk
+    - ln -s /usr/bin/gawk /usr/bin/awk
+    - make help Makefile
+    - make long-help oci
+    - make test-colours
+
+lint-with-debian:
+  extends: lint
+  image: ubuntu:18.04
+  before_script:
+    - apt-get update
+    - apt-get install -y make bash git gawk ncurses-term
+    - mkdir -p build/reports
+    - make help Makefile
+    - make long-help oci
+    - make test-colours
+
+test:
+  stage: test
+  before_script:
+    - apk update && apk add --no-cache make bash git curl openssl docker jq
+    - pip3 install sphinx sphinx-rtd-theme recommonmark
+    - curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+    - helm repo add ska https://artefact.skao.int/repository/helm-internal
+    - mkdir -p build/reports
+    - mkdir -p build/charts
+  script:
+  - cd tests
+  - make test
+  artifacts:
+    name: "$CI_PROJECT_NAME-$CI_JOB_ID"
+    paths:
+      - "build/"
+    reports:
+      junit: build/report.xml
+    when: always
+
+include:
+  # Docs
+  - project: 'ska-telescope/templates-repository'
+    ref: $INCLUDE_REF
+    file: 'gitlab-ci/includes/docs.gitlab-ci.yml'
+
+    # .post steps
+  - project: 'ska-telescope/templates-repository'
+    ref: $INCLUDE_REF
+    file: 'gitlab-ci/includes/finaliser.gitlab-ci.yml'
