@@ -7,7 +7,7 @@ entrypoints:
 server:
   name: "mocks"
   instances:
-  {{- range  .Values.coalesced_dishes }}
+  {{- range  .Values.deviceServers.mocks.instances }}
     - name: "{{ . }}"
       classes:
       - name: "HelperStateDevice"

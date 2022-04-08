@@ -6,7 +6,7 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 server:
   name: "dish_leaf_node"
   instances:
-  {{- range  .Values.coalesced_dishes }}
+  {{- range  .Values.deviceServers.dishln.instances }}
     - name: "{{ . }}"
       classes:
       - name: "DishLeafNode"
