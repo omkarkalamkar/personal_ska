@@ -1,5 +1,5 @@
 ######################################
-TMC Leaf Nodes code quality guidelines
+TMC Dish Leaf Nodes code quality guidelines
 ######################################
 
 ***********************
@@ -8,14 +8,14 @@ Code formatting / style
 
 Black
 ^^^^^
-TMC Leaf Nodes uses the ``black`` code formatter to format its code. Formatting can 
+TMC Dish Leaf Node uses the ``black`` code formatter to format its code. Formatting can
 be checked using the command ``make python-format``.
 
 The CI pipeline does check that if code has been formatted using black or not.
 
 Linting
 ^^^^^^^
-TMC Leaf Nodes uses below libraries/utilities for linting. Linting can be checked 
+TMC Dish Leaf Node uses below libraries/utilities for linting. Linting can be checked
 using command ``make python-lint``.
 
 * ``isort`` - It provides a command line utility, Python library and 
@@ -33,5 +33,5 @@ using command ``make python-lint``.
 Test coverage
 *************
 
-TMC Leaf Nodes uses pytest to test its code, with the pytest-cov plugin for
+TMC Dish Leaf Node uses pytest to test its code, with the pytest-cov plugin for
 measuring coverage.

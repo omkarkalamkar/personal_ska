@@ -14,7 +14,6 @@
 #
 
 autodoc_mock_imports = [
-    "astropy",
     "backoff",
     "fire",
     "jsonschema",
@@ -33,12 +32,8 @@ autodoc_mock_imports = [
     "future",
     "future.utils",
     "numpy",
-    "marshmallow",
-    "ska_tmc_cdm",
     "CODEC",
     "ValidationError",
-    "ska_telmodel",
-    "ska_ser_skuid",
     "transitions",
     "ska_tmc_common",
     "ska_ser_log_transactions"
@@ -55,8 +50,8 @@ def setup(app):
 
 # -- Project information -----------------------------------------------------
 
-project = "ska-tmc-leafnodes"
-copyright = "2021, NCRA India"
+project = "ska-tmc-dishleafnode"
+copyright = "2022, NCRA India"
 author = "NCRA India"
 
 # The short X.Y version
@@ -141,7 +136,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "tmcleafnodesdoc"
+htmlhelp_basename = "tmcdishleafnodedoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -168,7 +163,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "TMCLeafnodes.tex", "TMC Leaf Nodes Documentation",
+    (master_doc, "TMCDishLeafnodes.tex", "TMC Dish Leaf Nodes Documentation",
      "NCRA India", "manual"),
 ]
 
@@ -178,7 +173,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "tmcleafnodes", "TMC Leaf Nodes Documentation",
+    (master_doc, "tmcdishleafnode", "TMC Dish Leaf Nodes Documentation",
      [author], 1)
 ]
 
@@ -189,8 +184,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "tmcleafnodes", "TMC Leaf Nodes Documentation",
-     author, "tmcleafnodes", "One line description of project.",
+    (master_doc, "tmcdishleafnode", "TMC Dish Leaf Nodes Documentation",
+     author, "tmcdishleafnode", "One line description of project.",
      "Miscellaneous"),
 ]
 
