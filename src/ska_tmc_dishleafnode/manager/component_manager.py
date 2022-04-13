@@ -7,9 +7,11 @@ package.
 import time
 
 from ska_tmc_common.command_executor import CommandExecutor
-from ska_tmc_common.device_info import DeviceInfo
+
+# from ska_tmc_common.device_info import DeviceInfo
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
+from ska_tmc_dishleafnode.device_info import DishDeviceInfo
 from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 
@@ -75,7 +77,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def get_device(self):
         """
-        Return the device info our of the monitoring loop with name dev_name
+        Return the device info of Dish device
 
         :param None:
         :return: a device info
@@ -85,27 +87,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_device_info(self, dish_dev_name):
         self._dish_dev_name = dish_dev_name
-        self._device = DeviceInfo(self._dish_dev_name, False)
+        self._device = DishDeviceInfo(self._dish_dev_name, False)
 
-    def device_failed(self, exception):
+    @property
+    def checked_device(self):
         """
-        Return the list of the checked monitored devices
+        Return the checked dish device
 
-        :return: list of the checked monitored devices
+        :return: the checked dish device
         """
-        result = []
-        # check below statement
-        for dev in self.component.devices:
-            if dev.unresponsive:
-                result.append(dev)
-                continue
-            if dev.ping > 0:
-                result.append(dev)
-                continue
-            if dev.last_event_arrived is not None:
-                result.append(dev)
-                continue
-        return result
+        if (self._device.unresponsive) or (
+            self._device.last_event_arrived is not None
+        ):
+            return self._device
+        return None
 
     def update_event_failure(self):
         with self.lock:
