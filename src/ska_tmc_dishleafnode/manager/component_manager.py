@@ -1,8 +1,5 @@
 """
-This module provided a reference implementation of a BaseComponentManager.
-
-It is provided for explanatory purposes, and to support testing of this
-package.
+This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 import time
 
@@ -44,8 +41,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param op_state_model: the op state model used by this component
             manager
         :param logger: a logger for this component manager
-        :param _component: allows setting of the component to be
-            managed; for testing purposes only
+        :param _monitoring_loop: allows eanabling/disabling the monitoring loop; For DishLN
+        monitoring loop is not required. Therefore this parameter will always be False.
+        :param _event_receiver: allows eanabling/disabling the event subscriber;
+        :param max_workers: allows to specify number of threads to be used by the monitoring loop;
+        This parameter is not used for DishLN.
+        :param proxy_timeout: allows to specify a client side timeout for sub-devices in milliseconds
+        used by the monitoring loop; This parameter is not used for DishLN.
+        :param sleep_time: allows to specify the wait between each iteration of the monitoring loop;
+        This parameter is not used for DishLN.
         """
         super().__init__(
             op_state_model,
@@ -77,11 +81,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def get_device(self):
         """
-        Return the device info of Dish device
+        Return the device info for the specified Dish device.
 
-        :param None:
-        :return: a device info
-        :rtype: DeviceInfo
+        :param dish_dev_name: Name of Dish device.
+        :return: Dish device info
+        :rtype: DishDeviceInfo
         """
         return self._device
 
@@ -113,9 +117,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update a monitored device dish Mode,
         and call the relative callbacks if available
 
-        :param dev_name: name of the device
-        :type dev_name: str
-        :param dish_mode: dish Mode of the device
+        :param dish_mode: Dish Mode of the Dish device
         :type dish_mode: DishMode
         """
         with self.lock:
@@ -129,8 +131,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update a monitored device pointing State,
         and call the relative callbacks if available
 
-        :param dev_name: name of the device
-        :type dev_name: str
         :param pointing State: pointing State of the device
         :type pointing State: pointingState
         """
@@ -145,9 +145,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update a monitored device data capturing,
         and call the relative callbacks if available
 
-        :param dev_name: name of the device
-        :type dev_name: str
-        :param rxCapturing Data: rxCapturing Data of the device
+        :param capturing_data: capturing data of the device
         :type rxcapturing Data: Boolean
         """
         with self.lock:
@@ -161,8 +159,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update a monitored device achieved Pointing,
         and call the relative callbacks if available
 
-        :param dev_name: name of the device
-        :type dev_name: str
         :param achieved Pointing: achieved pointing of the device
         :type achieved Pointing Data: DevDouble array
         """
@@ -177,8 +173,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update a monitored device desired Pointing,
         and call the relative callbacks if available
 
-        :param dev_name: name of the device
-        :type dev_name: str
         :param desiredPointing: desiredPointing of the device
         :type desired Pointing : DevDouble array
         """
