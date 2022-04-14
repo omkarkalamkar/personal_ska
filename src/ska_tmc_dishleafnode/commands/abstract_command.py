@@ -49,7 +49,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             if not devInfo.unresponsive:
                 self.dish_master_adapter = (
                     self._adapter_factory.get_or_create_adapter(
-                        dev_name, AdapterType.SUBARRAY
+                        dev_name, AdapterType.DISH
                     )
                 )
         except Exception as e:
