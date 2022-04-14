@@ -48,8 +48,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         This parameter is not used for DishLN.
         :param proxy_timeout: allows to specify a client side timeout for sub-devices in milliseconds
         used by the monitoring loop; This parameter is not used for DishLN.
-        :param sleep_time: allows to specify the wait between each iteration of the monitoring loop;
-        This parameter is not used for DishLN.
+        :param sleep_time: allows to specify the wait between each iteration of the monitoring loop
+        and EventSubscriber;
         """
         super().__init__(
             op_state_model,

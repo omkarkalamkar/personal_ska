@@ -1,4 +1,4 @@
-from concurrent import futures
+import threading
 from time import sleep
 
 import tango
@@ -27,91 +27,88 @@ class DishLNEventReceiver(EventReceiver):
         super().__init__(
             component_manager, logger, max_workers, proxy_timeout, sleep_time
         )
+        self._thread = threading.Thread(target=self.subscribe_events)
         self._max_workers = max_workers
         self._sleep_time = sleep_time
         self._stop = False
         self._component_manager = component_manager
 
-    def run(self):
-        while not self._stop:
-            with futures.ThreadPoolExecutor(
-                max_workers=self._max_workers
-            ) as executor:
-                dev_info = self._component_manager.get_device()
-                if dev_info.last_event_arrived is None:
-                    executor.submit(self.subscribe_events, dev_info)
-            sleep(self._sleep_time)
-
     def subscribe_events(self, devInfo):
-        try:
-            proxy = self._dev_factory.get_device(devInfo.dev_name)
-            proxy.subscribe_event(
-                "dishMode",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_dish_mode_event,
-                stateless=True,
-            )
+        while not self._stop:
+            dev_info = self._component_manager.get_device()
+            if dev_info.last_event_arrived is None:
+                try:
+                    proxy = self._dev_factory.get_device(devInfo.dev_name)
+                    proxy.subscribe_event(
+                        "dishMode",
+                        tango.EventType.CHANGE_EVENT,
+                        self.handle_dish_mode_event,
+                        stateless=True,
+                    )
 
-        except Exception as e:
-            self._logger.debug(
-                "dishmode not working for device %s/%s", proxy.dev_name, e
-            )
+                except Exception as e:
+                    self._logger.debug(
+                        "dishmode not working for device %s/%s",
+                        proxy.dev_name,
+                        e,
+                    )
 
-        try:
-            proxy.subscribe_event(
-                "pointingState",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_pointing_state_event,
-                stateless=True,
-            )
-        except Exception as e:
-            self._logger.debug(
-                "pointintState is not working for device %s/%s",
-                proxy.dev_name,
-                e,
-            )
+                try:
+                    proxy.subscribe_event(
+                        "pointingState",
+                        tango.EventType.CHANGE_EVENT,
+                        self.handle_pointing_state_event,
+                        stateless=True,
+                    )
+                except Exception as e:
+                    self._logger.debug(
+                        "pointintState is not working for device %s/%s",
+                        proxy.dev_name,
+                        e,
+                    )
 
-        try:
-            proxy.subscribe_event(
-                "achievedPointing",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_achieved_pointing_event,
-                stateless=True,
-            )
-        except Exception as e:
-            self._logger.debug(
-                "achievedpointing not working for device %s/%s",
-                proxy.dev_name,
-                e,
-            )
+                try:
+                    proxy.subscribe_event(
+                        "achievedPointing",
+                        tango.EventType.CHANGE_EVENT,
+                        self.handle_achieved_pointing_event,
+                        stateless=True,
+                    )
+                except Exception as e:
+                    self._logger.debug(
+                        "achievedpointing not working for device %s/%s",
+                        proxy.dev_name,
+                        e,
+                    )
 
-        try:
-            proxy.subscribe_event(
-                "desiredPointing",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_desired_pointing_event,
-                stateless=True,
-            )
-        except Exception as e:
-            self._logger.debug(
-                "desiredPointing not working for device %s/%s",
-                proxy.dev_name,
-                e,
-            )
+                try:
+                    proxy.subscribe_event(
+                        "desiredPointing",
+                        tango.EventType.CHANGE_EVENT,
+                        self.handle_desired_pointing_event,
+                        stateless=True,
+                    )
+                except Exception as e:
+                    self._logger.debug(
+                        "desiredPointing not working for device %s/%s",
+                        proxy.dev_name,
+                        e,
+                    )
 
-        try:
-            proxy.subscribe_event(
-                "rxCapturingData",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_rxcapturing_event,
-                stateless=True,
-            )
-        except Exception as e:
-            self._logger.debug(
-                "rxCapturingData not working for device %s/%s",
-                proxy.dev_name,
-                e,
-            )
+                try:
+                    proxy.subscribe_event(
+                        "rxCapturingData",
+                        tango.EventType.CHANGE_EVENT,
+                        self.handle_rxcapturing_event,
+                        stateless=True,
+                    )
+                except Exception as e:
+                    self._logger.debug(
+                        "rxCapturingData not working for device %s/%s",
+                        proxy.dev_name,
+                        e,
+                    )
+            sleep(self._sleep_time)
 
     def handle_dish_mode_event(self, evt):
         if evt.err:
