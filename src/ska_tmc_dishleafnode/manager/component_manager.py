@@ -140,7 +140,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def update_device_rxcapturing(self, rxcapturing):
+    def update_device_rxcapturing_data(self, capturing_data):
         """
         Update a monitored device data capturing,
         and call the relative callbacks if available
@@ -152,7 +152,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.rxCapturingData = rxcapturing
+            dev_info.rxCapturingData = capturing_data
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 

@@ -37,9 +37,9 @@ class DishLNEventReceiver(EventReceiver):
             with futures.ThreadPoolExecutor(
                 max_workers=self._max_workers
             ) as executor:
-                devInfo = self._component_manager.get_device()
-                if devInfo.last_event_arrived is None:
-                    executor.submit(self.subscribe_events, devInfo)
+                dev_info = self._component_manager.get_device()
+                if dev_info.last_event_arrived is None:
+                    executor.submit(self.subscribe_events, dev_info)
             sleep(self._sleep_time)
 
     def subscribe_events(self, devInfo):
@@ -160,5 +160,5 @@ class DishLNEventReceiver(EventReceiver):
             self._component_manager.update_event_failure()
             return
         new_value = evt.attr_value.value
-        self._component_manager.update_device_rxcapturing(new_value)
+        self._component_manager.update_device_rxcapturing_data(new_value)
         self._logger.info("rxCapturingData value is updated")
