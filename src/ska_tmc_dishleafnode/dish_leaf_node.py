@@ -66,9 +66,9 @@ class DishLeafNode(SKABaseDevice):
     # General methods
     # ---------------
 
-    def update_device_callback(self, devInfo):
-        self._last_device_info_changed = devInfo.to_json()
-        self.push_change_event("lastDeviceInfoChanged", devInfo.to_json())
+    def update_device_callback(self, dev_info):
+        self._last_device_info_changed = dev_info.to_json()
+        self.push_change_event("lastDeviceInfoChanged", dev_info.to_json())
 
     class InitCommand(SKABaseDevice.InitCommand):
         """
