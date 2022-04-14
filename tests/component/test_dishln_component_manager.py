@@ -1,7 +1,7 @@
 import time
 
-from ska_tmc_common.device_info import DeviceInfo
-
+# from ska_tmc_common.device_info import DeviceInfo
+from ska_tmc_dishleafnode.device_info import DishDeviceInfo
 from tests.settings import create_cm, dish_master_device, logger
 
 
@@ -13,7 +13,7 @@ def test_dish_working(tango_context):
 
     elapsed_time = time.time() - start_time
     logger.info("checked %s device in %s", dev_info.dev_name, elapsed_time)
-    assert isinstance(dev_info, DeviceInfo)
+    assert isinstance(dev_info, DishDeviceInfo)
 
 
 def test_dish_faulty(tango_context):
