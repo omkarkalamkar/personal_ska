@@ -153,7 +153,7 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_device_desired_poiniting(new_value)
         self._logger.info("desiredPointing value is updated")
 
-    def handle_rxcapturing_data_event(self, evt):
+    def handle_rxcapturing_capturing_event(self, evt):
         if evt.err:
             error = evt.errors[0]
             self._logger.error("%s %s", error.reason, error.desc)
