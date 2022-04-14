@@ -124,7 +124,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def update_device_pointing_state_(self, pointing_state):
+    def update_device_pointing_state(self, pointing_state):
         """
         Update a monitored device pointing State,
         and call the relative callbacks if available
@@ -140,7 +140,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def update_device_rxCapturing_data_(self, rxcapturing):
+    def update_device_rxcapturing(self, rxcapturing):
         """
         Update a monitored device data capturing,
         and call the relative callbacks if available
@@ -156,7 +156,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def update_device_achieved_pointing_(self, achieved_pointing):
+    def update_device_achieved_pointing(self, achieved_pointing):
         """
         Update a monitored device achieved Pointing,
         and call the relative callbacks if available
@@ -172,7 +172,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def update_device_desired_pointing_(self, desired_pointing):
+    def update_device_desired_pointing(self, desired_pointing):
         """
         Update a monitored device desired Pointing,
         and call the relative callbacks if available

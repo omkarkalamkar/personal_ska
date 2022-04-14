@@ -103,7 +103,7 @@ class DishLNEventReceiver(EventReceiver):
             proxy.subscribe_event(
                 "rxCapturingData",
                 tango.EventType.CHANGE_EVENT,
-                self.handle_rxcapturing_capturing_event,
+                self.handle_rxcapturing_event,
                 stateless=True,
             )
         except Exception as e:
@@ -123,7 +123,7 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_device_dish_mode(new_value)
         self._logger.info("dishMode value is updated")
 
-    def handle_pointing_State_event(self, evt):
+    def handle_pointing_state_event(self, evt):
         if evt.err:
             error = evt.errors[0]
             self._logger.error("%s %s", error.reason, error.desc)
@@ -140,7 +140,7 @@ class DishLNEventReceiver(EventReceiver):
             self._component_manager.update_event_failure()
             return
         new_value = evt.attr_value.value
-        self._component_manager.update_device_achieved_poiniting(new_value)
+        self._component_manager.update_device_achieved_pointing(new_value)
         self._logger.info("achievedPointing value is updated")
 
     def handle_desired_pointing_event(self, evt):
@@ -150,15 +150,15 @@ class DishLNEventReceiver(EventReceiver):
             self._component_manager.update_event_failure()
             return
         new_value = evt.attr_value.value
-        self._component_manager.update_device_desired_poiniting(new_value)
+        self._component_manager.update_device_desired_pointing(new_value)
         self._logger.info("desiredPointing value is updated")
 
-    def handle_rxcapturing_data_event(self, evt):
+    def handle_rxcapturing_event(self, evt):
         if evt.err:
             error = evt.errors[0]
             self._logger.error("%s %s", error.reason, error.desc)
             self._component_manager.update_event_failure()
             return
         new_value = evt.attr_value.value
-        self._component_manager.update_device_rxcapturing_data(new_value)
+        self._component_manager.update_device_rxcapturing(new_value)
         self._logger.info("rxCapturingData value is updated")
