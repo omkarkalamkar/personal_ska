@@ -1,11 +1,9 @@
-import pytest
 from ska_tango_base.control_model import ControlMode, SimulationMode, TestMode
 from tango import DevState
 
 from ska_tmc_dishleafnode import release
 
 
-@pytest.mark.dishln
 def test_attributes(dishln_device):
     assert dishln_device.State() == DevState.ON
     dishln_device.loggingTargets = ["console::cout"]
