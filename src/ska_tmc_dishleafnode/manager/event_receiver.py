@@ -1,14 +1,14 @@
 from concurrent import futures
 from time import sleep
 
-# import tango
+import tango
 from ska_tmc_common.event_receiver import EventReceiver
 
 
 class DishLNEventReceiver(EventReceiver):
     """
     The DishLNEventReceiver class has the responsibility to receive events
-    from the sub devices managed by the Sdp Subarray Leaf Node.
+    from Dish device.
 
     The ComponentManager uses the handle events methods
     for the attribute of interest.
@@ -43,5 +43,122 @@ class DishLNEventReceiver(EventReceiver):
             sleep(self._sleep_time)
 
     def subscribe_events(self, devInfo):
-        # Add the logic here
-        pass
+        try:
+            proxy = self._dev_factory.get_device(devInfo.dev_name)
+            proxy.subscribe_event(
+                "dishMode",
+                tango.EventType.CHANGE_EVENT,
+                self.handle_dish_mode_event,
+                stateless=True,
+            )
+
+        except Exception as e:
+            self._logger.debug(
+                "dishmode not working for device %s/%s", proxy.dev_name, e
+            )
+
+        try:
+            proxy.subscribe_event(
+                "pointingState",
+                tango.EventType.CHANGE_EVENT,
+                self.handle_pointing_state_event,
+                stateless=True,
+            )
+        except Exception as e:
+            self._logger.debug(
+                "pointintState is not working for device %s/%s",
+                proxy.dev_name,
+                e,
+            )
+
+        try:
+            proxy.subscribe_event(
+                "achievedPointing",
+                tango.EventType.CHANGE_EVENT,
+                self.handle_achieved_pointing_event,
+                stateless=True,
+            )
+        except Exception as e:
+            self._logger.debug(
+                "achievedpointing not working for device %s/%s",
+                proxy.dev_name,
+                e,
+            )
+
+        try:
+            proxy.subscribe_event(
+                "desiredPointing",
+                tango.EventType.CHANGE_EVENT,
+                self.handle_desired_pointing_event,
+                stateless=True,
+            )
+        except Exception as e:
+            self._logger.debug(
+                "desiredPointing not working for device %s/%s",
+                proxy.dev_name,
+                e,
+            )
+
+        try:
+            proxy.subscribe_event(
+                "rxCapturingData",
+                tango.EventType.CHANGE_EVENT,
+                self.handle_rxcapturing_capturing_event,
+                stateless=True,
+            )
+        except Exception as e:
+            self._logger.debug(
+                "rxCapturingData not working for device %s/%s",
+                proxy.dev_name,
+                e,
+            )
+
+    def handle_dish_mode_event(self, evt):
+        if evt.err:
+            error = evt.errors[0]
+            self._logger.error("%s %s", error.reason, error.desc)
+            self._component_manager.update_event_failure()
+            return
+        new_value = evt.attr_value.value
+        self._component_manager.update_device_dish_mode(new_value)
+        self._logger.info("dishMode value is updated")
+
+    def handle_pointing_State_event(self, evt):
+        if evt.err:
+            error = evt.errors[0]
+            self._logger.error("%s %s", error.reason, error.desc)
+            self._component_manager.update_event_failure()
+            return
+        new_value = evt.attr_value.value
+        self._component_manager.update_device_pointing_State(new_value)
+        self._logger.info("pointingState value is updated")
+
+    def handle_achieved_pointing_event(self, evt):
+        if evt.err:
+            error = evt.errors[0]
+            self._logger.error("%s %s", error.reason, error.desc)
+            self._component_manager.update_event_failure()
+            return
+        new_value = evt.attr_value.value
+        self._component_manager.update_device_achieved_poiniting(new_value)
+        self._logger.info("achievedPointing value is updated")
+
+    def handle_desired_pointing_event(self, evt):
+        if evt.err:
+            error = evt.errors[0]
+            self._logger.error("%s %s", error.reason, error.desc)
+            self._component_manager.update_event_failure()
+            return
+        new_value = evt.attr_value.value
+        self._component_manager.update_device_desired_poiniting(new_value)
+        self._logger.info("desiredPointing value is updated")
+
+    def handle_rxcapturing_data_event(self, evt):
+        if evt.err:
+            error = evt.errors[0]
+            self._logger.error("%s %s", error.reason, error.desc)
+            self._component_manager.update_event_failure()
+            return
+        new_value = evt.attr_value.value
+        self._component_manager.update_device_rxcapturing_data(new_value)
+        self._logger.info("rxCapturingData value is updated")

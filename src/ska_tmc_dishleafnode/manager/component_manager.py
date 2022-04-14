@@ -107,3 +107,83 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+
+    def update_device_dish_mode(self, dish_mode):
+        """
+        Update a monitored device dish Mode,
+        and call the relative callbacks if available
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param dish_mode: dish Mode of the device
+        :type dish_mode: DishMode
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.dishMode = dish_mode
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+    def update_device_pointing_state_(self, pointing_state):
+        """
+        Update a monitored device pointing State,
+        and call the relative callbacks if available
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param pointing State: pointing State of the device
+        :type pointing State: pointingState
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.pointingState = pointing_state
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+    def update_device_rxCapturing_data_(self, rxcapturing):
+        """
+        Update a monitored device data capturing,
+        and call the relative callbacks if available
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param rxCapturing Data: rxCapturing Data of the device
+        :type rxcapturing Data: Boolean
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.rxCapturingData = rxcapturing
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+    def update_device_achieved_pointing_(self, achieved_pointing):
+        """
+        Update a monitored device achieved Pointing,
+        and call the relative callbacks if available
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param achieved Pointing: achieved pointing of the device
+        :type achieved Pointing Data: DevDouble array
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.achievedpointing = achieved_pointing
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+    def update_device_desired_pointing_(self, desired_pointing):
+        """
+        Update a monitored device desired Pointing,
+        and call the relative callbacks if available
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param desiredPointing: desiredPointing of the device
+        :type desired Pointing : DevDouble array
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.desiredPointing = desired_pointing
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
