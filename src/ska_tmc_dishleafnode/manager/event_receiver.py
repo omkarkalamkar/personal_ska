@@ -111,51 +111,45 @@ class DishLNEventReceiver(EventReceiver):
             sleep(self._sleep_time)
 
     def handle_dish_mode_event(self, evt):
-        if evt.err:
-            error = evt.errors[0]
-            self._logger.error("%s %s", error.reason, error.desc)
-            self._component_manager.update_event_failure()
+        result = self.extract_event_object(evt)
+        if result == "Event error":
             return
-        new_value = evt.attr_value.value
-        self._component_manager.update_device_dish_mode(new_value)
+        self._component_manager.update_device_dish_mode(result)
         self._logger.info("dishMode value is updated")
 
     def handle_pointing_state_event(self, evt):
-        if evt.err:
-            error = evt.errors[0]
-            self._logger.error("%s %s", error.reason, error.desc)
-            self._component_manager.update_event_failure()
+        result = self.extract_event_object(evt)
+        if result == "Event error":
             return
-        new_value = evt.attr_value.value
-        self._component_manager.update_device_pointing_State(new_value)
+        self._component_manager.update_device_pointing_State(result)
         self._logger.info("pointingState value is updated")
 
     def handle_achieved_pointing_event(self, evt):
-        if evt.err:
-            error = evt.errors[0]
-            self._logger.error("%s %s", error.reason, error.desc)
-            self._component_manager.update_event_failure()
+        result = self.extract_event_object(evt)
+        if result == "Event error":
             return
-        new_value = evt.attr_value.value
-        self._component_manager.update_device_achieved_pointing(new_value)
+        self._component_manager.update_device_achieved_pointing(result)
         self._logger.info("achievedPointing value is updated")
 
     def handle_desired_pointing_event(self, evt):
-        if evt.err:
-            error = evt.errors[0]
-            self._logger.error("%s %s", error.reason, error.desc)
-            self._component_manager.update_event_failure()
+        result = self.extract_event_object(evt)
+        if result == "Event error":
             return
-        new_value = evt.attr_value.value
-        self._component_manager.update_device_desired_pointing(new_value)
+        self._component_manager.update_device_desired_pointing(result)
         self._logger.info("desiredPointing value is updated")
 
     def handle_rxcapturing_event(self, evt):
+        result = self.extract_event_object(evt)
+        if result == "Event error":
+            return
+        self._component_manager.update_device_rxcapturing_data(result)
+        self._logger.info("rxCapturingData value is updated")
+
+    def extract_event_object(self, evt):
         if evt.err:
             error = evt.errors[0]
             self._logger.error("%s %s", error.reason, error.desc)
             self._component_manager.update_event_failure()
-            return
+            return "Event error"
         new_value = evt.attr_value.value
-        self._component_manager.update_device_rxcapturing_data(new_value)
-        self._logger.info("rxCapturingData value is updated")
+        return new_value
