@@ -5,6 +5,12 @@ from tango import AttrWriteType, DebugIt
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
+from ska_tmc_dishleafnode.commands import (
+    SetOperateMode,
+    SetStandbyFPMode,
+    SetStandbyLPMode,
+    SetStowMode,
+)
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -145,6 +151,15 @@ class DishLeafNode(SKABaseDevice):
     # --------
     # Commands
     # --------
+    def is_SetStowMode_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current device state.
+
+        :return: True if this command is allowed to be run in current device state.
+        :rtype: boolean
+        """
+        handler = self.get_command_object("SetStowMode")
+        return handler.check_allowed()
 
     @command()
     @DebugIt()
@@ -162,6 +177,16 @@ class DishLeafNode(SKABaseDevice):
         )
         return [[ResultCode.QUEUED], [str(unique_id)]]
 
+    def is_SetStandbyLPMode_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current device state.
+
+        :return: True if this command is allowed to be run in current device state.
+        :rtype: boolean
+        """
+        handler = self.get_command_object("SetStandbyLPMode")
+        return handler.check_allowed()
+
     @command()
     @DebugIt()
     def SetStandbyLPMode(self):
@@ -178,6 +203,16 @@ class DishLeafNode(SKABaseDevice):
         )
         return [[ResultCode.QUEUED], [str(unique_id)]]
 
+    def is_SetOperateMode_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current device state.
+
+        :return: True if this command is allowed to be run in current device state.
+        :rtype: boolean
+        """
+        handler = self.get_command_object("SetOperateMode")
+        return handler.check_allowed()
+
     @command()
     @DebugIt()
     def SetOperateMode(self):
@@ -193,6 +228,16 @@ class DishLeafNode(SKABaseDevice):
             handler
         )
         return [[ResultCode.QUEUED], [str(unique_id)]]
+
+    def is_SetStandbyFPMode_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current device state.
+
+        :return: True if this command is allowed to be run in current device state.
+        :rtype: boolean
+        """
+        handler = self.get_command_object("SetStandbyFPMode")
+        return handler.check_allowed()
 
     @command()
     @DebugIt()
@@ -513,6 +558,26 @@ class DishLeafNode(SKABaseDevice):
             sleep_time=self.SleepTime,
         )
         return cm
+
+    def init_command_objects(self):
+        """
+        Initialises the command handlers for commands supported by this device.
+        """
+        super().init_command_objects()
+        args = ()
+        for (command_name, command_class) in [
+            ("SetStowMode", SetStowMode),
+            ("SetStandbyLPMode", SetStandbyLPMode),
+            ("SetStandbyFPMode", SetStandbyFPMode),
+            ("SetOperateMode", SetOperateMode),
+        ]:
+            command_obj = command_class(
+                self.component_manager,
+                self.op_state_model,
+                *args,
+                logger=self.logger,
+            )
+            self.register_command_object(command_name, command_obj)
 
 
 # ----------
