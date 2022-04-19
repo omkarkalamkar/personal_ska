@@ -29,8 +29,6 @@ class DishLeafNode(SKABaseDevice):
         commandExecuted:
             Stores command executed on the device.
 
-        lastDeviceInfoChanged:
-            Json String representing the last device changed in the internal model.
 
         dishMasterDevName:
             Stores Dish Master Device name.
@@ -54,13 +52,7 @@ class DishLeafNode(SKABaseDevice):
     commandExecuted = attribute(
         dtype=(("DevString",),),
         max_dim_x=4,
-        max_dim_y=100,
-    )
-
-    lastDeviceInfoChanged = attribute(
-        dtype="DevString",
-        access=AttrWriteType.READ,
-        doc="Json String representing the last device changed in the internal model.",
+        max_dim_y=10000,
     )
 
     dishMasterDevName = attribute(
@@ -72,13 +64,9 @@ class DishLeafNode(SKABaseDevice):
     # General methods
     # ---------------
 
-    def update_device_callback(self, devInfo):
-        self._last_device_info_changed = devInfo.to_json()
-        self.push_change_event("lastDeviceInfoChanged", devInfo.to_json())
-
     class InitCommand(SKABaseDevice.InitCommand):
         """
-        A class for the TMC Dish Lead Node's init_device() method.
+        A class for the TMC DishLeafNode init_device() method.
         """
 
         def do(self):
@@ -98,7 +86,6 @@ class DishLeafNode(SKABaseDevice):
                 release.name, release.version, release.description
             )
             device._version_id = release.version
-            device._LastDeviceInfoChanged = ""
             device.op_state_model.perform_action("component_on")
             device.component_manager.command_executor.add_command_execution(
                 "0", "Init", ResultCode.OK, ""
@@ -126,18 +113,12 @@ class DishLeafNode(SKABaseDevice):
         """Set the dishMasterDevName attribute."""
         self.component_manager.update_device_info(value)
 
-    def read_lastDeviceInfoChanged(self):
-        return self._last_device_info_changed
-
     def read_commandExecuted(self):
         """Return the commandExecuted attribute."""
         result = []
-        i = 0
         for command_executed in reversed(
             self.component_manager.command_executor.command_executed
         ):
-            if i == 100:
-                break
             single_result = [
                 str(command_executed["Id"]),
                 str(command_executed["Command"]),
@@ -145,7 +126,6 @@ class DishLeafNode(SKABaseDevice):
                 str(command_executed["Message"]),
             ]
             result.append(single_result)
-            i += 1
         return result
 
     # --------
@@ -363,7 +343,7 @@ class DishLeafNode(SKABaseDevice):
     )
     @DebugIt()
     def StartCapture(self, argin):
-        """Triggers the DishMaster to Start capture on the set configured band."""
+        """Triggers the DishMaster to start data capturing on the configured band."""
 
         handler = self.get_command_object("StartCapture")
         if self.component_manager.command_executor.queue_full:
@@ -554,7 +534,6 @@ class DishLeafNode(SKABaseDevice):
             self.DishMasterFQDN,
             self.op_state_model,
             logger=self.logger,
-            _update_device_callback=self.update_device_callback,
             sleep_time=self.SleepTime,
         )
         return cm
