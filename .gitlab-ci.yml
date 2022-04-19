@@ -41,9 +41,10 @@ join_linting_reports:
     when: always
 
 include:
-# # Helm Chart linting and Publish
-- project: 'ska-telescope/templates-repository'
-  file: 'gitlab-ci/includes/helm-chart.gitlab-ci.yml'
+# # # Helm Chart linting and Publish
+# Note: Commenting this part to Disable helm chart linting and Publish job from the pipeline
+# - project: 'ska-telescope/templates-repository'
+#   file: 'gitlab-ci/includes/helm-chart.gitlab-ci.yml'
 
 # # Python packages build,lint, test and publish
 - project: 'ska-telescope/templates-repository'
@@ -55,12 +56,16 @@ include:
 
 # # Docs pages
 - project: 'ska-telescope/templates-repository'
-  file: 'gitlab-ci/includes/docs-pages.gitlab-ci.yml'
+  file: 'gitlab-ci/includes/docs.gitlab-ci.yml'
 
 # k8s steps
 - project: 'ska-telescope/templates-repository'
   file: 'gitlab-ci/includes/k8s.gitlab-ci.yml'
 
+# Release Automation
+- project: 'ska-telescope/templates-repository'
+  file: 'gitlab-ci/includes/release.gitlab-ci.yml'
+  
 # Create Gitlab CI badges from CI metrics
 # https://developer.skatelescope.org/en/latest/tools/continuousintegration.html#automated-collection-of-ci-health-metrics-as-part-of-the-ci-pipeline
 - project: 'ska-telescope/templates-repository'
