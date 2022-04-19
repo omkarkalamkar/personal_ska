@@ -13,11 +13,6 @@ from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
-
-    It supports:
-
-    * Monitoring its component, e.g. detect that it has been turned off
-      or on
     """
 
     def __init__(
@@ -88,8 +83,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self._device
 
     def update_device_info(self, dish_dev_name):
-        self._dish_dev_name = dish_dev_name
-        self._device = DishDeviceInfo(self._dish_dev_name, False)
+        self.dish_dev_name = dish_dev_name
+        self._device = DishDeviceInfo(self.dish_dev_name, False)
 
     @property
     def checked_device(self):

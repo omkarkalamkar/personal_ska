@@ -107,7 +107,7 @@ class DishLeafNode(SKABaseDevice):
 
     def read_dishMasterDevName(self):
         """Returns the dishMasterDevName attribute value."""
-        return self.component_manager._dish_dev_name
+        return self.component_manager.dish_dev_name
 
     def write_dishMasterDevName(self, value):
         """Set the dishMasterDevName attribute."""

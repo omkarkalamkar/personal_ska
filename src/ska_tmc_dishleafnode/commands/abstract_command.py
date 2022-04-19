@@ -43,7 +43,7 @@ class DishLNCommand(TmcLeafNodeCommand):
 
     def init_adapter(self):
         component_manager = self.target
-        dev_name = component_manager._dish_dev_name
+        dev_name = component_manager.dish_dev_name
         devInfo = component_manager.get_device()
         try:
             if not devInfo.unresponsive:
@@ -54,7 +54,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
         except Exception as e:
             return self.adapter_error_message_result(
-                component_manager._dish_dev_name,
+                component_manager.dish_dev_name,
                 e,
             )
 
