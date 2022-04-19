@@ -8,5 +8,5 @@
 # See LICENSE.txt for more info.
 
 """
-DishLeafNode
+This is a DishLeafNode package which is responsible for monitoring and control of the Dish device.
 """

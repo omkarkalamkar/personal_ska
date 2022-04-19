@@ -46,7 +46,7 @@ class DishLeafNode(SKABaseDevice):
     commandExecuted = attribute(
         dtype=(("DevString",),),
         max_dim_x=4,
-        max_dim_y=100,
+        max_dim_y=10000,
     )
 
     dishMasterDevName = attribute(
@@ -110,12 +110,9 @@ class DishLeafNode(SKABaseDevice):
     def read_commandExecuted(self):
         """Return the commandExecuted attribute."""
         result = []
-        i = 0
         for command_executed in reversed(
             self.component_manager.command_executor.command_executed
         ):
-            if i == 100:
-                break
             single_result = [
                 str(command_executed["Id"]),
                 str(command_executed["Command"]),
@@ -123,7 +120,6 @@ class DishLeafNode(SKABaseDevice):
                 str(command_executed["Message"]),
             ]
             result.append(single_result)
-            i += 1
         return result
 
     # --------
