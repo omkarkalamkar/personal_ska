@@ -1,7 +1,7 @@
 import time
 
-# from ska_tmc_common.device_info import DeviceInfo
-from ska_tmc_dishleafnode.device_info import DishDeviceInfo
+from ska_tmc_common.device_info import DishDeviceInfo
+
 from tests.settings import create_cm, dish_master_device, logger
 
 

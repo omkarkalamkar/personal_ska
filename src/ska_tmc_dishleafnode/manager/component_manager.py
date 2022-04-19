@@ -4,11 +4,9 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 import time
 
 from ska_tmc_common.command_executor import CommandExecutor
-
-# from ska_tmc_common.device_info import DeviceInfo
+from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
-from ska_tmc_dishleafnode.device_info import DishDeviceInfo
 from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 
@@ -122,7 +120,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.dishMode = dish_mode
+            dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
@@ -136,7 +134,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.pointingState = pointing_state
+            dev_info.pointing_state = pointing_state
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
@@ -150,7 +148,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.rxCapturingData = capturing_data
+            dev_info.rx_capturing_data = capturing_data
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
@@ -159,12 +157,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update a monitored device achieved Pointing,
         and call the relative callbacks if available
 
-        :param achieved Pointing: achieved pointing of the device
+        :param achieved_pointing: achieved pointing of the device
         :type achieved Pointing Data: DevDouble array
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.achievedpointing = achieved_pointing
+            dev_info.achieved_pointing = achieved_pointing
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
@@ -173,11 +171,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update a monitored device desired Pointing,
         and call the relative callbacks if available
 
-        :param desiredPointing: desiredPointing of the device
+        :param desired_pointing: desired pointing of the device
         :type desired Pointing : DevDouble array
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.desiredPointing = desired_pointing
+            dev_info.desired_pointing = desired_pointing
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
