@@ -47,13 +47,7 @@ class SetStandbyFPMode(DishLNCommand):
         self.logger.info(log_msg)
 
         try:
-            log_msg = (
-                "Invoking SetStandbyFPMode command on Dish Master %s: ",
-                self.dish_master_adapter.dev_name,
-            )
-            self.logger.debug(log_msg)
             self.dish_master_adapter.SetStandbyFPMode()
-
         except Exception as e:
             self.logger.exception("Command invocation failed: %s", e)
             return self.generate_command_result(

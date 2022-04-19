@@ -31,7 +31,7 @@ class SetStandbyLPMode(DishLNCommand):
 
     def do(self, argin=None):
         """
-        Method to invoke SetStandbyLPMode command on DishMaster.
+        Method to invoke SetStandbyLPMode (Low power mode) command on DishMaster.
 
         param argin:
             None

@@ -8,7 +8,7 @@ from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 class SetStowMode(DishLNCommand):
     """
-    A class for DishleafLeafNode's SetStowMode() command.
+    A class for DishleafNode's SetStowMode() command.
 
     SetStowMode command on DishLeafNode enables the telescope to perform further operations
     and observations. It Invokes SetStowMode command on Dish Leaf Node device.
@@ -31,7 +31,7 @@ class SetStowMode(DishLNCommand):
 
     def do(self, argin=None):
         """
-        Method to invoke SetOperateMode command on DishMaster.
+        Method to invoke SetStowMode command on DishMaster.
 
         param argin:
             None
