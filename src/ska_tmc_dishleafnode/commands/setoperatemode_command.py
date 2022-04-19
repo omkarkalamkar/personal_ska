@@ -1,5 +1,5 @@
 """
-SetOperateMode command class for DishleafNode.
+SetOperateMode command class for DishLeafNode.
 """
 from ska_tango_base.commands import ResultCode
 

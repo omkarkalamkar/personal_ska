@@ -1,5 +1,5 @@
 """
-SetStandbyLPMode command class for DishleafNode.
+SetStandbyLPMode command class for DishLeafNode.
 """
 from ska_tango_base.commands import ResultCode
 

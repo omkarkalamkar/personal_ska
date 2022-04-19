@@ -1,5 +1,5 @@
 """
-SetStandbyFPMode command class for DishleafNode.
+SetStandbyFPMode command class for DishLeafNode.
 """
 from ska_tango_base.commands import ResultCode
 

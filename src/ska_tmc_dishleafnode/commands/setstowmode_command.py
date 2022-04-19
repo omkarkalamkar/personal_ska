@@ -1,5 +1,5 @@
 """
-SetStowMode command class for DishleafNode.
+SetStowMode command class for DishLeafNode.
 """
 from ska_tango_base.commands import ResultCode
 
