@@ -48,12 +48,14 @@ class SetStowMode(DishLNCommand):
         try:
             self.dish_master_adapter.SetStowMode()
         except Exception as e:
-            self.logger.exception(e)
+            log_msg = f"""Execution of SetStowMode command is failed.
+                       Reason: Error in calling SetStowMode command on {self.dish_master_adapter.dev_name}: {e}
+                       The command is not executed successfully.
+                       The device will continue with normal operation"""
+            self.logger.exception(log_msg)
             return self.generate_command_result(
                 ResultCode.FAILED,
-                f"""The invocation of the SetStowMode command is failed on Dish Leaf
-                Node Device {self.dish_master_adapter.dev_name}.
-                This device will continue with normal operation.""",
+                f"Error in calling SetStowMode command on {self.dish_master_adapter.dev_name}",
             )
 
         log_msg = f"SetStowMode command successfully invoked on:{self.dish_master_adapter.dev_name}"

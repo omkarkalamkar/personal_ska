@@ -49,13 +49,14 @@ class SetStandbyLPMode(DishLNCommand):
         try:
             self.dish_master_adapter.SetStandbyLPMode()
         except Exception as e:
-            self.logger.exception("Command invocation failed: %s", e)
+            log_msg = f"""Execution of SetStandbyLPMode command is failed.
+                       Reason: Error in calling SetStandbyLPMode command on {self.dish_master_adapter.dev_name}: {e}
+                       The command is not executed successfully.
+                       The device will continue with normal operation"""
+            self.logger.exception(log_msg)
             return self.generate_command_result(
                 ResultCode.FAILED,
-                f"""The invocation of the SetStandbyLPMode command is failed on Dish Master Device {self.dish_master_adapter.dev_name}.
-                Reason: Error in calling the SetStandbyLPMode command on Dish Master Device.
-                The command has NOT been executed.
-                This device will continue with normal operation.""",
+                f"Error in calling SetStandbyLPMode command on {self.dish_master_adapter.dev_name}",
             )
         log_msg = f"SetStandbyLPMode command successfully invoked on:{self.dish_master_adapter.dev_name}"
         self.logger.info(log_msg)

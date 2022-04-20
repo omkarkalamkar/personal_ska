@@ -49,13 +49,14 @@ class SetStandbyFPMode(DishLNCommand):
         try:
             self.dish_master_adapter.SetStandbyFPMode()
         except Exception as e:
-            self.logger.exception("Command invocation failed: %s", e)
+            log_msg = f"""Execution of SetStandbyFPMode command is failed.
+                       Reason: Error in calling SetStandbyFPMode command on {self.dish_master_adapter.dev_name}: {e}
+                       The command is not executed successfully.
+                       The device will continue with normal operation"""
+            self.logger.exception(log_msg)
             return self.generate_command_result(
                 ResultCode.FAILED,
-                f"""The invocation of the SetStandbyFPMode command is failed on Dish Master Device {self.dish_master_adapter.dev_name}.
-                Reason: Error in calling the SetStandbyFPMode command on Dish Master Device.
-                The command has NOT been executed.
-                This device will continue with normal operation.""",
+                f"Error in calling SetStandbyFPMode command on {self.dish_master_adapter.dev_name}",
             )
         log_msg = f"SetStandbyFPMode command successfully invoked on:{self.dish_master_adapter.dev_name}"
         self.logger.info(log_msg)

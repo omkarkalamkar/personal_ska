@@ -47,12 +47,14 @@ class SetOperateMode(DishLNCommand):
         try:
             self.dish_master_adapter.SetOperateMode()
         except Exception as e:
-            self.logger.exception(e)
+            log_msg = f"""Execution of SetOperateMode command is failed.
+                        Reason: Error in calling SetOperateMode command on {self.dish_master_adapter.dev_name}: {e}
+                        The command is not executed successfully.
+                        The device will continue with normal operation"""
+            self.logger.exception(log_msg)
             return self.generate_command_result(
                 ResultCode.FAILED,
-                f"""The invocation of the SetOperateMode command is failed on
-                Dish Master Device {self.dish_master_adapter.dev_name}.
-                This device will continue with normal operation.""",
+                f"Error in calling SetOperateMode command on {self.dish_master_adapter.dev_name}",
             )
 
         log_message = f"SetOperateMode command is successfully invoked on {self.dish_master_adapter.dev_name}."

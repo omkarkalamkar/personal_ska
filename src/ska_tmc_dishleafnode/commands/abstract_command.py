@@ -44,9 +44,9 @@ class DishLNCommand(TmcLeafNodeCommand):
     def init_adapter(self):
         component_manager = self.target
         dev_name = component_manager.dish_dev_name
-        devInfo = component_manager.get_device()
+        dev_info = component_manager.get_device()
         try:
-            if not devInfo.unresponsive:
+            if not dev_info.unresponsive:
                 self.dish_master_adapter = (
                     self._adapter_factory.get_or_create_adapter(
                         dev_name, AdapterType.DISH
