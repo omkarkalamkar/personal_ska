@@ -1,38 +1,37 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the DishLeafNode project
-#
-#
-#
-# Distributed under the terms of the BSD-3-Clause license.
-# See LICENSE.txt for more info.
-
 """
-SetStandbyFPMode class for DishLeafNode.
+SetStandbyFPMode command class for DishLeafNode.
 """
-# Tango import
-import tango
+from ska_tango_base.commands import ResultCode
 
-# Additional import
-from ska_tmc_base.commands import BaseCommand
-from ska_tmc_common.tango_client import TangoClient
-from ska_tmc_common.tango_server_helper import TangoServerHelper
-from tango import DevFailed
-
-from .command_callback import CommandCallBack
+from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-class SetStandbyFPMode(BaseCommand):
+class SetStandbyFPMode(DishLNCommand):
     """
     A class for DishLeafNode's SetStandbyFPMode() command.
 
-    Invokes SetStandbyFPMode command on DishMaster (Standby-Full power) mode.
+    Invokes SetStandbyFPMode (i.e. Full Power State) command on DishMaster.
 
     """
 
-    def do(self):
+    def check_allowed(self):
         """
-        Method to Invoke SetStandbyFPMode  on DishMaster.
+        Checks whether this command is allowed. It checks that the device is in the right state
+        to execute this command and that all the component needed for the operation are not
+        unresponsive
+
+        :return: True if this command is allowed
+
+        :rtype: boolean
+
+        """
+        self.check_op_state(__class__.__name__)
+        self.check_unresponsive()
+        return True
+
+    def do(self, argin=None):
+        """
+        Method to invoke SetStandbyFPMode command on DishMaster.
 
         param argin:
             None
@@ -41,32 +40,24 @@ class SetStandbyFPMode(BaseCommand):
             None
 
         raises:
-            DevFailed If error occurs while invoking SetStandbyFPMode command on DishMaster.
-
+            Exception If error occurs while invoking SetStandbyFPMode command on DishMaster.
         """
-        cmd_ended_cb = CommandCallBack(self.logger).cmd_ended_cb
 
-        command_name = "SetStandbyFPMode"
+        log_msg = f"Invoking SetStandbyFPMode command on:{self.dish_master_adapter.dev_name}"
+        self.logger.info(log_msg)
+
         try:
-            this_server = TangoServerHelper.get_instance()
-            self.dish_master_fqdn = ""
-            property_value = this_server.read_property("DishMasterFQDN")
-            self.dish_master_fqdn = self.dish_master_fqdn.join(property_value)
-            dish_client = TangoClient(self.dish_master_fqdn)
-            dish_client.send_command_async(
-                command_name, callback_method=cmd_ended_cb
+            self.dish_master_adapter.SetStandbyFPMode()
+        except Exception as e:
+            log_msg = f"""Execution of SetStandbyFPMode command is failed.
+                       Reason: Error in calling SetStandbyFPMode command on {self.dish_master_adapter.dev_name}: {e}
+                       The command is not executed successfully.
+                       The device will continue with normal operation"""
+            self.logger.exception(log_msg)
+            return self.generate_command_result(
+                ResultCode.FAILED,
+                f"Error in calling SetStandbyFPMode command on {self.dish_master_adapter.dev_name}",
             )
-            self.logger.info(
-                "'%s' command executed successfully.", command_name
-            )
-        except DevFailed as dev_failed:
-            self.logger.exception(dev_failed)
-            log_message = f"Exception occured while executing the '{command_name}' command."
-            this_server.write_attr("activityMessage", log_message, False)
-            tango.Except.re_throw_exception(
-                dev_failed,
-                f"Exception in '{command_name}' command.",
-                log_message,
-                "SetStandbyFPMode.do()",
-                tango.ErrSeverity.ERR,
-            )
+        log_msg = f"SetStandbyFPMode command successfully invoked on:{self.dish_master_adapter.dev_name}"
+        self.logger.info(log_msg)
+        return (ResultCode.OK, "")

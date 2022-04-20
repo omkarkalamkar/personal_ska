@@ -6,6 +6,9 @@ import tango
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.test_helpers.helper_state_device import HelperStateDevice
 from tango.test_context import MultiDeviceTestContext
+from tango.test_utils import DeviceTestContext
+
+from ska_tmc_dishleafnode.dish_leaf_node import DishLeafNode
 
 
 def pytest_sessionstart(session):
@@ -36,6 +39,11 @@ def pytest_addoption(parser):
     )
 
 
+@pytest.fixture
+def dish_master_device():
+    return "mid_d0001/elt/master"
+
+
 @pytest.fixture()
 def devices_to_load():
     return (
@@ -59,3 +67,18 @@ def tango_context(devices_to_load, request):
             yield context
     else:
         yield None
+
+
+@pytest.fixture
+def dishln_device(request):
+    """Create DeviceProxy for tests"""
+    true_context = request.config.getoption("--true-context")
+    if not true_context:
+        with DeviceTestContext(DishLeafNode) as proxy:
+            yield proxy
+    else:
+        database = tango.Database()
+        instance_list = database.get_device_exported_for_class("DishLeafNode")
+        for instance in instance_list.value_string:
+            yield tango.DeviceProxy(instance)
+            break
