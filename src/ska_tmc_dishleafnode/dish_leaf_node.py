@@ -141,18 +141,18 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStowMode")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStowMode(self):
         """Invokes SetStowMode command on DishMaster."""
         handler = self.get_command_object("SetStowMode")
-        if self.component_manager._command_executor.queue_full:
+        if self.component_manager.command_executor.queue_full:
             message = """The invocation of the \"SetStowMode\" command on this device failed.
             Reason: The command executor rejected the queuing of the command because its queue is full.
             The \"SetStowMode\"  command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
-        unique_id = self.component_manager._command_executor.enqueue_command(
+        unique_id = self.component_manager.command_executor.enqueue_command(
             handler
         )
         return [[ResultCode.QUEUED], [str(unique_id)]]
@@ -167,18 +167,18 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStandbyLPMode")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyLPMode(self):
         """Invokes SetStandbyLPMode (i.e. Low Power State) command on DishMaster."""
         handler = self.get_command_object("SetStandbyLPMode")
-        if self.component_manager._command_executor.queue_full:
+        if self.component_manager.command_executor.queue_full:
             message = """The invocation of the \"SetStandbyLPMode\"command on this device failed.
             Reason: The command executor rejected the queuing of the command because its queue is full.
             The \"SetStandbyLPMode\" command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
-        unique_id = self.component_manager._command_executor.enqueue_command(
+        unique_id = self.component_manager.command_executor.enqueue_command(
             handler
         )
         return [[ResultCode.QUEUED], [str(unique_id)]]
@@ -193,18 +193,18 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetOperateMode")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetOperateMode(self):
         """Invokes SetOperateMode command on DishMaster."""
         handler = self.get_command_object("SetOperateMode")
-        if self.component_manager._command_executor.queue_full:
+        if self.component_manager.command_executor.queue_full:
             message = """The invocation of the \"SetOperateMode\" command on this device failed.
             Reason: The command executor rejected the queuing of the command because its queue is full.
             The \"SetOperateMode\" command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
-        unique_id = self.component_manager._command_executor.enqueue_command(
+        unique_id = self.component_manager.command_executor.enqueue_command(
             handler
         )
         return [[ResultCode.QUEUED], [str(unique_id)]]
@@ -219,18 +219,18 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStandbyFPMode")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyFPMode(self):
         """Invokes SetStandbyFPMode command on DishMaster (Standby-Full power) mode."""
         handler = self.get_command_object("SetStandbyFPMode")
-        if self.component_manager._command_executor.queue_full:
+        if self.component_manager.command_executor.queue_full:
             message = """The invocation of the \"SetStandbyFPMode\" command on this device failed.
             Reason: The command executor rejected the queuing of the command because its queue is full.
             The \"SetStandbyFPMode\" command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
-        unique_id = self.component_manager._command_executor.enqueue_command(
+        unique_id = self.component_manager.command_executor.enqueue_command(
             handler
         )
         return [[ResultCode.QUEUED], [str(unique_id)]]
@@ -248,6 +248,7 @@ class DishLeafNode(SKABaseDevice):
     @command(
         dtype_in="str",
         doc_in="Timestamp",
+        dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def Scan(self, argin):
@@ -278,6 +279,7 @@ class DishLeafNode(SKABaseDevice):
     @command(
         dtype_in="str",
         doc_in="Timestamp",
+        dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def EndScan(self, argin):
@@ -309,6 +311,7 @@ class DishLeafNode(SKABaseDevice):
     @command(
         dtype_in="str",
         doc_in="Pointing parameters of Dish",
+        dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def Configure(self, argin):
@@ -340,6 +343,7 @@ class DishLeafNode(SKABaseDevice):
     @command(
         dtype_in="str",
         doc_in="The timestamp indicates the time, in UTC, at which command execution should start.",
+        dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def StartCapture(self, argin):
@@ -371,6 +375,7 @@ class DishLeafNode(SKABaseDevice):
     @command(
         dtype_in="str",
         doc_in="The timestamp indicates the time, in UTC, at which command execution should start.",
+        dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def StopCapture(self, argin):
@@ -401,6 +406,7 @@ class DishLeafNode(SKABaseDevice):
     @command(
         dtype_in="str",
         doc_in="The JSON input string contains dish and pointing information.",
+        dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def Track(self, argin):
@@ -428,7 +434,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("StopTrack")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def StopTrack(self):
         """Invokes StopTrack command on the DishMaster."""
@@ -455,7 +461,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("Abort")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def Abort(self):
         """Invokes Abort command on the DishMaster."""
@@ -482,7 +488,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("Restart")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def Restart(self):
         """Invokes Restart command on the DishMaster."""
@@ -509,7 +515,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("ObsReset")
         return handler.check_allowed()
 
-    @command()
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def ObsReset(self):
         """Invokes ObsReset command on the DishLeafNode."""
