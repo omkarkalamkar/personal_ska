@@ -10,22 +10,22 @@ from tests.settings import logger, sleep_time, timeout
 def setoperatemode_command(tango_context, dishln_name):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
-    dishl_node = dev_factory.get_device(dishln_name)
-    initial_len = len(dishl_node.commandExecuted)
-    (result, unique_id) = dishl_node.SetStandbyLPMode()
-    (result, unique_id) = dishl_node.SetStandbyFPMode()
-    (result, unique_id) = dishl_node.SetOperateMode()
+    dish_leaf_node = dev_factory.get_device(dishln_name)
+    initial_len = len(dish_leaf_node.commandExecuted)
+    (result, unique_id) = dish_leaf_node.SetStandbyLPMode()
+    (result, unique_id) = dish_leaf_node.SetStandbyFPMode()
+    (result, unique_id) = dish_leaf_node.SetOperateMode()
     logger.info(result)
     logger.info(unique_id)
     assert result[0] == ResultCode.QUEUED
     start_time = time.time()
-    while len(dishl_node.commandExecuted) != initial_len + 3:
+    while len(dish_leaf_node.commandExecuted) != initial_len + 3:
         time.sleep(sleep_time)
         elapsed_time = time.time() - start_time
         if elapsed_time > timeout:
             pytest.fail("Timeout occurred while executing the test")
 
-    for command in dishl_node.commandExecuted:
+    for command in dish_leaf_node.commandExecuted:
         if command[0] == unique_id[0]:
             assert command[2] == "ResultCode.OK"
 
