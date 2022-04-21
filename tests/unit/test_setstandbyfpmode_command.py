@@ -25,7 +25,7 @@ def test_setstandbyfpmode_command(tango_context, dish_master_device):
 def test_setstandbyfpmode_command_with_exception(
     tango_context, dish_master_device
 ):
-    cm, _ = create_cm(dish_master_device)
+    cm = create_cm(dish_master_device)
     adapter_factory = HelperAdapterFactory()
 
     # include exception in SetStandbyFPMode command

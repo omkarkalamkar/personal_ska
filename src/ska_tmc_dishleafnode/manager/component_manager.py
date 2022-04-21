@@ -1,13 +1,10 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
-import time
 
 from ska_tmc_common.command_executor import CommandExecutor
 from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
-
-from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -23,7 +20,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_device_callback=None,
         _update_command_in_progress_callback=None,
         _monitoring_loop=False,
-        _event_receiver=True,
+        _event_receiver=False,
         max_workers=5,
         proxy_timeout=500,
         sleep_time=1,
@@ -36,7 +33,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param logger: a logger for this component manager
         :param _monitoring_loop: allows eanabling/disabling the monitoring loop; For DishLN
         monitoring loop is not required. Therefore this parameter will always be False.
-        :param _event_receiver: allows eanabling/disabling the event subscriber;
+        :param _event_receiver: allows eanabling/disabling the event subscriber; For DishLN
+        event receiver is not required. Therefore this parameter will always be False.
         :param max_workers: allows to specify number of threads to be used by the monitoring loop;
         This parameter is not used for DishLN.
         :param proxy_timeout: allows to specify a client side timeout for sub-devices in milliseconds
@@ -55,22 +53,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.update_device_info(dish_dev_name)
-        if _event_receiver:
-            self._event_receiver = DishLNEventReceiver(
-                self,
-                logger,
-                proxy_timeout=proxy_timeout,
-                sleep_time=sleep_time,
-            )
-            self._event_receiver.start()
 
         self.command_executor = CommandExecutor(
             logger,
             _update_command_in_progress_callback=_update_command_in_progress_callback,
         )
-
-    def stop(self):
-        self._event_receiver.stop()
 
     def get_device(self):
         """
@@ -85,92 +72,3 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_device_info(self, dish_dev_name):
         self.dish_dev_name = dish_dev_name
         self._device = DishDeviceInfo(self.dish_dev_name, False)
-
-    @property
-    def checked_device(self):
-        """
-        Return the checked dish device
-
-        :return: the checked dish device
-        """
-        if (self._device.unresponsive) or (
-            self._device.last_event_arrived is not None
-        ):
-            return self._device
-        return None
-
-    def update_event_failure(self):
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
-
-    def update_device_dish_mode(self, dish_mode):
-        """
-        Update a monitored device dish Mode,
-        and call the relative callbacks if available
-
-        :param dish_mode: Dish Mode of the Dish device
-        :type dish_mode: DishMode
-        """
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.dish_mode = dish_mode
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
-
-    def update_device_pointing_state(self, pointing_state):
-        """
-        Update a monitored device pointing State,
-        and call the relative callbacks if available
-
-        :param pointing State: pointing State of the device
-        :type pointing State: pointingState
-        """
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.pointing_state = pointing_state
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
-
-    def update_device_rxcapturing_data(self, capturing_data):
-        """
-        Update a monitored device data capturing,
-        and call the relative callbacks if available
-
-        :param capturing_data: capturing data of the device
-        :type rxcapturing Data: Boolean
-        """
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.rx_capturing_data = capturing_data
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
-
-    def update_device_achieved_pointing(self, achieved_pointing):
-        """
-        Update a monitored device achieved Pointing,
-        and call the relative callbacks if available
-
-        :param achieved_pointing: achieved pointing of the device
-        :type achieved Pointing Data: DevDouble array
-        """
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.achieved_pointing = achieved_pointing
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
-
-    def update_device_desired_pointing(self, desired_pointing):
-        """
-        Update a monitored device desired Pointing,
-        and call the relative callbacks if available
-
-        :param desired_pointing: desired pointing of the device
-        :type desired Pointing : DevDouble array
-        """
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.desired_pointing = desired_pointing
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
