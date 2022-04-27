@@ -18,7 +18,9 @@ def setstandbyfpmode_command(tango_context, dishln_name):
     logger.info(unique_id)
     assert result[0] == ResultCode.QUEUED
     start_time = time.time()
-    while len(dish_leaf_node.commandExecuted) != initial_len + 2:
+    # 2 commands are getting executed above therefore check if initial length of the
+    # commandExecuted attribute has incremented by 2
+    while len(dish_leaf_node.commandExecuted) < initial_len + 2:
         time.sleep(SLEEP_TIME)
         elapsed_time = time.time() - start_time
         if elapsed_time > TIMEOUT:
