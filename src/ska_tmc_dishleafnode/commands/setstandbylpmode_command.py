@@ -37,10 +37,7 @@ class SetStandbyLPMode(DishLNCommand):
             None
 
         return:
-            None
-
-        raises:
-            Exception If error occurs while invoking SetStandbyLPMode command on DishMaster.
+            (ResultCode, str)
         """
 
         log_msg = f"Invoking SetStandbyLPMode command on:{self.dish_master_adapter.dev_name}"

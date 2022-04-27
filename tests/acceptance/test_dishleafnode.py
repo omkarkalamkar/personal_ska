@@ -5,7 +5,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from tango import Database, DeviceProxy
 
-from tests.settings import logger, sleep_time
+from tests.settings import SLEEP_TIME, logger
 
 
 @given(
@@ -30,7 +30,7 @@ def call_command(dishleaf_node, command_name):
 
 @then(
     parsers.parse(
-        "the command is queued and executed in less than {seconds} ss"
+        "the command is queued and executed in less than {seconds} secs"
     )
 )
 def check_command(dishleaf_node, seconds):
@@ -51,7 +51,7 @@ def check_command(dishleaf_node, seconds):
                 executed = True
         if executed:
             break
-        time.sleep(sleep_time)
+        time.sleep(SLEEP_TIME)
         elapsed_time = time.time() - start_time
         if elapsed_time > float(seconds):
             pytest.fail("Timeout occurred while executing the test")

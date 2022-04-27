@@ -92,9 +92,6 @@ class DishLeafNode(SKABaseDevice):
             )
             return (ResultCode.OK, "")
 
-    def always_executed_hook(self):
-        pass
-
     def delete_device(self):
         # if the init is called more than once
         # I need to stop all threads

@@ -11,8 +11,8 @@ from ska_tmc_dishleafnode.manager.component_manager import (
 
 logger = logging.getLogger(__name__)
 
-sleep_time = 0.5
-timeout = 100
+SLEEP_TIME = 0.5
+TIMEOUT = 100
 
 dish_master_device = "mid_d0001/elt/master"
 

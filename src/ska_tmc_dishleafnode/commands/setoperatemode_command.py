@@ -36,10 +36,7 @@ class SetOperateMode(DishLNCommand):
             None
 
         return:
-            None
-
-        raises:
-            Exception If error occurs while invoking SetOperateMode command on DishMaster.
+            (ResultCode, str)
         """
         self.logger.info(
             f"Invoking SetOperateMode command on: {self.dish_master_adapter.dev_name}"

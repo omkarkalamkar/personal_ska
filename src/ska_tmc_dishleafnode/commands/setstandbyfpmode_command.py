@@ -37,10 +37,7 @@ class SetStandbyFPMode(DishLNCommand):
             None
 
         return:
-            None
-
-        raises:
-            Exception If error occurs while invoking SetStandbyFPMode command on DishMaster.
+            (ResultCode, str)
         """
 
         log_msg = f"Invoking SetStandbyFPMode command on:{self.dish_master_adapter.dev_name}"
