@@ -23,7 +23,7 @@ def test_setoperatemode_command(tango_context, dish_master_device):
 def test_setoperatemode_command_with_exception(
     tango_context, dish_master_device
 ):
-    cm, _ = create_cm(dish_master_device)
+    cm = create_cm(dish_master_device)
     adapter_factory = HelperAdapterFactory()
     cm._dish_dev_name = dish_master_device
 
