@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    ska_tmc_dishleafnode.commands
+   ska_tmc_dishleafnode.manager
 
 Submodules
 ----------
