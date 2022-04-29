@@ -12,6 +12,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     A component manager for The Dish Leaf Node component.
     """
 
+    # pylint: disable=unused-argument
     def __init__(
         self,
         dish_dev_name,
@@ -58,6 +59,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger,
             _update_command_in_progress_callback=update_command_in_progress_callback,
         )
+
+    # pylint: enable=unused-argument
 
     def get_device(self):
         """
