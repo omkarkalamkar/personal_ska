@@ -1,3 +1,4 @@
+# pylint: disable=abstract-method
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.adapters import AdapterFactory, AdapterType
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
@@ -33,12 +34,10 @@ class DishLNCommand(TmcLeafNodeCommand):
             DevState.DISABLE,
         ]:
             raise CommandNotAllowed(
-                """The invocation of the %s command on this device is not allowed.
-                Reason: The current operational state is %s.
+                f"""The invocation of the {command_name} command on this device is not allowed.
+                Reason: The current operational state is {self.op_state_model.op_state}.
                 The command has NOT been executed.
-                This device will continue with normal operation.""",
-                command_name,
-                self.op_state_model.op_state,
+                This device will continue with normal operation."""
             )
 
     def init_adapter(self):

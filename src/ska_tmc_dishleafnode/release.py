@@ -6,6 +6,7 @@
 #
 # Distributed under the terms of the BSD-3-Clause license.
 # See LICENSE.txt for more info.
+# pylint: disable=redefined-builtin
 
 """Release information for Python Package"""
 
