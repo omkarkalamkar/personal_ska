@@ -17,6 +17,8 @@ def test_attributes(dishln_device):
     dishln_device.dishMasterDevName = "dishmaster"
     assert dishln_device.dishMasterDevName == "dishmaster"
     assert dishln_device.versionId == release.version
-    assert dishln_device.buildState == (
-        "{},{},{}".format(release.name, release.version, release.description)
+    assert (
+        dishln_device.buildState
+        == f"""{release.name},{release.version},
+            {release.description}"""
     )

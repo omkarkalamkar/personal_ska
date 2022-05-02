@@ -12,7 +12,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     A component manager for The Dish Leaf Node component.
     """
 
-    # pylint: disable=unused-argument
+    # pylint: disable=unused-argument,line-too-long
     def __init__(
         self,
         dish_dev_name,
@@ -32,16 +32,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param op_state_model: the op state model used by this component
             manager
         :param logger: a logger for this component manager
-        :param monitoring_loop: allows eanabling/disabling the monitoring loop; For DishLN
-        monitoring loop is not required. Therefore this parameter will always be False.
-        :param event_receiver: allows eanabling/disabling the event subscriber; For DishLN
-        event receiver is not required. Therefore this parameter will always be False.
-        :param max_workers: allows to specify number of threads to be used by the monitoring loop;
+        :param monitoring_loop: allows eanabling/disabling the monitoring loop;
+        For DishLN monitoring loop is not required. Therefore this parameter
+        will always be False.
+        :param event_receiver: allows eanabling/disabling the event subscriber;
+        For DishLN event receiver is not required. Therefore this parameter
+        will always be False.
+        :param max_workers: allows to specify number of threads to be used by
+        the monitoring loop;
         This parameter is not used for DishLN.
-        :param proxy_timeout: allows to specify a client side timeout for sub-devices in milliseconds
+        :param proxy_timeout: allows to specify a client side timeout for
+        sub-devices in milliseconds
         used by the monitoring loop; This parameter is not used for DishLN.
-        :param sleep_time: allows to specify the wait between each iteration of the monitoring loop
-        and EventSubscriber;
+        :param sleep_time: allows to specify the wait between each iteration
+        of the monitoring loop and EventSubscriber;
         """
         super().__init__(
             op_state_model,
@@ -60,7 +64,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_command_in_progress_callback=update_command_in_progress_callback,
         )
 
-    # pylint: enable=unused-argument
+    # pylint: enable=unused-argument,line-too-long
 
     def get_device(self):
         """
@@ -73,5 +77,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self._device
 
     def update_device_info(self, dish_dev_name):
+        """Updates DishDeviceInfo in device parameter."""
         self.dish_dev_name = dish_dev_name
         self._device = DishDeviceInfo(self.dish_dev_name, False)

@@ -1,3 +1,4 @@
+"""This is init module for DishLeafNode commands."""
 from ska_tmc_dishleafnode.commands.setoperatemode_command import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode_command import (
     SetStandbyFPMode,
