@@ -196,7 +196,7 @@ class DishLeafNode(SKABaseDevice):
 
         :return: True if this command is allowed to be run in current \
         device state. \
- 
+
         :rtype: boolean
         """
         handler = self.get_command_object("SetOperateMode")
@@ -291,7 +291,7 @@ class DishLeafNode(SKABaseDevice):
         """
         Checks whether this command is allowed to be run in the current \
         device state. \
- 
+
         :return: True if this command is allowed to be run in current \
         device state. \
 
