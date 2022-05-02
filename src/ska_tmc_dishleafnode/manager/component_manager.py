@@ -61,7 +61,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.command_executor = CommandExecutor(
             logger,
-            _update_command_in_progress_callback=update_command_in_progress_callback,
+            _update_command_in_progress_callback=update_command_in_progress_callback,  # noqa: E501
         )
 
     # pylint: enable=unused-argument,line-too-long

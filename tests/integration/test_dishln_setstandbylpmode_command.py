@@ -17,8 +17,8 @@ def setstandbylpmode_command(tango_context, dishln_name):
     logger.info(unique_id)
     assert result[0] == ResultCode.QUEUED
     start_time = time.time()
-    # 1 command is getting executed above therefore check if initial length of the
-    # commandExecuted attribute has incremented by 1
+    # 1 command is getting executed above therefore check if initial length of
+    # the commandExecuted attribute has incremented by 1
     while len(dish_leaf_node.commandExecuted) < initial_len + 1:
         time.sleep(SLEEP_TIME)
         elapsed_time = time.time() - start_time
