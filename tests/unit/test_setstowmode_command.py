@@ -36,7 +36,7 @@ def test_setstowmode_command_with_exception(tango_context, dish_master_device):
     assert dish_master_device in message
 
 
-def test_setstowmode_command_unresponcive_dishmaster(
+def test_setstowmode_command_unresponsive_dishmaster(
     tango_context, dish_master_device
 ):
     cm, set_stow_mode_command, _ = get_dishln_command_obj(SetStowMode)

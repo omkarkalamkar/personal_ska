@@ -40,7 +40,7 @@ def test_setoperatemode_command_with_exception(
     assert dish_master_device in message
 
 
-def test_set_operate_mode_command_with_unresponcive_dishmaster(
+def test_set_operate_mode_command_with_unresponsive_dishmaster(
     tango_context, dish_master_device
 ):
     cm, set_operate_mode_command, _ = get_dishln_command_obj(SetOperateMode)

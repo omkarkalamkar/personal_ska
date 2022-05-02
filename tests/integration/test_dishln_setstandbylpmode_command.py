@@ -4,7 +4,7 @@ import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 
-from tests.settings import logger, sleep_time, timeout
+from tests.settings import SLEEP_TIME, TIMEOUT, logger
 
 
 def setstandbylpmode_command(tango_context, dishln_name):
@@ -17,10 +17,12 @@ def setstandbylpmode_command(tango_context, dishln_name):
     logger.info(unique_id)
     assert result[0] == ResultCode.QUEUED
     start_time = time.time()
-    while len(dish_leaf_node.commandExecuted) != initial_len + 1:
-        time.sleep(sleep_time)
+    # 1 command is getting executed above therefore check if initial length of the
+    # commandExecuted attribute has incremented by 1
+    while len(dish_leaf_node.commandExecuted) < initial_len + 1:
+        time.sleep(SLEEP_TIME)
         elapsed_time = time.time() - start_time
-        if elapsed_time > timeout:
+        if elapsed_time > TIMEOUT:
             pytest.fail("Timeout occurred while executing the test")
 
     for command in dish_leaf_node.commandExecuted:

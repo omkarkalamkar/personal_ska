@@ -41,7 +41,7 @@ def test_setstandbylpmode_command_with_exception(
     assert dish_master_device in message
 
 
-def test_setstandbylpmode_command_with_unresponcive_dishmaster(
+def test_setstandbylpmode_command_with_unresponsive_dishmaster(
     tango_context, dish_master_device
 ):
     cm, set_standby_lp_mode_command, _ = get_dishln_command_obj(

@@ -1,3 +1,4 @@
+"""This module provides settings for the test cases."""
 import logging
 
 from ska_tmc_common.op_state_model import TMCOpStateModel
@@ -11,13 +12,14 @@ from ska_tmc_dishleafnode.manager.component_manager import (
 
 logger = logging.getLogger(__name__)
 
-sleep_time = 0.5
-timeout = 100
+SLEEP_TIME = 0.5
+TIMEOUT = 100
 
 dish_master_device = "mid_d0001/elt/master"
 
 
 def create_cm(device):
+    """Creates component manager for CSP Subarray Leaf Node."""
     op_state_model = TMCOpStateModel(logger)
     cm = DishLNComponentManager(
         device,

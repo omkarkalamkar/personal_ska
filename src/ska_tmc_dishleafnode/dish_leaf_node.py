@@ -1,3 +1,4 @@
+"""This is DishLeafNode TANGO device."""
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.op_state_model import TMCOpStateModel
@@ -74,26 +75,22 @@ class DishLeafNode(SKABaseDevice):
             Initializes the attributes and properties of the DishLeafNode.
 
             return:
-                A tuple containing a return code and a string message indicating status.
-                The message is for information purpose only.
+                A tuple containing a return code and a string message
+                indicating status. The message is for information purpose only.
 
             rtype:
                 (ResultCode, str)
             """
             super().do()
             device = self.target
-            device._build_state = "{},{},{}".format(
-                release.name, release.version, release.description
-            )
+            device._build_state = f"""{release.name},{release.version},
+            {release.description}"""
             device._version_id = release.version
             device.op_state_model.perform_action("component_on")
             device.component_manager.command_executor.add_command_execution(
                 "0", "Init", ResultCode.OK, ""
             )
             return (ResultCode.OK, "")
-
-    def always_executed_hook(self):
-        pass
 
     def delete_device(self):
         # if the init is called more than once
@@ -133,9 +130,12 @@ class DishLeafNode(SKABaseDevice):
     # --------
     def is_SetStowMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("SetStowMode")
@@ -147,9 +147,10 @@ class DishLeafNode(SKABaseDevice):
         """Invokes SetStowMode command on DishMaster."""
         handler = self.get_command_object("SetStowMode")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"SetStowMode\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"SetStowMode\"  command has NOT been queued and will not be executed.
+            message = """The invocation of the \"SetStowMode\" command on this
+            device failed. Reason: The command executor rejected the queuing
+            of the command because its queue is full. The \"SetStowMode\"
+            command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
@@ -159,9 +160,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyLPMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("SetStandbyLPMode")
@@ -170,13 +174,15 @@ class DishLeafNode(SKABaseDevice):
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyLPMode(self):
-        """Invokes SetStandbyLPMode (i.e. Low Power State) command on DishMaster."""
+        """Invokes SetStandbyLPMode (i.e. Low Power State) command on
+        DishMaster."""
         handler = self.get_command_object("SetStandbyLPMode")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"SetStandbyLPMode\"command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"SetStandbyLPMode\" command has NOT been queued and will not be executed.
-            This device will continue with normal operation."""
+            message = """The invocation of the \"SetStandbyLPMode\"command on
+            this device failed. Reason: The command executor rejected the
+            queuing of the command because its queue is full. The
+            \"SetStandbyLPMode\" command has NOT been queued and will not be
+            executed. This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
             handler
@@ -185,9 +191,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetOperateMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("SetOperateMode")
@@ -199,10 +208,11 @@ class DishLeafNode(SKABaseDevice):
         """Invokes SetOperateMode command on DishMaster."""
         handler = self.get_command_object("SetOperateMode")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"SetOperateMode\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"SetOperateMode\" command has NOT been queued and will not be executed.
-            This device will continue with normal operation."""
+            message = """The invocation of the \"SetOperateMode\" command on
+            this device failed. Reason: The command executor rejected the
+            queuing of the command because its queue is full. The
+            \"SetOperateMode\" command has NOT been queued and will not be
+            executed. This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
             handler
@@ -211,9 +221,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyFPMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("SetStandbyFPMode")
@@ -222,12 +235,15 @@ class DishLeafNode(SKABaseDevice):
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyFPMode(self):
-        """Invokes SetStandbyFPMode command on DishMaster (Standby-Full power) mode."""
+        """Invokes SetStandbyFPMode command on DishMaster (Standby-Full power)
+        mode."""
         handler = self.get_command_object("SetStandbyFPMode")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"SetStandbyFPMode\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"SetStandbyFPMode\" command has NOT been queued and will not be executed.
+            message = """The invocation of the \"SetStandbyFPMode\" command on
+            this device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full. The \"SetStandbyFPMode\" command has
+            NOT been queued and will not be executed.
             This device will continue with normal operation."""
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
@@ -237,9 +253,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Scan_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("Scan")
@@ -255,8 +274,10 @@ class DishLeafNode(SKABaseDevice):
         """Invokes Scan command on DishMaster."""
         handler = self.get_command_object("Scan")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"Scan\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
+            message = """The invocation of the \"Scan\" command on this device
+            failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
             The \"Scan\" command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
 
@@ -268,9 +289,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_EndScan_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("EndScan")
@@ -287,9 +311,12 @@ class DishLeafNode(SKABaseDevice):
 
         handler = self.get_command_object("EndScan")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"EndScan\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"EndScan\" command has NOT been queued and will not be executed.
+            message = """The invocation of the \"EndScan\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
+            The \"EndScan\" command has NOT been queued and will not be
+            executed.
             This device will continue with normal operation."""
 
             return [[ResultCode.FAILED], [message]]
@@ -300,9 +327,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Configure_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("Configure")
@@ -315,13 +345,18 @@ class DishLeafNode(SKABaseDevice):
     )
     @DebugIt()
     def Configure(self, argin):
-        """Configures the Dish by setting pointing coordinates for a given observation."""
+        """Configures the Dish by setting pointing coordinates for a given
+        observation."""
 
         handler = self.get_command_object("Configure")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"Configure\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"Configure\" command has NOT been queued and will not be executed.
+            message = """The invocation of the \"Configure\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
+            The \"Configure\" command has NOT been queued and will not be
+            executed.
+
             This device will continue with normal operation."""
 
             return [[ResultCode.FAILED], [message]]
@@ -332,9 +367,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_StartCapture_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("StartCapture")
@@ -342,19 +380,23 @@ class DishLeafNode(SKABaseDevice):
 
     @command(
         dtype_in="str",
-        doc_in="The timestamp indicates the time, in UTC, at which command execution should start.",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def StartCapture(self, argin):
-        """Triggers the DishMaster to start data capturing on the configured band."""
+        """Triggers the DishMaster to start data capturing on the configured
+        band."""
 
         handler = self.get_command_object("StartCapture")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"StartCapture\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"StartCapture\" command has NOT been queued and will not be executed.
-            This device will continue with normal operation."""
+            message = """The invocation of the \"StartCapture\" command on
+            this device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
+            The \"StartCapture\" command has NOT been queued and will not be
+            executed. This device will continue with normal operation."""
 
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
@@ -364,9 +406,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_StopCapture_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("StopCapture")
@@ -374,18 +419,22 @@ class DishLeafNode(SKABaseDevice):
 
     @command(
         dtype_in="str",
-        doc_in="The timestamp indicates the time, in UTC, at which command execution should start.",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
     def StopCapture(self, argin):
-        """Invokes StopCapture command on DishMaster on the set configured band."""
+        """Invokes StopCapture command on DishMaster on the set configured
+        band."""
         handler = self.get_command_object("StopCapture")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"StopCapture\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"StopCapture\" command has NOT been queued and will not be executed.
-            This device will continue with normal operation."""
+            message = """The invocation of the \"StopCapture\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
+            The \"StopCapture\" command has NOT been queued and will not be
+            executed. This device will continue with normal operation."""
 
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
@@ -395,9 +444,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Track_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("Track")
@@ -413,8 +465,10 @@ class DishLeafNode(SKABaseDevice):
         """Invokes Track command on the DishMaster."""
         handler = self.get_command_object("Track")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"Track\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
+            message = """The invocation of the \"Track\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
             The \"Track\" command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
 
@@ -426,9 +480,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_StopTrack_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current device state.
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current device state.
+        :return: True if this command is allowed to be run in current
+        device state.
+
         :rtype: boolean
         """
         handler = self.get_command_object("StopTrack")
@@ -440,9 +497,12 @@ class DishLeafNode(SKABaseDevice):
         """Invokes StopTrack command on the DishMaster."""
         handler = self.get_command_object("StopTrack")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"StopTrack\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"StopTrack\" command has NOT been queued and will not be executed.
+            message = """The invocation of the \"StopTrack\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
+            The \"StopTrack\" command has NOT been queued and will not be
+            executed.
             This device will continue with normal operation."""
 
             return [[ResultCode.FAILED], [message]]
@@ -453,9 +513,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Abort_allowed(self):
         """
-        Checks whether this command is allowed to be run in current device state
+        Checks whether this command is allowed to be run in current
+        device state
 
-        :return: True if this command is allowed to be run in current device state
+        :return: True if this command is allowed to be run in current device
+        state
+
         :rtype: boolean
         """
         handler = self.get_command_object("Abort")
@@ -467,8 +530,10 @@ class DishLeafNode(SKABaseDevice):
         """Invokes Abort command on the DishMaster."""
         handler = self.get_command_object("Abort")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"Abort\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
+            message = """The invocation of the \"Abort\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
             The \"Abort\" command has NOT been queued and will not be executed.
             This device will continue with normal operation."""
 
@@ -480,9 +545,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Restart_allowed(self):
         """
-        Checks whether this command is allowed to be run in current device state
+        Checks whether this command is allowed to be run in current
+        device state
 
-        :return: True if this command is allowed to be run in current device state
+        :return: True if this command is allowed to be run in current
+        device state
         :rtype: boolean
         """
         handler = self.get_command_object("Restart")
@@ -494,10 +561,12 @@ class DishLeafNode(SKABaseDevice):
         """Invokes Restart command on the DishMaster."""
         handler = self.get_command_object("Restart")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"Restart\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"Restart\" command has NOT been queued and will not be executed.
-            This device will continue with normal operation."""
+            message = """The invocation of the \"Restart\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
+            The \"Restart\" command has NOT been queued and will not be
+            executed. This device will continue with normal operation."""
 
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
@@ -507,9 +576,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_ObsReset_allowed(self):
         """
-        Checks whether this command is allowed to be run in current device state
+        Checks whether this command is allowed to be run in current
+        device state
 
-        :return: True if this command is allowed to be run in current device state
+        :return: True if this command is allowed to be run in current
+        device state
+
         :rtype: boolean
         """
         handler = self.get_command_object("ObsReset")
@@ -521,10 +593,12 @@ class DishLeafNode(SKABaseDevice):
         """Invokes ObsReset command on the DishLeafNode."""
         handler = self.get_command_object("ObsReset")
         if self.component_manager.command_executor.queue_full:
-            message = """The invocation of the \"ObsReset\" command on this device failed.
-            Reason: The command executor rejected the queuing of the command because its queue is full.
-            The \"ObsReset\" command has NOT been queued and will not be executed.
-            This device will continue with normal operation."""
+            message = """The invocation of the \"ObsReset\" command on this
+            device failed.
+            Reason: The command executor rejected the queuing of the command
+            because its queue is full.
+            The \"ObsReset\" command has NOT been queued and will not be
+            executed. This device will continue with normal operation."""
 
             return [[ResultCode.FAILED], [message]]
         unique_id = self.component_manager.command_executor.enqueue_command(
@@ -533,6 +607,7 @@ class DishLeafNode(SKABaseDevice):
         return [[ResultCode.QUEUED], [str(unique_id)]]
 
     def create_component_manager(self):
+        # pylint: disable=W0201
         self.op_state_model = TMCOpStateModel(
             logger=self.logger, callback=super()._update_state
         )
@@ -542,6 +617,7 @@ class DishLeafNode(SKABaseDevice):
             logger=self.logger,
             sleep_time=self.SleepTime,
         )
+        # pylint: enable=W0201
         return cm
 
     def init_command_objects(self):

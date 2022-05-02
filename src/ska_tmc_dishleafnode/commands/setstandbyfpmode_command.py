@@ -16,9 +16,9 @@ class SetStandbyFPMode(DishLNCommand):
 
     def check_allowed(self):
         """
-        Checks whether this command is allowed. It checks that the device is in the right state
-        to execute this command and that all the component needed for the operation are not
-        unresponsive
+        Checks whether this command is allowed. It checks that the device is
+        in the right state to execute this command and that all the component
+        needed for the operation are not unresponsive
 
         :return: True if this command is allowed
 
@@ -37,27 +37,28 @@ class SetStandbyFPMode(DishLNCommand):
             None
 
         return:
-            None
-
-        raises:
-            Exception If error occurs while invoking SetStandbyFPMode command on DishMaster.
+            (ResultCode, str)
         """
 
-        log_msg = f"Invoking SetStandbyFPMode command on:{self.dish_master_adapter.dev_name}"
+        log_msg = f"""Invoking SetStandbyFPMode command on:
+        {self.dish_master_adapter.dev_name}"""
         self.logger.info(log_msg)
 
         try:
             self.dish_master_adapter.SetStandbyFPMode()
         except Exception as e:
             log_msg = f"""Execution of SetStandbyFPMode command is failed.
-                       Reason: Error in calling SetStandbyFPMode command on {self.dish_master_adapter.dev_name}: {e}
+                       Reason: Error in calling SetStandbyFPMode command on
+                       {self.dish_master_adapter.dev_name}: {e}
                        The command is not executed successfully.
                        The device will continue with normal operation"""
             self.logger.exception(log_msg)
             return self.generate_command_result(
                 ResultCode.FAILED,
-                f"Error in calling SetStandbyFPMode command on {self.dish_master_adapter.dev_name}",
+                f"""Error in calling SetStandbyFPMode command on:
+                {self.dish_master_adapter.dev_name}""",
             )
-        log_msg = f"SetStandbyFPMode command successfully invoked on:{self.dish_master_adapter.dev_name}"
+        log_msg = f"""SetStandbyFPMode command successfully invoked on:
+        {self.dish_master_adapter.dev_name}"""
         self.logger.info(log_msg)
         return (ResultCode.OK, "")
