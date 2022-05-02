@@ -130,11 +130,11 @@ class DishLeafNode(SKABaseDevice):
     # --------
     def is_SetStowMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -160,11 +160,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyLPMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -191,12 +191,12 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetOperateMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
-
+        :return: True if this command is allowed to be run in current \
+        device state. \
+ 
         :rtype: boolean
         """
         handler = self.get_command_object("SetOperateMode")
@@ -221,11 +221,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyFPMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -253,11 +253,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Scan_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -289,11 +289,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_EndScan_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
-
-        :return: True if this command is allowed to be run in current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
+ 
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -327,11 +327,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Configure_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -367,11 +367,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_StartCapture_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -406,11 +406,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_StopCapture_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -444,11 +444,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Track_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -480,11 +480,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_StopTrack_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-        :return: True if this command is allowed to be run in current
-        device state.
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
         :rtype: boolean
         """
@@ -513,11 +513,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Abort_allowed(self):
         """
-        Checks whether this command is allowed to be run in current
-        device state
+        Checks whether this command is allowed to be run in current \
+        device state \
 
-        :return: True if this command is allowed to be run in current device
-        state
+        :return: True if this command is allowed to be run in current device \
+        state \
 
         :rtype: boolean
         """
@@ -545,11 +545,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_Restart_allowed(self):
         """
-        Checks whether this command is allowed to be run in current
-        device state
+        Checks whether this command is allowed to be run in current \
+        device state \
 
-        :return: True if this command is allowed to be run in current
-        device state
+        :return: True if this command is allowed to be run in current \
+        device state \
         :rtype: boolean
         """
         handler = self.get_command_object("Restart")
@@ -576,11 +576,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_ObsReset_allowed(self):
         """
-        Checks whether this command is allowed to be run in current
-        device state
+        Checks whether this command is allowed to be run in current \
+        device state \
 
-        :return: True if this command is allowed to be run in current
-        device state
+        :return: True if this command is allowed to be run in current \
+        device state \
 
         :rtype: boolean
         """

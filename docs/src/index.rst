@@ -13,6 +13,12 @@ This project is developing the TMC Dish Leaf Nodes component of the Telescope Mo
    :caption: Developer guide
 
    developer_guide/code_quality
+ 
+.. toctree::
+   :maxdepth: 1
+   :caption: Dish Leaf Node
+
+   dishleafnode/ska_tmc_dishleafnode
 
 Indices and tables
 ------------------
