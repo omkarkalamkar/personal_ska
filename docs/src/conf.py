@@ -2,7 +2,7 @@
 #
 # Configuration file for the Sphinx documentation builder.
 #
-# This file does only contain a selection of the most common options. For a
+# This file only contains a selection of the most common options. For a
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
@@ -122,6 +122,11 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+html_context = {
+    "favicon": "img/favicon_mono.ico",
+    "logo": "img/logo.png",
+    "theme_logo_only": True,
+}
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #

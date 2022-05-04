@@ -1,37 +1,34 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the DishLeafNode project
-#
-#
-#
-# Distributed under the terms of the BSD-3-Clause license.
-# See LICENSE.txt for more info.
-
-
 """
-SetOperateMode class for DishLeafNode.
+SetOperateMode command class for DishLeafNode.
 """
-# Tango import
-import tango
+from ska_tango_base.commands import ResultCode
 
-# Additional import
-from ska_tango_base.commands import BaseCommand
-from ska_tmc_common.tango_client import TangoClient
-from ska_tmc_common.tango_server_helper import TangoServerHelper
-from tango import DevFailed
-
-from .command_callback import CommandCallBack
-from .device_data import DeviceData
+from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-class SetOperateMode(BaseCommand):
+class SetOperateMode(DishLNCommand):
     """
     A class for DishLeafNode's SetOperateMode() command.
 
-    Invokes SetOperateMode command on DishMaster.
+    SetOperateMode invokes SetOperateMode command on Dish Master device.
+
     """
 
-    def do(self):
+    def check_allowed(self):
+        """
+        Checks whether this command is allowed. It checks that the device is
+        in the right state to execute this command and that all the component
+        needed for the operation are not unresponsive.
+
+        :return: True if this command is allowed
+
+        :rtype: boolean
+        """
+        self.check_op_state(__class__.__name__)
+        self.check_unresponsive()
+        return True
+
+    def do(self, argin=None):
         """
         Method to invoke SetOperateMode command on DishMaster.
 
@@ -39,97 +36,28 @@ class SetOperateMode(BaseCommand):
             None
 
         return:
-            None
-
-        raises:
-            DevFailed If error occurs while invoking SetOperateMode command on DishMaster.
-
+            (ResultCode, str)
         """
-        cmd_ended_cb = CommandCallBack(self.logger).cmd_ended_cb
-
-        attributes_to_subscribe_to = (
-            "dishMode",
-            "capturing",
-            "achievedPointing",
-            "desiredPointing",
+        self.logger.info(
+            f"""Invoking SetOperateMode command on:
+            {self.dish_master_adapter.dev_name}"""
         )
-        command_name = "SetOperateMode"
-        cmd_ended_cb = CommandCallBack(self.logger).cmd_ended_cb
         try:
-            self.this_server = TangoServerHelper.get_instance()
-
-            self.dish_master_fqdn = ""
-            property_value = self.this_server.read_property("DishMasterFQDN")
-            self.dish_master_fqdn = self.dish_master_fqdn.join(property_value)
-            dish_client = TangoClient(self.dish_master_fqdn)
-            # Subscribe the DishMaster attributes
-            self._subscribe_to_attribute_events(
-                attributes_to_subscribe_to, dish_client
-            )
-            dish_client.send_command_async(
-                command_name, callback_method=cmd_ended_cb
-            )
-            self.logger.info(
-                "'%s' command executed successfully.", command_name
+            self.dish_master_adapter.SetOperateMode()
+        except Exception as e:
+            log_msg = f"""Execution of SetOperateMode command is failed.
+                        Reason: Error in calling SetOperateMode command on
+                        {self.dish_master_adapter.dev_name}: {e}
+                        The command is not executed successfully.
+                        The device will continue with normal operation"""
+            self.logger.exception(log_msg)
+            return self.generate_command_result(
+                ResultCode.FAILED,
+                f"""Error in calling SetOperateMode command on:
+                {self.dish_master_adapter.dev_name}""",
             )
 
-        except DevFailed as dev_failed:
-            self.logger.exception(dev_failed)
-            log_message = f"Exception occured while executing the '{command_name}' command."
-            self.this_server.write_attr("activityMessage", log_message, False)
-            tango.Except.re_throw_exception(
-                dev_failed,
-                f"Exception in '{command_name}' command.",
-                log_message,
-                f"DishLeafNode.{command_name}Command",
-                tango.ErrSeverity.ERR,
-            )
-
-    def _subscribe_to_attribute_events(self, attributes, dish_client):
-        device_data = DeviceData.get_instance()
-        device_data.attr_event_map["dish_client"] = dish_client
-        for attribute_name in attributes:
-            try:
-                device_data.attr_event_map[
-                    attribute_name
-                ] = dish_client.subscribe_attribute(
-                    attribute_name, self.attribute_event_handler
-                )
-            except DevFailed as dev_failed:
-                self.logger.exception(dev_failed)
-                log_message = f"Exception occurred while subscribing to Dish attribute: {attribute_name}"
-                self.this_server.write_attr(
-                    "activityMessage", log_message, False
-                )
-                tango.Except.re_throw_exception(
-                    dev_failed,
-                    "Exception in Init command",
-                    log_message,
-                    "DishLeafNode.{}Command".format("Init"),
-                    tango.ErrSeverity.ERR,
-                )
-
-    def attribute_event_handler(self, event_data):
-        """
-        Retrieves the subscribed attribute of DishMaster.
-
-        :param evt: A TANGO_CHANGE event on attribute.
-        """
-        if event_data.err:
-            log_message = (
-                f"Event system DevError(s) occured!!! {str(event_data.errors)}"
-            )
-            self.this_server.write_attr("activityMessage", log_message, False)
-            self.logger.error(log_message)
-            return
-
-        fqdn_attr_name = event_data.attr_name
-        # tango://monctl.devk4.camlab.kat.ac.za:4000/mid_dish_0000/elt/
-        # master/<attribute_name>#dbase=no
-        # We process the FQDN of the attribute to extract just the
-        # attribute name. Also handle the issue with the attribute name being
-        # converted to lowercase in subsequent callbacks.
-        attr_name = fqdn_attr_name.split("/")[-1].split("#")[0]
-        log_message = f"{attr_name} is {event_data.attr_value.value}."
-        self.this_server.write_attr("activityMessage", log_message, False)
+        log_message = f"""SetOperateMode command is successfully invoked on:
+        {self.dish_master_adapter.dev_name}."""
         self.logger.info(log_message)
+        return (ResultCode.OK, "")

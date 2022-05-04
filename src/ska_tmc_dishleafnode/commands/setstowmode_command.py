@@ -1,69 +1,65 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the DishLeafNode project
-#
-#
-#
-# Distributed under the terms of the BSD-3-Clause license.
-# See LICENSE.txt for more info.
-
 """
-SetStowMode class for DishLeafNode.
+SetStowMode command class for DishLeafNode.
 """
-# Tango import
-import tango
+from ska_tango_base.commands import ResultCode
 
-# Additional import
-from ska_tmc_base.commands import BaseCommand
-from ska_tmc_common.tango_client import TangoClient
-from ska_tmc_common.tango_server_helper import TangoServerHelper
-from tango import DevFailed
-
-from .command_callback import CommandCallBack
+from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-class SetStowMode(BaseCommand):
+class SetStowMode(DishLNCommand):
     """
-    A class for DishLeafNode's SetStowMode() command.
+    A class for DishleafNode's SetStowMode() command.
+
+    SetStowMode command on DishLeafNode enables the telescope to perform
+    further operations and observations. It Invokes SetStowMode command on
+    Dish Leaf Node device.
     """
 
-    def do(self):
+    def check_allowed(self):
         """
-        Invokes SetStowMode command on DishMaster.
+        Checks whether this command is allowed. It checks that the device is
+        in the right state to execute this command and that all the component
+        needed for the operation are not unresponsive
+
+        :return: True if this command is allowed
+
+        :rtype: boolean
+
+        """
+        self.check_op_state(__class__.__name__)
+        self.check_unresponsive()
+        return True
+
+    def do(self, argin=None):
+        """
+        Method to invoke SetStowMode command on DishMaster.
 
         param argin:
             None
 
         return:
-            None
-
-        raises:
-            DevFailed If error occurs while invoking SetStowMode command on DishMaster.
-
+            (ResultCode, str)
         """
-        cmd_ended_cb = CommandCallBack(self.logger).cmd_ended_cb
-
-        command_name = "SetStowMode"
+        self.logger.info(
+            f"""Invoking SetStowMode command on:
+            {self.dish_master_adapter.dev_name}"""
+        )
         try:
-            this_server = TangoServerHelper.get_instance()
-            self.dish_master_fqdn = ""
-            property_value = this_server.read_property("DishMasterFQDN")
-            self.dish_master_fqdn = self.dish_master_fqdn.join(property_value)
-            dish_client = TangoClient(self.dish_master_fqdn)
-            dish_client.send_command_async(
-                command_name, callback_method=cmd_ended_cb
+            self.dish_master_adapter.SetStowMode()
+        except Exception as e:
+            log_msg = f"""Execution of SetStowMode command is failed.
+                       Reason: Error in calling SetStowMode command on
+                       {self.dish_master_adapter.dev_name}: {e}
+                       The command is not executed successfully.
+                       The device will continue with normal operation"""
+            self.logger.exception(log_msg)
+            return self.generate_command_result(
+                ResultCode.FAILED,
+                f"""Error in calling SetStowMode command on:
+                {self.dish_master_adapter.dev_name}""",
             )
-            self.logger.info(
-                "'%s' command executed successfully.", command_name
-            )
-        except DevFailed as dev_failed:
-            self.logger.exception(dev_failed)
-            log_message = f"Exception occured while executing the '{command_name}' command."
-            this_server.write_attr("activityMessage", log_message, False)
-            tango.Except.re_throw_exception(
-                dev_failed,
-                f"Exception in '{command_name}' command.",
-                log_message,
-                "SetStowMode.do()",
-                tango.ErrSeverity.ERR,
-            )
+
+        log_msg = f"""SetStowMode command successfully invoked on:
+        {self.dish_master_adapter.dev_name}"""
+        self.logger.info(log_msg)
+        return (ResultCode.OK, "")

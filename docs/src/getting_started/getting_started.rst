@@ -1,4 +1,4 @@
-Getting started
+Getting started 
 ===============
 
 This page contains instructions for software developers who want to get
@@ -7,7 +7,7 @@ started with usage and development of the Dish Leaf Node.
 Background
 ----------
 Detailed information on how the SKA Software development
-community works is available at the `SKA software developer portal <https://developer.skao.int/en/latest/>`_.
+community works is available at the `SKA software developer portal <https://developer.skao.int/en/latest/>`__.
 There you will find guidelines, policies, standards and a range of other
 documentation.
 
@@ -18,7 +18,7 @@ This project is structured to use k8s for development and testing so that the bu
 Install minikube
 ^^^^^^^^^^^^^^^^
 
-You will need to install `minikube` or equivalent k8s installation in order to set up your test environment. You can follow the instruction `here <https://gitlab.com/ska-telescope/sdi/deploy-minikube/>`_:
+You will need to install `minikube` or equivalent k8s installation in order to set up your test environment. You can follow the instruction `here <https://gitlab.com/ska-telescope/sdi/deploy-minikube/>`__:
 ::
 git clone git@gitlab.com:ska-telescope/sdi/deploy-minikube.git
 cd deploy-minikube
@@ -44,7 +44,7 @@ source $HOME/.poetry/env
 
 Please note that:
  * the `libtango-dev` will install an old version of the TANGO-controls framework (9.2.5);
- * the best way to get the framework is compiling it (instructions can be found `here <https://gitlab.com/tango-controls/cppTango/-/blob/main/INSTALL.md>`_);
+ * the best way to get the framework is compiling it (instructions can be found `here <https://gitlab.com/tango-controls/cppTango/-/blob/main/INSTALL.md>`__);
  * the above script has been tested with Ubuntu 20.04.
 
 *During this step, `libtango-dev` instalation can ask for the Tango Server IP:PORT. Just accept the default proposed value.*
@@ -56,9 +56,6 @@ $ poetry install
 Activate the poetry environment:
 ::
 $ source $(poetry env info --path)/bin/activate
-
-Alternate way to install and activate poetry
-::
 
 Follow the steps till installation of dependencies then run below command:
 ::

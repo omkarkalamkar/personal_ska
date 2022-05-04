@@ -1,30 +1,12 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the DishLeafNode project
-#
-#
-#
-# Distributed under the terms of the BSD-3-Clause license.
-# See LICENSE.txt for more info.
-
-
 """
-SetStandbyLPMode class for DishLeafNode.
+SetStandbyLPMode command class for DishLeafNode.
 """
-# Tango import
-import tango
+from ska_tango_base.commands import ResultCode
 
-# Additional import
-from ska_tmc_base.commands import BaseCommand
-from ska_tmc_common.tango_client import TangoClient
-from ska_tmc_common.tango_server_helper import TangoServerHelper
-from tango import DevFailed
-
-from .command_callback import CommandCallBack
-from .device_data import DeviceData
+from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-class SetStandbyLPMode(BaseCommand):
+class SetStandbyLPMode(DishLNCommand):
     """
     A class for DishLeafNode's SetStandbyLPMode() command.
 
@@ -32,67 +14,52 @@ class SetStandbyLPMode(BaseCommand):
 
     """
 
-    def do(self):
+    def check_allowed(self):
         """
-        Method to invoke SetStandbyLPMode command on DishMaster.
+        Checks whether this command is allowed. It checks that the device is
+        in the right state to execute this command and that all the component
+        needed for the operation are not unresponsive.
+
+        :return: True if this command is allowed
+
+        :rtype: boolean
+
+        """
+        self.check_op_state(__class__.__name__)
+        self.check_unresponsive()
+        return True
+
+    def do(self, argin=None):
+        """
+        Method to invoke SetStandbyLPMode (Low power mode) command on
+        DishMaster.
 
         param argin:
             None
 
         return:
-            None
-
-        raises:
-            DevFailed If error occurs while invoking SetStandbyLPMode command on DishMaster.
-
+            (ResultCode, str)
         """
-        command_name = "SetStandbyLPMode"
+
+        log_msg = f"""Invoking SetStandbyLPMode command on:
+        {self.dish_master_adapter.dev_name}"""
+        self.logger.info(log_msg)
+
         try:
-            this_server = TangoServerHelper.get_instance()
-            self.dish_master_fqdn = ""
-            property_value = this_server.read_property("DishMasterFQDN")
-            self.dish_master_fqdn = self.dish_master_fqdn.join(property_value)
-            dish_client = TangoClient(self.dish_master_fqdn)
-            cmd_ended_cb = CommandCallBack(self.logger).cmd_ended_cb
-            dish_client.send_command_async(
-                command_name, callback_method=cmd_ended_cb
-            )
-            # Unsubscribe the DishMaster attributes
-            self._unsubscribe_attribute_events()
-            self.logger.info(
-                "'%s' command executed successfully.", command_name
-            )
-        except DevFailed as dev_failed:
-            self.logger.exception(dev_failed)
-            log_message = f"Exception occured while executing the '{command_name}' command."
-            this_server.write_attr("activityMessage", log_message, False)
-            tango.Except.re_throw_exception(
-                dev_failed,
-                f"Exception in '{command_name}' command.",
-                log_message,
-                f"DishLeafNode.{command_name}Command",
-                tango.ErrSeverity.ERR,
-            )
-
-    def _unsubscribe_attribute_events(self):
-        """
-        Method to unsubscribe to health state change event on CspMasterLeafNode, SdpMasterLeafNode and SubarrayNode
-        """
-        try:
-            device_data = DeviceData.get_instance()
-            dish_client = device_data.attr_event_map["dish_client"]
-            device_data.attr_event_map.pop("dish_client")
-            for attr_name in device_data.attr_event_map:
-                log_message = "Unsubscribing attributes of: {}".format(
-                    dish_client.get_device_fqdn
-                )
-                self.logger.debug(log_message)
-                dish_client.unsubscribe_attribute(
-                    device_data.attr_event_map[attr_name]
-                )
-            device_data.attr_event_map.clear()
+            self.dish_master_adapter.SetStandbyLPMode()
         except Exception as e:
-            log_message = "Exception occured while unsubscribing attribute events command. {}".format(
-                e
+            log_msg = f"""Execution of SetStandbyLPMode command is failed.
+                       Reason: Error in calling SetStandbyLPMode command on
+                       {self.dish_master_adapter.dev_name}: {e}
+                       The command is not executed successfully.
+                       The device will continue with normal operation"""
+            self.logger.exception(log_msg)
+            return self.generate_command_result(
+                ResultCode.FAILED,
+                f"""Error in calling SetStandbyLPMode command on:
+                {self.dish_master_adapter.dev_name}""",
             )
-            self.logger.exception(log_message)
+        log_msg = f"""SetStandbyLPMode command successfully invoked on:
+        {self.dish_master_adapter.dev_name}"""
+        self.logger.info(log_msg)
+        return (ResultCode.OK, "")
