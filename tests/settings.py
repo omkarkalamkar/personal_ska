@@ -34,6 +34,6 @@ def get_dishln_command_obj(command_class):
     cm = create_cm(dish_master_device)
     adapter_factory = HelperAdapterFactory()
 
-    cm._dish_dev_name = dish_master_device
+    cm.dish_dev_name = dish_master_device
     command_obj = command_class(cm, cm.op_state_model, adapter_factory, logger)
     return cm, command_obj, adapter_factory

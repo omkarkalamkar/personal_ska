@@ -25,7 +25,7 @@ def test_setoperatemode_command_with_exception(
 ):
     cm = create_cm(dish_master_device)
     adapter_factory = HelperAdapterFactory()
-    cm._dish_dev_name = dish_master_device
+    cm.dish_dev_name = dish_master_device
 
     # include exception in SetOperateMode command
     adapter_factory.get_or_create_adapter(

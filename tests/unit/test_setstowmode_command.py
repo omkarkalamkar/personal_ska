@@ -23,7 +23,7 @@ def test_setstowmode_command(tango_context, dish_master_device):
 def test_setstowmode_command_with_exception(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
     adapter_factory = HelperAdapterFactory()
-    cm._dish_dev_name = dish_master_device
+    cm.dish_dev_name = dish_master_device
 
     # include exception in SetStowMode command
     adapter_factory.get_or_create_adapter(
