@@ -7,7 +7,7 @@ Submodules
 ska\_tmc\_dishleafnode\_mid.commands.abstract\_command module
 -------------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.setoperatemode_command
+.. automodule:: ska_tmc_dishleafnode.commands.abstract_command
    :members:
    :undoc-members:
    :show-inheritance:
