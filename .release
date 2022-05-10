@@ -1,7 +1,7 @@
 """Release information for Python Package"""
 
 name="""ska-tmc-dishleafnode"""
-version="0.1.0"
+version="0.1.1"
 version_info=version.split(".")
 description="""SKA-TMC-DISHLEAFNODES"""
 author="Team NCRA"
@@ -9,7 +9,7 @@ author_email="telmgt-internal@googlegroups.com"
 license="""BSD-3-Clause"""
 url="""https://www.skaobservatory.org"""
 copyright=""""""
-release=0.1.0
-tag=0.1.0
+release=0.1.1
+tag=0.1.1
 tag_description=Create ska-tmc-dishleafnode repository.
 release_notes=This release contains:<br/><ul><li>Created ska-tmc-dishleafnode repository.</li></ul><br/>
