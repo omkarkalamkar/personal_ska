@@ -3,7 +3,6 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 # pylint: disable=abstract-method
 from ska_tmc_common.command_executor import CommandExecutor
-from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 
@@ -57,26 +56,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             sleep_time,
         )
 
-        self.update_device_info(dish_dev_name)
-
         self.command_executor = CommandExecutor(
             logger,
             _update_command_in_progress_callback=update_command_in_progress_callback,  # noqa: E501
         )
 
+        self.dish_dev_name = ""
+
     # pylint: enable=unused-argument,line-too-long
-
-    def get_device(self):
-        """
-        Return the device info for the specified Dish device.
-
-        :param dish_dev_name: Name of Dish device.
-        :return: Dish device info
-        :rtype: DishDeviceInfo
-        """
-        return self._device
-
-    def update_device_info(self, dish_dev_name):
-        """Updates DishDeviceInfo in device parameter."""
-        self.dish_dev_name = dish_dev_name
-        self._device = DishDeviceInfo(self.dish_dev_name, False)
