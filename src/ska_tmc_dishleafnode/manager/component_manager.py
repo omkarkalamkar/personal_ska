@@ -61,6 +61,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_command_in_progress_callback=update_command_in_progress_callback,  # noqa: E501
         )
 
-        self.dish_dev_name = ""
+        self.dish_dev_name = dish_dev_name
 
     # pylint: enable=unused-argument,line-too-long

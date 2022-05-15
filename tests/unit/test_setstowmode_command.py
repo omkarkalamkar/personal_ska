@@ -1,6 +1,4 @@
-import pytest
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common.exceptions import DeviceUnresponsive
 from ska_tmc_common.test_helpers.helper_adapter_factory import (
     HelperAdapterFactory,
 )
@@ -34,15 +32,3 @@ def test_setstowmode_command_with_exception(tango_context, dish_master_device):
     (result_code, message) = set_stow_mode_command.do()
     assert result_code == ResultCode.FAILED
     assert dish_master_device in message
-
-
-def test_setstowmode_command_unresponsive_dishmaster(
-    tango_context, dish_master_device
-):
-    cm, set_stow_mode_command, _ = get_dishln_command_obj(SetStowMode)
-    dev_info = cm.get_device()
-    dev_info.update_unresponsive(True)
-    with pytest.raises(
-        DeviceUnresponsive, match="Dish Master device is not available"
-    ):
-        set_stow_mode_command.check_allowed()
