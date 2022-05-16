@@ -62,5 +62,3 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.dish_dev_name = dish_dev_name
-
-    # pylint: enable=unused-argument,line-too-long
