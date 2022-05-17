@@ -109,7 +109,7 @@ class DishLeafNode(SKABaseDevice):
 
     def write_dishMasterDevName(self, value):
         """Set the dishMasterDevName attribute."""
-        self.component_manager.update_device_info(value)
+        self.component_manager.dish_dev_name = value
 
     def read_commandExecuted(self):
         """Return the commandExecuted attribute."""

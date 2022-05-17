@@ -26,7 +26,6 @@ class SetStandbyLPMode(DishLNCommand):
 
         """
         self.check_op_state(__class__.__name__)
-        self.check_unresponsive()
         return True
 
     def do(self, argin=None):

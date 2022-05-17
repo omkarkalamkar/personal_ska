@@ -1,6 +1,4 @@
-import pytest
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common.exceptions import DeviceUnresponsive
 from ska_tmc_common.test_helpers.helper_adapter_factory import (
     HelperAdapterFactory,
 )
@@ -38,15 +36,3 @@ def test_setoperatemode_command_with_exception(
     (result_code, message) = set_operate_mode_command.do()
     assert result_code == ResultCode.FAILED
     assert dish_master_device in message
-
-
-def test_set_operate_mode_command_with_unresponsive_dishmaster(
-    tango_context, dish_master_device
-):
-    cm, set_operate_mode_command, _ = get_dishln_command_obj(SetOperateMode)
-    dev_info = cm.get_device()
-    dev_info.update_unresponsive(True)
-    with pytest.raises(
-        DeviceUnresponsive, match="Dish Master device is not available"
-    ):
-        set_operate_mode_command.check_allowed()
