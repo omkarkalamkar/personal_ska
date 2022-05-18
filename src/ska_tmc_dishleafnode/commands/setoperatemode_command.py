@@ -35,8 +35,7 @@ class SetOperateMode(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        adapter = self.dish_master_adapter
         result = self.call_adapter_method(
-            "Dish Master", adapter, "SetOperateMode"
+            "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
         return result

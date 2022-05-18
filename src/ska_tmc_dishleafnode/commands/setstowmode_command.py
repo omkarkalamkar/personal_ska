@@ -37,8 +37,7 @@ class SetStowMode(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        adapter = self.dish_master_adapter
         result = self.call_adapter_method(
-            "Dish Master", adapter, "SetStowMode"
+            "Dish Master", self.dish_master_adapter, "SetStowMode"
         )
         return result

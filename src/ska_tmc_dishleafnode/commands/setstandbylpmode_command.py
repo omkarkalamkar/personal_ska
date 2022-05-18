@@ -39,8 +39,7 @@ class SetStandbyLPMode(DishLNCommand):
             (ResultCode, str)
         """
 
-        adapter = self.dish_master_adapter
         result = self.call_adapter_method(
-            "Dish Master", adapter, "SetStandbyLPMode"
+            "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
         return result
