@@ -1,8 +1,6 @@
 """
 SetStowMode command class for DishLeafNode.
 """
-from ska_tango_base.commands import ResultCode
-
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
@@ -39,26 +37,8 @@ class SetStowMode(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        self.logger.info(
-            f"""Invoking SetStowMode command on:
-            {self.dish_master_adapter.dev_name}"""
+        adapter = self.dish_master_adapter
+        result = self.call_adapter_method(
+            "Dish Master", adapter, "SetStowMode"
         )
-        try:
-            self.dish_master_adapter.SetStowMode()
-        except Exception as e:
-            log_msg = f"""Execution of SetStowMode command is failed.
-                       Reason: Error in calling SetStowMode command on
-                       {self.dish_master_adapter.dev_name}: {e}
-                       The command is not executed successfully.
-                       The device will continue with normal operation"""
-            self.logger.exception(log_msg)
-            return self.generate_command_result(
-                ResultCode.FAILED,
-                f"""Error in calling SetStowMode command on:
-                {self.dish_master_adapter.dev_name}""",
-            )
-
-        log_msg = f"""SetStowMode command successfully invoked on:
-        {self.dish_master_adapter.dev_name}"""
-        self.logger.info(log_msg)
-        return (ResultCode.OK, "")
+        return result
