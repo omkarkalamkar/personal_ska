@@ -1,7 +1,6 @@
 """
 SetStandbyLPMode command class for DishLeafNode.
 """
-from ska_tango_base.commands import ResultCode
 
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
@@ -40,25 +39,7 @@ class SetStandbyLPMode(DishLNCommand):
             (ResultCode, str)
         """
 
-        log_msg = f"""Invoking SetStandbyLPMode command on:
-        {self.dish_master_adapter.dev_name}"""
-        self.logger.info(log_msg)
-
-        try:
-            self.dish_master_adapter.SetStandbyLPMode()
-        except Exception as e:
-            log_msg = f"""Execution of SetStandbyLPMode command is failed.
-                       Reason: Error in calling SetStandbyLPMode command on
-                       {self.dish_master_adapter.dev_name}: {e}
-                       The command is not executed successfully.
-                       The device will continue with normal operation"""
-            self.logger.exception(log_msg)
-            return self.generate_command_result(
-                ResultCode.FAILED,
-                f"""Error in calling SetStandbyLPMode command on:
-                {self.dish_master_adapter.dev_name}""",
-            )
-        log_msg = f"""SetStandbyLPMode command successfully invoked on:
-        {self.dish_master_adapter.dev_name}"""
-        self.logger.info(log_msg)
-        return (ResultCode.OK, "")
+        result = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
+        )
+        return result

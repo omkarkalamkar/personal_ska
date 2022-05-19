@@ -1,8 +1,6 @@
 """
 SetOperateMode command class for DishLeafNode.
 """
-from ska_tango_base.commands import ResultCode
-
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
@@ -37,26 +35,7 @@ class SetOperateMode(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        self.logger.info(
-            f"""Invoking SetOperateMode command on:
-            {self.dish_master_adapter.dev_name}"""
+        result = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
-        try:
-            self.dish_master_adapter.SetOperateMode()
-        except Exception as e:
-            log_msg = f"""Execution of SetOperateMode command is failed.
-                        Reason: Error in calling SetOperateMode command on
-                        {self.dish_master_adapter.dev_name}: {e}
-                        The command is not executed successfully.
-                        The device will continue with normal operation"""
-            self.logger.exception(log_msg)
-            return self.generate_command_result(
-                ResultCode.FAILED,
-                f"""Error in calling SetOperateMode command on:
-                {self.dish_master_adapter.dev_name}""",
-            )
-
-        log_message = f"""SetOperateMode command is successfully invoked on:
-        {self.dish_master_adapter.dev_name}."""
-        self.logger.info(log_message)
-        return (ResultCode.OK, "")
+        return result
