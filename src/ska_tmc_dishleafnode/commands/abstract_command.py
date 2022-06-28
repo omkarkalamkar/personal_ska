@@ -1,5 +1,7 @@
 """This module provides base command class for DishLeafNode."""
 # pylint: disable=abstract-method
+import time
+
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.adapters import AdapterFactory, AdapterType
 from ska_tmc_common.exceptions import CommandNotAllowed
@@ -41,12 +43,23 @@ class DishLNCommand(TmcLeafNodeCommand):
         """Creates adapter for underlying Dish device."""
         component_manager = self.target
         dev_name = component_manager.dish_dev_name
+        time_out = component_manager.time_out
+        elapsed_time = 0
+        start_time = time.time()
         try:
-            self.dish_master_adapter = (
-                self._adapter_factory.get_or_create_adapter(
-                    dev_name, AdapterType.DISH
+            while self.dish_master_adapter is None and elapsed_time < time_out:
+                self.dish_master_adapter = (
+                    self._adapter_factory.get_or_create_adapter(
+                        dev_name, AdapterType.DISH
+                    )
                 )
-            )
+                elapsed_time = time.time() - start_time
+            if self.dish_master_adapter is None:
+                return self.adapter_error_message_result(
+                    component_manager.dish_dev_name,
+                    "Failed to create adapter",
+                )
+
         except Exception as e:
             return self.adapter_error_message_result(
                 component_manager.dish_dev_name,
