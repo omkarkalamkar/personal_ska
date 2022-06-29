@@ -43,11 +43,11 @@ class DishLNCommand(TmcLeafNodeCommand):
         """Creates adapter for underlying Dish device."""
         component_manager = self.target
         dev_name = component_manager.dish_dev_name
-        time_out = component_manager.time_out
+        timeout = component_manager.timeout
         elapsed_time = 0
         start_time = time.time()
         try:
-            while self.dish_master_adapter is None and elapsed_time < time_out:
+            while self.dish_master_adapter is None and elapsed_time < timeout:
                 self.dish_master_adapter = (
                     self._adapter_factory.get_or_create_adapter(
                         dev_name, AdapterType.DISH

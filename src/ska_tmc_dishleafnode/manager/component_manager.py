@@ -24,7 +24,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         max_workers=5,
         proxy_timeout=500,
         sleep_time=1,
-        time_out=30,
+        timeout=30,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -61,5 +61,5 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger,
             _update_command_in_progress_callback=update_command_in_progress_callback,  # noqa: E501
         )
-        self.time_out = time_out
+        self.timeout = timeout
         self.dish_dev_name = dish_dev_name

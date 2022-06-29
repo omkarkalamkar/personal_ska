@@ -617,7 +617,7 @@ class DishLeafNode(SKABaseDevice):
             self.op_state_model,
             logger=self.logger,
             sleep_time=self.SleepTime,
-            time_out=self.TimeOut,
+            timeout=self.TimeOut,
         )
         # pylint: enable=W0201
         return cm
