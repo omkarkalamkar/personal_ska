@@ -45,7 +45,7 @@ class DishLeafNode(SKABaseDevice):
     )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
-
+    TimeOut = device_property(dtype="DevFloat", default_value=30)
     # ----------
     # Attributes
     # ----------
@@ -617,6 +617,7 @@ class DishLeafNode(SKABaseDevice):
             self.op_state_model,
             logger=self.logger,
             sleep_time=self.SleepTime,
+            timeout=self.TimeOut,
         )
         # pylint: enable=W0201
         return cm
