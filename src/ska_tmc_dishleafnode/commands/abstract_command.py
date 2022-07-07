@@ -12,9 +12,13 @@ class DishLNCommand(TmcLeafNodeCommand):
     common across all the commands."""
 
     def __init__(
-        self, target, op_state_model, adapter_factory=None, logger=None
+        self,
+        component_manager,
+        op_state_model,
+        adapter_factory=None,
+        logger=None,
     ):
-        super().__init__(target, logger)
+        super().__init__(component_manager, logger)
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
@@ -39,7 +43,7 @@ class DishLNCommand(TmcLeafNodeCommand):
 
     def init_adapter(self):
         """Creates adapter for underlying Dish device."""
-        component_manager = self.target
+        component_manager = self.component_manager
         dev_name = component_manager.dish_dev_name
         try:
             self.dish_master_adapter = (

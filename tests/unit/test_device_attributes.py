@@ -1,11 +1,15 @@
+from time import sleep
+
 from ska_tango_base.control_model import ControlMode, SimulationMode, TestMode
 from tango import DevState
 
 from ska_tmc_dishleafnode import release
+from tests.settings import SLEEP_TIME
 
 
 def test_attributes(dishln_device):
-    assert dishln_device.State() == DevState.ON
+    sleep(SLEEP_TIME)
+    assert dishln_device.State() == DevState.ON  # Adapter is not being created
     dishln_device.loggingTargets = ["console::cout"]
     assert "console::cout" in dishln_device.loggingTargets
     dishln_device.testMode = TestMode.NONE

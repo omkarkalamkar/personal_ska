@@ -82,7 +82,7 @@ class DishLeafNode(SKABaseDevice):
                 (ResultCode, str)
             """
             super().do()
-            device = self.target
+            device = self._device
             device._build_state = f"""{release.name},{release.version},
             {release.description}"""
             device._version_id = release.version
