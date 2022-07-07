@@ -82,6 +82,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger,
             _update_command_in_progress_callback=update_command_in_progress_callback,  # noqa: E501
         )
-        
+
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
