@@ -60,6 +60,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self, logger, max_workers, proxy_timeout, sleep_time
             )
             self._liveliness_probe.start()
+        else:
+            logger.info("Liveliness probe is not running")
 
         self._event_receiver = None
         if event_receiver:
@@ -67,6 +69,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self, logger, max_workers, proxy_timeout, sleep_time
             )
             self._event_receiver.start()
+        else:
+            logger.info("Event reciever is not running")
 
         self.command_executor = CommandExecutor(
             logger,
