@@ -36,17 +36,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param logger: a logger for this component manager
         :param liveliness_probe: allows enabling/disabling the
             liveliness probe;
-        For DishLN liveliness probe is not required. Therefore this parameter
-        will always be False.
         :param event_receiver: allows eanabling/disabling the event subscriber;
-        For DishLN event receiver is not required. Therefore this parameter
-        will always be False.
         :param max_workers: allows to specify number of threads to be used by
         the liveliness probe;
-        This parameter is not used for DishLN.
         :param proxy_timeout: allows to specify a client side timeout for
-        sub-devices in milliseconds
-        used by the liveliness probe; This parameter is not used for DishLN.
+        sub-devices in milliseconds used by the liveliness probe;
         :param sleep_time: allows to specify the wait between each iteration
         of the liveliness probe and EventSubscriber;
         """
@@ -65,17 +59,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self._liveliness_probe = LivelinessProbe(
                 self, logger, max_workers, proxy_timeout, sleep_time
             )
+            self._liveliness_probe.start()
 
         self._event_receiver = None
         if event_receiver:
             self._event_receiver = EventReceiver(
                 self, logger, max_workers, proxy_timeout, sleep_time
             )
-
-        if liveliness_probe:
-            self._liveliness_probe.start()
-
-        if event_receiver:
             self._event_receiver.start()
 
         self.command_executor = CommandExecutor(
