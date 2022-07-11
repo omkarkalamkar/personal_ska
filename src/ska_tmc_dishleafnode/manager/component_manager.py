@@ -3,6 +3,7 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 # pylint: disable=abstract-method
 from ska_tmc_common.command_executor import CommandExecutor
+from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.event_receiver import EventReceiver
 from ska_tmc_common.liveliness_probe import LivelinessProbe
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
@@ -53,6 +54,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout,
             sleep_time,
         )
+        self._device = DishDeviceInfo(dish_dev_name)
 
         self._liveliness_probe = None
         if liveliness_probe:
