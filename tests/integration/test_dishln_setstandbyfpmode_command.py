@@ -33,8 +33,8 @@ def setstandbyfpmode_command(tango_context, dishln_name):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-# @pytest.mark.xfail(
-#     reason="Need to update the command to support base class v0.13.0"
-# )
+@pytest.mark.xfail(
+    reason="Need to update the command to support base class v0.13.0"
+)
 def test_on_command(tango_context):
     setstandbyfpmode_command(tango_context, "ska_mid/tm_leaf_node/d0001")
