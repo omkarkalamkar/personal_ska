@@ -14,8 +14,7 @@ def setstowmode_command(tango_context, dishln_name):
     initial_len = len(dish_leaf_node.commandExecuted)
     (result, unique_id) = dish_leaf_node.SetStandbyLPMode()
     (result, unique_id) = dish_leaf_node.SetStowMode()
-    logger.info(result)
-    logger.info(unique_id)
+    logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
     start_time = time.time()
     # 2 commands are getting executed above therefore check if initial length

@@ -16,8 +16,7 @@ def setoperatemode_command(tango_context, dishln_name):
     (result, unique_id) = dish_leaf_node.SetStandbyFPMode()
     # Add assert statement to check if it is in FP mode
     (result, unique_id) = dish_leaf_node.SetOperateMode()
-    logger.info(result)
-    logger.info(unique_id)  # Change the format
+    logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
     start_time = time.time()
     # 3 commands are getting executed above therefore check if initial length
