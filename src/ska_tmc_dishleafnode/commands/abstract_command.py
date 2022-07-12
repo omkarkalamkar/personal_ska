@@ -14,9 +14,13 @@ class DishLNCommand(TmcLeafNodeCommand):
     common across all the commands."""
 
     def __init__(
-        self, target, op_state_model, adapter_factory=None, logger=None
+        self,
+        component_manager,
+        op_state_model,
+        adapter_factory=None,
+        logger=None,
     ):
-        super().__init__(target, logger)
+        super().__init__(component_manager, logger)
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
@@ -41,9 +45,8 @@ class DishLNCommand(TmcLeafNodeCommand):
 
     def init_adapter(self):
         """Creates adapter for underlying Dish device."""
-        component_manager = self.target
-        dev_name = component_manager.dish_dev_name
-        timeout = component_manager.timeout
+        dev_name = self.component_manager.dish_dev_name
+        timeout = self.component_manager.timeout
         elapsed_time = 0
         start_time = time.time()
         try:
@@ -56,13 +59,13 @@ class DishLNCommand(TmcLeafNodeCommand):
                 elapsed_time = time.time() - start_time
             if self.dish_master_adapter is None:
                 return self.adapter_error_message_result(
-                    component_manager.dish_dev_name,
+                    self.component_manager.dish_dev_name,
                     "Failed to create adapter",
                 )
 
         except Exception as e:
             return self.adapter_error_message_result(
-                component_manager.dish_dev_name,
+                self.component_manager.dish_dev_name,
                 e,
             )
 

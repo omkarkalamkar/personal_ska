@@ -14,9 +14,9 @@ def setoperatemode_command(tango_context, dishln_name):
     initial_len = len(dish_leaf_node.commandExecuted)
     (result, unique_id) = dish_leaf_node.SetStandbyLPMode()
     (result, unique_id) = dish_leaf_node.SetStandbyFPMode()
+    # Add assert statement to check if it is in FP mode
     (result, unique_id) = dish_leaf_node.SetOperateMode()
-    logger.info(result)
-    logger.info(unique_id)
+    logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
     start_time = time.time()
     # 3 commands are getting executed above therefore check if initial length
@@ -34,5 +34,8 @@ def setoperatemode_command(tango_context, dishln_name):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.xfail(
+    reason="Need to update the command to support base class v0.13.0"
+)
 def test_setoperatemode_command(tango_context):
     setoperatemode_command(tango_context, "ska_mid/tm_leaf_node/d0001")

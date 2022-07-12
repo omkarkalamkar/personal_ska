@@ -33,7 +33,6 @@ def get_dishln_command_obj(command_class):
     """Returns component manager and command class object for Dish Leaf Node"""
     cm = create_cm(dish_master_device)
     adapter_factory = HelperAdapterFactory()
-
     cm.dish_dev_name = dish_master_device
     command_obj = command_class(cm, cm.op_state_model, adapter_factory, logger)
     return cm, command_obj, adapter_factory
