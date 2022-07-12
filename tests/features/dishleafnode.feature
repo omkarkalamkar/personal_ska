@@ -14,3 +14,10 @@ Feature: DishLeafNode acceptance
         | SetStandbyFPMode    |
         | SetOperateMode      |
 		| SetStowMode         |
+
+	#This test is to verify the ping mechanism implemented on Dishleafnode.
+	@XTP-10402 @post_deployment @acceptance @SKA_mid
+	Scenario: Test ping functionality on Dishleafnode
+		Given DishLeafNode and DishMaster devices are running
+		When DishLeafNode pings the DishMaster device
+		Then the ping information gets updated

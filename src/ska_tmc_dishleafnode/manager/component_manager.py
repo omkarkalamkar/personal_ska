@@ -5,7 +5,7 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 from ska_tmc_common.command_executor import CommandExecutor
 from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.event_receiver import EventReceiver
-from ska_tmc_common.liveliness_probe import LivelinessProbe
+from ska_tmc_common.liveliness_probe import SingleDeviceLivelinessProbe
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 
@@ -23,7 +23,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         update_device_callback=None,
         update_command_in_progress_callback=None,
         liveliness_probe=True,
-        event_receiver=True,
+        event_receiver=False,
         max_workers=5,
         proxy_timeout=500,
         sleep_time=1,
@@ -58,14 +58,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self._liveliness_probe = None
         if liveliness_probe:
-            self._liveliness_probe = LivelinessProbe(
-                self, logger, max_workers, proxy_timeout, sleep_time
+            self._liveliness_probe = SingleDeviceLivelinessProbe(
+                self, self._device, logger, proxy_timeout, sleep_time
             )
             self._liveliness_probe.start()
         else:
             logger.warning("Liveliness probe is not running")
 
         self._event_receiver = None
+        # As of now EventReciever is not being used.
         if event_receiver:
             self._event_receiver = EventReceiver(
                 self, logger, max_workers, proxy_timeout, sleep_time
