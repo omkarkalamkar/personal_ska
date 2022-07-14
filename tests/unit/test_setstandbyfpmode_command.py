@@ -1,4 +1,7 @@
-from ska_tango_base.commands import ResultCode
+import time
+
+import pytest
+from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.test_helpers.helper_adapter_factory import (
     HelperAdapterFactory,
 )
@@ -6,7 +9,8 @@ from ska_tmc_common.test_helpers.helper_adapter_factory import (
 from ska_tmc_dishleafnode.commands.setstandbyfpmode_command import (
     SetStandbyFPMode,
 )
-from tests.settings import create_cm, get_dishln_command_obj
+from tests.mock_callable import MockCallable
+from tests.settings import create_cm, get_dishln_command_obj, logger
 
 
 def test_setstandbyfpmode_command(tango_context, dish_master_device):
@@ -37,3 +41,20 @@ def test_setstandbyfpmode_command_with_exception(
     (result_code, message) = set_standby_fp_mode_command.do()
     assert result_code == ResultCode.FAILED
     assert dish_master_device in message
+
+
+@pytest.mark.long_running
+def test_setstandbyfpmode_command_lr(tango_context, dish_master_device):
+    cm = create_cm(dish_master_device)
+    adapter_factory = HelperAdapterFactory()
+
+    set_standby_fp_mode_command = SetStandbyFPMode(
+        cm, cm.op_state_model, adapter_factory, logger
+    )
+    assert set_standby_fp_mode_command.check_allowed()
+    unique_id = f"{time.time()}_SetStandbyFPMode"
+    task_callback = MockCallable(unique_id)
+
+    task_status, response = cm.setstandbyfpmode(task_callback=task_callback)
+    assert task_status == TaskStatus.QUEUED
+    assert task_callback.status == TaskStatus.QUEUED
