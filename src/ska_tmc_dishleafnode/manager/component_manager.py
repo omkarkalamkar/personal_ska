@@ -92,15 +92,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
 
-    def setstandbyfpmode(self, task_callback=None):
+    def setstandbyfpmode(
+        self, setstandbyfpmode_command: SetStandbyFPMode, task_callback=None
+    ):
         """Submits the SetStandbyFPMode command for execution.
 
         :rtype: tuple
         """
-        setstandbyfpmode_command = SetStandbyFPMode
         task_status, response = self.submit_task(
             setstandbyfpmode_command.set_standby_fp_mode,
-            self.logger,
+            args=[self.logger],
             task_callback=task_callback,
         )
         return task_status, response

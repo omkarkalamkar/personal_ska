@@ -12,6 +12,9 @@ from tests.settings import SLEEP_TIME, create_cm, logger
     parsers.parse("a DishLeafNode device"),
     target_fixture="dishleaf_node",
 )
+@pytest.mark.xfail(
+    "To be unmarked during testing of commands after base class v0.13 upgrade"
+)
 def dishleaf_node():
     database = Database()
     instance_list = database.get_device_exported_for_class("DishLeafNode")
@@ -33,6 +36,9 @@ def dish_leaf_node(tango_context, dish_master_device):
 
 
 @when(parsers.parse("I call the command {command_name}"))
+@pytest.mark.xfail(
+    "To be unmarked during testing of commands after base class v0.13 upgrade"
+)
 def call_command(dishleaf_node, command_name):
     try:
         pytest.command_result = dishleaf_node.command_inout(command_name)
@@ -50,6 +56,9 @@ def ping_started(dish_leaf_node):
     parsers.parse(
         "the command is queued and executed in less than {seconds} secs"
     )
+)
+@pytest.mark.xfail(
+    "To be unmarked during testing of commands after base class v0.13 upgrade"
 )
 def check_command(dishleaf_node, seconds):
     if pytest.command_result == "CommandNotAllowed":

@@ -20,9 +20,11 @@ class MockCallable(Callable):
         status: TaskStatus = None,
         result: str = None,
         message: str = None,
+        exception=None,
     ):
         """Call method to set the status, result and message"""
         self.status = status
         self.result = result
         self.message = message
+        self.exception = exception
         return self.status

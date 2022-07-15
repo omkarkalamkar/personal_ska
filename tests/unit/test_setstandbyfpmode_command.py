@@ -55,6 +55,10 @@ def test_setstandbyfpmode_command_lr(tango_context, dish_master_device):
     unique_id = f"{time.time()}_SetStandbyFPMode"
     task_callback = MockCallable(unique_id)
 
-    task_status, response = cm.setstandbyfpmode(task_callback=task_callback)
+    task_status, response = cm.setstandbyfpmode(
+        set_standby_fp_mode_command, task_callback=task_callback
+    )
     assert task_status == TaskStatus.QUEUED
     assert task_callback.status == TaskStatus.QUEUED
+    time.sleep(0.1)
+    assert task_callback.status == TaskStatus.COMPLETED
