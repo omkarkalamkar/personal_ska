@@ -58,6 +58,7 @@ class SetStandbyFPMode(DishLNCommand):
             task_callback(
                 status=TaskStatus.FAILED,
                 result="SetStandbyFPMode command has failed",
+                exception=message,
             )
         else:
             task_callback(
