@@ -8,6 +8,10 @@ from ska_tmc_common.event_receiver import EventReceiver
 from ska_tmc_common.liveliness_probe import SingleDeviceLivelinessProbe
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
+from ska_tmc_dishleafnode.commands.setstandbyfpmode_command import (
+    SetStandbyFPMode,
+)
+
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
@@ -20,7 +24,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         dish_dev_name,
         op_state_model,
         logger=None,
-        update_device_callback=None,
+        communication_state_callback=None,
+        component_state_callback=None,
         update_command_in_progress_callback=None,
         liveliness_probe=True,
         event_receiver=False,
@@ -50,10 +55,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger,
             liveliness_probe,
             event_receiver,
+            communication_state_callback,
+            component_state_callback,
             max_workers,
             proxy_timeout,
             sleep_time,
         )
+        self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
 
         self._liveliness_probe = None
@@ -75,6 +83,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         else:
             logger.warning("Event reciever is not running")
 
+        # It will be removed
         self.command_executor = CommandExecutor(
             logger,
             _update_command_in_progress_callback=update_command_in_progress_callback,  # noqa: E501
@@ -82,3 +91,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
+
+    def setstandbyfpmode(
+        self, setstandbyfpmode_command: SetStandbyFPMode, task_callback=None
+    ):
+        """Submits the SetStandbyFPMode command for execution.
+
+        :rtype: tuple
+        """
+        task_status, response = self.submit_task(
+            setstandbyfpmode_command.set_standby_fp_mode,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        return task_status, response
