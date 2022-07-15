@@ -32,6 +32,7 @@ class SetStandbyFPMode(DishLNCommand):
         self.check_op_state(__class__.__name__)
         return True
 
+    # pylint: disable=unused-argument
     def set_standby_fp_mode(
         self,
         logger,
@@ -66,17 +67,7 @@ class SetStandbyFPMode(DishLNCommand):
                 result="SetStandbyFPMode command has completed",
             )
 
-        # Periodically check that tasks have not been ABORTED
-        if task_abort_event.is_set():
-            # Indicate that the task has been aborted
-            task_callback(
-                status=TaskStatus.ABORTED,
-                result="SetStandbyFPMode command task is aborted",
-            )
-        else:
-            logger.info("Task_abort_event is not set")
-            return
-
+    # pylint: enable=unused-argument
     def do(self, argin=None):
         """
         Method to invoke SetStandbyFPMode command on DishMaster.
@@ -87,7 +78,6 @@ class SetStandbyFPMode(DishLNCommand):
         return:
             (ResultCode, str)
         """
-
         ret_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyFPMode"
         )
