@@ -1,4 +1,7 @@
-from ska_tango_base.commands import ResultCode
+import time
+
+import pytest
+from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.test_helpers.helper_adapter_factory import (
     HelperAdapterFactory,
 )
@@ -6,7 +9,8 @@ from ska_tmc_common.test_helpers.helper_adapter_factory import (
 from ska_tmc_dishleafnode.commands.setstandbylpmode_command import (
     SetStandbyLPMode,
 )
-from tests.settings import create_cm, get_dishln_command_obj
+from tests.mock_callable import MockCallable
+from tests.settings import create_cm, get_dishln_command_obj, logger
 
 
 def test_setstandbylpmode_command(tango_context, dish_master_device):
@@ -37,3 +41,22 @@ def test_setstandbylpmode_command_with_exception(
     (result_code, message) = set_standby_lp_mode_command.do()
     assert result_code == ResultCode.FAILED
     assert dish_master_device in message
+
+
+@pytest.mark.long_running2
+def test_setstandbylpmode_command_adapter_none(
+    tango_context, dish_master_device
+):
+    cm = create_cm(dish_master_device)
+
+    setstandbylpmode_command = SetStandbyLPMode(cm, cm.op_state_model, logger)
+    assert setstandbylpmode_command.check_allowed()
+    unique_id = f"{time.time()}_SetStandbyLPMode"
+    task_callback = MockCallable(unique_id)
+
+    cm.setstandbylpmode(setstandbylpmode_command, task_callback=task_callback)
+    assert task_callback.status == TaskStatus.QUEUED
+    time.sleep(0.1)
+    assert task_callback.status == TaskStatus.FAILED
+    failed_message = "Adapter is None"
+    assert failed_message in task_callback.exception

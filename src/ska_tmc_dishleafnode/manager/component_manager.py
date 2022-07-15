@@ -11,6 +11,9 @@ from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 from ska_tmc_dishleafnode.commands.setstandbyfpmode_command import (
     SetStandbyFPMode,
 )
+from ska_tmc_dishleafnode.commands.setstandbylpmode_command import (
+    SetStandbyLPMode,
+)
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -101,6 +104,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         task_status, response = self.submit_task(
             setstandbyfpmode_command.set_standby_fp_mode,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        return task_status, response
+
+    def setstandbylpmode(
+        self, setstandbylpmode_command: SetStandbyLPMode, task_callback=None
+    ):
+        """Submits the SetStandbyLPMode command for execution.
+
+        :rtype: tuple
+        """
+        task_status, response = self.submit_task(
+            setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
             task_callback=task_callback,
         )
