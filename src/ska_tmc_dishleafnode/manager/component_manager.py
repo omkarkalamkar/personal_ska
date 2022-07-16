@@ -85,10 +85,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         setstandbyfpmode_command = SetStandbyFPMode(
             self, self.op_state_model, logger=self.logger
         )
-        setstandbyfpmode_command.set_standby_fp_mode(
-            self.logger, task_callback
+        task_status, response = self.submit_task(
+            setstandbyfpmode_command.set_standby_fp_mode,
+            args=[self.logger],
+            task_callback=task_callback,
         )
-        return task_callback.status, task_callback.result
+        return task_status, response
 
     def is_command_allowed(self, command_name=None):
         """Checks if the given command is allowed in current operational

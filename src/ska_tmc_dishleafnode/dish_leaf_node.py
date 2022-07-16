@@ -46,12 +46,6 @@ class DishLeafNode(SKABaseDevice):
     # Attributes
     # ----------
 
-    commandExecuted = attribute(
-        dtype=(("DevString",),),
-        max_dim_x=4,
-        max_dim_y=10000,
-    )
-
     dishMasterDevName = attribute(
         dtype="DevString",
         access=AttrWriteType.READ_WRITE,
@@ -84,9 +78,6 @@ class DishLeafNode(SKABaseDevice):
             device._version_id = release.version
             device.set_change_event("healthState", True, False)
             device.op_state_model.perform_action("component_on")
-            # device.component_manager.command_executor.add_command_execution(
-            #     "0", "Init", ResultCode.OK, ""
-            # )
             return (ResultCode.OK, "")
 
     def delete_device(self):
@@ -107,24 +98,6 @@ class DishLeafNode(SKABaseDevice):
         """Set the dishMasterDevName attribute."""
         self.component_manager.dish_dev_name = value
 
-    # Might get removed
-    # pylint: disable=no-member
-    def read_commandExecuted(self):
-        """Return the commandExecuted attribute."""
-        result = []
-        for command_executed in reversed(
-            self.component_manager.command_executor.command_executed
-        ):
-            single_result = [
-                str(command_executed["Id"]),
-                str(command_executed["Command"]),
-                str(command_executed["ResultCode"]),
-                str(command_executed["Message"]),
-            ]
-            result.append(single_result)
-        return result
-
-    # pylint: enable=no-member
     # --------
     # Commands
     # --------

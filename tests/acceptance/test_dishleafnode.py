@@ -46,13 +46,11 @@ def dishleaf_node():
 
 @when(parsers.parse("I call the command {command_name}"))
 def call_command(dishleaf_node, command_name):
-    # TODO: Remove the with block during final testing
-    with pytest.raises(AssertionError):
-        try:
-            pytest.command_result = dishleaf_node.command_inout(command_name)
-        except Exception as ex:
-            assert "CommandNotAllowed" in str(ex)
-            pytest.command_result = "CommandNotAllowed"
+    try:
+        pytest.command_result = dishleaf_node.command_inout(command_name)
+    except Exception as ex:
+        assert "CommandNotAllowed" in str(ex)
+        pytest.command_result = "CommandNotAllowed"
 
 
 @then(
@@ -61,29 +59,26 @@ def call_command(dishleaf_node, command_name):
     )
 )
 def check_command(dishleaf_node, seconds):
-    # TODO: Remove the with block during final testing
-    with pytest.raises(AttributeError):
-        if pytest.command_result == "CommandNotAllowed":
-            return
+    if pytest.command_result == "CommandNotAllowed":
+        return
 
-        assert pytest.command_result[0][0] == ResultCode.QUEUED
-        unique_id = pytest.command_result[1][0]
-        start_time = time.time()
-        executed = False
-        while not executed:
-            for command in dishleaf_node.commandExecuted:
-                if command[0] == unique_id:
-                    logger.info("command result: %s", command)
-                    assert command[2] == str(ResultCode.OK) or command[
-                        2
-                    ] == str(ResultCode.FAILED)
-                    executed = True
-            if executed:
-                break
-            time.sleep(SLEEP_TIME)
-            elapsed_time = time.time() - start_time
-            if elapsed_time > float(seconds):
-                pytest.fail("Timeout occurred while executing the test")
+    assert pytest.command_result[0][0] == ResultCode.QUEUED
+    unique_id = pytest.command_result[1][0]
+    start_time = time.time()
+    executed = False
+    while not executed:
+        command, result = dishleaf_node.longRunningCommandResult
+        if command == unique_id:
+            logger.info("command result: %s", command)
+            # Asserting ResultCode.OK or ResultCode.FAILED
+            assert result == "0" or result == "3"
+            executed = True
+        if executed:
+            break
+        time.sleep(SLEEP_TIME)
+        elapsed_time = time.time() - start_time
+        if elapsed_time > float(seconds):
+            pytest.fail("Timeout occurred while executing the test")
 
 
 scenarios("../features/dishleafnode.feature")
