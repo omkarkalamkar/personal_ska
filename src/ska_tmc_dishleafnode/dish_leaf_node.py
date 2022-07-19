@@ -3,7 +3,6 @@
 # flake8: noqa
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
-from ska_tmc_common.op_state_model import TMCOpStateModel
 from tango import AttrWriteType, DebugIt
 from tango.server import attribute, command, device_property, run
 
@@ -580,22 +579,16 @@ class DishLeafNode(SKABaseDevice):
     #     return [[ResultCode.QUEUED], [str(unique_id)]]
 
     def create_component_manager(self):
-        # pylint: disable=W0201
-        self.op_state_model = TMCOpStateModel(
-            logger=self.logger, callback=super()._update_state
-        )
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
-            self.op_state_model,
             logger=self.logger,
-            communication_state_callback=self._communication_state_changed,
-            component_state_callback=self._component_state_changed,
+            communication_state_callback=None,
+            component_state_callback=None,
             liveliness_probe=True,
             event_receiver=False,
             sleep_time=self.SleepTime,
             timeout=self.TimeOut,
         )
-        # pylint: enable=W0201
         return cm
 
     def init_command_objects(self):
