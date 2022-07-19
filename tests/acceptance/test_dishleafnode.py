@@ -70,8 +70,10 @@ def check_command(dishleaf_node, seconds):
         command, result = dishleaf_node.longRunningCommandResult
         if command == unique_id:
             logger.info("command result: %s", command)
-            # Asserting ResultCode.OK or ResultCode.FAILED
-            assert result == "0" or result == "3"
+            assert (
+                int(result) == ResultCode.OK
+                or int(result) == ResultCode.FAILED
+            )
             executed = True
         if executed:
             break
