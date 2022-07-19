@@ -23,10 +23,15 @@ def setstandbyfpmode_command(tango_context, dishln_name):
         if elapsed_time > TIMEOUT:
             pytest.fail("Timeout occurred while executing the test")
 
+    while len(dish_leaf_node.longRunningCommandResult) < 2:
+        time.sleep(SLEEP_TIME)
+        elapsed_time = time.time() - start_time
+        if elapsed_time > TIMEOUT:
+            pytest.fail("Timeout occurred while fetching the test Result")
+
     command, result = dish_leaf_node.longRunningCommandResult
     if command == unique_id[0]:
-        # Asserting ResultCode.OK
-        assert result == "0"
+        assert int(result) == ResultCode.OK
 
 
 @pytest.mark.post_deployment

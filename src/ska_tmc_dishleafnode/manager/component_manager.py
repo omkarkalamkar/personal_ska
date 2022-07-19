@@ -19,11 +19,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     A component manager for The Dish Leaf Node component.
     """
 
-    # pylint: disable=unused-argument,line-too-long
+    # pylint: disable=unused-argument
     def __init__(
         self,
         dish_dev_name,
-        op_state_model,
         logger=None,
         communication_state_callback=None,
         component_state_callback=None,
@@ -38,8 +37,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Initialise a new ComponentManager instance.
 
-        :param op_state_model: the op state model used by this component
-            manager
         :param logger: a logger for this component manager
         :param liveliness_probe: allows enabling/disabling the
             liveliness probe;
@@ -52,7 +49,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         of the liveliness probe and EventSubscriber;
         """
         super().__init__(
-            op_state_model,
             logger,
             liveliness_probe,
             event_receiver,
