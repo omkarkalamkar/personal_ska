@@ -91,13 +91,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
-    def setstandbylpmode(
-        self, setstandbylpmode_command: SetStandbyLPMode, task_callback=None
-    ):
+    def setstandbylpmode(self, task_callback=None):
         """Submits the SetStandbyLPMode command for execution.
 
         :rtype: tuple
         """
+        setstandbylpmode_command = SetStandbyLPMode(
+            self, self.op_state_model, logger=self.logger
+        )
         task_status, response = self.submit_task(
             setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
@@ -109,7 +110,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state."""
 
-        if command_name in ["SetStandbyFPMode"]:
+        if command_name in ["SetStandbyFPMode", "SetStandbyLPMode"]:
             if self.op_state_model.op_state in [
                 DevState.FAULT,
                 DevState.UNKNOWN,

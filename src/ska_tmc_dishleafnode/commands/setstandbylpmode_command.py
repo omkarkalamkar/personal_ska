@@ -32,6 +32,7 @@ class SetStandbyLPMode(DishLNCommand):
         self.check_op_state(__class__.__name__)
         return True
 
+    # pylint: disable=unused-argument
     def set_standby_lp_mode(
         self,
         logger,
@@ -57,26 +58,13 @@ class SetStandbyLPMode(DishLNCommand):
         if ret_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.FAILED,
-                result="SetStandbyLPMode command has failed",
+                result=ResultCode.FAILED,
                 exception=message,
             )
         else:
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=ResultCode.FAILED,
-            )
+            task_callback(status=TaskStatus.COMPLETED, result=ResultCode.OK)
 
-        # Periodically check that tasks have not been ABORTED
-        if task_abort_event.is_set():
-            # Indicate that the task has been aborted
-            task_callback(
-                status=TaskStatus.ABORTED,
-                result=ResultCode.OK,
-            )
-        else:
-            logger.info("Task_abort_event is not set")
-            return
-
+    # pylint: enable=unused-argument
     def do(self, argin=None):
         """
         Method to invoke SetStandbyLPMode (Low power mode) command on

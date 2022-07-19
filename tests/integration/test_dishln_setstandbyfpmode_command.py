@@ -15,16 +15,15 @@ def setstandbyfpmode_command(tango_context, dishln_name):
     result, unique_id = dish_leaf_node.SetStandbyFPMode()
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
-    start_time = time.time()
-    # 2 commands are getting executed above therefore check if initial length
-    # of the commandExecuted attribute has incremented by 2
 
+    start_time = time.time()
     while len(dish_leaf_node.longRunningCommandsInQueue) < initial_len + 1:
         time.sleep(SLEEP_TIME)
         elapsed_time = time.time() - start_time
         if elapsed_time > TIMEOUT:
             pytest.fail("Timeout occurred while executing the test")
 
+    start_time = time.time()
     while len(dish_leaf_node.longRunningCommandResult) < 2:
         time.sleep(SLEEP_TIME)
         elapsed_time = time.time() - start_time

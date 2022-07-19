@@ -11,7 +11,7 @@ Feature: DishLeafNode acceptance
 		Examples:
 		| command_name		  |
         | SetStandbyFPMode    |
-		
+		| SetStandbyLPMode    |
        
 
 	#This test is to verify the ping mechanism implemented on Dishleafnode.

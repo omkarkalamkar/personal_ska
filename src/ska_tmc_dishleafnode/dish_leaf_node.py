@@ -154,6 +154,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [[result_code], [str(unique_id)]]
 
+    # TODO: Refactor the below code to support base class v0.13.0
     # def SetStandbyLPMode(self):
     #     """Invokes SetStandbyLPMode (i.e. Low Power State) command on
     #     DishMaster."""
@@ -597,7 +598,8 @@ class DishLeafNode(SKABaseDevice):
         """
         super().init_command_objects()
         for (command_name, method_name) in [
-            ("SetStandbyFPMode", "setstandbyfpmode")
+            ("SetStandbyFPMode", "setstandbyfpmode"),
+            ("SetStandbyLPMode", "setstandbylpmode"),
         ]:
             self.register_command_object(
                 command_name,
