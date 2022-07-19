@@ -57,13 +57,13 @@ class SetStandbyFPMode(DishLNCommand):
         if ret_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.FAILED,
-                result="SetStandbyFPMode command has failed",
+                result=ResultCode.FAILED,
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result="SetStandbyFPMode command has completed",
+                result=ResultCode.OK,
             )
 
         # Periodically check that tasks have not been ABORTED

@@ -46,12 +46,6 @@ class DishLeafNode(SKABaseDevice):
     # Attributes
     # ----------
 
-    commandExecuted = attribute(
-        dtype=(("DevString",),),
-        max_dim_x=4,
-        max_dim_y=10000,
-    )
-
     dishMasterDevName = attribute(
         dtype="DevString",
         access=AttrWriteType.READ_WRITE,
@@ -83,10 +77,6 @@ class DishLeafNode(SKABaseDevice):
             {release.description}"""
             device._version_id = release.version
             device.set_change_event("healthState", True, False)
-            device.op_state_model.perform_action("component_on")
-            # device.component_manager.command_executor.add_command_execution(
-            #     "0", "Init", ResultCode.OK, ""
-            # )
             return (ResultCode.OK, "")
 
     def delete_device(self):
@@ -108,21 +98,6 @@ class DishLeafNode(SKABaseDevice):
         self.component_manager.dish_dev_name = value
 
     # Might get removed
-    def read_commandExecuted(self):
-        """Return the commandExecuted attribute."""
-        result = []
-        for command_executed in reversed(
-            self.component_manager.command_executor.command_executed
-        ):
-            single_result = [
-                str(command_executed["Id"]),
-                str(command_executed["Command"]),
-                str(command_executed["ResultCode"]),
-                str(command_executed["Message"]),
-            ]
-            result.append(single_result)
-        return result
-
     # --------
     # Commands
     # --------
@@ -157,21 +132,34 @@ class DishLeafNode(SKABaseDevice):
     #     )
     #     return [[ResultCode.QUEUED], [str(unique_id)]]
 
-    # def is_SetStandbyLPMode_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+    def is_SetStandbyLPMode_allowed(self):
+        """
+       Checks whether this command is allowed to be run in the current \
+        device state. \
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+         :return: True if this command is allowed to be run in current \
+         device state. \
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("SetStandbyLPMode")
-    #     return handler.check_allowed()
+         :rtype: boolean
+         """
+        handler = self.get_command_object("SetStandbyLPMode")
+        return handler.check_allowed()
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def SetStandbyLPMode(self):
+        """Invokes SetStandbyLPMode command on DishMaster (Standby Low power)
+        mode."""
+        handler = self.get_command_object("SetStandbyLPMode")
+        result_code, unique_id = handler()
+        if result_code == ResultCode.FAILED:
+            self.logger.warning(
+                """The invocation of SetStandbyLPMode command has failed.
+                Reason of failure: %s""",
+                unique_id,
+            )
+        return [[result_code], [str(unique_id)]]
+
     # def SetStandbyLPMode(self):
     #     """Invokes SetStandbyLPMode (i.e. Low Power State) command on
     #     DishMaster."""

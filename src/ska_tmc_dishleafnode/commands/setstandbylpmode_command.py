@@ -63,7 +63,7 @@ class SetStandbyLPMode(DishLNCommand):
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result="SetStandbyLPMode command has completed",
+                result=ResultCode.FAILED,
             )
 
         # Periodically check that tasks have not been ABORTED
@@ -71,7 +71,7 @@ class SetStandbyLPMode(DishLNCommand):
             # Indicate that the task has been aborted
             task_callback(
                 status=TaskStatus.ABORTED,
-                result="SetStandbyLPMode command task is aborted",
+                result=ResultCode.OK,
             )
         else:
             logger.info("Task_abort_event is not set")
