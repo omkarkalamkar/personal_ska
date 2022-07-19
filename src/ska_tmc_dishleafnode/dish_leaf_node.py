@@ -77,6 +77,7 @@ class DishLeafNode(SKABaseDevice):
             {release.description}"""
             device._version_id = release.version
             device.set_change_event("healthState", True, False)
+            device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
     def delete_device(self):
@@ -142,22 +143,16 @@ class DishLeafNode(SKABaseDevice):
 
          :rtype: boolean
          """
-        handler = self.get_command_object("SetStandbyLPMode")
-        return handler.check_allowed()
+        return self.component_manager.is_command_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyLPMode(self):
-        """Invokes SetStandbyLPMode command on DishMaster (Standby Low power)
+        """Invokes SetStandbyLPMode command on DishMaster (Standby-Low power)
         mode."""
         handler = self.get_command_object("SetStandbyLPMode")
         result_code, unique_id = handler()
-        if result_code == ResultCode.FAILED:
-            self.logger.warning(
-                """The invocation of SetStandbyLPMode command has failed.
-                Reason of failure: %s""",
-                unique_id,
-            )
+
         return [[result_code], [str(unique_id)]]
 
     # def SetStandbyLPMode(self):
@@ -216,8 +211,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        handler = self.get_command_object("SetStandbyFPMode")
-        return handler.check_allowed()
+        return self.component_manager.is_command_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -226,12 +220,7 @@ class DishLeafNode(SKABaseDevice):
         mode."""
         handler = self.get_command_object("SetStandbyFPMode")
         result_code, unique_id = handler()
-        if result_code == ResultCode.FAILED:
-            self.logger.warning(
-                """The invocation of SetStandbyFPMode command has failed.
-                Reason of failure: %s""",
-                unique_id,
-            )
+
         return [[result_code], [str(unique_id)]]
 
     # TODO: Refactor the below code to support base class v0.13.0

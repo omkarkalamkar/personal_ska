@@ -18,6 +18,7 @@ def setstandbyfpmode_command(tango_context, dishln_name):
     start_time = time.time()
     # 2 commands are getting executed above therefore check if initial length
     # of the commandExecuted attribute has incremented by 2
+
     while len(dish_leaf_node.longRunningCommandsInQueue) < initial_len + 1:
         time.sleep(SLEEP_TIME)
         elapsed_time = time.time() - start_time
