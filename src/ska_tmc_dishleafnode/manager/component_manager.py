@@ -13,6 +13,7 @@ from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 from tango import DevState
 
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
+from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -89,7 +90,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
-    def setstandbylpmode(self, task_callback=None):
+    def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
         :rtype: tuple
