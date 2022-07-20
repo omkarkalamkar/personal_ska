@@ -4,6 +4,7 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 from typing import Tuple
 
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_common.liveliness_probe import SingleDeviceLivelinessProbe
@@ -61,7 +62,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
+        self.adapter_factory = AdapterFactory()
 
+        # Move this to ska_tmc_common
         self._liveliness_probe = None
         if liveliness_probe:
             self._liveliness_probe = SingleDeviceLivelinessProbe(
@@ -80,7 +83,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: tuple
         """
         setstandbyfpmode_command = SetStandbyFPMode(
-            self, self.op_state_model, logger=self.logger
+            self,
+            self.op_state_model,
+            adapter_factory=self.adapter_factory,
+            logger=self.logger,
         )
         task_status, response = self.submit_task(
             setstandbyfpmode_command.set_standby_fp_mode,
