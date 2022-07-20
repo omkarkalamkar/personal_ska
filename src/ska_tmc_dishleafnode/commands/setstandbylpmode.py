@@ -39,7 +39,8 @@ class SetStandbyLPMode(DishLNCommand):
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ):
-        """This is a long running method
+        """A method to invoke the SetStandbyLPMode command.
+        It sets the task_callback status according to command progress.
 
         :param logger: logger
         :type logger: logging.Logger
