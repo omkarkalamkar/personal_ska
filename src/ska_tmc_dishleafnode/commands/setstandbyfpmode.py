@@ -38,8 +38,9 @@ class SetStandbyFPMode(DishLNCommand):
         logger,
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
-    ):
-        """This is a long running method
+    ) -> None:
+        """A method to invoke the SetStandbyFPMode command.
+        It sets the task_callback status according to command progress.
 
         :param logger: logger
         :type logger: logging.Logger

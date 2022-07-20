@@ -1,6 +1,9 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+from typing import Tuple
+
+from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_common.liveliness_probe import SingleDeviceLivelinessProbe
@@ -9,12 +12,7 @@ from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 # pylint: disable=abstract-method
 from tango import DevState
 
-from ska_tmc_dishleafnode.commands.setstandbyfpmode_command import (
-    SetStandbyFPMode,
-)
-from ska_tmc_dishleafnode.commands.setstandbylpmode_command import (
-    SetStandbyLPMode,
-)
+from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -76,7 +74,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
 
-    def setstandbyfpmode(self, task_callback=None):
+    def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
 
         :rtype: tuple

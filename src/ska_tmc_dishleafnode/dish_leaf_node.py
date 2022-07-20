@@ -211,7 +211,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_command_allowed()
+        return self.component_manager.is_command_allowed("SetStandbyFPMode")
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
