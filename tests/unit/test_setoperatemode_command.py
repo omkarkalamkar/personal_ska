@@ -3,7 +3,7 @@ from ska_tmc_common.test_helpers.helper_adapter_factory import (
     HelperAdapterFactory,
 )
 
-from ska_tmc_dishleafnode.commands.setoperatemode_command import SetOperateMode
+from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from tests.settings import create_cm, get_dishln_command_obj
 
 
