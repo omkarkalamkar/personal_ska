@@ -1,4 +1,3 @@
-import logging
 import time
 
 import pytest
@@ -29,7 +28,7 @@ def test_setstandbyfpmode_command(
 
 
 def test_setstandbyfpmode_command_adapter_none(
-    tango_context, dish_master_device, task_callback, caplog
+    tango_context, dish_master_device, task_callback
 ):
     cm = create_cm(dish_master_device)
     cm.timeout = 0
@@ -43,7 +42,6 @@ def test_setstandbyfpmode_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    caplog.set_level(logging.DEBUG, logger="ska_tango_testing.mock")
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.FAILED,
