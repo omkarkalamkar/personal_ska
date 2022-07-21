@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-tmc-dishleafnodes"
-version = "0.1.5"
+version = "0.1.6"
 description = "SKA-TMC-DISHLEAFNODES"
 authors = ["Team NCRA"]
 license = "BSD-3-Clause"
