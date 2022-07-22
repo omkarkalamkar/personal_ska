@@ -4,9 +4,7 @@ import time
 
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.adapters import AdapterFactory, AdapterType
-from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_common.tmc_command import TmcLeafNodeCommand
-from tango import DevState
 
 
 class DishLNCommand(TmcLeafNodeCommand):
@@ -25,23 +23,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
         self.init_adapter()
-
-    def check_op_state(self, command_name):
-        """Checks if the given command is allowed ib current operational
-        state."""
-        if self.op_state_model.op_state in [
-            DevState.FAULT,
-            DevState.UNKNOWN,
-            DevState.DISABLE,
-        ]:
-            raise CommandNotAllowed(
-                f"""The invocation of the {command_name} command on this
-                device is not allowed.
-                Reason: The current operational state is
-                {self.op_state_model.op_state}.
-                The command has NOT been executed.
-                This device will continue with normal operation."""
-            )
 
     def init_adapter(self):
         """Creates adapter for underlying Dish device."""

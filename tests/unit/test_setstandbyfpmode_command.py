@@ -55,6 +55,6 @@ def test_setstandbyfpmode_command_not_allowed(
     tango_context, dish_master_device
 ):
     cm = create_cm(dish_master_device)
-    cm.op_state_model.op_state = DevState.FAULT
+    cm.op_state_model._op_state = DevState.FAULT
     with pytest.raises(CommandNotAllowed):
         cm.is_command_allowed("SetStandbyFPMode")
