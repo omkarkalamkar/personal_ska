@@ -572,13 +572,15 @@ class DishLeafNode(SKABaseDevice):
     #     )
     #     return [[ResultCode.QUEUED], [str(unique_id)]]
 
+    # TODO: Passing liveliness_probe as NONE throws an error.
+    # Need to debug and solve it.
     def create_component_manager(self):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
             logger=self.logger,
             communication_state_callback=None,
             component_state_callback=None,
-            _liveliness_probe=LivelinessProbeType.NONE,
+            _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=False,
             sleep_time=self.SleepTime,
             timeout=self.TimeOut,

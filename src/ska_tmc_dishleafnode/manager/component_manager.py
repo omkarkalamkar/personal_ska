@@ -29,7 +29,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback=None,
         component_state_callback=None,
         update_command_in_progress_callback=None,
-        _liveliness_probe=LivelinessProbeType.NONE,
+        _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver=False,
         max_workers=5,
         proxy_timeout=500,
