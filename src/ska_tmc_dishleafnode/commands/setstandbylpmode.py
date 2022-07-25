@@ -63,6 +63,9 @@ class SetStandbyLPMode(DishLNCommand):
         return:
             (ResultCode, str)
         """
+        ret_code, message = self.init_adapter()
+        if ret_code == ResultCode.FAILED:
+            return ret_code, message
 
         ret_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"

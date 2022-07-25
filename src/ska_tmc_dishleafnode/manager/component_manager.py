@@ -2,6 +2,7 @@
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 from typing import Tuple
+
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
@@ -62,21 +63,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
-        self.adapter_factory = AdapterFactory()
-
+        __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
+        self.setstandbyfpmode_command = SetStandbyFPMode(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.setstandbylpmode_command = SetStandbyLPMode(
+            self, self.op_state_model, __adapter_factory, logger=self.logger
+        )
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
 
         :rtype: tuple
         """
-        setstandbyfpmode_command = SetStandbyFPMode(
-            self, self.op_state_model, logger=self.logger
-        )
         task_status, response = self.submit_task(
-            setstandbyfpmode_command.set_standby_fp_mode,
+            self.setstandbyfpmode_command.set_standby_fp_mode,
             args=[self.logger],
             task_callback=task_callback,
         )
@@ -87,11 +93,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: tuple
         """
-        setstandbylpmode_command = SetStandbyLPMode(
-            self, self.op_state_model, logger=self.logger
-        )
+
         task_status, response = self.submit_task(
-            setstandbylpmode_command.set_standby_lp_mode,
+            self.setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
             task_callback=task_callback,
         )
