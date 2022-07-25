@@ -2,7 +2,6 @@
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 from typing import Tuple
-
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
@@ -30,7 +29,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback=None,
         component_state_callback=None,
         update_command_in_progress_callback=None,
-        _liveliness_probe=LivelinessProbeType.NONE,
+        _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver=False,
         max_workers=5,
         proxy_timeout=500,
