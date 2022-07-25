@@ -9,7 +9,7 @@ from tests.settings import SLEEP_TIME
 
 def test_attributes(dishln_device):
     sleep(SLEEP_TIME)
-    assert dishln_device.State() == DevState.ON  # Adapter is not being created
+    assert dishln_device.State() == DevState.ON
     dishln_device.loggingTargets = ["console::cout"]
     assert "console::cout" in dishln_device.loggingTargets
     dishln_device.testMode = TestMode.NONE

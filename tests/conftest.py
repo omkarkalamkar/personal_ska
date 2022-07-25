@@ -4,6 +4,7 @@ import logging
 
 import pytest
 import tango
+from ska_tango_testing.mock import MockCallable
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
 from tango.test_context import MultiDeviceTestContext
@@ -86,3 +87,13 @@ def dishln_device(request):
         for instance in instance_list.value_string:
             yield tango.DeviceProxy(instance)
             break
+
+
+@pytest.fixture
+def task_callback() -> MockCallable:
+    """Creates a mock callable for asynchronous testing
+
+    :rtype: MockCallable
+    """
+    task_callback = MockCallable(5)
+    return task_callback

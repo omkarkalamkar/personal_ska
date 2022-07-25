@@ -13,20 +13,6 @@ class SetStandbyLPMode(DishLNCommand):
 
     """
 
-    def check_allowed(self):
-        """
-        Checks whether this command is allowed. It checks that the device is
-        in the right state to execute this command and that all the component
-        needed for the operation are not unresponsive.
-
-        :return: True if this command is allowed
-
-        :rtype: boolean
-
-        """
-        self.check_op_state(__class__.__name__)
-        return True
-
     def do(self, argin=None):
         """
         Method to invoke SetStandbyLPMode (Low power mode) command on
