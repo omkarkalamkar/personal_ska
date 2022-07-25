@@ -1,4 +1,3 @@
-# pylint: disable=fixme
 import time
 
 import pytest

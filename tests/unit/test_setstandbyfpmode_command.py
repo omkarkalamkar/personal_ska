@@ -18,7 +18,6 @@ def test_setstandbyfpmode_command(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
-    time.sleep(0.1)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -38,7 +37,6 @@ def test_setstandbyfpmode_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
-    time.sleep(0.1)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
