@@ -3,6 +3,7 @@
 # flake8: noqa
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
+from ska_tmc_common.enum import LivelinessProbeType
 from tango import AttrWriteType, DebugIt
 from tango.server import attribute, command, device_property, run
 
@@ -83,7 +84,8 @@ class DishLeafNode(SKABaseDevice):
         # if the init is called more than once
         # I need to stop all threads
         if hasattr(self, "component_manager"):
-            self.component_manager.stop()
+            self.component_manager.stop_event_receiver()
+            self.component_manager.stop_liveliness_probe()
 
     # ------------------
     # Attributes methods
@@ -579,14 +581,16 @@ class DishLeafNode(SKABaseDevice):
     #     )
     #     return [[ResultCode.QUEUED], [str(unique_id)]]
 
+    # TODO: Passing liveliness_probe as NONE throws an error.
+    # Need to debug and solve it.
     def create_component_manager(self):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
             logger=self.logger,
             communication_state_callback=None,
             component_state_callback=None,
-            liveliness_probe=True,
-            event_receiver=False,
+            _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
+            _event_receiver=False,
             sleep_time=self.SleepTime,
             timeout=self.TimeOut,
         )

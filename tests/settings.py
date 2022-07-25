@@ -19,10 +19,7 @@ dish_master_device = "mid_d0001/elt/master"
 
 def create_cm(device):
     """Creates component manager for Dish Leaf Node."""
-    cm = DishLNComponentManager(
-        device,
-        logger=logger,
-    )
+    cm = DishLNComponentManager(device, logger=logger)
     return cm
 
 

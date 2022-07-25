@@ -24,7 +24,7 @@ def dish_leaf_node(tango_context, dish_master_device):
 
 @when(parsers.parse("DishLeafNode pings the DishMaster device"))
 def ping_started(dish_leaf_node):
-    assert dish_leaf_node._liveliness_probe._thread.is_alive()
+    assert dish_leaf_node.liveliness_probe_object._thread.is_alive()
 
 
 @then(parsers.parse("the ping information gets updated"))

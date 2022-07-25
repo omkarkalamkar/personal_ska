@@ -4,9 +4,10 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 from typing import Tuple
 
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
+from ska_tmc_common.enum import LivelinessProbeType
 from ska_tmc_common.exceptions import CommandNotAllowed
-from ska_tmc_common.liveliness_probe import SingleDeviceLivelinessProbe
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 # pylint: disable=abstract-method
@@ -29,8 +30,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback=None,
         component_state_callback=None,
         update_command_in_progress_callback=None,
-        liveliness_probe=True,
-        event_receiver=False,
+        _liveliness_probe=LivelinessProbeType.NONE,
+        _event_receiver=False,
         max_workers=5,
         proxy_timeout=500,
         sleep_time=1,
@@ -52,8 +53,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         super().__init__(
             logger,
-            liveliness_probe,
-            event_receiver,
+            _liveliness_probe,
+            _event_receiver,
             communication_state_callback,
             component_state_callback,
             max_workers,
@@ -62,15 +63,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
-
-        self._liveliness_probe = None
-        if liveliness_probe:
-            self._liveliness_probe = SingleDeviceLivelinessProbe(
-                self, self._device, logger, proxy_timeout, sleep_time
-            )
-            self._liveliness_probe.start()
-        else:
-            logger.warning("Liveliness probe is not running")
+        self.adapter_factory = AdapterFactory()
 
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name

@@ -18,20 +18,6 @@ class SetStandbyFPMode(DishLNCommand):
 
     """
 
-    def check_allowed(self):
-        """
-        Checks whether this command is allowed. It checks that the device is
-        in the right state to execute this command and that all the component
-        needed for the operation are not unresponsive
-
-        :return: True if this command is allowed
-
-        :rtype: boolean
-
-        """
-        self.check_op_state(__class__.__name__)
-        return True
-
     # pylint: disable=unused-argument
     def set_standby_fp_mode(
         self,
@@ -52,10 +38,9 @@ class SetStandbyFPMode(DishLNCommand):
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
 
-        ret_code, message = self.do()  # Fire and forget
+        ret_code, message = self.do()
 
         logger.info(message)
-
         if ret_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.FAILED,
