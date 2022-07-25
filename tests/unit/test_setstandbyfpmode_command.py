@@ -40,7 +40,7 @@ def test_setstandbyfpmode_command_adapter_none(
     )
     task_callback.assert_against_call(
         call_kwargs={
-            "status": TaskStatus.FAILED,
+            "status": TaskStatus.COMPLETED,
             "result": ResultCode.FAILED,
             "exception": "Error in creating adapter for Dish Master: Adapter is None",  # noqa:E501
         }
