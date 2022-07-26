@@ -14,6 +14,7 @@ from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 from tango import DevState
 
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
+from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -71,15 +72,32 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.setstandbylpmode_command = SetStandbyLPMode(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
 
         :rtype: tuple
         """
-
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        return task_status, response
+
+    def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
+        """Submits the SetStandbyLPMode command for execution.
+
+        :rtype: tuple
+        """
+        task_status, response = self.submit_task(
+            self.setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
             task_callback=task_callback,
         )
@@ -89,7 +107,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state."""
 
-        if command_name in ["SetStandbyFPMode"]:
+        if command_name in ["SetStandbyFPMode", "SetStandbyLPMode"]:
             if self.op_state_model.op_state in [
                 DevState.FAULT,
                 DevState.UNKNOWN,

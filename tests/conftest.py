@@ -5,6 +5,7 @@ import logging
 import pytest
 import tango
 from ska_tango_testing.mock import MockCallable
+from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
 from tango.test_context import MultiDeviceTestContext
@@ -97,3 +98,15 @@ def task_callback() -> MockCallable:
     """
     task_callback = MockCallable(5)
     return task_callback
+
+
+@pytest.fixture
+def group_callback() -> MockTangoEventCallbackGroup:
+    """Creates a mock callback group for asynchronous testing
+
+    :rtype: MockTangoEventCallbackGroup
+    """
+    group_callback = MockTangoEventCallbackGroup(
+        "longRunningCommandsInQueue", "longRunningCommandResult", timeout=15
+    )
+    return group_callback

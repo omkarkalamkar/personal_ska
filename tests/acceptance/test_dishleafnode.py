@@ -1,6 +1,8 @@
+# pylint: disable=line-too-long
 import time
 
 import pytest
+import tango
 from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from tango import Database, DeviceProxy
@@ -54,32 +56,57 @@ def call_command(dishleaf_node, command_name):
 
 @then(
     parsers.parse(
-        "the command is queued and executed in less than {seconds} secs"
+        "the {command_name} command is queued and executed in less than {seconds} secs"  # noqa:E501
     )
 )
-def check_command(dishleaf_node, seconds):
+def check_command(dishleaf_node, command_name, seconds, group_callback):
     if pytest.command_result == "CommandNotAllowed":
         return
 
     assert pytest.command_result[0][0] == ResultCode.QUEUED
     unique_id = pytest.command_result[1][0]
+    dishleaf_node.subscribe_event(
+        "longRunningCommandsInQueue",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandsInQueue"],
+    )
+    dishleaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
+    group_callback.assert_change_event(
+        "longRunningCommandsInQueue",
+        (str(command_name),),
+    )
     start_time = time.time()
     executed = False
     while not executed:
-        command, result = dishleaf_node.longRunningCommandResult
-        if command == unique_id:
-            logger.info("command result: %s", command)
-            assert (
-                int(result) == ResultCode.OK
-                or int(result) == ResultCode.FAILED
+        next_result = group_callback.assert_against_call(
+            "longRunningCommandResult",
+        )
+        logger.info(f"longRunningCommandResult is {next_result}")
+        command_id, result = next_result["attribute_value"]
+        if command_id != unique_id:
+            next_result = group_callback.assert_against_call(
+                "longRunningCommandResult",
+                lookahead=2,
             )
-            executed = True
-        if executed:
-            break
-        time.sleep(SLEEP_TIME)
+            command_id, result = next_result["attribute_value"]
+        assert command_id == unique_id
+        assert int(result) == ResultCode.OK or int(result) == ResultCode.FAILED
+
         elapsed_time = time.time() - start_time
         if elapsed_time > float(seconds):
             pytest.fail("Timeout occurred while executing the test")
+        else:
+            executed = True
+
+    group_callback.assert_change_event(
+        "longRunningCommandsInQueue",
+        None,
+        lookahead=3,
+    )
 
 
 scenarios("../features/dishleafnode.feature")

@@ -133,21 +133,29 @@ class DishLeafNode(SKABaseDevice):
     #     )
     #     return [[ResultCode.QUEUED], [str(unique_id)]]
 
-    # def is_SetStandbyLPMode_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+    def is_SetStandbyLPMode_allowed(self):
+        """
+       Checks whether this command is allowed to be run in the current \
+        device state. \
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+         :return: True if this command is allowed to be run in current \
+         device state. \
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("SetStandbyLPMode")
-    #     return handler.check_allowed()
+         :rtype: boolean
+         """
+        return self.component_manager.is_command_allowed("SetStandbyLPMode")
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def SetStandbyLPMode(self):
+        """Invokes SetStandbyLPMode command on DishMaster (Standby-Low power)
+        mode."""
+        handler = self.get_command_object("SetStandbyLPMode")
+        result_code, unique_id = handler()
+
+        return [[result_code], [str(unique_id)]]
+
+    # TODO: Refactor the below code to support base class v0.13.0
     # def SetStandbyLPMode(self):
     #     """Invokes SetStandbyLPMode (i.e. Low Power State) command on
     #     DishMaster."""
@@ -592,8 +600,12 @@ class DishLeafNode(SKABaseDevice):
         Initialises the command handlers for commands supported by this device.
         """
         super().init_command_objects()
+        # Setting the removal time for the command in queue after execution to
+        # 1 second from longRunningCommandsInQueue
+        self._command_tracker._removal_time = 1
         for (command_name, method_name) in [
-            ("SetStandbyFPMode", "setstandbyfpmode")
+            ("SetStandbyFPMode", "setstandbyfpmode"),
+            ("SetStandbyLPMode", "setstandbylpmode"),
         ]:
             self.register_command_object(
                 command_name,
