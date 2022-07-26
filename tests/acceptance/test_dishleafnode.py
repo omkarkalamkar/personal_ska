@@ -70,23 +70,28 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandsInQueue"],
     )
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
-        (str(command_name),),
-    )
     dishleaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
+    group_callback.assert_change_event(
+        "longRunningCommandsInQueue",
+        (str(command_name),),
+    )
     start_time = time.time()
     executed = False
     while not executed:
         next_result = group_callback.assert_against_call(
-            "longRunningCommandResult"
+            "longRunningCommandResult",
         )
         logger.info(f"longRunningCommandResult is {next_result}")
         command_id, result = next_result["attribute_value"]
+        if command_id != unique_id:
+            next_result = group_callback.assert_against_call(
+            "longRunningCommandResult", lookahead=2,
+            )
+            command_id, result = next_result["attribute_value"]
         assert command_id == unique_id
         assert int(result) == ResultCode.OK or int(result) == ResultCode.FAILED
 
