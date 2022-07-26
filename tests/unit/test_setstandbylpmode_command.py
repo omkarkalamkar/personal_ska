@@ -6,7 +6,6 @@ from tango import DevState
 from tests.settings import create_cm
 
 
-@pytest.mark.long_running
 def test_setstandbylpmode_command(
     tango_context, dish_master_device, task_callback
 ):
@@ -25,7 +24,6 @@ def test_setstandbylpmode_command(
     )
 
 
-@pytest.mark.long_running
 def test_setstandbylpmode_command_adapter_none(
     tango_context, dish_master_device, task_callback
 ):
@@ -49,7 +47,6 @@ def test_setstandbylpmode_command_adapter_none(
     )
 
 
-@pytest.mark.long_running
 def test_setstandbylpmode_command_not_allowed(
     tango_context, dish_master_device
 ):
