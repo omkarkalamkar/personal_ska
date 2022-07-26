@@ -89,7 +89,8 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
         command_id, result = next_result["attribute_value"]
         if command_id != unique_id:
             next_result = group_callback.assert_against_call(
-            "longRunningCommandResult", lookahead=2,
+                "longRunningCommandResult",
+                lookahead=2,
             )
             command_id, result = next_result["attribute_value"]
         assert command_id == unique_id
