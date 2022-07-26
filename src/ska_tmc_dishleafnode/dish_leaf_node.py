@@ -99,7 +99,6 @@ class DishLeafNode(SKABaseDevice):
         """Set the dishMasterDevName attribute."""
         self.component_manager.dish_dev_name = value
 
-    # Might get removed
     # --------
     # Commands
     # --------

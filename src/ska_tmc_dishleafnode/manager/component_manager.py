@@ -73,7 +73,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.setstandbylpmode_command = SetStandbyLPMode(
-            self, self.op_state_model, __adapter_factory, logger=self.logger
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
         )
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
@@ -93,7 +96,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: tuple
         """
-
         task_status, response = self.submit_task(
             self.setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],

@@ -1,5 +1,3 @@
-import time
-
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.exceptions import CommandNotAllowed
@@ -19,7 +17,6 @@ def test_setstandbylpmode_command(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
-    time.sleep(0.1)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -40,13 +37,12 @@ def test_setstandbylpmode_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
-    time.sleep(0.1)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
         call_kwargs={
-            "status": TaskStatus.FAILED,
+            "status": TaskStatus.COMPLETED,
             "result": ResultCode.FAILED,
             "exception": "Error in creating adapter for Dish Master: Adapter is None",  # noqa:E501
         }

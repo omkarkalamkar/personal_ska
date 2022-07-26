@@ -38,18 +38,20 @@ class SetStandbyLPMode(DishLNCommand):
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
 
-        ret_code, message = self.do()  # Fire and forget
+        ret_code, message = self.do()
 
         logger.info(message)
-
         if ret_code == ResultCode.FAILED:
             task_callback(
-                status=TaskStatus.FAILED,
+                status=TaskStatus.COMPLETED,
                 result=ResultCode.FAILED,
                 exception=message,
             )
         else:
-            task_callback(status=TaskStatus.COMPLETED, result=ResultCode.OK)
+            task_callback(
+                status=TaskStatus.COMPLETED,
+                result=ResultCode.OK,
+            )
 
     # pylint: enable=unused-argument
     def do(self, argin=None):
