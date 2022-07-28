@@ -27,9 +27,22 @@ def test_setstandbylpmode_command(
 def test_setstandbylpmode_command_adapter_none(
     tango_context, dish_master_device, task_callback
 ):
-    cm = create_cm(dish_master_device)
-    cm.timeout = 0
-    assert cm.is_command_allowed("SetStandbyLPMode")
+    device_not_in_db="mid_d0002/elt/master"
+    cm = create_cm(device_not_in_db)
+    message=f"""Error in creating adapter for {device_not_in_db}: DevFailed[
+DevError[
+    desc = OBJECT_NOT_EXIST CORBA system exception: OBJECT_NOT_EXIST_NoMatch
+  origin = Connection::connect
+  reason = API_CorbaException
+severity = ERR]
+
+DevError[
+    desc = Failed to connect to device {device_not_in_db}
+  origin = Connection::connect
+  reason = API_DeviceNotDefined
+severity = ERR]
+]"""
+    assert cm.is_command_allowed("SetStowMode")
 
     cm.setstandbylpmode(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -42,10 +55,9 @@ def test_setstandbylpmode_command_adapter_none(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": ResultCode.FAILED,
-            "exception": "Error in creating adapter for Dish Master: Adapter is None",  # noqa:E501
+            "exception": message
         }
     )
-
 
 def test_setstandbylpmode_command_not_allowed(
     tango_context, dish_master_device

@@ -15,6 +15,7 @@ from tango import DevState
 
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
+from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -29,13 +30,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         logger=None,
         communication_state_callback=None,
         component_state_callback=None,
-        update_command_in_progress_callback=None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver=False,
         max_workers=5,
         proxy_timeout=500,
         sleep_time=1,
-        timeout=30,
+        timeout=2,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -78,6 +78,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.setstowmode_command = SetStowMode(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
@@ -103,11 +109,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
+    def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
+        """Submits the SetStowMode command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.setstowmode_command.set_stow_mode,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        return task_status, response
+
     def is_command_allowed(self, command_name=None):
         """Checks if the given command is allowed in current operational
         state."""
 
-        if command_name in ["SetStandbyFPMode", "SetStandbyLPMode"]:
+        if command_name in [
+            "SetStandbyFPMode",
+            "SetStandbyLPMode",
+            "SetStowMode",
+        ]:
             if self.op_state_model.op_state in [
                 DevState.FAULT,
                 DevState.UNKNOWN,
