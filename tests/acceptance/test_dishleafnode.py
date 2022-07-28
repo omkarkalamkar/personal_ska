@@ -1,5 +1,6 @@
 # pylint: disable=line-too-long
-# Modified the acceptance test case to test the command invocation asynchronously
+# Modified the acceptance test case to test the command invocation
+# asynchronously
 import time
 
 import pytest
