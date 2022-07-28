@@ -154,26 +154,9 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler()
 
         return [[result_code], [str(unique_id)]]
-
-    # TODO: Refactor the below code to support base class v0.13.0
-    # def SetStandbyLPMode(self):
-    #     """Invokes SetStandbyLPMode (i.e. Low Power State) command on
-    #     DishMaster."""
-    #     handler = self.get_command_object("SetStandbyLPMode")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"SetStandbyLPMode\"command on
-    #         this device failed. Reason: The command executor rejected the
-    #         queuing of the command because its queue is full. The
-    #         \"SetStandbyLPMode\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
-
-    # def is_SetOperateMode_allowed(self):
-    #     """
+   
+    def is_SetOperateMode_allowed(self):
+         """
     #     Checks whether this command is allowed to be run in the current \
     #     device state. \
 
@@ -182,25 +165,19 @@ class DishLeafNode(SKABaseDevice):
 
     #     :rtype: boolean
     #     """
-    #     handler = self.get_command_object("SetOperateMode")
-    #     return handler.check_allowed()
+         handler = self.get_command_object("SetOperateMode")
+         return handler.check_allowed()
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
-    # def SetOperateMode(self):
-    #     """Invokes SetOperateMode command on DishMaster."""
-    #     handler = self.get_command_object("SetOperateMode")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"SetOperateMode\" command on
-    #         this device failed. Reason: The command executor rejected the
-    #         queuing of the command because its queue is full. The
-    #         \"SetOperateMode\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def SetOperateMode(self):
+        """Invokes SetOperateMode command on DishMaster ()
+        mode."""
+        handler = self.get_command_object("SetOperateMode")
+        result_code, unique_id = handler()
+
+        return [[result_code], [str(unique_id)]]
+    
 
     def is_SetStandbyFPMode_allowed(self):
         """
@@ -606,6 +583,7 @@ class DishLeafNode(SKABaseDevice):
         for (command_name, method_name) in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
+             ("SetOperateMode","setoperatemode")
         ]:
             self.register_command_object(
                 command_name,
