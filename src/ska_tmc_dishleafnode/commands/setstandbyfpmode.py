@@ -10,6 +10,7 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
+# Added a method for setting the task status and firing the actual command
 class SetStandbyFPMode(DishLNCommand):
     """
     A class for DishLeafNode's SetStandbyFPMode() command.

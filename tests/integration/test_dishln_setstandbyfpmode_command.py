@@ -6,6 +6,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from tests.settings import logger
 
 
+# Modification in test case to use ska-tango-testing's Mock callback class
 def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
