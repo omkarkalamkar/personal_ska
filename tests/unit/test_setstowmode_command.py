@@ -2,7 +2,7 @@ import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.exceptions import CommandNotAllowed
 from tango import DevState
-import time
+
 from tests.settings import create_cm
 
 
@@ -24,12 +24,10 @@ def test_setstowmode_command(tango_context, dish_master_device, task_callback):
 
 
 @pytest.mark.stow
-def test_setstowmode_command_adapter_none(
-    tango_context,task_callback
-):
-    device_not_in_db="mid_d0002/elt/master"
+def test_setstowmode_command_adapter_none(tango_context, task_callback):
+    device_not_in_db = "mid_d0002/elt/master"
     cm = create_cm(device_not_in_db)
-    message=f"""Error in creating adapter for {device_not_in_db}: DevFailed[
+    message = f"""Error in creating adapter for {device_not_in_db}: DevFailed[
 DevError[
     desc = OBJECT_NOT_EXIST CORBA system exception: OBJECT_NOT_EXIST_NoMatch
   origin = Connection::connect
@@ -55,7 +53,7 @@ severity = ERR]
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": ResultCode.FAILED,
-            "exception": message
+            "exception": message,
         }
     )
 

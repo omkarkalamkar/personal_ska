@@ -27,9 +27,9 @@ def test_setstandbyfpmode_command(
 def test_setstandbyfpmode_command_adapter_none(
     tango_context, dish_master_device, task_callback
 ):
-    device_not_in_db="mid_d0002/elt/master"
+    device_not_in_db = "mid_d0002/elt/master"
     cm = create_cm(device_not_in_db)
-    message=f"""Error in creating adapter for {device_not_in_db}: DevFailed[
+    message = f"""Error in creating adapter for {device_not_in_db}: DevFailed[
 DevError[
     desc = OBJECT_NOT_EXIST CORBA system exception: OBJECT_NOT_EXIST_NoMatch
   origin = Connection::connect
@@ -55,7 +55,7 @@ severity = ERR]
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": ResultCode.FAILED,
-            "exception": message
+            "exception": message,
         }
     )
 
