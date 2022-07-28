@@ -154,9 +154,9 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler()
 
         return [[result_code], [str(unique_id)]]
-   
+
     def is_SetOperateMode_allowed(self):
-         """
+        """
     #     Checks whether this command is allowed to be run in the current \
     #     device state. \
 
@@ -165,8 +165,8 @@ class DishLeafNode(SKABaseDevice):
 
     #     :rtype: boolean
     #     """
-         handler = self.get_command_object("SetOperateMode")
-         return handler.check_allowed()
+        handler = self.get_command_object("SetOperateMode")
+        return handler.check_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -177,7 +177,6 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler()
 
         return [[result_code], [str(unique_id)]]
-    
 
     def is_SetStandbyFPMode_allowed(self):
         """
@@ -583,7 +582,7 @@ class DishLeafNode(SKABaseDevice):
         for (command_name, method_name) in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
-             ("SetOperateMode","setoperatemode")
+            ("SetOperateMode", "setoperatemode"),
         ]:
             self.register_command_object(
                 command_name,
