@@ -119,18 +119,6 @@ class DishLeafNode(SKABaseDevice):
     @DebugIt()
     def SetStowMode(self):
         """Invokes SetStowMode command on DishMaster."""
-        # handler = self.get_command_object("SetStowMode")
-        # if self.component_manager.command_executor.queue_full:
-        #     message = """The invocation of the \"SetStowMode\" command on this
-        #     device failed. Reason: The command executor rejected the queuing
-        #     of the command because its queue is full. The \"SetStowMode\"
-        #     command has NOT been queued and will not be executed.
-        #     This device will continue with normal operation."""
-        #     return [[ResultCode.FAILED], [message]]
-        # unique_id = self.component_manager.command_executor.enqueue_command(
-        #     handler
-        # )
-        # return [[ResultCode.QUEUED], [str(unique_id)]]
 
         handler = self.get_command_object("SetStowMode")
         result_code, unique_id = handler()
@@ -159,30 +147,13 @@ class DishLeafNode(SKABaseDevice):
 
         return [[result_code], [str(unique_id)]]
 
-    # TODO: Refactor the below code to support base class v0.13.0
-    # def SetStandbyLPMode(self):
-    #     """Invokes SetStandbyLPMode (i.e. Low Power State) command on
-    #     DishMaster."""
-    #     handler = self.get_command_object("SetStandbyLPMode")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"SetStandbyLPMode\"command on
-    #         this device failed. Reason: The command executor rejected the
-    #         queuing of the command because its queue is full. The
-    #         \"SetStandbyLPMode\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
-
     # def is_SetOperateMode_allowed(self):
     #     """
     #     Checks whether this command is allowed to be run in the current \
     #     device state. \
 
     #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+    #     device state. \https://meet.google.com/pad-oveo-oqu
 
     #     :rtype: boolean
     #     """
@@ -604,9 +575,7 @@ class DishLeafNode(SKABaseDevice):
         Initialises the command handlers for commands supported by this device.
         """
         super().init_command_objects()
-        # Setting the removal time for the command in queue after execution to
-        # 1 second from longRunningCommandsInQueue
-        self._command_tracker._removal_time = 1
+
         for (command_name, method_name) in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
