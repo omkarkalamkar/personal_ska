@@ -35,14 +35,13 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    next_result = group_callback.assert_against_call(
-        "longRunningCommandResult"
+    next_result = group_callback.assert_change_event(
+        "longRunningCommandResult",
+        (unique_id[0], str(int(ResultCode.OK))),
+        lookahead=2,
     )
     logger.info(f"attr value : {next_result['attribute_value']}")
 
-    command_id, result = next_result["attribute_value"]
-    assert command_id.endswith("SetStandbyFPMode")
-    assert int(result) == ResultCode.OK
     group_callback.assert_change_event(
         "longRunningCommandsInQueue",
         None,
