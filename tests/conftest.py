@@ -4,7 +4,6 @@ import logging
 
 import pytest
 import tango
-from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
@@ -12,6 +11,7 @@ from tango.test_context import MultiDeviceTestContext
 from tango.test_utils import DeviceTestContext
 
 from ska_tmc_dishleafnode.dish_leaf_node import DishLeafNode
+from tests.callback import MockCallable
 
 
 def pytest_sessionstart(session):
