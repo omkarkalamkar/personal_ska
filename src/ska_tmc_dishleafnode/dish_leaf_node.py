@@ -575,9 +575,6 @@ class DishLeafNode(SKABaseDevice):
         Initialises the command handlers for commands supported by this device.
         """
         super().init_command_objects()
-        # Setting the removal time for the command in queue after execution to
-        # 1 second from longRunningCommandsInQueue
-        self._command_tracker._removal_time = 1
         for (command_name, method_name) in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
