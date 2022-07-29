@@ -103,35 +103,39 @@ class DishLeafNode(SKABaseDevice):
     # Commands
     # --------
     # TODO: Refactor the below code to support base class v0.13.0
-    # def is_SetStowMode_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+    def is_SetStowMode_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("SetStowMode")
-    #     return handler.check_allowed()
+        :rtype: boolean
+        """
+        return self.component_manager.is_command_allowed("SetStowMode")
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
-    # def SetStowMode(self):
-    #     """Invokes SetStowMode command on DishMaster."""
-    #     handler = self.get_command_object("SetStowMode")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"SetStowMode\" command on this
-    #         device failed. Reason: The command executor rejected the queuing
-    #         of the command because its queue is full. The \"SetStowMode\"
-    #         command has NOT been queued and will not be executed.
-    #         This device will continue with normal operation."""
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def SetStowMode(self):
+        """Invokes SetStowMode command on DishMaster."""
+        # handler = self.get_command_object("SetStowMode")
+        # if self.component_manager.command_executor.queue_full:
+        #     message = """The invocation of the \"SetStowMode\" command on this
+        #     device failed. Reason: The command executor rejected the queuing
+        #     of the command because its queue is full. The \"SetStowMode\"
+        #     command has NOT been queued and will not be executed.
+        #     This device will continue with normal operation."""
+        #     return [[ResultCode.FAILED], [message]]
+        # unique_id = self.component_manager.command_executor.enqueue_command(
+        #     handler
+        # )
+        # return [[ResultCode.QUEUED], [str(unique_id)]]
+
+        handler = self.get_command_object("SetStowMode")
+        result_code, unique_id = handler()
+
+        return [[result_code], [str(unique_id)]]
 
     def is_SetStandbyLPMode_allowed(self):
         """
@@ -606,6 +610,7 @@ class DishLeafNode(SKABaseDevice):
         for (command_name, method_name) in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
+            ("SetStowMode","setstowmode")
         ]:
             self.register_command_object(
                 command_name,
