@@ -166,7 +166,7 @@ class DishLeafNode(SKABaseDevice):
     #     :rtype: boolean
     #     """
         handler = self.get_command_object("SetOperateMode")
-        return handler.check_allowed()
+        return self.component_manager.is_command_allowed("SetOperateMode")
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
