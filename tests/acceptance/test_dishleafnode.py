@@ -105,7 +105,7 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
     group_callback.assert_change_event(
         "longRunningCommandsInQueue",
         None,
-        lookahead=3,
+        lookahead=4,
     )
 
 
