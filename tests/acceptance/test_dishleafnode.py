@@ -85,7 +85,8 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
     executed = False
     while not executed:
         next_result = group_callback.assert_against_call(
-            "longRunningCommandResult", lookahead=2,
+            "longRunningCommandResult",
+            lookahead=2,
         )
         logger.info(f"longRunningCommandResult is {next_result}")
         command_id, result = next_result["attribute_value"]
