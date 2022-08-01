@@ -579,7 +579,7 @@ class DishLeafNode(SKABaseDevice):
         for (command_name, method_name) in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
-            ("SetStowMode", "setstowmode"),
+            ("SetStowMode","setstowmode")
         ]:
             self.register_command_object(
                 command_name,
