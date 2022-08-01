@@ -52,6 +52,7 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
     group_callback.assert_change_event(
         "longRunningCommandResult",
         (unique_id_op[0], str(int(ResultCode.OK))),
+        lookahead=4,
     )
     group_callback.assert_change_event(
         "longRunningCommandsInQueue",
