@@ -25,10 +25,9 @@ def test_setstandbylpmode_command(
 
 
 def test_setstandbylpmode_command_adapter_none(
-    tango_context, dish_master_device, task_callback
+    dish_master_device, task_callback
 ):
     cm = create_cm(dish_master_device)
-    cm.timeout = 0
     assert cm.is_command_allowed("SetStandbyLPMode")
 
     cm.setstandbylpmode(task_callback=task_callback)
@@ -38,13 +37,9 @@ def test_setstandbylpmode_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": ResultCode.FAILED,
-            "exception": "Error in creating adapter for Dish Master: Adapter is None",  # noqa:E501
-        }
-    )
+    task_callback_signature = task_callback.assert_against_call()
+    task_callback_signature["call_kwargs"]["status"] = TaskStatus.COMPLETED
+    task_callback_signature["call_kwargs"]["result"] = ResultCode.FAILED
 
 
 def test_setstandbylpmode_command_not_allowed(

@@ -20,33 +20,40 @@ def setstandbylpmode_command(tango_context, dishln_name, group_callback):
         None,
     )
 
-    result, unique_id = dish_leaf_node.SetStandbyLPMode()
+    result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
+    assert result_fp == ResultCode.QUEUED
     group_callback.assert_change_event(
         "longRunningCommandsInQueue",
-        ("SetStandbyLPMode",),
+        ("SetStandbyFPMode",),
     )
-
-    logger.info(f"Command ID: {unique_id} Returned result: {result}")
-    assert result[0] == ResultCode.QUEUED
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-
-    next_result = group_callback.assert_change_event(
+    group_callback.assert_change_event(
         "longRunningCommandResult",
-        (unique_id[0], str(int(ResultCode.OK))),
+        (unique_id_fp[0], str(int(ResultCode.OK))),
         lookahead=2,
     )
-    logger.info(f"attr value : {next_result['attribute_value']}")
-    command_id, result = next_result["attribute_value"]
-    assert command_id.endswith("SetStandbyLPMode")
-    assert int(result) == ResultCode.OK
+    result_lp, unique_id_lp = dish_leaf_node.SetStandbyLPMode()
+    assert result_lp[0] == ResultCode.QUEUED
+    group_callback.assert_change_event(
+        "longRunningCommandsInQueue",
+        (
+            "SetStandbyFPMode",
+            "SetStandbyLPMode",
+        ),
+    )
+    group_callback.assert_change_event(
+        "longRunningCommandResult",
+        (unique_id_lp[0], str(int(ResultCode.OK))),
+        lookahead=2,
+    )
     group_callback.assert_change_event(
         "longRunningCommandsInQueue",
         None,
-        lookahead=2,
+        lookahead=3,
     )
 
 

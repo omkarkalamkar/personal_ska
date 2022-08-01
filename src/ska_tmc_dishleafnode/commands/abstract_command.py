@@ -31,7 +31,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         elapsed_time = 0
         start_time = time.time()
 
-        while self.dish_master_adapter is None and elapsed_time < timeout:
+        while self.dish_master_adapter is None and elapsed_time <= timeout:
             try:
                 self.dish_master_adapter = (
                     self._adapter_factory.get_or_create_adapter(
