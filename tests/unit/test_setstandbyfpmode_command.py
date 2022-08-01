@@ -26,10 +26,9 @@ def test_setstandbyfpmode_command(
 
 
 def test_setstandbyfpmode_command_adapter_none(
-    tango_context, dish_master_device, task_callback
+    dish_master_device, task_callback
 ):
     cm = create_cm(dish_master_device)
-    cm.timeout = 0
     assert cm.is_command_allowed("SetStandbyFPMode")
 
     cm.setstandbyfpmode(task_callback=task_callback)
@@ -39,12 +38,12 @@ def test_setstandbyfpmode_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": ResultCode.FAILED,
-            "exception": "Error in creating adapter for Dish Master: Adapter is None",  # noqa:E501
-        }
+    signature = task_callback.assert_against_call()
+    assert signature["call_kwargs"]["status"] == TaskStatus.COMPLETED
+    assert signature["call_kwargs"]["result"] == ResultCode.FAILED
+    assert (
+        f"Error in creating adapter for {dish_master_device}"
+        in signature["call_kwargs"]["exception"]
     )
 
 

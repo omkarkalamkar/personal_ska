@@ -42,7 +42,7 @@ class DishLeafNode(SKABaseDevice):
     )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
-    TimeOut = device_property(dtype="DevFloat", default_value=30)
+    TimeOut = device_property(dtype="DevFloat", default_value=2)
     # ----------
     # Attributes
     # ----------
