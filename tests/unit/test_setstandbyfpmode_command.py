@@ -25,23 +25,10 @@ def test_setstandbyfpmode_command(
 
 
 def test_setstandbyfpmode_command_adapter_none(
-    tango_context, dish_master_device, task_callback
+    dish_master_device, task_callback
 ):
-    device_not_in_db = "mid_d0002/elt/master"
-    cm = create_cm(device_not_in_db)
-    message = f"""Error in creating adapter for {device_not_in_db}: DevFailed[
-DevError[
-    desc = OBJECT_NOT_EXIST CORBA system exception: OBJECT_NOT_EXIST_NoMatch
-  origin = Connection::connect
-  reason = API_CorbaException
-severity = ERR]
+    cm = create_cm(dish_master_device)
 
-DevError[
-    desc = Failed to connect to device {device_not_in_db}
-  origin = Connection::connect
-  reason = API_DeviceNotDefined
-severity = ERR]
-]"""
     assert cm.is_command_allowed("SetStowMode")
 
     cm.setstandbyfpmode(task_callback=task_callback)
@@ -51,13 +38,9 @@ severity = ERR]
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": ResultCode.FAILED,
-            "exception": message,
-        }
-    )
+    task_callback_signature = task_callback.assert_against_call()
+    task_callback_signature["call_kwargs"]["status"] = TaskStatus.COMPLETED
+    task_callback_signature["call_kwargs"]["result"] = ResultCode.FAILED
 
 
 def test_setstandbyfpmode_command_not_allowed(
