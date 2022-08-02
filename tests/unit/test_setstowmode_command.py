@@ -40,6 +40,10 @@ def test_setstowmode_command_adapter_none(dish_master_device, task_callback):
     task_callback_signature = task_callback.assert_against_call()
     task_callback_signature["call_kwargs"]["status"] = TaskStatus.COMPLETED
     task_callback_signature["call_kwargs"]["result"] = ResultCode.FAILED
+    assert (
+        f"Error in creating adapter for {dish_master_device}"
+        in task_callback_signature["call_kwargs"]["exception"]
+    )
 
 
 @pytest.mark.stow

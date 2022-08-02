@@ -30,7 +30,7 @@ def test_setstandbylpmode_command_adapter_none(
 
     cm = create_cm(dish_master_device)
 
-    assert cm.is_command_allowed("SetStowMode")
+    assert cm.is_command_allowed("SetStandbyLPMode")
 
     cm.setstandbylpmode(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -42,6 +42,10 @@ def test_setstandbylpmode_command_adapter_none(
     task_callback_signature = task_callback.assert_against_call()
     task_callback_signature["call_kwargs"]["status"] = TaskStatus.COMPLETED
     task_callback_signature["call_kwargs"]["result"] = ResultCode.FAILED
+    assert (
+        f"Error in creating adapter for {dish_master_device}"
+        in task_callback_signature["call_kwargs"]["exception"]
+    )
 
 
 def test_setstandbylpmode_command_not_allowed(
