@@ -10,7 +10,7 @@ Feature: DishLeafNode acceptance
 
 		Examples:
 		| command_name		  |
-        | SetStandbyFPMode    |
+                | SetStandbyFPMode    |
 		| SetStandbyLPMode    |
 		| SetOperateMode      |
 
