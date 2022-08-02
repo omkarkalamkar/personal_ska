@@ -98,5 +98,4 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
     )
 
 
-
 scenarios("../features/dishleafnode.feature")
