@@ -34,8 +34,17 @@ def test_set_operate_command_adapter_none(dish_master_device, task_callback):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback_signature = task_callback.assert_against_call()
-    task_callback_signature["call_kwargs"]["status"] = TaskStatus.COMPLETED
-    task_callback_signature["call_kwargs"]["result"] = ResultCode.FAILED
+    assert (
+        task_callback_signature["call_kwargs"]["status"]
+        == TaskStatus.COMPLETED
+    )
+    assert (
+        task_callback_signature["call_kwargs"]["result"] == ResultCode.FAILED
+    )
+    assert (
+        f"Error in creating adapter for {dish_master_device}"
+        in task_callback_signature["call_kwargs"]["exception"]
+    )
 
 
 def test_set_operate_mode_command_not_allowed(
