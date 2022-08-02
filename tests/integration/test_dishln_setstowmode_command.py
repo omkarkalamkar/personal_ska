@@ -38,20 +38,13 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
     )
     logger.info(f"Command ID: {unique_id_stow} Returned result: {result_stow}")
 
-    next_result = group_callback[
-        "longRunningCommandResult"
-    ].assert_change_event(
+    group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], str(int(ResultCode.OK))),
     )
 
-    logger.info(f"attr value : {next_result['attribute_value']}")
-
-    next_result = group_callback[
-        "longRunningCommandResult"
-    ].assert_change_event(
+    group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_stow[0], str(int(ResultCode.OK))), lookahead=2
     )
-    logger.info(f"attr value : {next_result['attribute_value']}")
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,

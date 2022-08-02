@@ -6,7 +6,6 @@ from tango import DevState
 from tests.settings import create_cm
 
 
-@pytest.mark.stow
 def test_setstowmode_command(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     assert cm.is_command_allowed("SetStowMode")
@@ -23,7 +22,6 @@ def test_setstowmode_command(tango_context, dish_master_device, task_callback):
     )
 
 
-@pytest.mark.stow
 def test_setstowmode_command_adapter_none(dish_master_device, task_callback):
 
     cm = create_cm(dish_master_device)
@@ -46,7 +44,6 @@ def test_setstowmode_command_adapter_none(dish_master_device, task_callback):
     )
 
 
-@pytest.mark.stow
 def test_setstowmode_command_not_allowed(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
     cm.op_state_model._op_state = DevState.FAULT
