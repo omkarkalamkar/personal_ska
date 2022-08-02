@@ -153,7 +153,7 @@ class DishLeafNode(SKABaseDevice):
     #     device state. \
 
     #     :return: True if this command is allowed to be run in current \
-    #     device state. \https://meet.google.com/pad-oveo-oqu
+    #     device state. \
 
     #     :rtype: boolean
     #     """
