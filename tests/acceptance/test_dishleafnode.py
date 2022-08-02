@@ -82,7 +82,7 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
     executed = False
     while not executed:
         group_callback["longRunningCommandResult"].assert_change_event(
-            (unique_id, str(int(ResultCode.OK))),
+            (unique_id, str(int(ResultCode.OK))), lookahead=2
         )
         elapsed_time = time.time() - start_time
         if elapsed_time > float(seconds):
