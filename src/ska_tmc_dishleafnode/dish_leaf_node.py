@@ -123,21 +123,21 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetOperateMode_allowed(self):
         """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+        Checks whether this command is allowed to be run in the current \
+        device state. \
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+        :return: True if this command is allowed to be run in current \
+        device state. \
 
-    #     :rtype: boolean
-    #     """
+        :rtype: boolean
+        """
         return self.component_manager.is_command_allowed("SetOperateMode")
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetOperateMode(self):
-        """Invokes SetOperateMode command on DishMaster ()
-        mode."""
+        """Invokes SetOperateMode command on DishMaster
+        device."""
         handler = self.get_command_object("SetOperateMode")
         result_code, unique_id = handler()
 
