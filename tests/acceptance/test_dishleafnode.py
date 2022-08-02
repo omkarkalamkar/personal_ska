@@ -7,7 +7,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from tango import Database, DeviceProxy
 
-from tests.settings import SLEEP_TIME, create_cm, logger
+from tests.settings import SLEEP_TIME, create_cm
 
 
 @given(
@@ -81,21 +81,9 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
     start_time = time.time()
     executed = False
     while not executed:
-        next_result = group_callback[
-            "longRunningCommandResult"
-        ].assert_against_call()
-        logger.info(f"longRunningCommandResult is {next_result}")
-        command_id, result = next_result["attribute_value"]
-        if command_id != unique_id:
-            next_result = group_callback[
-                "longRunningCommandResult"
-            ].assert_against_call(
-                lookahead=2,
-            )
-            command_id, result = next_result["attribute_value"]
-        assert command_id == unique_id
-        assert int(result) == ResultCode.OK or int(result) == ResultCode.FAILED
-
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id, str(int(ResultCode.OK))),
+        )
         elapsed_time = time.time() - start_time
         if elapsed_time > float(seconds):
             pytest.fail("Timeout occurred while executing the test")
@@ -104,7 +92,7 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=3,
+        lookahead=2,
     )
 
 
