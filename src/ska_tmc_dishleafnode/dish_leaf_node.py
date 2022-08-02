@@ -136,14 +136,14 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyLPMode_allowed(self):
         """
-       Checks whether this command is allowed to be run in the current \
-        device state. \
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-         :return: True if this command is allowed to be run in current \
-         device state. \
+         :return: True if this command is allowed to be run in current
+         device state.
 
          :rtype: boolean
-         """
+        """
         return self.component_manager.is_command_allowed("SetStandbyLPMode")
 
     @command(dtype_out="DevVarLongStringArray")
@@ -157,22 +157,6 @@ class DishLeafNode(SKABaseDevice):
         return [[result_code], [str(unique_id)]]
 
     # TODO: Refactor the below code to support base class v0.13.0
-    # def SetStandbyLPMode(self):
-    #     """Invokes SetStandbyLPMode (i.e. Low Power State) command on
-    #     DishMaster."""
-    #     handler = self.get_command_object("SetStandbyLPMode")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"SetStandbyLPMode\"command on
-    #         this device failed. Reason: The command executor rejected the
-    #         queuing of the command because its queue is full. The
-    #         \"SetStandbyLPMode\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
-
     # def is_SetOperateMode_allowed(self):
     #     """
     #     Checks whether this command is allowed to be run in the current \
@@ -205,11 +189,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyFPMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current \
-        device state. \
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current \
-        device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
         :rtype: boolean
         """
