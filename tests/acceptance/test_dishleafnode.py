@@ -9,7 +9,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from tango import Database, DeviceProxy
 
-from tests.settings import SLEEP_TIME, create_cm, logger
+from tests.settings import SLEEP_TIME, create_cm
 
 
 @given(
@@ -77,27 +77,15 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         (str(command_name),),
     )
     start_time = time.time()
     executed = False
     while not executed:
-        next_result = group_callback.assert_against_call(
-            "longRunningCommandResult",
-            lookahead=2,
+        group_callback["longRunningCommandResult"].assert_against_call(
+            (unique_id, str(int(ResultCode.OK)))
         )
-        logger.info(f"longRunningCommandResult is {next_result}")
-        command_id, result = next_result["attribute_value"]
-        if command_id != unique_id:
-            next_result = group_callback.assert_against_call(
-                "longRunningCommandResult",
-                lookahead=2,
-            )
-            command_id, result = next_result["attribute_value"]
-        assert command_id == unique_id
-        assert int(result) == ResultCode.OK or int(result) == ResultCode.FAILED
 
         elapsed_time = time.time() - start_time
         if elapsed_time > float(seconds):
@@ -105,8 +93,7 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
         else:
             executed = True
 
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
         lookahead=3,
     )
