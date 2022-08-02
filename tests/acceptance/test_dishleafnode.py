@@ -83,10 +83,9 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
     start_time = time.time()
     executed = False
     while not executed:
-        group_callback["longRunningCommandResult"].assert_against_call(
-            (unique_id, str(int(ResultCode.OK)))
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id, str(int(ResultCode.OK))), lookahead=2
         )
-
         elapsed_time = time.time() - start_time
         if elapsed_time > float(seconds):
             pytest.fail("Timeout occurred while executing the test")
@@ -95,8 +94,9 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=3,
+        lookahead=2,
     )
+
 
 
 scenarios("../features/dishleafnode.feature")
