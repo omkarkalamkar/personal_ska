@@ -16,14 +16,12 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
         group_callback["longRunningCommandsInQueue"],
     )
 
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
     )
     dish_leaf_node.subscribe_event(
@@ -31,15 +29,13 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    group_callback.assert_change_event(
-        "longRunningCommandResult",
+    group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], str(int(ResultCode.OK))),
     )
 
     assert result_fp[0] == ResultCode.QUEUED
     result_op, unique_id_op = dish_leaf_node.SetOperateMode()
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         (
             "SetStandbyFPMode",
             "SetOperateMode",
@@ -49,15 +45,13 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
     assert result_op[0] == ResultCode.QUEUED
 
-    group_callback.assert_change_event(
-        "longRunningCommandResult",
+    group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], str(int(ResultCode.OK))),
-        lookahead=4,
+        lookahead=2,
     )
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=3,
+        lookahead=2,
     )
 
 
