@@ -6,6 +6,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from tests.settings import logger
 
 
+# Modification in test case to use ska-tango-testing's Mock callback class
 def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
@@ -15,14 +16,12 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandsInQueue"],
     )
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
     )
 
     result, unique_id = dish_leaf_node.SetStandbyFPMode()
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
     )
 
@@ -34,13 +33,12 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    group_callback.assert_change_event(
-        "longRunningCommandResult",
+    group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], str(int(ResultCode.OK))),
         lookahead=2,
     )
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
         lookahead=2,
     )

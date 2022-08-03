@@ -90,6 +90,7 @@ def dishln_device(request):
             break
 
 
+# Created fixtures for MockCallable and TangoEventCallback classes
 @pytest.fixture
 def task_callback() -> MockCallable:
     """Creates a mock callable for asynchronous testing

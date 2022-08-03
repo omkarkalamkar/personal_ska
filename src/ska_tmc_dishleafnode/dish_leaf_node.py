@@ -11,6 +11,7 @@ from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
+# Modified the tango device class to have Submitted slow command functionality
 class DishLeafNode(SKABaseDevice):
     """
     A Leaf control node for DishMaster.
@@ -101,14 +102,14 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyLPMode_allowed(self):
         """
-       Checks whether this command is allowed to be run in the current \
-        device state. \
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-         :return: True if this command is allowed to be run in current \
-         device state. \
+         :return: True if this command is allowed to be run in current
+         device state.
 
          :rtype: boolean
-         """
+        """
         return self.component_manager.is_command_allowed("SetStandbyLPMode")
 
     @command(dtype_out="DevVarLongStringArray")
@@ -145,11 +146,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyFPMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current \
-        device state. \
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current \
-        device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
         :rtype: boolean
         """

@@ -1,6 +1,7 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+# pylint: disable=W0222
 from typing import Tuple
 
 from ska_tango_base.executor import TaskStatus
@@ -18,6 +19,9 @@ from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 
 
+# Modified the component manager to have the submit task functionality in
+# methods for different commands. Made a commond check allowed method for
+# all commands
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
@@ -122,7 +126,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
-    def is_command_allowed(self, command_name=None):
+    def is_command_allowed(self, command_name: str):
         """Checks if the given command is allowed in current operational
         state."""
 

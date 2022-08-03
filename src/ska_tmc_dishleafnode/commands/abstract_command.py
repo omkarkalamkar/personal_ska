@@ -8,6 +8,7 @@ from ska_tmc_common.tmc_command import TmcLeafNodeCommand
 from tango import ConnectionFailed, DevFailed
 
 
+# Modified the adapter creation
 class DishLNCommand(TmcLeafNodeCommand):
     """A base command class for DishLeafNode with the methods and parameters
     common across all the commands."""
