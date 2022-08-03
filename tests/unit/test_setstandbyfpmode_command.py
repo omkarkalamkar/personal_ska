@@ -38,12 +38,17 @@ def test_setstandbyfpmode_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    signature = task_callback.assert_against_call()
-    assert signature["call_kwargs"]["status"] == TaskStatus.COMPLETED
-    assert signature["call_kwargs"]["result"] == ResultCode.FAILED
+    task_callback_signature = task_callback.assert_against_call()
+    assert (
+        task_callback_signature["call_kwargs"]["status"]
+        == TaskStatus.COMPLETED
+    )
+    assert (
+        task_callback_signature["call_kwargs"]["result"] == ResultCode.FAILED
+    )
     assert (
         f"Error in creating adapter for {dish_master_device}"
-        in signature["call_kwargs"]["exception"]
+        in task_callback_signature["call_kwargs"]["exception"]
     )
 
 
