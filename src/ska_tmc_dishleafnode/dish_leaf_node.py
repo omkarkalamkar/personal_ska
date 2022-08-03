@@ -169,6 +169,248 @@ class DishLeafNode(SKABaseDevice):
 
         return [[result_code], [str(unique_id)]]
 
+    # pylint: disable-all
+    def is_Scan_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def Scan(self):
+        """Invokes Scan command on DishMaster."""
+
+        return [
+            [ResultCode.FAILED],
+            ["Scan command will be refactored in later PI's"],
+        ]
+
+    def is_EndScan_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def EndScan(self):
+        """Invokes StopCapture command on DishMaster."""
+
+        return [
+            [ResultCode.FAILED],
+            ["EndScan command will be refactored in later PI's"],
+        ]
+
+    def is_Configure_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def Configure(self):
+        """Configures the Dish by setting pointing coordinates for a given
+        observation."""
+
+        return [
+            [ResultCode.FAILED],
+            ["Configure command will be refactored in later PI's"],
+        ]
+
+    def is_StartCapture_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def StartCapture(self):
+        """Triggers the DishMaster to start data capturing on the configured
+        band."""
+
+        return [
+            [ResultCode.FAILED],
+            ["StartCapture command will be refactored in later PI's"],
+        ]
+
+    def is_StopCapture_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def StopCapture(self):
+        """Invokes StopCapture command on DishMaster on the set configured
+        band."""
+
+        return [
+            [ResultCode.FAILED],
+            ["StopCapture command will be refactored in later PI's"],
+        ]
+
+    def is_Track_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+
+    @command(
+        dtype_in="str",
+        doc_in="The JSON input string contains dish and pointing information.",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def Track(self):
+        """Invokes Track command on the DishMaster."""
+
+        return [
+            [ResultCode.FAILED],
+            ["Track command will be refactored in later PI's"],
+        ]
+
+    def is_StopTrack_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def StopTrack(self):
+        """Invokes StopTrack command on the DishMaster."""
+
+        return [
+            [ResultCode.FAILED],
+            ["StopTrack command will be refactored in later PI's"],
+        ]
+
+    def is_Abort_allowed(self):
+        """
+        Checks whether this command is allowed to be run in current
+        device state
+
+        :return: True if this command is allowed to be run in current device
+        state
+
+        :rtype: boolean
+        """
+
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def Abort(self):
+        """Invokes Abort command on the DishMaster."""
+
+        return [
+            [ResultCode.FAILED],
+            ["Abort command will be refactored in later PI's"],
+        ]
+
+    def is_Restart_allowed(self):
+        """
+        Checks whether this command is allowed to be run in current
+        device state
+
+        :return: True if this command is allowed to be run in current
+        device state
+        :rtype: boolean
+        """
+
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def Restart(self):
+        """Invokes Restart command on the DishMaster."""
+
+        return [
+            [ResultCode.FAILED],
+            ["Restart command will be refactored in later PI's"],
+        ]
+
+    def is_ObsReset_allowed(self):
+        """
+        Checks whether this command is allowed to be run in current
+        device state
+
+        :return: True if this command is allowed to be run in current
+        device state
+
+        :rtype: boolean
+        """
+
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def ObsReset(self):
+        """Invokes ObsReset command on the DishLeafNode."""
+
+        return [
+            [ResultCode.FAILED],
+            ["ObsReset command will be refactored in later PI's"],
+        ]
+
     def create_component_manager(self):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
