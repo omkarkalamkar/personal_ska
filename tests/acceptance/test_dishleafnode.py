@@ -7,14 +7,14 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from tango import Database, DeviceProxy
 
-from tests.settings import SLEEP_TIME, create_cm, logger
+from tests.settings import SLEEP_TIME, create_cm
 
 
 @given(
     parsers.parse("DishLeafNode and DishMaster devices are running"),
-    target_fixture="dish_leaf_node",
+    target_fixture="dishleafnode_cm",
 )
-def dish_leaf_node(tango_context, dish_master_device):
+def dishleafnode_cm(tango_context, dish_master_device):
     database = Database()
     instance_list = database.get_device_exported_for_class("DishLeafNode")
     for instance in instance_list.value_string:
@@ -24,14 +24,14 @@ def dish_leaf_node(tango_context, dish_master_device):
 
 
 @when(parsers.parse("DishLeafNode pings the DishMaster device"))
-def ping_started(dish_leaf_node):
-    assert dish_leaf_node.liveliness_probe_object._thread.is_alive()
+def ping_started(dishleafnode_cm):
+    assert dishleafnode_cm.liveliness_probe_object._thread.is_alive()
 
 
 @then(parsers.parse("the ping information gets updated"))
-def ping_updates(dish_leaf_node):
+def ping_updates(dishleafnode_cm):
     time.sleep(SLEEP_TIME)
-    assert dish_leaf_node._device.ping > 0
+    assert dishleafnode_cm._device.ping > 0
 
 
 @given(
@@ -75,37 +75,24 @@ def check_command(dishleaf_node, command_name, seconds, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         (str(command_name),),
     )
     start_time = time.time()
     executed = False
     while not executed:
-        next_result = group_callback.assert_against_call(
-            "longRunningCommandResult",
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id, str(int(ResultCode.OK))), lookahead=2
         )
-        logger.info(f"longRunningCommandResult is {next_result}")
-        command_id, result = next_result["attribute_value"]
-        if command_id != unique_id:
-            next_result = group_callback.assert_against_call(
-                "longRunningCommandResult",
-                lookahead=2,
-            )
-            command_id, result = next_result["attribute_value"]
-        assert command_id == unique_id
-        assert int(result) == ResultCode.OK or int(result) == ResultCode.FAILED
-
         elapsed_time = time.time() - start_time
         if elapsed_time > float(seconds):
             pytest.fail("Timeout occurred while executing the test")
         else:
             executed = True
 
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=3,
+        lookahead=2,
     )
 
 

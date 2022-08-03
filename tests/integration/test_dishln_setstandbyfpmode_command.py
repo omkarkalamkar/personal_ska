@@ -15,14 +15,12 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandsInQueue"],
     )
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
     )
 
     result, unique_id = dish_leaf_node.SetStandbyFPMode()
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
     )
 
@@ -34,16 +32,12 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    next_result = group_callback.assert_against_call(
-        "longRunningCommandResult"
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id[0], str(int(ResultCode.OK))),
+        lookahead=2,
     )
-    logger.info(f"attr value : {next_result['attribute_value']}")
 
-    command_id, result = next_result["attribute_value"]
-    assert command_id.endswith("SetStandbyFPMode")
-    assert int(result) == ResultCode.OK
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
         lookahead=2,
     )
