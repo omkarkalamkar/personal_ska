@@ -11,7 +11,6 @@ from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
-# Modified the tango device class to have Submitted slow command functionality
 class DishLeafNode(SKABaseDevice):
     """
     A Leaf control node for DishMaster.

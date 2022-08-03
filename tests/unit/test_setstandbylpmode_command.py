@@ -6,7 +6,6 @@ from tango import DevState
 from tests.settings import create_cm
 
 
-# Modified test cases to use MockCallable from ska-tango-testing
 def test_setstandbylpmode_command(
     tango_context, dish_master_device, task_callback
 ):

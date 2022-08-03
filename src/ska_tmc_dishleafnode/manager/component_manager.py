@@ -19,9 +19,6 @@ from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 
 
-# Modified the component manager to have the submit task functionality in
-# methods for different commands. Made a commond check allowed method for
-# all commands
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
