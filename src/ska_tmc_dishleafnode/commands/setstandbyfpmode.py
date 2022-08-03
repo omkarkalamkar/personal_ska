@@ -35,7 +35,6 @@ class SetStandbyFPMode(DishLNCommand):
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         """
-        # Indicate that the task has started
 
         task_callback(status=TaskStatus.IN_PROGRESS)
 

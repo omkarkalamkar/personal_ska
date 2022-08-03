@@ -28,7 +28,6 @@ def test_setstandbyfpmode_command_adapter_none(
     dish_master_device, task_callback
 ):
     cm = create_cm(dish_master_device)
-
     assert cm.is_command_allowed("SetStandbyFPMode")
 
     cm.setstandbyfpmode(task_callback=task_callback)

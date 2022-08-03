@@ -147,35 +147,26 @@ class DishLeafNode(SKABaseDevice):
 
         return [[result_code], [str(unique_id)]]
 
-    # def is_SetOperateMode_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+    def is_SetOperateMode_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("SetOperateMode")
-    #     return handler.check_allowed()
+        :rtype: boolean
+        """
+        return self.component_manager.is_command_allowed("SetOperateMode")
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
-    # def SetOperateMode(self):
-    #     """Invokes SetOperateMode command on DishMaster."""
-    #     handler = self.get_command_object("SetOperateMode")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"SetOperateMode\" command on
-    #         this device failed. Reason: The command executor rejected the
-    #         queuing of the command because its queue is full. The
-    #         \"SetOperateMode\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def SetOperateMode(self):
+        """Invokes SetOperateMode command on DishMaster device."""
+        handler = self.get_command_object("SetOperateMode")
+        result_code, unique_id = handler()
+
+        return [[result_code], [str(unique_id)]]
 
     def is_SetStandbyFPMode_allowed(self):
         """
@@ -224,7 +215,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["Scan command will be refactored in later PI's"],
         ]
 
     def is_EndScan_allowed(self):
@@ -250,7 +241,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["EndScan command will be refactored in later PI's"],
         ]
 
     def is_Configure_allowed(self):
@@ -277,7 +268,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["Configure command will be refactored in later PI's"],
         ]
 
     def is_StartCapture_allowed(self):
@@ -305,7 +296,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["StartCapture command will be refactored in later PI's"],
         ]
 
     def is_StopCapture_allowed(self):
@@ -333,7 +324,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["StopCapture command will be refactored in later PI's"],
         ]
 
     def is_Track_allowed(self):
@@ -359,7 +350,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["Track command will be refactored in later PI's"],
         ]
 
     def is_StopTrack_allowed(self):
@@ -381,7 +372,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["StopTrack command will be refactored in later PI's"],
         ]
 
     def is_Abort_allowed(self):
@@ -403,7 +394,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["Abort command will be refactored in later PI's"],
         ]
 
     def is_Restart_allowed(self):
@@ -424,7 +415,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["Restart command will be refactored in later PI's"],
         ]
 
     def is_ObsReset_allowed(self):
@@ -446,7 +437,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command will be refactored in later PI's"],
+            ["ObsReset command will be refactored in later PI's"],
         ]
 
     # pylint: enable=unnecessary-pass,unused-argument,no-self-use
@@ -468,10 +459,10 @@ class DishLeafNode(SKABaseDevice):
         Initialises the command handlers for commands supported by this device.
         """
         super().init_command_objects()
-
         for (command_name, method_name) in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
+            ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
         ]:
             self.register_command_object(

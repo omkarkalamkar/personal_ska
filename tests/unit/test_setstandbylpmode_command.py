@@ -29,7 +29,6 @@ def test_setstandbylpmode_command_adapter_none(
 ):
 
     cm = create_cm(dish_master_device)
-
     assert cm.is_command_allowed("SetStandbyLPMode")
 
     cm.setstandbylpmode(task_callback=task_callback)
