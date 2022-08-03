@@ -51,6 +51,7 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
         lookahead=3,
     )
 
+
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_setstowmode_command(tango_context, group_callback):
