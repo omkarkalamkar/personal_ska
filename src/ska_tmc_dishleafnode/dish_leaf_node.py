@@ -102,14 +102,14 @@ class DishLeafNode(SKABaseDevice):
     # --------
     # Commands
     # --------
-    # TODO: Refactor the below code to support base class v0.13.0
+
     def is_SetStowMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current \
-        device state. \
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current \
-        device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
         :rtype: boolean
         """
@@ -127,14 +127,14 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyLPMode_allowed(self):
         """
-       Checks whether this command is allowed to be run in the current \
-        device state. \
+        Checks whether this command is allowed to be run in the current
+         device state.
 
-         :return: True if this command is allowed to be run in current \
-         device state. \
+          :return: True if this command is allowed to be run in current
+          device state.
 
-         :rtype: boolean
-         """
+          :rtype: boolean
+        """
         return self.component_manager.is_command_allowed("SetStandbyLPMode")
 
     @command(dtype_out="DevVarLongStringArray")
@@ -179,11 +179,11 @@ class DishLeafNode(SKABaseDevice):
 
     def is_SetStandbyFPMode_allowed(self):
         """
-        Checks whether this command is allowed to be run in the current \
-        device state. \
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-        :return: True if this command is allowed to be run in current \
-        device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
         :rtype: boolean
         """
@@ -200,363 +200,256 @@ class DishLeafNode(SKABaseDevice):
         return [[result_code], [str(unique_id)]]
 
     # TODO: Refactor the below code to support base class v0.13.0
-    # def is_Scan_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+    # pylint: disable=unnecessary-pass,unused-argument,no-self-use
+    def is_Scan_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("Scan")
-    #     return handler.check_allowed()
+        :rtype: boolean
+        """
+        pass
 
-    # @command(
-    #     dtype_in="str",
-    #     doc_in="Timestamp",
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @DebugIt()
-    # def Scan(self, argin):
-    #     """Invokes Scan command on DishMaster."""
-    #     handler = self.get_command_object("Scan")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"Scan\" command on this device
-    #         failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"Scan\" command has NOT been queued and will not be executed.
-    #         This device will continue with normal operation."""
+    @command(
+        dtype_in="str",
+        doc_in="Timestamp",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def Scan(self, argin):
+        """Invokes Scan command on DishMaster."""
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler, argin
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    # def is_EndScan_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+    def is_EndScan_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("EndScan")
-    #     return handler.check_allowed()
+        :rtype: boolean
+        """
+        pass
 
-    # @command(
-    #     dtype_in="str",
-    #     doc_in="Timestamp",
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @DebugIt()
-    # def EndScan(self, argin):
-    #     """Invokes StopCapture command on DishMaster."""
+    @command(
+        dtype_in="str",
+        doc_in="Timestamp",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def EndScan(self, argin):
+        """Invokes StopCapture command on DishMaster."""
 
-    #     handler = self.get_command_object("EndScan")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"EndScan\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"EndScan\" command has NOT been queued and will not be
-    #         executed.
-    #         This device will continue with normal operation."""
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler, argin
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    def is_Configure_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    # def is_Configure_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+        :rtype: boolean
+        """
+        pass
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("Configure")
-    #     return handler.check_allowed()
+    @command(
+        dtype_in="str",
+        doc_in="Pointing parameters of Dish",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def Configure(self, argin):
+        """Configures the Dish by setting pointing coordinates for a given
+        observation."""
 
-    # @command(
-    #     dtype_in="str",
-    #     doc_in="Pointing parameters of Dish",
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @DebugIt()
-    # def Configure(self, argin):
-    #     """Configures the Dish by setting pointing coordinates for a given
-    #     observation."""
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #     handler = self.get_command_object("Configure")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"Configure\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"Configure\" command has NOT been queued and will not be
-    #         executed.
+    def is_StartCapture_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    #         This device will continue with normal operation."""
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler, argin
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+        :rtype: boolean
+        """
+        pass
 
-    # def is_StartCapture_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def StartCapture(self, argin):
+        """Triggers the DishMaster to start data capturing on the configured
+        band."""
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("StartCapture")
-    #     return handler.check_allowed()
+    def is_StopCapture_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    # @command(
-    #     dtype_in="str",
-    #     doc_in="""The timestamp indicates the time, in UTC, at which command
-    #     execution should start.""",
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @DebugIt()
-    # def StartCapture(self, argin):
-    #     """Triggers the DishMaster to start data capturing on the configured
-    #     band."""
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    #     handler = self.get_command_object("StartCapture")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"StartCapture\" command on
-    #         this device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"StartCapture\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
+        :rtype: boolean
+        """
+        pass
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler, argin
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def StopCapture(self, argin):
+        """Invokes StopCapture command on DishMaster on the set configured
+        band."""
 
-    # def is_StopCapture_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+    def is_Track_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("StopCapture")
-    #     return handler.check_allowed()
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    # @command(
-    #     dtype_in="str",
-    #     doc_in="""The timestamp indicates the time, in UTC, at which command
-    #     execution should start.""",
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @DebugIt()
-    # def StopCapture(self, argin):
-    #     """Invokes StopCapture command on DishMaster on the set configured
-    #     band."""
-    #     handler = self.get_command_object("StopCapture")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"StopCapture\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"StopCapture\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
+        :rtype: boolean
+        """
+        pass
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler, argin
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(
+        dtype_in="str",
+        doc_in="The JSON input string contains dish and pointing information.",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def Track(self, argin):
+        """Invokes Track command on the DishMaster."""
 
-    # def is_Track_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+    def is_StopTrack_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("Track")
-    #     return handler.check_allowed()
+        :return: True if this command is allowed to be run in current
+        device state.
 
-    # @command(
-    #     dtype_in="str",
-    #     doc_in="The JSON input string contains dish and pointing information.",
-    #     dtype_out="DevVarLongStringArray",
-    # )
-    # @DebugIt()
-    # def Track(self, argin):
-    #     """Invokes Track command on the DishMaster."""
-    #     handler = self.get_command_object("Track")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"Track\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"Track\" command has NOT been queued and will not be executed.
-    #         This device will continue with normal operation."""
+        :rtype: boolean
+        """
+        pass
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler, argin
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def StopTrack(self):
+        """Invokes StopTrack command on the DishMaster."""
 
-    # def is_StopTrack_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in the current \
-    #     device state. \
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state. \
+    def is_Abort_allowed(self):
+        """
+        Checks whether this command is allowed to be run in current
+        device state
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("StopTrack")
-    #     return handler.check_allowed()
+        :return: True if this command is allowed to be run in current device
+        state
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
-    # def StopTrack(self):
-    #     """Invokes StopTrack command on the DishMaster."""
-    #     handler = self.get_command_object("StopTrack")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"StopTrack\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"StopTrack\" command has NOT been queued and will not be
-    #         executed.
-    #         This device will continue with normal operation."""
+        :rtype: boolean
+        """
+        pass
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def Abort(self):
+        """Invokes Abort command on the DishMaster."""
 
-    # def is_Abort_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in current \
-    #     device state \
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #     :return: True if this command is allowed to be run in current device \
-    #     state \
+    def is_Restart_allowed(self):
+        """
+        Checks whether this command is allowed to be run in current
+        device state
 
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("Abort")
-    #     return handler.check_allowed()
+        :return: True if this command is allowed to be run in current
+        device state
+        :rtype: boolean
+        """
+        pass
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
-    # def Abort(self):
-    #     """Invokes Abort command on the DishMaster."""
-    #     handler = self.get_command_object("Abort")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"Abort\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"Abort\" command has NOT been queued and will not be executed.
-    #         This device will continue with normal operation."""
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def Restart(self):
+        """Invokes Restart command on the DishMaster."""
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    # def is_Restart_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in current \
-    #     device state \
+    def is_ObsReset_allowed(self):
+        """
+        Checks whether this command is allowed to be run in current
+        device state
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state \
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("Restart")
-    #     return handler.check_allowed()
+        :return: True if this command is allowed to be run in current
+        device state
 
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
-    # def Restart(self):
-    #     """Invokes Restart command on the DishMaster."""
-    #     handler = self.get_command_object("Restart")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"Restart\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"Restart\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
+        :rtype: boolean
+        """
+        pass
 
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def ObsReset(self):
+        """Invokes ObsReset command on the DishLeafNode."""
 
-    # def is_ObsReset_allowed(self):
-    #     """
-    #     Checks whether this command is allowed to be run in current \
-    #     device state \
+        return [
+            [ResultCode.FAILED],
+            ["This command has will be refactored in later PI's"],
+        ]
 
-    #     :return: True if this command is allowed to be run in current \
-    #     device state \
-
-    #     :rtype: boolean
-    #     """
-    #     handler = self.get_command_object("ObsReset")
-    #     return handler.check_allowed()
-
-    # @command(dtype_out="DevVarLongStringArray")
-    # @DebugIt()
-    # def ObsReset(self):
-    #     """Invokes ObsReset command on the DishLeafNode."""
-    #     handler = self.get_command_object("ObsReset")
-    #     if self.component_manager.command_executor.queue_full:
-    #         message = """The invocation of the \"ObsReset\" command on this
-    #         device failed.
-    #         Reason: The command executor rejected the queuing of the command
-    #         because its queue is full.
-    #         The \"ObsReset\" command has NOT been queued and will not be
-    #         executed. This device will continue with normal operation."""
-
-    #         return [[ResultCode.FAILED], [message]]
-    #     unique_id = self.component_manager.command_executor.enqueue_command(
-    #         handler
-    #     )
-    #     return [[ResultCode.QUEUED], [str(unique_id)]]
-
-    # TODO: Passing liveliness_probe as NONE throws an error.
-    # Need to debug and solve it.
+    # pylint: enable=unnecessary-pass,unused-argument,no-self-use
     def create_component_manager(self):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
