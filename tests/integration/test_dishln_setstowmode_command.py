@@ -51,50 +51,9 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
         lookahead=3,
     )
 
-
-def abort_setstowmode_command(tango_context, dishln_name, group_callback):
-    logger.info(f"{tango_context}")
-    dev_factory = DevFactory()
-    dish_leaf_node = dev_factory.get_device(dishln_name)
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
-        None,
-    )
-    dish_leaf_node.SetStandbyLPMode()
-    dish_leaf_node.SetStowMode()
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue",
-        (
-            "SetStandbyLPMode",
-            "SetStowMode",
-        ),
-        lookahead=2,
-    )
-    result, message = dish_leaf_node.AbortCommands()
-    assert result == ResultCode.STARTED
-    assert message[0] == "Aborting commands"
-    group_callback.assert_change_event(
-        "longRunningCommandsInQueue", None, lookahead=3
-    )
-
-
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_setstowmode_command(tango_context, group_callback):
     setstowmode_command(
-        tango_context, "ska_mid/tm_leaf_node/d0001", group_callback
-    )
-
-
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
-def test_abort_setstowmode_command(tango_context, group_callback):
-    abort_setstowmode_command(
         tango_context, "ska_mid/tm_leaf_node/d0001", group_callback
     )
