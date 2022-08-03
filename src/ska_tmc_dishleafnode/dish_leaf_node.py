@@ -139,10 +139,10 @@ class DishLeafNode(SKABaseDevice):
         Checks whether this command is allowed to be run in the current
         device state.
 
-         :return: True if this command is allowed to be run in current
-         device state.
+        :return: True if this command is allowed to be run in current
+        device state.
 
-         :rtype: boolean
+        :rtype: boolean
         """
         return self.component_manager.is_command_allowed("SetStandbyLPMode")
 
