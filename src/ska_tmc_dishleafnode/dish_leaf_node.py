@@ -128,12 +128,12 @@ class DishLeafNode(SKABaseDevice):
     def is_SetStandbyLPMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-         device state.
+        device state.
 
-          :return: True if this command is allowed to be run in current
-          device state.
+        :return: True if this command is allowed to be run in current
+        device state.
 
-          :rtype: boolean
+        :rtype: boolean
         """
         return self.component_manager.is_command_allowed("SetStandbyLPMode")
 
@@ -224,7 +224,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_EndScan_allowed(self):
@@ -250,7 +250,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_Configure_allowed(self):
@@ -277,7 +277,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_StartCapture_allowed(self):
@@ -305,7 +305,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_StopCapture_allowed(self):
@@ -333,7 +333,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_Track_allowed(self):
@@ -359,7 +359,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_StopTrack_allowed(self):
@@ -381,7 +381,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_Abort_allowed(self):
@@ -403,7 +403,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_Restart_allowed(self):
@@ -424,7 +424,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     def is_ObsReset_allowed(self):
@@ -446,7 +446,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [
             [ResultCode.FAILED],
-            ["This command has will be refactored in later PI's"],
+            ["This command will be refactored in later PI's"],
         ]
 
     # pylint: enable=unnecessary-pass,unused-argument,no-self-use
