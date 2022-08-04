@@ -9,7 +9,7 @@ Feature: DishLeafNode acceptance
 		Then the <command_name> command is queued and executed in less than 5 secs
 
 		Examples:
-		| command_name		  |
+		| command_name	      |
 		| SetStandbyFPMode    |
 		| SetStandbyLPMode    |
 		| SetStowMode         |
