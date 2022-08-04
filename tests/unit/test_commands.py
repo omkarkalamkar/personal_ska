@@ -16,6 +16,7 @@ def test_setstowmode_command(dishln_device):
     assert result_code[0] == ResultCode.QUEUED
 
 
+# HM-26 - SetOperateMode : Refactored
 def test_setoperatemode_command(dishln_device):
     result_code, _ = dishln_device.SetOperateMode()
     assert result_code[0] == ResultCode.QUEUED

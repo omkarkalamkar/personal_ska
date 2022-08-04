@@ -147,6 +147,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [[result_code], [str(unique_id)]]
 
+    # HM-26 - SetOperateMode : Refactored
     def is_SetOperateMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
@@ -159,6 +160,7 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_command_allowed("SetOperateMode")
 
+    # HM-26 - SetOperateMode : Refactored
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetOperateMode(self):
@@ -190,8 +192,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [[result_code], [str(unique_id)]]
 
-    # TODO: Refactor the below code to support base class v0.13.0
-    # pylint: disable=unnecessary-pass,unused-argument,no-self-use
+    # pylint: disable-all
     def is_Scan_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
@@ -202,15 +203,15 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(
         dtype_in="str",
-        doc_in="Timestamp",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def Scan(self, argin):
+    def Scan(self):
         """Invokes Scan command on DishMaster."""
 
         return [
@@ -228,15 +229,15 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(
         dtype_in="str",
-        doc_in="Timestamp",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def EndScan(self, argin):
+    def EndScan(self):
         """Invokes StopCapture command on DishMaster."""
 
         return [
@@ -254,15 +255,15 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(
         dtype_in="str",
-        doc_in="Pointing parameters of Dish",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def Configure(self, argin):
+    def Configure(self):
         """Configures the Dish by setting pointing coordinates for a given
         observation."""
 
@@ -281,7 +282,6 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(
         dtype_in="str",
@@ -290,7 +290,7 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StartCapture(self, argin):
+    def StartCapture(self):
         """Triggers the DishMaster to start data capturing on the configured
         band."""
 
@@ -309,7 +309,6 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(
         dtype_in="str",
@@ -318,7 +317,7 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StopCapture(self, argin):
+    def StopCapture(self):
         """Invokes StopCapture command on DishMaster on the set configured
         band."""
 
@@ -337,7 +336,6 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(
         dtype_in="str",
@@ -345,7 +343,7 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def Track(self, argin):
+    def Track(self):
         """Invokes Track command on the DishMaster."""
 
         return [
@@ -363,7 +361,6 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -385,7 +382,6 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -406,7 +402,6 @@ class DishLeafNode(SKABaseDevice):
         device state
         :rtype: boolean
         """
-        pass
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -428,7 +423,6 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        pass
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -440,7 +434,6 @@ class DishLeafNode(SKABaseDevice):
             ["ObsReset command will be refactored in later PI's"],
         ]
 
-    # pylint: enable=unnecessary-pass,unused-argument,no-self-use
     def create_component_manager(self):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,

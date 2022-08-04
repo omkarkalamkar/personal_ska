@@ -129,6 +129,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
+    # HM-26 - SetOperateMode : Refactored
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
