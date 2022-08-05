@@ -1,15 +1,15 @@
 """Release information for Python Package"""
 
 name="""ska-tmc-dishleafnode"""
-version="0.1.6"
+version="0.1.8"
 version_info=version.split(".")
 description="""SKA-TMC-DISHLEAFNODES"""
 author="Team NCRA"
 license="""BSD-3-Clause"""
 url="""https://www.skaobservatory.org"""
 copyright=""""""
-release=0.1.6
-tag=0.1.6
-tag_description=Create ska-tmc-dishleafnode repository.
-release_notes=This release contains:<br/><ul><li>Created ska-tmc-dishleafnode repository.</li></ul><br/>
+release=0.1.8
+tag=0.1.8
+tag_description=Refactored Dishleafnode command classes by utilizing base class v0.13.2.
+release_notes=This release contains:<br/><ul><li>Refactored Dishleafnode command classes by utilizing base class v0.13.2.</li></ul><br/>
 
