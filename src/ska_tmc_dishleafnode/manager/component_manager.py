@@ -17,6 +17,7 @@ from tango import DevState
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
+from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -31,7 +32,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         logger=None,
         communication_state_callback=None,
         component_state_callback=None,
-        update_command_in_progress_callback=None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver=False,
         max_workers=5,
@@ -80,6 +80,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.setstowmode_command = SetStowMode(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
         self.setoperatemode_command = SetOperateMode(
             self,
             self.op_state_model,
@@ -111,6 +117,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
+    def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
+        """Submits the SetStowMode command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.setstowmode_command.set_stow_mode,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        return task_status, response
+
+    # HM-26 - SetOperateMode : Refactored
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
@@ -130,6 +149,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if command_name in [
             "SetStandbyFPMode",
             "SetStandbyLPMode",
+            "SetStowMode",
             "SetOperateMode",
         ]:
             if self.op_state_model.op_state in [

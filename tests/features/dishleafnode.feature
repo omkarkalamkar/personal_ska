@@ -1,7 +1,7 @@
 @XTP-6028
 Feature: DishLeafNode acceptance
 
-	#Test the ability to generically run a a set of commands and that the execution is completed withing 5 seconds.
+	#Test the ability to generically run a set of commands and that the execution is completed withing 5 seconds.
 	@XTP-6029 @post_deployment @acceptance @SKA_mid
 	Scenario: Ability to run commands on DishLeafNode
 		Given a DishLeafNode device
@@ -9,9 +9,10 @@ Feature: DishLeafNode acceptance
 		Then the <command_name> command is queued and executed in less than 5 secs
 
 		Examples:
-		| command_name		  |
-        | SetStandbyFPMode    |
+		| command_name	      |
+		| SetStandbyFPMode    |
 		| SetStandbyLPMode    |
+		| SetStowMode         |
 		| SetOperateMode      |
 
 

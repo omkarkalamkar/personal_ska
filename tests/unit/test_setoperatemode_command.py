@@ -6,6 +6,7 @@ from tango import DevState
 from tests.settings import create_cm
 
 
+# HM-26 - SetOperateMode : Refactored
 def test_set_operate_command(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     assert cm.is_command_allowed("SetOperateMode")
@@ -22,6 +23,7 @@ def test_set_operate_command(tango_context, dish_master_device, task_callback):
     )
 
 
+# HM-26 - SetOperateMode : Refactored
 def test_set_operate_command_adapter_none(dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     assert cm.is_command_allowed("SetOperateMode")
