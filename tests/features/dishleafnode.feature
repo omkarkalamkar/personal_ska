@@ -6,15 +6,14 @@ Feature: DishLeafNode acceptance
 	Scenario: Ability to run commands on DishLeafNode
 		Given a DishLeafNode device
 		When I call the command <command_name>
-		Then the <command_name> command is queued and executed in less than 5 secs
+		Then the <command_name> command is executed successfully and DishMaster transitions to <resultant_state>
 
 		Examples:
-		| command_name		  |
-		| SetStandbyFPMode    |
-		| SetStandbyLPMode    |
-		| SetStowMode         |
-		| SetOperateMode      |
-
+		| command_name      | resultant_state    | 
+		| SetStandbyFPMode  | ON                 |
+		| SetStandbyLPMode  | STANDBY            |
+		| SetStowMode       | STANDBY            |
+		| SetOperateMode    | ON                 |
 
 	#This test is to verify the ping mechanism implemented on Dishleafnode.
 	@XTP-10402 @post_deployment @acceptance @SKA_mid

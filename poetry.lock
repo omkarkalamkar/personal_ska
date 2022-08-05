@@ -852,7 +852,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tango-base"
-version = "0.13.2"
+version = "0.13.3"
 description = "A set of generic base devices for SKA Telescope."
 category = "main"
 optional = false
@@ -863,6 +863,7 @@ debugpy = "*"
 numpy = "*"
 pytango = "*"
 ska-ser-logging = "*"
+ska-tango-testing = "*"
 transitions = "*"
 
 [package.source]
@@ -928,7 +929,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.1.38"
+version = "0.1.40"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -942,7 +943,7 @@ marshmallow = ">=3.14.1,<4.0.0"
 numpy = "1.17.2"
 pytango = "9.3.3"
 ska-ser-logging = ">=0.4.1,<0.5.0"
-ska-tango-base = "0.13.2"
+ska-tango-base = "0.13.3"
 
 [package.source]
 type = "legacy"
@@ -1077,7 +1078,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "25dcce0d20651bb73940d8019861a2a4a54bf39da8c4e9d77bd1cac675832134"
+content-hash = "c64ebc696c95e482fbb82a4e1ccf55124284664a78993a5e589d9674ea28ea16"
 
 [metadata.files]
 argparse = [
@@ -1526,8 +1527,8 @@ ska-ser-skuid = [
     {file = "ska_ser_skuid-3.3.3-py3-none-any.whl", hash = "md5:d5803861cfe56450540360b445c9dfcc"},
 ]
 ska-tango-base = [
-    {file = "ska_tango_base-0.13.2-py3-none-any.whl", hash = "md5:5efc2adfb078839b23f9552a1a950f33"},
-    {file = "ska_tango_base-0.13.2.tar.gz", hash = "md5:b368c74ba63a6b03adf9328dc788e2cc"},
+    {file = "ska_tango_base-0.13.3-py3-none-any.whl", hash = "md5:6f71fc1a651cdb9d7cceedefdce18f88"},
+    {file = "ska_tango_base-0.13.3.tar.gz", hash = "md5:8542d415036a884d0540d0d4b2fd82db"},
 ]
 ska-tango-testing = [
     {file = "ska-tango-testing-0.2.0.tar.gz", hash = "md5:23b412c84ffd1535543e22ccde6c2211"},
@@ -1542,8 +1543,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-6.0.4-py3-none-any.whl", hash = "md5:c9a0f2146842bad30ed1ff2ff957c102"},
 ]
 ska-tmc-common = [
-    {file = "ska-tmc-common-0.1.38.tar.gz", hash = "md5:8a1c2f724e9a4caba7489432590906b5"},
-    {file = "ska_tmc_common-0.1.38-py3-none-any.whl", hash = "md5:5a8ede5d3885d49c1915acfe3dae8eb9"},
+    {file = "ska-tmc-common-0.1.40.tar.gz", hash = "md5:cf8cd5a27edfccf397546085890b2dfe"},
+    {file = "ska_tmc_common-0.1.40-py3-none-any.whl", hash = "md5:12d5e408542464243c0cb394f7062a8b"},
 ]
 termcolor = [
     {file = "termcolor-1.1.0.tar.gz", hash = "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"},
