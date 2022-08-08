@@ -62,7 +62,6 @@ def call_command(dishleaf_node, command_name):
 )
 def check_command(
     dishleaf_node,
-    command_name,
     resultant_state,
     group_callback,
     dish_master_device,
@@ -75,6 +74,12 @@ def check_command(
     assert pytest.command_result[0][0] == ResultCode.QUEUED
     unique_id = pytest.command_result[1][0]
     dishleaf_node.subscribe_event(
+        "longRunningCommandIDsInQueue",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandIDsInQueue"],
+    )
+
+    dishleaf_node.subscribe_event(
         "longRunningCommandsInQueue",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandsInQueue"],
@@ -84,8 +89,8 @@ def check_command(
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (str(command_name),),
+    group_callback["longRunningCommandIDsInQueue"].assert_change_event(
+        (str(unique_id),),
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
