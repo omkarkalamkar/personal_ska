@@ -132,7 +132,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "coverage"
-version = "6.4.2"
+version = "6.4.3"
 description = "Code coverage measurement for Python"
 category = "dev"
 optional = false
@@ -929,7 +929,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.1.40"
+version = "0.1.41"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -1078,7 +1078,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "c64ebc696c95e482fbb82a4e1ccf55124284664a78993a5e589d9674ea28ea16"
+content-hash = "ebbd63842aa3fbe3d539e72550b14d7819b42aeb4816afdcb57e6d8ef17f1db8"
 
 [metadata.files]
 argparse = [
@@ -1543,8 +1543,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-6.0.4-py3-none-any.whl", hash = "md5:c9a0f2146842bad30ed1ff2ff957c102"},
 ]
 ska-tmc-common = [
-    {file = "ska-tmc-common-0.1.40.tar.gz", hash = "md5:cf8cd5a27edfccf397546085890b2dfe"},
-    {file = "ska_tmc_common-0.1.40-py3-none-any.whl", hash = "md5:12d5e408542464243c0cb394f7062a8b"},
+    {file = "ska-tmc-common-0.1.41.tar.gz", hash = "md5:a9cf10184c9724ee2e9602569ba0ce3d"},
+    {file = "ska_tmc_common-0.1.41-py3-none-any.whl", hash = "md5:7fa54f0da0caf47fa393b6132c700cd4"},
 ]
 termcolor = [
     {file = "termcolor-1.1.0.tar.gz", hash = "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"},

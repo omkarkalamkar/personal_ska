@@ -10,9 +10,9 @@ Feature: DishLeafNode acceptance
 
 		Examples:
 		| command_name      | resultant_state    | 
-		| SetStandbyFPMode  | ON                 |
+		| SetStandbyFPMode  | STANDBY            |
 		| SetStandbyLPMode  | STANDBY            |
-		| SetStowMode       | STANDBY            |
+		| SetStowMode       | DISABLE            |
 		| SetOperateMode    | ON                 |
 
 	#This test is to verify the ping mechanism implemented on Dishleafnode.
