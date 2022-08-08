@@ -3,13 +3,17 @@ import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 
-from tests.settings import logger
+from tests.settings import event_remover, logger
 
 
 def setoperatemode_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
+    event_remover(
+        group_callback,
+        ["longRunningCommandsInQueue", "longRunningCommandResult"],
+    )
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
         tango.EventType.CHANGE_EVENT,
