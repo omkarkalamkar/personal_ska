@@ -48,6 +48,10 @@ class SetStandbyLPMode(DishLNCommand):
                 exception=message,
             )
         else:
+            logger.info(
+                "The SetStandbyLPMode command is invoked successfully on %s",
+                self.dish_master_adapter.dev_name,
+            )
             task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ResultCode.OK,

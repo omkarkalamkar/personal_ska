@@ -132,7 +132,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "coverage"
-version = "6.4.2"
+version = "6.4.3"
 description = "Code coverage measurement for Python"
 category = "dev"
 optional = false
@@ -289,7 +289,7 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "jsonschema"
-version = "4.9.0"
+version = "4.9.1"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
@@ -852,7 +852,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tango-base"
-version = "0.13.2"
+version = "0.13.3"
 description = "A set of generic base devices for SKA Telescope."
 category = "main"
 optional = false
@@ -863,6 +863,7 @@ debugpy = "*"
 numpy = "*"
 pytango = "*"
 ska-ser-logging = "*"
+ska-tango-testing = "*"
 transitions = "*"
 
 [package.source]
@@ -928,7 +929,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.1.38"
+version = "0.1.41"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -942,7 +943,7 @@ marshmallow = ">=3.14.1,<4.0.0"
 numpy = "1.17.2"
 pytango = "9.3.3"
 ska-ser-logging = ">=0.4.1,<0.5.0"
-ska-tango-base = "0.13.2"
+ska-tango-base = "0.13.3"
 
 [package.source]
 type = "legacy"
@@ -1077,7 +1078,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "25dcce0d20651bb73940d8019861a2a4a54bf39da8c4e9d77bd1cac675832134"
+content-hash = "ebbd63842aa3fbe3d539e72550b14d7819b42aeb4816afdcb57e6d8ef17f1db8"
 
 [metadata.files]
 argparse = [
@@ -1472,10 +1473,7 @@ schema = [
     {file = "schema-0.7.5.tar.gz", hash = "sha256:f06717112c61895cabc4707752b88716e8420a8819d71404501e114f91043197"},
 ]
 sgp4 = [
-    {file = "sgp4-2.21-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f90ad26f34b06082538f61b64c8b89d69db28d750bf996ae67fd6b72c5e37f11"},
     {file = "sgp4-2.21-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:0bbf00533e6afe0dc9569d71f7352a10e561ca39fa279f06f8d6029e96de2ed4"},
-    {file = "sgp4-2.21-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:dd3ad79125d71346cdb558b5e07b14b323013c31122f05fc6fcc87fe6c163b19"},
-    {file = "sgp4-2.21-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9095cad9b143aa42ec8cfcb2d2cc96ea04e5d38fd4862096dd7b771445f71492"},
     {file = "sgp4-2.21-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e2f742454d979a06d2d83ecb1eec69726ddc427e2d9f12ecefc94a90c2e1d8fc"},
     {file = "sgp4-2.21-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:99738b05c2e5f0cd5b699f516cd3b3094d115b1e0cd5a80bda12612d9a7831dc"},
     {file = "sgp4-2.21-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:0313db05662c74dad2e6148fca430b1672a01ea2e4d1b1b92439e4139d8577bc"},
@@ -1483,7 +1481,6 @@ sgp4 = [
     {file = "sgp4-2.21-cp310-cp310-win32.whl", hash = "sha256:2d683e24b9f12c3e6431fd35b0cbbd37148f5deddfcfb737b85bf9720d7a42f9"},
     {file = "sgp4-2.21-cp310-cp310-win_amd64.whl", hash = "sha256:a32608a78ebe33ec18f03236f5d316387ba0c8bd8e9ef5ef12b9abce05d589af"},
     {file = "sgp4-2.21-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:6ce02516e5d202faa9b7bea6436a9dc0d72158c4d94a69d5bb927715b691f822"},
-    {file = "sgp4-2.21-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:260a86c5b05ee5f8176cafe5e11bc35c1f66a245aef46da1322091e48cd4f21b"},
     {file = "sgp4-2.21-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:70ccb6d43d5c5c9cec594f8907ca89f1c4db761f930c15229c3790ee5d535365"},
     {file = "sgp4-2.21-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f1997347d39b49c9fbef0bb0c4fe6d41da658ec03b1f2186585dfd12b732d1de"},
     {file = "sgp4-2.21-cp36-cp36m-musllinux_1_1_i686.whl", hash = "sha256:bd552b2c8126aa2d24c648d2f3dc3d1f95263bc68a43befa220e9aa2820810f0"},
@@ -1491,27 +1488,20 @@ sgp4 = [
     {file = "sgp4-2.21-cp36-cp36m-win32.whl", hash = "sha256:927bfeda7bc692d7569e4a54f1747527e2d1243a1a64b659a10a438e151622cc"},
     {file = "sgp4-2.21-cp36-cp36m-win_amd64.whl", hash = "sha256:d0be8c2cf790304c622bf5584fed85c355804c87b95103ce88dcb2ad7dacc465"},
     {file = "sgp4-2.21-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:e1f6128d6df008905cabed04100e346ce56134054d4bcad73a1bf99d81e0e22e"},
-    {file = "sgp4-2.21-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e14de495d5e2b466a84534e987b9e73c57cf7b2096446a0a4c587e59abe3a5b3"},
     {file = "sgp4-2.21-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3b8efbe6b748b4628dedf082fdd08a216469bc58acc114e2f25a2debe6437194"},
     {file = "sgp4-2.21-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e6002807220535ed39d144b192e342842553c60d7558a7fd3ec5092bbadd66e5"},
     {file = "sgp4-2.21-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:b703d08ed4cee676189f44cd2e60e987c9334513b72b782250ae06ab4dcc5b87"},
     {file = "sgp4-2.21-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:8d1bb424ee8fd8c9309d6aa0de76eb66897f9ea9d3b91d9dad2a45395ee2da41"},
     {file = "sgp4-2.21-cp37-cp37m-win32.whl", hash = "sha256:42d2616fc586cfa5677045f2f07a62bb21e9cafa7cb8089ac8b2367c6a561695"},
     {file = "sgp4-2.21-cp37-cp37m-win_amd64.whl", hash = "sha256:efe49faa3e57540ff6e74dabe2ab4ebbe709c00e5464df077f9ccdd2e8b303af"},
-    {file = "sgp4-2.21-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:dde34366ce1b1c895962706ca61b09a02b9f9950afd3cbbb2bf7bc2dd5babcf8"},
     {file = "sgp4-2.21-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:c4957c1302dd646656dc6dbca6b55871b7be2044773c591ade3e0ecfa7a56f1e"},
-    {file = "sgp4-2.21-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:1742dfb1395532af0f9aa9316bd53e416d2cd5f20545414fa7f08c8e14edc4e2"},
-    {file = "sgp4-2.21-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0dbb484bcea946ef38cc0fe181a4e1ece832be6dde9fa5bf002e6fe8e3a168ef"},
     {file = "sgp4-2.21-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:aaccd598db4127449c1da92ee9a2da41305e186c47f0bbfd8b791ec4899ca5a1"},
     {file = "sgp4-2.21-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d09e256b83cf4624739b934f758baa8ee3aa77613b77dac447f3f10b69b14222"},
     {file = "sgp4-2.21-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:36a6aa7143671380ca962c371d09b67ad1570b14612661a90064669ed4347cef"},
     {file = "sgp4-2.21-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:959c05c30c79623df3077515e3cef0938ae97d062439425bf54369aa8a4472a8"},
     {file = "sgp4-2.21-cp38-cp38-win32.whl", hash = "sha256:91763c45ea6f63c525f49c513d941b5ea16cb0832b84bbf265c5a82e7ad5d552"},
     {file = "sgp4-2.21-cp38-cp38-win_amd64.whl", hash = "sha256:495a839bf7f3c8cb5a4de9685695d194b57c20ed13c0adbd7a0900a8ef8d4c19"},
-    {file = "sgp4-2.21-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:fca1848ca6a2ea2b23e781fb89483b84b1b50949f246cf8af61edc052ac837b9"},
     {file = "sgp4-2.21-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:fea155d361540a764eca917f9fc55904862531e36f979d50daeb3f5ae176c43f"},
-    {file = "sgp4-2.21-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:2a128b93b62c4362db114dbc71c0fd5ab068917bd118f94fb4b8a2ae9d55d31d"},
-    {file = "sgp4-2.21-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:61b85bfdc4fd6636edf13c43af1b3e7811cf4f2759fdaeba5a9c6e9711d98908"},
     {file = "sgp4-2.21-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:9ed696d2c8da8216a60aac0ad9e892cb38472a54bc50eac491b01fe7701e1447"},
     {file = "sgp4-2.21-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a30084df6f8c5cfc5398fa5a6d9b259c944b2993f7f5ca08de4a40915cda7e7b"},
     {file = "sgp4-2.21-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:7971de1c4b6f00c5f32923b274452b78d2bcb894396d4ac3baa215847c63cb9a"},
@@ -1537,8 +1527,8 @@ ska-ser-skuid = [
     {file = "ska_ser_skuid-3.3.3-py3-none-any.whl", hash = "md5:d5803861cfe56450540360b445c9dfcc"},
 ]
 ska-tango-base = [
-    {file = "ska_tango_base-0.13.2-py3-none-any.whl", hash = "md5:5efc2adfb078839b23f9552a1a950f33"},
-    {file = "ska_tango_base-0.13.2.tar.gz", hash = "md5:b368c74ba63a6b03adf9328dc788e2cc"},
+    {file = "ska_tango_base-0.13.3-py3-none-any.whl", hash = "md5:6f71fc1a651cdb9d7cceedefdce18f88"},
+    {file = "ska_tango_base-0.13.3.tar.gz", hash = "md5:8542d415036a884d0540d0d4b2fd82db"},
 ]
 ska-tango-testing = [
     {file = "ska-tango-testing-0.2.0.tar.gz", hash = "md5:23b412c84ffd1535543e22ccde6c2211"},
@@ -1553,8 +1543,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-6.0.4-py3-none-any.whl", hash = "md5:c9a0f2146842bad30ed1ff2ff957c102"},
 ]
 ska-tmc-common = [
-    {file = "ska-tmc-common-0.1.38.tar.gz", hash = "md5:8a1c2f724e9a4caba7489432590906b5"},
-    {file = "ska_tmc_common-0.1.38-py3-none-any.whl", hash = "md5:5a8ede5d3885d49c1915acfe3dae8eb9"},
+    {file = "ska-tmc-common-0.1.41.tar.gz", hash = "md5:a9cf10184c9724ee2e9602569ba0ce3d"},
+    {file = "ska_tmc_common-0.1.41-py3-none-any.whl", hash = "md5:7fa54f0da0caf47fa393b6132c700cd4"},
 ]
 termcolor = [
     {file = "termcolor-1.1.0.tar.gz", hash = "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"},

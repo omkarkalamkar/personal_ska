@@ -103,6 +103,28 @@ class DishLeafNode(SKABaseDevice):
     # Commands
     # --------
 
+    def is_SetStowMode_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+        return self.component_manager.is_command_allowed("SetStowMode")
+
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def SetStowMode(self):
+        """Invokes SetStowMode command on DishMaster."""
+
+        handler = self.get_command_object("SetStowMode")
+        result_code, unique_id = handler()
+
+        return [[result_code], [str(unique_id)]]
+
     def is_SetStandbyLPMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
@@ -432,6 +454,7 @@ class DishLeafNode(SKABaseDevice):
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
             ("SetOperateMode", "setoperatemode"),
+            ("SetStowMode", "setstowmode"),
         ]:
             self.register_command_object(
                 command_name,

@@ -107,6 +107,9 @@ def group_callback() -> MockTangoEventCallbackGroup:
     :rtype: MockTangoEventCallbackGroup
     """
     group_callback = MockTangoEventCallbackGroup(
-        "longRunningCommandsInQueue", "longRunningCommandResult", timeout=15
+        "longRunningCommandsInQueue",
+        "longRunningCommandResult",
+        "longRunningCommandIDsInQueue",
+        timeout=15,
     )
     return group_callback

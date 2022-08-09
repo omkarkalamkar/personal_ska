@@ -1,37 +1,56 @@
 import pytest
-from ska_tango_base.commands import ResultCode
-from ska_tmc_common.test_helpers.helper_adapter_factory import (
-    HelperAdapterFactory,
-)
+from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_tmc_common.exceptions import CommandNotAllowed
+from tango import DevState
 
-from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
-from tests.settings import create_cm, get_dishln_command_obj
+from tests.settings import create_cm
 
 
-@pytest.mark.skip("Test case needs to change after command refactoring")
-def test_setstowmode_command(tango_context, dish_master_device):
-    _, set_stow_mode_command, adapter_factory = get_dishln_command_obj(
-        SetStowMode
-    )
-    assert set_stow_mode_command.check_allowed()
-    (result_code, _) = set_stow_mode_command.do()
-    assert result_code == ResultCode.OK
-    adapter = adapter_factory.get_or_create_adapter(dish_master_device)
-    adapter.proxy.SetStowMode.assert_called_once_with()
-
-
-@pytest.mark.skip("Test case needs to change after command refactoring")
-def test_setstowmode_command_with_exception(tango_context, dish_master_device):
+def test_setstowmode_command(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
-    adapter_factory = HelperAdapterFactory()
-    cm.dish_dev_name = dish_master_device
+    assert cm.is_command_allowed("SetStowMode")
 
-    # include exception in SetStowMode command
-    adapter_factory.get_or_create_adapter(
-        dish_master_device, attrs={"SetStowMode.side_effect": Exception}
+    cm.setstowmode(task_callback=task_callback)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
     )
-    set_stow_mode_command = SetStowMode(cm, cm.op_state_model, adapter_factory)
-    assert set_stow_mode_command.check_allowed()
-    (result_code, message) = set_stow_mode_command.do()
-    assert result_code == ResultCode.FAILED
-    assert dish_master_device in message
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
+    )
+
+
+def test_setstowmode_command_adapter_none(dish_master_device, task_callback):
+
+    cm = create_cm(dish_master_device)
+    assert cm.is_command_allowed("SetStowMode")
+
+    cm.setstowmode(task_callback=task_callback)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+
+    task_callback_signature = task_callback.assert_against_call()
+    assert (
+        task_callback_signature["call_kwargs"]["status"]
+        == TaskStatus.COMPLETED
+    )
+    assert (
+        task_callback_signature["call_kwargs"]["result"] == ResultCode.FAILED
+    )
+    assert (
+        f"Error in creating adapter for {dish_master_device}"
+        in task_callback_signature["call_kwargs"]["exception"]
+    )
+
+
+def test_setstowmode_command_not_allowed(tango_context, dish_master_device):
+    cm = create_cm(dish_master_device)
+    cm.op_state_model._op_state = DevState.FAULT
+    with pytest.raises(CommandNotAllowed):
+        cm.is_command_allowed("SetStowMode")
