@@ -38,6 +38,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                         dev_name, AdapterType.DISH
                     )
                 )
+                self.logger.info("Adapter created successfully")
             except ConnectionFailed as cf:
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:

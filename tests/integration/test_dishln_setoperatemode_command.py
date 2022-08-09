@@ -45,8 +45,7 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
         (
             "SetStandbyFPMode",
             "SetOperateMode",
-        ),
-        lookahead=2,
+        )
     )
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
 

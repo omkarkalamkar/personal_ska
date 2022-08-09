@@ -10,7 +10,6 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-# HM-26 - SetOperateMode : Refactored
 class SetOperateMode(DishLNCommand):
     """
     A class for DishLeafNode's SetOperateMode() command.
@@ -49,6 +48,10 @@ class SetOperateMode(DishLNCommand):
                 exception=message,
             )
         else:
+            logger.info(
+                "The SetOperateMode command is invoked successfully on %s",
+                self.dish_master_adapter.dev_name,
+            )
             task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ResultCode.OK,

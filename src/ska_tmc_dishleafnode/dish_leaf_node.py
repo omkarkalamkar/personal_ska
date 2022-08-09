@@ -147,7 +147,6 @@ class DishLeafNode(SKABaseDevice):
 
         return [[result_code], [str(unique_id)]]
 
-    # HM-26 - SetOperateMode : Refactored
     def is_SetOperateMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
@@ -160,7 +159,6 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_command_allowed("SetOperateMode")
 
-    # HM-26 - SetOperateMode : Refactored
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetOperateMode(self):

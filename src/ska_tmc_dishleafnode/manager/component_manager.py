@@ -103,6 +103,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             args=[self.logger],
             task_callback=task_callback,
         )
+        self.logger.info("SetStandbyFPMode command queued for execution")
         return task_status, response
 
     def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
@@ -115,6 +116,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             args=[self.logger],
             task_callback=task_callback,
         )
+        self.logger.info("SetStandbyLPMode command queued for execution")
         return task_status, response
 
     def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
@@ -127,9 +129,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             args=[self.logger],
             task_callback=task_callback,
         )
+        self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
-    # HM-26 - SetOperateMode : Refactored
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
@@ -140,6 +142,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             args=[self.logger],
             task_callback=task_callback,
         )
+        self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
     def is_command_allowed(self, command_name: str):

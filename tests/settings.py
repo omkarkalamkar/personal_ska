@@ -46,6 +46,7 @@ def event_remover(group_callback, attributes: List[str]) -> None:
                 attribute
             )._iterable
             for node in iterable:
+                logger.info("Payload is: %s", repr(node.payload))
                 node.drop()
         except KeyError:
             pass
