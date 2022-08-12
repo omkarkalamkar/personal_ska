@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-tmc-dishleafnodes"
-version = "0.1.9"
+version = "0.1.10"
 description = "SKA-TMC-DISHLEAFNODES"
 authors = ["Team NCRA"]
 license = "BSD-3-Clause"
@@ -29,7 +29,7 @@ ska-ser-log-transactions = "0.2.2+ae0f5c92"
 ska-tango-testing = "0.2.0"
 ska-tmc-cdm = "6.0.4"
 fire = "^0.4.0"
-ska-tmc-common = "0.1.41"
+ska-tmc-common = "0.1.43"
 ska-ser-logging = "^0.4.1"
 ska-tango-base = "0.13.3"
 astropy = "^4.1"
