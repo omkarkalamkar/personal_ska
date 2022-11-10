@@ -168,4 +168,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     The command has NOT been executed.
                     This device will continue with normal operation."""
                 )
-        return True
+            return True
+        return False
+
