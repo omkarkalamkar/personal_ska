@@ -42,9 +42,9 @@ def event_remover(group_callback, attributes: List[str]) -> None:
     """Removes residual events from the queue."""
     for attribute in attributes:
         try:
-            iterable = group_callback._mock_consumer_group.__getitem__(
+            iterable = group_callback._mock_consumer_group._views[
                 attribute
-            )._iterable
+            ]._iterable
             for node in iterable:
                 logger.info("Payload is: %s", repr(node.payload))
                 node.drop()
