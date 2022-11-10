@@ -95,7 +95,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetStandbyFPMode command for execution."""
+        """Submits the SetStandbyFPMode command for execution.
+        
+        :rtype: tuple
+        """
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
             args=[self.logger],
@@ -105,7 +108,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetStandbyLPMode command for execution."""
+        """Submits the SetStandbyLPMode command for execution.
+        
+        :rtype: tuple
+        """
         task_status, response = self.submit_task(
             self.setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
@@ -115,7 +121,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetStowMode command for execution."""
+        """Submits the SetStowMode command for execution.
+        
+        :rtype: tuple
+        """
         task_status, response = self.submit_task(
             self.setstowmode_command.set_stow_mode,
             args=[self.logger],
@@ -125,7 +134,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetOperateMode command for execution."""
+        """Submits the SetOperateMode command for execution.
+        
+        :rtype: tuple
+        """
         task_status, response = self.submit_task(
             self.setoperatemode_command.set_operate_mode,
             args=[self.logger],
