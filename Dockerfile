@@ -11,18 +11,14 @@ ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 
 # RUN apt-get update && apt-get install pkg-config build-essential libboost-python-dev  -y
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | POETRY_HOME=/opt/poetry python3 - && \
-    rm /usr/local/bin/poetry && \
-    chmod a+x /opt/poetry/bin/poetry && \
-    ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry && \
-    poetry config virtualenvs.create false
+RUN curl poetry config virtualenvs.create false
 
 WORKDIR /app
 
 COPY --chown=tango:tango . /app
 
 # Install runtime dependencies and the app
-RUN poetry install --no-dev
+RUN poetry install --only main
 
 RUN rm /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
 

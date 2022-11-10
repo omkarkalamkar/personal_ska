@@ -53,6 +53,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param sleep_time: allows to specify the wait between each iteration
         of the liveliness probe and EventSubscriber;
         """
+
         super().__init__(
             logger,
             _liveliness_probe,
@@ -94,10 +95,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetStandbyFPMode command for execution.
-
-        :rtype: tuple
-        """
+        """Submits the SetStandbyFPMode command for execution."""
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
             args=[self.logger],
@@ -107,10 +105,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetStandbyLPMode command for execution.
-
-        :rtype: tuple
-        """
+        """Submits the SetStandbyLPMode command for execution."""
         task_status, response = self.submit_task(
             self.setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
@@ -120,10 +115,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetStowMode command for execution.
-
-        :rtype: Tuple
-        """
+        """Submits the SetStowMode command for execution."""
         task_status, response = self.submit_task(
             self.setstowmode_command.set_stow_mode,
             args=[self.logger],
@@ -133,10 +125,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetOperateMode command for execution.
-
-        :rtype: tuple
-        """
+        """Submits the SetOperateMode command for execution."""
         task_status, response = self.submit_task(
             self.setoperatemode_command.set_operate_mode,
             args=[self.logger],
@@ -147,7 +136,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def is_command_allowed(self, command_name: str):
         """Checks if the given command is allowed in current operational
-        state."""
+        state.
+        """
 
         if command_name in [
             "SetStandbyFPMode",
@@ -170,4 +160,3 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
             return True
         return False
-
