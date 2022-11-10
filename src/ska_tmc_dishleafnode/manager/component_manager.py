@@ -96,7 +96,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
-        
+
         :rtype: tuple
         """
         task_status, response = self.submit_task(
@@ -109,7 +109,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
-        
+
         :rtype: tuple
         """
         task_status, response = self.submit_task(
@@ -122,7 +122,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStowMode command for execution.
-        
+
         :rtype: tuple
         """
         task_status, response = self.submit_task(
@@ -135,7 +135,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
-        
+
         :rtype: tuple
         """
         task_status, response = self.submit_task(
@@ -146,7 +146,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def is_command_allowed(self, command_name: str):
+    def is_command_allowed(self, command_name: str) -> bool:
         """Checks if the given command is allowed in current operational
         state.
         """
