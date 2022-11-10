@@ -97,7 +97,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
 
-        :rtype: tuple
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
@@ -110,7 +110,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
-        :rtype: tuple
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setstandbylpmode_command.set_standby_lp_mode,
@@ -123,7 +123,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStowMode command for execution.
 
-        :rtype: tuple
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setstowmode_command.set_stow_mode,
@@ -136,7 +136,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
-        :rtype: tuple
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setoperatemode_command.set_operate_mode,
