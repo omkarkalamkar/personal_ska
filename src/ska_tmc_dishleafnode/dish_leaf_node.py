@@ -201,6 +201,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(
         dtype_in="str",
@@ -227,6 +228,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(
         dtype_in="str",
@@ -253,6 +255,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(
         dtype_in="str",
@@ -280,6 +283,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(
         dtype_in="str",
@@ -307,6 +311,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(
         dtype_in="str",
@@ -334,6 +339,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(
         dtype_in="str",
@@ -359,6 +365,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -380,6 +387,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -400,6 +408,7 @@ class DishLeafNode(SKABaseDevice):
         device state
         :rtype: boolean
         """
+        return False
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -421,6 +430,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
+        return False
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()

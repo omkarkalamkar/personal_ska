@@ -44,15 +44,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param logger: a logger for this component manager
         :param liveliness_probe: allows enabling/disabling the
-            liveliness probe;
-        :param event_receiver: allows eanabling/disabling the event subscriber;
-        :param max_workers: allows to specify number of threads to be used by
-        the liveliness probe;
-        :param proxy_timeout: allows to specify a client side timeout for
-        sub-devices in milliseconds used by the liveliness probe;
-        :param sleep_time: allows to specify the wait between each iteration
-        of the liveliness probe and EventSubscriber;
+        liveliness probe;
+        :param component_state_callback: callback to be called
+         when state of the component changed
+        :param communication_state_callback: callback to be called
+         when communication status of the component changed
+        :param event_receiver: allows eanabling/disabling the
+         event subscriber;
+        :param max_workers: allows to specify number of threads
+         to be used by the liveliness probe;
+        :param proxy_timeout: allows to specify a client side timeou
+        for sub-devices in milliseconds used by the liveliness probe;
+        :param sleep_time: allows to specify the wait between
+        each iteration of the liveliness probe and EventSubscriber;
+        :param timeout: Time period to wait for initialization
+         of adapter.
         """
+
         super().__init__(
             logger,
             _liveliness_probe,
@@ -96,7 +104,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
 
-        :rtype: tuple
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
@@ -109,7 +117,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
-        :rtype: tuple
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setstandbylpmode_command.set_standby_lp_mode,
@@ -135,7 +143,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
-        :rtype: tuple
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setoperatemode_command.set_operate_mode,
@@ -145,9 +153,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def is_command_allowed(self, command_name: str):
+    def is_command_allowed(self, command_name: str) -> bool:
         """Checks if the given command is allowed in current operational
-        state."""
+        state.
+        """
 
         if command_name in [
             "SetStandbyFPMode",
@@ -168,4 +177,5 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     The command has NOT been executed.
                     This device will continue with normal operation."""
                 )
-        return True
+            return True
+        return False
