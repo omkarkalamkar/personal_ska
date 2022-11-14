@@ -45,18 +45,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param logger: a logger for this component manager
         :param liveliness_probe: allows enabling/disabling the
         liveliness probe;
-        :param component_state_callback: callback to be called when state of the
-        component changed
-        :param communication_state_callback: callback to be called when communication
-        status of the component changed
-        :param event_receiver: allows eanabling/disabling the event subscriber;
-        :param max_workers: allows to specify number of threads to be used by
-        the liveliness probe;
-        :param proxy_timeout: allows to specify a client side timeout for
-        sub-devices in milliseconds used by the liveliness probe;
-        :param sleep_time: allows to specify the wait between each iteration
-        of the liveliness probe and EventSubscriber;
-        :param timeout: Time period to wait for initialization of adapter.
+        :param component_state_callback: callback to be called
+         when state of the component changed
+        :param communication_state_callback: callback to be called
+         when communication status of the component changed
+        :param event_receiver: allows eanabling/disabling the
+         event subscriber;
+        :param max_workers: allows to specify number of threads
+         to be used by the liveliness probe;
+        :param proxy_timeout: allows to specify a client side timeou
+        for sub-devices in milliseconds used by the liveliness probe;
+        :param sleep_time: allows to specify the wait between
+        each iteration of the liveliness probe and EventSubscriber;
+        :param timeout: Time period to wait for initialization
+         of adapter.
         """
 
         super().__init__(
