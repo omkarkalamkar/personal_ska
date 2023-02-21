@@ -170,12 +170,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 DevState.DISABLE,
             ]:
                 raise CommandNotAllowed(
-                    f"""The invocation of the {command_name} command on this
-                    device is not allowed.
-                    Reason: The current operational state is
-                    {self.op_state_model.op_state}.
-                    The command has NOT been executed.
-                    This device will continue with normal operation."""
+                    "The invocation of the {} command on this".format(
+                        command_name
+                    )
+                    + "device is not allowed."
+                    + "Reason: The current operational state is"
+                    + "{}".format(self.op_state_model.op_state)
+                    + "The command has NOT been executed."
+                    + "This device will continue with normal operation."
                 )
             return True
         return False
