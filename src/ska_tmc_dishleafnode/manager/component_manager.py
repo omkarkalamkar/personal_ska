@@ -102,13 +102,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     @property
     def dishMode(self) -> DishMode:
         """Returns the dishMode of dish master device"""
-        return self._dish_mode
+        return self._device.dishMode
 
     @dishMode.setter
     def dishMode(self, value: DishMode) -> None:
         """Sets the value of Dish Mode for Dish Master Device"""
-        if self._dish_mode != value:
-            self._dish_mode = value
+        if self._device.dishMode != value:
+            self._device.dishMode = value
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
@@ -173,15 +173,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ]:
             return True
 
-        # raise CommandNotAllowed(
-        #     "The invocation of the SetStowMode command on this"
-        #     + "device is not allowed."
-        #     + "Reason: The current dish mode is"
-        #     + f"{self.dishMode}"
-        #     + "The command has NOT been executed."
-        #     + "This device will continue with normal operation."
-        # )
-        return True
+        raise CommandNotAllowed(
+            "The invocation of the SetStowMode command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
 
     def is_setoperatemode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
@@ -193,15 +192,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ]:
             return True
 
-        # raise CommandNotAllowed(
-        #     "The invocation of the SetOperateMode command on this"
-        #     + "device is not allowed."
-        #     + "Reason: The current dish mode is"
-        #     + f"{self.dishMode}"
-        #     + "The command has NOT been executed."
-        #     + "This device will continue with normal operation."
-        # )
-        return True
+        raise CommandNotAllowed(
+            "The invocation of the SetOperateMode command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
 
     def is_setstandbyfpmode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
@@ -216,15 +214,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ]:
             return True
 
-        # raise CommandNotAllowed(
-        #     "The invocation of the SetStandbyFPMode command on this"
-        #     + "device is not allowed."
-        #     + "Reason: The current dish mode is"
-        #     + f"{self.dishMode}"
-        #     + "The command has NOT been executed."
-        #     + "This device will continue with normal operation."
-        # )
-        return True
+        raise CommandNotAllowed(
+            "The invocation of the SetStandbyFPMode command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
 
     def is_setstandbylpmode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
@@ -238,12 +235,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ]:
             return True
 
-        # raise CommandNotAllowed(
-        #     "The invocation of the SetStandbyLPMode command on this"
-        #     + "device is not allowed."
-        #     + "Reason: The current dish mode is"
-        #     + f"{self.dishMode}"
-        #     + "The command has NOT been executed."
-        #     + "This device will continue with normal operation."
-        # )
-        return True
+        raise CommandNotAllowed(
+            "The invocation of the SetStandbyLPMode command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
