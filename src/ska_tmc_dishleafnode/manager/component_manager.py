@@ -2,22 +2,23 @@
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 # pylint: disable=W0222
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
-from ska_tmc_common.enum import LivelinessProbeType
+from ska_tmc_common.enum import DishMode, LivelinessProbeType
 from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
-# pylint: disable=abstract-method
-from tango import DevState
-
+from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
+
+# pylint: disable=abstract-method
+# from tango import DevState
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -100,6 +101,24 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.configure_command = Configure(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self._dish_mode = DishMode.UNKNOWN
+
+    @property
+    def dishMode(self) -> DishMode:
+        """Returns the dishMode of dish master device"""
+        self._device.dishMode
+
+    @dishMode.setter
+    def dishMode(self, value: DishMode) -> None:
+        """Sets the value of Dish Mode for Dish Master Device"""
+        if self._device.dishMode != value:
+            self._device.dish_mode = value
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
@@ -153,31 +172,39 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def is_command_allowed(self, command_name: str) -> bool:
+    def configure(
+        self, argin: str, task_callback: Optional[Callable] = None
+    ) -> tuple:
+        """
+        Submit the Configure command in queue.
+
+        :return: a result code and message
+        """
+        task_status, response = self.submit_task(
+            self.configure_command.configure,
+            args=[self.logger, argin],
+            task_callback=task_callback,
+        )
+        self.logger.info("Configure command queued for execution")
+        return task_status, response
+
+    def is_configure_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
         """
 
-        if command_name in [
-            "SetStandbyFPMode",
-            "SetStandbyLPMode",
-            "SetStowMode",
-            "SetOperateMode",
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.STOW,
+            DishMode.OPERATE,
         ]:
-            if self.op_state_model.op_state in [
-                DevState.FAULT,
-                DevState.UNKNOWN,
-                DevState.DISABLE,
-            ]:
-                raise CommandNotAllowed(
-                    "The invocation of the {} command on this".format(
-                        command_name
-                    )
-                    + "device is not allowed."
-                    + "Reason: The current operational state is"
-                    + "{}".format(self.op_state_model.op_state)
-                    + "The command has NOT been executed."
-                    + "This device will continue with normal operation."
-                )
             return True
-        return False
+
+        raise CommandNotAllowed(
+            "The invocation of the Configure command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
