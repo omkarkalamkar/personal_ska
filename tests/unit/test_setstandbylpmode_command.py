@@ -10,7 +10,7 @@ def test_setstandbylpmode_command(
     tango_context, dish_master_device, task_callback
 ):
     cm = create_cm(dish_master_device)
-    assert cm.is_command_allowed("SetStandbyLPMode")
+    assert cm.is_setstandbylpmode_allowed()
 
     cm.setstandbylpmode(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -28,7 +28,7 @@ def test_setstandbylpmode_command_adapter_none(
     dish_master_device, task_callback
 ):
     cm = create_cm(dish_master_device)
-    assert cm.is_command_allowed("SetStandbyLPMode")
+    assert cm.is_setstandbylpmode_allowed()
 
     cm.setstandbylpmode(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -57,4 +57,4 @@ def test_setstandbylpmode_command_not_allowed(
     cm = create_cm(dish_master_device)
     cm.op_state_model._op_state = DevState.FAULT
     with pytest.raises(CommandNotAllowed):
-        cm.is_command_allowed("SetStandbyLPMode")
+        cm.is_setstandbylpmode_allowed()

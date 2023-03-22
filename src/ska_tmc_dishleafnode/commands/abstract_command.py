@@ -1,5 +1,4 @@
 """This module provides base command class for DishLeafNode."""
-# pylint: disable=abstract-method
 import time
 
 from ska_tango_base.commands import ResultCode

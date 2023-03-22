@@ -8,7 +8,7 @@ from tests.settings import create_cm
 
 def test_setstowmode_command(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
-    assert cm.is_command_allowed("SetStowMode")
+    assert cm.is_setstowmode_allowed()
 
     cm.setstowmode(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -25,7 +25,7 @@ def test_setstowmode_command(tango_context, dish_master_device, task_callback):
 def test_setstowmode_command_adapter_none(dish_master_device, task_callback):
 
     cm = create_cm(dish_master_device)
-    assert cm.is_command_allowed("SetStowMode")
+    assert cm.is_setstowmode_allowed()
 
     cm.setstowmode(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -53,4 +53,4 @@ def test_setstowmode_command_not_allowed(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
     cm.op_state_model._op_state = DevState.FAULT
     with pytest.raises(CommandNotAllowed):
-        cm.is_command_allowed("SetStowMode")
+        cm.is_setstowmode_allowed()
