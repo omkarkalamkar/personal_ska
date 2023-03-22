@@ -96,7 +96,7 @@ class Configure(DishLNCommand):
             if the json string contains invalid data.
 
         """
-        device_data = self.target
+        device_data = self.component_manager._device
         # command_name = "Configure"
 
         try:

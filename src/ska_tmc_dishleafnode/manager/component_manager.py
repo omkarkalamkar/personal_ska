@@ -107,18 +107,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-        self._dish_mode = DishMode.UNKNOWN
 
     @property
     def dishMode(self) -> DishMode:
         """Returns the dishMode of dish master device"""
-        self._device.dishMode
+        return self._device.dishMode
 
     @dishMode.setter
     def dishMode(self, value: DishMode) -> None:
         """Sets the value of Dish Mode for Dish Master Device"""
         if self._device.dishMode != value:
-            self._device.dish_mode = value
+            self._device.dishMode = value
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.
