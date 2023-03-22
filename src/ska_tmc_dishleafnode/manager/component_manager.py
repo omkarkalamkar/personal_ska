@@ -10,6 +10,7 @@ from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.enum import DishMode, LivelinessProbeType
 from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
+from tango import DevState
 
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
@@ -207,3 +208,32 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "The command has NOT been executed."
             + "This device will continue with normal operation."
         )
+
+    def is_command_allowed(self, command_name: str) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if command_name in [
+            "SetStandbyFPMode",
+            "SetStandbyLPMode",
+            "SetStowMode",
+            "SetOperateMode",
+        ]:
+            if self.op_state_model.op_state in [
+                DevState.FAULT,
+                DevState.UNKNOWN,
+                DevState.DISABLE,
+            ]:
+                raise CommandNotAllowed(
+                    "The invocation of the {} command on this".format(
+                        command_name
+                    )
+                    + "device is not allowed."
+                    + "Reason: The current operational state is"
+                    + "{}".format(self.op_state_model.op_state)
+                    + "The command has NOT been executed."
+                    + "This device will continue with normal operation."
+                )
+            return True
+        return False

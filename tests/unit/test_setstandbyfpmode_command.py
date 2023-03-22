@@ -6,6 +6,7 @@ from tango import DevState
 from tests.settings import create_cm
 
 
+@pytest.mark.ms
 def test_setstandbyfpmode_command(
     tango_context, dish_master_device, task_callback
 ):

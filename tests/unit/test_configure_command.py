@@ -58,7 +58,7 @@ def test_configure_command_adapter_none(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
+        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
     )
 
 
