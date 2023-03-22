@@ -181,7 +181,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         task_status, response = self.submit_task(
             self.configure_command.configure,
-            args=[self.logger, argin],
+            args=[argin, self.logger],
             task_callback=task_callback,
         )
         self.logger.info("Configure command queued for execution")

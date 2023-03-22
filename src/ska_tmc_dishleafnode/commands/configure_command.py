@@ -4,18 +4,11 @@ Configure class for DishLeafNode.
 
 import json
 import threading
-
-# import tango
-# from ska_tmc_base.commands import BaseCommand
-# from ska_tmc_common.tango_client import TangoClient
-# from ska_tmc_common.tango_server_helper import TangoServerHelper
-# from tango import DevFailed, DevState
 from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
-# from .command_callback import CommandCallBack
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
@@ -96,19 +89,13 @@ class Configure(DishLNCommand):
             if the json string contains invalid data.
 
         """
-        device_data = self.component_manager._device
-        # command_name = "Configure"
-
         try:
             ret_code, message = self.init_adapter()
             if ret_code == ResultCode.FAILED:
                 return ret_code, message
 
-            # pointing_params = argin_json["pointing"]
-            # target_ra = pointing_params["target"]["RA"]
-            # target_dec = pointing_params["target"]["dec"]
-            json_argument = device_data._load_config_string(argin)
-            receiver_band = json_argument["dish"]["receiver_band"]
+            json_argument = json.loads(argin)
+            receiver_band = json_argument["dish"]["receiverBand"]
             self._configure_band(receiver_band)
 
         except Exception as e:
@@ -122,9 +109,6 @@ class Configure(DishLNCommand):
                 The command has NOT been executed.
                 This device will continue with normal operation.""",
             )
-        # log_msg = f"""Configure command successfully invoked on:
-        # {self.dish_master_adapter.dev_name}"""
-        # self.logger.info(log_msg)
         return (ResultCode.OK, "")
 
     def _configure_band(self, band):
@@ -135,12 +119,3 @@ class Configure(DishLNCommand):
             "Dish Master", self.dish_master_adapter, command_name
         )
         return ret_code, message
-
-        # try:
-        #     dish_client = TangoClient(self.dish_master_fqdn)
-        #     cmd_ended_cb = CommandCallBack(self.logger).cmd_ended_cb
-        #     dish_client.send_command_async(
-        #         command_name, callback_method=cmd_ended_cb
-        #     )
-        # except DevFailed as dev_failed:
-        #     raise dev_failed
