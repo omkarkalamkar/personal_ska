@@ -46,9 +46,28 @@ def dishleaf_node():
         return DeviceProxy(instance)
 
 
-@when(parsers.parse("I call the command {command_name}"))
-def call_command(dishleaf_node, command_name):
+@when(
+    parsers.parse(
+        "I call the command {command_name} when DishMaster is in {dish_mode}"
+    )
+)
+def call_command(
+    dishleaf_node, command_name, dish_mode, dish_master_device, group_callback
+):
     try:
+        dish_mode = +"DishMode."
+        dev_factory = DevFactory()
+        dish_master_proxy = dev_factory.get_device(dish_master_device)
+        dish_master_proxy.SetDirectDishMode(eval(dish_mode))
+        dish_master_proxy.subscribe_event(
+            "dishMode",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["dishMode"],
+        )
+        group_callback["dishMode"].assert_change_event(
+            (eval(dish_mode)),
+            lookahead=2,
+        )
         pytest.command_result = dishleaf_node.command_inout(command_name)
     except Exception as ex:
         assert "CommandNotAllowed" in str(ex)

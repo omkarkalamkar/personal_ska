@@ -54,13 +54,13 @@ class Configure(DishLNCommand):
         if ret_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.FAILED,
+                result=ret_code,
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.OK,
+                result=ret_code,
             )
 
     # pylint: enable=unused-argument
