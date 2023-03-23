@@ -121,7 +121,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStowMode")
         result_code, unique_id = handler()
 
-        return result_code, str(unique_id)
+        return [result_code], [str(unique_id)]
 
     def is_SetStandbyLPMode_allowed(self):
         """
@@ -143,7 +143,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStandbyLPMode")
         result_code, unique_id = handler()
 
-        return result_code, str(unique_id)
+        return [result_code], [str(unique_id)]
 
     def is_SetOperateMode_allowed(self):
         """
@@ -164,7 +164,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetOperateMode")
         result_code, unique_id = handler()
 
-        return result_code, str(unique_id)
+        return [result_code], [str(unique_id)]
 
     def is_SetStandbyFPMode_allowed(self):
         """
@@ -186,7 +186,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStandbyFPMode")
         result_code, unique_id = handler()
 
-        return result_code, str(unique_id)
+        return [result_code], [str(unique_id)]
 
     # pylint: disable-all
     def is_Scan_allowed(self):
