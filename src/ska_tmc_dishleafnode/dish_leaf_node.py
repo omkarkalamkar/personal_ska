@@ -449,7 +449,7 @@ class DishLeafNode(SKABaseDevice):
             communication_state_callback=None,
             component_state_callback=None,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
-            _event_receiver=False,
+            _event_receiver=True,
             sleep_time=self.SleepTime,
             timeout=self.TimeOut,
         )
