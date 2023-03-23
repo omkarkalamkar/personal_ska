@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,unused-import
 import time
 
 import pytest
@@ -6,6 +6,7 @@ import tango
 from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
+from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
 from tests.settings import SLEEP_TIME, create_cm
@@ -57,14 +58,15 @@ def call_command(
     try:
         dev_factory = DevFactory()
         dish_master_proxy = dev_factory.get_device(dish_master_device)
-        dish_master_proxy.SetDirectDishMode(eval(dish_mode))
+        dishMode = eval(dish_mode)
+        dish_master_proxy.SetDirectDishMode(dishMode)
         dish_master_proxy.subscribe_event(
             "dishMode",
             tango.EventType.CHANGE_EVENT,
             group_callback["dishMode"],
         )
         group_callback["dishMode"].assert_change_event(
-            (eval(dish_mode)),
+            (dishMode),
             lookahead=2,
         )
         pytest.command_result = dishleaf_node.command_inout(command_name)

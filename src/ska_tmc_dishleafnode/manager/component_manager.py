@@ -102,7 +102,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
-            self.start_event_receiver()
+            self.event_receiver_object.start()
+
+    def stop_event_receiver(self):
+        """Stops the Event Receiver"""
+        if self.event_receiver_object._thread.is_alive():
+            self.event_receiver_object.stop()
 
     @property
     def dishMode(self) -> DishMode:
