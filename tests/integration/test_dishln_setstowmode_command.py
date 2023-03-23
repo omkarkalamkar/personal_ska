@@ -19,7 +19,7 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
         group_callback["dishMode"],
     )
     group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
+        (DishMode.STANDBY_FP),
         lookahead=2,
     )
     event_remover(
