@@ -3,6 +3,7 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 # pylint: disable=W0222
 import time
+from logging import Logger
 from typing import Tuple
 
 from ska_tango_base.executor import TaskStatus
@@ -31,7 +32,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def __init__(
         self,
         dish_dev_name,
-        logger=None,
+        logger: Logger,
         communication_state_callback=None,
         component_state_callback=None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
@@ -77,14 +78,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
         # Event Receiver
-        if _event_receiver:
-            self._event_receiver = DishLNEventReceiver(
-                self,
-                logger,
-                proxy_timeout=proxy_timeout,
-                sleep_time=sleep_time,
-            )
-            self._event_receiver.start()
+        if self.event_receiver:
+            self.event_receiver_object = DishLNEventReceiver(self, logger)
+            self.start_event_receiver()
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -110,10 +106,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-
-    def stop(self) -> None:
-        """Stops the event receiver"""
-        self._event_receiver.stop()
 
     def update_event_failure(self) -> None:
         with self.lock:
