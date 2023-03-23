@@ -40,11 +40,9 @@ class DishLNEventReceiver(EventReceiver):
                     executor.submit(self.subscribe_events, dishDevInfo)
             sleep(self._sleep_time)
 
-    def subscribe_events(self, dish_dev_info: DeviceInfo) -> None:
+    def subscribe_events(self, dev_info: DeviceInfo) -> None:
         try:
-            dish_dev_proxy = self._dev_factory.get_device(
-                dish_dev_info.dev_name
-            )
+            dish_dev_proxy = self._dev_factory.get_device(dev_info.dev_name)
             dish_dev_proxy.subscribe_event(
                 "dishMode",
                 tango.EventType.CHANGE_EVENT,
@@ -61,6 +59,13 @@ class DishLNEventReceiver(EventReceiver):
     def handle_dish_mode_event(
         self, event_flag: tango.EventType.CHANGE_EVENT
     ) -> None:
+        """Method to handle and update the latest value of dishMode
+        attribute.
+
+        Args:
+            event_flag (tango.EventType.CHANGE_EVENT): to flag the
+            change in event.
+        """
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
