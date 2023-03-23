@@ -13,9 +13,8 @@ class DishLNEventReceiver(EventReceiver):
     The DishLNEventReceiver class has the responsibility to receive events
     from the dish master managed by the Dish Leaf Node.
 
-    The ComponentManager uses to handle events methods
-    for the attribute of interest.
-    For each of them a callback is defined.
+    The ComponentManager uses to handle events methods for the attribute of
+    interest. For each of them a callback is defined.
     """
 
     def __init__(
@@ -51,20 +50,18 @@ class DishLNEventReceiver(EventReceiver):
             )
 
         except Exception as e:
-            self._logger.debug(
+            self._logger.exception(
                 f"Event not working for device {dev_info.dev_name}: {e}"
             )
 
-    def handle_dish_mode_event(
-        self, evt: tango.EventType.CHANGE_EVENT
-    ) -> None:
+    def handle_dish_mode_event(self, event) -> None:
         """Handles the dish mode event"""
-        if evt.err:
-            error = evt.errors[0]
+        if event.err:
+            error = event.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
+            self._logger.exception(error_msg)
             self._component_manager.update_event_failure()
             return
-        new_value = evt.attr_value.value
+        new_value = event.attr_value.value
         self._component_manager.dishMode = new_value
         self._logger.info(f"DishMode value updated to {new_value}")

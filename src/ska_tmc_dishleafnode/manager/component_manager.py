@@ -62,9 +62,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         super().__init__(
-            logger,
-            _liveliness_probe,
-            _event_receiver=False,
+            logger=logger,
+            _liveliness_probe=_liveliness_probe,
             communication_state_callback=communication_state_callback,
             component_state_callback=component_state_callback,
             max_workers=max_workers,
@@ -200,11 +199,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the SetStowMode command on this"
-            + "device is not allowed."
-            + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
-            + "The command has NOT been executed."
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
 
@@ -219,11 +218,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the SetOperateMode command on this"
-            + "device is not allowed."
-            + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
-            + "The command has NOT been executed."
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
 
@@ -241,11 +240,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the SetStandbyFPMode command on this"
-            + "device is not allowed."
-            + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
-            + "The command has NOT been executed."
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
 
@@ -262,10 +261,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the SetStandbyLPMode command on this"
-            + "device is not allowed."
-            + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
-            + "The command has NOT been executed."
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
