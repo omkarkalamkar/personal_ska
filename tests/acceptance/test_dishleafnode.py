@@ -55,7 +55,6 @@ def call_command(
     dishleaf_node, command_name, dish_mode, dish_master_device, group_callback
 ):
     try:
-        dish_mode = +"DishMode."
         dev_factory = DevFactory()
         dish_master_proxy = dev_factory.get_device(dish_master_device)
         dish_master_proxy.SetDirectDishMode(eval(dish_mode))

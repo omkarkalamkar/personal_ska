@@ -64,12 +64,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         super().__init__(
             logger,
             _liveliness_probe,
-            _event_receiver,
-            communication_state_callback,
-            component_state_callback,
-            max_workers,
-            proxy_timeout,
-            sleep_time,
+            _event_receiver=False,
+            communication_state_callback=communication_state_callback,
+            component_state_callback=component_state_callback,
+            max_workers=max_workers,
+            proxy_timeout=proxy_timeout,
+            sleep_time=sleep_time,
         )
         self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
@@ -100,7 +100,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-        if self.event_receiver:
+        if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.start_event_receiver()
 

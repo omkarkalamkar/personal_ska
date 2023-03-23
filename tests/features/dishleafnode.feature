@@ -9,11 +9,11 @@ Feature: DishLeafNode acceptance
 		Then the <command_name> command is executed successfully and DishMaster transitions to <resultant_state>
 
 		Examples:
-		| command_name      | resultant_state    | dish_mode  |
-		| SetStandbyFPMode  | STANDBY            | STANDBY_LP |
-		| SetOperateMode    | ON                 | STANDBY_FP |
-		| SetStandbyLPMode  | STANDBY            | STANDBY_FP |
-		| SetStowMode       | DISABLE            | STANDBY_LP |
+		| command_name      | resultant_state    | dish_mode  		   |
+		| SetStandbyFPMode  | STANDBY            | DishMode.STANDBY_LP |
+		| SetOperateMode    | ON                 | DishMode.STANDBY_FP |
+		| SetStandbyLPMode  | STANDBY            | DishMode.STANDBY_FP |
+		| SetStowMode       | DISABLE            | DishMode.STANDBY_LP |
 
 	#This test is to verify the ping mechanism implemented on Dishleafnode.
 	@XTP-10402 @post_deployment @acceptance @SKA_mid
