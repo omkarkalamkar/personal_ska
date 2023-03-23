@@ -1,10 +1,6 @@
-# import time
-
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
-
-# from ska_tango_base.control_model import ObsState
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 
@@ -87,8 +83,8 @@ def configure_dish_leaf_node(
         None,
         lookahead=2,
     )
-    dish_leaf_node.SetPointingState(PointingState.READY)
-    assert dish_leaf_node.PointingState == PointingState.READY
+    dish_leaf_node.SetPointingState(PointingState.SLEW)
+    assert dish_leaf_node.PointingState == PointingState.SLEW
 
 
 @pytest.mark.post_deployment

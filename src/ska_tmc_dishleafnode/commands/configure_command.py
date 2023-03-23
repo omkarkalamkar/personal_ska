@@ -30,7 +30,7 @@ class Configure(DishLNCommand):
     def configure(
         self,
         argin: str,
-        logger=None,
+        logger,
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
