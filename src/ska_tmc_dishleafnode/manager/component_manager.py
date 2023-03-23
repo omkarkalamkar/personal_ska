@@ -31,7 +31,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     # pylint: disable=unused-argument
     def __init__(
         self,
-        dish_dev_name,
+        dish_dev_name: str,
         logger: Logger,
         communication_state_callback=None,
         component_state_callback=None,

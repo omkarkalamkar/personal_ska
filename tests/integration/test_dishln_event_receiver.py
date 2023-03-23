@@ -8,12 +8,12 @@ from ska_tmc_common.enum import DishMode
 from tests.settings import logger
 
 
-@pytest.mark.SKA_DM
-def test_dm(dish_master_device):
+@pytest.mark.SKA_mid
+def test_dish_mode_event(dish_master_device):
     pytest.num_events_arrived = 0
 
-    def event_callback(evt):
-        assert not evt.err
+    def event_callback(event):
+        assert not event.err
         pytest.num_events_arrived += 1
 
     dev_factory = DevFactory()
