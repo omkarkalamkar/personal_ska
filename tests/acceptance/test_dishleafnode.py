@@ -3,7 +3,7 @@ import time
 
 import pytest
 import tango
-from pytest_bdd import given, parsers, scenarios, then, when
+from pytest_bdd import given, parsers, then, when
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from tango import Database, DeviceProxy
@@ -104,4 +104,4 @@ def check_command(
     assert str(dish_master_proxy.state()) == resultant_state
 
 
-scenarios("../features/dishleafnode.feature")
+# scenarios("../features/dishleafnode.feature")

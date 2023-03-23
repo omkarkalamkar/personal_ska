@@ -7,8 +7,6 @@ import tango
 from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.event_receiver import EventReceiver
 
-from ska_tmc_dishleafnode.manager import DishLNComponentManager
-
 
 class DishLNEventReceiver(EventReceiver):
     """
@@ -22,7 +20,7 @@ class DishLNEventReceiver(EventReceiver):
 
     def __init__(
         self,
-        component_manager: DishLNComponentManager,
+        component_manager,
         logger: Logger,
         max_workers: int = 1,
         proxy_timeout: int = 500,

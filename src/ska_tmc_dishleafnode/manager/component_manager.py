@@ -1,6 +1,8 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+import time
+
 # pylint: disable=W0222
 from typing import Tuple
 
@@ -15,6 +17,7 @@ from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
+from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -30,7 +33,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback=None,
         component_state_callback=None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
-        _event_receiver=False,
+        _event_receiver=True,
         max_workers=1,
         proxy_timeout=500,
         sleep_time=1,
@@ -97,7 +100,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-        self._dish_mode = DishMode.UNKNOWN
+        if self.event_receiver:
+            self.event_receiver_object = DishLNEventReceiver(self, logger)
+            self.start_event_receiver()
 
     @property
     def dishMode(self) -> DishMode:
@@ -109,6 +114,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Sets the value of Dish Mode for Dish Master Device"""
         if self._device.dishMode != value:
             self._device.dishMode = value
+
+    def get_device(self) -> DishDeviceInfo:
+        """
+        Return the device info of the monitoring loop with name dev_name
+
+        :param None:
+        :return: a device info
+        :rtype: DishDeviceInfo
+        """
+        return self._device
+
+    def update_event_failure(self) -> None:
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyFPMode command for execution.

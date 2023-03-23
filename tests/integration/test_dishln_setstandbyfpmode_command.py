@@ -9,10 +9,19 @@ from tests.settings import event_remover, logger
 
 def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
-    dish_master = tango.DeviceProxy("mid_d0001/elt/master")
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
+    dish_master = dev_factory.get_device("mid_d0001/elt/master")
+    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_master.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
     event_remover(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
@@ -52,7 +61,6 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.FPMode
 def test_on_command(tango_context, group_callback):
     setstandbyfpmode_command(
         tango_context, "ska_mid/tm_leaf_node/d0001", group_callback
