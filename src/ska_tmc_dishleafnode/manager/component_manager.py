@@ -195,6 +195,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.dishMode in [
             DishMode.STANDBY_FP,
             DishMode.OPERATE,
+            DishMode.STANDBY_LP,
+            DishMode.CONFIG,
         ]:
             return True
 
