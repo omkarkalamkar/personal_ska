@@ -218,6 +218,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             DishMode.STANDBY_FP,
             DishMode.STOW,
             DishMode.OPERATE,
+            DishMode.CONFIG,
         ]:
             return True
 
