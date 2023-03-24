@@ -63,8 +63,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         of adapter.
         """
         super().__init__(
-            logger,
-            _liveliness_probe,
+            logger=logger,
+            _liveliness_probe=_liveliness_probe,
             communication_state_callback=communication_state_callback,
             component_state_callback=component_state_callback,
             max_workers=max_workers,
@@ -106,6 +106,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+
+    def stop_event_receiver(self):
+        """Stops the Event Receiver"""
+        if self.event_receiver_object._thread.is_alive():
+            self.event_receiver_object.stop()
 
     def update_event_failure(self) -> None:
         with self.lock:
@@ -167,19 +172,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def _check_if_dish_master_is_responsive(self) -> bool:
+    def check_device_responsive(self) -> None:
         """Checks if dish master device is responsive."""
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
-        return True
 
     def is_command_allowed(self, command_name: str) -> bool:
         """Checks if the given command is allowed in current operational
         state.
         """
-
-        self._check_if_dish_master_is_responsive()
-
+        self.check_device_responsive()
         if command_name in [
             "SetStandbyFPMode",
             "SetStandbyLPMode",
