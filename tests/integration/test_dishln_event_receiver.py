@@ -14,7 +14,7 @@ from tests.settings import logger
 def test_dish_mode_event(dish_master_device):
     pytest.num_events_arrived = 0
 
-    def event_callback(event):
+    def event_callback(event: tango.EventData):
         assert not event.err
         pytest.num_events_arrived += 1
 
@@ -46,7 +46,7 @@ def test_dish_mode_event(dish_master_device):
 def test_pointing_state_event(dish_master_device):
     pytest.num_events_arrived = 0
 
-    def event_callback(event):
+    def event_callback(event: tango.EventData):
         assert not event.err
         pytest.num_events_arrived += 1
 

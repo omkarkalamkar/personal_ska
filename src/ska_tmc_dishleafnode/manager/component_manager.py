@@ -80,7 +80,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
-            self.start_event_receiver()
+            self.event_receiver_object.start()
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
