@@ -6,6 +6,7 @@ import tango
 from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
+from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
 from tests.settings import SLEEP_TIME, create_cm
