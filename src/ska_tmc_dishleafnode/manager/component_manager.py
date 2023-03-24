@@ -105,6 +105,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
 
+    @property
     def dishMode(self) -> DishMode:
         """Returns current dishMode value of Dish Master Device"""
         return self._device.dish_mode
