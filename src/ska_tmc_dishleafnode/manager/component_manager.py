@@ -36,7 +36,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback=None,
         component_state_callback=None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
-        _event_receiver: bool = True,
+        _event_receiver: bool=True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
@@ -106,11 +106,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-
-    def stop_event_receiver(self):
-        """Stops the Event Receiver"""
-        if self.event_receiver_object._thread.is_alive():
-            self.event_receiver_object.stop()
 
     def update_event_failure(self) -> None:
         with self.lock:
