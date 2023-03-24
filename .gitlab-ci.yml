@@ -65,7 +65,7 @@ include:
 # Release Automation
 - project: 'ska-telescope/templates-repository'
   file: 'gitlab-ci/includes/release.gitlab-ci.yml'
-  
+
 # Create Gitlab CI badges from CI metrics
 # https://developer.skatelescope.org/en/latest/tools/continuousintegration.html#automated-collection-of-ci-health-metrics-as-part-of-the-ci-pipeline
 - project: 'ska-telescope/templates-repository'

@@ -2,14 +2,26 @@ import pytest
 import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
+from ska_tmc_common.enum import DishMode
 
-from tests.settings import event_remover, logger
+from tests.settings import DISH_MASTER_DEVICE, event_remover, logger
 
 
 def setoperatemode_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_master.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
     event_remover(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],

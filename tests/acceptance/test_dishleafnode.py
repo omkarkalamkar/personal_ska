@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,unused-import
 import time
 
 import pytest
@@ -66,7 +66,7 @@ def call_command(
             group_callback["dishMode"],
         )
         group_callback["dishMode"].assert_change_event(
-            (dish_mode),
+            (dishMode),
             lookahead=2,
         )
         pytest.command_result = dishleaf_node.command_inout(command_name)
