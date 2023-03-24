@@ -10,9 +10,6 @@ from tests.settings import event_remover, logger
 def configure_dish_leaf_node(
     tango_context,
     dishln_name,
-    standby_fpmode,
-    standby_operate_mode,
-    configure_input_str,
     group_callback,
 ):
 

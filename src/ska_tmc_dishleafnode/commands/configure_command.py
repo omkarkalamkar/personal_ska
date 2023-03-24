@@ -58,6 +58,10 @@ class Configure(DishLNCommand):
                 exception=message,
             )
         else:
+            logger.info(
+                "The Configure command is invoked successfully on %s",
+                self.dish_master_adapter.dev_name,
+            )
             task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ret_code,
@@ -94,14 +98,12 @@ class Configure(DishLNCommand):
             if ret_code == ResultCode.FAILED:
                 return ret_code, message
 
+            json_argument = json.loads(argin)
+            receiver_band = json_argument["dish"]["receiverBand"]
+            command_name = f"ConfigureBand{receiver_band}"
             ret_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "Configure"
+                "Dish Master", self.dish_master_adapter, command_name
             )
-            return ret_code, message
-
-            # json_argument = json.loads(argin)
-            # receiver_band = json_argument["dish"]["receiverBand"]
-            # self.configure(receiver_band)
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -110,8 +112,17 @@ class Configure(DishLNCommand):
                 f"""The invocation of the Configure command is failed
                 on Dish Master Device {self.dish_master_adapter.dev_name}.
                 Reason: Error in calling the Configure command on
-                Dish Master.
+                Dish Master: {e}
                 The command has NOT been executed.
                 This device will continue with normal operation.""",
             )
         return (ResultCode.OK, "")
+
+    # def _configure_band(self, band):
+    #     """ "Send the ConfigureBand<band-number> command to Dish Master"""
+    # command_name = f"ConfigureBand{band}"
+
+    #     ret_code, message = self.call_adapter_method(
+    #         "Dish Master", self.dish_master_adapter, command_name
+    #     )
+    #     return ret_code, message

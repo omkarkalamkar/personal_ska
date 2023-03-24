@@ -19,6 +19,7 @@ def get_configure_input_str(
     return configure_input_str
 
 
+@pytest.mark.MS
 def test_configure_command_completed(tango_context, task_callback, caplog):
     cm = create_cm(dish_master_device)
     cm._device.dishMode = DishMode.STANDBY_FP
@@ -26,6 +27,7 @@ def test_configure_command_completed(tango_context, task_callback, caplog):
     configure_input_str = get_configure_input_str()
     configure_input_str = json.loads(configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
+    caplog.set_level(logging.DEBUG, logger="ska-tango-testing.mock")
 
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
