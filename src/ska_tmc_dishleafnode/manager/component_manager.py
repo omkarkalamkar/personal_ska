@@ -74,6 +74,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
+
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -103,9 +104,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-        if _event_receiver:
-            self.event_receiver_object = DishLNEventReceiver(self, logger)
-            self.event_receiver_object.start()
 
     def dishMode(self) -> DishMode:
         """Returns current dishMode value of Dish Master Device"""
