@@ -94,8 +94,7 @@ class UnitConverter:
         :param argin: A number in Deg:Min:Sec.
             Example: 18:31:48.0
         :return: A number in decimal Degrees.
-            Example : "18.529999999999998" is the returned
-             value for 18:31:48.0 input.
+            Example : "18.529999999999998" is the returned value for 18:31:48.0 input.
         """
         try:
             dd = re.split("[:]+", argin)
