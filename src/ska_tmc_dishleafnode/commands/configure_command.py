@@ -94,9 +94,14 @@ class Configure(DishLNCommand):
             if ret_code == ResultCode.FAILED:
                 return ret_code, message
 
-            json_argument = json.loads(argin)
-            receiver_band = json_argument["dish"]["receiverBand"]
-            self._configure_band(receiver_band)
+            ret_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "Configure"
+            )
+            return ret_code, message
+
+            # json_argument = json.loads(argin)
+            # receiver_band = json_argument["dish"]["receiverBand"]
+            # self.configure(receiver_band)
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -110,12 +115,3 @@ class Configure(DishLNCommand):
                 This device will continue with normal operation.""",
             )
         return (ResultCode.OK, "")
-
-    def _configure_band(self, band):
-        """ "Send the ConfigureBand<band-number> command to Dish Master"""
-        command_name = f"ConfigureBand{band}"
-
-        ret_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, command_name
-        )
-        return ret_code, message
