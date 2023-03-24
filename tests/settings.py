@@ -17,6 +17,7 @@ SLEEP_TIME = 0.5
 TIMEOUT = 100
 
 dish_master_device = "mid_d0001/elt/master"
+dish_leaf_node_device = "ska_mid/tm_leaf_node/d0001"
 
 
 def create_cm(device: str) -> DishLNComponentManager:

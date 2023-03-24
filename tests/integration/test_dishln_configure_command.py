@@ -4,7 +4,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
-from tests.settings import event_remover, logger
+from tests.settings import dish_leaf_node_device, event_remover, logger
 
 
 def configure_dish_leaf_node(
@@ -20,7 +20,7 @@ def configure_dish_leaf_node(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
-    dish_master = dev_factory.get_device("mid_d0001/elt/master")
+    dish_master = dev_factory.get_device(dish_leaf_node_device)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dish_master.subscribe_event(
         "dishMode",
@@ -96,5 +96,5 @@ def configure_dish_leaf_node(
 @pytest.mark.SKA_mid
 def test_configure_command(tango_context, group_callback):
     configure_dish_leaf_node(
-        tango_context, "ska_mid/tm_leaf_node/d0001", group_callback
+        tango_context, dish_leaf_node_device, group_callback
     )
