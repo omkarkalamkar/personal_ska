@@ -68,6 +68,29 @@ class Configure(DishLNCommand):
             )
 
     # pylint: enable=unused-argument
+
+    def validate_json_argument(self, input_argin: str) -> tuple:
+        """Validates the json argument"""
+
+        if "pointing" not in input_argin:
+            return self.generate_command_result(
+                ResultCode.FAILED,
+                "receiverBand is not present in the input json argument.",
+            )
+        if "dish" not in input_argin:
+            return self.generate_command_result(
+                ResultCode.FAILED,
+                "receiverBand is not present in the input json argument.",
+            )
+
+        if "receiver_band" not in input_argin["dish"]:
+            return self.generate_command_result(
+                ResultCode.FAILED,
+                "receiverBand is not present in the input json argument.",
+            )
+
+        return (ResultCode.OK, "")
+
     def do(self, argin: str = None) -> None:
         """
         Method to invoke Configure command on dish.
@@ -117,12 +140,3 @@ class Configure(DishLNCommand):
                 This device will continue with normal operation.""",
             )
         return (ResultCode.OK, "")
-
-    # def _configure_band(self, band):
-    #     """ "Send the ConfigureBand<band-number> command to Dish Master"""
-    # command_name = f"ConfigureBand{band}"
-
-    #     ret_code, message = self.call_adapter_method(
-    #         "Dish Master", self.dish_master_adapter, command_name
-    #     )
-    #     return ret_code, message

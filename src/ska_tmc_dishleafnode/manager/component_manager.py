@@ -6,6 +6,7 @@ import time
 # pylint: disable=W0222
 from typing import Callable, Optional, Tuple
 
+from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
@@ -193,6 +194,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
+    # def configure(
+    #     self, argin: str, task_callback: Optional[Callable] = None
+    # ) -> tuple:
+    #     """
+    #     Submit the Configure command in queue.
+
+    #     :return: a result code and message
+    #     """
+
+    #     task_status, response = self.submit_task(
+    #         self.configure_command.configure,
+    #         args=[argin, self.logger],
+    #         task_callback=task_callback,
+    #     )
+    #     self.logger.info("Configure command queued for execution")
+    #     return task_status, response
     def configure(
         self, argin: str, task_callback: Optional[Callable] = None
     ) -> tuple:
@@ -201,6 +218,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: a result code and message
         """
+
+        # validate the JSON argument
+        validation_result = self.configure_command.validate_json_argument(
+            argin
+        )
+        if validation_result[0] != ResultCode.OK:
+            return validation_result
+
+        # submit the command to the queue
         task_status, response = self.submit_task(
             self.configure_command.configure,
             args=[argin, self.logger],
