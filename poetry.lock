@@ -1016,6 +1016,19 @@ url = "https://artefact.skao.int/repository/pypi-internal/simple"
 reference = 'ska-nexus'
 
 [[package]]
+name = "ska-control-model"
+version = "0.3.1"
+description = "Basic elements of the SKA control model"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.source]
+type = "legacy"
+url = "https://artefact.skao.int/repository/pypi-internal/simple"
+reference = 'ska-nexus'
+
+[[package]]
 name = "ska-tango-base"
 version = "0.17.0"
 description = "SKA Tango base classes"

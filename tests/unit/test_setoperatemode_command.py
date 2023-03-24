@@ -8,7 +8,7 @@ from tests.settings import create_cm
 
 def test_set_operate_command(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
-    cm._device.dishMode = DishMode.STANDBY_FP
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_setoperatemode_allowed()
 
     cm.setoperatemode(task_callback=task_callback)
@@ -25,7 +25,7 @@ def test_set_operate_command(tango_context, dish_master_device, task_callback):
 
 def test_set_operate_command_adapter_none(dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
-    cm._device.dishMode = DishMode.STANDBY_FP
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_setoperatemode_allowed()
 
     cm.setoperatemode(task_callback=task_callback)
@@ -44,6 +44,6 @@ def test_set_operate_mode_command_not_allowed(
     tango_context, dish_master_device
 ):
     cm = create_cm(dish_master_device)
-    cm._device.dishMode = DishMode.UNKNOWN
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_setoperatemode_allowed()

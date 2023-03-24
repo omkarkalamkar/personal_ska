@@ -1,16 +1,16 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
-import time
-
 # pylint: disable=W0222
+import time
+from logging import Logger
 from typing import Tuple
 
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
-from ska_tmc_common.enum import DishMode, LivelinessProbeType
-from ska_tmc_common.exceptions import CommandNotAllowed
+from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
+from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
@@ -28,39 +28,37 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     # pylint: disable=unused-argument
     def __init__(
         self,
-        dish_dev_name,
-        logger=None,
+        dish_dev_name: str,
+        logger: Logger,
         communication_state_callback=None,
         component_state_callback=None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
-        _event_receiver=True,
-        max_workers=1,
-        proxy_timeout=500,
-        sleep_time=1,
-        timeout=2,
+        _event_receiver: bool = True,
+        max_workers: int = 1,
+        proxy_timeout: int = 500,
+        sleep_time: int = 1,
+        timeout: int = 2,
     ):
         """
         Initialise a new ComponentManager instance.
-
         :param logger: a logger for this component manager
         :param liveliness_probe: allows enabling/disabling the
-        liveliness probe;
+        liveliness probe
         :param component_state_callback: callback to be called
-         when state of the component changed
+        when state of the component changed
         :param communication_state_callback: callback to be called
-         when communication status of the component changed
-        :param event_receiver: allows eanabling/disabling the
-         event subscriber;
+        when communication status of the component changed
+        :param event_receiver: flag used to control whether
+        EventReceiver object should be instantiated or not
         :param max_workers: allows to specify number of threads
-         to be used by the liveliness probe;
+        to be used by the liveliness probe;
         :param proxy_timeout: allows to specify a client side timeou
         for sub-devices in milliseconds used by the liveliness probe;
         :param sleep_time: allows to specify the wait between
         each iteration of the liveliness probe and EventSubscriber;
         :param timeout: Time period to wait for initialization
-         of adapter.
+        of adapter.
         """
-
         super().__init__(
             logger=logger,
             _liveliness_probe=_liveliness_probe,
@@ -70,11 +68,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
+
         self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
+        # Event Receiver
+        if _event_receiver:
+            self.event_receiver_object = DishLNEventReceiver(self, logger)
+            self.event_receiver_object.start()
+
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
@@ -103,21 +107,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
+    def dishMode(self) -> DishMode:
+        """Returns current dishMode value of Dish Master Device"""
+        return self._device.dish_mode
+
     def stop_event_receiver(self):
         """Stops the Event Receiver"""
         if self.event_receiver_object._thread.is_alive():
             self.event_receiver_object.stop()
-
-    @property
-    def dishMode(self) -> DishMode:
-        """Returns the dishMode of dish master device"""
-        return self._device.dishMode
-
-    @dishMode.setter
-    def dishMode(self, value: DishMode) -> None:
-        """Sets the value of Dish Mode for Dish Master Device"""
-        if self._device.dishMode != value:
-            self._device.dishMode = value
 
     def get_device(self) -> DishDeviceInfo:
         """
@@ -136,9 +133,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.update_unresponsive(False)
 
     def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
-        """Submits the SetStandbyFPMode command for execution.
-
-        :rtype: Tuple
+        """
+        Initializes the attributes and properties of the DishLeafNode.
+        :return:
+            A tuple containing a return code and a string message
+            indicating status. The message is for information purpose only.
         """
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
@@ -270,3 +269,34 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
+
+    def check_device_responsive(self) -> None:
+        """Checks if dish master device is responsive."""
+        if self._device is None or self._device.unresponsive:
+            raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
+
+    def update_device_dish_mode(self, dish_mode: DishMode) -> None:
+        """
+        Update the dish mode of the given dish and call
+        the relative callbacks if available.
+        :param dishMode: Dish mode of the device
+        :type dishMode: DishMode
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.dish_mode = dish_mode
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+    def update_device_pointing_state(self, pointingState: PointingState):
+        """
+        Update the pointing state of the given dish and call
+        the relative callbacks if available.
+        :param pointingState: Pointing state of the dish device
+        :type pointingState: PointingState
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.pointing_state = pointingState
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
