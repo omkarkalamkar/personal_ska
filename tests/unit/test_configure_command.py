@@ -19,7 +19,6 @@ def get_configure_input_str(
     return configure_input_str
 
 
-@pytest.mark.dishln
 def test_configure_command_completed(tango_context, task_callback, caplog):
     cm = create_cm(dish_master_device)
     cm._device.dishMode = DishMode.STANDBY_FP
@@ -39,7 +38,6 @@ def test_configure_command_completed(tango_context, task_callback, caplog):
     )
 
 
-@pytest.mark.dishln2
 def test_configure_command_adapter_none(
     dish_master_device, task_callback, caplog
 ):
@@ -62,7 +60,6 @@ def test_configure_command_adapter_none(
     )
 
 
-@pytest.mark.dishln
 def test_configure_command_not_allowed(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
     cm._device.dishMode = DishMode.UNKNOWN

@@ -2,14 +2,11 @@ import pytest
 import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
-from ska_tmc_common.enum import DishMode
+from ska_tmc_common.enum import DishMode, PointingState
 
 from tests.settings import event_remover, logger
 
-from .utils import PointingState
 
-
-@pytest.mark.MS
 def configure_dish_leaf_node(
     tango_context,
     dishln_name,
