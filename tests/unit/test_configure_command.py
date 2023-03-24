@@ -15,17 +15,15 @@ def get_configure_input_str(
 ):
     path = join(dirname(__file__), "..", "data", configure_input_file)
     with open(path, "r") as f:
-        configure_input_str = f.read()
-    return configure_input_str
+        config_str = f.read()
+    return json.loads(config_str)
 
 
-@pytest.mark.MS
 def test_configure_command_completed(tango_context, task_callback, caplog):
     cm = create_cm(dish_master_device)
     cm._device.dishMode = DishMode.STANDBY_FP
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
-    configure_input_str = json.loads(configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
     caplog.set_level(logging.DEBUG, logger="ska-tango-testing.mock")
 
