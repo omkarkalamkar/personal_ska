@@ -9,7 +9,7 @@
 
 CAR_OCI_REGISTRY_HOST:=artefact.skao.int
 PROJECT = ska-tmc-dishleafnode
-PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209 
+PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209
 TANGO_HOST ?= tango-databaseds:10000 ## TANGO_HOST connection to the Tango DS
 PYTHON_VARS_BEFORE_PYTEST ?= PYTHONPATH=.:./src \
 							 TANGO_HOST=$(TANGO_HOST)
@@ -104,6 +104,6 @@ K8S_TEST_TEST_COMMAND = $(PYTHON_VARS_BEFORE_PYTEST) $(PYTHON_RUNNER) \
 
 
 test-requirements:
-	@poetry export --without-hashes --dev --format requirements.txt --output tests/requirements.txt
+	@poetry export --without-hashes --with dev --format requirements.txt --output tests/requirements.txt
 
 k8s-pre-test: python-pre-test test-requirements

@@ -74,3 +74,7 @@ include:
 # retry to template job for python-test
 python-test:
   retry: 2
+  image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
+
+python-lint:
+  image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
