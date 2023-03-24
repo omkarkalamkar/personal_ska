@@ -13,9 +13,6 @@ from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
-# pylint: disable=abstract-method
-from tango import DevState
-
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
@@ -77,6 +74,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
+
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -106,6 +104,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+
+    @property
+    def dishMode(self) -> DishMode:
+        """Returns current dishMode value of Dish Master Device"""
+        return self._device.dish_mode
+
+    def stop_event_receiver(self):
+        """Stops the Event Receiver"""
+        if self.event_receiver_object._thread.is_alive():
+            self.event_receiver_object.stop()
+
+    def get_device(self) -> DishDeviceInfo:
+        """
+        Return the device info of the monitoring loop with name dev_name
+
+        :param None:
+        :return: a device info
+        :rtype: DishDeviceInfo
+        """
+        return self._device
 
     def update_event_failure(self) -> None:
         with self.lock:
@@ -167,39 +185,94 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
+    def is_setstowmode_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.OPERATE,
+            DishMode.STANDBY_LP,
+            DishMode.CONFIG,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_setoperatemode_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_setstandbyfpmode_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.STANDBY_LP,
+            DishMode.OPERATE,
+            DishMode.STOW,
+            DishMode.MAINTENANCE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_setstandbylpmode_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.STOW,
+            DishMode.MAINTENANCE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
     def check_device_responsive(self) -> None:
         """Checks if dish master device is responsive."""
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
-
-    def is_command_allowed(self, command_name: str) -> bool:
-        """Checks if the given command is allowed in current operational
-        state.
-        """
-        self.check_device_responsive()
-        if command_name in [
-            "SetStandbyFPMode",
-            "SetStandbyLPMode",
-            "SetStowMode",
-            "SetOperateMode",
-        ]:
-            if self.op_state_model.op_state in [
-                DevState.FAULT,
-                DevState.UNKNOWN,
-                DevState.DISABLE,
-            ]:
-                raise CommandNotAllowed(
-                    "The invocation of the {} command on this".format(
-                        command_name
-                    )
-                    + "device is not allowed."
-                    + "Reason: The current operational state is"
-                    + "{}".format(self.op_state_model.op_state)
-                    + "The command has NOT been executed."
-                    + "This device will continue with normal operation."
-                )
-            return True
-        return False
 
     def update_device_dish_mode(self, dish_mode: DishMode) -> None:
         """

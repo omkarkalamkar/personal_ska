@@ -4,7 +4,7 @@ from logging import Logger
 from time import sleep
 
 import tango
-from ska_tmc_common.device_info import DeviceInfo
+from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.event_receiver import EventReceiver
 
 
@@ -40,7 +40,7 @@ class DishLNEventReceiver(EventReceiver):
                     executor.submit(self.subscribe_events, dishDevInfo)
             sleep(self._sleep_time)
 
-    def subscribe_events(self, dev_info: DeviceInfo) -> None:
+    def subscribe_events(self, dev_info: DishDeviceInfo) -> None:
         try:
             dish_dev_proxy = self._dev_factory.get_device(dev_info.dev_name)
             dish_dev_proxy.subscribe_event(

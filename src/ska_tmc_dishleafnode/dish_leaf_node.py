@@ -29,8 +29,6 @@ class DishLeafNode(SKABaseDevice):
 
         dishMasterDevName:
             Stores Dish Master Device name.
-
-
     """
 
     # -----------------
@@ -113,7 +111,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_command_allowed("SetStowMode")
+        return self.component_manager.is_setstowmode_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -123,7 +121,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStowMode")
         result_code, unique_id = handler()
 
-        return [[result_code], [str(unique_id)]]
+        return [result_code], [str(unique_id)]
 
     def is_SetStandbyLPMode_allowed(self):
         """
@@ -135,7 +133,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_command_allowed("SetStandbyLPMode")
+        return self.component_manager.is_setstandbylpmode_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -145,7 +143,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStandbyLPMode")
         result_code, unique_id = handler()
 
-        return [[result_code], [str(unique_id)]]
+        return [result_code], [str(unique_id)]
 
     def is_SetOperateMode_allowed(self):
         """
@@ -157,7 +155,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_command_allowed("SetOperateMode")
+        return self.component_manager.is_setoperatemode_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -166,7 +164,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetOperateMode")
         result_code, unique_id = handler()
 
-        return [[result_code], [str(unique_id)]]
+        return [result_code], [str(unique_id)]
 
     def is_SetStandbyFPMode_allowed(self):
         """
@@ -178,7 +176,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_command_allowed("SetStandbyFPMode")
+        return self.component_manager.is_setstandbyfpmode_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -188,7 +186,7 @@ class DishLeafNode(SKABaseDevice):
         handler = self.get_command_object("SetStandbyFPMode")
         result_code, unique_id = handler()
 
-        return [[result_code], [str(unique_id)]]
+        return [result_code], [str(unique_id)]
 
     # pylint: disable-all
     def is_Scan_allowed(self):
@@ -449,7 +447,7 @@ class DishLeafNode(SKABaseDevice):
             communication_state_callback=None,
             component_state_callback=None,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
-            _event_receiver=False,
+            _event_receiver=True,
             sleep_time=self.SleepTime,
             timeout=self.TimeOut,
         )
