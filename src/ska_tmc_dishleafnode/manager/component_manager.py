@@ -9,7 +9,7 @@ from typing import Tuple
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
-from ska_tmc_common.enum import DishMode, LivelinessProbeType
+from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
@@ -51,8 +51,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         when state of the component changed
         :param communication_state_callback: callback to be called
         when communication status of the component changed
-        :param event_receiver: allows enabling/disabling the
-        event subscriber
+        :param event_receiver: flag used to control whether
+        EventReceiver object should be instantiated or not
         :param max_workers: allows to specify number of threads
         to be used by the liveliness probe;
         :param proxy_timeout: allows to specify a client side timeou
@@ -167,10 +167,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def _check_if_dish_master_is_responsive(self) -> None:
+    def _check_if_dish_master_is_responsive(self) -> bool:
         """Checks if dish master device is responsive."""
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
+        return True
 
     def is_command_allowed(self, command_name: str) -> bool:
         """Checks if the given command is allowed in current operational
@@ -223,5 +224,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.lock:
             dev_info = self.get_device()
             dev_info.dish_mode = dish_mode
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+    def update_device_pointing_state(self, pointingState: PointingState):
+        """
+        Update the pointing state of the given dish and call
+        the relative callbacks if available.
+        :param pointingState: Pointing state of the dish device
+        :type pointingState: PointingState
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)

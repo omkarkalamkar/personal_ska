@@ -50,15 +50,20 @@ class DishLNEventReceiver(EventReceiver):
                 stateless=True,
             )
 
+            dish_dev_proxy.subscribe_event(
+                "pointingState",
+                tango.EventType.CHANGE_EVENT,
+                self.handle_pointing_state_event,
+                stateless=True,
+            )
+
         except Exception as e:
             log_msg = (
-                f"event not working for device {dish_dev_proxy.dev_name}/{e}"
+                f"Event not working for device {dish_dev_proxy.dev_name}/{e}"
             )
-            self._logger.debug(log_msg)
+            self._logger.exception(log_msg)
 
-    def handle_dish_mode_event(
-        self, event_flag: tango.EventType.CHANGE_EVENT
-    ) -> None:
+    def handle_dish_mode_event(self, event_flag: tango.EventData) -> None:
         """Method to handle and update the latest value of dishMode
         attribute.
 
@@ -75,3 +80,21 @@ class DishLNEventReceiver(EventReceiver):
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_dish_mode(new_value)
         self._logger.info(f"DishMode value updated to {new_value}")
+
+    def handle_pointing_state_event(self, event_flag: tango.EventData) -> None:
+        """Method to handle and update the latest value of
+        pointingState attribute.
+
+        Args:
+            event_flag (tango.EventData): to flag the
+            change in event.
+        """
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure()
+            return
+        new_value = event_flag.attr_value.value
+        self._component_manager.update_device_pointing_state(new_value)
+        self._logger.info(f"PointingState value updated to {new_value}")
