@@ -36,7 +36,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback=None,
         component_state_callback=None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
-        _event_receiver: bool=True,
+        _event_receiver: bool = True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
@@ -200,16 +200,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
             return True
         return False
-
-    def get_device(self) -> DishDeviceInfo:
-        """
-        Return the device info of the monitoring loop with name dev_name
-
-        :param None:
-        :return: a device info
-        :rtype: DishDeviceInfo
-        """
-        return self._device
 
     def update_device_dish_mode(self, dish_mode: DishMode) -> None:
         """
