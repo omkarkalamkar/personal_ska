@@ -12,9 +12,10 @@ Feature: DishLeafNode acceptance
 		| command_name      | resultant_state    | dish_mode  |
 		| SetStandbyFPMode  | STANDBY            | DishMode.STANDBY_LP |
 		| SetOperateMode    | ON                 | DishMode.STANDBY_FP |
+		| Configure         |  ON                | DishMode.OPERATE    |
 		| SetStandbyLPMode  | STANDBY            | DishMode.STANDBY_FP |
 		| SetStowMode       | DISABLE            | DishMode.STANDBY_LP |
-		
+
 	#This test is to verify the ping mechanism implemented on Dishleafnode.
 	@XTP-10402 @post_deployment @acceptance @SKA_mid
 	Scenario: Test ping functionality on Dishleafnode
