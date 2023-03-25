@@ -4,19 +4,15 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 # pylint: disable=W0222
 import time
 from logging import Logger
-from typing import Tuple
-
-# pylint: disable=W0222
 from typing import Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
-from ska_tmc_common.enum import DishMode, LivelinessProbeType
-from ska_tmc_common.exceptions import CommandNotAllowed
+from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
+from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
-from tango import DevState
 
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
@@ -132,32 +128,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Sets the value of Dish Mode for Dish Master Device"""
         if self._device.dishMode != value:
             self._device.dishMode = value
-
-    def get_device(self) -> DishDeviceInfo:
-        """
-        Return the device info of the monitoring loop with name dev_name
-
-        :param None:
-        :return: a device info
-        :rtype: DishDeviceInfo
-        """
-        return self._device
-
-    def update_event_failure(self) -> None:
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
-
-    @property
-    def dishMode(self) -> DishMode:
-        """Returns current dishMode value of Dish Master Device"""
-        return self._device.dish_mode
-
-    def stop_event_receiver(self):
-        """Stops the Event Receiver"""
-        if self.event_receiver_object._thread.is_alive():
-            self.event_receiver_object.stop()
 
     def get_device(self) -> DishDeviceInfo:
         """
@@ -291,7 +261,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "The command has NOT been executed."
             + "This device will continue with normal operation."
         )
-        
+
     def is_setstowmode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
