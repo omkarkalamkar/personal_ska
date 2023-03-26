@@ -13,6 +13,7 @@ from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
+from ska_tmc_dishleafnode.commands.scan_command import Scan
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
@@ -104,6 +105,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.scan_command = Scan(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
 
     @property
     def dishMode(self) -> DishMode:
@@ -170,6 +177,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("SetStowMode command queued for execution")
+        return task_status, response
+
+    def scan(self, task_callback=None) -> Tuple[TaskStatus, str]:
+        """Submits the Scan command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.scan_command.scan,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("Scan command queued for execution")
         return task_status, response
 
     def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
@@ -262,6 +282,28 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         raise CommandNotAllowed(
             "The invocation of the SetStowMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_scan_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.OPERATE,
+            DishMode.STANDBY_FP,
+            DishMode.STOW,
+            DishMode.MAINTENANCE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the Scan command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "
