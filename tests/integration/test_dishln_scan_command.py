@@ -7,6 +7,9 @@ from ska_tmc_common.enum import DishMode, PointingState
 from tests.settings import event_remover, logger
 
 
+@pytest.mark.xfail(
+    "dish master currently has not implementation of scan command"
+)
 def scan_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
