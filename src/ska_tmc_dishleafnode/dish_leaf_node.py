@@ -1,6 +1,8 @@
 """This is DishLeafNode TANGO device."""
 # pylint: disable=line-too-long, fixme
 # flake8: noqa
+import json
+
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common.enum import LivelinessProbeType

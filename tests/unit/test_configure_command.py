@@ -1,5 +1,4 @@
 import json
-import logging
 from os.path import dirname, join
 
 import pytest
@@ -7,7 +6,7 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import DISH_MASTER_DEVICE, create_cm
+from tests.settings import create_cm
 
 
 def get_configure_input_str(
@@ -19,13 +18,14 @@ def get_configure_input_str(
     return json.loads(config_str)
 
 
-def test_configure_command_completed(tango_context, task_callback, caplog):
-    cm = create_cm(DISH_MASTER_DEVICE)
+def test_configure_command_completed(
+    tango_context, task_callback, dish_master_device
+):
+    cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
     cm.configure(configure_input_str, task_callback=task_callback)
-    caplog.set_level(logging.DEBUG, logger="ska-tango-testing.mock")
 
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
@@ -38,15 +38,12 @@ def test_configure_command_completed(tango_context, task_callback, caplog):
     )
 
 
-def test_configure_command_adapter_none(
-    DISH_MASTER_DEVICE, task_callback, caplog
-):
-    cm = create_cm(DISH_MASTER_DEVICE)
+def test_configure_command_adapter_none(task_callback, dish_master_device):
+    cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
     cm.configure(configure_input_str, task_callback=task_callback)
-    caplog.set_level(logging.DEBUG, logger="ska_tango_testing.mock")
 
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
@@ -59,8 +56,8 @@ def test_configure_command_adapter_none(
     )
 
 
-def test_configure_command_not_allowed(tango_context, DISH_MASTER_DEVICE):
-    cm = create_cm(DISH_MASTER_DEVICE)
+def test_configure_command_not_allowed(tango_context, dish_master_device):
+    cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()

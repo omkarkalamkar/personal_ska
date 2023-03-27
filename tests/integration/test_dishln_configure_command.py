@@ -109,7 +109,6 @@ def configure_dish_leaf_node(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.config
 @pytest.mark.SKA_mid
 def test_configure_command(
     tango_context, dishln_device, group_callback, json_factory
