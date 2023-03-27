@@ -69,24 +69,24 @@ class Configure(DishLNCommand):
 
     # pylint: enable=unused-argument
 
-    def validate_json_argument(self, input_argin: str) -> tuple:
+    def validate_json_argument(self, input_argin: dict) -> tuple:
         """Validates the json argument"""
 
         if "pointing" not in input_argin:
             return self.generate_command_result(
                 ResultCode.FAILED,
-                "pointing is not present in the input json argument.",
+                "pointing key is not present in the input json argument.",
             )
         if "dish" not in input_argin:
             return self.generate_command_result(
                 ResultCode.FAILED,
-                "dish is not present in the input json argument.",
+                "dish key is not present in the input json argument.",
             )
 
         if "receiverBand" not in input_argin["dish"]:
             return self.generate_command_result(
                 ResultCode.FAILED,
-                "receiverBand is not present in the input json argument.",
+                "receiverBand key is not present in the input json argument.",
             )
 
         return (ResultCode.OK, "")
