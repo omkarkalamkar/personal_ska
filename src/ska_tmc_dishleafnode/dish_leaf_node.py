@@ -463,6 +463,7 @@ class DishLeafNode(SKABaseDevice):
             ("SetStandbyLPMode", "setstandbylpmode"),
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
+            ("Configure", "configure"),
         ]:
             self.register_command_object(
                 command_name,

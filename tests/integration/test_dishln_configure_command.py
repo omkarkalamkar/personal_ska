@@ -32,6 +32,17 @@ def configure_dish_leaf_node(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
+
+    dish_leaf_node.subscribe_event(
+        "longRunningCommandsInQueue",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandsInQueue"],
+    )
+
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
+        None,
+    )
+
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -61,39 +72,44 @@ def configure_dish_leaf_node(
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], str(int(ResultCode.OK))),
-        lookahead=2,
+        (unique_id_op[0], str(int(ResultCode.OK))),
+        lookahead=4,
     )
     dish_master.SetDirectPointingState(PointingState.READY)
     assert dish_master.PointingState == PointingState.READY
     dish_master.subscribe_event(
-        "PointingState.READY",
+        "pointingState",
         tango.EventType.CHANGE_EVENT,
-        group_callback["PointingState.READY"],
+        group_callback["pointingState"],
     )
-    group_callback["PointingState.READY"].assert_change_event(
+    group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
         lookahead=2,
     )
 
-    result_op, unique_id_op = dish_leaf_node.Configure(configure_input_str)
-    assert result_op[0] == ResultCode.QUEUED
+    result_config, unique_id_config = dish_leaf_node.Configure(
+        configure_input_str
+    )
+    assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode", "SetOperateMode", "Configure")
     )
-    logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
+    logger.info(
+        f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_op[0], str(int(ResultCode.OK))),
-        lookahead=2,
+        (unique_id_config[0], str(int(ResultCode.OK))),
+        lookahead=6,
     )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=2,
+        lookahead=4,
     )
 
 
 @pytest.mark.post_deployment
+@pytest.mark.config
 @pytest.mark.SKA_mid
 def test_configure_command(
     tango_context, dishln_device, group_callback, json_factory
