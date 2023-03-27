@@ -27,7 +27,7 @@ class Configure(DishLNCommand):
     """
 
     # pylint: disable=unused-argument
-    def configure(
+    def invoke_configure(
         self,
         argin: str,
         logger,
@@ -49,7 +49,7 @@ class Configure(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        ret_code, message = self.do(json.dumps(argin))
+        ret_code, message = self.do(argin)
         logger.info(message)
         if ret_code == ResultCode.FAILED:
             task_callback(
