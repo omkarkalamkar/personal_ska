@@ -1,8 +1,6 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
-import json
-
 # pylint: disable=W0222
 import time
 from logging import Logger
@@ -205,20 +203,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: a result code and message
         """
-        try:
-            input_json = json.loads(argin)
-        except Exception as e:
-            self.logger.exception(
-                "Exception occured while loading the input json: %s", e
-            )
-            return (
-                ResultCode.FAILED,
-                f"Error while loading the input json: {e}",
-            )
 
         # validate the JSON argument
         validation_result = self.configure_command.validate_json_argument(
-            input_json
+            argin
         )
         if validation_result[0] != ResultCode.OK:
             return validation_result

@@ -1,3 +1,4 @@
+import json
 from os.path import dirname, join
 
 import pytest
@@ -14,9 +15,10 @@ def get_configure_input_str(
     path = join(dirname(__file__), "..", "data", configure_input_file)
     with open(path, "r") as f:
         config_str = f.read()
-    return config_str
+    return json.loads(config_str)
 
 
+@pytest.mark.configure
 def test_configure_command_completed(
     tango_context, task_callback, dish_master_device
 ):
@@ -53,6 +55,17 @@ def test_configure_command_adapter_none(task_callback, dish_master_device):
     task_callback.assert_against_call(
         status=TaskStatus.COMPLETED, result=ResultCode.FAILED
     )
+
+
+# def test_configure_command_with_invalide_key(
+#     tango_context, task_callback, json_factory
+# ):
+#     logger.info("%s", tango_context)
+#     _, _, cm = get_configure_command()
+#     configure_input_str = json_factory("invalid_key_Configurecommand")
+#     (res_code, message) = cm.configure(
+#         configure_input_str, task_callback=task_callback
+#     )
 
 
 def test_configure_command_not_allowed(tango_context, dish_master_device):

@@ -10,7 +10,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import SLEEP_TIME, create_cm
+from tests.settings import SLEEP_TIME, create_cm, event_remover
 
 
 @given(
@@ -65,6 +65,10 @@ def call_command(
         dev_factory = DevFactory()
         dish_master_proxy = dev_factory.get_device(dish_master_device)
         dishMode = eval(dish_mode)
+        event_remover(
+            group_callback,
+            ["longRunningCommandsInQueue", "longRunningCommandResult"],
+        )
         dish_master_proxy.SetDirectDishMode(dishMode)
         dish_master_proxy.subscribe_event(
             "dishMode",
