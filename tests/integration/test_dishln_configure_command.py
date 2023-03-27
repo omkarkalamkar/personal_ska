@@ -11,6 +11,7 @@ def configure_dish_leaf_node(
     tango_context,
     dishln_name,
     group_callback,
+    configure_input_str,
 ):
 
     logger.info(f"{tango_context}")
@@ -75,7 +76,7 @@ def configure_dish_leaf_node(
         lookahead=2,
     )
 
-    result_op, unique_id_op = dish_leaf_node.Configure()
+    result_op, unique_id_op = dish_leaf_node.Configure(configure_input_str)
     assert result_op[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode", "SetOperateMode", "Configure")
@@ -94,7 +95,10 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_configure_command(tango_context, group_callback):
+def test_configure_command(tango_context, group_callback, json_factory):
     configure_dish_leaf_node(
-        tango_context, dish_leaf_node_device, group_callback
+        tango_context,
+        dish_leaf_node_device,
+        group_callback,
+        json_factory("dishleafnode_configure"),
     )

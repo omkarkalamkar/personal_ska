@@ -1,4 +1,5 @@
 # pylint: disable=line-too-long,unused-import
+import json
 import time
 
 import pytest
@@ -53,7 +54,12 @@ def dishleaf_node():
     )
 )
 def call_command(
-    dishleaf_node, command_name, dish_mode, dish_master_device, group_callback
+    dishleaf_node,
+    command_name,
+    dish_mode,
+    dish_master_device,
+    group_callback,
+    json_factory,
 ):
     try:
         dev_factory = DevFactory()
@@ -69,7 +75,13 @@ def call_command(
             (dishMode),
             lookahead=2,
         )
-        pytest.command_result = dishleaf_node.command_inout(command_name)
+        if command_name == "Configure":
+            configure_string = json_factory("dishleafnode_configure")
+            pytest.command_result = dishleaf_node.command_inout(
+                command_name, json.dumps(configure_string)
+            )
+        else:
+            pytest.command_result = dishleaf_node.command_inout(command_name)
     except Exception as ex:
         assert "CommandNotAllowed" in str(ex)
         pytest.command_result = "CommandNotAllowed"
