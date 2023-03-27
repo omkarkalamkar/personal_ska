@@ -7,8 +7,8 @@ from ska_tmc_common.enum import DishMode, PointingState
 from tests.settings import event_remover, logger
 
 
-@pytest.mark.xfail(
-    "dish master currently has not implementation of scan command"
+@pytest.mark.skip(
+    reason="dish master currently has not implementation of scan command"
 )
 def scan_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
@@ -94,8 +94,8 @@ def scan_command(tango_context, dishln_name, group_callback):
     assert result_op[0] == ResultCode.QUEUED
 
 
-@pytest.mark.xfail(
-    "dish master currently has not implementation of scan command"
+@pytest.mark.skip(
+    reason="dish master currently has not implementation of scan command"
 )
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
