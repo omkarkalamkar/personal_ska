@@ -91,8 +91,9 @@ def scan_command(tango_context, dishln_name, group_callback):
     assert result_op[0] == ResultCode.QUEUED
 
 
-@pytest.mark.xfail
-@pytest.mark.scann
+@pytest.mark.xfail(
+    "dish master currently has not implementation of scan command"
+)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_scan_command(tango_context, group_callback):
