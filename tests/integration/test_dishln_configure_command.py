@@ -104,7 +104,7 @@ def configure_dish_leaf_node(
     )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=4,
+        lookahead=6,
     )
 
 
