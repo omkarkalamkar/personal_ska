@@ -75,15 +75,15 @@ class Configure(DishLNCommand):
         if "pointing" not in input_argin:
             return self.generate_command_result(
                 ResultCode.FAILED,
-                "receiverBand is not present in the input json argument.",
+                "pointing is not present in the input json argument.",
             )
         if "dish" not in input_argin:
             return self.generate_command_result(
                 ResultCode.FAILED,
-                "receiverBand is not present in the input json argument.",
+                "dish is not present in the input json argument.",
             )
 
-        if "receiver_band" not in input_argin["dish"]:
+        if "receiverBand" not in input_argin["dish"]:
             return self.generate_command_result(
                 ResultCode.FAILED,
                 "receiverBand is not present in the input json argument.",

@@ -21,7 +21,7 @@ def get_configure_input_str(
 
 def test_configure_command_completed(tango_context, task_callback, caplog):
     cm = create_cm(dish_master_device)
-    cm._device.dishMode = DishMode.STANDBY_FP
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
     cm.configure(configure_input_str, task_callback=task_callback)
@@ -42,7 +42,7 @@ def test_configure_command_adapter_none(
     dish_master_device, task_callback, caplog
 ):
     cm = create_cm(dish_master_device)
-    cm._device.dishMode = DishMode.STANDBY_FP
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
     cm.configure(configure_input_str, task_callback=task_callback)
@@ -61,6 +61,6 @@ def test_configure_command_adapter_none(
 
 def test_configure_command_not_allowed(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
-    cm._device.dishMode = DishMode.UNKNOWN
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()

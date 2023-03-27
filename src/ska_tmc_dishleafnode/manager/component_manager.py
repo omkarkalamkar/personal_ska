@@ -114,20 +114,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-        if self.event_receiver:
-            self.event_receiver_object = DishLNEventReceiver(self, logger)
-            self.start_event_receiver()
 
     @property
     def dishMode(self) -> DishMode:
         """Returns the dishMode of dish master device"""
-        return self._device.dishMode
+        return self._device.dish_mode
 
-    @dishMode.setter
-    def dishMode(self, value: DishMode) -> None:
-        """Sets the value of Dish Mode for Dish Master Device"""
-        if self._device.dishMode != value:
-            self._device.dishMode = value
+    def stop_event_receiver(self):
+        """Stops the Event Receiver"""
+        if self.event_receiver_object._thread.is_alive():
+            self.event_receiver_object.stop()
 
     def get_device(self) -> DishDeviceInfo:
         """
@@ -199,22 +195,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    # def configure(
-    #     self, argin: str, task_callback: Optional[Callable] = None
-    # ) -> tuple:
-    #     """
-    #     Submit the Configure command in queue.
-
-    #     :return: a result code and message
-    #     """
-
-    #     task_status, response = self.submit_task(
-    #         self.configure_command.configure,
-    #         args=[argin, self.logger],
-    #         task_callback=task_callback,
-    #     )
-    #     self.logger.info("Configure command queued for execution")
-    #     return task_status, response
     def configure(
         self, argin: str, task_callback: Optional[Callable] = None
     ) -> tuple:
