@@ -8,7 +8,7 @@ from tests.settings import DISH_LEAF_NODE_DEVICE, event_remover, logger
 
 
 @pytest.mark.skip(
-    reason="dish master currently does not have implementation of scan command"
+    reason="Scan command is not implemented yet (18.1) in dish helper device"
 )
 def scan_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
@@ -92,7 +92,7 @@ def scan_command(tango_context, dishln_name, group_callback):
 
 
 @pytest.mark.skip(
-    reason="dish master currently does not have implementation of scan command"
+    reason="Scan command is not implemented yet (18.1) in dish helper device"
 )
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
