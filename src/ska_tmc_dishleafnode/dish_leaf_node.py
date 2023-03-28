@@ -208,6 +208,18 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
+    def is_Scan_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+        return self.component_manager.is_scan_allowed()
+
     def is_EndScan_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
