@@ -9,9 +9,10 @@ Feature: DishLeafNode acceptance
 		Then the <command_name> command is executed successfully and DishMaster transitions to <resultant_state>
 
 		Examples:
-		| command_name      | resultant_state    | dish_mode  		   |
+		| command_name      | resultant_state    | dish_mode           |
 		| SetStandbyFPMode  | STANDBY            | DishMode.STANDBY_LP |
 		| SetOperateMode    | ON                 | DishMode.STANDBY_FP |
+		| Configure         | ON                 | DishMode.OPERATE    |
 		| SetStandbyLPMode  | STANDBY            | DishMode.STANDBY_FP |
 		| SetStowMode       | DISABLE            | DishMode.STANDBY_LP |
 
