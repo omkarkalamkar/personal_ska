@@ -37,8 +37,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self,
         dish_dev_name: str,
         logger: Logger,
-        communication_state_callback=None,
-        component_state_callback=None,
+        communication_state_callback: Optional[Callable] = None,
+        component_state_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -129,7 +129,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Returns the dishMode of dish master device"""
         return self._device.dish_mode
 
-    def stop_event_receiver(self):
+    def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
         if self.event_receiver_object._thread.is_alive():
             self.event_receiver_object.stop()
@@ -150,7 +150,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def setstandbyfpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
+    def setstandbyfpmode(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
         """
         Initializes the attributes and properties of the DishLeafNode.
         :return:
@@ -165,7 +167,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStandbyFPMode command queued for execution")
         return task_status, response
 
-    def setstandbylpmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
+    def setstandbylpmode(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
         :rtype: Tuple
@@ -178,7 +182,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStandbyLPMode command queued for execution")
         return task_status, response
 
-    def setstowmode(self, task_callback=None) -> Tuple[TaskStatus, str]:
+    def setstowmode(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
         """Submits the SetStowMode command for execution.
 
         :rtype: Tuple
@@ -191,7 +197,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
-    def scan(self, task_callback=None) -> Tuple[TaskStatus, str]:
+    def scan(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
         :rtype: Tuple
@@ -204,7 +212,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Scan command queued for execution")
         return task_status, response
 
-    def setoperatemode(self, task_callback=None) -> Tuple[TaskStatus, str]:
+    def setoperatemode(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
         :rtype: Tuple
@@ -398,7 +408,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def update_device_pointing_state(self, pointingState: PointingState):
+    def update_device_pointing_state(
+        self, pointingState: PointingState
+    ) -> None:
         """
         Update the pointing state of the given dish and call
         the relative callbacks if available.

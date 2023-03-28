@@ -1,6 +1,7 @@
 """Scan command class for Dishleafnode."""
 
 import threading
+from logging import Logger
 from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
@@ -20,7 +21,7 @@ class Scan(DishLNCommand):
     # pylint: disable=unused-argument
     def scan(
         self,
-        logger,
+        logger: Logger,
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
