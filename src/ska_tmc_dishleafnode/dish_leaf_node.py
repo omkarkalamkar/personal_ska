@@ -1,7 +1,6 @@
 """This is DishLeafNode TANGO device."""
 # pylint: disable=line-too-long, fixme
 # flake8: noqa
-import json
 
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
@@ -60,6 +59,7 @@ class DishLeafNode(SKABaseDevice):
         A class for the TMC DishLeafNode init_device() method.
         """
 
+        # pylint: disable=W0221
         def do(self):
             """
             Initializes the attributes and properties of the DishLeafNode.
@@ -190,7 +190,25 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    # pylint: disable-all
+    @command(
+        dtype_in="str",
+        doc_in="""The timestamp indicates the time, in UTC, at which command
+        execution should start.""",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def Scan(self):
+        """
+        Invokes Scan command on DishMaster (Standby-Full power)
+        mode
+
+        :rtype: tuple
+        """
+        handler = self.get_command_object("Scan")
+        result_code, unique_id = handler()
+
+        return [result_code], [str(unique_id)]
+
     def is_Scan_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
@@ -201,22 +219,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
-
-    @command(
-        dtype_in="str",
-        doc_in="""The timestamp indicates the time, in UTC, at which command
-        execution should start.""",
-        dtype_out="DevVarLongStringArray",
-    )
-    @DebugIt()
-    def Scan(self):
-        """Invokes Scan command on DishMaster."""
-
-        return [
-            [ResultCode.FAILED],
-            ["Scan command will be refactored in later PI's"],
-        ]
+        return self.component_manager.is_scan_allowed()
 
     def is_EndScan_allowed(self):
         """
