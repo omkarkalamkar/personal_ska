@@ -4,7 +4,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
-from tests.settings import event_remover, logger
+from tests.settings import DISH_LEAF_NODE_DEVICE, event_remover, logger
 
 
 @pytest.mark.skip(
@@ -97,4 +97,4 @@ def scan_command(tango_context, dishln_name, group_callback):
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_scan_command(tango_context, group_callback):
-    scan_command(tango_context, "ska_mid/tm_leaf_node/d0001", group_callback)
+    scan_command(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)
