@@ -6,6 +6,7 @@ from ska_tmc_common.exceptions import CommandNotAllowed
 from tests.settings import create_cm
 
 
+@pytest.mark.xfail(reason="Dish Adapter doesn't have scan command as of now.")
 def test_scan_command(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
