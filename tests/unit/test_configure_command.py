@@ -17,7 +17,6 @@ def get_configure_input_str(
     return config_str
 
 
-@pytest.mark.configure
 def test_configure_command_completed(
     tango_context, task_callback, dish_master_device
 ):
@@ -56,15 +55,16 @@ def test_configure_command_adapter_none(task_callback, dish_master_device):
     )
 
 
-# def test_configure_command_with_invalide_key(
-#     tango_context, task_callback, json_factory
-# ):
-#     logger.info("%s", tango_context)
-#     _, _, cm = get_configure_command()
-#     configure_input_str = json_factory("invalid_key_Configurecommand")
-#     (res_code, message) = cm.configure(
-#         configure_input_str, task_callback=task_callback
-#     )
+def test_json_validation(tango_context, task_callback, dish_master_device):
+    cm = create_cm(dish_master_device)
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
+    configure_input_str = get_configure_input_str("invalid_key.json")
+    result, message = cm.configure(
+        configure_input_str, task_callback=task_callback
+    )
+    assert result == ResultCode.FAILED
+    assert "key is not present" in message
 
 
 def test_configure_command_not_allowed(tango_context, dish_master_device):
