@@ -198,15 +198,15 @@ class DishLeafNode(SKABaseDevice):
     @DebugIt()
     def Scan(self):
         """
-        Checks whether this command is allowed to be run in the current
-        device state.
+        Invokes Scan command on DishMaster (Standby-Full power)
+        mode
 
-        :return: True if this command is allowed to be run in current
-        device state.
-
-        :rtype: boolean
+        :rtype: tuple
         """
-        return self.component_manager.is_scan_allowed()
+        handler = self.get_command_object("Scan")
+        result_code, unique_id = handler()
+
+        return [result_code], [str(unique_id)]
 
     def is_EndScan_allowed(self):
         """

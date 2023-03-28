@@ -11,8 +11,8 @@ from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 class Scan(DishLNCommand):
     """
-    A class for Dishleafnode's Scan() command. Scan command is
-    inherited from CspSLNCommand.
+    A class for Dishleafnode's Scan command. Scan command is
+    inherited from DishLNCommand.
 
     This command invokes Scan command on Dish Leaf node
     """
