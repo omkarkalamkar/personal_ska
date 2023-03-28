@@ -14,7 +14,7 @@ class Scan(DishLNCommand):
     A class for Dishleafnode's Scan command. Scan command is
     inherited from DishLNCommand.
 
-    This command invokes Scan command on Dish Leaf node
+    This command invokes Scan command on Dish Master
     """
 
     # pylint: disable=unused-argument
@@ -39,35 +39,35 @@ class Scan(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        ret_code, message = self.do()
+        return_code, message = self.do()
         logger.info(message)
-        if ret_code == ResultCode.FAILED:
+        if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.FAILED,
+                result=return_code,
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.OK,
+                result=return_code,
             )
 
-    # pylint: disable=W0221
-    def do(self) -> tuple:
+    def do(self, argin=None):
         """
+        Method to invoke Scan command on DishMaster.
 
-        Method to invoke Scan command on Dish Leaf Node
+        param argin:
+            None
 
-        :return: (ResultCode, message)
-        :raises Exception: if the command execution is not successful
+        return:
+            (ResultCode, str)
         """
-        ret_code, message = self.init_adapter()
-        if ret_code == ResultCode.FAILED:
-            return ret_code, message
+        return_code, message = self.init_adapter()
+        if return_code == ResultCode.FAILED:
+            return return_code, message
 
-        ret_code, message = self.call_adapter_method(
+        return_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Scan"
         )
-
-        return (ResultCode.OK, "")
+        return return_code, message
