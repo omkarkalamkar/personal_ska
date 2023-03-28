@@ -1,9 +1,9 @@
 """
 Configure class for DishLeafNode.
 """
-
 import json
 import threading
+from logging import Logger
 from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
@@ -30,7 +30,7 @@ class Configure(DishLNCommand):
     def invoke_configure(
         self,
         argin: str,
-        logger,
+        logger: Logger,
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
