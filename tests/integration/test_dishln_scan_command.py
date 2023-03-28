@@ -7,7 +7,7 @@ from ska_tmc_common.enum import DishMode, PointingState
 from tests.settings import DISH_LEAF_NODE_DEVICE, event_remover, logger
 
 
-@pytest.mark.skip(
+@pytest.mark.xfail(
     reason="Scan command is not implemented yet (18.1) in dish helper device"
 )
 def scan_command(tango_context, dishln_name, group_callback):

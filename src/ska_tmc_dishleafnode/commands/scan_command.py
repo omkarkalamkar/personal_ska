@@ -26,7 +26,7 @@ class Scan(DishLNCommand):
     ) -> None:
 
         """This is a long running method for Scan command, it
-        executes do hook, invokes Scan command on Dishleafnode
+        executes the do hook, invoking Scan command on Dish Master
 
         :param argin: Input JSON string
         :type argin : str
@@ -55,7 +55,7 @@ class Scan(DishLNCommand):
 
     def do(self, argin=None):
         """
-        Method to invoke Scan command on DishMaster.
+        Method to invoke Scan command on Dish Master.
 
         param argin:
             None
