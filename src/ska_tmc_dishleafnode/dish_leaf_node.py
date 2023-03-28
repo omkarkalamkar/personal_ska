@@ -1,6 +1,8 @@
 """This is DishLeafNode TANGO device."""
 # pylint: disable=line-too-long, fixme
 # flake8: noqa
+import json
+
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common.enum import LivelinessProbeType
@@ -253,23 +255,22 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
+        return self.component_manager.is_configure_allowed()
 
     @command(
         dtype_in="str",
-        doc_in="""The timestamp indicates the time, in UTC, at which command
-        execution should start.""",
+        doc_in="The string in JSON format",
         dtype_out="DevVarLongStringArray",
+        doc_out="information-only string",
     )
     @DebugIt()
-    def Configure(self):
-        """Configures the Dish by setting pointing coordinates for a given
-        observation."""
-
-        return [
-            [ResultCode.FAILED],
-            ["Configure command will be refactored in later PI's"],
-        ]
+    def Configure(self, argin) -> tuple:
+        """
+        Invokes Configure command on Dish Master.
+        """
+        handler = self.get_command_object("Configure")
+        result_code, unique_id = handler(argin)
+        return [result_code], [unique_id]
 
     def is_StartCapture_allowed(self):
         """
@@ -463,6 +464,7 @@ class DishLeafNode(SKABaseDevice):
             ("SetStandbyLPMode", "setstandbylpmode"),
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
+            ("Configure", "configure"),
         ]:
             self.register_command_object(
                 command_name,

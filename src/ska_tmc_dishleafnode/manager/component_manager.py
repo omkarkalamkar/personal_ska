@@ -1,11 +1,14 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+import json
+
 # pylint: disable=W0222
 import time
 from logging import Logger
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 
+from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.adapters import AdapterFactory
 from ska_tmc_common.device_info import DishDeviceInfo
@@ -13,11 +16,14 @@ from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
+from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
 from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
+
+# pylint: disable=abstract-method
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -104,10 +110,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.configure_command = Configure(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
 
     @property
     def dishMode(self) -> DishMode:
-        """Returns current dishMode value of Dish Master Device"""
+        """Returns the dishMode of dish master device"""
         return self._device.dish_mode
 
     def stop_event_receiver(self):
@@ -184,6 +196,63 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
+
+    def configure(
+        self, argin: str, task_callback: Optional[Callable] = None
+    ) -> tuple:
+        """
+        Submit the Configure command in queue.
+
+        :return: a result code and message
+        """
+        try:
+            input_json = json.loads(argin)
+        except Exception as e:
+            self.logger.exception(
+                "Exception occured while loading the input json: %s", e
+            )
+            return (
+                ResultCode.FAILED,
+                f"Error while loading the input json: {e}",
+            )
+
+        # validate the JSON argument
+        validation_result = self.configure_command.validate_json_argument(
+            input_json
+        )
+        if validation_result[0] != ResultCode.OK:
+            return validation_result
+
+        # submit the command to the queue
+        task_status, response = self.submit_task(
+            self.configure_command.invoke_configure,
+            args=[argin, self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("Configure command queued for execution")
+        return task_status, response
+
+    def is_configure_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.STOW,
+            DishMode.OPERATE,
+            DishMode.CONFIG,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the Configure command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
 
     def is_setstowmode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational

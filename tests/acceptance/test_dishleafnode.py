@@ -9,7 +9,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import SLEEP_TIME, create_cm
+from tests.settings import SLEEP_TIME, create_cm, event_remover
 
 
 @given(
@@ -53,12 +53,21 @@ def dishleaf_node():
     )
 )
 def call_command(
-    dishleaf_node, command_name, dish_mode, dish_master_device, group_callback
+    dishleaf_node,
+    command_name,
+    dish_mode,
+    dish_master_device,
+    group_callback,
+    json_factory,
 ):
     try:
         dev_factory = DevFactory()
         dish_master_proxy = dev_factory.get_device(dish_master_device)
         dishMode = eval(dish_mode)
+        event_remover(
+            group_callback,
+            ["longRunningCommandsInQueue", "longRunningCommandResult"],
+        )
         dish_master_proxy.SetDirectDishMode(dishMode)
         dish_master_proxy.subscribe_event(
             "dishMode",
@@ -69,7 +78,13 @@ def call_command(
             (dishMode),
             lookahead=2,
         )
-        pytest.command_result = dishleaf_node.command_inout(command_name)
+        if command_name == "Configure":
+            configure_string = json_factory("dishleafnode_configure")
+            pytest.command_result = dishleaf_node.command_inout(
+                command_name, configure_string
+            )
+        else:
+            pytest.command_result = dishleaf_node.command_inout(command_name)
     except Exception as ex:
         assert "CommandNotAllowed" in str(ex)
         pytest.command_result = "CommandNotAllowed"
