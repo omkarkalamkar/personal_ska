@@ -7,9 +7,6 @@ from ska_tmc_common.enum import DishMode, PointingState
 from tests.settings import DISH_LEAF_NODE_DEVICE, event_remover, logger
 
 
-@pytest.mark.xfail(
-    reason="Scan command is not implemented yet (18.1) in dish helper device"
-)
 def scan_command(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
@@ -91,7 +88,7 @@ def scan_command(tango_context, dishln_name, group_callback):
     assert result_op[0] == ResultCode.QUEUED
 
 
-@pytest.mark.skip(
+@pytest.mark.xfail(
     reason="Scan command is not implemented yet (18.1) in dish helper device"
 )
 @pytest.mark.post_deployment
