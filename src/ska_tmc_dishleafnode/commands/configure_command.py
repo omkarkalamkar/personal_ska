@@ -14,7 +14,7 @@ from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 class Configure(DishLNCommand):
     """
-    A class for DishLeafNode's Configure() command.
+    A class for DishLeafNode's Configure command.
 
     Configures the Dish by setting pointing coordinates
     for a given scan.
@@ -49,12 +49,12 @@ class Configure(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        ret_code, message = self.do(argin)
+        return_code, message = self.do(argin)
         logger.info(message)
-        if ret_code == ResultCode.FAILED:
+        if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ret_code,
+                result=return_code,
                 exception=message,
             )
         else:
@@ -64,7 +64,7 @@ class Configure(DishLNCommand):
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ret_code,
+                result=return_code,
             )
 
     # pylint: enable=unused-argument
