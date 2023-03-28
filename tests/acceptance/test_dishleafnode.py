@@ -1,5 +1,4 @@
 # pylint: disable=line-too-long,unused-import
-import json
 import time
 
 import pytest
@@ -82,7 +81,7 @@ def call_command(
         if command_name == "Configure":
             configure_string = json_factory("dishleafnode_configure")
             pytest.command_result = dishleaf_node.command_inout(
-                command_name, json.dumps(configure_string)
+                command_name, configure_string
             )
         else:
             pytest.command_result = dishleaf_node.command_inout(command_name)

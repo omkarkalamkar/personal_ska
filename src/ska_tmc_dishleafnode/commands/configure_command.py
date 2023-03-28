@@ -91,7 +91,7 @@ class Configure(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-    def do(self, argin: str = None) -> None:
+    def do(self, argin: str = None):
         """
         Method to invoke Configure command on dish.
 

@@ -269,8 +269,7 @@ class DishLeafNode(SKABaseDevice):
         Invokes Configure command on Dish Master.
         """
         handler = self.get_command_object("Configure")
-        args = json.loads(argin)
-        result_code, unique_id = handler(args)
+        result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
     def is_StartCapture_allowed(self):
