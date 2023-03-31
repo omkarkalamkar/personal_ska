@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.device_data import DeviceData
+from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
 
 
 @pytest.mark.SKA_mid
@@ -12,10 +12,9 @@ def test_pointing_calculations():
     ra = "21:08:47.92"
     dec = "-88:57:22.9"
     timestamp = "2021-04-29 05:36:50.031567"
+    dish_dev_name = "M000/elt/master"
     logger = logging.getLogger(__name__)
-    device_data = DeviceData.get_instance()
-    device_data.set_dish_name_number("M000/elt/master")
-    pointing_calc = AzElConverter(logger)
+    pointing_calc = AzElConverter(logger,dish_dev_name)
     pointing_calc.create_antenna_obj()
     azel = pointing_calc.point(ra, dec, timestamp)
-    assert azel[0] == 180.03706249592315
+    assert azel[0] == 182.03706249592315

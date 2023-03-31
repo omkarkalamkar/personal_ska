@@ -81,6 +81,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
+        self.dish_number = None
+        self.observer = None
 
         # Event Receiver
         if _event_receiver:
@@ -422,3 +424,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+
+    def set_dish_name_number(self, dish_master_fqdn):
+        """Find out dish number from DishMasterFQDN
+        property e.g. mid_d0001/elt/master"""
+        dish_name_string = dish_master_fqdn.split("/")[0]
+        self.dish_number = dish_name_string
