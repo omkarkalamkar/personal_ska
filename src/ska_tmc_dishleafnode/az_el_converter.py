@@ -14,7 +14,10 @@ which is used to convert given Ra and Dec values into AzEl."""
 import katpoint
 from ska_telmodel.data import TMData
 
-from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
+from ska_tmc_dishleafnode.manager.component_manager import (
+    DishLNComponentManager,
+)
+
 from .utils import dd_to_dms
 
 
@@ -106,7 +109,6 @@ class AzElConverter:
 
         for antenna in antennas:
             if antenna.name == self.device_data.dish_number:
-                print(f"CHECK1: {antenna}")
                 self.device_data.observer = antenna
 
     def point(self, ra_value, dec_value, timestamp):
@@ -117,10 +119,8 @@ class AzElConverter:
         """
         # Create KATPoint Target object
         target = katpoint.Target.from_radec(ra_value, dec_value)
-        print(f"Test1: {self.device_data.observer}")
         # obtain az el co-ordinates for dish
         azel = target.azel(timestamp, self.device_data.observer)
         # list of az el co-ordinates
         az_el_coordinates = [azel.az.deg, azel.alt.deg]
         return az_el_coordinates
-    
