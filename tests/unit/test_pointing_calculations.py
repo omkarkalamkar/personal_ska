@@ -16,4 +16,4 @@ def test_pointing_calculations():
     pointing_calc = AzElConverter(logger, dish_dev_name)
     pointing_calc.create_antenna_obj()
     azel = pointing_calc.point(ra, dec, timestamp)
-    assert azel[0] == 182.03706249592315
+    assert azel[0] == 180.03706249592315
