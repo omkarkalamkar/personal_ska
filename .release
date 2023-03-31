@@ -1,15 +1,15 @@
 """Release information for Python Package"""
 
 name="""ska-tmc-dishleafnode"""
-version="0.1.11"
+version="0.1.12"
 version_info=version.split(".")
 description="""SKA-TMC-DISHLEAFNODES"""
 author="Team NCRA"
 license="""BSD-3-Clause"""
 url="""https://www.skaobservatory.org"""
 copyright=""""""
-release=0.1.11
-tag=0.1.11
-tag_description= Updated max workers to fix telescope on/off bdd issues.
-release_notes=This release contains:<br/><ul><li>Updated max workers to fix telescope on/off bdd issues.</li></ul><br/>
+release=0.1.12
+tag=0.1.12
+tag_description= Updated dish master FQDN's according to ADR-32.
+release_notes=This release contains:<br/><ul><li>Updated dish master FQDN's according to ADR-32.</li></ul><br/>
 
