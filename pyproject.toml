@@ -35,6 +35,8 @@ ska-tango-testing = "0.4.1"
 ipython = "8.5.0"
 schema = "^0.7.5"
 ska-tmc-cdm = "6.0.4"
+ska-telmodel = "1.4.0"
+
 
 [tool.poetry.dev-dependencies]
 black = "^22.8.0"
