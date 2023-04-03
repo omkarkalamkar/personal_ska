@@ -125,7 +125,7 @@ class Configure(DishLNCommand):
             receiver_band = json_argument["dish"]["receiverBand"]
             command_name = f"ConfigureBand{receiver_band}"
             ret_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, command_name
+                "Dish Master", self.dish_master_adapter, command_name, argin
             )
 
         except Exception as e:
@@ -139,4 +139,4 @@ class Configure(DishLNCommand):
                 The command has NOT been executed.
                 This device will continue with normal operation.""",
             )
-        return (ResultCode.OK, "")
+        return ret_code, message
