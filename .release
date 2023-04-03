@@ -10,6 +10,3 @@ url="""https://www.skaobservatory.org"""
 copyright=""""""
 release=0.1.12
 tag=0.1.12
-tag_description= Updated dish master FQDN's according to ADR-32.
-release_notes=This release contains:<br/><ul><li>Updated dish master FQDN's according to ADR-32.</li></ul><br/>
-

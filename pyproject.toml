@@ -2,7 +2,7 @@
 name = "ska-tmc-dishleafnodes"
 version = "0.1.12"
 description = "SKA-TMC-DISHLEAFNODES"
-authors = ["Team NCRA"]
+authors = ["Team HIMALAYA", "Team SAHYADRI"]
 license = "BSD-3-Clause"
 
 packages = [
