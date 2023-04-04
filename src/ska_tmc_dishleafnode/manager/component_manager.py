@@ -5,6 +5,7 @@ import json
 
 # pylint: disable=W0222
 import time
+import threading
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
@@ -18,6 +19,7 @@ from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.scan_command import Scan
+from ska_tmc_dishleafnode.commands.track_command import Track
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
@@ -83,6 +85,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_dev_name = dish_dev_name
         self.dish_id = None
         self.observer = None
+        self.dish_number = None
+        self.observer = None
+        self.event_track_time = threading.Event()
+        self.el = 30.0
+        self.az = 0.0
+        self.ele_max_lim = 90
+        self.ele_min_lim = 17.5
+        self.el_limit = False
+        self.radec_value = ""
 
         # Event Receiver
         if _event_receiver:
@@ -120,6 +131,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.scan_command = Scan(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.track_command = Track(
             self,
             self.op_state_model,
             __adapter_factory,
@@ -212,6 +229,39 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("Scan command queued for execution")
+        return task_status, response
+
+    def track(
+        self, argin: str, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the Track command for execution.
+
+        :rtype: Tuple
+        """
+        try:
+            input_json = json.loads(argin)
+        except json.JSONDecodeError as e:
+            self.logger.exception(
+                "Exception occured while loading the input json: %s", e
+            )
+            return (
+                ResultCode.FAILED,
+                f"Error while loading the input json: {e}",
+            )
+
+        # validate the JSON argument
+        validation_result = self.track_command.validate_json_argument(
+            input_json
+        )
+        if validation_result[0] != ResultCode.OK:
+            return validation_result
+
+        task_status, response = self.submit_task(
+            self.track_command.track,
+            args=[input_json, self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("Track command queued for execution")
         return task_status, response
 
     def setoperatemode(
@@ -425,9 +475,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
+<<<<<<< HEAD
     def set_dish_id(self, dish_master_fqdn: str) -> None:
         """Find out dish number from DishMasterFQDN
         property e.g. ska001/dish/master"""
         self.dish_id = dish_master_fqdn.split("/")[
             0
         ].upper()  # station names in the layout json are in capital
+=======
+    def set_dish_name_number(self, dish_master_fqdn):
+        """Find out dish number from DishMasterFQDN
+        property e.g. mid_d0001/elt/master"""
+        dish_name_string = dish_master_fqdn.split("/")[0]
+        self.dish_number = dish_name_string
+
+>>>>>>> HM-186: initial commit

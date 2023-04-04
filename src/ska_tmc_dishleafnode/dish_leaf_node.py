@@ -341,7 +341,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
+        return True
 
     @command(
         dtype_in="str",
@@ -349,13 +349,12 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def Track(self):
+    def Track(self, argin) -> tuple:
         """Invokes Track command on the DishMaster."""
 
-        return [
-            [ResultCode.FAILED],
-            ["Track command will be refactored in later PI's"],
-        ]
+        handler = self.get_command_object("Track")
+        result_code, unique_id = handler(argin)
+        return [result_code], [unique_id]
 
     def is_StopTrack_allowed(self):
         """
@@ -468,6 +467,7 @@ class DishLeafNode(SKABaseDevice):
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
+            ("Track", "track"),
         ]:
             self.register_command_object(
                 command_name,
