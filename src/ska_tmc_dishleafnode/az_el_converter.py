@@ -11,6 +11,8 @@ This module defines the AzElConverter class,
 which is used to convert given Ra and Dec values into AzEl."""
 # Standard Python imports
 
+from logging import Logger
+
 import katpoint
 from ska_tmc_common.dish_utils import DishHelper
 
@@ -23,13 +25,13 @@ class AzElConverter:
     """Class to convert Right ascension(Ra) and Declination(Dec)
     values into Azimuth(Az) and Elevation(El)"""
 
-    def __init__(self, logger, dish_device_name):
+    def __init__(self, logger: Logger, dish_device_name: str):
         self.component_manager = DishLNComponentManager(
             logger=logger, dish_dev_name=dish_device_name
         )
         self.component_manager.set_dish_id(dish_device_name)
 
-    def create_antenna_obj(self):
+    def create_antenna_obj(self) -> None:
         """This method identifies the KATPoint.
         Antenna object to be used from the Dish Number."""
         dish_helper = DishHelper()
@@ -39,7 +41,7 @@ class AzElConverter:
             if antenna.name == self.component_manager.dish_id:
                 self.component_manager.observer = antenna
 
-    def point(self, ra_value, dec_value, timestamp):
+    def point(self, ra_value, dec_value, timestamp) -> list:
         """This method converts Target RaDec coordinates
         to the AzEl coordinates.It is called continuosly
         from Track command (in a thread) at interval
