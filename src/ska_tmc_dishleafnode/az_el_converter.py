@@ -23,13 +23,11 @@ class AzElConverter:
     """Class to convert Right ascension(Ra) and Declination(Dec)
     values into Azimuth(Az) and Elevation(El)"""
 
-    def __init__(self, log, dish_device_name):
-        self.logger = log
-        self.dish_device_name = dish_device_name
-        self.dishln_cm = DishLNComponentManager(
-            self.dish_device_name, self.logger
+    def __init__(self, logger, dish_device_name):
+        self.component_manager = DishLNComponentManager(
+            logger=logger, dish_dev_name=dish_device_name
         )
-        self.dishln_cm.set_dish_id(dish_device_name)
+        self.component_manager.set_dish_id(dish_device_name)
 
     def create_antenna_obj(self):
         """This method identifies the KATPoint.
@@ -38,8 +36,8 @@ class AzElConverter:
         antennas = dish_helper.get_dish_antennas_list()
 
         for antenna in antennas:
-            if antenna.name == self.dishln_cm.dish_id:
-                self.dishln_cm.observer = antenna
+            if antenna.name == self.component_manager.dish_id:
+                self.component_manager.observer = antenna
 
     def point(self, ra_value, dec_value, timestamp):
         """This method converts Target RaDec coordinates
@@ -50,7 +48,7 @@ class AzElConverter:
         # Create KATPoint Target object
         target = katpoint.Target.from_radec(ra_value, dec_value)
         # obtain az el co-ordinates for dish
-        azel = target.azel(timestamp, self.dishln_cm.observer)
+        azel = target.azel(timestamp, self.component_manager.observer)
         # list of az el co-ordinates
         az_el_coordinates = [azel.az.deg, azel.alt.deg]
         return az_el_coordinates
