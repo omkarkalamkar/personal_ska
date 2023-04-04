@@ -81,6 +81,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
+        self.dish_id = None
+        self.observer = None
 
         # Event Receiver
         if _event_receiver:
@@ -422,3 +424,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+
+    def set_dish_id(self, dish_master_fqdn: str) -> None:
+        """Find out dish number from DishMasterFQDN
+        property e.g. ska001/dish/master"""
+        self.dish_id = dish_master_fqdn.split("/")[
+            0
+        ].upper()  # station names in the layout json are in capital
