@@ -427,6 +427,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def set_dish_name_number(self, dish_master_fqdn):
         """Find out dish number from DishMasterFQDN
-        property e.g. mid_d0001/elt/master"""
+        property e.g. SKA001/dish/master"""
         dish_name_string = dish_master_fqdn.split("/")[0]
         self.dish_number = dish_name_string
