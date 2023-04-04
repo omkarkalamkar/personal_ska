@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 SLEEP_TIME = 0.5
 TIMEOUT = 100
 
-DISH_MASTER_DEVICE = "mid_d0001/elt/master"
+DISH_MASTER_DEVICE = "ska001/dish/master"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
 
 

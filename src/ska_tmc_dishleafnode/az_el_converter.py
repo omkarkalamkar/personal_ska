@@ -12,60 +12,11 @@ which is used to convert given Ra and Dec values into AzEl."""
 # Standard Python imports
 
 import katpoint
-from ska_telmodel.data import TMData
+from ska_tmc_common.dish_utils import DishHelper
 
 from ska_tmc_dishleafnode.manager.component_manager import (
     DishLNComponentManager,
 )
-
-from .utils import dd_to_dms
-
-
-class AntennaLocation:
-    """class to init antenna location parameters"""
-
-    def __init__(self):
-        "Class constructor"
-        self.latitude = 0.0
-        self.longitude = 0.0
-        self.height = 0.0
-
-    def get_latitude(self):
-        """Added to resolve pylint  too-few-public-methods"""
-        return self.latitude
-
-
-class AntennaParams:
-    """Class to define antenna parameters"""
-
-    def __init__(self):
-        """AntennaParams Constructor"""
-        self.antenna_station_name = ""
-        self.antenna_location = AntennaLocation()
-        self.dish_diameter = 0.0
-
-    def get_station_name(self):
-        """Added to resolve pylint  too-few-public-methods"""
-        return self.antenna_station_name
-
-
-def get_antenna_params(antenna_params):
-    """Method to return object of class AntennaParams"""
-    antenna_location = AntennaLocation()
-    antenna_param = AntennaParams()
-    antenna_location.latitude = float(
-        antenna_params["location"]["geodetic"]["lat"]
-    )
-    antenna_location.longitude = float(
-        antenna_params["location"]["geodetic"]["lon"]
-    )
-    antenna_location.height = float(
-        antenna_params["location"]["geodetic"]["h"]
-    )
-    antenna_param.antenna_location = antenna_location
-    antenna_param.dish_diameter = antenna_params["diameter"]
-    antenna_param.antenna_station_name = antenna_params["station_name"]
-    return antenna_param
 
 
 class AzElConverter:
@@ -83,34 +34,8 @@ class AzElConverter:
     def create_antenna_obj(self):
         """This method identifies the KATPoint.
         Antenna object to be used from the Dish Number."""
-        antennas = []
-        try:
-            sources = [
-                "gitlab://gitlab.com/ska-telescope/"
-                + "sdp/ska-sdp-tmlite-repository?main#tmdata"
-            ]
-            layout_path = "instrument/ska1_mid/layout/mid-layout.json"
-            antenna_params = TMData(sources)[layout_path].get_dict()
-
-            for receptor in range(len(antenna_params["receptors"])):
-                receptor_params = get_antenna_params(
-                    antenna_params["receptors"][receptor]
-                )
-
-                input_to_antenna = f"{receptor_params.antenna_station_name},\
-                        {dd_to_dms(receptor_params.antenna_location.latitude)},\
-                            {dd_to_dms(receptor_params.antenna_location.longitude)},\
-                                {receptor_params.antenna_location.height},\
-                                    {receptor_params.dish_diameter}"
-                antennas.append(katpoint.Antenna(input_to_antenna))
-
-        except OSError as err:
-            self.logger.exception(err)
-            raise f"OSError.'{err}'in AzElConverter.create_antenna_obj."
-
-        except ValueError as verr:
-            self.logger.exception(verr)
-            raise f"ValueError.'{verr}'in AzElConverter.create_antenna_obj."
+        dish_helper = DishHelper()
+        antennas = dish_helper.get_dish_antennas_list()
 
         for antenna in antennas:
             if antenna.name == self.dishln_cm.dish_number:

@@ -24,7 +24,7 @@ python-versions = "*"
 
 [[package]]
 name = "astroid"
-version = "2.15.1"
+version = "2.15.2"
 description = "An abstract syntax tree for Python with inference support."
 category = "dev"
 optional = false
@@ -704,14 +704,14 @@ plugins = ["importlib-metadata"]
 
 [[package]]
 name = "pylint"
-version = "2.17.1"
+version = "2.17.2"
 description = "python code static checker"
 category = "dev"
 optional = false
 python-versions = ">=3.7.2"
 
 [package.dependencies]
-astroid = ">=2.15.0,<=2.17.0-dev0"
+astroid = ">=2.15.2,<=2.17.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
     {version = ">=0.2", markers = "python_version < \"3.11\""},
@@ -1157,7 +1157,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.1.60"
+version = "0.2.2"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -1172,6 +1172,7 @@ numpy = {version = "1.23.0", markers = "python_version == \"3.10\""}
 pytango = "9.3.3"
 ska-ser-logging = ">=0.4.1,<0.5.0"
 ska-tango-base = "0.17.0"
+ska-tango-testing = "0.4.1"
 
 [package.source]
 type = "legacy"
@@ -1344,7 +1345,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "494436dbb477738f98e6b15d286a0b995d00d8900c3562fc2180a14946a1197d"
+content-hash = "2ead04daf0629213d5c4cb72587a6af659da8e333b747debb6c37791ddc9826d"
 
 [metadata.files]
 appdirs = [
@@ -1360,8 +1361,8 @@ argparse = [
     {file = "argparse-1.4.0.tar.gz", hash = "sha256:62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4"},
 ]
 astroid = [
-    {file = "astroid-2.15.1-py3-none-any.whl", hash = "sha256:89860bda98fe2bbd1f5d262229be7629d778ce280de68d95d4a73d1f592ad268"},
-    {file = "astroid-2.15.1.tar.gz", hash = "sha256:af4e0aff46e2868218502789898269ed95b663fba49e65d91c1e09c966266c34"},
+    {file = "astroid-2.15.2-py3-none-any.whl", hash = "sha256:dea89d9f99f491c66ac9c04ebddf91e4acf8bd711722175fe6245c0725cc19bb"},
+    {file = "astroid-2.15.2.tar.gz", hash = "sha256:6e61b85c891ec53b07471aec5878f4ac6446a41e590ede0f2ce095f39f7d49dd"},
 ]
 astropy = [
     {file = "astropy-5.2.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:66522e897daf3766775c00ef5c63b69beb0eb359e1f45d18745d0f0ca7f29cc1"},
@@ -1913,8 +1914,8 @@ Pygments = [
     {file = "Pygments-2.14.0.tar.gz", hash = "sha256:b3ed06a9e8ac9a9aae5a6f5dbe78a8a58655d17b43b93c078f094ddc476ae297"},
 ]
 pylint = [
-    {file = "pylint-2.17.1-py3-none-any.whl", hash = "sha256:8660a54e3f696243d644fca98f79013a959c03f979992c1ab59c24d3f4ec2700"},
-    {file = "pylint-2.17.1.tar.gz", hash = "sha256:d4d009b0116e16845533bc2163493d6681846ac725eab8ca8014afb520178ddd"},
+    {file = "pylint-2.17.2-py3-none-any.whl", hash = "sha256:001cc91366a7df2970941d7e6bbefcbf98694e00102c1f121c531a814ddc2ea8"},
+    {file = "pylint-2.17.2.tar.gz", hash = "sha256:1b647da5249e7c279118f657ca28b6aaebb299f86bf92affc632acf199f7adbb"},
 ]
 pylint-junit = [
     {file = "pylint_junit-0.3.2.tar.gz", hash = "sha256:c6dbe956e55bb9b365d86e2ec77b58df6b95262b5515d187ac54b8359507174b"},
@@ -2151,8 +2152,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-6.0.4-py3-none-any.whl", hash = "sha256:9e3bb5800b0b2dd2b4f2b93ea360fd9bf1fcea63f8e331abae1e935c321f2596"},
 ]
 ska-tmc-common = [
-    {file = "ska_tmc_common-0.1.60-py3-none-any.whl", hash = "sha256:41bbcc9e612007ddc1dfeec6e88d6658673dd89701de0e063b89a480e4f8126a"},
-    {file = "ska_tmc_common-0.1.60.tar.gz", hash = "sha256:03579bfa6e15c72b2907ea9376d6ca8ecf4d7af3a4a9c3273d0c81e57a145316"},
+    {file = "ska_tmc_common-0.2.2-py3-none-any.whl", hash = "sha256:c9a720c529062507c8452a9a56c3ffe096fdb9c90b24b2e65d9353172d102a37"},
+    {file = "ska_tmc_common-0.2.2.tar.gz", hash = "sha256:0facfba2d8bd3da3fae381e9043d99facbfcf866651d1ce3d39ea3c700f425d9"},
 ]
 stack-data = [
     {file = "stack_data-0.6.2-py3-none-any.whl", hash = "sha256:cbb2a53eb64e5785878201a97ed7c7b94883f48b87bfb0bbe8b623c74679e4a8"},
