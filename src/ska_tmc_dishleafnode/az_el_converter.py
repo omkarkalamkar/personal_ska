@@ -25,7 +25,7 @@ class AzElConverter:
     """Class to convert Right ascension(Ra) and Declination(Dec)
     values into Azimuth(Az) and Elevation(El)"""
 
-    def __init__(self, logger: Logger, dish_device_name: str):
+    def __init__(self, logger: Logger, dish_device_name: str) -> None:
         self.component_manager = DishLNComponentManager(
             logger=logger, dish_dev_name=dish_device_name
         )
