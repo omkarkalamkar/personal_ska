@@ -29,7 +29,7 @@ class AzElConverter:
         self.dishln_cm = DishLNComponentManager(
             self.dish_device_name, self.logger
         )
-        self.dishln_cm.set_dish_name_number(dish_device_name)
+        self.dishln_cm.set_dish_id(dish_device_name)
 
     def create_antenna_obj(self):
         """This method identifies the KATPoint.
@@ -38,7 +38,7 @@ class AzElConverter:
         antennas = dish_helper.get_dish_antennas_list()
 
         for antenna in antennas:
-            if antenna.name == self.dishln_cm.dish_number:
+            if antenna.name == self.dishln_cm.dish_id:
                 self.dishln_cm.observer = antenna
 
     def point(self, ra_value, dec_value, timestamp):
