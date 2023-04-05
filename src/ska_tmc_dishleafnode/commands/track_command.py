@@ -160,7 +160,7 @@ class Track(DishLNCommand):
                 self.logger.debug(log_message)
                 break
 
-            # TODO (kmadisa 11-12-2020) Add a pointing lead time to
+            # TODO: (kmadisa 11-12-2020) Add a pointing lead time to
             #  the current time (like we do on MeerKAT)
             # utc_timestamp is the time used for AzEl calculation.
             # For the timestamp to be a future timestamp
