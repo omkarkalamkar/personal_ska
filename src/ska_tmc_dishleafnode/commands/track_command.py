@@ -159,7 +159,7 @@ class Track(DishLNCommand):
                 )
                 self.logger.debug(log_message)
                 break
-            
+
             # utc_timestamp is the time used for AzEl calculation.
             # For the timestamp to be a future timestamp
             # on DishMaster, 100 ms are added to it.
