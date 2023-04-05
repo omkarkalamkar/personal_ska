@@ -2,10 +2,10 @@
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 import json
+import threading
 
 # pylint: disable=W0222
 import time
-import threading
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
@@ -19,11 +19,11 @@ from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.scan_command import Scan
-from ska_tmc_dishleafnode.commands.track_command import Track
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
+from ska_tmc_dishleafnode.commands.track_command import Track
 from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
@@ -148,6 +148,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Returns the dishMode of dish master device"""
         return self._device.dish_mode
 
+    @property
+    def pointingState(self) -> PointingState:
+        """Returns the pointingState of dish master device"""
+        return self._device.pointing_state
+
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
         if self.event_receiver_object._thread.is_alive():
@@ -230,6 +235,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.logger.info("Scan command queued for execution")
         return task_status, response
+
+    def is_track_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+        if (
+            self.dishMode == DishMode.OPERATE
+            and self.pointingState == PointingState.TRACK
+        ):
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the Track command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
 
     def track(
         self, argin: str, task_callback: Optional[Callable] = None

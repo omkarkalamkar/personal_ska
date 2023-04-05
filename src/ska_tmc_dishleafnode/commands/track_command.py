@@ -7,11 +7,13 @@ from datetime import timezone
 from logging import Logger
 from typing import Callable, Optional
 
+import tango
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from tango import DevFailed
 
-from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
 class Track(DishLNCommand):
@@ -78,7 +80,6 @@ class Track(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-
     def do(self, argin=None):
         """
         Method to invoke Track command on Dish Master.
@@ -96,25 +97,40 @@ class Track(DishLNCommand):
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
         self.component_manager.event_track_time.clear()
-
-        # Start pointing calculations in a Track Thread
-        self.tracking_thread = threading.Thread(
-            None, self.track_thread, "DishLeafNode"
-        )
-
-        # return_code, message = self.call_adapter_method(
-        #     "Dish Master", self.dish_master_adapter, "Track"
-        # )
+        try:
+            # Start pointing calculations in a Track Thread
+            self.tracking_thread = threading.Thread(
+                None, self.track_thread, "DishLeafNode"
+            )
+            self.tracking_thread.start()
+            radec_value = f"{self.ra_value}, {self.dec_value}"
+            self.logger.info(
+                "Track command ignores RA dec coordinates passed in: %s. "
+                "Uses coordinates from Configure command instead.",
+                radec_value,
+            )
+        except DevFailed as dev_failed:
+            self.logger.exception(dev_failed)
+            log_message = (
+                f"Exception occured while executing the Track command."
+            )
+            tango.Except.re_throw_exception(
+                dev_failed,
+                f"Exception in Track command.",
+                log_message,
+                f"DishLeafNode.Track Command",
+                tango.ErrSeverity.ERR,
+            )
         return return_code, message
 
     def track_thread(self):
-        """This thread writes coordinates to desiredPointing on DishMaster at the rate of 20 Hz.
-        """
+        """This thread writes coordinates to desiredPointing on DishMaster at the rate of 20 Hz."""
         self.logger.info(
-            f"print track_thread thread name:{threading.current_thread().get_name()}"
+            f"print track_thread thread name:{threading.current_thread().name}"
             f"{threading.get_ident()}"
         )
-        azel_converter = AzElConverter(self.logger)
+        azel_converter = AzElConverter(self.component_manager)
+        azel_converter.create_antenna_obj()
 
         while self.component_manager.event_track_time.is_set() is False:
             now = datetime.datetime.utcnow()
@@ -134,9 +150,7 @@ class Track(DishLNCommand):
                 az_value = 360 - abs(az_value)
 
             if self.component_manager.event_track_time.is_set():
-                log_message = (
-                    f"Break loop: {self.component_manager.event_track_time.is_set()}"
-                )
+                log_message = f"Break loop: {self.component_manager.event_track_time.is_set()}"
                 self.logger.debug(log_message)
                 break
 
@@ -148,7 +162,7 @@ class Track(DishLNCommand):
                 round(az_value, 12),
                 round(el_value, 12),
             ]
-            self.logger.debug(
+            self.logger.info(
                 "desiredPointing coordinates: %s", desired_pointing
             )
             self.dish_master_adapter.desiredPointing = desired_pointing
@@ -158,6 +172,8 @@ class Track(DishLNCommand):
                     "Dish Master", self.dish_master_adapter, "Track"
                 )
                 self.track_on_dish = True
+
+            time.sleep(0.05)
 
     def _is_elevation_within_mechanical_limits(self, el_value):
 
