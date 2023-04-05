@@ -475,18 +475,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-<<<<<<< HEAD
     def set_dish_id(self, dish_master_fqdn: str) -> None:
         """Find out dish number from DishMasterFQDN
         property e.g. ska001/dish/master"""
         self.dish_id = dish_master_fqdn.split("/")[
             0
         ].upper()  # station names in the layout json are in capital
-=======
-    def set_dish_name_number(self, dish_master_fqdn):
-        """Find out dish number from DishMasterFQDN
-        property e.g. mid_d0001/elt/master"""
-        dish_name_string = dish_master_fqdn.split("/")[0]
-        self.dish_number = dish_name_string
-
->>>>>>> HM-186: initial commit
