@@ -111,20 +111,20 @@ class Track(DishLNCommand):
             )
         except DevFailed as dev_failed:
             self.logger.exception(dev_failed)
-            log_message = (
-                f"Exception occured while executing the Track command."
-            )
+            log_message = "Exception occured while executing the Track command."
             tango.Except.re_throw_exception(
                 dev_failed,
-                f"Exception in Track command.",
+                "Exception in Track command.",
                 log_message,
-                f"DishLeafNode.Track Command",
+                "DishLeafNode.Track Command",
                 tango.ErrSeverity.ERR,
             )
         return return_code, message
 
     def track_thread(self):
-        """This thread writes coordinates to desiredPointing on DishMaster at the rate of 20 Hz."""
+        """This thread writes coordinates to desiredPointing
+        on DishMaster at the rate of 20 Hz.
+        """
         self.logger.info(
             f"print track_thread thread name:{threading.current_thread().name}"
             f"{threading.get_ident()}"
@@ -150,12 +150,15 @@ class Track(DishLNCommand):
                 az_value = 360 - abs(az_value)
 
             if self.component_manager.event_track_time.is_set():
-                log_message = f"Break loop: {self.component_manager.event_track_time.is_set()}"
+                log_message = "Break loop: " \
+                              f"{self.component_manager.event_track_time.is_set()}"
                 self.logger.debug(log_message)
                 break
 
-            # TODO (kmadisa 11-12-2020) Add a pointing lead time to the current time (like we do on MeerKAT)
-            # utc_timestamp is the time used for AzEl calculation. For the timestamp to be a future timestamp
+            # TODO (kmadisa 11-12-2020) Add a pointing lead time to
+            #  the current time (like we do on MeerKAT)
+            # utc_timestamp is the time used for AzEl calculation.
+            # For the timestamp to be a future timestamp
             # on DishMaster, 100 ms are added to it.
             desired_pointing = [
                 (utc_timestamp * 1000) + 100,
@@ -166,6 +169,10 @@ class Track(DishLNCommand):
                 "desiredPointing coordinates: %s", desired_pointing
             )
             self.dish_master_adapter.desiredPointing = desired_pointing
+
+            self.logger.info(
+                "Observer: %s", self.component_manager.observer
+            )
 
             if self.track_on_dish is False:
                 self.call_adapter_method(

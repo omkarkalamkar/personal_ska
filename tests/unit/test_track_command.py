@@ -1,9 +1,7 @@
 from os.path import dirname, join
 
-import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode, PointingState
-from ska_tmc_common.exceptions import CommandNotAllowed
 
 from tests.settings import create_cm
 

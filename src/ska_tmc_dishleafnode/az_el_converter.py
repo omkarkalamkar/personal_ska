@@ -14,8 +14,6 @@ which is used to convert given Ra and Dec values into AzEl."""
 import katpoint
 from ska_tmc_common.dish_utils import DishHelper
 
-# from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
-
 
 class AzElConverter:
     """Class to convert Right ascension(Ra) and Declination(Dec)
