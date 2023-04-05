@@ -111,7 +111,9 @@ class Track(DishLNCommand):
             )
         except DevFailed as dev_failed:
             self.logger.exception(dev_failed)
-            log_message = "Exception occured while executing the Track command."
+            log_message = (
+                "Exception occured while executing the Track command."
+            )
             tango.Except.re_throw_exception(
                 dev_failed,
                 "Exception in Track command.",
@@ -150,8 +152,10 @@ class Track(DishLNCommand):
                 az_value = 360 - abs(az_value)
 
             if self.component_manager.event_track_time.is_set():
-                log_message = "Break loop: " \
-                              f"{self.component_manager.event_track_time.is_set()}"
+                log_message = (
+                    "Break loop: "
+                    f"{self.component_manager.event_track_time.is_set()}"
+                )
                 self.logger.debug(log_message)
                 break
 
@@ -170,9 +174,7 @@ class Track(DishLNCommand):
             )
             self.dish_master_adapter.desiredPointing = desired_pointing
 
-            self.logger.info(
-                "Observer: %s", self.component_manager.observer
-            )
+            self.logger.info("Observer: %s", self.component_manager.observer)
 
             if self.track_on_dish is False:
                 self.call_adapter_method(
