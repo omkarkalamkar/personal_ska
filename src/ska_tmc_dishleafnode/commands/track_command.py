@@ -80,6 +80,7 @@ class Track(DishLNCommand):
 
         return (ResultCode.OK, "")
 
+    # pylint: disable=W0201
     def do(self, argin=None):
         """
         Method to invoke Track command on Dish Master.
@@ -185,6 +186,12 @@ class Track(DishLNCommand):
             time.sleep(0.05)
 
     def _is_elevation_within_mechanical_limits(self, el_value):
+        """Check if elevation is within mechanical limit
+        Args:
+            el_value: string
+        Return:
+            bool
+        """
 
         if not (
             self.component_manager.ele_min_lim

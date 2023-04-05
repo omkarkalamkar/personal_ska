@@ -29,6 +29,7 @@ from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 # pylint: disable=abstract-method
 
 
+# pylint: disable=R0902
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
