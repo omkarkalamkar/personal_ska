@@ -468,7 +468,7 @@ class DishLeafNode(SKABaseDevice):
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
             ("Track", "track"),
-            ("TrackStop", "trackstop")
+            ("TrackStop", "trackstop"),
         ]:
             self.register_command_object(
                 command_name,
