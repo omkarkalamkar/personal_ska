@@ -241,10 +241,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
         """
-        if (
-            self.dishMode == DishMode.OPERATE
-            and self.pointingState == PointingState.TRACK
-        ):
+        if self.dishMode == DishMode.OPERATE:
             return True
 
         raise CommandNotAllowed(

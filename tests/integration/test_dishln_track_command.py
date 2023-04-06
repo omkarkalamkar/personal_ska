@@ -88,7 +88,7 @@ def track_dish_leaf_node(
         group_callback["pointingState"],
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK,),
         lookahead=2,
     )
 
@@ -114,7 +114,7 @@ def track_dish_leaf_node(
 @pytest.mark.track
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_configure_command(tango_context, group_callback, json_factory):
+def test_track_command(tango_context, group_callback, json_factory):
     track_dish_leaf_node(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
