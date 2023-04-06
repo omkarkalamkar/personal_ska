@@ -15,6 +15,7 @@ from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
+from tango import DevState
 
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.scan_command import Scan
@@ -396,6 +397,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if dish master device is responsive."""
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
+
+    def check_op_state(self, command_name):
+        """Checks the operational state of the device"""
+        if self.op_state_model.op_state in [
+            DevState.FAULT,
+            DevState.UNKNOWN,
+            DevState.DISABLE,
+        ]:
+            raise CommandNotAllowed(
+                "The invocation of the {} command on this".format(command_name)
+                + "device is not allowed."
+                + "Reason: The current operational state is"
+                + "{}".format(self.op_state_model.op_state)
+                + "The command has NOT been executed."
+                + "This device will continue with normal operation."
+            )
 
     def update_device_dish_mode(self, dish_mode: DishMode) -> None:
         """
