@@ -4,7 +4,7 @@ import pytest
 import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
-from ska_tmc_common.enum import DishMode, PointingState
+from ska_tmc_common.enum import DishMode
 
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
@@ -82,7 +82,6 @@ def track_dish_leaf_node(
     )
 
 
-@pytest.mark.trackme
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_command(tango_context, group_callback, json_factory):
