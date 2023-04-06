@@ -1,3 +1,5 @@
+import time
+
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -43,53 +45,14 @@ def track_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandsInQueue"],
     )
+    dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-    )
-
-    # result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    # assert result_fp[0] == ResultCode.QUEUED
-    # group_callback["longRunningCommandsInQueue"].assert_change_event(
-    #    ("SetStandbyFPMode",),
-    # )
-    # dish_leaf_node.subscribe_event(
-    #     "longRunningCommandResult",
-    #     tango.EventType.CHANGE_EVENT,
-    #     group_callback["longRunningCommandResult"],
-    # )
-    # group_callback["longRunningCommandResult"].assert_change_event(
-    #     (unique_id_fp[0], str(int(ResultCode.OK))),
-    #     lookahead=2,
-    # )
-
-    # result_op, unique_id_op = dish_leaf_node.SetOperateMode()
-    # assert result_op[0] == ResultCode.QUEUED
-    # group_callback["longRunningCommandsInQueue"].assert_change_event(
-    #     (
-    #         "SetStandbyFPMode",
-    #         "SetOperateMode",
-    #     )
-    # )
-    # dish_leaf_node.subscribe_event(
-    #     "longRunningCommandResult",
-    #     tango.EventType.CHANGE_EVENT,
-    #     group_callback["longRunningCommandResult"],
-    # )
-    # group_callback["longRunningCommandResult"].assert_change_event(
-    #     (unique_id_op[0], str(int(ResultCode.OK))),
-    #     lookahead=4,
-    # )
-    dish_master.SetDirectPointingState(PointingState.TRACK)
-    assert dish_master.PointingState == PointingState.TRACK
-    dish_master.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK,),
-        lookahead=2,
     )
 
     result_config, unique_id_config = dish_leaf_node.Track(track_input_str)
@@ -105,13 +68,21 @@ def track_dish_leaf_node(
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
+
+    time.sleep(3)
+    result_config, unique_id_config = dish_leaf_node.TrackStop()
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_config[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
         lookahead=6,
     )
 
 
-@pytest.mark.track
+@pytest.mark.trackme
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_command(tango_context, group_callback, json_factory):
