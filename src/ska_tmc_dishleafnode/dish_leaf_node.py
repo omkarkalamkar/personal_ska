@@ -356,7 +356,20 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
-    def is_StopTrack_allowed(self):
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def TrackStop(self):
+        """
+        Invokes TrackStop command on DishMaster
+
+        :rtype: tuple
+        """
+        handler = self.get_command_object("TrackStop")
+        result_code, unique_id = handler()
+
+        return [result_code], [str(unique_id)]
+
+    def is_TrackStop_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -366,17 +379,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
-
-    @command(dtype_out="DevVarLongStringArray")
-    @DebugIt()
-    def StopTrack(self):
-        """Invokes StopTrack command on the DishMaster."""
-
-        return [
-            [ResultCode.FAILED],
-            ["StopTrack command will be refactored in later PI's"],
-        ]
+        return self.component_manager.is_trackstop_allowed()
 
     def is_Abort_allowed(self):
         """
