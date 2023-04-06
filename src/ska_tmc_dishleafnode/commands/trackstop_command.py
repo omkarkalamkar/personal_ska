@@ -52,7 +52,7 @@ class TrackStop(DishLNCommand):
                 result=return_code,
             )
 
-    def do(self):
+    def do(self, argin=None):
         """
         Method to invoke TrackStop command on Dish Master.
         return:
