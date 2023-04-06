@@ -1,4 +1,4 @@
-"""Scan command class for Dishleafnode."""
+"""Track command class for Dishleafnode."""
 
 import datetime
 import threading

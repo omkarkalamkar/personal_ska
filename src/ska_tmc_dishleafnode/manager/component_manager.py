@@ -24,6 +24,7 @@ from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
 from ska_tmc_dishleafnode.commands.track_command import Track
+from ska_tmc_dishleafnode.commands.trackstop_command import TrackStop
 from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
@@ -138,6 +139,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.track_command = Track(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.trackstop_command = TrackStop(
             self,
             self.op_state_model,
             __adapter_factory,
@@ -284,6 +291,37 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("Track command queued for execution")
+        return task_status, response
+
+    def is_trackstop_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+        if self.dishMode == DishMode.OPERATE:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the TrackStop command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
+
+    def trackstop(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the TrackStop command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.trackstop_command.trackstop,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("TrackStop command queued for execution")
         return task_status, response
 
     def setoperatemode(
