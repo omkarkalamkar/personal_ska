@@ -346,7 +346,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return True
+        return self.component_manager.is_track_allowed()
 
     @command(
         dtype_in="str",

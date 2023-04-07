@@ -64,7 +64,7 @@ class Track(DishLNCommand):
         target = input_argin.get("pointing", {}).get("target", {})
         ra_value = target.get("ra")
         dec_value = target.get("dec")
-        if not ra_value and not dec_value:
+        if not ra_value or not dec_value:
             return self.generate_command_result(
                 ResultCode.FAILED,
                 "ra or dec value key is not present in the input json.",
