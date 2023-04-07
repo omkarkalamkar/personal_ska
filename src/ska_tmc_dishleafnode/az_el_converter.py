@@ -20,9 +20,10 @@ class AzElConverter:
     values into Azimuth(Az) and Elevation(El)"""
 
     def __init__(self, component_manager) -> None:
-        # self.component_manager = DishLNComponentManager(
-        #     logger=logger, dish_dev_name=dish_device_name
-        # )
+        """
+        Args:
+            component_manager (DishLNComponent Manager): Dish LN component
+        """
         self.component_manager = component_manager
         self.component_manager.set_dish_id(component_manager.dish_dev_name)
 
