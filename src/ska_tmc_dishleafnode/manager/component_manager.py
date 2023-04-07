@@ -129,7 +129,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     @property
     def dishMode(self) -> DishMode:
         """Returns the dishMode of dish master device"""
-        return self._device.dish_mode
+        return self._device.dishMode
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
@@ -406,7 +406,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.dish_mode = dish_mode
+            dev_info.dishMode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
