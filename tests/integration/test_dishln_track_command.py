@@ -1,10 +1,12 @@
+"""Integration test for Track and TrackStop command
+"""
 import time
 
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
-from ska_tmc_common.enum import DishMode
+from ska_tmc_common.enum import DishMode, PointingState
 
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
@@ -38,6 +40,12 @@ def track_dish_leaf_node(
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=2,
+    )
+
+    dish_master.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
     )
 
     dish_leaf_node.subscribe_event(
@@ -75,6 +83,10 @@ def track_dish_leaf_node(
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=2,
     )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
