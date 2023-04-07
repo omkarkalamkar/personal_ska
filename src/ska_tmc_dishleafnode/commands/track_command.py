@@ -174,7 +174,7 @@ class Track(DishLNCommand):
             self.dish_master_adapter.desiredPointing = desired_pointing
 
             self.logger.info("Observer: %s", self.component_manager.observer)
-
+            # In this loop invoke Track command on dish master only once
             if self.track_on_dish is False:
                 self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "Track"
