@@ -65,28 +65,21 @@ class Track(DishLNCommand):
         """Validates the json argument"""
         target = input_argin.get("pointing", {}).get("target", {})
         ra_value = target.get("ra")
-        if not ra_value:
-            return self.generate_command_result(
-                ResultCode.FAILED,
-                "ra value key is not present in the input json.",
-            )
-
         dec_value = target.get("dec")
-        if not dec_value:
+        if not ra_value and not dec_value:
             return self.generate_command_result(
                 ResultCode.FAILED,
-                "dec value key is not present in the input json.",
+                "ra or dec value key is not present in the input json.",
             )
 
         return (ResultCode.OK, "")
 
     # pylint: disable=W0201
-    def do(self, argin=None):
+    def do(self, argin):
         """
         Method to invoke Track command on Dish Master.
 
-        param argin:
-            None
+        param argin: dict
 
         return:
             (ResultCode, str)
@@ -98,30 +91,19 @@ class Track(DishLNCommand):
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
         self.component_manager.event_track_time.clear()
-        try:
-            # Start pointing calculations in a Track Thread
-            self.tracking_thread = threading.Thread(
-                None, self.track_thread, "DishLeafNode"
-            )
-            self.tracking_thread.start()
-            radec_value = f"{self.ra_value}, {self.dec_value}"
-            self.logger.info(
-                "Track command ignores RA dec coordinates passed in: %s. "
-                "Uses coordinates from Configure command instead.",
-                radec_value,
-            )
-        except DevFailed as dev_failed:
-            self.logger.exception(dev_failed)
-            log_message = (
-                "Exception occured while executing the Track command."
-            )
-            tango.Except.re_throw_exception(
-                dev_failed,
-                "Exception in Track command.",
-                log_message,
-                "DishLeafNode.Track Command",
-                tango.ErrSeverity.ERR,
-            )
+
+        # Start pointing calculations in a Track Thread
+        self.tracking_thread = threading.Thread(
+            None, self.track_thread, "DishLeafNode"
+        )
+        self.tracking_thread.start()
+        radec_value = f"{self.ra_value}, {self.dec_value}"
+        self.logger.info(
+            "Track command ignores RA dec coordinates passed in: %s. "
+            "Uses coordinates from Configure command instead.",
+            radec_value,
+        )
+
         return return_code, message
 
     def track_thread(self):
@@ -154,7 +136,7 @@ class Track(DishLNCommand):
 
             if self.component_manager.event_track_time.is_set():
                 log_message = (
-                    "Break loop: "
+                    "Stop the Thread as event track time is set: "
                     f"{self.component_manager.event_track_time.is_set()}"
                 )
                 self.logger.debug(log_message)
