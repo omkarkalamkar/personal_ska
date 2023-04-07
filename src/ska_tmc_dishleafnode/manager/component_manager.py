@@ -406,7 +406,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.dish_mode = dish_mode
+            dev_info.dishMode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
