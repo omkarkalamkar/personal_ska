@@ -7,10 +7,8 @@ from datetime import timezone
 from logging import Logger
 from typing import Callable, Optional
 
-import tango
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from tango import DevFailed
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
