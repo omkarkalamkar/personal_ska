@@ -171,9 +171,9 @@ class Track(DishLNCommand):
         """
 
         if not (
-            self.component_manager.ele_min_lim
+            self.component_manager.elevation_min_limit
             <= el_value
-            <= self.component_manager.ele_max_lim
+            <= self.component_manager.elevation_max_limit
         ):
             self.component_manager.el_limit = True
             log_message = "Minimum/maximum elevation limit has been reached."

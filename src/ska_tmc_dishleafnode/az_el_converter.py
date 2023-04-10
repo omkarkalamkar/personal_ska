@@ -25,7 +25,6 @@ class AzElConverter:
             component_manager (DishLNComponent Manager): Dish LN component
         """
         self.component_manager = component_manager
-        self.component_manager.set_dish_id(component_manager.dish_dev_name)
 
     def create_antenna_obj(self) -> None:
         """This method identifies the KATPoint.

@@ -43,9 +43,9 @@ class DishLeafNode(SKABaseDevice):
     TimeOut = device_property(dtype="DevFloat", default_value=2)
     # Dish Track command properties
     Elevation = device_property(dtype="DevFloat", default_value=30.0)
-    AZ = device_property(dtype="DevFloat", default_value=0.0)
-    ElevationMaxLim = device_property(dtype="DevFloat", default_value=90.0)
-    ElevationMinLim = device_property(dtype="DevFloat", default_value=17.5)
+    Azimuth = device_property(dtype="DevFloat", default_value=0.0)
+    ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
+    ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
     # ----------
     # Attributes
     # ----------
@@ -462,9 +462,9 @@ class DishLeafNode(SKABaseDevice):
             sleep_time=self.SleepTime,
             timeout=self.TimeOut,
             elevation=self.Elevation,
-            az=self.AZ,
-            elevation_max_lim=self.ElevationMaxLim,
-            elevation_min_lim=self.ElevationMinLim,
+            azimuth=self.Azimuth,
+            elevation_max_limit=self.ElevationMaxLimit,
+            elevation_min_limit=self.ElevationMinLimit,
         )
         return cm
 

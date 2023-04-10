@@ -50,9 +50,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         sleep_time: int = 1,
         timeout: int = 2,
         elevation: float = 0.0,
-        az: float = 0.0,
-        elevation_max_lim: float = 0.0,
-        elevation_min_lim: float = 0.0,
+        azimuth: float = 0.0,
+        elevation_max_limit: float = 0.0,
+        elevation_min_limit: float = 0.0,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -89,15 +89,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
-        self.dish_id = None
+        self.dish_id = dish_dev_name.split("/")[0].upper()
         self.observer = None
         self.dish_number = None
         self.observer = None
         self.event_track_time = threading.Event()
-        self.el = elevation
-        self.az = az
-        self.ele_max_lim = elevation_max_lim
-        self.ele_min_lim = elevation_min_lim
+        self.elevation = elevation
+        self.azimuth = azimuth
+        self.elevation_max_limit = elevation_max_limit
+        self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
         self.radec_value = ""
 
