@@ -89,7 +89,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
-        self.dish_id = dish_dev_name.split("/")[0].upper()
+        self.dish_id = (
+            dish_dev_name.split("/")[0].upper() if dish_dev_name else None
+        )
         self.observer = None
         self.dish_number = None
         self.observer = None
