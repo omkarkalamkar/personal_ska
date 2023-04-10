@@ -94,7 +94,7 @@ class Abort(DishLNCommand):
                 return ret_code, message
 
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "AbortCommands"
+                "Dish Master", self.dish_master_adapter, "Abort"
             )
             self.logger.info("Abort command executed successfully.")
 
@@ -107,6 +107,6 @@ class Abort(DishLNCommand):
                 Reason: Error in executing the Abort command on
                 Dish Master: {self.component_manager.dish_dev_name}
                 The command has NOT been executed.
-                This device will continue with its current operation. {e}"""
+                This device will continue with its current operation. {e}""",
             )
         return (result_code, message)

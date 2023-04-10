@@ -12,7 +12,7 @@ def test_abort_command(tango_context, task_callback):
     logger = logging.getLogger(__name__)
     cm = create_cm(DISH_MASTER_DEVICE)
     assert cm.is_abort_commands_allowed()
-    cm.abort_commands(logger=logger, task_callback=task_callback)
+    cm.abort_commands_on_dish(logger=logger, task_callback=task_callback)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
