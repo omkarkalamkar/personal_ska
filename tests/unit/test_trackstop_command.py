@@ -2,7 +2,7 @@
 """
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tmc_common.enum import DishMode
+from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from tests.settings import create_cm
@@ -13,6 +13,7 @@ def test_trackstop_command_completed(
 ):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.OPERATE)
+    cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_trackstop_allowed()
     cm.trackstop(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -29,6 +30,7 @@ def test_trackstop_command_completed(
 def test_trackstop_command_adapter_none(task_callback, dish_master_device):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.OPERATE)
+    cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_trackstop_allowed()
     cm.trackstop(task_callback=task_callback)
 

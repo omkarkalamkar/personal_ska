@@ -32,6 +32,7 @@ def track_dish_leaf_node(
     )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
+    dish_master.SetDirectPointingState(PointingState.READY)
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -94,6 +95,7 @@ def track_dish_leaf_node(
     )
 
 
+@pytest.mark.trackme
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_command(tango_context, group_callback, json_factory):
