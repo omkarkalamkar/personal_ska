@@ -120,7 +120,6 @@ class Track(DishLNCommand):
             timestamp = str(now)
             utc_time = now.replace(tzinfo=timezone.utc)
             utc_timestamp = utc_time.timestamp()
-            # pylint: disable=unbalanced-tuple-unpacking
             az_value, el_value = azel_converter.point(
                 self.ra_value, self.dec_value, timestamp
             )
