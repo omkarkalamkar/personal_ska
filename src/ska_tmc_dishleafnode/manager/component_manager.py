@@ -15,7 +15,9 @@ from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
+from tango import DevState
 
+from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.scan_command import Scan
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
@@ -120,6 +122,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.scan_command = Scan(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.abort_command = Abort(
             self,
             self.op_state_model,
             __adapter_factory,
@@ -431,3 +439,50 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_id = dish_master_fqdn.split("/")[
             0
         ].upper()  # station names in the layout json are in capital
+
+    def check_op_state(self, command_name: str):
+        """Checks the operational state of the device"""
+        if self.op_state_model.op_state in [
+            DevState.FAULT,
+            DevState.UNKNOWN,
+            DevState.DISABLE,
+        ]:
+            raise CommandNotAllowed(
+                "The invocation of the {} command on this".format(command_name)
+                + "device is not allowed."
+                + "Reason: The current operational state is"
+                + "{}".format(self.op_state_model.op_state)
+                + "The command has NOT been executed."
+                + "This device will continue with its current state."
+            )
+
+    def is_abort_commands_allowed(self) -> bool:
+        """
+        Checks whether this command is allowed
+        It checks that the device is in the right state
+        to execute this command and that all the
+        component needed for the operation are not unresponsive
+
+        :return: True if this command is allowed
+
+        :rtype: boolean
+        """
+
+        # dish manager allows abort in all the dish modes
+        # and pointing states
+        # DishMode/s & pointing state/s To be decided ....
+        self.check_op_state("Abort")
+        self.check_device_responsive()
+
+        return True
+
+    def abort_commands_on_dish(
+        # there is an abort_commands in TaskExecutorComponentManager
+        self,
+        logger: Logger,
+        task_callback: Optional[Callable] = None,
+    ) -> None:
+        """invokes AbortCommands on dish master/manager"""
+        self.abort_command.invoke_abort_commands(
+            logger=logger, task_callback=task_callback
+        )
