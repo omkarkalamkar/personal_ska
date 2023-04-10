@@ -105,7 +105,7 @@ class Track(DishLNCommand):
         return return_code, message
 
     def track_thread(self):
-        """This thread writes coordinates to desiredPointing
+        """This thread writes az-el coordinates to desiredPointing
         on DishMaster at the rate of 20 Hz.
         """
         self.logger.info(
