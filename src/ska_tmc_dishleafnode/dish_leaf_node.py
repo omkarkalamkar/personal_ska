@@ -106,10 +106,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetStowMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -128,11 +128,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetStandbyLPMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
-
+        dish mode
         :rtype: boolean
         """
         return self.component_manager.is_setstandbylpmode_allowed()
@@ -150,10 +149,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetOperateMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -171,10 +170,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetStandbyFPMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -212,16 +211,16 @@ class DishLeafNode(SKABaseDevice):
     def is_Scan_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
         return self.component_manager.is_scan_allowed()
 
-    def is_EndScan_allowed(self):
+    def is_on_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -231,30 +230,25 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
+        return self.component_manager.is_setstandbyfpmode_allowed()
 
-    @command(
-        dtype_in="str",
-        doc_in="""The timestamp indicates the time, in UTC, at which command
-        execution should start.""",
-        dtype_out="DevVarLongStringArray",
-    )
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def EndScan(self):
-        """Invokes StopCapture command on DishMaster."""
-
-        return [
-            [ResultCode.FAILED],
-            ["EndScan command will be refactored in later PI's"],
-        ]
+    def On(self) -> tuple:
+        """
+        Invokes On command on Dish Master.
+        """
+        handler = self.get_command_object("On")
+        result_code, unique_id = handler()
+        return [result_code], [unique_id]
 
     def is_Configure_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -468,6 +462,7 @@ class DishLeafNode(SKABaseDevice):
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
+            ("On", "on"),
         ]:
             self.register_command_object(
                 command_name,
