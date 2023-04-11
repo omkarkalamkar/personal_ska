@@ -277,6 +277,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
             DishMode.STOW,
@@ -299,6 +300,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
             DishMode.OPERATE,
@@ -321,6 +323,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
         ]:
@@ -340,6 +343,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_LP,
             DishMode.OPERATE,
@@ -362,6 +366,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
             DishMode.STOW,
@@ -382,7 +387,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
         """
-
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.OPERATE,
             DishMode.STANDBY_FP,
@@ -440,7 +445,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             0
         ].upper()  # station names in the layout json are in capital
 
-    def check_op_state(self, command_name: str):
+    def check_op_state(self, command_name: str) -> None:
         """Checks the operational state of the device"""
         if self.op_state_model.op_state in [
             DevState.FAULT,
@@ -449,14 +454,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ]:
             raise CommandNotAllowed(
                 "The invocation of the {} command on this".format(command_name)
-                + "device is not allowed."
-                + "Reason: The current operational state is"
+                + " device is not allowed."
+                + " Reason: The current operational state is "
                 + "{}".format(self.op_state_model.op_state)
-                + "The command has NOT been executed."
+                + ".The command has NOT been executed."
                 + "This device will continue with its current state."
             )
 
-    def is_abort_commands_allowed(self) -> bool:
+    def is_abort_allowed(self) -> bool:
         """
         Checks whether this command is allowed
         It checks that the device is in the right state
@@ -470,19 +475,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # dish manager allows abort in all the dish modes
         # and pointing states
-        # DishMode/s & pointing state/s To be decided ....
-        self.check_op_state("Abort")
+        # To Do :- DishMode/s & pointing state/s decision
+        self.check_op_state("AbortCommands")
         self.check_device_responsive()
 
         return True
 
-    def abort_commands_on_dish(
-        # there is an abort_commands in TaskExecutorComponentManager
+    def invoke_abort_command(
         self,
         logger: Logger,
         task_callback: Optional[Callable] = None,
-    ) -> None:
+    ) -> Tuple[ResultCode, str]:
         """invokes AbortCommands on dish master/manager"""
-        self.abort_command.invoke_abort_commands(
+
+        result_code, message = self.abort_command.invoke_abort_commands(
             logger=logger, task_callback=task_callback
         )
+        return result_code, message

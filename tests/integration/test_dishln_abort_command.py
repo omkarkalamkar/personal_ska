@@ -5,7 +5,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from tests.settings import DISH_MASTER_DEVICE, event_remover, logger
 
 
-def abort_commands_on_dish_master(
+def invoke_abort_commands_from_dishLN(
     tango_context,
     group_callback,
 ):
@@ -24,7 +24,7 @@ def abort_commands_on_dish_master(
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_command(tango_context, group_callback):
-    abort_commands_on_dish_master(
+    invoke_abort_commands_from_dishLN(
         tango_context,
         group_callback,
     )

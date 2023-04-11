@@ -38,7 +38,7 @@ class Abort(DishLNCommand):
         logger: Logger,
         task_callback: Optional[Callable] = None,
         task_abort_event: Optional[threading.Event] = None,
-    ) -> None:
+    ) -> Tuple[ResultCode, str]:
 
         """This is a  method for Abort command, it
         executes the do hook, invoking AbortCommands command on Dish Master
@@ -52,19 +52,21 @@ class Abort(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        return_code, message = self.do()
+        result_code, message = self.do()
         logger.info(message)
-        if return_code == ResultCode.FAILED:
+        if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=result_code,
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=result_code,
             )
+
+        return result_code, message
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
@@ -84,7 +86,7 @@ class Abort(DishLNCommand):
 
         raises:
            Raises exception if fails to execute
-           TrackStop command on DishMaster.
+           AbortCommands command on DishMaster.
 
         """
         try:
@@ -106,7 +108,8 @@ class Abort(DishLNCommand):
                 on Dish Master Device {self.dish_master_adapter.dev_name}.
                 Reason: Error in executing the Abort command on
                 Dish Master: {self.component_manager.dish_dev_name}
-                The command has NOT been executed.
-                This device will continue with its current operation. {e}""",
+                The Abort command has NOT been executed.
+                This device will continue with its current operation.
+                Error: {e}""",
             )
-        return (result_code, message)
+        return result_code, message
