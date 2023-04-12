@@ -11,7 +11,7 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-class On(DishLNCommand):
+class Off(DishLNCommand):
     """
     A class for Dishleafnode's ON command. On command is
     inherited from DishLNCommand.
@@ -20,7 +20,7 @@ class On(DishLNCommand):
     """
 
     # pylint: disable=unused-argument
-    def invoke_on(
+    def invoke_off(
         self,
         logger: Logger,
         task_callback: Callable = None,
@@ -28,7 +28,7 @@ class On(DishLNCommand):
     ) -> None:
 
         """This is a long running method for On command, it
-        executes the do hook, invoking On command on Dish Master
+        executes the do hook, invoking Off command on Dish Master
 
         :param argin: Input JSON string
         :type argin : str
@@ -79,12 +79,12 @@ class On(DishLNCommand):
                 "Timeout occured while invoking the SetStandbyFPMode Command.",
             )
         return_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "SetOperateMode"
+            "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
-        result = self.set_wait_for_dishmode(DishMode.OPERATE)
+        result = self.set_wait_for_dishmode(DishMode.STOW)
         if not result:
             return (
                 ResultCode.FAILED,
-                "Timeout occured while invoking the SetOperateMode Command.",
+                "Timeout occured while invoking the SetStandbyLPMode Command.",
             )
         return return_code, message

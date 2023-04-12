@@ -3,6 +3,7 @@ import time
 
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.adapters import AdapterFactory, AdapterType
+from ska_tmc_common.enum import DishMode
 from ska_tmc_common.tmc_command import TmcLeafNodeCommand
 from tango import ConnectionFailed, DevFailed
 
@@ -60,3 +61,15 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
 
         return ResultCode.OK, ""
+
+    def set_wait_for_dishmode(self, dishmode: DishMode) -> bool:
+        """Waits for transition of DishMode to the correct state."""
+        start_time = time.time()
+        elapsed_time = 0
+        while elapsed_time < self.component_manager.timeout:
+            if self.component_manager.dishMode == dishmode:
+                break
+            elapsed_time = time.time() - start_time
+        if self.component_manager.dishMode == dishmode:
+            return True
+        return False

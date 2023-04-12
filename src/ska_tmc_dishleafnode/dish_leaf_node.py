@@ -242,6 +242,28 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
+    def is_off_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+        return self.component_manager.is_setstandbyfpmode_allowed()
+
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def Off(self) -> tuple:
+        """
+        Invokes On command on Dish Master.
+        """
+        handler = self.get_command_object("Off")
+        result_code, unique_id = handler()
+        return [result_code], [unique_id]
+
     def is_Configure_allowed(self):
         """
         Checks whether this command is allowed to be run in the current

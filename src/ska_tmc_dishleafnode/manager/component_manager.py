@@ -17,6 +17,7 @@ from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.commands.configure_command import Configure
+from ska_tmc_dishleafnode.commands.off_command import Off
 from ska_tmc_dishleafnode.commands.on_command import On
 from ska_tmc_dishleafnode.commands.scan_command import Scan
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
@@ -132,6 +133,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.off_command = Off(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
 
     @property
     def dishMode(self) -> DishMode:
@@ -168,6 +175,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         task_status, response = self.submit_task(
             self.on_command.invoke_on,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("On command queued for execution")
+        return task_status, response
+
+    def off(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the On command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.off_command.invoke_off,
             args=[self.logger],
             task_callback=task_callback,
         )
@@ -295,7 +317,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             DishMode.STANDBY_FP,
             DishMode.STOW,
             DishMode.OPERATE,
-            DishMode.CONFIG,
         ]:
             return True
 
