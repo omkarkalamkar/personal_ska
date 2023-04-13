@@ -397,7 +397,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return True
+        return self.component_manager.is_abort_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
