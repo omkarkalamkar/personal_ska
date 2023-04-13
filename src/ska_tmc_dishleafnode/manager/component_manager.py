@@ -15,7 +15,6 @@ from ska_tmc_common.device_info import DishDeviceInfo
 from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
-from tango import DevState
 
 from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.commands.configure_command import Configure
@@ -445,22 +444,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             0
         ].upper()  # station names in the layout json are in capital
 
-    def check_op_state(self, command_name: str) -> None:
-        """Checks the operational state of the device"""
-        if self.op_state_model.op_state in [
-            DevState.FAULT,
-            DevState.UNKNOWN,
-            DevState.DISABLE,
-        ]:
-            raise CommandNotAllowed(
-                "The invocation of the {} command on this".format(command_name)
-                + " device is not allowed."
-                + " Reason: The current operational state is "
-                + "{}".format(self.op_state_model.op_state)
-                + ".The command has NOT been executed."
-                + "This device will continue with its current state."
-            )
-
     def is_abort_allowed(self) -> bool:
         """
         Checks whether this command is allowed
@@ -475,20 +458,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # dish manager allows abort in all the dish modes
         # and pointing states
-        # To Do :- DishMode/s & pointing state/s decision
-        self.check_op_state("AbortCommands")
-        self.check_device_responsive()
+        # TO DO: DishMode/s & pointing state/s decision
 
+        self.check_device_responsive()
         return True
 
-    def invoke_abort_command(
-        self,
-        logger: Logger,
-        task_callback: Optional[Callable] = None,
+    def abort_commands(
+        self, task_callback: Optional[Callable] = None
     ) -> Tuple[ResultCode, str]:
-        """invokes AbortCommands on dish master/manager"""
+        """Invokes do hook of the command class Abort
+        and executes AbortCommands on dish master/manager"""
 
-        result_code, message = self.abort_command.invoke_abort_commands(
-            logger=logger, task_callback=task_callback
-        )
+        result_code, message = self.abort_command.invoke_abort_commands()
         return result_code, message
