@@ -71,6 +71,6 @@ def test_json_validation(tango_context, task_callback, dish_master_device):
 
 def test_track_command_not_allowed(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
-    cm.update_device_dish_mode(DishMode.UNKNOWN)
+    cm.update_device_pointing_state(PointingState.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_track_allowed()

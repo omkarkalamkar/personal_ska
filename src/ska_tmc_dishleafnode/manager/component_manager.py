@@ -254,7 +254,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
         """
-        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
+        if self.pointingState not in (
             PointingState.NONE,
             PointingState.UNKNOWN,
         ):
@@ -264,7 +264,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The invocation of the Track command on this"
             + "device is not allowed."
             + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
+            + f"{self.dishMode} and poiniting state : {self.pointingState}"
             + "The command has NOT been executed."
             + "This device will continue with normal operation."
         )
