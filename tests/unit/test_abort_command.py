@@ -2,6 +2,7 @@ import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.exceptions import DeviceUnresponsive
 
+from ska_tmc_dishleafnode.commands.abort_command import Abort
 from tests.settings import DISH_MASTER_DEVICE, create_cm, logger
 
 
@@ -9,8 +10,8 @@ from tests.settings import DISH_MASTER_DEVICE, create_cm, logger
 def test_abort_command(tango_context):
     logger.info("%s", tango_context)
     cm = create_cm(DISH_MASTER_DEVICE)
-    cm.is_abort_allowed()
-    result_code, _ = cm.abort_commands()
+    abort_command = Abort(cm, logger=logger)
+    result_code, _ = abort_command.do()
     assert result_code == ResultCode.OK
 
 
