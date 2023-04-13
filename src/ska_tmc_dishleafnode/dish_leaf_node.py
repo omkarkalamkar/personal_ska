@@ -9,6 +9,7 @@ from tango import AttrWriteType, DebugIt
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
+from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -492,11 +493,8 @@ class DishLeafNode(SKABaseDevice):
                 ),
             )
 
-        # as per base classes implementation, for SKABaseDevice
-        # Abort is registered as AbortCommandsCommand
         self.register_command_object(
-            "Abort",
-            self.AbortCommandsCommand(self.component_manager, self.logger),
+            "Abort", Abort(self.component_manager, logger=self.logger)
         )
 
 

@@ -18,9 +18,8 @@ def abort_on_dish_leaf_node(
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
     # assert dish_leaf_node.is_Abort_allowed() == True
-    result_fp, message = dish_leaf_node.Abort()
-    assert result_fp[0] == ResultCode.STARTED
-    assert message[0] == "Aborting commands"
+    result_fp, _ = dish_leaf_node.Abort()
+    assert result_fp[0] == ResultCode.OK
 
 
 @pytest.mark.post_deployment

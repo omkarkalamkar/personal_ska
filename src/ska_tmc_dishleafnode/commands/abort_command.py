@@ -1,45 +1,30 @@
 """
 Abort command class for DishLeafNode.
 """
-from logging import Logger
 from typing import Tuple
 
-from ska_tango_base.commands import ResultCode
-from ska_tmc_common.adapters import AdapterFactory
+from ska_tango_base.commands import FastCommand, ResultCode
 
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-class Abort(DishLNCommand):
+class Abort(DishLNCommand, FastCommand):
     """
     A class for DishLeafNode's Abort() command.
     Command to abort the Dish Master and bring it to its ABORTED state.
     """
 
     def __init__(
-        self,
-        component_manager,
-        op_state_model,
-        adapter_factory: AdapterFactory,
-        logger: Logger,
+        self, component_manager, op_state_model=None, logger=None
     ) -> None:
         super().__init__(
-            component_manager=component_manager,
-            op_state_model=op_state_model,
-            adapter_factory=adapter_factory,
-            logger=logger,
+            component_manager,
+            op_state_model,
+            adapter_factory=None,
+            logger=None,
         )
-
-    # pylint: disable=unused-argument
-    def invoke_abort_commands(self) -> Tuple[ResultCode, str]:
-
-        """This is a  method for Abort command, it
-        executes the do hook, invoking AbortCommands command on Dish Master
-        """
-
-        result_code, message = self.do()
-        self.logger.info(message)
-        return result_code, message
+        self.component_manager = component_manager
+        self.logger = logger
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
@@ -57,32 +42,18 @@ class Abort(DishLNCommand):
         rtype:
             (ResultCode, str)
 
-        raises:
-           Raises exception if fails to execute
-           AbortCommands command on DishMaster.
-
         """
-        try:
-            ret_code, message = self.init_adapter()
 
-            if ret_code == ResultCode.FAILED:
-                return ret_code, message
+        ret_code, message = self.init_adapter()
 
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "Abort"
-            )
-            self.logger.info("Abort command executed successfully.")
+        if ret_code == ResultCode.FAILED:
+            return ret_code, message
 
-        except Exception as e:
-            self.logger.exception(f"Command invocation failed: {e}")
-            return self.generate_command_result(
-                ResultCode.FAILED,
-                f"""The invocation of the Abort command is failed
-                on Dish Master Device {self.dish_master_adapter.dev_name}.
-                Reason: Error in executing the Abort command on
-                Dish Master: {self.dish_master_adapter.dev_name}
-                The Abort command has NOT been executed.
-                This device will continue with its current operation.
-                Error: {e}""",
-            )
+        result_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "Abort"
+        )
+        self.dish_master_adapter.Abort()
+        self.logger.info("Abort command executed successfully.")
+
+        # return result_code, message
         return result_code, message

@@ -17,7 +17,6 @@ from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
-from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.scan_command import Scan
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
@@ -152,12 +151,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.trackstop_command = TrackStop(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.abort_command = Abort(
             self,
             self.op_state_model,
             __adapter_factory,
@@ -585,10 +578,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def abort_commands(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[ResultCode, str]:
-        """Invokes do hook of the command class Abort"""
-
-        result_code, message = self.abort_command.invoke_abort_commands()
-        return result_code, message
+    # def abort(self):
+    #     result_code = self.abort_command.do()
+    #     return result_code
