@@ -28,7 +28,7 @@ class DishLNCommand(TmcLeafNodeCommand):
     def init_adapter(self):
         """Creates adapter for underlying Dish device."""
         dev_name = self.component_manager.dish_dev_name
-        timeout = self.component_manager.timeout
+        timeout = 2
         elapsed_time = 0
         start_time = time.time()
 
