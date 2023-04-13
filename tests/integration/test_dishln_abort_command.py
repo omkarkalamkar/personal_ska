@@ -5,7 +5,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from tests.settings import DISH_LEAF_NODE_DEVICE, event_remover, logger
 
 
-def invoke_abort_commands_from_dishLN(
+def abort_dish_leaf_node(
     tango_context,
     group_callback,
 ):
@@ -24,9 +24,9 @@ def invoke_abort_commands_from_dishLN(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid1
+@pytest.mark.SKA_mid
 def test_abort_command(tango_context, group_callback):
-    invoke_abort_commands_from_dishLN(
+    abort_dish_leaf_node(
         tango_context,
         group_callback,
     )
