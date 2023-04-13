@@ -69,8 +69,9 @@ class DishLNCommand(TmcLeafNodeCommand):
         elapsed_time = 0
         while elapsed_time < self.component_manager.timeout:
             if self.component_manager.dishMode == dishmode:
-                break
+                return True
             elapsed_time = time.time() - start_time
-        if self.component_manager.dishMode == dishmode:
-            return True
+        self.logger.info(
+            "Current Dishmode is %s", self.component_manager.dishMode
+        )
         return False

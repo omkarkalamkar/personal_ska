@@ -1,4 +1,3 @@
-import logging
 from os.path import dirname, join
 
 import pytest
@@ -38,14 +37,11 @@ def test_configure_command_completed(
     )
 
 
-def test_configure_command_adapter_none(
-    task_callback, dish_master_device, caplog
-):
+def test_configure_command_adapter_none(task_callback, dish_master_device):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
-    caplog.set_level(logging.DEBUG, logger="ska-tango-testing.mock")
     cm.configure(configure_input_str, task_callback=task_callback)
 
     task_callback.assert_against_call(

@@ -28,7 +28,8 @@ class On(DishLNCommand):
     ) -> None:
 
         """This is a long running method for On command, it
-        executes the do hook, invoking On command on Dish Master
+        executes the do hook, invoking On command which internally
+        invoke FP then Operate Command on Dish Master.
 
         :param argin: Input JSON string
         :type argin : str
@@ -74,6 +75,9 @@ class On(DishLNCommand):
         )
         result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
         if not result:
+            self.logger.info(
+                "Timeout occured while invoking the SetStandbyFPMode Command."
+            )
             return (
                 ResultCode.FAILED,
                 "Timeout occured while invoking the SetStandbyFPMode Command.",
@@ -83,6 +87,9 @@ class On(DishLNCommand):
         )
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
+            self.logger.info(
+                "Timeout occured while invoking the SetOperateMode Command."
+            )
             return (
                 ResultCode.FAILED,
                 "Timeout occured while invoking the SetOperateMode Command.",

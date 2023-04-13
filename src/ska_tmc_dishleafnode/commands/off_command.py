@@ -74,6 +74,9 @@ class Off(DishLNCommand):
         )
         result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
         if not result:
+            self.logger.info(
+                "Timeout occured while invoking the SetStandbyFPMode Command."
+            )
             return (
                 ResultCode.FAILED,
                 "Timeout occured while invoking the SetStandbyFPMode Command.",
@@ -81,8 +84,11 @@ class Off(DishLNCommand):
         return_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
-        result = self.set_wait_for_dishmode(DishMode.STOW)
+        result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
+            self.logger.info(
+                "Timeout occured while invoking the SetStandbyLPMode Command."
+            )
             return (
                 ResultCode.FAILED,
                 "Timeout occured while invoking the SetStandbyLPMode Command.",

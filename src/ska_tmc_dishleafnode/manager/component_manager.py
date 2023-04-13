@@ -50,7 +50,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
-        timeout: int = 2,
+        timeout: int = 15,
         elevation: float = 0.0,
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
