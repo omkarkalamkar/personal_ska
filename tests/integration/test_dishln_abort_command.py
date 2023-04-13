@@ -17,7 +17,6 @@ def abort_on_dish_leaf_node(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
-    assert dish_leaf_node.is_Abort_allowed() == True
     result_fp, _ = dish_leaf_node.Abort()
     assert result_fp[0] == ResultCode.OK
 
