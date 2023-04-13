@@ -1,19 +1,21 @@
-import logging
-
+"""Unit Tests for TrackStop command
+"""
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tmc_common.enum import DishMode
+from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from tests.settings import create_cm
 
 
-def test_set_operate_command(tango_context, dish_master_device, task_callback):
+def test_trackstop_command_completed(
+    tango_context, task_callback, dish_master_device
+):
     cm = create_cm(dish_master_device)
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
-    assert cm.is_setoperatemode_allowed()
-
-    cm.setoperatemode(task_callback=task_callback)
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    cm.update_device_pointing_state(PointingState.READY)
+    assert cm.is_trackstop_allowed()
+    cm.trackstop(task_callback=task_callback)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -25,15 +27,13 @@ def test_set_operate_command(tango_context, dish_master_device, task_callback):
     )
 
 
-def test_set_operate_command_adapter_none(
-    dish_master_device, task_callback, caplog
-):
+def test_trackstop_command_adapter_none(task_callback, dish_master_device):
     cm = create_cm(dish_master_device)
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
-    assert cm.is_setoperatemode_allowed()
-    caplog.set_level(logging.DEBUG, logger="ska-tango-testing.mock")
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    cm.update_device_pointing_state(PointingState.READY)
+    assert cm.is_trackstop_allowed()
+    cm.trackstop(task_callback=task_callback)
 
-    cm.setoperatemode(task_callback=task_callback)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -45,10 +45,8 @@ def test_set_operate_command_adapter_none(
     )
 
 
-def test_set_operate_mode_command_not_allowed(
-    tango_context, dish_master_device
-):
+def test_trackstop_command_not_allowed(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
-        cm.is_setoperatemode_allowed()
+        cm.is_trackstop_allowed()

@@ -41,6 +41,11 @@ class DishLeafNode(SKABaseDevice):
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
     TimeOut = device_property(dtype="DevFloat", default_value=2)
+    # Dish Track command properties
+    Elevation = device_property(dtype="DevFloat", default_value=30.0)
+    Azimuth = device_property(dtype="DevFloat", default_value=0.0)
+    ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
+    ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
     # ----------
     # Attributes
     # ----------
@@ -357,7 +362,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
+        return self.component_manager.is_track_allowed()
 
     @command(
         dtype_in="str",
@@ -365,15 +370,27 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def Track(self):
+    def Track(self, argin) -> tuple:
         """Invokes Track command on the DishMaster."""
 
-        return [
-            [ResultCode.FAILED],
-            ["Track command will be refactored in later PI's"],
-        ]
+        handler = self.get_command_object("Track")
+        result_code, unique_id = handler(argin)
+        return [result_code], [unique_id]
 
-    def is_StopTrack_allowed(self):
+    @command(dtype_out="DevVarLongStringArray")
+    @DebugIt()
+    def TrackStop(self):
+        """
+        Invokes TrackStop command on DishMaster
+
+        :rtype: tuple
+        """
+        handler = self.get_command_object("TrackStop")
+        result_code, unique_id = handler()
+
+        return [result_code], [str(unique_id)]
+
+    def is_TrackStop_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -383,17 +400,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
-
-    @command(dtype_out="DevVarLongStringArray")
-    @DebugIt()
-    def StopTrack(self):
-        """Invokes StopTrack command on the DishMaster."""
-
-        return [
-            [ResultCode.FAILED],
-            ["StopTrack command will be refactored in later PI's"],
-        ]
+        return self.component_manager.is_trackstop_allowed()
 
     def is_Abort_allowed(self):
         """
@@ -470,6 +477,10 @@ class DishLeafNode(SKABaseDevice):
             _event_receiver=True,
             sleep_time=self.SleepTime,
             timeout=self.TimeOut,
+            elevation=self.Elevation,
+            azimuth=self.Azimuth,
+            elevation_max_limit=self.ElevationMaxLimit,
+            elevation_min_limit=self.ElevationMinLimit,
         )
         return cm
 
@@ -484,7 +495,10 @@ class DishLeafNode(SKABaseDevice):
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
+            ("Track", "track"),
+            ("TrackStop", "trackstop"),
             ("On", "on"),
+            ("Off", "off"),
         ]:
             self.register_command_object(
                 command_name,

@@ -2,6 +2,7 @@
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 import json
+import threading
 
 # pylint: disable=W0222
 import time
@@ -24,11 +25,14 @@ from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
 from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
 from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
+from ska_tmc_dishleafnode.commands.track_command import Track
+from ska_tmc_dishleafnode.commands.trackstop_command import TrackStop
 from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
 
 
+# pylint: disable=R0902
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
@@ -46,7 +50,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
-        timeout: int = 10,
+        timeout: int = 2,
+        elevation: float = 0.0,
+        azimuth: float = 0.0,
+        elevation_max_limit: float = 0.0,
+        elevation_min_limit: float = 0.0,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -83,8 +91,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         __adapter_factory = AdapterFactory()
         self.timeout = timeout
         self.dish_dev_name = dish_dev_name
-        self.dish_id = None
+        self.dish_id = (
+            dish_dev_name.split("/")[0].upper() if dish_dev_name else None
+        )
         self.observer = None
+        self.dish_number = None
+        self.observer = None
+        self.event_track_time = threading.Event()
+        self.elevation = elevation
+        self.azimuth = azimuth
+        self.elevation_max_limit = elevation_max_limit
+        self.elevation_min_limit = elevation_min_limit
+        self.el_limit = False
+        self.radec_value = ""
 
         # Event Receiver
         if _event_receiver:
@@ -127,6 +146,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.track_command = Track(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.trackstop_command = TrackStop(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
         self.on_command = On(
             self,
             self.op_state_model,
@@ -144,6 +175,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def dishMode(self) -> DishMode:
         """Returns the dishMode of dish master device"""
         return self._device.dishMode
+
+    @property
+    def pointingState(self) -> PointingState:
+        """Returns the pointingState of dish master device"""
+        return self._device.pointing_state
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
@@ -256,6 +292,92 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("Scan command queued for execution")
+        return task_status, response
+
+    def is_track_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
+            PointingState.NONE,
+            PointingState.UNKNOWN,
+        ):
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the Track command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
+
+    def track(
+        self, argin: str, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the Track command for execution.
+
+        :rtype: Tuple
+        """
+        try:
+            input_json = json.loads(argin)
+        except json.JSONDecodeError as e:
+            self.logger.exception(
+                "Exception occured while loading the input json: %s", e
+            )
+            return (
+                ResultCode.FAILED,
+                f"Error while loading the input json: {e}",
+            )
+
+        # validate the JSON argument
+        validation_result = self.track_command.validate_json_argument(
+            input_json
+        )
+        if validation_result[0] != ResultCode.OK:
+            return validation_result
+
+        task_status, response = self.submit_task(
+            self.track_command.track,
+            args=[input_json, self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("Track command queued for execution")
+        return task_status, response
+
+    def is_trackstop_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
+            PointingState.NONE,
+            PointingState.UNKNOWN,
+        ):
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the TrackStop command on this"
+            + "device is not allowed."
+            + "Reason: The current dish mode is"
+            + f"{self.dishMode}"
+            + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
+
+    def trackstop(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the TrackStop command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.trackstop_command.trackstop,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("TrackStop command queued for execution")
         return task_status, response
 
     def setoperatemode(
