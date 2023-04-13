@@ -62,14 +62,16 @@ class Abort(DishLNCommand):
            AbortCommands command on DishMaster.
 
         """
-        result_code, message = self.init_adapter()
-        if result_code == ResultCode.FAILED:
-            return result_code, message
         try:
-            log_msg = f"Invoking Abort command on dish master:\
-            {self.dish_master_adapter.dev_name}"
-            self.logger.info(log_msg)
-            self.dish_master_adapter.Abort()
+            ret_code, message = self.init_adapter()
+
+            if ret_code == ResultCode.FAILED:
+                return ret_code, message
+
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "Abort"
+            )
+            self.logger.info("Abort command executed successfully.")
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -83,4 +85,4 @@ class Abort(DishLNCommand):
                 This device will continue with its current operation.
                 Error: {e}""",
             )
-        return ResultCode.OK, ""
+        return result_code, message

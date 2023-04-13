@@ -588,8 +588,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def abort_commands(
         self, task_callback: Optional[Callable] = None
     ) -> Tuple[ResultCode, str]:
-        """Invokes do hook of the command class Abort
-        and executes AbortCommands on dish master/manager"""
+        """Invokes do hook of the command class Abort"""
 
         result_code, message = self.abort_command.invoke_abort_commands()
         return result_code, message
