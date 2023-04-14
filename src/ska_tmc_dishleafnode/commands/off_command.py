@@ -13,10 +13,10 @@ from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 class Off(DishLNCommand):
     """
-    A class for Dishleafnode's ON command. On command is
+    A class for Dishleafnode's Off command. Off command is
     inherited from DishLNCommand.
 
-    This command invokes on command on Dish Master
+    This command invokes off command on Dish Master
     """
 
     # pylint: disable=unused-argument
@@ -27,8 +27,9 @@ class Off(DishLNCommand):
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
 
-        """This is a long running method for On command, it
-        executes the do hook, invoking Off command on Dish Master
+        """This is a long running method for Off command, it
+        executes the do hook, invoking Off command which internally
+        invoke FP then Lp Command on Dish Master.
 
         :param argin: Input JSON string
         :type argin : str
