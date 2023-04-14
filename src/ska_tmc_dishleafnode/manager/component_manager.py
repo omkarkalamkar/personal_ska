@@ -577,3 +577,4 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.check_device_responsive()
         return True
+    
