@@ -18,13 +18,11 @@ class Abort(DishLNCommand, FastCommand):
         self, component_manager, op_state_model=None, logger=None
     ) -> None:
         super().__init__(
-            component_manager,
-            op_state_model,
+            component_manager=component_manager,
+            op_state_model=op_state_model,
             adapter_factory=None,
-            logger=None,
+            logger=logger,
         )
-        self.component_manager = component_manager
-        self.logger = logger
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:

@@ -577,7 +577,3 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.check_device_responsive()
         return True
-
-    # def abort(self):
-    #     result_code = self.abort_command.do()
-    #     return result_code
