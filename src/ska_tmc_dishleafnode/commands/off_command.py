@@ -58,7 +58,7 @@ class Off(DishLNCommand):
 
     def do(self, argin=None):
         """
-        Method to invoke On command on Dish Master.
+        Method to invoke Off command on Dish Master.
 
         param argin:
             None
