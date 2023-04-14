@@ -27,9 +27,8 @@ class On(DishLNCommand):
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
 
-        """This is a long running method for On command, it
-        executes the do hook, invoking On command which internally
-        invoke FP then Operate Command on Dish Master.
+        """A method to invoke the On command.
+        It sets the task_callback status according to command progress.
 
         :param argin: Input JSON string
         :type argin : str
@@ -58,7 +57,9 @@ class On(DishLNCommand):
 
     def do(self, argin=None):
         """
-        Method to invoke On command on Dish Master.
+
+        Method to invoke On command, it is invoking FP then Operate Command
+        on Dish Master according to the dishMOde states.
 
         param argin:
             None

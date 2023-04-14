@@ -220,7 +220,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def off(
         self, task_callback: Optional[Callable] = None
     ) -> Tuple[TaskStatus, str]:
-        """Submits the On command for execution.
+        """Submits the Off command for execution.
 
         :rtype: Tuple
         """
@@ -229,7 +229,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             args=[self.logger],
             task_callback=task_callback,
         )
-        self.logger.info("On command queued for execution")
+        self.logger.info("Off command queued for execution")
         return task_status, response
 
     def setstandbyfpmode(
