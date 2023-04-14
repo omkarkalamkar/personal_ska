@@ -52,4 +52,3 @@ class Abort(DishLNCommand, FastCommand):
         )
         self.logger.info("Abort command executed successfully.")
         return result_code, message
-    
