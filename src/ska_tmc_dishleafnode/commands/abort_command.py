@@ -50,5 +50,5 @@ class Abort(DishLNCommand, FastCommand):
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Abort"
         )
-        self.logger.info("Abort command executed successfully.")
+        self.logger.info("Abort command invoked successfully.")
         return result_code, message
