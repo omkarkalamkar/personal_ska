@@ -92,7 +92,10 @@ class Track(DishLNCommand):
 
         # Start pointing calculations in a Track Thread
         self.tracking_thread = threading.Thread(
-            None, self.track_thread, "DishLeafNode"
+            None,
+            self.component_manager.track_thread,
+            "DishLeafNode",
+            args=(self.ra_value, self.dec_value, self),
         )
         self.tracking_thread.start()
         radec_value = f"{self.ra_value}, {self.dec_value}"

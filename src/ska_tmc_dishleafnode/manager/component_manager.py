@@ -1,11 +1,13 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+import datetime
 import json
 import threading
 
 # pylint: disable=W0222
 import time
+from datetime import timezone
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
@@ -17,6 +19,7 @@ from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
+from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.scan_command import Scan
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
@@ -576,4 +579,83 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # TO DO: DishMode/s & pointing state/s decision
 
         self.check_device_responsive()
+        return True
+
+    def track_thread(self, ra_value, dec_value, command_obj):
+        """This thread writes az-el coordinates to desiredPointing
+        on DishMaster at the rate of 20 Hz.
+        """
+        self.logger.info(
+            f"print track_thread thread name:{threading.current_thread().name}"
+            f"{threading.get_ident()}"
+        )
+        azel_converter = AzElConverter(self)
+        azel_converter.create_antenna_obj()
+
+        while self.event_track_time.is_set() is False:
+            now = datetime.datetime.utcnow()
+            timestamp = str(now)
+            utc_time = now.replace(tzinfo=timezone.utc)
+            utc_timestamp = utc_time.timestamp()
+            az_value, el_value = azel_converter.point(
+                ra_value, dec_value, timestamp
+            )
+
+            if not self._is_elevation_within_mechanical_limits(el_value):
+                time.sleep(0.05)
+                continue
+
+            if az_value < 0:
+                az_value = 360 - abs(az_value)
+
+            if self.event_track_time.is_set():
+                log_message = (
+                    "Stop the Thread as event track time is set: "
+                    f"{self.event_track_time.is_set()}"
+                )
+                self.logger.debug(log_message)
+                break
+
+            # utc_timestamp is the time used for AzEl calculation.
+            # For the timestamp to be a future timestamp
+            # on DishMaster, 100 ms are added to it.
+            desired_pointing = [
+                (utc_timestamp * 1000) + 100,
+                round(az_value, 12),
+                round(el_value, 12),
+            ]
+            self.logger.info(
+                "desiredPointing coordinates: %s", desired_pointing
+            )
+            command_obj.dish_master_adapter.desiredPointing = desired_pointing
+
+            self.logger.info("Observer: %s", self.observer)
+            # In this loop invoke Track command on dish master only once
+            if command_obj.track_on_dish is False:
+                command_obj.call_adapter_method(
+                    "Dish Master", command_obj.dish_master_adapter, "Track"
+                )
+                command_obj.track_on_dish = True
+
+            time.sleep(0.05)
+
+    def _is_elevation_within_mechanical_limits(self, el_value):
+        """Check if elevation is within mechanical limit
+        Args:
+            el_value: string
+        Return:
+            bool
+        """
+
+        if not (
+            self.elevation_min_limit <= el_value <= self.elevation_max_limit
+        ):
+            self.el_limit = True
+            log_message = "Minimum/maximum elevation limit has been reached."
+            self.logger.info(log_message)
+            log_message = "Source is not visible currently."
+            self.logger.info(log_message)
+            return False
+
+        self.el_limit = False
         return True
