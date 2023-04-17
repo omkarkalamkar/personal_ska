@@ -391,6 +391,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
             DishMode.STOW,
@@ -413,6 +414,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
             DishMode.OPERATE,
@@ -435,6 +437,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
         ]:
@@ -454,6 +457,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_LP,
             DishMode.OPERATE,
@@ -476,6 +480,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
         """
 
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
             DishMode.STOW,
@@ -496,7 +501,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
         """
-
+        self.check_device_responsive()
         if self.dishMode in [
             DishMode.OPERATE,
             DishMode.STANDBY_FP,
@@ -553,3 +558,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_id = dish_master_fqdn.split("/")[
             0
         ].upper()  # station names in the layout json are in capital
+
+    def is_abort_allowed(self) -> bool:
+        """
+        Checks whether this command is allowed
+        It checks that the device is in the right state
+        to execute this command and that all the
+        component needed for the operation are not unresponsive
+
+        :return: True if this command is allowed
+
+        :rtype: boolean
+        """
+
+        # dish manager allows abort in all the dish modes
+        # and pointing states
+        # TO DO: DishMode/s & pointing state/s decision
+
+        self.check_device_responsive()
+        return True
