@@ -18,6 +18,7 @@ from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.commands.configure_command import Configure
+from ska_tmc_dishleafnode.commands.off_command import Off
 from ska_tmc_dishleafnode.commands.scan_command import Scan
 from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
@@ -48,7 +49,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
-        timeout: int = 2,
+        command_timeout: int = 15,
+        adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
@@ -87,7 +89,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
         __adapter_factory = AdapterFactory()
-        self.timeout = timeout
+        self.command_timeout = command_timeout
+        self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dish_id = (
             dish_dev_name.split("/")[0].upper() if dish_dev_name else None
@@ -156,6 +159,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.off_command = Off(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
 
     @property
     def dishMode(self) -> DishMode:
@@ -187,6 +196,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+
+    def off(
+        self, task_callback: Optional[Callable] = None
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the Off command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.off_command.invoke_off,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("Off command queued for execution")
+        return task_status, response
 
     def setstandbyfpmode(
         self, task_callback: Optional[Callable] = None
@@ -396,7 +420,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             DishMode.STANDBY_FP,
             DishMode.STOW,
             DishMode.OPERATE,
-            DishMode.CONFIG,
         ]:
             return True
 
@@ -406,6 +429,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "Reason: The current dish mode is"
             + f"{self.dishMode}"
             + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
+
+    def is_off_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.STOW,
+            DishMode.MAINTENANCE,
+            DishMode.STANDBY_LP,
+            DishMode.OPERATE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the Off command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
 
@@ -444,7 +490,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the SetStowMode command on this "
+            "The invocation of the SetOperateMode command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "
@@ -467,7 +513,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the SetStowMode command on this "
+            "The invocation of the SetStandbyFPMode command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "
@@ -489,7 +535,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the SetStowMode command on this "
+            "The invocation of the SetStandbyLPMode command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "

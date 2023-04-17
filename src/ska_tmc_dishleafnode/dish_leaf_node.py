@@ -41,7 +41,8 @@ class DishLeafNode(SKABaseDevice):
     )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
-    TimeOut = device_property(dtype="DevFloat", default_value=2)
+    CommandTimeOut = device_property(dtype="DevFloat", default_value=15)
+    AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
     # Dish Track command properties
     Elevation = device_property(dtype="DevFloat", default_value=30.0)
     Azimuth = device_property(dtype="DevFloat", default_value=0.0)
@@ -112,10 +113,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetStowMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -134,11 +135,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetStandbyLPMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
-
+        dish mode
         :rtype: boolean
         """
         return self.component_manager.is_setstandbylpmode_allowed()
@@ -156,10 +156,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetOperateMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -177,10 +177,10 @@ class DishLeafNode(SKABaseDevice):
     def is_SetStandbyFPMode_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -218,16 +218,16 @@ class DishLeafNode(SKABaseDevice):
     def is_Scan_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
         return self.component_manager.is_scan_allowed()
 
-    def is_EndScan_allowed(self):
+    def is_off_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -237,30 +237,25 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
+        return self.component_manager.is_off_allowed()
 
-    @command(
-        dtype_in="str",
-        doc_in="""The timestamp indicates the time, in UTC, at which command
-        execution should start.""",
-        dtype_out="DevVarLongStringArray",
-    )
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def EndScan(self):
-        """Invokes StopCapture command on DishMaster."""
-
-        return [
-            [ResultCode.FAILED],
-            ["EndScan command will be refactored in later PI's"],
-        ]
+    def Off(self) -> tuple:
+        """
+        Invokes On command on Dish Master.
+        """
+        handler = self.get_command_object("Off")
+        result_code, unique_id = handler()
+        return [result_code], [unique_id]
 
     def is_Configure_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
-        device state.
+        dish mode.
 
         :return: True if this command is allowed to be run in current
-        device state.
+        dish mode.
 
         :rtype: boolean
         """
@@ -460,7 +455,8 @@ class DishLeafNode(SKABaseDevice):
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             sleep_time=self.SleepTime,
-            timeout=self.TimeOut,
+            adapter_timeout=self.AdapterTimeOut,
+            command_timeout=self.CommandTimeOut,
             elevation=self.Elevation,
             azimuth=self.Azimuth,
             elevation_max_limit=self.ElevationMaxLimit,
@@ -481,6 +477,7 @@ class DishLeafNode(SKABaseDevice):
             ("Configure", "configure"),
             ("Track", "track"),
             ("TrackStop", "trackstop"),
+            ("Off", "off"),
         ]:
             self.register_command_object(
                 command_name,
