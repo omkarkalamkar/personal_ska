@@ -73,7 +73,12 @@ class Off(DishLNCommand):
         if return_code == ResultCode.FAILED:
             return return_code, message
 
-        if self.component_manager.dishMode != DishMode.STANDBY_FP:
+        if self.component_manager.dishMode in [
+            DishMode.STANDBY_LP,
+            DishMode.OPERATE,
+            DishMode.STOW,
+            DishMode.MAINTENANCE,
+        ]:
             return_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetStandbyFPMode"
             )
