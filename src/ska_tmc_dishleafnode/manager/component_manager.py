@@ -49,7 +49,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
-        timeout: int = 15,
+        command_timeout: int = 15,
+        adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
@@ -88,7 +89,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
         __adapter_factory = AdapterFactory()
-        self.timeout = timeout
+        self.command_timeout = command_timeout
+        self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dish_id = (
             dish_dev_name.split("/")[0].upper() if dish_dev_name else None
@@ -426,6 +428,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "Reason: The current dish mode is"
             + f"{self.dishMode}"
             + "The command has NOT been executed."
+            + "This device will continue with normal operation."
+        )
+
+    def is_off_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.STOW,
+            DishMode.MAINTENANCE,
+            DishMode.STANDBY_LP,
+            DishMode.OPERATE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the Off command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
 

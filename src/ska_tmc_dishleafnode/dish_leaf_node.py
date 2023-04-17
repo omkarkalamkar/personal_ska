@@ -40,7 +40,8 @@ class DishLeafNode(SKABaseDevice):
     )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
-    TimeOut = device_property(dtype="DevFloat", default_value=2)
+    CommandTimeOut = device_property(dtype="DevFloat", default_value=15)
+    AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
     # Dish Track command properties
     Elevation = device_property(dtype="DevFloat", default_value=30.0)
     Azimuth = device_property(dtype="DevFloat", default_value=0.0)
@@ -235,7 +236,7 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_setstandbyfpmode_allowed()
+        return self.component_manager.is_off_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
@@ -454,7 +455,8 @@ class DishLeafNode(SKABaseDevice):
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             sleep_time=self.SleepTime,
-            timeout=self.TimeOut,
+            adapter_timeout=self.AdapterTimeOut,
+            command_timeout=self.CommandTimeOut,
             elevation=self.Elevation,
             azimuth=self.Azimuth,
             elevation_max_limit=self.ElevationMaxLimit,

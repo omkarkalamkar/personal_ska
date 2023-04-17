@@ -58,8 +58,10 @@ class Off(DishLNCommand):
 
     def do(self, argin=None):
         """
-        Method to invoke Off command, it is invoking FP then Lp Command
-        on Dish Master according to the dishMOde states.
+        "Invokes StandbyFP and StandbyLP mode commands on dish master device
+        after waiting for correct dish modes. First invokes and waits for
+        completion of SetStandbyFPMode command, then invokes and waits for
+        completion of SetStandbyLPMode command."
 
         param argin:
             None
@@ -71,18 +73,23 @@ class Off(DishLNCommand):
         if return_code == ResultCode.FAILED:
             return return_code, message
 
-        return_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "SetStandbyFPMode"
-        )
-        result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
-        if not result:
-            self.logger.info(
-                "Timeout occured while invoking the SetStandbyFPMode Command."
+        if self.component_manager.dishMode != DishMode.STANDBY_FP:
+            return_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "SetStandbyFPMode"
             )
-            return (
-                ResultCode.FAILED,
-                "Timeout occured while invoking the SetStandbyFPMode Command.",
-            )
+            result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
+            if not result:
+                self.logger.info(
+                    """Timeout occured while invoking the SetStandbyFPMode
+                    Command.
+                    """
+                )
+                return (
+                    ResultCode.FAILED,
+                    """Timeout occured while invoking the SetStandbyFPMode
+                    Command.
+                    """,
+                )
         return_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )

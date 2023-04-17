@@ -5,10 +5,11 @@ from ska_tmc_common.enum import DishMode
 from tests.settings import create_cm
 
 
+@pytest.mark.off
 def test_off_command(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
-    cm.update_device_dish_mode(DishMode.STANDBY_LP)
-    assert cm.is_setstandbyfpmode_allowed()
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    assert cm.is_off_allowed()
 
     cm.off(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -25,8 +26,8 @@ def test_off_command(tango_context, dish_master_device, task_callback):
 @pytest.mark.off
 def test_off_command_adapter_none(dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
-    cm.update_device_dish_mode(DishMode.STANDBY_LP)
-    assert cm.is_setstandbyfpmode_allowed()
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    assert cm.is_off_allowed()
 
     cm.off(task_callback=task_callback)
     task_callback.assert_against_call(
