@@ -9,6 +9,7 @@ from tango import AttrWriteType, DebugIt
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
+from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -396,17 +397,16 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return False
+        return self.component_manager.is_abort_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def Abort(self):
         """Invokes Abort command on the DishMaster."""
 
-        return [
-            [ResultCode.FAILED],
-            ["Abort command will be refactored in later PI's"],
-        ]
+        handler = self.get_command_object("Abort")
+        result_code, unique_id = handler()
+        return [result_code], [unique_id]
 
     def is_Restart_allowed(self):
         """
@@ -470,7 +470,7 @@ class DishLeafNode(SKABaseDevice):
 
     def init_command_objects(self):
         """
-        Initialises the command handlers for commands supported by this device.
+        Initializes the command handlers for commands supported by this device.
         """
         super().init_command_objects()
         for (command_name, method_name) in [
@@ -492,6 +492,10 @@ class DishLeafNode(SKABaseDevice):
                     logger=self.logger,
                 ),
             )
+
+        self.register_command_object(
+            "Abort", Abort(self.component_manager, logger=self.logger)
+        )
 
 
 # ----------
