@@ -9,6 +9,7 @@ from typing import Callable, Optional
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
+from ska_tmc_common.enum import DishMode
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
@@ -123,10 +124,13 @@ class Configure(DishLNCommand):
 
             json_argument = json.loads(argin)
             receiver_band = json_argument["dish"]["receiverBand"]
+            ra_value = json_argument["pointing"]["target"]["RA"]
+            dec_value = json_argument["pointing"]["target"]["dec"]
+            current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
-            ret_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, command_name, argin
-            )
+            ret_code, message = self.call_adapter_method("Dish Master", self.dish_master_adapter, command_name, argin)
+            if current_dish_mode != DishMode.STOW:
+                ret_code, message = self.invoke_track(current_dish_mode, ra_value, dec_value)
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -140,3 +144,51 @@ class Configure(DishLNCommand):
                 This device will continue with normal operation.""",
             )
         return ret_code, message
+
+    def invoke_track(self, current_dish_mode, ra_value, dec_value):
+        """Invoke Track after waiting for DishMode to Operate"""
+        # Set wait for DishMode CONFIG
+        result = self.set_wait_for_dishmode(DishMode.CONFIG)
+        if not result:
+            self.logger.info("Timeout occured while waiting for CONFIG dishMode in Configure Command.")
+            return (
+                ResultCode.FAILED,
+                "Timeout occured while waiting for CONFIG dishMode in Configure Command.",
+            )
+        # Set wait for initial Dish Mode
+        result = self.set_wait_for_dishmode(current_dish_mode)
+        if not result:
+            self.logger.info(f"Timeout occured while waiting for {current_dish_mode} dishMode in Configure Command.")
+            return (
+                ResultCode.FAILED,
+                f"Timeout occured while waiting for {current_dish_mode} dishMode in Configure Command.",
+            )
+
+        if current_dish_mode == DishMode.STANDBY_FP:
+            ret_code, message = self.call_adapter_method("Dish Master", self.dish_master_adapter, "SetOperateMode")
+            result = self.set_wait_for_dishmode(DishMode.OPERATE)
+            if not result:
+                self.logger.info(
+                    """Timeout occured while invoking the SetOperateMode
+                    Command.
+                    """
+                )
+                return (
+                    ResultCode.FAILED,
+                    """Timeout occured while invoking the SetOperateMode
+                    Command.
+                    """,
+                )
+        # Call Track command
+        self.track_on_dish = False
+        self.component_manager.el_limit = True
+        self.component_manager.event_track_time.clear()
+        self.tracking_thread = threading.Thread(
+            None,
+            self.component_manager.track_thread,
+            "DishLeafNode",
+            args=(ra_value, dec_value, self),
+        )
+        self.tracking_thread.start()
+        self.logger.info(f"Track command invoked successfully with ra {ra_value} and dec {dec_value}")
+        return ResultCode.OK, ""

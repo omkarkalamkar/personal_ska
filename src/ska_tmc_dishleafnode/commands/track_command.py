@@ -88,6 +88,8 @@ class Track(DishLNCommand):
 
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
+        self.track_on_dish = False
+        self.component_manager.el_limit = True
         self.component_manager.event_track_time.clear()
 
         # Start pointing calculations in a Track Thread
@@ -106,84 +108,3 @@ class Track(DishLNCommand):
         )
 
         return return_code, message
-
-    def track_thread(self):
-        """This thread writes az-el coordinates to desiredPointing
-        on DishMaster at the rate of 20 Hz.
-        """
-        self.logger.info(
-            f"print track_thread thread name:{threading.current_thread().name}"
-            f"{threading.get_ident()}"
-        )
-        azel_converter = AzElConverter(self.component_manager)
-        azel_converter.create_antenna_obj()
-
-        while self.component_manager.event_track_time.is_set() is False:
-            now = datetime.datetime.utcnow()
-            timestamp = str(now)
-            utc_time = now.replace(tzinfo=timezone.utc)
-            utc_timestamp = utc_time.timestamp()
-            az_value, el_value = azel_converter.point(
-                self.ra_value, self.dec_value, timestamp
-            )
-
-            if not self._is_elevation_within_mechanical_limits(el_value):
-                time.sleep(0.05)
-                continue
-
-            if az_value < 0:
-                az_value = 360 - abs(az_value)
-
-            if self.component_manager.event_track_time.is_set():
-                log_message = (
-                    "Stop the Thread as event track time is set: "
-                    f"{self.component_manager.event_track_time.is_set()}"
-                )
-                self.logger.debug(log_message)
-                break
-
-            # utc_timestamp is the time used for AzEl calculation.
-            # For the timestamp to be a future timestamp
-            # on DishMaster, 100 ms are added to it.
-            desired_pointing = [
-                (utc_timestamp * 1000) + 100,
-                round(az_value, 12),
-                round(el_value, 12),
-            ]
-            self.logger.info(
-                "desiredPointing coordinates: %s", desired_pointing
-            )
-            self.dish_master_adapter.desiredPointing = desired_pointing
-
-            self.logger.info("Observer: %s", self.component_manager.observer)
-            # In this loop invoke Track command on dish master only once
-            if self.track_on_dish is False:
-                self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "Track"
-                )
-                self.track_on_dish = True
-
-            time.sleep(0.05)
-
-    def _is_elevation_within_mechanical_limits(self, el_value):
-        """Check if elevation is within mechanical limit
-        Args:
-            el_value: string
-        Return:
-            bool
-        """
-
-        if not (
-            self.component_manager.elevation_min_limit
-            <= el_value
-            <= self.component_manager.elevation_max_limit
-        ):
-            self.component_manager.el_limit = True
-            log_message = "Minimum/maximum elevation limit has been reached."
-            self.logger.info(log_message)
-            log_message = "Source is not visible currently."
-            self.logger.info(log_message)
-            return False
-
-        self.component_manager.el_limit = False
-        return True
