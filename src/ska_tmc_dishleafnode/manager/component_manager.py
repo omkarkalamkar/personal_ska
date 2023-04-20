@@ -674,14 +674,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "desiredPointing coordinates: %s", desired_pointing
             )
             command_obj.dish_master_adapter.desiredPointing = desired_pointing
-
-            self.logger.info("Observer: %s", self.observer)
             # In this loop invoke Track command on dish master only once
             if command_obj.track_on_dish is False:
                 command_obj.call_adapter_method(
                     "Dish Master", command_obj.dish_master_adapter, "Track"
                 )
                 command_obj.track_on_dish = True
+
+            self.logger.info("Observer: %s", self.observer)
 
             time.sleep(0.05)
 

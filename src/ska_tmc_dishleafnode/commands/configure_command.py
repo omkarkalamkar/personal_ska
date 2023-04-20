@@ -129,7 +129,7 @@ class Configure(DishLNCommand):
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             ret_code, message = self.call_adapter_method("Dish Master", self.dish_master_adapter, command_name, argin)
-            if current_dish_mode != DishMode.STOW:
+            if current_dish_mode != DishMode.STOW and ret_code == ResultCode.OK:
                 ret_code, message = self.invoke_track(current_dish_mode, ra_value, dec_value)
 
         except Exception as e:
@@ -166,6 +166,10 @@ class Configure(DishLNCommand):
 
         if current_dish_mode == DishMode.STANDBY_FP:
             ret_code, message = self.call_adapter_method("Dish Master", self.dish_master_adapter, "SetOperateMode")
+
+            if ret_code == ResultCode.FAILED:
+                return ret_code, message
+
             result = self.set_wait_for_dishmode(DishMode.OPERATE)
             if not result:
                 self.logger.info(

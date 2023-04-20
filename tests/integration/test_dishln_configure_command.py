@@ -1,3 +1,5 @@
+import time
+
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -33,6 +35,12 @@ def configure_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
+    dish_master.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -58,37 +66,9 @@ def configure_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], str(int(ResultCode.OK))),
-        lookahead=2,
-    )
-
-    result_op, unique_id_op = dish_leaf_node.SetOperateMode()
-    assert result_op[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (
-            "SetStandbyFPMode",
-            "SetOperateMode",
-        )
-    )
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_op[0], str(int(ResultCode.OK))),
-        lookahead=4,
-    )
-    dish_master.SetDirectPointingState(PointingState.READY)
-    assert dish_master.PointingState == PointingState.READY
-    dish_master.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
         lookahead=2,
     )
 
@@ -97,7 +77,7 @@ def configure_dish_leaf_node(
     )
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode", "SetOperateMode", "Configure")
+        ("SetStandbyFPMode", "Configure")
     )
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
@@ -112,7 +92,23 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
+    result_config, unique_id_config = dish_leaf_node.TrackStop()
 
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_config[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
+        None,
+        lookahead=6,
+    )
+
+
+@pytest.mark.configureme
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_command(tango_context, group_callback, json_factory):
