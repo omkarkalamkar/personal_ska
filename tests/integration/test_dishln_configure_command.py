@@ -83,7 +83,6 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
-    time.sleep(3)
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
