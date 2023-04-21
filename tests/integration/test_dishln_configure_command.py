@@ -1,4 +1,5 @@
 import pytest
+import time
 import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
@@ -81,6 +82,7 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
+    time.sleep(3)
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandResult"].assert_change_event(
