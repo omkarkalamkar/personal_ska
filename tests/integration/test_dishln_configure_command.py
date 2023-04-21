@@ -1,5 +1,3 @@
-import time
-
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
