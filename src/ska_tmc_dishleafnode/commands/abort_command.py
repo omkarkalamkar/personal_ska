@@ -14,9 +14,7 @@ class Abort(DishLNCommand, FastCommand):
     Command to abort the Dish Master and bring it to its ABORTED state.
     """
 
-    def __init__(
-        self, component_manager, op_state_model=None, logger=None
-    ) -> None:
+    def __init__(self, component_manager, op_state_model=None, logger=None) -> None:
         super().__init__(
             component_manager=component_manager,
             op_state_model=op_state_model,

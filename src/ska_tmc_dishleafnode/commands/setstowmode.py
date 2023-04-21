@@ -74,7 +74,5 @@ class SetStowMode(DishLNCommand):
         if ret_code == ResultCode.FAILED:
             return ret_code, message
 
-        result = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "SetStowMode"
-        )
+        result = self.call_adapter_method("Dish Master", self.dish_master_adapter, "SetStowMode")
         return result

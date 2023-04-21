@@ -100,9 +100,7 @@ class Off(DishLNCommand):
         )
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
-            self.logger.info(
-                "Timeout occured while invoking the SetStandbyLPMode Command."
-            )
+            self.logger.info("Timeout occured while invoking the SetStandbyLPMode Command.")
             return (
                 ResultCode.FAILED,
                 "Timeout occured while invoking the SetStandbyLPMode Command.",

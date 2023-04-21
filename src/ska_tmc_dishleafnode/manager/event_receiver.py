@@ -1,6 +1,5 @@
 """Event Receiver for Dish Leaf Node"""
 from concurrent import futures
-from logging import Logger
 from time import sleep
 
 import tango
@@ -18,23 +17,9 @@ class DishLNEventReceiver(EventReceiver):
     For each of them a callback is defined.
     """
 
-    def __init__(
-        self,
-        component_manager,
-        logger: Logger,
-        max_workers: int = 1,
-        proxy_timeout: int = 500,
-        sleep_time: int = 1,
-    ):
-        super().__init__(
-            component_manager, logger, max_workers, proxy_timeout, sleep_time
-        )
-
     def run(self) -> None:
         while not self._stop:
-            with futures.ThreadPoolExecutor(
-                max_workers=self._max_workers
-            ) as executor:
+            with futures.ThreadPoolExecutor(max_workers=self._max_workers) as executor:
                 dishDevInfo = self._component_manager.get_device()
                 if dishDevInfo.last_event_arrived is None:
                     executor.submit(self.subscribe_events, dishDevInfo)
@@ -58,9 +43,7 @@ class DishLNEventReceiver(EventReceiver):
             )
 
         except Exception as e:
-            log_msg = (
-                f"Event not working for device {dish_dev_proxy.dev_name}/{e}"
-            )
+            log_msg = f"Event not working for device {dish_dev_proxy.dev_name}/{e}"
             self._logger.exception(log_msg)
 
     def handle_dish_mode_event(self, event_flag: tango.EventData) -> None:

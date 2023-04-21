@@ -3,13 +3,9 @@ import logging
 from typing import List
 
 from ska_tmc_common.enum import LivelinessProbeType
-from ska_tmc_common.test_helpers.helper_adapter_factory import (
-    HelperAdapterFactory,
-)
+from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
 
-from ska_tmc_dishleafnode.manager.component_manager import (
-    DishLNComponentManager,
-)
+from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +39,7 @@ def event_remover(group_callback, attributes: List[str]) -> None:
     """Removes residual events from the queue."""
     for attribute in attributes:
         try:
-            iterable = group_callback._mock_consumer_group._views[
-                attribute
-            ]._iterable
+            iterable = group_callback._mock_consumer_group._views[attribute]._iterable
             for node in iterable:
                 logger.info("Payload is: %s", repr(node.payload))
                 node.drop()

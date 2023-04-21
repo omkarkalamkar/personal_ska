@@ -131,13 +131,8 @@ class Configure(DishLNCommand):
             ret_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, command_name, argin
             )
-            if (
-                current_dish_mode != DishMode.STOW
-                and ret_code == ResultCode.OK
-            ):
-                ret_code, message = self.invoke_track(
-                    current_dish_mode, ra_value, dec_value
-                )
+            if current_dish_mode != DishMode.STOW and ret_code == ResultCode.OK:
+                ret_code, message = self.invoke_track(current_dish_mode, ra_value, dec_value)
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -168,11 +163,13 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(current_dish_mode)
         if not result:
             self.logger.info(
-                f"Timeout occured while waiting for {current_dish_mode} dishMode in Configure Command."
+                f"""Timeout occured while waiting for
+                {current_dish_mode} dishMode in Configure Command."""
             )
             return (
                 ResultCode.FAILED,
-                f"Timeout occured while waiting for {current_dish_mode} dishMode in Configure Command.",
+                f"""Timeout occured while waiting for
+                {current_dish_mode} dishMode in Configure Command.""",
             )
 
         if current_dish_mode == DishMode.STANDBY_FP:

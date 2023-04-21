@@ -1,16 +1,12 @@
 """Track command class for Dishleafnode."""
 
-import datetime
 import threading
-import time
-from datetime import timezone
 from logging import Logger
 from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
