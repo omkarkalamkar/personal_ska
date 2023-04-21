@@ -1,5 +1,6 @@
-import pytest
 import time
+
+import pytest
 import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
