@@ -87,7 +87,7 @@ def configure_dish_leaf_node(
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    
+
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
         lookahead=6,
