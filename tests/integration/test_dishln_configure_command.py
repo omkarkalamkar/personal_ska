@@ -87,17 +87,18 @@ def configure_dish_leaf_node(
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
+    
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
         lookahead=6,
     )
 
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
 
-@pytest.mark.configureme
+
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_command(tango_context, group_callback, json_factory):
