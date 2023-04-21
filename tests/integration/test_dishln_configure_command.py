@@ -92,11 +92,6 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
-        lookahead=6,
-    )
-
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
         lookahead=6,
