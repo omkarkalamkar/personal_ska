@@ -19,11 +19,17 @@ def get_configure_input_str(
 
 def test_configure_command_completed(tango_context, task_callback, dish_master_device):
     cm = create_cm(dish_master_device)
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    cm.update_device_dish_mode(DishMode.STANDBY_LP)
+    cm.is_setstandbyfpmode_allowed()
+    cm.setstandbyfpmode(task_callback)
+    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
+    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
+    )
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
     cm.configure(configure_input_str, task_callback=task_callback)
-
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     task_callback.assert_against_call(
