@@ -76,10 +76,6 @@ def configure_dish_leaf_node(
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
-        lookahead=6,
-    )
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
@@ -95,6 +91,11 @@ def configure_dish_leaf_node(
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
         lookahead=6,
+    )
+
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
+        None,
+        lookahead=8,
     )
 
 
