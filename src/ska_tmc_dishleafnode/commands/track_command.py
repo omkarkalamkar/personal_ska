@@ -84,7 +84,7 @@ class Track(DishLNCommand):
 
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
-        self.track_on_dish = False
+        self.component_manager.track_on_dish = False
         self.component_manager.el_limit = True
         self.component_manager.event_track_time.clear()
 

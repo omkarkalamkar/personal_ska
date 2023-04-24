@@ -23,7 +23,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
-        self.track_on_dish = False
 
     def init_adapter(self):
         """Creates adapter for underlying Dish device."""

@@ -132,7 +132,9 @@ class Configure(DishLNCommand):
                 "Dish Master", self.dish_master_adapter, command_name, argin
             )
             if current_dish_mode != DishMode.STOW and ret_code == ResultCode.OK:
-                ret_code, message = self.invoke_track(current_dish_mode, ra_value, dec_value)
+                ret_code, message = self.start_dish_tracking(
+                    current_dish_mode, ra_value, dec_value
+                )
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -147,9 +149,24 @@ class Configure(DishLNCommand):
             )
         return ret_code, message
 
-    def invoke_track(self, current_dish_mode, ra_value, dec_value):
+    def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
         """Invoke Track after waiting for DishMode to Operate"""
         # Set wait for DishMode CONFIG
+        result = self.ensure_dish_is_configured(current_dish_mode)
+        if result:
+            return result
+        if current_dish_mode == DishMode.STANDBY_FP:
+            result = self.ensure_dish_in_right_dish_mode()
+            if result:
+                return result
+        # start tracking thread
+        self.start_tracking_thread(ra_value, dec_value)
+        return ResultCode.OK, ""
+
+    def ensure_dish_is_configured(self, current_dish_mode):
+        """This method check for the completion of configure command
+        :param current_dish_mode: str
+        """
         result = self.set_wait_for_dishmode(DishMode.CONFIG)
         if not result:
             self.logger.error(
@@ -164,37 +181,43 @@ class Configure(DishLNCommand):
         if not result:
             self.logger.error(
                 f"""Timeout occured while waiting for
-                {current_dish_mode} dishMode in Configure Command."""
+                        {current_dish_mode} dishMode in Configure Command."""
             )
             return (
                 ResultCode.FAILED,
                 f"""Timeout occured while waiting for
-                {current_dish_mode} dishMode in Configure Command.""",
+                        {current_dish_mode} dishMode in Configure Command.""",
             )
 
-        if current_dish_mode == DishMode.STANDBY_FP:
-            ret_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "SetOperateMode"
+    def ensure_dish_in_right_dish_mode(self):
+        """This method set dish to Operate Mode"""
+        ret_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "SetOperateMode"
+        )
+
+        if ret_code == ResultCode.FAILED:
+            return ret_code, message
+
+        result = self.set_wait_for_dishmode(DishMode.OPERATE)
+        if not result:
+            self.logger.error(
+                """Timeout occured while invoking the SetOperateMode
+                Command.
+                """
+            )
+            return (
+                ResultCode.FAILED,
+                """Timeout occured while invoking the SetOperateMode
+                Command.
+                """,
             )
 
-            if ret_code == ResultCode.FAILED:
-                return ret_code, message
-
-            result = self.set_wait_for_dishmode(DishMode.OPERATE)
-            if not result:
-                self.logger.error(
-                    """Timeout occured while invoking the SetOperateMode
-                    Command.
-                    """
-                )
-                return (
-                    ResultCode.FAILED,
-                    """Timeout occured while invoking the SetOperateMode
-                    Command.
-                    """,
-                )
-        # Call Track command
-        self.track_on_dish = False
+    def start_tracking_thread(self, ra_value, dec_value):
+        """
+        :param ra_value: Ra value
+        :param dec_value: Dec value
+        """
+        self.component_manager.track_on_dish = False
         self.component_manager.el_limit = True
         self.component_manager.event_track_time.clear()
         self.tracking_thread = threading.Thread(
@@ -207,4 +230,3 @@ class Configure(DishLNCommand):
         self.logger.info(
             f"Track command invoked successfully with ra {ra_value} and dec {dec_value}"
         )
-        return ResultCode.OK, ""

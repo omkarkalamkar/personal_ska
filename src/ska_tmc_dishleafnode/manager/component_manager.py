@@ -106,6 +106,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
         self.radec_value = ""
+        self._track_on_dish = False
 
         # Event Receiver
         if _event_receiver:
@@ -176,6 +177,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def pointingState(self) -> PointingState:
         """Returns the pointingState of dish master device"""
         return self._device.pointing_state
+
+    @property
+    def track_on_dish(self):
+        return self._track_on_dish
+
+    @track_on_dish.setter
+    def track_on_dish(self, value):
+        """Set Track on dish"""
+        with self.lock:
+            self._track_on_dish = value
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
@@ -643,11 +654,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.info("desiredPointing coordinates: %s", desired_pointing)
             command_obj.dish_master_adapter.desiredPointing = desired_pointing
             # In this loop invoke Track command on dish master only once
-            if command_obj.track_on_dish is False:
-                command_obj.call_adapter_method(
+            if self.track_on_dish is False:
+                ret_code, message = command_obj.call_adapter_method(
                     "Dish Master", command_obj.dish_master_adapter, "Track"
                 )
-                command_obj.track_on_dish = True
+                if ret_code == ResultCode.FAILED:
+                    self.logger.error(f"Track Invocation Failed {message}")
+                    break
+                self.track_on_dish = True
 
             self.logger.info("Observer: %s", self.observer)
 
