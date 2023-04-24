@@ -152,7 +152,7 @@ class Configure(DishLNCommand):
         # Set wait for DishMode CONFIG
         result = self.set_wait_for_dishmode(DishMode.CONFIG)
         if not result:
-            self.logger.info(
+            self.logger.error(
                 "Timeout occured while waiting for CONFIG dishMode in Configure Command."
             )
             return (
@@ -162,7 +162,7 @@ class Configure(DishLNCommand):
         # Set wait for initial Dish Mode
         result = self.set_wait_for_dishmode(current_dish_mode)
         if not result:
-            self.logger.info(
+            self.logger.error(
                 f"""Timeout occured while waiting for
                 {current_dish_mode} dishMode in Configure Command."""
             )
@@ -182,7 +182,7 @@ class Configure(DishLNCommand):
 
             result = self.set_wait_for_dishmode(DishMode.OPERATE)
             if not result:
-                self.logger.info(
+                self.logger.error(
                     """Timeout occured while invoking the SetOperateMode
                     Command.
                     """
