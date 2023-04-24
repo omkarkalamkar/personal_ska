@@ -152,13 +152,13 @@ class Configure(DishLNCommand):
     def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
         """Invoke Track after waiting for DishMode to Operate"""
         # Set wait for DishMode CONFIG
-        result = self.ensure_dish_is_configured(current_dish_mode)
-        if result:
-            return result
+        ret_code, msg = self.ensure_dish_is_configured(current_dish_mode)
+        if ret_code == ResultCode.FAILED:
+            return ret_code, msg
         if current_dish_mode == DishMode.STANDBY_FP:
-            result = self.ensure_dish_in_right_dish_mode()
-            if result:
-                return result
+            ret_code, msg = self.ensure_dish_in_right_dish_mode()
+            if ret_code == ResultCode.FAILED:
+                return ret_code, msg
         # start tracking thread
         self.start_tracking_thread(ra_value, dec_value)
         return ResultCode.OK, ""
@@ -188,6 +188,7 @@ class Configure(DishLNCommand):
                 f"""Timeout occured while waiting for
                         {current_dish_mode} dishMode in Configure Command.""",
             )
+        return ResultCode.OK, ""
 
     def ensure_dish_in_right_dish_mode(self):
         """This method set dish to Operate Mode"""
@@ -211,6 +212,7 @@ class Configure(DishLNCommand):
                 Command.
                 """,
             )
+        return ResultCode.OK, ""
 
     def start_tracking_thread(self, ra_value, dec_value):
         """

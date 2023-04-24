@@ -180,6 +180,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @property
     def track_on_dish(self):
+        """Return track_on_dish
+        """
         return self._track_on_dish
 
     @track_on_dish.setter
