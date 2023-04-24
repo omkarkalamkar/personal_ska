@@ -82,9 +82,14 @@ class Track(DishLNCommand):
         if return_code == ResultCode.FAILED:
             return return_code, message
 
+        return_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "Track"
+        )
+        if return_code == ResultCode.FAILED:
+            return return_code, message
+
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
-        self.component_manager.track_on_dish = False
         self.component_manager.el_limit = True
         self.component_manager.event_track_time.clear()
 

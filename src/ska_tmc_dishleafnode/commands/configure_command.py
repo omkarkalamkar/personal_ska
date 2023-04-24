@@ -160,8 +160,8 @@ class Configure(DishLNCommand):
             if ret_code == ResultCode.FAILED:
                 return ret_code, msg
         # start tracking thread
-        self.start_tracking_thread(ra_value, dec_value)
-        return ResultCode.OK, ""
+        ret_code, msg = self.start_tracking_thread(ra_value, dec_value)
+        return ret_code, msg
 
     def ensure_dish_is_configured(self, current_dish_mode):
         """This method check for the completion of configure command
@@ -215,11 +215,18 @@ class Configure(DishLNCommand):
         return ResultCode.OK, ""
 
     def start_tracking_thread(self, ra_value, dec_value):
-        """
+        """Invoke Track command and start tracking thread
         :param ra_value: Ra value
         :param dec_value: Dec value
         """
-        self.component_manager.track_on_dish = False
+        ret_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "Track"
+        )
+        if ret_code == ResultCode.FAILED:
+            self.logger.error(f"Track Invocation Failed {message}")
+            return ret_code, message
+
+        # start tracking thread
         self.component_manager.el_limit = True
         self.component_manager.event_track_time.clear()
         self.tracking_thread = threading.Thread(
@@ -232,3 +239,4 @@ class Configure(DishLNCommand):
         self.logger.info(
             f"Track command invoked successfully with ra {ra_value} and dec {dec_value}"
         )
+        return ret_code, message
