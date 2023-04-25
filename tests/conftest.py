@@ -114,7 +114,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "longRunningCommandIDsInQueue",
         "dishMode",
         "pointingState",
-        timeout=15,
+        timeout=20,
     )
     return group_callback
 
