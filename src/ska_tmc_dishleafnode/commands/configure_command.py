@@ -84,7 +84,7 @@ class Configure(DishLNCommand):
                 "dish key is not present in the input json argument.",
             )
 
-        if "receiverBand" not in input_argin["dish"]:
+        if "receiver_band" not in input_argin["dish"]:
             return self.generate_command_result(
                 ResultCode.FAILED,
                 "receiverBand key is not present in the input json argument.",
@@ -104,9 +104,9 @@ class Configure(DishLNCommand):
                 Example:
                 {"pointing":{"target":{"system":"ICRS",
                 "name":"Polaris Australis",
-                "RA":"21:08:47.92",
+                "ra":"21:08:47.92",
                 "dec":"-88:57:22.9"}},
-                "dish":{"receiverBand":"1"}}
+                "dish":{"receiver_band":"1"}}
 
         return:
             None
@@ -123,8 +123,8 @@ class Configure(DishLNCommand):
                 return ret_code, message
 
             json_argument = json.loads(argin)
-            receiver_band = json_argument["dish"]["receiverBand"]
-            ra_value = json_argument["pointing"]["target"]["RA"]
+            receiver_band = json_argument["dish"]["receiver_band"]
+            ra_value = json_argument["pointing"]["target"]["ra"]
             dec_value = json_argument["pointing"]["target"]["dec"]
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
