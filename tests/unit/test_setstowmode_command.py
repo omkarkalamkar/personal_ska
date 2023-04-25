@@ -12,12 +12,8 @@ def test_setstowmode_command(tango_context, dish_master_device, task_callback):
     assert cm.is_setstowmode_allowed()
 
     cm.setstowmode(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
+    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
+    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -29,15 +25,9 @@ def test_setstowmode_command_adapter_none(dish_master_device, task_callback):
     assert cm.is_setstowmode_allowed()
 
     cm.setstowmode(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
-    )
+    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
+    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
 
 
 def test_setstowmode_command_not_allowed(tango_context, dish_master_device):

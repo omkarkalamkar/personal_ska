@@ -4,12 +4,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 
-from tests.settings import (
-    DISH_LEAF_NODE_DEVICE,
-    DISH_MASTER_DEVICE,
-    event_remover,
-    logger,
-)
+from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
 
 
 def setoperatemode_command(tango_context, dishln_name, group_callback):
@@ -79,6 +74,4 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_setoperatemode_command(tango_context, group_callback):
-    setoperatemode_command(
-        tango_context, DISH_LEAF_NODE_DEVICE, group_callback
-    )
+    setoperatemode_command(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)

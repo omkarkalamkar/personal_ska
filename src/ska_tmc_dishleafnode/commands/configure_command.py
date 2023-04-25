@@ -8,6 +8,7 @@ from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
@@ -123,10 +124,17 @@ class Configure(DishLNCommand):
 
             json_argument = json.loads(argin)
             receiver_band = json_argument["dish"]["receiverBand"]
+            ra_value = json_argument["pointing"]["target"]["RA"]
+            dec_value = json_argument["pointing"]["target"]["dec"]
+            current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             ret_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, command_name, argin
             )
+            if current_dish_mode != DishMode.STOW and ret_code == ResultCode.OK:
+                ret_code, message = self.start_dish_tracking(
+                    current_dish_mode, ra_value, dec_value
+                )
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -139,4 +147,96 @@ class Configure(DishLNCommand):
                 The command has NOT been executed.
                 This device will continue with normal operation.""",
             )
+        return ret_code, message
+
+    def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
+        """Invoke Track after waiting for DishMode to Operate"""
+        # Set wait for DishMode CONFIG
+        ret_code, msg = self.ensure_dish_is_configured(current_dish_mode)
+        if ret_code == ResultCode.FAILED:
+            return ret_code, msg
+        if current_dish_mode == DishMode.STANDBY_FP:
+            ret_code, msg = self.ensure_dish_in_right_dish_mode()
+            if ret_code == ResultCode.FAILED:
+                return ret_code, msg
+        # start tracking thread
+        ret_code, msg = self.start_tracking_thread(ra_value, dec_value)
+        return ret_code, msg
+
+    def ensure_dish_is_configured(self, current_dish_mode):
+        """This method check for the completion of configure command
+        :param current_dish_mode: str
+        """
+        result = self.set_wait_for_dishmode(DishMode.CONFIG)
+        if not result:
+            self.logger.error(
+                "Timeout occured while waiting for CONFIG dishMode in Configure Command."
+            )
+            return (
+                ResultCode.FAILED,
+                "Timeout occured while waiting for CONFIG dishMode in Configure Command.",
+            )
+        # Set wait for initial Dish Mode
+        result = self.set_wait_for_dishmode(current_dish_mode)
+        if not result:
+            self.logger.error(
+                f"""Timeout occured while waiting for
+                        {current_dish_mode} dishMode in Configure Command."""
+            )
+            return (
+                ResultCode.FAILED,
+                f"""Timeout occured while waiting for
+                        {current_dish_mode} dishMode in Configure Command.""",
+            )
+        return ResultCode.OK, ""
+
+    def ensure_dish_in_right_dish_mode(self):
+        """This method set dish to Operate Mode"""
+        ret_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "SetOperateMode"
+        )
+
+        if ret_code == ResultCode.FAILED:
+            return ret_code, message
+
+        result = self.set_wait_for_dishmode(DishMode.OPERATE)
+        if not result:
+            self.logger.error(
+                """Timeout occured while invoking the SetOperateMode
+                Command.
+                """
+            )
+            return (
+                ResultCode.FAILED,
+                """Timeout occured while invoking the SetOperateMode
+                Command.
+                """,
+            )
+        return ResultCode.OK, ""
+
+    def start_tracking_thread(self, ra_value, dec_value):
+        """Invoke Track command and start tracking thread
+        :param ra_value: Ra value
+        :param dec_value: Dec value
+        """
+        ret_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "Track"
+        )
+        if ret_code == ResultCode.FAILED:
+            self.logger.error(f"Track Invocation Failed {message}")
+            return ret_code, message
+
+        # start tracking thread
+        self.component_manager.el_limit = True
+        self.component_manager.event_track_time.clear()
+        self.tracking_thread = threading.Thread(
+            None,
+            self.component_manager.track_thread,
+            "DishLeafNode",
+            args=(ra_value, dec_value, self),
+        )
+        self.tracking_thread.start()
+        self.logger.info(
+            f"Track command invoked successfully with ra {ra_value} and dec {dec_value}"
+        )
         return ret_code, message

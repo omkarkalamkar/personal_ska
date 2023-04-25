@@ -18,7 +18,7 @@ MARK ?= ## What -m opt to pass to pytest
 # run one test with FILE=acceptance/test_subarray_node.py::test_check_internal_model_according_to_the_tango_ecosystem_deployed
 FILE ?= tests## A specific test file to pass to pytest
 ADD_ARGS ?= ## Additional args to pass to pytest
-
+PYTHON_LINE_LENGTH=99
 # KUBE_NAMESPACE defines the Kubernetes Namespace that will be deployed to
 # using Helm.  If this does not already exist it will be created
 KUBE_NAMESPACE ?= ska-tmc-dishleafnode
@@ -33,8 +33,9 @@ HELM_CHART=test-parent
 UMBRELLA_CHART_PATH ?= charts/$(HELM_CHART)/
 K8S_CHARTS ?= ska-tmc-dishleafnode test-parent## list of charts
 K8S_CHART ?= $(HELM_CHART)
+PYTHON_SWITCHES_FOR_ISORT ?=
 
-TEST_VERSION ?= 0.2.2
+TEST_VERSION ?= 0.3.0
 CI_REGISTRY ?= gitlab.com
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)
 K8S_TEST_IMAGE_TO_TEST=$(CAR_OCI_REGISTRY_HOST)/$(PROJECT):$(VERSION)

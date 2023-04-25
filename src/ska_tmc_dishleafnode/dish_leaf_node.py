@@ -36,9 +36,7 @@ class DishLeafNode(SKABaseDevice):
     # -----------------
     # Device Properties
     # -----------------
-    DishMasterFQDN = device_property(
-        dtype="str", doc="FQDN of Dish Master Device"
-    )
+    DishMasterFQDN = device_property(dtype="str", doc="FQDN of Dish Master Device")
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
     CommandTimeOut = device_property(dtype="DevFloat", default_value=15)
@@ -490,9 +488,7 @@ class DishLeafNode(SKABaseDevice):
                 ),
             )
 
-        self.register_command_object(
-            "Abort", Abort(self.component_manager, logger=self.logger)
-        )
+        self.register_command_object("Abort", Abort(self.component_manager, logger=self.logger))
 
 
 # ----------

@@ -8,12 +8,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
-from tests.settings import (
-    DISH_LEAF_NODE_DEVICE,
-    DISH_MASTER_DEVICE,
-    event_remover,
-    logger,
-)
+from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
 
 
 def track_dish_leaf_node(
@@ -66,12 +61,8 @@ def track_dish_leaf_node(
 
     result_config, unique_id_config = dish_leaf_node.Track(track_input_str)
     assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("Track",)
-    )
-    logger.info(
-        f"Command ID: {unique_id_config} Returned result: {result_config}"
-    )
+    group_callback["longRunningCommandsInQueue"].assert_change_event(("Track",))
+    logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),

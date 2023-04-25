@@ -15,14 +15,10 @@ def test_pointing_calculations():
     timestamp = "2019-02-19 06:01:00"
     dish_dev_name = "ska001/dish/master"
     logger = logging.getLogger(__name__)
-    component_manager = DishLNComponentManager(
-        logger=logger, dish_dev_name=dish_dev_name
-    )
+    component_manager = DishLNComponentManager(logger=logger, dish_dev_name=dish_dev_name)
     pointing_calc = AzElConverter(component_manager)
     pointing_calc.create_antenna_obj()
     azel = pointing_calc.point(ra, dec, timestamp)
     dish_helper = DishHelper()
-    azimuth = dish_helper.dd_to_dms(
-        azel[0]
-    )  # azel[0] is an Azimuth value in degree
+    azimuth = dish_helper.dd_to_dms(azel[0])  # azel[0] is an Azimuth value in degree
     assert azimuth == "0:27:23.1737"

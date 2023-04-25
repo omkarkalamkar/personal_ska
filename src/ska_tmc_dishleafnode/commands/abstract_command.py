@@ -23,7 +23,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
-        self.track_on_dish = False
 
     def init_adapter(self):
         """Creates adapter for underlying Dish device."""
@@ -34,10 +33,8 @@ class DishLNCommand(TmcLeafNodeCommand):
 
         while self.dish_master_adapter is None and elapsed_time <= timeout:
             try:
-                self.dish_master_adapter = (
-                    self._adapter_factory.get_or_create_adapter(
-                        dev_name, AdapterType.DISH
-                    )
+                self.dish_master_adapter = self._adapter_factory.get_or_create_adapter(
+                    dev_name, AdapterType.DISH
                 )
                 self.logger.info("Adapter created successfully")
             except ConnectionFailed as cf:
@@ -71,7 +68,5 @@ class DishLNCommand(TmcLeafNodeCommand):
             if self.component_manager.dishMode == dishmode:
                 return True
             elapsed_time = time.time() - start_time
-        self.logger.info(
-            "Current Dishmode is %s", self.component_manager.dishMode
-        )
+        self.logger.info("Current Dishmode is %s", self.component_manager.dishMode)
         return False

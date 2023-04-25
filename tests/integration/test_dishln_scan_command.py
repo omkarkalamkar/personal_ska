@@ -88,9 +88,7 @@ def scan_command(tango_context, dishln_name, group_callback):
     assert result_op[0] == ResultCode.QUEUED
 
 
-@pytest.mark.xfail(
-    reason="Scan command is not implemented yet (18.1) in dish helper device"
-)
+@pytest.mark.xfail(reason="Scan command is not implemented yet (18.1) in dish helper device")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_scan_command(tango_context, group_callback):

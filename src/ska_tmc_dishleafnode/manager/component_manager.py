@@ -1,11 +1,13 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+import datetime
 import json
 import threading
 
 # pylint: disable=W0222
 import time
+from datetime import timezone
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
@@ -17,6 +19,7 @@ from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
+from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.off_command import Off
 from ska_tmc_dishleafnode.commands.scan_command import Scan
@@ -92,9 +95,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
-        self.dish_id = (
-            dish_dev_name.split("/")[0].upper() if dish_dev_name else None
-        )
+        self.dish_id = dish_dev_name.split("/")[0].upper() if dish_dev_name else None
         self.observer = None
         self.dish_number = None
         self.observer = None
@@ -197,9 +198,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def off(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def off(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the Off command for execution.
 
         :rtype: Tuple
@@ -212,9 +211,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Off command queued for execution")
         return task_status, response
 
-    def setstandbyfpmode(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def setstandbyfpmode(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """
         Initializes the attributes and properties of the DishLeafNode.
         :return:
@@ -229,9 +226,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStandbyFPMode command queued for execution")
         return task_status, response
 
-    def setstandbylpmode(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def setstandbylpmode(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
         :rtype: Tuple
@@ -244,9 +239,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStandbyLPMode command queued for execution")
         return task_status, response
 
-    def setstowmode(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def setstowmode(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the SetStowMode command for execution.
 
         :rtype: Tuple
@@ -259,9 +252,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
-    def scan(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def scan(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
         :rtype: Tuple
@@ -288,7 +279,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The invocation of the Track command on this"
             + "device is not allowed."
             + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
+            + f"{self.dishMode} and poiniting state : {self.pointingState}"
             + "The command has NOT been executed."
             + "This device will continue with normal operation."
         )
@@ -303,18 +294,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             input_json = json.loads(argin)
         except json.JSONDecodeError as e:
-            self.logger.exception(
-                "Exception occured while loading the input json: %s", e
-            )
+            self.logger.exception("Exception occured while loading the input json: %s", e)
             return (
                 ResultCode.FAILED,
                 f"Error while loading the input json: {e}",
             )
 
         # validate the JSON argument
-        validation_result = self.track_command.validate_json_argument(
-            input_json
-        )
+        validation_result = self.track_command.validate_json_argument(input_json)
         if validation_result[0] != ResultCode.OK:
             return validation_result
 
@@ -345,9 +332,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def trackstop(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def trackstop(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the TrackStop command for execution.
 
         :rtype: Tuple
@@ -360,9 +345,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("TrackStop command queued for execution")
         return task_status, response
 
-    def setoperatemode(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def setoperatemode(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
         :rtype: Tuple
@@ -375,9 +358,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def configure(
-        self, argin: str, task_callback: Optional[Callable] = None
-    ) -> tuple:
+    def configure(self, argin: str, task_callback: Optional[Callable] = None) -> tuple:
         """
         Submit the Configure command in queue.
 
@@ -386,18 +367,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             input_json = json.loads(argin)
         except Exception as e:
-            self.logger.exception(
-                "Exception occured while loading the input json: %s", e
-            )
+            self.logger.exception("Exception occured while loading the input json: %s", e)
             return (
                 ResultCode.FAILED,
                 f"Error while loading the input json: {e}",
             )
 
         # validate the JSON argument
-        validation_result = self.configure_command.validate_json_argument(
-            input_json
-        )
+        validation_result = self.configure_command.validate_json_argument(input_json)
         if validation_result[0] != ResultCode.OK:
             return validation_result
 
@@ -583,9 +560,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def update_device_pointing_state(
-        self, pointingState: PointingState
-    ) -> None:
+    def update_device_pointing_state(self, pointingState: PointingState) -> None:
         """
         Update the pointing state of the given dish and call
         the relative callbacks if available.
@@ -622,4 +597,71 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # TO DO: DishMode/s & pointing state/s decision
 
         self.check_device_responsive()
+        return True
+
+    def track_thread(self, ra_value, dec_value, command_obj):
+        """This thread writes az-el coordinates to desiredPointing
+        on DishMaster at the rate of 20 Hz.
+        """
+        self.logger.info(
+            f"print track_thread thread name:{threading.current_thread().name}"
+            f"{threading.get_ident()}"
+        )
+        azel_converter = AzElConverter(self)
+        azel_converter.create_antenna_obj()
+
+        while self.event_track_time.is_set() is False:
+            now = datetime.datetime.utcnow()
+            timestamp = str(now)
+            utc_time = now.replace(tzinfo=timezone.utc)
+            utc_timestamp = utc_time.timestamp()
+            az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
+
+            if not self._is_elevation_within_mechanical_limits(el_value):
+                time.sleep(0.05)
+                continue
+
+            if az_value < 0:
+                az_value = 360 - abs(az_value)
+
+            if self.event_track_time.is_set():
+                log_message = (
+                    "Stop the Thread as event track time is set: "
+                    f"{self.event_track_time.is_set()}"
+                )
+                self.logger.debug(log_message)
+                break
+
+            # utc_timestamp is the time used for AzEl calculation.
+            # For the timestamp to be a future timestamp
+            # on DishMaster, 100 ms are added to it.
+            desired_pointing = [
+                (utc_timestamp * 1000) + 100,
+                round(az_value, 12),
+                round(el_value, 12),
+            ]
+            self.logger.info("desiredPointing coordinates: %s", desired_pointing)
+            command_obj.dish_master_adapter.desiredPointing = desired_pointing
+
+            self.logger.info("Observer: %s", self.observer)
+
+            time.sleep(0.05)
+
+    def _is_elevation_within_mechanical_limits(self, el_value):
+        """Check if elevation is within mechanical limit
+        Args:
+            el_value: string
+        Return:
+            bool
+        """
+
+        if not self.elevation_min_limit <= el_value <= self.elevation_max_limit:
+            self.el_limit = True
+            log_message = "Minimum/maximum elevation limit has been reached."
+            self.logger.info(log_message)
+            log_message = "Source is not visible currently."
+            self.logger.info(log_message)
+            return False
+
+        self.el_limit = False
         return True
