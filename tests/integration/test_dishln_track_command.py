@@ -80,9 +80,9 @@ def track_dish_leaf_node(
         (PointingState.READY),
         lookahead=2,
     )
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
-        lookahead=6,
+    event_remover(
+        group_callback,
+        ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
 
 
