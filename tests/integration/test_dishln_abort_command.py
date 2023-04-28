@@ -94,6 +94,8 @@ def abort_when_configured(
     result_config, unique_id_config = dish_leaf_node.Abort()
     logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
 
+    assert result_config == ResultCode.OK
+
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
         lookahead=6,
@@ -108,7 +110,7 @@ def test_abort_command(tango_context, group_callback):
         group_callback,
     )
 
-
+@pytest.mark.aki
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_when_configure(tango_context, group_callback, json_factory):
