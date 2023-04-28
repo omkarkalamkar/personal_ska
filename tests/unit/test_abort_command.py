@@ -14,6 +14,7 @@ def test_abort_command(tango_context):
     result_code, _ = abort_command.do()
     assert result_code == ResultCode.OK
 
+
 def test_abort_command_fail_check_allowed_with_device_unresponsive(
     tango_context,
 ):
