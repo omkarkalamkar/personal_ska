@@ -72,4 +72,4 @@ class Abort(DishLNCommand, FastCommand):
             else:
                 self.logger.info("TrackStop command invoked successfully.")
             return result_code, message
-        return ResultCode.OK
+        return ResultCode.OK, ""
