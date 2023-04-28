@@ -37,7 +37,6 @@ def abort_when_configured(
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,

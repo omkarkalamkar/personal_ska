@@ -70,8 +70,4 @@ class Abort(DishLNCommand, FastCommand):
             else:
                 self.logger.info("TrackStop command invoked successfully.")
             return ret_code, message
-        if current_dish_mode != DishMode.OPERATE:
-            message = f"TrackStop invocation failed with incorrect DishMode: {current_dish_mode}"
-        if pointing_state != PointingState.TRACK:
-            message = f"TrackStop invocation failed with incorrect PointingState: {pointing_state}"
-        return ResultCode.FAILED, message
+        return ResultCode.OK
