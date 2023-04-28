@@ -49,8 +49,10 @@ class Abort(DishLNCommand, FastCommand):
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Abort"
         )
+        if result_code == ResultCode.FAILED:
+            return result_code, message
         # call stop_dish_tracking to invoke track stop command
-        self.stop_dish_tracking()
+        result_code, message = self.stop_dish_tracking()
 
         self.logger.info("Abort command invoked successfully.")
         return result_code, message
