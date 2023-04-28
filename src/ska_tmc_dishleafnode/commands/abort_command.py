@@ -51,25 +51,17 @@ class Abort(DishLNCommand, FastCommand):
         )
         if result_code == ResultCode.FAILED:
             return result_code, message
-        # call stop_dish_tracking to invoke track stop command
-        result_code, message = self.stop_dish_tracking()
+        # call stop_tracking_thread to stop live thread
+        self.stop_tracking_thread()
 
         self.logger.info("Abort command invoked successfully.")
         return result_code, message
 
-    def stop_dish_tracking(self):
+    def stop_tracking_thread(self):
         """Method to invoke track stop when abort command is invoked"""
-        self.component_manager.event_track_time.set()
         current_dish_mode = self.component_manager.dishMode
         pointing_state = self.component_manager.pointingState
-        # Check whether DishMode is Operate and Pointing State is track before calling track stop.
+        # Check whether DishMode is Operate and Pointing State is track
+        # before stopping the live thread.
         if current_dish_mode == DishMode.OPERATE and pointing_state == PointingState.TRACK:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "TrackStop"
-            )
-            if result_code == ResultCode.FAILED:
-                self.logger.error(f"TrackStop Invocation Failed {message}")
-            else:
-                self.logger.info("TrackStop command invoked successfully.")
-            return result_code, message
-        return ResultCode.OK, ""
+            self.component_manager.event_track_time.set()

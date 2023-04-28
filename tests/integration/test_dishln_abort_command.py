@@ -91,6 +91,7 @@ def abort_when_configured(
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
+
     result_config, unique_id_config = dish_leaf_node.Abort()
     logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
 
