@@ -72,7 +72,7 @@ def call_command(
         )
         group_callback["dishMode"].assert_change_event(
             (dishMode),
-            lookahead=2,
+            lookahead=4,
         )
         if command_name == "Configure":
             configure_string = json_factory("dishleafnode_configure")

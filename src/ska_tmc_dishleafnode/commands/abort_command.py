@@ -4,6 +4,7 @@ Abort command class for DishLeafNode.
 from typing import Tuple
 
 from ska_tango_base.commands import FastCommand, ResultCode
+from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
@@ -40,13 +41,27 @@ class Abort(DishLNCommand, FastCommand):
 
         """
 
-        ret_code, message = self.init_adapter()
+        result_code, message = self.init_adapter()
 
-        if ret_code == ResultCode.FAILED:
-            return ret_code, message
+        if result_code == ResultCode.FAILED:
+            return result_code, message
 
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Abort"
         )
+        if result_code == ResultCode.FAILED:
+            return result_code, message
+        # call stop_tracking_thread to stop live thread
+        result_code, message = self.stop_dish_tracking()
+
         self.logger.info("Abort command invoked successfully.")
         return result_code, message
+
+    def stop_dish_tracking(self):
+        """Method to invoke track stop when abort command is invoked"""
+        self.component_manager.event_track_time.set()
+        pointing_state = self.component_manager.pointingState
+        # Check Pointing State is track before calling track stop.
+        if pointing_state == PointingState.TRACK:
+            return self.call_adapter_method("Dish Master", self.dish_master_adapter, "TrackStop")
+        return ResultCode.OK, ""
