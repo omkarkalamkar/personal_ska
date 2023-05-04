@@ -63,7 +63,5 @@ class Abort(DishLNCommand, FastCommand):
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state == PointingState.TRACK:
-            return self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "TrackStop"
-            )
+            return self.call_adapter_method("Dish Master", self.dish_master_adapter, "TrackStop")
         return ResultCode.OK, ""
