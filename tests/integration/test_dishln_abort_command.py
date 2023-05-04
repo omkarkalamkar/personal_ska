@@ -92,10 +92,10 @@ def abort_when_configured(
         lookahead=6,
     )
 
-    result_config, unique_id_config = dish_leaf_node.Abort()
-    logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
+    result_abort, unique_id_abort = dish_leaf_node.Abort()
+    logger.info(f"Command ID: {unique_id_abort} Returned result: {result_abort}")
 
-    assert result_config == ResultCode.OK
+    assert result_abort == ResultCode.OK
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
