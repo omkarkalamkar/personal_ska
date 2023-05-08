@@ -728,7 +728,7 @@ testutils = ["gitpython (>3)"]
 
 [[package]]
 name = "pylint-junit"
-version = "0.3.3"
+version = "0.3.2"
 description = "pylint reporter for junit format."
 category = "dev"
 optional = false
