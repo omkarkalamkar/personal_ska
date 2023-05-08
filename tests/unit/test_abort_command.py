@@ -2,7 +2,7 @@ import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.exceptions import DeviceUnresponsive
 
-from ska_tmc_dishleafnode.commands.abort_command import Abort
+from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
 from tests.settings import DISH_MASTER_DEVICE, create_cm, logger
 
 

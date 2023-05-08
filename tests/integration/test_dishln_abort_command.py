@@ -102,7 +102,7 @@ def abort_when_configured(
         lookahead=6,
     )
 
-
+@pytest.mark.aki
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_command(tango_context, group_callback):
