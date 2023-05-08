@@ -74,18 +74,18 @@ class Configure(DishLNCommand):
         """Validates the json argument"""
 
         if "pointing" not in input_argin:
-            return self.generate_command_result(
+            return (
                 ResultCode.FAILED,
                 "pointing key is not present in the input json argument.",
             )
         if "dish" not in input_argin:
-            return self.generate_command_result(
+            return (
                 ResultCode.FAILED,
                 "dish key is not present in the input json argument.",
             )
 
         if "receiver_band" not in input_argin["dish"]:
-            return self.generate_command_result(
+            return (
                 ResultCode.FAILED,
                 "receiverBand key is not present in the input json argument.",
             )
@@ -138,7 +138,7 @@ class Configure(DishLNCommand):
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
-            return self.generate_command_result(
+            return (
                 ResultCode.FAILED,
                 f"""The invocation of the Configure command is failed
                 on Dish Master Device {self.dish_master_adapter.dev_name}.
