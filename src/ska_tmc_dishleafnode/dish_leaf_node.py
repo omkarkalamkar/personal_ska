@@ -4,10 +4,10 @@
 
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
+from ska_tmc_common.enum import LivelinessProbeType
 from tango import AttrWriteType, DebugIt
 from tango.server import attribute, command, device_property, run
 
-from ska_tmc_common.enum import LivelinessProbeType
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
 from ska_tmc_dishleafnode.manager import DishLNComponentManager

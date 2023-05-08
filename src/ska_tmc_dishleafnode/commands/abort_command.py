@@ -4,8 +4,8 @@ Abort command class for DishLeafNode.
 from typing import Tuple
 
 from ska_tango_base.commands import FastCommand, ResultCode
-
 from ska_tmc_common.enum import PointingState
+
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
