@@ -1,9 +1,9 @@
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
+
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
-
 from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
 
 
@@ -19,7 +19,7 @@ def abort_on_dish_leaf_node(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
-    result_fp, _ = dish_leaf_node.Abort()
+    result_fp, _ = dish_leaf_node.AbortCommands()
     assert result_fp[0] == ResultCode.OK
 
 
@@ -92,7 +92,7 @@ def abort_when_configured(
         lookahead=6,
     )
 
-    result_abort, unique_id_abort = dish_leaf_node.Abort()
+    result_abort, unique_id_abort = dish_leaf_node.AbortCommands()
     logger.info(f"Command ID: {unique_id_abort} Returned result: {result_abort}")
 
     assert result_abort == ResultCode.OK
@@ -112,6 +112,7 @@ def test_abort_command(tango_context, group_callback):
     )
 
 
+@pytest.mark.aki
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_when_configure(tango_context, group_callback, json_factory):
