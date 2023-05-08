@@ -103,7 +103,6 @@ def abort_when_configured(
     )
 
 
-@pytest.mark.aki
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_command(tango_context, group_callback):
@@ -113,7 +112,6 @@ def test_abort_command(tango_context, group_callback):
     )
 
 
-@pytest.mark.aki
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_when_configure(tango_context, group_callback, json_factory):
