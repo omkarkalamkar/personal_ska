@@ -32,7 +32,9 @@ def test_off_command_in_fp(tango_context, dish_master_device, task_callback):
     cm.off(task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.OK)
+    task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, result=ResultCode.OK, lookahead=6
+    )
 
 
 @pytest.mark.off
@@ -44,7 +46,9 @@ def test_off_command_adapter_none(dish_master_device, task_callback):
     cm.off(task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
+    task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, result=ResultCode.FAILED, lookahead=6
+    )
 
 
 @pytest.mark.off
