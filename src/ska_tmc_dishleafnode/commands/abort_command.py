@@ -1,5 +1,5 @@
 """
-Abort command class for DishLeafNode.
+AbortCommands command class for DishLeafNode.
 """
 from typing import Tuple
 
