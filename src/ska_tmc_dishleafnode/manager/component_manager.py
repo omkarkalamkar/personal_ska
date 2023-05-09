@@ -580,7 +580,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             0
         ].upper()  # station names in the layout json are in capital
 
-    def is_abort_allowed(self) -> bool:
+    def is_abortcommands_allowed(self) -> bool:
         """
         Checks whether this command is allowed
         It checks that the device is in the right state
@@ -592,7 +592,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: boolean
         """
 
-        # dish manager allows abort in all the dish modes
+        # dish manager allows abortcommands in all the dish modes
         # and pointing states
         # TO DO: DishMode/s & pointing state/s decision
 

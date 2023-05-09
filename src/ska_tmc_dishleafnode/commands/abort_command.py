@@ -1,5 +1,5 @@
 """
-Abort command class for DishLeafNode.
+AbortCommands command class for DishLeafNode.
 """
 from typing import Tuple
 
@@ -9,9 +9,9 @@ from ska_tmc_common.enum import PointingState
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 
 
-class Abort(DishLNCommand, FastCommand):
+class AbortCommands(DishLNCommand, FastCommand):
     """
-    A class for DishLeafNode's Abort() command.
+    A class for DishLeafNode's AbortCommands() command.
     Command to abort the Dish Master and bring it to its ABORTED state.
     """
 
@@ -47,18 +47,18 @@ class Abort(DishLNCommand, FastCommand):
             return result_code, message
 
         result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "Abort"
+            "Dish Master", self.dish_master_adapter, "AbortCommands"
         )
         if result_code == ResultCode.FAILED:
             return result_code, message
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
 
-        self.logger.info("Abort command invoked successfully.")
+        self.logger.info("AbortCommands command invoked successfully.")
         return result_code, message
 
     def stop_dish_tracking(self):
-        """Method to invoke track stop when abort command is invoked"""
+        """Method to invoke track stop when abortcommands command is invoked"""
         self.component_manager.event_track_time.set()
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.

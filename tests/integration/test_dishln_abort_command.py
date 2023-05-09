@@ -19,7 +19,7 @@ def abort_on_dish_leaf_node(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
-    result_fp, _ = dish_leaf_node.Abort()
+    result_fp, _ = dish_leaf_node.AbortCommands()
     assert result_fp[0] == ResultCode.OK
 
 
@@ -92,7 +92,7 @@ def abort_when_configured(
         lookahead=6,
     )
 
-    result_abort, unique_id_abort = dish_leaf_node.Abort()
+    result_abort, unique_id_abort = dish_leaf_node.AbortCommands()
     logger.info(f"Command ID: {unique_id_abort} Returned result: {result_abort}")
 
     assert result_abort == ResultCode.OK

@@ -9,7 +9,7 @@ from tango import AttrWriteType, DebugIt
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
-from ska_tmc_dishleafnode.commands.abort_command import Abort
+from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -380,7 +380,7 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_trackstop_allowed()
 
-    def is_Abort_allowed(self):
+    def is_AbortCommands_allowed(self):
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -390,14 +390,14 @@ class DishLeafNode(SKABaseDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_abort_allowed()
+        return self.component_manager.is_abortcommands_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def Abort(self):
-        """Invokes Abort command on the DishMaster."""
+    def AbortCommands(self):
+        """Invokes AbortCommands command on the DishMaster."""
 
-        handler = self.get_command_object("Abort")
+        handler = self.get_command_object("AbortCommands")
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
@@ -488,7 +488,9 @@ class DishLeafNode(SKABaseDevice):
                 ),
             )
 
-        self.register_command_object("Abort", Abort(self.component_manager, logger=self.logger))
+        self.register_command_object(
+            "AbortCommands", AbortCommands(self.component_manager, logger=self.logger)
+        )
 
 
 # ----------

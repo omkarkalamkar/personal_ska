@@ -40,20 +40,20 @@ class DishLNCommand(TmcLeafNodeCommand):
             except ConnectionFailed as cf:
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
-                    return self.adapter_error_message_result(
+                    return (
                         self.component_manager.dish_dev_name,
                         cf,
                     )
             except DevFailed as df:
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
-                    return self.adapter_error_message_result(
+                    return (
                         self.component_manager.dish_dev_name,
                         df,
                     )
 
             except Exception as e:
-                return self.adapter_error_message_result(
+                return (
                     self.component_manager.dish_dev_name,
                     e,
                 )
