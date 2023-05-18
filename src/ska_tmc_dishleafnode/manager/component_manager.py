@@ -58,6 +58,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
+        _update_availablity_callback: Optional[Callable] = None,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -111,6 +112,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
+
+        self.update_availablity_callback = _update_availablity_callback
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -665,3 +668,35 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.el_limit = False
         return True
+
+    # def device_failed(self, device_info, exception):
+    #     """
+    #     Set a device to failed and call the relative callback if available
+
+    #     :param device_info: a device info
+    #     :type device_info: DeviceInfo
+    #     :param exception: an exception
+    #     :type: Exception
+    #     """
+    #     self.logger.info("Inside device_failed  ")
+    #     device_info.update_unresponsive(True, exception)
+
+    #     with self.lock:
+    #         if self._update_availablity_callback is not None:
+    #             self._update_availablity_callback(False)
+
+    # def update_ping_info(self, ping, dev_name):
+    #     """
+    #     Update a device with correct ping information.
+
+    #     :param dev_name: name of the device
+    #     :type dev_name: str
+    #     :param ping: device response time
+    #     :type ping: int
+    #     """
+    #     with self.lock:
+
+    #         dev_info = self.get_device()
+    #         dev_info.ping = ping
+    #         if self._update_availablity_callback is not None:
+    #             self._update_availablity_callback(True)
