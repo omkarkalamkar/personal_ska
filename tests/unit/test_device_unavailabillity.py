@@ -26,4 +26,4 @@ def test_check_device_availabillity(tango_context):
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     time.sleep(1)
     dish_value = dish_leaf_node.isSubsystemAvailable
-    assert dish_value is False
+    assert not dish_value
