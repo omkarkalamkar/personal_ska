@@ -20,11 +20,10 @@ def devices_to_load():
     )
 
 
-@pytest.mark.manu
 def test_check_device_availabillity(tango_context):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     time.sleep(1)
-    dish_value = dish_leaf_node.isSubSystemAvailable
+    dish_value = dish_leaf_node.isSubsystemAvailable
     assert dish_value is False
