@@ -44,7 +44,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.3.3
+    tag: 0.4.0
     pullPolicy: IfNotPresent
 
 resources:

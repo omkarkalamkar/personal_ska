@@ -60,6 +60,12 @@ def devices_to_load():
                 {"name": "ska001/dish/master"},
             ],
         },
+        {
+            "class": DishLeafNode,
+            "devices": [
+                {"name": "ska_mid/tm_leaf_node/d0001"},
+            ],
+        },
     )
 
 

@@ -35,7 +35,7 @@ K8S_CHARTS ?= ska-tmc-dishleafnode test-parent## list of charts
 K8S_CHART ?= $(HELM_CHART)
 PYTHON_SWITCHES_FOR_ISORT ?=
 
-TEST_VERSION ?= 0.3.3
+TEST_VERSION ?= 0.4.0
 CI_REGISTRY ?= gitlab.com
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)
 K8S_TEST_IMAGE_TO_TEST=$(CAR_OCI_REGISTRY_HOST)/$(PROJECT):$(VERSION)

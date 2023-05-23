@@ -58,6 +58,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
+        _update_availablity_callback: Optional[Callable] = None,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -111,6 +112,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
+
+        self.update_availablity_callback = _update_availablity_callback
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,

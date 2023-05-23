@@ -55,9 +55,18 @@ class DishLeafNode(SKABaseDevice):
         access=AttrWriteType.READ_WRITE,
     )
 
+    isSubsystemAvailable = attribute(
+        dtype=bool,
+        access=AttrWriteType.READ,
+    )
+
     # ---------------
     # General methods
     # ---------------
+
+    def init_device(self):
+        super().init_device()
+        self._isSubsystemAvailable = True
 
     class InitCommand(SKABaseDevice.InitCommand):
         """
@@ -92,6 +101,12 @@ class DishLeafNode(SKABaseDevice):
             self.component_manager.stop_event_receiver()
             self.component_manager.stop_liveliness_probe()
 
+    def update_availablity_callback(self, availablity):
+        """Change event callback for isSubsystemAvailable"""
+        self.logger.info("Inside update_availablity_callback ")
+        self._isSubsystemAvailable = availablity
+        self.push_change_event("isSubsystemAvailable", availablity)
+
     # ------------------
     # Attributes methods
     # ------------------
@@ -103,6 +118,10 @@ class DishLeafNode(SKABaseDevice):
     def write_dishMasterDevName(self, value):
         """Set the dishMasterDevName attribute."""
         self.component_manager.dish_dev_name = value
+
+    def read_isSubsystemAvailable(self):
+        """Read method for isSubsystemAvailable"""
+        return self._isSubsystemAvailable
 
     # --------
     # Commands
@@ -459,6 +478,7 @@ class DishLeafNode(SKABaseDevice):
             azimuth=self.Azimuth,
             elevation_max_limit=self.ElevationMaxLimit,
             elevation_min_limit=self.ElevationMinLimit,
+            _update_availablity_callback=self.update_availablity_callback,
         )
         return cm
 
