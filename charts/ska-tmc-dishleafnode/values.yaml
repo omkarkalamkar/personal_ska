@@ -6,7 +6,7 @@ enabled: true
 system: SW-infrastructure
 subsystem: ska-tmc-dishleafnode
 telescope: SKA-mid
-
+legacy_compatibility: true
 #subarray_count: 1
 #dishes: ["01", "02", "03", "04"]
 
