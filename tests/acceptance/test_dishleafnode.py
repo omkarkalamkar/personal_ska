@@ -1,5 +1,4 @@
 # pylint: disable=line-too-long,unused-import
-import time
 
 import pytest
 import tango
@@ -9,7 +8,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import TIMEOUT, create_cm, event_remover
+from tests.settings import create_cm, event_remover, wait_for_ping
 
 
 @given(
@@ -34,16 +33,6 @@ def ping_started(dishleafnode_cm):
 def ping_updates(dishleafnode_cm):
     wait_for_ping(dishleafnode_cm)
     assert dishleafnode_cm._device.ping > 0
-
-
-def wait_for_ping(dishleafnode_cm):
-    start_time = time.time()
-    elapsed_time = 0
-    timeout = TIMEOUT
-    while dishleafnode_cm._device.ping < 0:
-        elapsed_time = time.time() - start_time
-        if elapsed_time > timeout:
-            raise Exception("Timeout waiting for device ping")
 
 
 @given(

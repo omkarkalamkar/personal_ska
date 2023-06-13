@@ -1,5 +1,6 @@
 """This module provides settings for the test cases."""
 import logging
+import time
 from typing import List
 
 from ska_tmc_common.enum import LivelinessProbeType
@@ -14,6 +15,18 @@ TIMEOUT = 100
 
 DISH_MASTER_DEVICE = "ska001/dish/master"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
+
+
+def wait_for_ping(dishleafnode_cm):
+    """Method waits for the device ping till timeout specified
+    Raises TimeoutError if the device is still unavailable within timeout.
+    """
+    start_time = time.time()
+    elapsed_time = 0
+    while dishleafnode_cm._device.ping < 0:
+        elapsed_time = time.time() - start_time
+        if elapsed_time > TIMEOUT:
+            raise TimeoutError("Timeout waiting for device ping")
 
 
 def create_cm(device: str) -> DishLNComponentManager:
