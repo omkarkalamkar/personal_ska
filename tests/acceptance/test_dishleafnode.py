@@ -1,5 +1,4 @@
 # pylint: disable=line-too-long,unused-import
-import time
 
 import pytest
 import tango
@@ -9,7 +8,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import SLEEP_TIME, create_cm, event_remover
+from tests.settings import create_cm, event_remover, wait_for_ping
 
 
 @given(
@@ -32,7 +31,7 @@ def ping_started(dishleafnode_cm):
 
 @then(parsers.parse("the ping information gets updated"))
 def ping_updates(dishleafnode_cm):
-    time.sleep(SLEEP_TIME)
+    wait_for_ping(dishleafnode_cm)
     assert dishleafnode_cm._device.ping > 0
 
 
