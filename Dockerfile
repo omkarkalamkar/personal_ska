@@ -10,7 +10,7 @@ USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 
 # RUN apt-get update && apt-get install pkg-config build-essential libboost-python-dev  -y
-
+RUN apt-get update && apt-get install git -y
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     poetry config virtualenvs.create false
 
