@@ -35,7 +35,6 @@ class Configure(DishLNCommand):
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-
         """This is a long running method for Configure command, it
         executes do hook, invokes Configure command on Dish Master.
 
@@ -52,11 +51,12 @@ class Configure(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         logger.info(message)
-        if return_code == ResultCode.FAILED:
+
+        if return_code[0] == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
-                exception=message,
+                result=ResultCode(return_code[0]),
+                exception=str(message[0]),
             )
         else:
             logger.info(
@@ -65,7 +65,7 @@ class Configure(DishLNCommand):
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(return_code[0]),
             )
 
     # pylint: enable=unused-argument
@@ -120,7 +120,7 @@ class Configure(DishLNCommand):
         try:
             ret_code, message = self.init_adapter()
             if ret_code == ResultCode.FAILED:
-                return ret_code, message
+                return [ResultCode.FAILED], [message]
 
             json_argument = json.loads(argin)
             receiver_band = json_argument["dish"]["receiver_band"]
@@ -131,7 +131,9 @@ class Configure(DishLNCommand):
             ret_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, command_name, argin
             )
-            if current_dish_mode != DishMode.STOW and ret_code == ResultCode.OK:
+            if self.dish_master_adapter is None:
+                return [ret_code], [message]
+            if current_dish_mode != DishMode.STOW and ret_code[0] == ResultCode.OK:
                 ret_code, message = self.start_dish_tracking(
                     current_dish_mode, ra_value, dec_value
                 )
@@ -139,13 +141,15 @@ class Configure(DishLNCommand):
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
             return (
-                ResultCode.FAILED,
-                f"""The invocation of the Configure command is failed
+                [ResultCode.FAILED],
+                [
+                    f"""The invocation of the Configure command is failed
                 on Dish Master Device {self.dish_master_adapter.dev_name}.
                 Reason: Error in calling the Configure command on
                 Dish Master: {e}
                 The command has NOT been executed.
-                This device will continue with normal operation.""",
+                This device will continue with normal operation."""
+                ],
             )
         return ret_code, message
 
@@ -170,25 +174,27 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.CONFIG)
         if not result:
             self.logger.error(
-                "Timeout occured while waiting for CONFIG dishMode in Configure Command."
+                "Timeout occurred while waiting for CONFIG dishMode in Configure Command."
             )
             return (
-                ResultCode.FAILED,
-                "Timeout occured while waiting for CONFIG dishMode in Configure Command.",
+                [ResultCode.FAILED],
+                ["Timeout occured while waiting for CONFIG dishMode in Configure Command."],
             )
         # Set wait for initial Dish Mode
         result = self.set_wait_for_dishmode(current_dish_mode)
         if not result:
             self.logger.error(
-                f"""Timeout occured while waiting for
+                f"""Timeout occurred while waiting for
                         {current_dish_mode} dishMode in Configure Command."""
             )
             return (
-                ResultCode.FAILED,
-                f"""Timeout occured while waiting for
-                        {current_dish_mode} dishMode in Configure Command.""",
+                [ResultCode.FAILED],
+                [
+                    f"""Timeout occured while waiting for
+                        {current_dish_mode} dishMode in Configure Command."""
+                ],
             )
-        return ResultCode.OK, ""
+        return [ResultCode.OK], [""]
 
     def ensure_dish_in_right_dish_mode(self):
         """This method set dish to Operate Mode"""
@@ -196,23 +202,25 @@ class Configure(DishLNCommand):
             "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
 
-        if ret_code == ResultCode.FAILED:
+        if ret_code[0] == ResultCode.FAILED:
             return ret_code, message
 
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
             self.logger.error(
-                """Timeout occured while invoking the SetOperateMode
+                """Timeout occurred while invoking the SetOperateMode
                 Command.
                 """
             )
             return (
-                ResultCode.FAILED,
-                """Timeout occured while invoking the SetOperateMode
+                [ResultCode.FAILED],
+                [
+                    """Timeout occured while invoking the SetOperateMode
                 Command.
-                """,
+                """
+                ],
             )
-        return ResultCode.OK, ""
+        return [ResultCode.OK], [""]
 
     def start_tracking_thread(self, ra_value, dec_value):
         """Invoke Track command and start tracking thread
@@ -222,7 +230,7 @@ class Configure(DishLNCommand):
         ret_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
-        if ret_code == ResultCode.FAILED:
+        if ret_code[0] == ResultCode.FAILED:
             self.logger.error(f"Track Invocation Failed {message}")
             return ret_code, message
 

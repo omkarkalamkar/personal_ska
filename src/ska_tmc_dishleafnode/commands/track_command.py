@@ -26,7 +26,6 @@ class Track(DishLNCommand):
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-
         """This is a long running method for Track command, it
         executes the do hook, invoking Track command on Dish Master
 
@@ -43,16 +42,16 @@ class Track(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         logger.info(message)
-        if return_code == ResultCode.FAILED:
+        if return_code[0] == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
-                exception=message,
+                result=ResultCode(return_code[0]),
+                exception=str(message[0]),
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(return_code[0]),
             )
 
     def validate_json_argument(self, input_argin: dict) -> tuple:
@@ -80,12 +79,14 @@ class Track(DishLNCommand):
         """
         return_code, message = self.init_adapter()
         if return_code == ResultCode.FAILED:
-            return return_code, message
+            return [return_code], [message]
 
         return_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
-        if return_code == ResultCode.FAILED:
+        if self.dish_master_adapter is None:
+            return [return_code], [message]
+        if return_code[0] == ResultCode.FAILED:
             return return_code, message
 
         self.ra_value = argin["pointing"]["target"]["ra"]

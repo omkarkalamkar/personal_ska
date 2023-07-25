@@ -17,7 +17,6 @@ def track_dish_leaf_node(
     group_callback,
     track_input_str,
 ):
-
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)

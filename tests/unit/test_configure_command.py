@@ -55,8 +55,8 @@ def test_json_validation(tango_context, task_callback, dish_master_device):
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str("invalid_key.json")
     result, message = cm.configure(configure_input_str, task_callback=task_callback)
-    assert result == ResultCode.FAILED
-    assert "key is not present" in message
+    assert result[0] == ResultCode.FAILED
+    assert "key is not present" in message[0]
 
 
 def test_configure_command_not_allowed(tango_context, dish_master_device):

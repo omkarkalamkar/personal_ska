@@ -26,7 +26,6 @@ class Off(DishLNCommand):
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-
         """
         A method to invoke the Off command.
         It sets the task_callback status according to command progress.
@@ -44,16 +43,16 @@ class Off(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do()
         logger.info(message)
-        if return_code == ResultCode.FAILED:
+        if return_code[0] == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
-                exception=message,
+                result=ResultCode(return_code[0]),
+                exception=str(message[0]),
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(return_code[0]),
             )
 
     def do(self, argin=None):
@@ -71,7 +70,7 @@ class Off(DishLNCommand):
         """
         return_code, message = self.init_adapter()
         if return_code == ResultCode.FAILED:
-            return return_code, message
+            return [return_code], [message]
 
         if self.component_manager.dishMode in [
             DishMode.STANDBY_LP,
@@ -85,15 +84,17 @@ class Off(DishLNCommand):
             result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if not result:
                 self.logger.error(
-                    """Timeout occured while invoking the SetStandbyFPMode
+                    """Timeout occurred while invoking the SetStandbyFPMode
                     Command.
                     """
                 )
                 return (
-                    ResultCode.FAILED,
-                    """Timeout occured while invoking the SetStandbyFPMode
+                    [ResultCode.FAILED],
+                    [
+                        """Timeout occurred while invoking the SetStandbyFPMode
                     Command.
-                    """,
+                    """
+                    ],
                 )
         return_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
@@ -102,7 +103,7 @@ class Off(DishLNCommand):
         if not result:
             self.logger.error("Timeout occured while invoking the SetStandbyLPMode Command.")
             return (
-                ResultCode.FAILED,
-                "Timeout occured while invoking the SetStandbyLPMode Command.",
+                [ResultCode.FAILED],
+                ["Timeout occurred while invoking the SetStandbyLPMode Command."],
             )
         return return_code, message

@@ -39,13 +39,12 @@ class SetStandbyLPMode(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
 
         ret_code, message = self.do()
-
         logger.info(message)
-        if ret_code == ResultCode.FAILED:
+        if ret_code[0] == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.FAILED,
-                exception=message,
+                result=ResultCode(ret_code[0]),
+                exception=str(message[0]),
             )
         else:
             logger.info(
@@ -54,7 +53,7 @@ class SetStandbyLPMode(DishLNCommand):
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.OK,
+                result=ResultCode(ret_code[0]),
             )
 
     # pylint: enable=unused-argument
@@ -71,9 +70,13 @@ class SetStandbyLPMode(DishLNCommand):
         """
         ret_code, message = self.init_adapter()
         if ret_code == ResultCode.FAILED:
-            return ret_code, message
+            return [ret_code], [message]
 
         ret_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
+
+        if self.dish_master_adapter is None:
+            return [ret_code], [message]
+
         return ret_code, message

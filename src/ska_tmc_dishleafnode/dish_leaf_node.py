@@ -487,7 +487,7 @@ class DishLeafNode(SKABaseDevice):
         Initializes the command handlers for commands supported by this device.
         """
         super().init_command_objects()
-        for (command_name, method_name) in [
+        for command_name, method_name in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
             ("SetOperateMode", "setoperatemode"),
