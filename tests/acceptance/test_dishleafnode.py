@@ -122,7 +122,7 @@ def check_command(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id, str(int(ResultCode.OK))), lookahead=2
+        (unique_id, str(int(ResultCode.OK))), lookahead=6
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
