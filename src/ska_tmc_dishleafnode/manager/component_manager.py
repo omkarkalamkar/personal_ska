@@ -306,7 +306,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # validate the JSON argument
         validation_result, message = self.track_command.validate_json_argument(input_json)
         if validation_result != ResultCode.OK:
-            return [validation_result], [message]
+            return validation_result, message
 
         task_status, response = self.submit_task(
             self.track_command.track,
@@ -379,7 +379,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # validate the JSON argument
         validation_result, message = self.configure_command.validate_json_argument(input_json)
         if validation_result != ResultCode.OK:
-            return [validation_result], [message]
+            return validation_result, message
 
         # submit the command to the queue
         task_status, response = self.submit_task(

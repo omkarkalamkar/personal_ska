@@ -43,16 +43,16 @@ class Off(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do()
         logger.info(message)
-        if return_code[0] == ResultCode.FAILED:
+        if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code[0]),
-                exception=str(message[0]),
+                result=ResultCode(return_code),
+                exception=str(message),
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code[0]),
+                result=ResultCode(return_code),
             )
 
     def do(self, argin=None):
@@ -89,12 +89,10 @@ class Off(DishLNCommand):
                     """
                 )
                 return (
-                    [ResultCode.FAILED],
-                    [
-                        """Timeout occurred while invoking the SetStandbyFPMode
+                    ResultCode.FAILED,
+                    """Timeout occurred while invoking the SetStandbyFPMode
                     Command.
-                    """
-                    ],
+                    """,
                 )
         return_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
@@ -103,7 +101,9 @@ class Off(DishLNCommand):
         if not result:
             self.logger.error("Timeout occured while invoking the SetStandbyLPMode Command.")
             return (
-                [ResultCode.FAILED],
-                ["Timeout occurred while invoking the SetStandbyLPMode Command."],
+                ResultCode.FAILED,
+                "Timeout occurred while invoking the SetStandbyLPMode Command.",
             )
-        return return_code, message
+        if return_code[0] == ResultCode.FAILED:
+            return return_code[0], message[0]
+        return return_code[0], message[0]

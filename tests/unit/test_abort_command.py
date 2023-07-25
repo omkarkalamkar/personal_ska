@@ -13,7 +13,7 @@ def test_abort_command(tango_context):
     cm = create_cm(DISH_MASTER_DEVICE)
     abort_command = AbortCommands(cm, logger=logger)
     result_code, _ = abort_command.do()
-    assert result_code[0] == ResultCode.OK
+    assert result_code == ResultCode.OK
 
 
 def test_abort_command_fail_check_allowed_with_device_unresponsive(
@@ -37,4 +37,4 @@ def test_abort_command_device_defective(tango_context):
     assert dish_device.defective
     abort_command = AbortCommands(cm, logger=logger)
     result_code, _ = abort_command.do()
-    assert result_code[0] == ResultCode.FAILED
+    assert result_code == ResultCode.FAILED

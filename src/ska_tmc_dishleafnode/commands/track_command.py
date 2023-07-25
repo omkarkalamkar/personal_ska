@@ -42,16 +42,16 @@ class Track(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         logger.info(message)
-        if return_code[0] == ResultCode.FAILED:
+        if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code[0]),
-                exception=str(message[0]),
+                result=ResultCode(return_code),
+                exception=str(message),
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code[0]),
+                result=ResultCode(return_code),
             )
 
     def validate_json_argument(self, input_argin: dict) -> tuple:
@@ -79,15 +79,15 @@ class Track(DishLNCommand):
         """
         return_code, message = self.init_adapter()
         if return_code == ResultCode.FAILED:
-            return [return_code], [message]
+            return return_code, message
 
         return_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
         if self.dish_master_adapter is None:
-            return [return_code], [message]
-        if return_code[0] == ResultCode.FAILED:
             return return_code, message
+        if return_code[0] == ResultCode.FAILED:
+            return return_code[0], message[0]
 
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
@@ -109,4 +109,4 @@ class Track(DishLNCommand):
             radec_value,
         )
 
-        return return_code, message
+        return return_code[0], message[0]

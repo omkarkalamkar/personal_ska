@@ -40,17 +40,16 @@ class AbortCommands(DishLNCommand, FastCommand):
             (ResultCode, str)
 
         """
-
         result_code, message = self.init_adapter()
 
         if result_code == ResultCode.FAILED:
-            return [result_code], [message]
+            return result_code, message
 
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "AbortCommands"
         )
         if result_code[0] == ResultCode.FAILED:
-            return result_code, message
+            return result_code[0], message[0]
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
 
@@ -58,7 +57,7 @@ class AbortCommands(DishLNCommand, FastCommand):
             f"AbortCommands command invoked, Result code is {result_code[0]}\
                 and Message is {message[0]}"
         )
-        return result_code, message
+        return result_code[0], message[0]
 
     def stop_dish_tracking(self):
         """Method to invoke track stop when abortcommands command is invoked"""

@@ -103,7 +103,6 @@ def abort_when_configured(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.skip(reason="Refactoring work in progress")
 def test_abort_command(tango_context, group_callback):
     abort_on_dish_leaf_node(
         tango_context,
@@ -112,7 +111,6 @@ def test_abort_command(tango_context, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.skip(reason="Refactoring work in progress")
 def test_abort_when_configure(tango_context, group_callback, json_factory):
     abort_when_configured(
         tango_context,
