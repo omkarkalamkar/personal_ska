@@ -14,12 +14,9 @@ def abort_on_dish_leaf_node(
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
-    result_fp, message = dish_leaf_node.AbortCommands()
+    result_fp, _ = dish_leaf_node.AbortCommands()
     assert result_fp[0] == ResultCode.OK
+
 
 def abort_when_configured(
     tango_context,
@@ -101,7 +98,7 @@ def abort_when_configured(
     )
 
 
-
+@pytest.mark.t1
 @pytest.mark.post_deployment
 def test_abort_command(tango_context, group_callback):
     abort_on_dish_leaf_node(
