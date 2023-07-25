@@ -1,12 +1,39 @@
 """
 AbortCommands command class for DishLeafNode.
 """
-from typing import Tuple
+from __future__ import annotations
+
+from typing import Any, Tuple
 
 from ska_tango_base.commands import FastCommand, ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
+
+
+class ArgumentValidator:  # pylint: disable=too-few-public-methods
+    """Base class for command argument validators."""
+
+    def validate(
+        self: ArgumentValidator, *args: Any, **kwargs: Any
+    ) -> tuple[tuple[Any, ...], dict[str, Any]]:
+        """
+        Parse and/or validate the call arguments.
+
+        This is a default implementation that performs no parsing or
+        validating, and simply returns the arguments as received.
+
+        Subclasses may override this method to parse, validate and
+        transform the arguments.
+
+        :param args: positional args to the command
+        :param kwargs: keyword args to the command
+
+        :return: an (args, kwargs) tuple with which to invoke the do()
+            hook. This default implementation simply returns the
+            arguments as received.
+        """
+        return (args, kwargs)
 
 
 class AbortCommands(DishLNCommand, FastCommand):
@@ -22,13 +49,7 @@ class AbortCommands(DishLNCommand, FastCommand):
             adapter_factory=None,
             logger=logger,
         )
-        super(
-            AbortCommands,
-        ).__init__(
-            component_manager=component_manager,
-            op_state_model=op_state_model,
-            logger=logger,
-        )
+        self._validator = ArgumentValidator()
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
