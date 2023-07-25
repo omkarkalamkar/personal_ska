@@ -18,9 +18,8 @@ def abort_on_dish_leaf_node(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
-    result_fp, _ = dish_leaf_node.AbortCommands()
+    result_fp, message = dish_leaf_node.AbortCommands()
     assert result_fp[0] == ResultCode.OK
-
 
 def abort_when_configured(
     tango_context,
@@ -100,6 +99,7 @@ def abort_when_configured(
         (PointingState.READY),
         lookahead=6,
     )
+
 
 
 @pytest.mark.post_deployment
