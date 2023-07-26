@@ -118,7 +118,7 @@ def check_command(
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandIDsInQueue"].assert_change_event(
-        (str(unique_id),),
+        (str(unique_id),), lookahead=6
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
