@@ -104,6 +104,5 @@ class Off(DishLNCommand):
                 ResultCode.FAILED,
                 "Timeout occurred while invoking the SetStandbyLPMode Command.",
             )
-        if return_code[0] == ResultCode.FAILED:
-            return return_code[0], message[0]
+
         return return_code[0], message[0]

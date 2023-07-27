@@ -126,16 +126,15 @@ class Configure(DishLNCommand):
             receiver_band = json_argument["dish"]["receiver_band"]
             ra_value = json_argument["pointing"]["target"]["ra"]
             dec_value = json_argument["pointing"]["target"]["dec"]
-            current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             ret_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, command_name, argin
             )
             if self.dish_master_adapter is None:
                 return ret_code, message
-            if current_dish_mode != DishMode.STOW and ret_code[0] == ResultCode.OK:
+            if self.component_manager.dishMode != DishMode.STOW and ret_code[0] == ResultCode.OK:
                 ret_code, message = self.start_dish_tracking(
-                    current_dish_mode, ra_value, dec_value
+                    self.component_manager.dishMode, ra_value, dec_value
                 )
 
         except Exception as e:
