@@ -1206,7 +1206,7 @@ ska-telmodel = "1.5.0"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "hm-269"
-resolved_reference = "7080a6d98e8927f5ede3dd6ae1dac8b0f5050ee6"
+resolved_reference = "072eea4acf9f6fa5e3eea1e1d7c2da88b18c0c26"
 
 [[package]]
 name = "stack-data"
