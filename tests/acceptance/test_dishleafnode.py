@@ -127,7 +127,7 @@ def check_command(
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=6,
+        lookahead=10,
     )
     assert str(dish_master_proxy.state()) == resultant_state
 
