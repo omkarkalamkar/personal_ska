@@ -41,20 +41,20 @@ class DishLNCommand(TmcLeafNodeCommand):
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
-                        self.component_manager.dish_dev_name,
+                        ResultCode.FAILED,
                         cf,
                     )
             except DevFailed as df:
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
-                        self.component_manager.dish_dev_name,
+                        ResultCode.FAILED,
                         df,
                     )
 
             except Exception as e:
                 return (
-                    self.component_manager.dish_dev_name,
+                    ResultCode.FAILED,
                     e,
                 )
 

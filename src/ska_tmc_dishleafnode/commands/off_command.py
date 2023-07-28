@@ -47,7 +47,7 @@ class Off(DishLNCommand):
             task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ResultCode(return_code),
-                exception=str(message),
+                exception=message,
             )
         else:
             task_callback(
@@ -68,9 +68,10 @@ class Off(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        return_code, message = self.init_adapter()
-        if return_code == ResultCode.FAILED:
-            return [return_code], [message]
+        result_code, message = self.init_adapter()
+        if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            return result_code, message
 
         if self.component_manager.dishMode in [
             DishMode.STANDBY_LP,
@@ -78,7 +79,7 @@ class Off(DishLNCommand):
             DishMode.STOW,
             DishMode.MAINTENANCE,
         ]:
-            return_code, message = self.call_adapter_method(
+            result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetStandbyFPMode"
             )
             result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
@@ -94,7 +95,7 @@ class Off(DishLNCommand):
                     Command.
                     """,
                 )
-        return_code, message = self.call_adapter_method(
+        result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
@@ -105,4 +106,4 @@ class Off(DishLNCommand):
                 "Timeout occurred while invoking the SetStandbyLPMode Command.",
             )
 
-        return return_code[0], message[0]
+        return result_code[0], message[0]

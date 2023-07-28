@@ -39,18 +39,18 @@ class Scan(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        return_code, message = self.do()
+        result_code, message = self.do()
         logger.info(message)
-        if return_code[0] == ResultCode.FAILED:
+        if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code[0]),
-                exception=str(message[0]),
+                result=ResultCode(result_code),
+                exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code[0]),
+                result=ResultCode(result_code),
             )
 
     def do(self, argin=None):
@@ -63,15 +63,13 @@ class Scan(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        return_code, message = self.init_adapter()
-        if return_code == ResultCode.FAILED:
-            return [return_code], [message]
+        result_code, message = self.init_adapter()
+        if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            return result_code, message
 
-        return_code, message = self.call_adapter_method(
+        result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Scan"
         )
 
-        if self.dish_master_adapter is None:
-            return [ResultCode.FAILED], [message]
-
-        return return_code, message
+        return result_code[0], message[0]

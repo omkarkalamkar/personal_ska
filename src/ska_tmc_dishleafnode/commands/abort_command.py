@@ -43,8 +43,8 @@ class AbortCommands(DishLNCommand, FastCommand):
 
         """
         result_code, message = self.init_adapter()
-
         if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
             return result_code, message
 
         result_code, message = self.call_adapter_method(
@@ -56,10 +56,10 @@ class AbortCommands(DishLNCommand, FastCommand):
         result_code, message = self.stop_dish_tracking()
 
         self.logger.info(
-            f"AbortCommands command invoked, Result code is {result_code[0]}\
-                and Message is {message[0]}"
+            f"AbortCommands command invoked, Result code is {result_code}\
+                and Message is {message}"
         )
-        return result_code[0], message[0]
+        return result_code, message
 
     def stop_dish_tracking(self):
         """Method to invoke track stop when abortcommands command is invoked"""
@@ -67,5 +67,8 @@ class AbortCommands(DishLNCommand, FastCommand):
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state == PointingState.TRACK:
-            return self.call_adapter_method("Dish Master", self.dish_master_adapter, "TrackStop")
-        return [ResultCode.OK], [""]
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "TrackStop"
+            )
+            return result_code[0], message[0]
+        return ResultCode.OK, ""

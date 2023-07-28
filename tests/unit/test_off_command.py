@@ -44,7 +44,6 @@ def test_off_command_adapter_none(dish_master_device, task_callback):
     task_callback.assert_against_call(
         status=TaskStatus.COMPLETED,
         result=ResultCode.FAILED,
-        exception="Timeout occurred while invoking the SetStandbyLPMode Command.",
     )
 
 

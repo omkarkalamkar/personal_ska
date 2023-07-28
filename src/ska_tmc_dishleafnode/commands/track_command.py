@@ -46,7 +46,7 @@ class Track(DishLNCommand):
             task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ResultCode(return_code),
-                exception=str(message),
+                exception=message,
             )
         else:
             task_callback(
@@ -77,17 +77,17 @@ class Track(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        return_code, message = self.init_adapter()
-        if return_code == ResultCode.FAILED:
-            return return_code, message
+        result_code, message = self.init_adapter()
+        if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            return result_code, message
 
-        return_code, message = self.call_adapter_method(
+        result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
-        if self.dish_master_adapter is None:
-            return return_code, message
-        if return_code[0] == ResultCode.FAILED:
-            return return_code[0], message[0]
+
+        if result_code[0] == ResultCode.FAILED:
+            return result_code[0], message[0]
 
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
@@ -109,4 +109,4 @@ class Track(DishLNCommand):
             radec_value,
         )
 
-        return return_code[0], message[0]
+        return result_code[0], message[0]
