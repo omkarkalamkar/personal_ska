@@ -2,13 +2,14 @@
 
 import pytest
 import tango
+import time
 from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import create_cm, event_remover, wait_for_ping
+from tests.settings import create_cm, event_remover, wait_for_ping, logger
 
 
 @given(
@@ -124,10 +125,12 @@ def check_command(
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id, str(int(ResultCode.OK))), lookahead=6
     )
-
+    logger.info("UNique ID: %s", unique_id)
+    if "CONFIGURE" in unique_id.upper():
+         time.sleep(5)
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=10,
+        lookahead=6,
     )
     assert str(dish_master_proxy.state()) == resultant_state
 
