@@ -1,7 +1,5 @@
 # pylint: disable=line-too-long,unused-import
 
-import time
-
 import pytest
 import tango
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -10,7 +8,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import create_cm, event_remover, logger, wait_for_ping
+from tests.settings import create_cm, event_remover, wait_for_ping
 
 
 @given(
