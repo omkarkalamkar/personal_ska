@@ -118,7 +118,7 @@ def check_command(
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandIDsInQueue"].assert_change_event(
-        (str(unique_id),), lookahead=4
+        (str(unique_id),), lookahead=2
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -126,7 +126,7 @@ def check_command(
     )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=4,
+        lookahead=2,
     )
     assert str(dish_master_proxy.state()) == resultant_state
 
