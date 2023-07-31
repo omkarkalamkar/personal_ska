@@ -124,9 +124,11 @@ def check_command(
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id, str(int(ResultCode.OK))), lookahead=4
     )
+    if "Configure" in unique_id:
+        dishleaf_node.TrackStop()
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=4,
+        lookahead=6,
     )
     assert str(dish_master_proxy.state()) == resultant_state
 
