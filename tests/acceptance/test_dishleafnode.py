@@ -120,18 +120,15 @@ def check_command(
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandIDsInQueue"].assert_change_event(
-        (str(unique_id),), lookahead=6
+        (str(unique_id),), lookahead=4
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id, str(int(ResultCode.OK))), lookahead=6
+        (unique_id, str(int(ResultCode.OK))), lookahead=4
     )
-    logger.info("UNique ID: %s", unique_id)
-    if "CONFIGURE" in unique_id.upper():
-        time.sleep(5)
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=6,
+        lookahead=4,
     )
     assert str(dish_master_proxy.state()) == resultant_state
 
