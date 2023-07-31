@@ -78,11 +78,3 @@ python-test:
 
 python-lint:
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
-
-k8s-test-local:
-   extends:
-    - k8s-test
-  
-   script:
-    - cat /builds/ska-telescope/ska-tmc/ska-tmc-dishleafnode.tmp/KUBECONFIG
-
