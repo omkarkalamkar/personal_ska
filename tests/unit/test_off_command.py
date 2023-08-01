@@ -33,7 +33,6 @@ def test_off_command_in_fp(tango_context, dish_master_device, task_callback):
     task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.OK)
 
 
-@pytest.mark.r1
 def test_off_command_adapter_none(dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
