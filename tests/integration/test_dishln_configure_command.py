@@ -13,7 +13,6 @@ def configure_dish_leaf_node(
     group_callback,
     configure_input_str,
 ):
-
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)

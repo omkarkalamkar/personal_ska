@@ -25,7 +25,6 @@ class TrackStop(DishLNCommand):
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-
         """This is a long running method for TrackStop command, it
         executes the do hook, invoking TrackStop command on Dish Master
 
@@ -38,18 +37,18 @@ class TrackStop(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        return_code, message = self.do()
+        result_code, message = self.do()
         logger.info(message)
-        if return_code == ResultCode.FAILED:
+        if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(result_code),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(result_code),
             )
 
     def do(self, argin=None):
@@ -58,12 +57,14 @@ class TrackStop(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        return_code, message = self.init_adapter()
-        if return_code == ResultCode.FAILED:
-            return return_code, message
+        result_code, message = self.init_adapter()
+        if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            return result_code, message
         # Stop the thread which started when Track command was invoked
         self.component_manager.event_track_time.set()
-        return_code, message = self.call_adapter_method(
+        result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "TrackStop"
         )
-        return return_code, message
+
+        return result_code[0], message[0]

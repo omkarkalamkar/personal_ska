@@ -76,6 +76,12 @@ ADD_ARGS +=  --true-context
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
+EXIT_AT_FAIL ?= false
+
+ifeq ($(EXIT_AT_FAIL),true)
+ADD_ARGS += -x
+endif
+
 PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE)
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
@@ -86,8 +92,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set tmc-dishleafnode.telescope=$(TELESCOPE) \
 	--set tmc-dishleafnode.deviceServers.mocks.enabled=$(FAKE_DEVICES) \
 	--set ska-taranta.enabled=$(TARANTA) \
-	$(CUSTOM_VALUES) \
-	--values gitlab_values.yaml
+	$(CUSTOM_VALUES)
 
 K8S_TEST_TEST_COMMAND = $(PYTHON_VARS_BEFORE_PYTEST) $(PYTHON_RUNNER) \
 						pytest \

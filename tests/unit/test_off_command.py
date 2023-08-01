@@ -6,7 +6,6 @@ from ska_tmc_common.exceptions import CommandNotAllowed
 from tests.settings import create_cm
 
 
-@pytest.mark.off
 def test_off_command_in_lp(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_LP)
@@ -18,7 +17,6 @@ def test_off_command_in_lp(tango_context, dish_master_device, task_callback):
     task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.OK)
 
 
-@pytest.mark.off
 def test_off_command_in_fp(tango_context, dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     cm.setstandbyfpmode(task_callback)
@@ -35,7 +33,6 @@ def test_off_command_in_fp(tango_context, dish_master_device, task_callback):
     task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.OK)
 
 
-@pytest.mark.off
 def test_off_command_adapter_none(dish_master_device, task_callback):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
@@ -44,13 +41,17 @@ def test_off_command_adapter_none(dish_master_device, task_callback):
     cm.off(task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(
+    asserted_data = task_callback.assert_against_call(
         status=TaskStatus.COMPLETED,
         result=ResultCode.FAILED,
     )
 
+    assert (
+        "Failed to connect to database on host tango-databaseds with port 10000"
+        in asserted_data["exception"]
+    )
 
-@pytest.mark.off
+
 def test_off_command_not_allowed(tango_context, dish_master_device):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.UNKNOWN)

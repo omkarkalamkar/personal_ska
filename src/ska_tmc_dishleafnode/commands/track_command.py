@@ -26,7 +26,6 @@ class Track(DishLNCommand):
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-
         """This is a long running method for Track command, it
         executes the do hook, invoking Track command on Dish Master
 
@@ -46,13 +45,13 @@ class Track(DishLNCommand):
         if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(return_code),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(return_code),
             )
 
     def validate_json_argument(self, input_argin: dict) -> tuple:
@@ -78,15 +77,17 @@ class Track(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        return_code, message = self.init_adapter()
-        if return_code == ResultCode.FAILED:
-            return return_code, message
+        result_code, message = self.init_adapter()
+        if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            return result_code, message
 
-        return_code, message = self.call_adapter_method(
+        result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
-        if return_code == ResultCode.FAILED:
-            return return_code, message
+
+        if result_code[0] == ResultCode.FAILED:
+            return result_code[0], message[0]
 
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
@@ -104,8 +105,8 @@ class Track(DishLNCommand):
         radec_value = f"{self.ra_value}, {self.dec_value}"
         self.logger.info(
             "Track command ignores RA dec coordinates passed in: %s. "
-            "Uses coordinates from Configure command instead.",
+            + "Uses coordinates from Configure command instead.",
             radec_value,
         )
 
-        return return_code, message
+        return result_code[0], message[0]

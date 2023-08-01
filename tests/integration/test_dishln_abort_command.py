@@ -11,14 +11,9 @@ def abort_on_dish_leaf_node(
     tango_context,
     group_callback,
 ):
-
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
     result_fp, _ = dish_leaf_node.AbortCommands()
     assert result_fp[0] == ResultCode.OK
 

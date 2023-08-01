@@ -39,13 +39,12 @@ class SetStowMode(DishLNCommand):
 
         task_callback(status=TaskStatus.IN_PROGRESS)
 
-        ret_code, message = self.do()
-
+        result_code, message = self.do()
         logger.info(message)
-        if ret_code == ResultCode.FAILED:
+        if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.FAILED,
+                result=ResultCode(result_code),
                 exception=message,
             )
         else:
@@ -55,7 +54,7 @@ class SetStowMode(DishLNCommand):
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode.OK,
+                result=ResultCode(result_code),
             )
 
     # pylint: enable=unused-argument
@@ -70,9 +69,13 @@ class SetStowMode(DishLNCommand):
             (ResultCode, str)
         """
 
-        ret_code, message = self.init_adapter()
-        if ret_code == ResultCode.FAILED:
-            return ret_code, message
+        result_code, message = self.init_adapter()
+        if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            return result_code, message
 
-        result = self.call_adapter_method("Dish Master", self.dish_master_adapter, "SetStowMode")
-        return result
+        result_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "SetStowMode"
+        )
+
+        return result_code[0], message[0]

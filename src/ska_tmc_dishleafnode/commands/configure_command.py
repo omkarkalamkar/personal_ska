@@ -35,7 +35,6 @@ class Configure(DishLNCommand):
         task_callback: Callable = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-
         """This is a long running method for Configure command, it
         executes do hook, invokes Configure command on Dish Master.
 
@@ -52,10 +51,11 @@ class Configure(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         logger.info(message)
+
         if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(return_code),
                 exception=message,
             )
         else:
@@ -65,7 +65,7 @@ class Configure(DishLNCommand):
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=return_code,
+                result=ResultCode(return_code),
             )
 
     # pylint: enable=unused-argument
@@ -118,9 +118,10 @@ class Configure(DishLNCommand):
 
         """
         try:
-            ret_code, message = self.init_adapter()
-            if ret_code == ResultCode.FAILED:
-                return ret_code, message
+            result_code, message = self.init_adapter()
+            if result_code == ResultCode.FAILED:
+                self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+                return result_code, message
 
             json_argument = json.loads(argin)
             receiver_band = json_argument["dish"]["receiver_band"]
@@ -128,11 +129,12 @@ class Configure(DishLNCommand):
             dec_value = json_argument["pointing"]["target"]["dec"]
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
-            ret_code, message = self.call_adapter_method(
+            result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, command_name, argin
             )
-            if current_dish_mode != DishMode.STOW and ret_code == ResultCode.OK:
-                ret_code, message = self.start_dish_tracking(
+
+            if current_dish_mode != DishMode.STOW and result_code[0] == ResultCode.OK:
+                result_code, message = self.start_dish_tracking(
                     current_dish_mode, ra_value, dec_value
                 )
 
@@ -140,28 +142,28 @@ class Configure(DishLNCommand):
             self.logger.exception(f"Command invocation failed: {e}")
             return (
                 ResultCode.FAILED,
-                f"""The invocation of the Configure command is failed
-                on Dish Master Device {self.dish_master_adapter.dev_name}.
-                Reason: Error in calling the Configure command on
-                Dish Master: {e}
-                The command has NOT been executed.
-                This device will continue with normal operation.""",
+                "The invocation of the Configure command is failed on"
+                + f" Dish Master Device {self.dish_master_adapter.dev_name}."
+                + "Reason: Error in calling the Configure command on"
+                + f" Dish Master: {e}"
+                + "The command has NOT been executed."
+                + "This device will continue with normal operation.",
             )
-        return ret_code, message
+        return result_code, message
 
     def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
         """Invoke Track after waiting for DishMode to Operate"""
         # Set wait for DishMode CONFIG
-        ret_code, msg = self.ensure_dish_is_configured(current_dish_mode)
-        if ret_code == ResultCode.FAILED:
-            return ret_code, msg
+        result_code, message = self.ensure_dish_is_configured(current_dish_mode)
+        if result_code == ResultCode.FAILED:
+            return result_code, message
         if current_dish_mode == DishMode.STANDBY_FP:
-            ret_code, msg = self.ensure_dish_in_right_dish_mode()
-            if ret_code == ResultCode.FAILED:
-                return ret_code, msg
+            result_code, message = self.ensure_dish_in_right_dish_mode()
+            if result_code == ResultCode.FAILED:
+                return result_code, message
         # start tracking thread
-        ret_code, msg = self.start_tracking_thread(ra_value, dec_value)
-        return ret_code, msg
+        result_code, message = self.start_tracking_thread(ra_value, dec_value)
+        return result_code, message
 
     def ensure_dish_is_configured(self, current_dish_mode):
         """This method check for the completion of configure command
@@ -170,47 +172,45 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.CONFIG)
         if not result:
             self.logger.error(
-                "Timeout occured while waiting for CONFIG dishMode in Configure Command."
+                "Timeout occurred while waiting for CONFIG \
+                    dishMode in Configure Command."
             )
             return (
                 ResultCode.FAILED,
-                "Timeout occured while waiting for CONFIG dishMode in Configure Command.",
+                "Timeout occurred while waiting for CONFIG dishMode in Configure Command.",
             )
         # Set wait for initial Dish Mode
         result = self.set_wait_for_dishmode(current_dish_mode)
         if not result:
             self.logger.error(
-                f"""Timeout occured while waiting for
-                        {current_dish_mode} dishMode in Configure Command."""
+                "Timeout occurred while waiting for"
+                + f" {current_dish_mode} dishMode in Configure Command."
             )
             return (
                 ResultCode.FAILED,
-                f"""Timeout occured while waiting for
-                        {current_dish_mode} dishMode in Configure Command.""",
+                f"Timeout occurred while waiting for {current_dish_mode}"
+                + " dishMode in Configure Command.",
             )
         return ResultCode.OK, ""
 
     def ensure_dish_in_right_dish_mode(self):
         """This method set dish to Operate Mode"""
-        ret_code, message = self.call_adapter_method(
+        result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
 
-        if ret_code == ResultCode.FAILED:
-            return ret_code, message
+        if result_code[0] == ResultCode.FAILED:
+            return result_code[0], message[0]
 
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
             self.logger.error(
-                """Timeout occured while invoking the SetOperateMode
-                Command.
-                """
+                "Timeout occurred while invoking the\
+                               SetOperateMode Command."
             )
             return (
                 ResultCode.FAILED,
-                """Timeout occured while invoking the SetOperateMode
-                Command.
-                """,
+                "Timeout occurred while invoking the SetOperateMode Command.",
             )
         return ResultCode.OK, ""
 
@@ -219,12 +219,12 @@ class Configure(DishLNCommand):
         :param ra_value: Ra value
         :param dec_value: Dec value
         """
-        ret_code, message = self.call_adapter_method(
+        result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
-        if ret_code == ResultCode.FAILED:
+        if result_code[0] == ResultCode.FAILED:
             self.logger.error(f"Track Invocation Failed {message}")
-            return ret_code, message
+            return result_code[0], message[0]
 
         # start tracking thread
         self.component_manager.el_limit = True
@@ -237,6 +237,7 @@ class Configure(DishLNCommand):
         )
         self.tracking_thread.start()
         self.logger.info(
-            f"Track command invoked successfully with ra {ra_value} and dec {dec_value}"
+            f"Track command invoked successfully with ra {ra_value}\
+                  and dec {dec_value}"
         )
-        return ret_code, message
+        return result_code[0], message[0]

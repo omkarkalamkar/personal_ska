@@ -1,9 +1,10 @@
 """
 AbortCommands command class for DishLeafNode.
 """
+
 from typing import Tuple
 
-from ska_tango_base.commands import FastCommand, ResultCode
+from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
@@ -22,6 +23,7 @@ class AbortCommands(DishLNCommand, FastCommand):
             adapter_factory=None,
             logger=logger,
         )
+        self._validator = ArgumentValidator()
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
@@ -40,21 +42,23 @@ class AbortCommands(DishLNCommand, FastCommand):
             (ResultCode, str)
 
         """
-
         result_code, message = self.init_adapter()
-
         if result_code == ResultCode.FAILED:
+            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
             return result_code, message
 
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "AbortCommands"
         )
-        if result_code == ResultCode.FAILED:
-            return result_code, message
+        if result_code[0] == ResultCode.FAILED:
+            return result_code[0], message[0]
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
 
-        self.logger.info("AbortCommands command invoked successfully.")
+        self.logger.info(
+            f"AbortCommands command invoked, Result code is {result_code}\
+                and Message is {message}"
+        )
         return result_code, message
 
     def stop_dish_tracking(self):
@@ -63,5 +67,8 @@ class AbortCommands(DishLNCommand, FastCommand):
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state == PointingState.TRACK:
-            return self.call_adapter_method("Dish Master", self.dish_master_adapter, "TrackStop")
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "TrackStop"
+            )
+            return result_code[0], message[0]
         return ResultCode.OK, ""

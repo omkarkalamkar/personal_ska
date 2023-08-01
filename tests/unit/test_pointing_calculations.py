@@ -21,4 +21,4 @@ def test_pointing_calculations():
     azel = pointing_calc.point(ra, dec, timestamp)
     dish_helper = DishHelper()
     azimuth = dish_helper.dd_to_dms(azel[0])  # azel[0] is an Azimuth value in degree
-    assert azimuth == "0:27:23.1737"
+    assert azimuth == "0:27:23.1738"

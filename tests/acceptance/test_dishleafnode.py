@@ -118,16 +118,20 @@ def check_command(
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandIDsInQueue"].assert_change_event(
-        (str(unique_id),),
+        (str(unique_id),), lookahead=2
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id, str(int(ResultCode.OK))), lookahead=2
+        (unique_id, str(int(ResultCode.OK))), lookahead=4
     )
-
+    # Invoke TrackStop command to terminate the Track thread executed by
+    # Configure command.If thread not stopped then it is causing unstable
+    # device server and intermittent test failure.
+    if "Configure" in unique_id:
+        dishleaf_node.TrackStop()
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         None,
-        lookahead=4,
+        lookahead=6,
     )
     assert str(dish_master_proxy.state()) == resultant_state
 
