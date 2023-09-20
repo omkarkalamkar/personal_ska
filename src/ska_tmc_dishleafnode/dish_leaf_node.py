@@ -91,6 +91,7 @@ class DishLeafNode(SKABaseDevice):
             {release.description}"""
             device._version_id = release.version
             device.set_change_event("healthState", True, False)
+            device.set_change_event("isSubsystemAvailable", True, False)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
