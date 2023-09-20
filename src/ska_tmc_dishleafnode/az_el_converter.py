@@ -41,6 +41,12 @@ class AzElConverter:
         to the AzEl coordinates.It is called continuosly
         from Track command (in a thread) at interval
         of 50ms till the StopTrack command is invoked.
+        Args:
+            ra_value (str): RA value in hours:minutes:sec
+            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+            timestamp(str): utc timestamp in string format
+        Return:
+            az_el_coordinates (list)
         """
         # Create KATPoint Target object
         target = katpoint.Target.from_radec(ra_value, dec_value)

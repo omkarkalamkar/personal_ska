@@ -7,7 +7,6 @@ import threading
 
 # pylint: disable=W0222
 import time
-from datetime import timezone
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
@@ -33,8 +32,11 @@ from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
 
+EXTEND_MILLISECONDS = 100
 
 # pylint: disable=R0902
+
+
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
@@ -602,9 +604,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def track_thread(self, ra_value, dec_value, command_obj):
+    def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """This thread writes az-el coordinates to desiredPointing
         on DishMaster at the rate of 20 Hz.
+        Args:
+            ra_value (str): RA value in hours:minutes:sec
+            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+            command_obj: Command Object which is used to set desired_pointing
         """
         self.logger.info(
             f"print track_thread thread name:{threading.current_thread().name}"
@@ -614,11 +620,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azel_converter.create_antenna_obj()
 
         while self.event_track_time.is_set() is False:
-            now = datetime.datetime.utcnow()
-            timestamp = str(now)
-            utc_time = now.replace(tzinfo=timezone.utc)
-            utc_timestamp = utc_time.timestamp()
-            az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
+            utc_now = datetime.datetime.utcnow()
+            # For the timestamp to be a future timestamp
+            # on DishMaster, 100 ms are added to it.
+            extended_time = utc_now + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
+            utc_timestamp = extended_time.timestamp()
+            az_value, el_value = azel_converter.point(ra_value, dec_value, str(extended_time))
 
             if not self._is_elevation_within_mechanical_limits(el_value):
                 time.sleep(0.05)
@@ -636,10 +643,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 break
 
             # utc_timestamp is the time used for AzEl calculation.
-            # For the timestamp to be a future timestamp
-            # on DishMaster, 100 ms are added to it.
             desired_pointing = [
-                (utc_timestamp * 1000) + 100,
+                (utc_timestamp * 1000),
                 round(az_value, 12),
                 round(el_value, 12),
             ]
