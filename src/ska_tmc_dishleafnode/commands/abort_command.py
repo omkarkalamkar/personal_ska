@@ -24,6 +24,7 @@ class AbortCommands(DishLNCommand, FastCommand):
             logger=logger,
         )
         self._validator = ArgumentValidator()
+        self._name = "AbortCommands"
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
