@@ -57,6 +57,15 @@ pytest-repeat = "^0.9.1"
 unittest2 = "1.1.0"
 datetime = "4.3"
 
+[tool.poetry.group.docs.dependencies]
+docutils = "^0.18.1"
+Sphinx = "^5.1.1"
+ska-ser-sphinx-theme = "^0.1.1"
+sphinx-autodoc-typehints = "^1.19.3"
+sphinxcontrib-plantuml = "^0.22"
+typing_extensions  = "^4.3.0"
+sphinx-rtd-theme = "^1.2.2"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
