@@ -81,7 +81,7 @@ Run python-test:
     PyTango running on:
     uname_result(system='Linux', node='LAPTOP-5LBGJH83', release='4.19.128-microsoft-standard', version='#1 SMP Tue Jun 23 12:58:10 UTC 2020', machine='x86_64', processor='x86_64')
 
-============================= test session starts ==============================
+    ============================= test session starts ==============================
     platform linux -- Python 3.8.5, pytest-5.4.3, py-1.10.0, pluggy-0.13.1 -- /home/
     [....]
 
