@@ -47,7 +47,7 @@ def pytest_addoption(parser):
 @pytest.fixture
 def dish_master_device():
     """Returns dish 1 device name."""
-    return "ska001/dish/master"
+    return "ska001/elt/master"
 
 
 @pytest.fixture()
@@ -57,7 +57,7 @@ def devices_to_load():
         {
             "class": HelperDishDevice,
             "devices": [
-                {"name": "ska001/dish/master"},
+                {"name": "ska001/elt/master"},
             ],
         },
         {

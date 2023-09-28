@@ -580,7 +580,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def set_dish_id(self, dish_master_fqdn: str) -> None:
         """Find out dish number from DishMasterFQDN
-        property e.g. ska001/dish/master"""
+        property e.g. ska001/elt/master"""
         self.dish_id = dish_master_fqdn.split("/")[
             0
         ].upper()  # station names in the layout json are in capital

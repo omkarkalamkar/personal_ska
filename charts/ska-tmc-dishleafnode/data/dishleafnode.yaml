@@ -15,7 +15,7 @@ server:
           properties:
           - name: "DishMasterFQDN"
             values:
-              - "ska{{ printf "%03s" . }}/dish/master"
+              - "ska{{ printf "%03s" . }}/elt/master"
           - name: "SkaLevel"
             values:
               - "3"
