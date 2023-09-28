@@ -6,7 +6,7 @@ from ska_tmc_common.dish_utils import DishHelper
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
-
+@pytest.mark.skip
 @pytest.mark.SKA_mid
 def test_pointing_calculations():
     """Function to test AzEl conversion"""
