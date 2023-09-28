@@ -11,7 +11,7 @@ This module defines the AzElConverter class,
 which is used to convert given Ra and Dec values into AzEl."""
 # Standard Python imports
 
-import katpoint
+from katpoint import RefractionCorrection, Target
 from ska_tmc_common.dish_utils import DishHelper
 
 
@@ -25,6 +25,7 @@ class AzElConverter:
             component_manager (DishLNComponent Manager): Dish LN component
         """
         self.component_manager = component_manager
+        self.refraction_correction = RefractionCorrection()
 
     def create_antenna_obj(self) -> None:
         """This method identifies the KATPoint.
@@ -49,9 +50,27 @@ class AzElConverter:
             az_el_coordinates (list)
         """
         # Create KATPoint Target object
-        target = katpoint.Target.from_radec(ra_value, dec_value)
+        target = Target.from_radec(ra_value, dec_value)
         # obtain az el co-ordinates for dish
         azel = target.azel(timestamp, self.component_manager.observer)
         # list of az el co-ordinates
         az_el_coordinates = [azel.az.deg, azel.alt.deg]
         return az_el_coordinates
+
+    def backward_transform(self, az_value, el_value, timestamp) -> list:
+        """This method converts given Azimuth/Elevation to RA/Dec after
+        reversing the refraction correction and performing the topocentric and
+        geocentric conversions.
+
+        :param az_value: The Azimuth value of Actual Pointing.
+        :dtype: Radians.
+        :param el_value: The Elevation value of Actual Pointing. It is in
+            degrees.
+        :dtype: Radians.
+
+        :return: List of RA and Dec values
+        """
+        refraction_corrected_el = self.refraction_correction.reverse(el_value, 0.0, 0, 0)
+        target = Target.from_azel(az_value, refraction_corrected_el)
+        ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
+        return [ra_dec.ra.deg, ra_dec.dec.deg]
