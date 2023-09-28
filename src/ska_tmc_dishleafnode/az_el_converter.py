@@ -54,7 +54,8 @@ class AzElConverter:
         # obtain az el co-ordinates for dish
         azel = target.azel(timestamp, self.component_manager.observer)
         # list of az el co-ordinates
-        az_el_coordinates = [azel.az.deg, azel.alt.deg]
+        new_el = self.refraction_correction.apply(azel.alt.deg, 0.0, 0, 0)
+        az_el_coordinates = [azel.az.deg, new_el]
         return az_el_coordinates
 
     def backward_transform(self, az_value, el_value, timestamp) -> list:
@@ -64,11 +65,10 @@ class AzElConverter:
 
         :param az_value: The Azimuth value of Actual Pointing.
         :dtype: Radians.
-        :param el_value: The Elevation value of Actual Pointing. It is in
-            degrees.
+        :param el_value: The Elevation value of Actual Pointing.
         :dtype: Radians.
 
-        :return: List of RA and Dec values
+        :return: List of RA and Dec values in degrees.
         """
         refraction_corrected_el = self.refraction_correction.reverse(el_value, 0.0, 0, 0)
         target = Target.from_azel(az_value, refraction_corrected_el)
