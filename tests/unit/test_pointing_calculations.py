@@ -13,7 +13,7 @@ def test_pointing_calculations():
     ra = "02:31:50.88"
     dec = "89:15:51.4"
     timestamp = "2019-02-19 06:01:00"
-    dish_dev_name = "ska001/dish/master"
+    dish_dev_name = "ska001/elt/master"
     logger = logging.getLogger(__name__)
     component_manager = DishLNComponentManager(logger=logger, dish_dev_name=dish_dev_name)
     pointing_calc = AzElConverter(component_manager)

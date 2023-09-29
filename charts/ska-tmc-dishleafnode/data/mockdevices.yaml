@@ -12,7 +12,7 @@ server:
       classes:
       - name: "HelperDishDevice"
         devices:
-        - name: "ska{{ printf "%03s" . }}/dish/master"
+        - name: "ska{{ printf "%03s" . }}/elt/master"
   {{- end }}
 depends_on:
   - device: sys/database/2
