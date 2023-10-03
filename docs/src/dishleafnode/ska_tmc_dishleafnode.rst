@@ -21,6 +21,10 @@ ska\_tmc\_dishleafnode._dish\_leaf\_node module
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: ska_tmc_dishleafnode.az_el_converter
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
