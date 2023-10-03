@@ -62,7 +62,6 @@ class AzElConverter:
         Return:
             az_el_coordinates (list)
         """
-
         return self.forward_transform(right_ascension, declination, timestamp)
 
     def backward_transform(self, az_value: u.rad, el_value: u.rad, timestamp: str) -> list:
@@ -75,7 +74,8 @@ class AzElConverter:
         :param el_value: The Elevation value of Actual Pointing.
         :dtype: Radians.
 
-        :return: List of RA and Dec values in degrees.
+        :return: List of RA and Dec values in Hours Minutes Seconds and Degree
+            Minutes Seconds respectively.
         """
 
         refraction_removed_el = self.refraction_correction.reverse(
@@ -91,6 +91,11 @@ class AzElConverter:
             elevation_angle,
         )
         ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
+        logger.info(
+            "The Right Ascension is %s and the Declination is %s after backward transform",
+            ra_dec.ra.hms,
+            ra_dec.dec.dms,
+        )
         return [ra_dec.ra.hms, ra_dec.dec.dms]
 
     def forward_transform(self, right_ascension: str, declination: str, timestamp: str) -> list:
@@ -117,6 +122,11 @@ class AzElConverter:
             self.weather_data["humidity"],
         )
         refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
+        logger.info(
+            "The Azimuth value is %s and the Elevation is %s after forward transform.",
+            azel.az.deg,
+            refraction_corrected_angle.deg,
+        )
         return [
             azel.az.deg,
             refraction_corrected_angle.deg,
