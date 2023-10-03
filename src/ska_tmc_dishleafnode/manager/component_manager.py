@@ -379,7 +379,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
         # validate the JSON argument
-        validation_result, message = self.configure_command.validate_json_argument(input_json)
+        (
+            validation_result,
+            message,
+        ) = self.configure_command.validate_json_argument(input_json)
         if validation_result != ResultCode.OK:
             return validation_result, message
 

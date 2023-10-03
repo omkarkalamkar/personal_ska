@@ -30,13 +30,21 @@ class AzElConverter:
             component_manager (DishLNComponent Manager): Dish LN component
         """
         self.component_manager = component_manager
+        self.dish_helper = DishHelper()
         self.refraction_correction = RefractionCorrection()
+        # The values for temprature, pressure and humidity are considered
+        # arbitarily, acutal data will be used when a weather station is
+        # available.
+        self.weather_data = {
+            "temprature": 30.0,
+            "pressure": 900.0,
+            "humidity": 10,
+        }
 
     def create_antenna_obj(self) -> None:
         """This method identifies the KATPoint.
         Antenna object to be used from the Dish Number."""
-        dish_helper = DishHelper()
-        antennas = dish_helper.get_dish_antennas_list()
+        antennas = self.dish_helper.get_dish_antennas_list()
 
         for antenna in antennas:
             if antenna.name == self.component_manager.dish_id:
@@ -55,11 +63,9 @@ class AzElConverter:
             az_el_coordinates (list)
         """
 
-        return self.forward_transform(
-            right_ascension=right_ascension, declination=declination, timestamp=timestamp
-        )
+        return self.forward_transform(right_ascension, declination, timestamp)
 
-    def backward_transform(self, az_value, el_value, timestamp) -> list:
+    def backward_transform(self, az_value: u.rad, el_value: u.rad, timestamp: str) -> list:
         """This method converts given Azimuth/Elevation to RA/Dec after
         reversing the refraction correction and performing the topocentric and
         geocentric conversions.
@@ -72,16 +78,16 @@ class AzElConverter:
         :return: List of RA and Dec values in degrees.
         """
 
-        refraction_corrected_el = self.refraction_correction.reverse(el_value, 0.0, 0.0, 0.0)
-        elevation_angle = Angle(refraction_corrected_el, u.rad)
-        elevation_angle = elevation_angle.dms
-        elevation_angle = f"{int(elevation_angle[0])}\
-            :{abs(int(elevation_angle[1]))}:{abs(round(elevation_angle[2],2))}"
-        azimuth_angle = Angle(az_value, u.deg)
-        azimuth_angle = azimuth_angle.dms
-        azimuth_angle = (
-            f"{int(azimuth_angle[0])}:{int(azimuth_angle[1])}:{round(azimuth_angle[2],2)}"
+        refraction_removed_el = self.refraction_correction.reverse(
+            el_value,
+            self.weather_data["temprature"],
+            self.weather_data["pressure"],
+            self.weather_data["humidity"],
         )
+        elevation_angle = Angle(refraction_removed_el, u.rad)
+        elevation_angle = elevation_angle.dms
+        azimuth_angle = Angle(az_value, u.rad)
+        azimuth_angle = azimuth_angle.dms
         target = Target.from_azel(
             azimuth_angle,
             elevation_angle,
@@ -106,17 +112,18 @@ class AzElConverter:
         """
 
         ra_angle = Angle(right_ascension, u.hourangle)
-        dec_angle = Angle(declination, u.deg)
-        target = Target.from_radec(ra_angle, dec_angle)  # Create KATPoint Target object
-        azel = target.azel(
-            timestamp, self.component_manager.observer
-        )  # Does geocentric and topocentric conversions and returns SkyCord object.
+        dec_angle = declination
+        target = Target.from_radec(ra_angle, dec_angle)
+        azel = target.azel(timestamp, self.component_manager.observer)
         elevation_angle = Angle(azel.alt.deg, u.deg)
-        refraction_corrected_el_in_rad = self.refraction_correction.apply(
-            elevation_angle.rad, 0.0, 0.0, 0.0
-        )  # Does the refraction corrections(Atmospheric conversion ADR-76)
-        refraction_corrected_angle = Angle(refraction_corrected_el_in_rad, u.rad)
+        refraction_corrected_el = self.refraction_correction.apply(
+            elevation_angle.rad,
+            self.weather_data["temprature"],
+            self.weather_data["pressure"],
+            self.weather_data["humidity"],
+        )
+        refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
         return [
             azel.az.deg,
             refraction_corrected_angle.deg,
-        ]  # list of az el co-ordinates in degrees
+        ]

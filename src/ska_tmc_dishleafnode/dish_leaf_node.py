@@ -510,7 +510,8 @@ class DishLeafNode(SKABaseDevice):
             )
 
         self.register_command_object(
-            "AbortCommands", AbortCommands(self.component_manager, logger=self.logger)
+            "AbortCommands",
+            AbortCommands(self.component_manager, logger=self.logger),
         )
 
 

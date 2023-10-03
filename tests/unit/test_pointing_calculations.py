@@ -1,44 +1,13 @@
 import logging
-import math
 
 import pytest
 from astropy import units as u
 from astropy.coordinates import Angle, SkyCoord
-from ska_tmc_common.exceptions import ConversionError
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 logger = logging.getLogger(__name__)
-
-
-def degree_to_degree_minute_seconds(argin: float) -> str:
-    """
-    Converts a number in degree decimal to Deg:Min:Sec.
-
-    :param argin: A number in decimal degrees.
-        Example: 30.7129252
-    :return: Number in deg:min:sec format.
-        Example: 30:42:46.5307 is returned value for input 30.7129252.
-    """
-    dms_str = ""  # degree:minutes:seconds
-    try:
-        sign = 1
-        if argin < 0:
-            sign = -1
-        fraction_min, degrees = math.modf(abs(argin))
-        fraction_sec, minutes = math.modf(fraction_min * 60)
-        seconds = fraction_sec * 60
-        dms_str = f"{int(degrees * sign)}:{int(minutes)}:{round(seconds, 2)}"
-    except Exception as error:
-        logger.error(
-            "Error while converting decimal degree to deg:min:sec -> %s",
-            error,
-        )
-        raise ConversionError(
-            f"Error while converting {argin} to Degree:Minutes:Seconds"
-        ) from error
-    return str(dms_str)
 
 
 @pytest.mark.parametrize(
@@ -49,7 +18,6 @@ def degree_to_degree_minute_seconds(argin: float) -> str:
         pytest.param("22:50:52.23", "18:00:07.7", "2019-03-06 07:00:00"),
     ],
 )
-@pytest.mark.r1
 def test_pointing_calculations(ra: str, dec: str, timestamp: str):
     """Function to test AzEl conversion"""
 
