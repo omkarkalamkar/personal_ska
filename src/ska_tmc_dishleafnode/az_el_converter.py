@@ -111,7 +111,7 @@ class AzElConverter:
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
 
         Return:
-            az_el_coordinates (list)
+            az_el_coordinates (list[degrees])
         """
         target = Target.from_radec(right_ascension, declination)
         azel = target.azel(timestamp, self.component_manager.observer)
