@@ -1244,7 +1244,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.5.26"
+version = "0.5.28"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -1585,7 +1585,7 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "wcwidth"
-version = "0.2.6"
+version = "0.2.7"
 description = "Measures the displayed width of unicode strings in a terminal"
 category = "main"
 optional = false
@@ -1618,7 +1618,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.10"
-content-hash = "bb82daaf8a5dcd56ab5b58794a80575a68ab3377023f02d91eeb5f15270f700d"
+content-hash = "7614d469985c47a7f104dff41927a1e6bd56bed4d44149d014df16bf14c9f4c7"
 
 [metadata.files]
 alabaster = [
@@ -2550,8 +2550,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-6.0.4-py3-none-any.whl", hash = "sha256:9e3bb5800b0b2dd2b4f2b93ea360fd9bf1fcea63f8e331abae1e935c321f2596"},
 ]
 ska-tmc-common = [
-    {file = "ska_tmc_common-0.5.26-py3-none-any.whl", hash = "sha256:3456bb1a1bd9218ce8da50a0b12b2348331544af12914a99460e5172ac6c6fba"},
-    {file = "ska_tmc_common-0.5.26.tar.gz", hash = "sha256:f5744ad6898b51c157d51387004879c580ef9f925bb6db6037f2e0ded203ec64"},
+    {file = "ska_tmc_common-0.5.28-py3-none-any.whl", hash = "sha256:4c15b2852c20d24453ab98cadb112165709c8d5f44ae287f50b0d99e387854a4"},
+    {file = "ska_tmc_common-0.5.28.tar.gz", hash = "sha256:e3bdee4409d375717e5a2c5c15f2fd671d21b79b7d63fb4729e413dbd5863462"},
 ]
 snowballstemmer = [
     {file = "snowballstemmer-2.2.0-py2.py3-none-any.whl", hash = "sha256:c8e1716e83cc398ae16824e5572ae04e0d9fc2c6b985fb0f900f5f0c96ecba1a"},
@@ -2649,8 +2649,8 @@ urllib3 = [
     {file = "urllib3-2.0.5.tar.gz", hash = "sha256:13abf37382ea2ce6fb744d4dad67838eec857c9f4f57009891805e0b5e123594"},
 ]
 wcwidth = [
-    {file = "wcwidth-0.2.6-py2.py3-none-any.whl", hash = "sha256:795b138f6875577cd91bba52baf9e445cd5118fd32723b460e30a0af30ea230e"},
-    {file = "wcwidth-0.2.6.tar.gz", hash = "sha256:a5220780a404dbe3353789870978e472cfe477761f06ee55077256e509b156d0"},
+    {file = "wcwidth-0.2.7-py2.py3-none-any.whl", hash = "sha256:fabf3e32999d9b0dab7d19d845149f326f04fe29bac67709ee071dbd92640a36"},
+    {file = "wcwidth-0.2.7.tar.gz", hash = "sha256:1b6d30a98ddd5ce9bbdb33658191fd2423fc9da203fe3ef1855407dcb7ee4e26"},
 ]
 wrapt = [
     {file = "wrapt-1.15.0-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:ca1cccf838cd28d5a0883b342474c630ac48cac5df0ee6eacc9c7290f76b11c1"},
