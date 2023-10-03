@@ -85,15 +85,13 @@ class AzElConverter:
             self.weather_data["humidity"],
         )
         elevation_angle = Angle(refraction_removed_el, u.rad)
-        elevation_angle = elevation_angle.dms
         azimuth_angle = Angle(az_value, u.rad)
-        azimuth_angle = azimuth_angle.dms
         target = Target.from_azel(
             azimuth_angle,
             elevation_angle,
         )
         ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
-        return [ra_dec.ra.deg, ra_dec.dec.deg]
+        return [ra_dec.ra.hms, ra_dec.dec.dms]
 
     def forward_transform(self, right_ascension: str, declination: str, timestamp: str) -> list:
         """This method invokes the katpoint commands to do the forward transform required
@@ -110,14 +108,10 @@ class AzElConverter:
         Return:
             az_el_coordinates (list)
         """
-
-        ra_angle = Angle(right_ascension, u.hourangle)
-        dec_angle = declination
-        target = Target.from_radec(ra_angle, dec_angle)
+        target = Target.from_radec(right_ascension, declination)
         azel = target.azel(timestamp, self.component_manager.observer)
-        elevation_angle = Angle(azel.alt.deg, u.deg)
         refraction_corrected_el = self.refraction_correction.apply(
-            elevation_angle.rad,
+            azel.alt.rad,
             self.weather_data["temprature"],
             self.weather_data["pressure"],
             self.weather_data["humidity"],
