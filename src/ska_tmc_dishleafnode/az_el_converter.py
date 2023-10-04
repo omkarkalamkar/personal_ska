@@ -15,8 +15,10 @@ import logging
 from astropy import units as u
 from astropy.coordinates import Angle
 from katpoint import RefractionCorrection, Target
+from ska_ser_logging import configure_logging
 from ska_tmc_common.dish_utils import DishHelper
 
+configure_logging()
 logger = logging.getLogger(__name__)
 
 
