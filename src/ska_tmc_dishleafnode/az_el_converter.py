@@ -34,11 +34,11 @@ class AzElConverter:
         self.component_manager = component_manager
         self.dish_helper = DishHelper()
         self.refraction_correction = RefractionCorrection()
-        # The values for temprature, pressure and humidity are considered
+        # The values for temperature, pressure and humidity are considered
         # arbitarily, acutal data will be used when a weather station is
         # available.
         self.weather_data = {
-            "temprature": 30.0,
+            "temperature": 30.0,
             "pressure": 900.0,
             "humidity": 10,
         }
@@ -64,47 +64,63 @@ class AzElConverter:
         Return:
             az_el_coordinates (list)
         """
-        return self.forward_transform(right_ascension, declination, timestamp)
+        return self.radec_to_azel(right_ascension, declination, timestamp, self.weather_data)
 
-    def backward_transform(self, az_value: u.rad, el_value: u.rad, timestamp: str) -> list:
+    def azel_to_radec(
+        self, az_value: str, el_value: str, timestamp: str, weather_data: dict[str, float]
+    ) -> list:
         """This method converts given Azimuth/Elevation to RA/Dec after
         reversing the refraction correction and performing the topocentric and
         geocentric conversions.
 
         :param az_value: The Azimuth value of Actual Pointing.
-        :dtype: Radians.
+        :dtype: Degrees.
         :param el_value: The Elevation value of Actual Pointing.
-        :dtype: Radians.
+        :dtype: Degrees.
 
         :return: List of RA and Dec values in Hours Minutes Seconds and Degree
             Minutes Seconds respectively.
         """
-
+        elevation = Angle(el_value, u.deg)
         refraction_removed_el = self.refraction_correction.reverse(
-            el_value,
-            self.weather_data["temprature"],
-            self.weather_data["pressure"],
-            self.weather_data["humidity"],
+            elevation.rad,
+            weather_data["temperature"],
+            weather_data["pressure"],
+            weather_data["humidity"],
         )
         elevation_angle = Angle(refraction_removed_el, u.rad)
-        azimuth_angle = Angle(az_value, u.rad)
+        azimuth_angle = Angle(az_value, u.deg)
         target = Target.from_azel(
             azimuth_angle,
-            elevation_angle,
+            elevation_angle.rad,
         )
         ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
+        ra = (
+            f"{int(ra_dec.ra.hms[0])}:{abs(int(ra_dec.ra.hms[1]))}:"
+            + f"{abs(round(ra_dec.ra.hms[2],2))}"
+        )
+        dec = (
+            f"{int(ra_dec.dec.dms[0])}:{abs(int(ra_dec.dec.dms[1]))}:"
+            + f"{abs(round(ra_dec.dec.dms[2],2))}"
+        )
         logger.info(
             "The Right Ascension is %s and the Declination is %s after backward transform",
-            ra_dec.ra.hms,
-            ra_dec.dec.dms,
+            ra,
+            dec,
         )
-        return [ra_dec.ra.hms, ra_dec.dec.dms]
+        return [ra, dec]
 
-    def forward_transform(self, right_ascension: str, declination: str, timestamp: str) -> list:
-        """This method invokes the katpoint commands to do the forward transform required
-        for pointing a celestial object.
-        Forward Transform ie: Geocentric conversion then topocentric and then refraction
-        correction.
+    def radec_to_azel(
+        self,
+        right_ascension: str,
+        declination: str,
+        timestamp: str,
+        weather_data: dict[str, float],
+    ) -> list:
+        """This method invokes the katpoint commands to do the forward
+        transform required for pointing a celestial object.
+        Forward Transform ie: Geocentric conversion then topocentric and then
+        refraction correction.
 
         :param right_ascension: Right Ascension value
         :dtype: string in hours:minutes:seconds form
@@ -119,9 +135,9 @@ class AzElConverter:
         azel = target.azel(timestamp, self.component_manager.observer)
         refraction_corrected_el = self.refraction_correction.apply(
             azel.alt.rad,
-            self.weather_data["temprature"],
-            self.weather_data["pressure"],
-            self.weather_data["humidity"],
+            weather_data["temperature"],
+            weather_data["pressure"],
+            weather_data["humidity"],
         )
         refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
         logger.info(
