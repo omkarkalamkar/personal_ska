@@ -1,7 +1,7 @@
 """This module provides settings for the test cases."""
 import logging
 import time
-from typing import List
+from typing import Final, List
 
 from ska_tmc_common.enum import LivelinessProbeType
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
@@ -15,6 +15,11 @@ TIMEOUT = 100
 
 DISH_MASTER_DEVICE = "ska001/elt/master"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
+WEATHER_DATA: Final = {
+    "temperature": 30.0,
+    "pressure": 900.0,
+    "humidity": 10,
+}
 
 
 def wait_for_ping(dishleafnode_cm):
