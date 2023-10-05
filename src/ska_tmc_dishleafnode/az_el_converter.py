@@ -15,6 +15,7 @@ import logging
 from astropy import units as u
 from astropy.coordinates import Angle
 from katpoint import RefractionCorrection, Target
+from katpoint.conversion import angle_to_string
 from ska_ser_logging import configure_logging
 from ska_tmc_common.dish_utils import DishHelper
 
@@ -92,17 +93,11 @@ class AzElConverter:
         azimuth_angle = Angle(az_value, u.deg)
         target = Target.from_azel(
             azimuth_angle,
-            elevation_angle.rad,
+            elevation_angle,
         )
         ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
-        ra = (
-            f"{int(ra_dec.ra.hms[0])}:{abs(int(ra_dec.ra.hms[1]))}:"
-            + f"{abs(round(ra_dec.ra.hms[2],2))}"
-        )
-        dec = (
-            f"{int(ra_dec.dec.dms[0])}:{abs(int(ra_dec.dec.dms[1]))}:"
-            + f"{abs(round(ra_dec.dec.dms[2],2))}"
-        )
+        ra = angle_to_string(ra_dec.ra, unit=u.hour, precision=2, show_unit=False)
+        dec = angle_to_string(ra_dec.dec, unit=u.deg, precision=2, show_unit=False)
         logger.info(
             "The Right Ascension is %s and the Declination is %s after backward transform",
             ra,
