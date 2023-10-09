@@ -82,7 +82,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param timeout: Time period to wait for initialization
         of adapter.
         """
-        self._device = DishDeviceInfo(dish_dev_name)
         super().__init__(
             logger=logger,
             _liveliness_probe=_liveliness_probe,
@@ -92,7 +91,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-
+        self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
