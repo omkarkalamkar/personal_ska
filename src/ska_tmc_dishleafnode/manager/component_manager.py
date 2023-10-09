@@ -82,6 +82,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param timeout: Time period to wait for initialization
         of adapter.
         """
+        self._device = DishDeviceInfo(dish_dev_name)
         super().__init__(
             logger=logger,
             _liveliness_probe=_liveliness_probe,
@@ -93,7 +94,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.logger = logger
-        self._device = DishDeviceInfo(dish_dev_name)
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
@@ -175,7 +175,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     @property
     def dishMode(self) -> DishMode:
         """Returns the dishMode of dish master device"""
-        return self._device.dishMode
+        return self._device.dish_mode
 
     @property
     def pointingState(self) -> PointingState:
@@ -564,7 +564,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.dishMode = dish_mode
+            dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
@@ -646,11 +646,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 break
 
             # utc_timestamp is the time used for AzEl calculation.
-            desired_pointing = [
-                (utc_timestamp * 1000),
-                round(az_value, 12),
-                round(el_value, 12),
-            ]
+            desired_pointing = json.dumps(
+                [
+                    (utc_timestamp * 1000),
+                    round(az_value, 12),
+                    round(el_value, 12),
+                ]
+            )
             self.logger.info("desiredPointing coordinates: %s", desired_pointing)
             command_obj.dish_master_adapter.desiredPointing = desired_pointing
 

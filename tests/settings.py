@@ -3,10 +3,12 @@ import logging
 import time
 from typing import Final, List
 
-from ska_tmc_common.enum import LivelinessProbeType
+from ska_ser_logging import configure_logging
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
 
 from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
+
+configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,6 @@ def create_cm(device: str) -> DishLNComponentManager:
     cm = DishLNComponentManager(
         device,
         logger=logger,
-        _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
     )
     return cm
 
