@@ -175,8 +175,7 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.CONFIG)
         if not result:
             self.logger.error(
-                "Timeout occurred while waiting for CONFIG \
-                    dishMode in Configure Command."
+                "Timeout occurred while waiting for CONFIG dishMode in Configure Command."
             )
             return (
                 ResultCode.FAILED,
@@ -186,8 +185,8 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(current_dish_mode)
         if not result:
             self.logger.error(
-                "Timeout occurred while waiting for"
-                + f" {current_dish_mode} dishMode in Configure Command."
+                "Timeout occurred while waiting for %s dishMode in Configure Command.",
+                current_dish_mode,
             )
             return (
                 ResultCode.FAILED,
@@ -207,10 +206,7 @@ class Configure(DishLNCommand):
 
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
-            self.logger.error(
-                "Timeout occurred while invoking the\
-                               SetOperateMode Command."
-            )
+            self.logger.error("Timeout occurred while invoking the SetOperateMode Command.")
             return (
                 ResultCode.FAILED,
                 "Timeout occurred while invoking the SetOperateMode Command.",
@@ -240,7 +236,8 @@ class Configure(DishLNCommand):
         )
         self.tracking_thread.start()
         self.logger.info(
-            f"Track command invoked successfully with ra {ra_value}\
-                  and dec {dec_value}"
+            "Track command invoked successfully with ra: %s and dec: %s",
+            ra_value,
+            dec_value,
         )
         return result_code[0], message[0]

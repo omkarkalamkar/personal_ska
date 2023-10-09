@@ -49,6 +49,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
+        pointing_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -108,6 +109,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
         self.radec_value = ""
+        self._actual_pointing = []
+        self.pointing_callback = pointing_callback
 
         # Event Receiver
         if _event_receiver:
@@ -180,6 +183,41 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def pointingState(self) -> PointingState:
         """Returns the pointingState of dish master device"""
         return self._device.pointing_state
+
+    @property
+    def actual_pointing(self) -> list:
+        """Returns the actualPointing of the dish device."""
+        return self._actual_pointing
+
+    @actual_pointing.setter
+    def actual_pointing(self, value: list):
+        """Update the actualPointing of the dish device."""
+        timestamp, right_ascension, declination = value
+        self.logger.info(
+            "The updated actual pointing values are: %s, %s, %s",
+            timestamp,
+            right_ascension,
+            declination,
+        )
+        self._actual_pointing = [timestamp, right_ascension, declination]
+        self.pointing_callback(self._actual_pointing)
+
+    def update_achieved_pointing(self, value: str):
+        """Calculate and update the actual pointing from the achieved pointing
+        event."""
+        try:
+            timestamp, azimuth, elevation = json.loads(value)
+            converter = AzElConverter(self)
+            right_ascension, declination = converter.azel_to_radec(
+                azimuth, elevation, timestamp, converter.weather_data
+            )
+            self.actual_pointing = [timestamp, right_ascension, declination]
+        except Exception as e:
+            self.logger.info(
+                "Received an achievedPointing event with value: %s leading to exception : %s",
+                value,
+                e,
+            )
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
@@ -615,8 +653,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             command_obj: Command Object which is used to set desired_pointing
         """
         self.logger.info(
-            f"print track_thread thread name:{threading.current_thread().name}"
-            f"{threading.get_ident()}"
+            "The track_thread thread name is : %s %s",
+            threading.current_thread().name,
+            threading.get_ident(),
         )
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
@@ -653,7 +692,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 ]
             )
             self.logger.info("desiredPointing coordinates: %s", desired_pointing)
-            command_obj.dish_master_adapter.desiredPointing = desired_pointing
+            command_obj.dish_master_adapter.proxy.desiredPointing = desired_pointing
 
             self.logger.info("Observer: %s", self.observer)
 

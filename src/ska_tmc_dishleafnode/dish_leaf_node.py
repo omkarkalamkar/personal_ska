@@ -2,6 +2,8 @@
 # pylint: disable=line-too-long, fixme
 # flake8: noqa
 
+import json
+
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common.enum import LivelinessProbeType
@@ -60,6 +62,11 @@ class DishLeafNode(SKABaseDevice):
         access=AttrWriteType.READ,
     )
 
+    actualPointing = attribute(
+        dtype=str,
+        access=AttrWriteType.READ,
+    )
+
     # ---------------
     # General methods
     # ---------------
@@ -92,6 +99,7 @@ class DishLeafNode(SKABaseDevice):
             device._version_id = release.version
             device.set_change_event("healthState", True, False)
             device.set_change_event("isSubsystemAvailable", True, False)
+            device.set_change_event("actualPointing", True, False)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -108,6 +116,10 @@ class DishLeafNode(SKABaseDevice):
         self._isSubsystemAvailable = availablity
         self.push_change_event("isSubsystemAvailable", availablity)
 
+    def pointing_callback(self, actual_pointing: list) -> None:
+        """Push an event for the actualPointing attribute."""
+        self.push_change_event("actualPointing", json.dumps(actual_pointing))
+
     # ------------------
     # Attributes methods
     # ------------------
@@ -123,6 +135,10 @@ class DishLeafNode(SKABaseDevice):
     def read_isSubsystemAvailable(self):
         """Read method for isSubsystemAvailable"""
         return self._isSubsystemAvailable
+
+    def read_actualPointing(self) -> str:
+        """Returns the actualPointing attribute value."""
+        return json.dumps(self.component_manager.actual_pointing)
 
     # --------
     # Commands
@@ -470,6 +486,7 @@ class DishLeafNode(SKABaseDevice):
             logger=self.logger,
             communication_state_callback=None,
             component_state_callback=None,
+            pointing_callback=self.pointing_callback,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             sleep_time=self.SleepTime,
