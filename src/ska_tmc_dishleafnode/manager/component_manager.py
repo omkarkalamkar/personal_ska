@@ -211,8 +211,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Calculate and update the actual pointing from the achieved pointing
         event.
 
-        :param value: The list containing timestamp, Az and El values.
-        :value dtype: list
+        :param value: The json dumped list containing timestamp, Az and El values.
+        :value dtype: str
         """
         try:
             timestamp, azimuth, elevation = json.loads(value)
@@ -676,7 +676,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             command_obj: Command Object which is used to set desired_pointing
         """
         self.logger.info(
-            "The track_thread thread name is : %s %s",
+            "The track thread name is : %s %s",
             threading.current_thread().name,
             threading.get_ident(),
         )

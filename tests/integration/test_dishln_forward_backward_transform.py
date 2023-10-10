@@ -1,5 +1,4 @@
 """Integration test for testing forward and backward transform."""
-import time
 from time import sleep
 
 import pytest
@@ -7,7 +6,12 @@ import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, logger
+from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    logger,
+    wait_for_attribute_value,
+)
 
 
 def forward_backward_transform(tango_context, dishln_name, configure_input_str, group_callback):
@@ -43,20 +47,10 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    start_time = time.time()
-    while dish_master.read_attribute("desiredPointing").value == "[]":
-        sleep(0.5)
-        if time.time() - start_time >= 10:
-            logger.info(
-                "The desired pointing is currently: %s",
-                dish_master.read_attribute("desiredPointing").value,
-            )
-            assert 0
+    assert wait_for_attribute_value(dish_master, "desiredPointing")
 
     desired_pointing = dish_master.read_attribute("desiredPointing").value
     logger.info("The desired pointing is set to %s", desired_pointing)
-    # Checking if the desiredPointing attribute is populated
-    assert desired_pointing
 
     # Waiting for some time, to let the Track Thread Run.
     sleep(5)
@@ -69,16 +63,10 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         (unique_id_trackstop[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    start_time = time.time()
-    while dish_master.read_attribute("achievedPointing").value == "[]":
-        sleep(0.5)
-        if time.time() - start_time >= 10:
-            assert 0
+    assert wait_for_attribute_value(dish_master, "achievedPointing")
 
     achieved_pointing = dish_master.read_attribute("achievedPointing").value
     logger.info("Achieved Pointing is : %s", achieved_pointing)
-    # Checking if the achievedPointing attribute is populated
-    assert achieved_pointing
 
     actual_pointing = dish_leaf_node.read_attribute("actualPointing").value
     logger.info("Actual Pointing is: %s", actual_pointing)

@@ -6,6 +6,7 @@ from typing import Final, List
 from ska_ser_logging import configure_logging
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
+from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
 
@@ -79,3 +80,13 @@ def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
         elapsed_time = time.time() - start_time
     logger.info("Current Dishmode is %s", cm.dishMode)
     return False
+
+
+def wait_for_attribute_value(device: DeviceProxy, attribute_name: str) -> bool:
+    """Waits for attribute value to change on the given device."""
+    start_time = time.time()
+    while device.read_attribute(attribute_name).value == "[]":
+        time.sleep(0.5)
+        if time.time() - start_time >= 10:
+            return False
+    return True
