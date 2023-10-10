@@ -707,13 +707,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 break
 
             # utc_timestamp is the time used for AzEl calculation.
-            desired_pointing = json.dumps(
-                [
-                    (utc_timestamp * 1000),
-                    round(az_value, 12),
-                    round(el_value, 12),
-                ]
-            )
+            desired_pointing = [
+                (utc_timestamp * 1000),
+                round(az_value, 12),
+                round(el_value, 12),
+            ]
             self.update_desired_pointing(command_obj.dish_master_adapter, desired_pointing)
             self.logger.info("Observer: %s", self.observer)
 
