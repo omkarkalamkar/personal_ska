@@ -25,7 +25,7 @@ numpy = "1.23.0"
 pytango = "^9.3.3"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
 fire = "^0.4.0"
-ska-tmc-common = { git="https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git", branch="hm-326" }
+ska-tmc-common = "0.6.0"
 ska-ser-logging = "^0.4.1"
 ska-tango-base = "0.18.1"
 astropy = "^5.0.4"
