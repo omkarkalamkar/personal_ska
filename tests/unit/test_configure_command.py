@@ -5,7 +5,7 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import create_cm
+from tests.settings import create_cm, wait_for_dish_mode
 
 
 def get_configure_input_str(
@@ -27,6 +27,7 @@ def test_configure_command_completed(tango_context, task_callback, dish_master_d
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str()
     cm.configure(configure_input_str, task_callback=task_callback)
