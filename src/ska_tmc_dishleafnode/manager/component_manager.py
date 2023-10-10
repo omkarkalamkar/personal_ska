@@ -190,8 +190,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self._actual_pointing
 
     @actual_pointing.setter
-    def actual_pointing(self, value: list):
-        """Update the actualPointing of the dish device."""
+    def actual_pointing(self, value: list) -> None:
+        """Update the actualPointing of the dish device.
+
+        :param value: The list containing timestamp, RA and Dec values.
+        :value dtype: list
+        """
         timestamp, right_ascension, declination = value
         self.logger.info(
             "The updated actual pointing values are: %s, %s, %s",
@@ -202,9 +206,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = [timestamp, right_ascension, declination]
         self.pointing_callback(self._actual_pointing)
 
-    def update_achieved_pointing(self, value: str):
+    def update_achieved_pointing(self, value: str) -> None:
         """Calculate and update the actual pointing from the achieved pointing
-        event."""
+        event.
+
+        :param value: The list containing timestamp, Az and El values.
+        :value dtype: list
+        """
         try:
             timestamp, azimuth, elevation = json.loads(value)
             converter = AzElConverter(self)

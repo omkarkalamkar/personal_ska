@@ -55,8 +55,10 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
 
     desired_pointing = dish_master.read_attribute("desiredPointing").value
     logger.info("The desired pointing is set to %s", desired_pointing)
+    # Checking if the desiredPointing attribute is populated
     assert desired_pointing
 
+    # Waiting for some time, to let the Track Thread Run.
     sleep(5)
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
@@ -72,12 +74,15 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         sleep(0.5)
         if time.time() - start_time >= 10:
             assert 0
+
     achieved_pointing = dish_master.read_attribute("achievedPointing").value
     logger.info("Achieved Pointing is : %s", achieved_pointing)
+    # Checking if the achievedPointing attribute is populated
     assert achieved_pointing
 
     actual_pointing = dish_leaf_node.read_attribute("actualPointing").value
     logger.info("Actual Pointing is: %s", actual_pointing)
+    # Checking if the actualPointing attribute is populated
     assert actual_pointing
 
 
