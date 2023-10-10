@@ -38,6 +38,7 @@ def off_command(tango_context, dishln_name, group_callback):
     result, unique_id = dish_leaf_node.Off()
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("Off",),
+        lookahead=2,
     )
 
     logger.info(f"Command ID: {unique_id} Returned result: {result}")

@@ -63,6 +63,7 @@ def abort_when_configured(
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
+        lookahead=2,
     )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",

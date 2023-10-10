@@ -39,6 +39,7 @@ def setstandbylpmode_command(tango_context, dishln_name, group_callback):
     assert result_fp == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
+        lookahead=2,
     )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
@@ -58,6 +59,7 @@ def setstandbylpmode_command(tango_context, dishln_name, group_callback):
             "SetStandbyFPMode",
             "SetStandbyLPMode",
         ),
+        lookahead=2,
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
