@@ -38,6 +38,7 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     result, unique_id = dish_leaf_node.SetStandbyFPMode()
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
+        lookahead=2,
     )
 
     logger.info(f"Command ID: {unique_id} Returned result: {result}")

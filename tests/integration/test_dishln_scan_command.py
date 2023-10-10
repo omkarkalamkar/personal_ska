@@ -30,6 +30,7 @@ def scan_command(tango_context, dishln_name, group_callback):
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
+        lookahead=2,
     )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
@@ -47,7 +48,8 @@ def scan_command(tango_context, dishln_name, group_callback):
         (
             "SetStandbyFPMode",
             "SetOperateMode",
-        )
+        ),
+        lookahead=2,
     )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
@@ -71,7 +73,8 @@ def scan_command(tango_context, dishln_name, group_callback):
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode", "SetOperateMode", "Scan")
+        ("SetStandbyFPMode", "SetOperateMode", "Scan"),
+        lookahead=2,
     )
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
 

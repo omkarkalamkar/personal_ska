@@ -3,10 +3,14 @@ import logging
 import time
 from typing import Final, List
 
-from ska_tmc_common.enum import LivelinessProbeType
+from ska_ser_logging import configure_logging
+from ska_tmc_common.enum import DishMode
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
+from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
+
+configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +43,6 @@ def create_cm(device: str) -> DishLNComponentManager:
     cm = DishLNComponentManager(
         device,
         logger=logger,
-        _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
     )
     return cm
 
@@ -63,3 +66,27 @@ def event_remover(group_callback, attributes: List[str]) -> None:
                 node.drop()
         except KeyError:
             pass
+
+
+def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
+    """Waits for dishmode to become given dish mode. Times out if the change
+    does not occure. Current timeout is 10s.
+    """
+    start_time = time.time()
+    elapsed_time = 0
+    while elapsed_time < 10:
+        if cm.dishMode == dish_mode:
+            return True
+        elapsed_time = time.time() - start_time
+    logger.info("Current Dishmode is %s", cm.dishMode)
+    return False
+
+
+def wait_for_attribute_value(device: DeviceProxy, attribute_name: str) -> bool:
+    """Waits for attribute value to change on the given device."""
+    start_time = time.time()
+    while device.read_attribute(attribute_name).value == "[]":
+        time.sleep(0.5)
+        if time.time() - start_time >= 10:
+            return False
+    return True

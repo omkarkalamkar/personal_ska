@@ -49,6 +49,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
+        pointing_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -91,9 +92,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-
-        self.logger = logger
         self._device = DishDeviceInfo(dish_dev_name)
+        self.logger = logger
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
@@ -109,6 +109,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
         self.radec_value = ""
+        self._actual_pointing = []
+        self.pointing_callback = pointing_callback
 
         # Event Receiver
         if _event_receiver:
@@ -175,12 +177,56 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     @property
     def dishMode(self) -> DishMode:
         """Returns the dishMode of dish master device"""
-        return self._device.dishMode
+        return self._device.dish_mode
 
     @property
     def pointingState(self) -> PointingState:
         """Returns the pointingState of dish master device"""
         return self._device.pointing_state
+
+    @property
+    def actual_pointing(self) -> list:
+        """Returns the actualPointing of the dish device."""
+        return self._actual_pointing
+
+    @actual_pointing.setter
+    def actual_pointing(self, value: list) -> None:
+        """Update the actualPointing of the dish device.
+
+        :param value: The list containing timestamp, RA and Dec values.
+        :value dtype: list
+        """
+        timestamp, right_ascension, declination = value
+        self.logger.info(
+            "The updated actual pointing values are: %s, %s, %s",
+            timestamp,
+            right_ascension,
+            declination,
+        )
+        self._actual_pointing = [timestamp, right_ascension, declination]
+        if self.pointing_callback:
+            self.pointing_callback(self._actual_pointing)
+
+    def update_achieved_pointing(self, value: str) -> None:
+        """Calculate and update the actual pointing from the achieved pointing
+        event.
+
+        :param value: The json dumped list containing timestamp, Az and El values.
+        :value dtype: str
+        """
+        try:
+            timestamp, azimuth, elevation = json.loads(value)
+            converter = AzElConverter(self)
+            right_ascension, declination = converter.azel_to_radec(
+                azimuth, elevation, timestamp, converter.weather_data
+            )
+            self.actual_pointing = [timestamp, right_ascension, declination]
+        except Exception as e:
+            self.logger.info(
+                "Received an achievedPointing event with value: %s leading to exception : %s",
+                value,
+                e,
+            )
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
@@ -564,7 +610,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.lock:
             dev_info = self.get_device()
-            dev_info.dishMode = dish_mode
+            dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
@@ -607,6 +653,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
+    def update_desired_pointing(self, dish_adapter, desired_pointing: list) -> None:
+        """Write the desired pointing attribute on dish master device.
+
+        :param dish_adapter: The dish master adapter.
+        :dish_adapter dtype: DishAdapter
+        :param desired_pointing: The desired pointing co-ordinates in the form
+            of a list.
+        :desired_pointing dtype: List of timestamp, Az, and El.
+
+        :rtype: None
+        """
+        self.logger.info("The desiredPointing coordinates are: %s", desired_pointing)
+        dish_adapter.proxy.desiredPointing = json.dumps(desired_pointing)
+
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """This thread writes az-el coordinates to desiredPointing
         on DishMaster at the rate of 20 Hz.
@@ -616,8 +676,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             command_obj: Command Object which is used to set desired_pointing
         """
         self.logger.info(
-            f"print track_thread thread name:{threading.current_thread().name}"
-            f"{threading.get_ident()}"
+            "The track thread name is : %s %s",
+            threading.current_thread().name,
+            threading.get_ident(),
         )
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
@@ -651,9 +712,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 round(az_value, 12),
                 round(el_value, 12),
             ]
-            self.logger.info("desiredPointing coordinates: %s", desired_pointing)
-            command_obj.dish_master_adapter.desiredPointing = desired_pointing
-
+            self.update_desired_pointing(command_obj.dish_master_adapter, desired_pointing)
             self.logger.info("Observer: %s", self.observer)
 
             time.sleep(0.05)

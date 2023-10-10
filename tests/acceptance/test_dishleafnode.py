@@ -1,5 +1,7 @@
 # pylint: disable=line-too-long,unused-import
 
+import time
+
 import pytest
 import tango
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -26,6 +28,12 @@ def dishleafnode_cm(tango_context, dish_master_device):
 
 @when(parsers.parse("DishLeafNode pings the DishMaster device"))
 def ping_started(dishleafnode_cm):
+    start_time = time.time()
+    while not dishleafnode_cm.liveliness_probe_object._thread.is_alive():
+        time.sleep(0.5)
+        if time.time() - start_time > 10:
+            assert False
+
     assert dishleafnode_cm.liveliness_probe_object._thread.is_alive()
 
 
