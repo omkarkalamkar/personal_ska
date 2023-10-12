@@ -47,11 +47,20 @@ class AzElConverter:
     def create_antenna_obj(self) -> None:
         """This method identifies the KATPoint.
         Antenna object to be used from the Dish Number."""
-        antennas = self.dish_helper.get_dish_antennas_list()
-
-        for antenna in antennas:
-            if antenna.name == self.component_manager.dish_id:
-                self.component_manager.observer = antenna
+        retry = 0
+        while retry < 3:
+            try:
+                antennas = self.dish_helper.get_dish_antennas_list()
+            except Exception as e:
+                logger.exception(
+                    "Exception occured while getting the dish anntena list: %s. Retrying.", e
+                )
+                retry += 1
+            else:
+                for antenna in antennas:
+                    if antenna.name == self.component_manager.dish_id:
+                        self.component_manager.observer = antenna
+                break
 
     def point(self, right_ascension: str, declination: str, timestamp: str) -> list:
         """This method converts Target RaDec coordinates
