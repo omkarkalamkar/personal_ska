@@ -12,23 +12,31 @@ from typing import Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common.adapters import AdapterFactory
-from ska_tmc_common.device_info import DishDeviceInfo
-from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
-from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
-from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
+from ska_tmc_common import (
+    AdapterFactory,
+    CommandNotAllowed,
+    DeviceUnresponsive,
+    DishDeviceInfo,
+    DishMode,
+    LivelinessProbeType,
+    PointingState,
+    TmcLeafNodeComponentManager,
+)
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.commands.configure_command import Configure
-from ska_tmc_dishleafnode.commands.off_command import Off
-from ska_tmc_dishleafnode.commands.scan_command import Scan
-from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
-from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
-from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
-from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
-from ska_tmc_dishleafnode.commands.track_command import Track
-from ska_tmc_dishleafnode.commands.trackstop_command import TrackStop
-from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
+from ska_tmc_dishleafnode.commands import (
+    Configure,
+    Off,
+    Scan,
+    SetOperateMode,
+    SetStandbyFPMode,
+    SetStandbyLPMode,
+    SetStowMode,
+    Track,
+    TrackLoadStaticOff,
+    TrackStop,
+)
+from ska_tmc_dishleafnode.manager import DishLNEventReceiver
 
 # pylint: disable=abstract-method
 
@@ -172,6 +180,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             __adapter_factory,
             logger=self.logger,
+        )
+        self.track_load_static_off = TrackLoadStaticOff(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            self.logger,
         )
 
     @property
@@ -440,6 +454,36 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.logger.info("Configure command queued for execution")
         return task_status, response
+
+    def invoke_track_load_static_off(
+        self, argin: str, task_callback: Callable
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the TrackLoadStaticOff command for execution"""
+        try:
+            _, _ = json.loads(argin)
+        except Exception as e:
+            self.logger.exception(
+                "Exception occured while validating the argin for TrackLoadStaticOff command: %s",
+                e,
+            )
+            return (
+                TaskStatus.REJECTED,
+                "Input argument is incorrect for TrackLoadStaticOff command.",
+            )
+
+        task_status, response = self.submit_task(
+            self.track_load_static_off.invoke_track_load_static_off,
+            args=[argin, self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("TrackLoadStaticOff command queued for execution with argin: %s", argin)
+        return task_status, response
+
+    def is_trackloadstaticoff_allowed(self) -> bool:
+        """Checks if the command TrackLoadStaticOff is allowed."""
+
+        self.check_device_responsive()
+        return True
 
     def is_configure_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational

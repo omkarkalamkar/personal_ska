@@ -4,11 +4,11 @@ import time
 from typing import Final, List
 
 from ska_ser_logging import configure_logging
-from ska_tmc_common.enum import DishMode
+from ska_tmc_common import DishMode
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
 from tango import DeviceProxy
 
-from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
+from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 configure_logging()
 
