@@ -36,7 +36,8 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.manager import DishLNEventReceiver
+
+from .event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
 
