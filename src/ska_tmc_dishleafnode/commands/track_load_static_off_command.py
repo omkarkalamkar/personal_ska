@@ -15,7 +15,9 @@ class TrackLoadStaticOff(DishLNCommand):
     """
     A class for DishLeafNode's TrackLoadStaticOff() command.
 
-    Invokes TrackLoadStaticOff command on DishMaster.
+    This command is invoked as a part of the Configure sequence of a 5 point
+    calibration scan. It is used to set the cross elevation and elevation
+    offsets provided in the partial configurations on the Dish Master Device.
     """
 
     # pylint: disable=unused-argument
@@ -42,7 +44,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
         result_code, message = self.do(argin)
         if result_code == ResultCode.FAILED:
-            logger.debug("Command failed with exception: %s", message)
+            logger.warning("Command failed with exception: %s", message)
             task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ResultCode(result_code),

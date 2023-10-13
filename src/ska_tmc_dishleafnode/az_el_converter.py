@@ -60,6 +60,12 @@ class AzElConverter:
                 for antenna in antennas:
                     if antenna.name == self.component_manager.dish_id:
                         self.component_manager.observer = antenna
+                if not self.component_manager.observer:
+                    logger.debug(
+                        "None of the anntena names: %s, matched with the dish id: %s",
+                        antennas,
+                        self.component_manager.dish_id,
+                    )
                 break
 
     def point(self, right_ascension: str, declination: str, timestamp: str) -> list:
