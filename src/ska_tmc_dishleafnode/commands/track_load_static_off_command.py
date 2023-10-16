@@ -29,15 +29,21 @@ class TrackLoadStaticOff(DishLNCommand):
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         # pylint: enable=unused-argument
-        """A method to invoke the TrackLoadStaticOff command.
-        It sets the task_callback status according to command progress.
+        """A method to invoke the do method of the TrackLoadStaticOff command
+        class. This method also updates the task callback according to command
+        status.
 
+        :param argin: Input argument containing the cross elevation and
+            elevation offsets.
+        :type argin: str
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
         :type task_callback: Callable
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
+
+        :rtype: None
         """
 
         task_callback(status=TaskStatus.IN_PROGRESS)

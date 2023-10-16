@@ -45,7 +45,7 @@ ska\_tmc\_dishleafnode\_mid.commands.setstowmode\_command module
    :show-inheritance:
 
 ska\_tmc\_dishleafnode\_mid.commands.track_load_static_off\_command module
-----------------------------------------------------------------
+--------------------------------------------------------------------------
 
 .. automodule:: ska_tmc_dishleafnode.commands.track_load_static_off_command
    :members:
