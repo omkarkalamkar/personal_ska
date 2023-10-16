@@ -461,7 +461,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> Tuple[TaskStatus, str]:
         """Submits the TrackLoadStaticOff command for execution"""
         try:
-            _, _ = json.loads(argin)
+            offsets = json.loads(argin)
+            if len(offsets) != 2:
+                raise ValueError(
+                    f"The input string contains {len(offsets)} values, but should have 2."
+                )
         except Exception as e:
             self.logger.exception(
                 "Exception occured while validating the argin for TrackLoadStaticOff command: %s",

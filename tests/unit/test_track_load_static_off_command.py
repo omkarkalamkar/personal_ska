@@ -21,12 +21,19 @@ def test_trackloadstaticoff_command(tango_context, dish_master_device, task_call
     )
 
 
-def test_trackloadstaticoff_command_adapter_none(dish_master_device, task_callback):
+@pytest.mark.parametrize(
+    "argin",
+    [
+        json.dumps([0.1]),
+        json.dumps([0.1, 0.2, 0.3]),
+        [0.5],
+    ],
+)
+def test_trackloadstaticoff_command_adapter_none(dish_master_device, argin, task_callback):
     """Test the failure scenario while invoking TrackLoadStaticOff command."""
     cm = create_cm(dish_master_device)
     assert cm.is_trackloadstaticoff_allowed()
 
-    argin = json.dumps([0.1])
     status, message = cm.invoke_track_load_static_off(argin, task_callback=task_callback)
     assert status == TaskStatus.REJECTED
     assert "Input argument is incorrect for TrackLoadStaticOff command." == message
