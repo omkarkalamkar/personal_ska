@@ -13,7 +13,7 @@ def test_trackloadstaticoff_command(tango_context, dish_master_device, task_call
     assert cm.is_trackloadstaticoff_allowed()
 
     argin = json.dumps([0.01, 0.02])
-    cm.invoke_track_load_static_off(argin, task_callback=task_callback)
+    cm.track_load_static_off(argin, task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     task_callback.assert_against_call(
@@ -34,7 +34,7 @@ def test_trackloadstaticoff_command_adapter_none(dish_master_device, argin, task
     cm = create_cm(dish_master_device)
     assert cm.is_trackloadstaticoff_allowed()
 
-    status, message = cm.invoke_track_load_static_off(argin, task_callback=task_callback)
+    status, message = cm.track_load_static_off(argin, task_callback=task_callback)
     assert status == TaskStatus.REJECTED
     assert "Input argument is incorrect for TrackLoadStaticOff command." == message
 
