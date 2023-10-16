@@ -544,7 +544,7 @@ class DishLeafNode(SKABaseDevice):
             ("Track", "track"),
             ("TrackStop", "trackstop"),
             ("Off", "off"),
-            ("TrackLoadStaticOff", "invoke_track_load_static_off"),
+            ("TrackLoadStaticOff", "track_load_static_off"),
         ]:
             self.register_command_object(
                 command_name,

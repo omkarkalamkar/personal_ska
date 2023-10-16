@@ -110,7 +110,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_id = dish_dev_name.split("/")[0].upper() if dish_dev_name else None
         self.observer = None
         self.dish_number = None
-        self.observer = None
         self.event_track_time = threading.Event()
         self.elevation = elevation
         self.azimuth = azimuth
@@ -182,7 +181,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
-        self.track_load_static_off = TrackLoadStaticOff(
+        self.track_load_static_off_command = TrackLoadStaticOff(
             self,
             self.op_state_model,
             __adapter_factory,
@@ -456,9 +455,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Configure command queued for execution")
         return task_status, response
 
-    def invoke_track_load_static_off(
-        self, argin: str, task_callback: Callable
-    ) -> Tuple[TaskStatus, str]:
+    def track_load_static_off(self, argin: str, task_callback: Callable) -> Tuple[TaskStatus, str]:
         """Submits the TrackLoadStaticOff command for execution"""
         try:
             offsets = json.loads(argin)
@@ -466,10 +463,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 raise ValueError(
                     f"The input string contains {len(offsets)} values, but should have 2."
                 )
-        except Exception as e:
+        except Exception as exception:
             self.logger.exception(
                 "Exception occured while validating the argin for TrackLoadStaticOff command: %s",
-                e,
+                exception,
             )
             return (
                 TaskStatus.REJECTED,
@@ -477,7 +474,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
         task_status, response = self.submit_task(
-            self.track_load_static_off.invoke_track_load_static_off,
+            self.track_load_static_off_command.invoke_track_load_static_off,
             args=[argin, self.logger],
             task_callback=task_callback,
         )
@@ -776,10 +773,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if not self.elevation_min_limit <= el_value <= self.elevation_max_limit:
             self.el_limit = True
-            log_message = "Minimum/maximum elevation limit has been reached."
-            self.logger.info(log_message)
-            log_message = "Source is not visible currently."
-            self.logger.info(log_message)
+            self.logger.info(
+                "Minimum/maximum elevation limit has been reached."
+                + " Source is not visible currently."
+            )
             return False
 
         self.el_limit = False
