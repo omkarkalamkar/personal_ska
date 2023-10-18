@@ -728,6 +728,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
+        self.logger.info("Created a antenna object successfully.")
 
         while self.event_track_time.is_set() is False:
             utc_now = datetime.datetime.utcnow()
@@ -736,6 +737,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             extended_time = utc_now + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
             utc_timestamp = extended_time.timestamp()
             az_value, el_value = azel_converter.point(ra_value, dec_value, str(extended_time))
+            self.logger.info("The Az/El values are -> %s, %s", az_value, el_value)
 
             if not self._is_elevation_within_mechanical_limits(el_value):
                 time.sleep(0.05)
