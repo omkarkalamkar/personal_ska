@@ -13,7 +13,7 @@ def set_kvalue_command(
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     result_fp, _ = dish_leaf_node.SetKValue(1)
     assert dish_leaf_node.kValue == 1
-    assert result_fp[0] == ResultCode.OK
+    assert result_fp == ResultCode.OK
 
 
 @pytest.mark.post_deployment

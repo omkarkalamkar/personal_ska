@@ -58,4 +58,4 @@ class SetKValueCommand(DishLNCommand, FastCommand):
             f"SetKValue command invoked, Result code is {result_code}\
                 and Message is {message}"
         )
-        return result_code, message
+        return result_code[0], message[0]
