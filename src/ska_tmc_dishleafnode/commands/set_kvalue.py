@@ -1,5 +1,5 @@
 """
-AbortCommands command class for DishLeafNode.
+SetKValue command class for DishLeafNode.
 """
 
 from typing import Tuple
@@ -12,7 +12,7 @@ from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
 class SetKValueCommand(DishLNCommand, FastCommand):
     """
     A class for DishLeafNode's SetKValue() command.
-    Command to abort the Dish Master and bring it to its ABORTED state.
+    Command to set k value the Dish Master.
     """
 
     def __init__(self, component_manager, op_state_model=None, logger=None) -> None:
