@@ -1,5 +1,5 @@
 """This is DishLeafNode TANGO device."""
-# pylint: disable=line-too-long, fixme
+# pylint: disable=line-too-long, fixme, too-many-public-methods
 # flake8: noqa
 
 import json
@@ -12,6 +12,7 @@ from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
+from ska_tmc_dishleafnode.commands.set_kvalue import SetKValueCommand
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -67,9 +68,17 @@ class DishLeafNode(SKABaseDevice):
         access=AttrWriteType.READ,
     )
 
+    kValue = attribute(
+        dtype=int,
+        access=AttrWriteType.READ,
+    )
+
     # ---------------
     # General methods
     # ---------------
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._k_value = 0
 
     def init_device(self):
         super().init_device()
@@ -139,6 +148,10 @@ class DishLeafNode(SKABaseDevice):
     def read_actualPointing(self) -> str:
         """Returns the actualPointing attribute value."""
         return json.dumps(self.component_manager.actual_pointing)
+
+    def read_kValue(self) -> int:
+        """Returns the kValue attribute value."""
+        return self.component_manager.kvalue
 
     # --------
     # Commands
@@ -480,6 +493,32 @@ class DishLeafNode(SKABaseDevice):
             ["ObsReset command will be refactored in later PI's"],
         ]
 
+    def is_SetKValue_allowed(self):
+        """
+        Checks whether this command is allowed to be run in current
+        device state
+
+        :return: True if this command is allowed to be run in current device
+        state
+
+        :rtype: boolean
+        """
+        return self.component_manager.is_set_kvalue_allowed()
+
+    @command(
+        dtype_in="DevLong",
+        doc_in="The k number in range [1-2222]",
+        dtype_out="DevVarLongStringArray",
+        doc_out="information-only string",
+    )
+    @DebugIt()
+    def SetKValue(self, argin: int):
+        """Invokes SetKValue command on the DishMaster."""
+
+        handler = self.get_command_object("SetKValue")
+        result_code, unique_id = handler(argin)
+        return [result_code], [unique_id]
+
     def create_component_manager(self):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
@@ -514,6 +553,7 @@ class DishLeafNode(SKABaseDevice):
             ("Track", "track"),
             ("TrackStop", "trackstop"),
             ("Off", "off"),
+            ("SetKValue", "SetKValue"),
         ]:
             self.register_command_object(
                 command_name,
@@ -529,6 +569,10 @@ class DishLeafNode(SKABaseDevice):
         self.register_command_object(
             "AbortCommands",
             AbortCommands(self.component_manager, logger=self.logger),
+        )
+        self.register_command_object(
+            "SetKValue",
+            SetKValueCommand(self.component_manager, logger=self.logger),
         )
 
 
