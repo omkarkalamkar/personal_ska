@@ -229,10 +229,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: str
         """
         try:
+            self.logger.info("Received an achievedPointing event with value: %s", value)
             timestamp, azimuth, elevation = json.loads(value)
             converter = AzElConverter(self)
+            converter.create_antenna_obj()
+
+            timestamp_seconds = timestamp / 1000
+            timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
             right_ascension, declination = converter.azel_to_radec(
-                azimuth, elevation, timestamp, converter.weather_data
+                str(azimuth), str(elevation), timestamp, converter.weather_data
             )
             self.actual_pointing = [timestamp, right_ascension, declination]
         except Exception as e:
@@ -736,7 +744,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             # on DishMaster, 100 ms are added to it.
             extended_time = utc_now + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
             utc_timestamp = extended_time.timestamp()
-            az_value, el_value = azel_converter.point(ra_value, dec_value, str(extended_time))
+            timestamp = datetime.datetime.utcfromtimestamp(utc_timestamp).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
             self.logger.info("The Az/El values are -> %s, %s", az_value, el_value)
 
             if not self._is_elevation_within_mechanical_limits(el_value):
