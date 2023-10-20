@@ -82,10 +82,10 @@ def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
     return False
 
 
-def wait_for_attribute_value(device: DeviceProxy, attribute_name: str) -> bool:
+def wait_for_attribute_value(device: DeviceProxy, attribute_name: str, value: str = "[]") -> bool:
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
-    while device.read_attribute(attribute_name).value == "[]":
+    while device.read_attribute(attribute_name).value == value:
         time.sleep(0.5)
         if time.time() - start_time >= TIMEOUT:
             return False
