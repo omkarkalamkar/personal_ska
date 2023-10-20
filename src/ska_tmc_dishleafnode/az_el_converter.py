@@ -66,9 +66,7 @@ class AzElConverter:
         Return:
             az_el_coordinates (list)
         """
-        iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-        with iers.earth_orientation_table.set(iers_a):
-            return self.radec_to_azel(right_ascension, declination, timestamp, self.weather_data)
+        return self.radec_to_azel(right_ascension, declination, timestamp, self.weather_data)
 
     def azel_to_radec(
         self, az_value: str, el_value: str, timestamp: str, weather_data: dict[str, float]
@@ -94,11 +92,14 @@ class AzElConverter:
         )
         elevation_angle = Angle(refraction_removed_el, u.rad)
         azimuth_angle = Angle(az_value, u.deg)
-        target = Target.from_azel(
-            azimuth_angle,
-            elevation_angle,
-        )
-        ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
+
+        iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        with iers.earth_orientation_table.set(iers_a):
+            target = Target.from_azel(
+                azimuth_angle,
+                elevation_angle,
+            )
+            ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
         ra = angle_to_string(ra_dec.ra, unit=u.hour, precision=2, show_unit=False)
         dec = angle_to_string(ra_dec.dec, unit=u.deg, precision=2, show_unit=False)
         logger.info(
@@ -129,8 +130,11 @@ class AzElConverter:
         Return:
             az_el_coordinates (list[degrees])
         """
-        target = Target.from_radec(right_ascension, declination)
-        azel = target.azel(timestamp, self.component_manager.observer)
+
+        iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        with iers.earth_orientation_table.set(iers_a):
+            target = Target.from_radec(right_ascension, declination)
+            azel = target.azel(timestamp, self.component_manager.observer)
         refraction_corrected_el = self.refraction_correction.apply(
             azel.alt.rad,
             weather_data["temperature"],
