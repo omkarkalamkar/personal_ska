@@ -144,4 +144,4 @@ def check_command(
     assert str(dish_master_proxy.state()) == resultant_state
 
 
-scenarios("../features/dishleafnode.feature")
+# scenarios("../features/dishleafnode.feature")

@@ -10,6 +10,7 @@ import time
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
+from astropy.utils import iers
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
@@ -119,6 +120,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
+        self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
 
         # Event Receiver
         if _event_receiver:
@@ -230,11 +232,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.logger.info("Received an achievedPointing event with value: %s", value)
-            timestamp, azimuth, elevation = json.loads(value)
+            timestamp_milliseconds, azimuth, elevation = json.loads(value)
             converter = AzElConverter(self)
             converter.create_antenna_obj()
 
-            timestamp_seconds = timestamp / 1000
+            timestamp_seconds = timestamp_milliseconds / 1000
             timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
                 "%Y-%m-%d %H:%M:%S"
             )
