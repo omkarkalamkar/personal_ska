@@ -1,5 +1,4 @@
 """Integration test for testing forward and backward transform."""
-import time
 from time import sleep
 
 import pytest
