@@ -1,5 +1,5 @@
 """This is DishLeafNode TANGO device."""
-# pylint: disable=line-too-long, fixme, too-many-public-methods
+# pylint: disable= fixme, too-many-public-methods
 # flake8: noqa
 
 import json
@@ -69,7 +69,7 @@ class DishLeafNode(SKABaseDevice):
     )
 
     kValue = attribute(
-        dtype=int,
+        dtype="DevLong",
         access=AttrWriteType.READ,
     )
 

@@ -13,6 +13,8 @@ class SetKValueCommand(DishLNCommand, FastCommand):
     """
     A class for DishLeafNode's SetKValue() command.
     Command to set k value the Dish Master.
+    k value specifies an offset in sample rate.
+    The sample rate for each Band is calculated based on k value
     """
 
     def __init__(self, component_manager, op_state_model=None, logger=None) -> None:
@@ -30,6 +32,11 @@ class SetKValueCommand(DishLNCommand, FastCommand):
     def do(self, argin: int) -> Tuple[ResultCode, str]:
         """
         Invokes SetKValue command on the DishMaster.
+
+        CentralNode invokes SetKValue command on Dish Leaf Node
+        as part of LoadDishCfg Command.
+        Dish Leaf Node then invokes command on dish master
+        which will then set this k value on SPFRx.
 
         :param argin:
             Accepts input k value that is in range [1-2222]

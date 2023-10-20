@@ -661,9 +661,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_set_kvalue_allowed(self) -> bool:
         """
         Checks whether this command is allowed
-        It checks that the device is in the right state
-        to execute this command and that all the
-        component needed for the operation are not unresponsive
+        It checks that the device is responsive
+        before invoking command.
 
         :return: True if this command is allowed
 
