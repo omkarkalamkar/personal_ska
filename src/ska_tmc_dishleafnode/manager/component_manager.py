@@ -736,7 +736,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
-        self.logger.info("Created a antenna object successfully.")
 
         while self.event_track_time.is_set() is False:
             utc_now = datetime.datetime.utcnow()

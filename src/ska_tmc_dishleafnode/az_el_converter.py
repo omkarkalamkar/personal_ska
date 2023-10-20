@@ -14,6 +14,7 @@ import logging
 
 from astropy import units as u
 from astropy.coordinates import Angle
+from astropy.utils import iers
 from katpoint import RefractionCorrection, Target
 from katpoint.conversion import angle_to_string
 from ska_ser_logging import configure_logging
@@ -65,7 +66,9 @@ class AzElConverter:
         Return:
             az_el_coordinates (list)
         """
-        return self.radec_to_azel(right_ascension, declination, timestamp, self.weather_data)
+        iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        with iers.earth_orientation_table.set(iers_a):
+            return self.radec_to_azel(right_ascension, declination, timestamp, self.weather_data)
 
     def azel_to_radec(
         self, az_value: str, el_value: str, timestamp: str, weather_data: dict[str, float]
