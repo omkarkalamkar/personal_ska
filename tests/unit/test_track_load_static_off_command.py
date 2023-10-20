@@ -29,7 +29,7 @@ def test_trackloadstaticoff_command(tango_context, dish_master_device, task_call
         [0.5],
     ],
 )
-def test_trackloadstaticoff_command_adapter_none(dish_master_device, argin, task_callback):
+def test_trackloadstaticoff_command_invalid_input(dish_master_device, argin, task_callback):
     """Test the failure scenario while invoking TrackLoadStaticOff command."""
     cm = create_cm(dish_master_device)
     assert cm.is_trackloadstaticoff_allowed()
@@ -39,7 +39,8 @@ def test_trackloadstaticoff_command_adapter_none(dish_master_device, argin, task
     assert "Input argument is incorrect for TrackLoadStaticOff command." == message
 
 
-def test_trackloadstaticoff_command_not_allowed(tango_context, dish_master_device):
+def test_trackloadstaticoff_command_not_allowed(dish_master_device):
+    """Test the command not allowed when the device is unresponsive."""
     cm = create_cm(dish_master_device)
     cm.get_device().update_unresponsive(True)
     with pytest.raises(DeviceUnresponsive):
