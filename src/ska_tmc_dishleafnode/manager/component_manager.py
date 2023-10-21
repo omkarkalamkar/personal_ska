@@ -239,6 +239,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 e,
             )
 
+    # pylint: disable= arguments-differ
+    def update_event_failure(self) -> None:
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
         if self.event_receiver_object._thread.is_alive():

@@ -7,6 +7,7 @@ from ska_tmc_common.enum import DishMode
 from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
 
 
+@pytest.mark.test
 def device_unavailability(tango_context, dishln_name, group_callback):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
