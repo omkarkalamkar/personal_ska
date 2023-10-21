@@ -4,6 +4,7 @@ from .configure_command import Configure
 from .dish_ln_command import DishLNCommand
 from .off_command import Off
 from .scan_command import Scan
+from .set_kvalue import SetKValue
 from .setoperatemode import SetOperateMode
 from .setstandbyfpmode import SetStandbyFPMode
 from .setstandbylpmode import SetStandbyLPMode
@@ -25,5 +26,5 @@ __all__ = [
     "AbortCommands",
     "DishLNCommand",
     "TrackLoadStaticOff",
-    "SetKValue"
+    "SetKValue",
 ]
