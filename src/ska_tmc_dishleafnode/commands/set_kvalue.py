@@ -6,7 +6,7 @@ from typing import Tuple
 
 from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 
-from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
+from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
 
 class SetKValueCommand(DishLNCommand, FastCommand):
