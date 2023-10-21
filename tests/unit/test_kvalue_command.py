@@ -16,7 +16,6 @@ def test_set_kvalue_command(tango_context):
     assert result_code == ResultCode.OK
 
 
-@pytest.mark.debug
 def test_command_fail_check_allowed_with_device_unresponsive(
     tango_context,
 ):
@@ -34,7 +33,7 @@ def wait_for_unresponsive(cm):
     elapsed_time = 0
     timeout = 50
     while elapsed_time < timeout:
-        if cm.get_device()._unresponsive:
+        if cm.get_device().unresponsive:
             return True
         elapsed_time = time.time() - start_time
     return False
