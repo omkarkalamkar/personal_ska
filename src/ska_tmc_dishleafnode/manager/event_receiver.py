@@ -25,9 +25,8 @@ class DishLNEventReceiver(EventReceiver):
                     executor.submit(self.subscribe_events, dishDevInfo)
             sleep(self._sleep_time)
 
-    # pylint: disable=arguments-differ
-    # pylint: disable=signature-differs
-    def subscribe_events(self, dev_info: DishDeviceInfo) -> None:
+    def subscribe_events(self, dev_info: DishDeviceInfo, attribute_dictionary=None) -> None:
+        super().subscribe_events(dev_info, self.attribute_dictionary)
         try:
             dish_dev_proxy = self._dev_factory.get_device(dev_info.dev_name)
             dish_dev_proxy.subscribe_event(
