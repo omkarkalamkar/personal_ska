@@ -3,8 +3,7 @@ from concurrent import futures
 from time import sleep
 
 import tango
-from ska_tmc_common.device_info import DishDeviceInfo
-from ska_tmc_common.event_receiver import EventReceiver
+from ska_tmc_common import DishDeviceInfo, EventReceiver
 
 
 class DishLNEventReceiver(EventReceiver):

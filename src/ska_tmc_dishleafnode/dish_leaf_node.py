@@ -3,6 +3,7 @@
 # flake8: noqa
 
 import json
+from typing import List, Tuple
 
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
@@ -429,6 +430,35 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_trackstop_allowed()
 
+    @command(
+        dtype_in="str",
+        doc_in="The JSON input string containing cross elevation/elevation offsets.",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def TrackLoadStaticOff(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
+        """
+        Invokes TrackLoadStaticOff command on DishMaster
+
+        :rtype: tuple
+        """
+        handler = self.get_command_object("TrackLoadStaticOff")
+        result_code, unique_id = handler(argin)
+
+        return [result_code], [str(unique_id)]
+
+    def is_TrackLoadStaticOff_allowed(self):
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+        device state.
+
+        :rtype: boolean
+        """
+        return self.component_manager.is_trackloadstaticoff_allowed()
+
     def is_AbortCommands_allowed(self):
         """
         Checks whether this command is allowed to be run in current
@@ -554,6 +584,7 @@ class DishLeafNode(SKABaseDevice):
             ("TrackStop", "trackstop"),
             ("Off", "off"),
             ("SetKValue", "SetKValue"),
+            ("TrackLoadStaticOff", "track_load_static_off"),
         ]:
             self.register_command_object(
                 command_name,
