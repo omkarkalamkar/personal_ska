@@ -85,5 +85,7 @@ class TrackLoadStaticOff(DishLNCommand):
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", argin=argin
         )
+        if result_code[0] in [ResultCode.OK, ResultCode.QUEUED]:
+            return ResultCode.OK, ""
 
         return result_code[0], message[0]
