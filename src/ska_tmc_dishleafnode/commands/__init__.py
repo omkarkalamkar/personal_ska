@@ -25,4 +25,5 @@ __all__ = [
     "AbortCommands",
     "DishLNCommand",
     "TrackLoadStaticOff",
+    "SetKValue"
 ]

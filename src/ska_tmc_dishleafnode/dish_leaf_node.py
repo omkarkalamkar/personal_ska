@@ -13,7 +13,7 @@ from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
-from ska_tmc_dishleafnode.commands.set_kvalue import SetKValueCommand
+from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -603,7 +603,7 @@ class DishLeafNode(SKABaseDevice):
         )
         self.register_command_object(
             "SetKValue",
-            SetKValueCommand(self.component_manager, logger=self.logger),
+            SetKValue(self.component_manager, logger=self.logger),
         )
 
 

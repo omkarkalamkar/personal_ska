@@ -4,14 +4,14 @@ import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.exceptions import DeviceUnresponsive
 
-from ska_tmc_dishleafnode.commands.set_kvalue import SetKValueCommand
+from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import DISH_MASTER_DEVICE, create_cm, logger
 
 
 def test_set_kvalue_command(tango_context):
     logger.info("%s", tango_context)
     cm = create_cm(DISH_MASTER_DEVICE)
-    set_kvalue_command = SetKValueCommand(cm, logger=logger)
+    set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
 
