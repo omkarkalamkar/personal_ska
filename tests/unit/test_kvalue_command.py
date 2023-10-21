@@ -16,14 +16,14 @@ def test_set_kvalue_command(tango_context):
     assert result_code == ResultCode.OK
 
 
-def test_command_fail_check_allowed_with_device_unresponsive(
+def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
     tango_context,
 ):
     logger.info("%s", tango_context)
     cm = create_cm(DISH_MASTER_DEVICE)
     cm.get_device().update_unresponsive(True)
     wait_for_unresponsive(cm)
-    with pytest.raises(DeviceUnresponsive):
+    with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
         cm.is_set_kvalue_allowed()
 
 
