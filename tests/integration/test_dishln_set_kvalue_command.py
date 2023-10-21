@@ -2,13 +2,10 @@ import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, logger
+from tests.settings import DISH_LEAF_NODE_DEVICE
 
 
-def set_kvalue_command(
-    tango_context,
-):
-    logger.info(f"{tango_context}")
+def set_kvalue_command():
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     result_fp, _ = dish_leaf_node.SetKValue(1)
@@ -18,7 +15,5 @@ def set_kvalue_command(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_set_kvalue_command(tango_context):
-    set_kvalue_command(
-        tango_context,
-    )
+def test_set_kvalue_command():
+    set_kvalue_command()
