@@ -29,7 +29,7 @@ def test_command_fail_check_allowed_with_device_unresponsive(
 
 
 def wait_for_unresponsive(cm):
-    """Waits for transition of DishMode to the correct state."""
+    """Waits for device unresponsive update to True."""
     start_time = time.time()
     elapsed_time = 0
     timeout = 50
