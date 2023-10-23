@@ -1,5 +1,4 @@
 """This is DishLeafNode TANGO device."""
-# pylint: disable= too-many-public-methods
 # flake8: noqa
 
 import json
