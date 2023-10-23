@@ -26,6 +26,8 @@ def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
     cm.get_device().update_unresponsive(True)
     wait_for_unresponsive(cm)
     with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
+        print(cm.get_device())
+        print(cm.get_device().unresponsive)
         cm.is_set_kvalue_allowed()
 
 
