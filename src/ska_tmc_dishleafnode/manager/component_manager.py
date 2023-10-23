@@ -673,8 +673,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def check_device_responsive(self) -> None:
         """Checks if dish master device is responsive."""
-        if self._device is None or self._device.unresponsive:
-            raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
+        with self.lock:
+            dev_info = self.get_device()
+            if dev_info is None or dev_info.unresponsive:
+                raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
 
     def update_device_dish_mode(self, dish_mode: DishMode) -> None:
         """
