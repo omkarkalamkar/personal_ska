@@ -120,6 +120,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
+        self._kvalue: int = 0
         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
 
         # Event Receiver
@@ -189,6 +190,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
+
+    @property
+    def kvalue(self) -> int:
+        """Returns the k value"""
+        return self._kvalue
+
+    @kvalue.setter
+    def kvalue(self, value: int) -> None:
+        """Update the kvalue property."""
+        if self._kvalue != value:
+            self._kvalue = value
 
     @property
     def dishMode(self) -> DishMode:
@@ -279,12 +291,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: DishDeviceInfo
         """
         return self._device
-
-    def update_event_failure(self) -> None:
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
 
     def off(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the Off command for execution.
@@ -719,6 +725,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # and pointing states
         # TO DO: DishMode/s & pointing state/s decision
 
+        self.check_device_responsive()
+        return True
+
+    def is_set_kvalue_allowed(self) -> bool:
+        """
+        Checks whether this command is allowed
+        It checks that the device is responsive
+        before invoking command.
+
+        :return: True if this command is allowed
+
+        :rtype: boolean
+        """
         self.check_device_responsive()
         return True
 

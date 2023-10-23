@@ -90,3 +90,15 @@ def wait_for_attribute_value(device: DeviceProxy, attribute_name: str, value: st
         if time.time() - start_time >= TIMEOUT:
             return False
     return True
+
+
+def wait_for_unresponsive(cm):
+    """Waits for device unresponsive update to True."""
+    start_time = time.time()
+    elapsed_time = 0
+    timeout = 50
+    while elapsed_time < timeout:
+        if cm.get_device().unresponsive:
+            return True
+        elapsed_time = time.time() - start_time
+    return False

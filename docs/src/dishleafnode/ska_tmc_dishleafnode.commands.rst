@@ -52,6 +52,13 @@ ska\_tmc\_dishleafnode\_mid.commands.track_load_static_off\_command module
    :undoc-members:
    :show-inheritance:
 
+ska\_tmc\_dishleafnode\_mid.commands.set_kvalue\_command module
+--------------------------------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.set_kvalue
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------

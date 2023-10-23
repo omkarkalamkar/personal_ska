@@ -24,7 +24,7 @@ class DishLNEventReceiver(EventReceiver):
                     executor.submit(self.subscribe_events, dishDevInfo)
             sleep(self._sleep_time)
 
-    def subscribe_events(self, dev_info: DishDeviceInfo) -> None:
+    def subscribe_events(self, dev_info: DishDeviceInfo, attribute_dictionary=None) -> None:
         try:
             dish_dev_proxy = self._dev_factory.get_device(dev_info.dev_name)
             dish_dev_proxy.subscribe_event(
@@ -64,7 +64,7 @@ class DishLNEventReceiver(EventReceiver):
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure()
+            self._component_manager.update_event_failure(event_flag.device.dev_name())
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_dish_mode(new_value)
@@ -82,7 +82,7 @@ class DishLNEventReceiver(EventReceiver):
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure()
+            self._component_manager.update_event_failure(event_flag.device.dev_name())
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_pointing_state(new_value)
@@ -100,7 +100,7 @@ class DishLNEventReceiver(EventReceiver):
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure()
+            self._component_manager.update_event_failure(event_flag.device.dev_name())
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_achieved_pointing(new_value)
