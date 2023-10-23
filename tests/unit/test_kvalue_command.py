@@ -2,11 +2,10 @@ import time
 
 import pytest
 from ska_tango_base.commands import ResultCode
+from ska_tmc_common.exceptions import DeviceUnresponsive
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import DISH_MASTER_DEVICE, create_cm, logger
-
-# from ska_tmc_common.exceptions import DeviceUnresponsive
 
 
 @pytest.mark.debug
@@ -26,7 +25,8 @@ def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
     cm = create_cm(DISH_MASTER_DEVICE)
     cm.get_device().update_unresponsive(True)
     wait_for_unresponsive(cm)
-    cm.is_set_kvalue_allowed()
+    with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
+        cm.is_set_kvalue_allowed()
 
 
 def wait_for_unresponsive(cm):
