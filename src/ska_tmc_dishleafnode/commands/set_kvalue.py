@@ -33,11 +33,6 @@ class SetKValue(DishLNCommand, FastCommand):
         """
         Invokes SetKValue command on the DishMaster.
 
-        CentralNode invokes SetKValue command on Dish Leaf Node
-        as part of LoadDishCfg Command.
-        Dish Leaf Node then invokes command on dish master
-        which will then set this k value on SPFRx.
-
         :param argin:
             Accepts input k value that is in range [1-2222]
         :dtype: int
