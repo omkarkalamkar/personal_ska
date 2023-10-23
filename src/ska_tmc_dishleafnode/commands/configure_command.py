@@ -239,7 +239,3 @@ class Configure(DishLNCommand):
             dec_value,
         )
         return result_code[0], message[0]
-
-    def stop_tracking_thread(self):
-        """Stops the Tracking thread."""
-        self.component_manager.event_track_time.set()
