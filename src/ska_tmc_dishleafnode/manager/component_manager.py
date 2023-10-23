@@ -235,6 +235,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
 
+    def convert_timestamp(self, timestamp_milliseconds: float) -> str:
+        """Converts the floating point timestamp in milliseconds to a utc
+        timestamp with format -> %Y-%m-%d %H:%M:%S
+
+        :param timestamp_milliseconds: Input timestamp with time in
+            milliseconds
+        :type timestamp_milliseconds: float
+
+        :returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+        """
+        timestamp_seconds = timestamp_milliseconds / 1000
+        timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        return timestamp
+
     def update_achieved_pointing(self, value: str) -> None:
         """Calculate and update the actual pointing from the achieved pointing
         event.
@@ -248,10 +264,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             converter = AzElConverter(self)
             converter.create_antenna_obj()
 
-            timestamp_seconds = timestamp_milliseconds / 1000
-            timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
+            timestamp = self.convert_timestamp(timestamp_milliseconds)
 
             right_ascension, declination = converter.azel_to_radec(
                 str(azimuth), str(elevation), timestamp, converter.weather_data
@@ -763,10 +776,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             # For the timestamp to be a future timestamp
             # on DishMaster, 100 ms are added to it.
             extended_time = utc_now + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
-            utc_timestamp = extended_time.timestamp()
-            timestamp = datetime.datetime.utcfromtimestamp(utc_timestamp).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
+            utc_timestamp = extended_time.timestamp() * 1000
+            timestamp = self.convert_timestamp(utc_timestamp)
             az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
             self.logger.info("The Az/El values are -> %s, %s", az_value, el_value)
 
@@ -787,7 +798,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             # utc_timestamp is the time used for AzEl calculation.
             desired_pointing = [
-                (utc_timestamp * 1000),
+                (utc_timestamp),
                 round(az_value, 12),
                 round(el_value, 12),
             ]
