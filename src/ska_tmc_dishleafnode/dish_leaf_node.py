@@ -1,5 +1,5 @@
 """This is DishLeafNode TANGO device."""
-# pylint: disable= fixme, too-many-public-methods
+# pylint: disable= too-many-public-methods
 # flake8: noqa
 
 import json
@@ -77,9 +77,6 @@ class DishLeafNode(SKABaseDevice):
     # ---------------
     # General methods
     # ---------------
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._k_value = 0
 
     def init_device(self):
         super().init_device()
