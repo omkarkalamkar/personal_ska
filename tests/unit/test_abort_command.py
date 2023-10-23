@@ -1,11 +1,9 @@
-import time
-
 import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.exceptions import DeviceUnresponsive
 
 from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
-from tests.settings import DISH_MASTER_DEVICE, create_cm, logger
+from tests.settings import DISH_MASTER_DEVICE, create_cm, logger, wait_for_unresponsive
 
 
 def test_abort_command(tango_context):
@@ -25,15 +23,3 @@ def test_abort_command_fail_check_allowed_with_device_unresponsive(
     wait_for_unresponsive(cm)
     with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
         cm.is_abortcommands_allowed()
-
-
-def wait_for_unresponsive(cm):
-    """Waits for device unresponsive update to True."""
-    start_time = time.time()
-    elapsed_time = 0
-    timeout = 50
-    while elapsed_time < timeout:
-        if cm.get_device()._unresponsive:
-            return True
-        elapsed_time = time.time() - start_time
-    return False
