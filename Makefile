@@ -69,7 +69,7 @@ $(shell echo 'global:\n  annotations:\n    app.gitlab.com/app: $(CI_PROJECT_PATH
 
 ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS +=  --forked
-MARK = not post_deployment and not acceptance
+MARK = not post_deployment and not acceptance and debug
 endif
 ifeq ($(MAKECMDGOALS),k8s-test)
 ADD_ARGS +=  --true-context
