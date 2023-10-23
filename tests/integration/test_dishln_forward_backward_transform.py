@@ -75,7 +75,6 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
     assert actual_pointing
 
 
-@pytest.mark.skip(reason="Will be fixed as part of HM-344")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_forward_backward_transform(tango_context, json_factory, group_callback):
