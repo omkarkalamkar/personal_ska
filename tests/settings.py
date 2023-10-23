@@ -4,11 +4,11 @@ import time
 from typing import Final, List
 
 from ska_ser_logging import configure_logging
-from ska_tmc_common.enum import DishMode
+from ska_tmc_common import DishMode
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
 from tango import DeviceProxy
 
-from ska_tmc_dishleafnode.manager.component_manager import DishLNComponentManager
+from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 configure_logging()
 
@@ -74,7 +74,7 @@ def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
     """
     start_time = time.time()
     elapsed_time = 0
-    while elapsed_time < 10:
+    while elapsed_time < TIMEOUT:
         if cm.dishMode == dish_mode:
             return True
         elapsed_time = time.time() - start_time
@@ -82,11 +82,11 @@ def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
     return False
 
 
-def wait_for_attribute_value(device: DeviceProxy, attribute_name: str) -> bool:
+def wait_for_attribute_value(device: DeviceProxy, attribute_name: str, value: str = "[]") -> bool:
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
-    while device.read_attribute(attribute_name).value == "[]":
+    while device.read_attribute(attribute_name).value == value:
         time.sleep(0.5)
-        if time.time() - start_time >= 10:
+        if time.time() - start_time >= TIMEOUT:
             return False
     return True

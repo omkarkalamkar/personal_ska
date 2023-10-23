@@ -10,25 +10,35 @@ import time
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
+from astropy.utils import iers
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common.adapters import AdapterFactory
-from ska_tmc_common.device_info import DishDeviceInfo
-from ska_tmc_common.enum import DishMode, LivelinessProbeType, PointingState
-from ska_tmc_common.exceptions import CommandNotAllowed, DeviceUnresponsive
-from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
+from ska_tmc_common import (
+    AdapterFactory,
+    CommandNotAllowed,
+    DeviceUnresponsive,
+    DishDeviceInfo,
+    DishMode,
+    LivelinessProbeType,
+    PointingState,
+    TmcLeafNodeComponentManager,
+)
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.commands.configure_command import Configure
-from ska_tmc_dishleafnode.commands.off_command import Off
-from ska_tmc_dishleafnode.commands.scan_command import Scan
-from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
-from ska_tmc_dishleafnode.commands.setstandbyfpmode import SetStandbyFPMode
-from ska_tmc_dishleafnode.commands.setstandbylpmode import SetStandbyLPMode
-from ska_tmc_dishleafnode.commands.setstowmode import SetStowMode
-from ska_tmc_dishleafnode.commands.track_command import Track
-from ska_tmc_dishleafnode.commands.trackstop_command import TrackStop
-from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
+from ska_tmc_dishleafnode.commands import (
+    Configure,
+    Off,
+    Scan,
+    SetOperateMode,
+    SetStandbyFPMode,
+    SetStandbyLPMode,
+    SetStowMode,
+    Track,
+    TrackLoadStaticOff,
+    TrackStop,
+)
+
+from .event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
 
@@ -101,7 +111,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_id = dish_dev_name.split("/")[0].upper() if dish_dev_name else None
         self.observer = None
         self.dish_number = None
-        self.observer = None
         self.event_track_time = threading.Event()
         self.elevation = elevation
         self.azimuth = azimuth
@@ -111,6 +120,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
+        self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
 
         # Event Receiver
         if _event_receiver:
@@ -173,6 +183,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.track_load_static_off_command = TrackLoadStaticOff(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            self.logger,
+        )
 
     @property
     def dishMode(self) -> DishMode:
@@ -207,6 +223,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
 
+    def convert_timestamp(self, timestamp_milliseconds: float) -> str:
+        """Converts the floating point timestamp in milliseconds to a utc
+        timestamp with format -> %Y-%m-%d %H:%M:%S
+
+        :param timestamp_milliseconds: Input timestamp with time in
+            milliseconds
+        :type timestamp_milliseconds: float
+
+        :returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+        """
+        timestamp_seconds = timestamp_milliseconds / 1000
+        timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        return timestamp
+
     def update_achieved_pointing(self, value: str) -> None:
         """Calculate and update the actual pointing from the achieved pointing
         event.
@@ -215,10 +247,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: str
         """
         try:
-            timestamp, azimuth, elevation = json.loads(value)
+            self.logger.info("Received an achievedPointing event with value: %s", value)
+            timestamp_milliseconds, azimuth, elevation = json.loads(value)
             converter = AzElConverter(self)
+            converter.create_antenna_obj()
+
+            timestamp = self.convert_timestamp(timestamp_milliseconds)
+
             right_ascension, declination = converter.azel_to_radec(
-                azimuth, elevation, timestamp, converter.weather_data
+                str(azimuth), str(elevation), timestamp, converter.weather_data
             )
             self.actual_pointing = [timestamp, right_ascension, declination]
         except Exception as e:
@@ -440,6 +477,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.logger.info("Configure command queued for execution")
         return task_status, response
+
+    def track_load_static_off(self, argin: str, task_callback: Callable) -> Tuple[TaskStatus, str]:
+        """Submits the TrackLoadStaticOff command for execution"""
+        try:
+            offsets = json.loads(argin)
+            if len(offsets) != 2:
+                raise ValueError(
+                    f"The input string contains {len(offsets)} values, but should have 2."
+                )
+        except Exception as exception:
+            self.logger.exception(
+                "Exception occured while validating the argin for TrackLoadStaticOff command: %s",
+                exception,
+            )
+            return (
+                TaskStatus.REJECTED,
+                "Input argument is incorrect for TrackLoadStaticOff command.",
+            )
+
+        task_status, response = self.submit_task(
+            self.track_load_static_off_command.invoke_track_load_static_off,
+            args=[argin, self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("TrackLoadStaticOff command queued for execution with argin: %s", argin)
+        return task_status, response
+
+    def is_trackloadstaticoff_allowed(self) -> bool:
+        """Checks if the command TrackLoadStaticOff is allowed."""
+
+        self.check_device_responsive()
+        return True
 
     def is_configure_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
@@ -688,8 +757,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             # For the timestamp to be a future timestamp
             # on DishMaster, 100 ms are added to it.
             extended_time = utc_now + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
-            utc_timestamp = extended_time.timestamp()
-            az_value, el_value = azel_converter.point(ra_value, dec_value, str(extended_time))
+            utc_timestamp = extended_time.timestamp() * 1000
+            timestamp = self.convert_timestamp(utc_timestamp)
+            az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
+            self.logger.info("The Az/El values are -> %s, %s", az_value, el_value)
 
             if not self._is_elevation_within_mechanical_limits(el_value):
                 time.sleep(0.05)
@@ -708,7 +779,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             # utc_timestamp is the time used for AzEl calculation.
             desired_pointing = [
-                (utc_timestamp * 1000),
+                (utc_timestamp),
                 round(az_value, 12),
                 round(el_value, 12),
             ]
@@ -727,10 +798,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if not self.elevation_min_limit <= el_value <= self.elevation_max_limit:
             self.el_limit = True
-            log_message = "Minimum/maximum elevation limit has been reached."
-            self.logger.info(log_message)
-            log_message = "Source is not visible currently."
-            self.logger.info(log_message)
+            self.logger.info(
+                "Minimum/maximum elevation limit has been reached."
+                + " Source is not visible currently."
+            )
             return False
 
         self.el_limit = False

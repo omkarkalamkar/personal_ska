@@ -68,6 +68,7 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
     achieved_pointing = dish_master.read_attribute("achievedPointing").value
     logger.info("Achieved Pointing value is : %s", achieved_pointing)
 
+    wait_for_attribute_value(dish_leaf_node, "actualPointing")
     actual_pointing = dish_leaf_node.read_attribute("actualPointing").value
     logger.info("Actual Pointing value is: %s", actual_pointing)
     # Checking if the actualPointing attribute is populated

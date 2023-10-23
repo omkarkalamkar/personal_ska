@@ -14,6 +14,7 @@ import logging
 
 from astropy import units as u
 from astropy.coordinates import Angle
+from astropy.utils import iers
 from katpoint import RefractionCorrection, Target
 from katpoint.conversion import angle_to_string
 from ska_ser_logging import configure_logging
@@ -82,6 +83,7 @@ class AzElConverter:
         :return: List of RA and Dec values in Hours Minutes Seconds and Degree
             Minutes Seconds respectively.
         """
+
         elevation = Angle(el_value, u.deg)
         refraction_removed_el = self.refraction_correction.reverse(
             elevation.rad,
@@ -89,13 +91,19 @@ class AzElConverter:
             weather_data["pressure"],
             weather_data["humidity"],
         )
+
         elevation_angle = Angle(refraction_removed_el, u.rad)
         azimuth_angle = Angle(az_value, u.deg)
+
         target = Target.from_azel(
             azimuth_angle,
             elevation_angle,
         )
-        ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
+
+        # Preloading the IERS A chart for Astrop's usage.
+        with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
+
         ra = angle_to_string(ra_dec.ra, unit=u.hour, precision=2, show_unit=False)
         dec = angle_to_string(ra_dec.dec, unit=u.deg, precision=2, show_unit=False)
         logger.info(
@@ -127,7 +135,11 @@ class AzElConverter:
             az_el_coordinates (list[degrees])
         """
         target = Target.from_radec(right_ascension, declination)
-        azel = target.azel(timestamp, self.component_manager.observer)
+
+        # Preloading the IERS A chart for Astrop's usage.
+        with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            azel = target.azel(timestamp, self.component_manager.observer)
+
         refraction_corrected_el = self.refraction_correction.apply(
             azel.alt.rad,
             weather_data["temperature"],

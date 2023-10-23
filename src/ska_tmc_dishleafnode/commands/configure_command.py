@@ -10,7 +10,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
-from ska_tmc_dishleafnode.commands.abstract_command import DishLNCommand
+from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
 
 class Configure(DishLNCommand):
@@ -229,10 +229,8 @@ class Configure(DishLNCommand):
         self.component_manager.el_limit = True
         self.component_manager.event_track_time.clear()
         self.tracking_thread = threading.Thread(
-            None,
-            self.component_manager.track_thread,
-            "DishLeafNode",
-            args=(ra_value, dec_value, self),
+            target=self.component_manager.track_thread,
+            args=[ra_value, dec_value, self],
         )
         self.tracking_thread.start()
         self.logger.info(
