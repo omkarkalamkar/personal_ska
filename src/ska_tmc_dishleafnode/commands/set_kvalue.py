@@ -29,11 +29,11 @@ class SetKValue(DishLNCommand, FastCommand):
 
     # pylint: disable=arguments-differ
     # pylint: disable=signature-differs
-    def do(self, argin: int) -> Tuple[ResultCode, str]:
+    def do(self, k_value: int) -> Tuple[ResultCode, str]:
         """
         Invokes SetKValue command on the DishMaster.
 
-        :param argin:
+        :param k_value:
             Accepts input k value that is in range [1-2222]
         :dtype: int
 
@@ -52,10 +52,10 @@ class SetKValue(DishLNCommand, FastCommand):
             return result_code, message
 
         result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "SetKValue", argin
+            "Dish Master", self.dish_master_adapter, "SetKValue", k_value
         )
         if result_code[0] == ResultCode.OK:
-            self.component_manager.kvalue = argin
+            self.component_manager.kvalue = k_value
         self.logger.info(
             f"SetKValue command invoked, Result code is {result_code}\
                 and Message is {message}"

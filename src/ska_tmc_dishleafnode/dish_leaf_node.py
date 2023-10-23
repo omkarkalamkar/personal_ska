@@ -539,11 +539,11 @@ class DishLeafNode(SKABaseDevice):
         doc_out="information-only string",
     )
     @DebugIt()
-    def SetKValue(self, argin: int):
+    def SetKValue(self, k_value: int) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetKValue command on the DishMaster."""
 
         handler = self.get_command_object("SetKValue")
-        result_code, unique_id = handler(argin)
+        result_code, unique_id = handler(k_value)
         return [result_code], [unique_id]
 
     def create_component_manager(self):
