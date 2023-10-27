@@ -41,6 +41,7 @@ class DishLeafNode(SKABaseDevice):
     # -----------------
     DishMasterFQDN = device_property(dtype="str", doc="FQDN of Dish Master Device")
 
+
     SleepTime = device_property(dtype="DevFloat", default_value=1)
     CommandTimeOut = device_property(dtype="DevFloat", default_value=15)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
@@ -563,6 +564,7 @@ class DishLeafNode(SKABaseDevice):
             elevation_min_limit=self.ElevationMinLimit,
             _update_availablity_callback=self.update_availablity_callback,
         )
+        self.logger.info(f"My cm dish name is {self.DishMasterFQDN}")
         return cm
 
     def init_command_objects(self):

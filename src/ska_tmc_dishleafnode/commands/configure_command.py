@@ -133,13 +133,16 @@ class Configure(DishLNCommand):
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, command_name, argin
+                "Dish Master", self.dish_master_adapter, command_name, True
             )
+            self.logger.info(f"I was here 1 {result_code} {message} ")
 
-            if current_dish_mode != DishMode.STOW and result_code[0] == ResultCode.OK:
+            if current_dish_mode != DishMode.STOW and result_code[0] == ResultCode.QUEUED:
+                self.logger.info(f"I was here 1 {result_code} {message} ")
                 result_code, message = self.start_dish_tracking(
                     current_dish_mode, ra_value, dec_value
                 )
+                self.logger.info(f"I was here 2 {result_code} {message} ")
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -158,6 +161,7 @@ class Configure(DishLNCommand):
         """Invoke Track after waiting for DishMode to Operate"""
         # Set wait for DishMode CONFIG
         result_code, message = self.ensure_dish_is_configured(current_dish_mode)
+        self.logger.info(f"I was here 2 {result_code} {message} ")
         if result_code == ResultCode.FAILED:
             return result_code, message
         if current_dish_mode == DishMode.STANDBY_FP:
@@ -173,6 +177,7 @@ class Configure(DishLNCommand):
         :param current_dish_mode: str
         """
         result = self.set_wait_for_dishmode(DishMode.CONFIG)
+        self.logger.info(f"I was here 4 {result}")
         if not result:
             self.logger.error(
                 "Timeout occurred while waiting for CONFIG dishMode in Configure Command."
