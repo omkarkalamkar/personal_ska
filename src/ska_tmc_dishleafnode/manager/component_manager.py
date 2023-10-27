@@ -109,7 +109,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dish_id = dish_dev_name.split("/")[-3].upper() if dish_dev_name else None
-        self.logger.info(f"my dish_id {self.dish_id}")
         self.observer = None
         self.dish_number = None
         self.event_track_time = threading.Event()
@@ -260,7 +259,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: str
         """
         try:
-            self.logger.info("Received an achievedPointing event with value: %s and my type is %s", value,type(value))
+            self.logger.info(
+                "Received an achievedPointing event with value: %s",
+                value,
+            )
             value_list = value.tolist()
             json_string = json.dumps(value_list)
             json_list = json.loads(json_string)
@@ -710,7 +712,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Find out dish number from DishMasterFQDN
         property e.g. ska001/elt/master"""
         self.dish_id = dish_master_fqdn.split("/")[
-            0
+            -3
         ].upper()  # station names in the layout json are in capital
 
     def is_abortcommands_allowed(self) -> bool:
@@ -806,8 +808,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 round(az_value, 12),
                 round(el_value, 12),
             ]
-            self.logger.info(f"my command obj is {command_obj.dish_master_adapter}")
-            self.logger.info(f"my desired pointing is {desired_pointing} and my type is {type(desired_pointing)} ")
             self.update_desired_pointing(command_obj.dish_master_adapter, desired_pointing)
             self.logger.info("Observer: %s", self.observer)
 
