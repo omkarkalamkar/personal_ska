@@ -19,7 +19,7 @@ COPY --chown=tango:tango . /app
 
 # Install runtime dependencies and the app
 RUN poetry install --only main
-
+RUN apt-get -y install git
 RUN rm /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
 
 USER tango
