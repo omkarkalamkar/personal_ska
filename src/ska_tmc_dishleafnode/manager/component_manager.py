@@ -758,7 +758,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: None
         """
-        self.logger.info("The desiredPointing coordinates are: %s", desired_pointing)
+        self.logger.info(
+            "The desiredPointing coordinates are: %s",
+            desired_pointing,
+        )
         dish_adapter.proxy.desiredPointing = desired_pointing
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
@@ -804,7 +807,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             # utc_timestamp is the time used for AzEl calculation.
             desired_pointing = [
-                (utc_timestamp),
+                utc_timestamp,
                 round(az_value, 12),
                 round(el_value, 12),
             ]

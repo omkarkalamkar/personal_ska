@@ -137,7 +137,7 @@ class Configure(DishLNCommand):
                 "Dish Master", self.dish_master_adapter, command_name, True
             )
 
-            if current_dish_mode != DishMode.STOW and result_code[0] == ResultCode.QUEUED:
+            if current_dish_mode != DishMode.STOW and result_code[0] != ResultCode.FAILED:
                 result_code, message = self.start_dish_tracking(
                     current_dish_mode, ra_value, dec_value
                 )
@@ -201,7 +201,6 @@ class Configure(DishLNCommand):
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
-
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
 

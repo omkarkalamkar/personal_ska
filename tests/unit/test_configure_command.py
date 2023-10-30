@@ -17,7 +17,6 @@ def get_configure_input_str(
     return config_str
 
 
-@pytest.mark.aki
 def test_configure_command_completed(tango_context, task_callback, dish_master_device):
     cm = create_cm(dish_master_device)
     cm.update_device_dish_mode(DishMode.STANDBY_LP)
