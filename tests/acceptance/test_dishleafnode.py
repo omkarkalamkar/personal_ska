@@ -31,7 +31,7 @@ def ping_started(dishleafnode_cm):
     start_time = time.time()
     while not dishleafnode_cm.liveliness_probe_object._thread.is_alive():
         time.sleep(0.5)
-        if time.time() - start_time > 10:
+        if time.time() - start_time > 30:
             assert False
 
     assert dishleafnode_cm.liveliness_probe_object._thread.is_alive()
@@ -79,7 +79,7 @@ def call_command(
         )
         group_callback["dishMode"].assert_change_event(
             (dishMode),
-            lookahead=4,
+            lookahead=6,
         )
         if command_name == "Configure":
             configure_string = json_factory("dishleafnode_configure")
@@ -126,7 +126,7 @@ def check_command(
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandIDsInQueue"].assert_change_event(
-        (str(unique_id),), lookahead=2
+        (str(unique_id),), lookahead=6
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(

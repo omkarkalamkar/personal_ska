@@ -49,7 +49,6 @@ class AzElConverter:
         """This method identifies the KATPoint.
         Antenna object to be used from the Dish Number."""
         antennas = self.dish_helper.get_dish_antennas_list()
-
         for antenna in antennas:
             if antenna.name == self.component_manager.dish_id:
                 self.component_manager.observer = antenna

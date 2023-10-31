@@ -51,6 +51,7 @@ class Configure(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         logger.info(message)
+        logger.info(return_code)
 
         if return_code == ResultCode.FAILED:
             task_callback(
@@ -132,11 +133,12 @@ class Configure(DishLNCommand):
             dec_value = json_argument["pointing"]["target"]["dec"]
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
+            # The argin accepted here is a boolean value in accordance with Dish Master
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, command_name, argin
+                "Dish Master", self.dish_master_adapter, command_name, True
             )
 
-            if current_dish_mode != DishMode.STOW and result_code[0] == ResultCode.OK:
+            if current_dish_mode != DishMode.STOW and result_code[0] != ResultCode.FAILED:
                 result_code, message = self.start_dish_tracking(
                     current_dish_mode, ra_value, dec_value
                 )
@@ -200,7 +202,6 @@ class Configure(DishLNCommand):
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
-
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
 

@@ -10,6 +10,7 @@ import time
 from logging import Logger
 from typing import Callable, Optional, Tuple
 
+import numpy as np
 from astropy.utils import iers
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -108,7 +109,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
-        self.dish_id = dish_dev_name.split("/")[0].upper() if dish_dev_name else None
+        self.dish_id = dish_dev_name.split("/")[-3].upper() if dish_dev_name else None
         self.observer = None
         self.dish_number = None
         self.event_track_time = threading.Event()
@@ -251,7 +252,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return timestamp
 
-    def update_achieved_pointing(self, value: str) -> None:
+    def update_achieved_pointing(self, value: np.array) -> None:
         """Calculate and update the actual pointing from the achieved pointing
         event.
 
@@ -259,8 +260,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: str
         """
         try:
-            self.logger.info("Received an achievedPointing event with value: %s", value)
-            timestamp_milliseconds, azimuth, elevation = json.loads(value)
+            self.logger.info(
+                "Received an achievedPointing event with value: %s",
+                value,
+            )
+            value_list = value.tolist()
+            timestamp_milliseconds, azimuth, elevation = value_list
             converter = AzElConverter(self)
             converter.create_antenna_obj()
 
@@ -706,7 +711,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Find out dish number from DishMasterFQDN
         property e.g. ska001/elt/master"""
         self.dish_id = dish_master_fqdn.split("/")[
-            0
+            -3
         ].upper()  # station names in the layout json are in capital
 
     def is_abortcommands_allowed(self) -> bool:
@@ -752,8 +757,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: None
         """
-        self.logger.info("The desiredPointing coordinates are: %s", desired_pointing)
-        dish_adapter.proxy.desiredPointing = json.dumps(desired_pointing)
+        self.logger.info(
+            "The desiredPointing coordinates are: %s",
+            desired_pointing,
+        )
+        dish_adapter.proxy.desiredPointing = desired_pointing
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """This thread writes az-el coordinates to desiredPointing
@@ -798,7 +806,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             # utc_timestamp is the time used for AzEl calculation.
             desired_pointing = [
-                (utc_timestamp),
+                utc_timestamp,
                 round(az_value, 12),
                 round(el_value, 12),
             ]
