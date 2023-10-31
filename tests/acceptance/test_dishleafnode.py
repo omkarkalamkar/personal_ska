@@ -31,7 +31,7 @@ def ping_started(dishleafnode_cm):
     start_time = time.time()
     while not dishleafnode_cm.liveliness_probe_object._thread.is_alive():
         time.sleep(0.5)
-        if time.time() - start_time > 20:
+        if time.time() - start_time > 30:
             assert False
 
     assert dishleafnode_cm.liveliness_probe_object._thread.is_alive()

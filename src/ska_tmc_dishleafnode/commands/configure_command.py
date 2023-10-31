@@ -133,6 +133,7 @@ class Configure(DishLNCommand):
             dec_value = json_argument["pointing"]["target"]["dec"]
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
+            # The argin accepted here is a boolean value in accordance with Dish Master
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, command_name, True
             )

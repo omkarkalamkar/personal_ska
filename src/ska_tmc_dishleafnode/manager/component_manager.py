@@ -252,18 +252,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return timestamp
 
-    def json_to_list(self, value: np.array):
-        """Converts the numpy array into the list"""
-        try:
-            # converts numpy array to list
-            value_list = value.tolist()
-            json_string = json.dumps(value_list)
-            json_list = json.loads(json_string)
-            return json_list
-        except json.JSONDecodeError as e:
-            self.logger.exception(f"Error decoding JSON: {e}")
-            return None
-
     def update_achieved_pointing(self, value: np.array) -> None:
         """Calculate and update the actual pointing from the achieved pointing
         event.
@@ -276,8 +264,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "Received an achievedPointing event with value: %s",
                 value,
             )
-            json_list = self.json_to_list(value)
-            timestamp_milliseconds, azimuth, elevation = json_list
+            value_list = value.tolist()
+            timestamp_milliseconds, azimuth, elevation = value_list
             converter = AzElConverter(self)
             converter.create_antenna_obj()
 
