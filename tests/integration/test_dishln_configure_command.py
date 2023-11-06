@@ -191,14 +191,15 @@ def partial_configure_dish_leaf_node(
         lookahead=6,
     )
 
-    result_config, unique_id_config = dish_leaf_node.TrackStop()
+    result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
+    assert result_trackstop[0] == ResultCode.QUEUED
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("TrackStop",),
         lookahead=6,
     )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_trackstop[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
 

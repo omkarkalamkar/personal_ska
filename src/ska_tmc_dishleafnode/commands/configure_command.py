@@ -137,11 +137,17 @@ class Configure(DishLNCommand):
 
             json_argument = json.loads(argin)
             if json_argument.get("tmc"):
-                ca_offset = json_argument["pointing"]["target"].get("ca_offset_arcsec") or 0
-                ie_offset = json_argument["pointing"]["target"].get("ie_offset_arcsec") or 0
-                argin = json.dumps([ca_offset, ie_offset])
+                # Extracting and setting cross elevation offset. Considering
+                # 0.0 if the key is omitted
+                ca_offset = json_argument["pointing"]["target"].get("ca_offset_arcsec") or 0.0
+
+                # Extracting and setting elevation offset. Considering 0.0 if
+                # the key is omitted
+                ie_offset = json_argument["pointing"]["target"].get("ie_offset_arcsec") or 0.0
+
+                offsets_argin = json.dumps([ca_offset, ie_offset])
                 result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", argin
+                    "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", offsets_argin
                 )
                 return result_code[0], message[0]
 
