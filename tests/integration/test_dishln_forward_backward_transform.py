@@ -10,6 +10,7 @@ from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
+    tear_down,
     wait_for_attribute_value,
 )
 
@@ -73,6 +74,7 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
     logger.info("Actual Pointing value is: %s", actual_pointing)
     # Checking if the actualPointing attribute is populated
     assert actual_pointing
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment

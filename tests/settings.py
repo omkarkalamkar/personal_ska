@@ -3,8 +3,10 @@ import logging
 import time
 from typing import Final, List
 
+import tango
 from ska_ser_logging import configure_logging
-from ska_tmc_common import DishMode
+from ska_tango_base.commands import ResultCode
+from ska_tmc_common import DishMode, PointingState
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
 from tango import DeviceProxy
 
@@ -102,3 +104,51 @@ def wait_for_unresponsive(cm):
             return True
         elapsed_time = time.time() - start_time
     return False
+
+
+def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback):
+    """Teardown for the Dish Leaf Node device."""
+    current_pointing_state = dish_master.pointingState
+    if current_pointing_state == PointingState.TRACK:
+        result, unique_id = dish_leaf_node.TrackStop()
+        assert result[0] == ResultCode.QUEUED
+
+        dish_leaf_node.subscribe_event(
+            "longRunningCommandsInQueue",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandsInQueue"],
+        )
+        group_callback["longRunningCommandsInQueue"].assert_change_event(
+            ("TrackStop",), lookahead=4
+        )
+
+        dish_leaf_node.subscribe_event(
+            "longRunningCommandResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandResult"],
+        )
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id[0], str(int(ResultCode.OK))),
+            lookahead=4,
+        )
+    dish_master.SetDirectPointingState(PointingState.NONE)
+    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_master.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_master.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.NONE),
+        lookahead=2,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=8,
+    )

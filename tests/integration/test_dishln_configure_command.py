@@ -4,7 +4,13 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
+from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    event_remover,
+    logger,
+    tear_down,
+)
 
 
 def configure_dish_leaf_node(
@@ -97,6 +103,7 @@ def configure_dish_leaf_node(
         None,
         lookahead=8,
     )
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment
@@ -212,6 +219,7 @@ def partial_configure_dish_leaf_node(
         None,
         lookahead=8,
     )
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment
