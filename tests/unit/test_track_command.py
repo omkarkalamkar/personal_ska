@@ -11,9 +11,9 @@ from tests.settings import create_cm
 
 
 def get_track_input_str(
-    configure_input_file="dishleafnode_track.json",
+    track_input_file="dishleafnode_track.json",
 ):
-    path = join(dirname(__file__), "..", "data", configure_input_file)
+    path = join(dirname(__file__), "..", "data", track_input_file)
     with open(path, "r") as f:
         config_str = f.read()
     return config_str
