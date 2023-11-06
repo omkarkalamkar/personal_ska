@@ -1,16 +1,19 @@
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common.dev_factory import DevFactory
-from ska_tmc_common.enum import DishMode, PointingState
+from ska_tango_testing.mock.placeholders import Anything
+from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    build_partial_configure_data,
     event_remover,
     logger,
     tear_down,
 )
+
+OFFSET = 5.0
 
 
 def configure_dish_leaf_node(
@@ -187,24 +190,26 @@ def partial_configure_dish_leaf_node(
         lookahead=6,
     )
 
-    result_config, unique_id_config = dish_leaf_node.Configure(partial_configure_input_str)
-    assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("Configure", "Configure"), lookahead=3
-    )
+    partial_configurations = build_partial_configure_data(partial_configure_input_str, OFFSET)
+    for input_str in partial_configurations:
+        result_config, unique_id_config = dish_leaf_node.Configure(input_str)
+        assert result_config[0] == ResultCode.QUEUED
 
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
-        lookahead=6,
-    )
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id_config[0], str(int(ResultCode.OK))),
+            lookahead=6,
+        )
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("TrackStop",),
-        lookahead=6,
-    )
+    while True:
+        assertion_data = group_callback["longRunningCommandsInQueue"].assert_change_event(
+            Anything,
+        )
+        if "TrackStop" in assertion_data["attribute_value"]:
+            break
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_trackstop[0], str(int(ResultCode.OK))),
         lookahead=6,

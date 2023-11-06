@@ -1,4 +1,5 @@
 """This module provides settings for the test cases."""
+import json
 import logging
 import time
 from typing import Final, List
@@ -152,3 +153,30 @@ def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callb
         (DishMode.STANDBY_LP),
         lookahead=8,
     )
+
+
+def build_partial_configure_data(
+    partial_config: str,
+    offset: float,
+) -> List[str]:
+    """Build and return the jsons for partial configuration in a list."""
+    configurations = []
+    partial_config = json.loads(partial_config)
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = offset
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = 0.0
+    configurations.append(json.dumps(partial_config))
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = 0.0
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = offset
+    configurations.append(json.dumps(partial_config))
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = -offset
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = 0.0
+    configurations.append(json.dumps(partial_config))
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = 0.0
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = -offset
+    configurations.append(json.dumps(partial_config))
+
+    return configurations
