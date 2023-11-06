@@ -463,7 +463,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: a result code and message
         """
-        self.logger.info("The input json is -> %s", argin)
         try:
             input_json = json.loads(argin)
         except Exception as e:

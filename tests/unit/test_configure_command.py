@@ -14,7 +14,7 @@ def get_configure_input_str(
     path = join(dirname(__file__), "..", "data", configure_input_file)
     with open(path, "r") as f:
         config_str = f.read()
-    return config_str
+    return str(config_str)
 
 
 def test_configure_command_completed(tango_context, task_callback, dish_master_device):
