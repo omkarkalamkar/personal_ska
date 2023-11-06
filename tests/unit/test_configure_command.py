@@ -5,7 +5,7 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import create_cm, wait_for_dish_mode
+from tests.settings import create_cm, logger, wait_for_dish_mode
 
 
 def get_configure_input_str(
@@ -53,6 +53,7 @@ def test_configure_command_completed_partial_config(
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str("partial_configure.json")
+    logger.info("The input data string is -> %s", configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})

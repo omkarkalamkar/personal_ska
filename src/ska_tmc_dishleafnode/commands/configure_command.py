@@ -137,8 +137,8 @@ class Configure(DishLNCommand):
 
             json_argument = json.loads(argin)
             if json_argument.get("tmc"):
-                ca_offset = json_argument["pointing"]["target"]["ca_offset_arcsec"]
-                ie_offset = json_argument["pointing"]["target"]["ie_offset_arcsec"]
+                ca_offset = json_argument["pointing"]["target"].get("ca_offset_arcsec") or 0
+                ie_offset = json_argument["pointing"]["target"].get("ie_offset_arcsec") or 0
                 argin = json.dumps([ca_offset, ie_offset])
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", argin
