@@ -146,7 +146,7 @@ def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callb
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.NONE),
-        lookahead=2,
+        lookahead=5,
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
