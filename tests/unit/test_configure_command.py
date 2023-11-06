@@ -1,3 +1,4 @@
+import json
 from os.path import dirname, join
 
 import pytest
@@ -14,7 +15,7 @@ def get_configure_input_str(
     path = join(dirname(__file__), "..", "data", configure_input_file)
     with open(path, "r") as f:
         config_str = f.read()
-    return str(config_str)
+    return json.dumps(config_str)
 
 
 def test_configure_command_completed(tango_context, task_callback, dish_master_device):
@@ -53,7 +54,7 @@ def test_configure_command_completed_partial_config(
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = get_configure_input_str("partial_configure.json")
-    logger.info("The input data string is -> %s", configure_input_str)
+    logger.info("The input json string is -> %s", configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
