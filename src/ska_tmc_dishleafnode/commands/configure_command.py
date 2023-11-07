@@ -81,7 +81,7 @@ class Configure(DishLNCommand):
             )
 
         if "tmc" in input_argin:
-            if "target" not in input_argin["pointing"]:
+            if "tmc" in input_argin and "target" not in input_argin["pointing"]:
                 return (
                     ResultCode.FAILED,
                     "target key is not present in the input json argument.",
