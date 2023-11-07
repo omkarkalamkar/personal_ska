@@ -79,17 +79,25 @@ class Configure(DishLNCommand):
                 ResultCode.FAILED,
                 "pointing key is not present in the input json argument.",
             )
-        if "dish" not in input_argin:
-            return (
-                ResultCode.FAILED,
-                "dish key is not present in the input json argument.",
-            )
 
-        if "receiver_band" not in input_argin["dish"]:
-            return (
-                ResultCode.FAILED,
-                "receiverBand key is not present in the input json argument.",
-            )
+        if "tmc" in input_argin:
+            if "tmc" in input_argin and "target" not in input_argin["pointing"]:
+                return (
+                    ResultCode.FAILED,
+                    "target key is not present in the input json argument.",
+                )
+        else:
+            if "dish" not in input_argin:
+                return (
+                    ResultCode.FAILED,
+                    "dish key is not present in the input json argument.",
+                )
+
+            if "receiver_band" not in input_argin["dish"]:
+                return (
+                    ResultCode.FAILED,
+                    "receiverBand key is not present in the input json argument.",
+                )
 
         return (ResultCode.OK, "")
 
@@ -128,6 +136,21 @@ class Configure(DishLNCommand):
                 return result_code, message
 
             json_argument = json.loads(argin)
+            if json_argument.get("tmc"):
+                # Extracting and setting cross elevation offset. Considering
+                # 0.0 if the key is omitted
+                ca_offset = json_argument["pointing"]["target"].get("ca_offset_arcsec") or 0.0
+
+                # Extracting and setting elevation offset. Considering 0.0 if
+                # the key is omitted
+                ie_offset = json_argument["pointing"]["target"].get("ie_offset_arcsec") or 0.0
+
+                offsets_argin = json.dumps([ca_offset, ie_offset])
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", offsets_argin
+                )
+                return result_code[0], message[0]
+
             receiver_band = json_argument["dish"]["receiver_band"]
             ra_value = json_argument["pointing"]["target"]["ra"]
             dec_value = json_argument["pointing"]["target"]["dec"]
@@ -150,9 +173,7 @@ class Configure(DishLNCommand):
                 "The invocation of the Configure command is failed on"
                 + f" Dish Master Device {self.dish_master_adapter.dev_name}."
                 + "Reason: Error in calling the Configure command on"
-                + f" Dish Master: {e}"
-                + "The command has NOT been executed."
-                + "This device will continue with normal operation.",
+                + f" Dish Master: {e}",
             )
         return result_code, message
 

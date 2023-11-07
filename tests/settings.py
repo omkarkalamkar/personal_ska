@@ -1,10 +1,13 @@
 """This module provides settings for the test cases."""
+import json
 import logging
 import time
 from typing import Final, List
 
+import tango
 from ska_ser_logging import configure_logging
-from ska_tmc_common import DishMode
+from ska_tango_base.commands import ResultCode
+from ska_tmc_common import DishMode, PointingState
 from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
 from tango import DeviceProxy
 
@@ -102,3 +105,78 @@ def wait_for_unresponsive(cm):
             return True
         elapsed_time = time.time() - start_time
     return False
+
+
+def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback):
+    """Teardown for the Dish Leaf Node device."""
+    current_pointing_state = dish_master.pointingState
+    if current_pointing_state == PointingState.TRACK:
+        result, unique_id = dish_leaf_node.TrackStop()
+        assert result[0] == ResultCode.QUEUED
+
+        dish_leaf_node.subscribe_event(
+            "longRunningCommandsInQueue",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandsInQueue"],
+        )
+        group_callback["longRunningCommandsInQueue"].assert_change_event(
+            ("TrackStop",), lookahead=4
+        )
+
+        dish_leaf_node.subscribe_event(
+            "longRunningCommandResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandResult"],
+        )
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id[0], str(int(ResultCode.OK))),
+            lookahead=4,
+        )
+    dish_master.SetDirectPointingState(PointingState.NONE)
+    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_master.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_master.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.NONE),
+        lookahead=5,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=8,
+    )
+
+
+def build_partial_configure_data(
+    partial_config: str,
+    offset: float,
+) -> List[str]:
+    """Build and return the jsons for partial configuration in a list."""
+    configurations = []
+    partial_config = json.loads(partial_config)
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = offset
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = 0.0
+    configurations.append(json.dumps(partial_config))
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = 0.0
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = offset
+    configurations.append(json.dumps(partial_config))
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = -offset
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = 0.0
+    configurations.append(json.dumps(partial_config))
+
+    partial_config["pointing"]["target"]["ca_offset_arcsec"] = 0.0
+    partial_config["pointing"]["target"]["ie_offset_arcsec"] = -offset
+    configurations.append(json.dumps(partial_config))
+
+    return configurations

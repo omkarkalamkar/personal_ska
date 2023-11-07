@@ -118,7 +118,6 @@ class DishLeafNode(SKABaseDevice):
 
     def update_availablity_callback(self, availablity):
         """Change event callback for isSubsystemAvailable"""
-        self.logger.info("Inside update_availablity_callback ")
         self._isSubsystemAvailable = availablity
         self.push_change_event("isSubsystemAvailable", availablity)
 
