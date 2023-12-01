@@ -8,9 +8,9 @@ import threading
 # pylint: disable=W0222
 import time
 from logging import Logger
+from queue import Queue
 from typing import Callable, Optional, Tuple
 
-import numpy as np
 from astropy.utils import iers
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -123,6 +123,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.pointing_callback = pointing_callback
         self._kvalue: int = 0
         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        self.achieved_pointing_data = Queue()
+        self.backward_trasform_thread = threading.Thread(
+            target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
+        )
 
         # Event Receiver
         if _event_receiver:
@@ -252,7 +256,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return timestamp
 
-    def update_achieved_pointing(self, value: np.array) -> None:
+    def update_achieved_pointing(self, value) -> None:
         """Calculate and update the actual pointing from the achieved pointing
         event.
 
@@ -265,22 +269,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 value,
             )
             value_list = value.tolist()
-            timestamp_milliseconds, azimuth, elevation = value_list
-            converter = AzElConverter(self)
-            converter.create_antenna_obj()
-
-            timestamp = self.convert_timestamp(timestamp_milliseconds)
-
-            right_ascension, declination = converter.azel_to_radec(
-                str(azimuth), str(elevation), timestamp, converter.weather_data
-            )
-            self.actual_pointing = [timestamp, right_ascension, declination]
+            with self.lock:
+                self.achieved_pointing_data.put(value_list)
+            if not self.backward_trasform_thread.is_alive():
+                self.backward_trasform_thread = threading.Thread(
+                    target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
+                )
+                self.backward_trasform_thread.start()
         except Exception as e:
-            self.logger.info(
+            self.logger.exception(
                 "Received an achievedPointing event with value: %s leading to exception : %s",
                 value,
                 e,
             )
+
+    def process_achieved_pointing(self, achieved_pointing_queue: Queue):
+        """Process the achieved pointing data to calculate actual pointing."""
+        converter = AzElConverter(self)
+        converter.create_antenna_obj()
+        while achieved_pointing_queue.qsize() != 0:
+            with self.lock:
+                value_list = achieved_pointing_queue.get()
+            try:
+                timestamp_milliseconds, azimuth, elevation = value_list
+
+                timestamp = self.convert_timestamp(timestamp_milliseconds)
+
+                right_ascension, declination = converter.azel_to_radec(
+                    str(azimuth), str(elevation), timestamp, converter.weather_data
+                )
+                self.actual_pointing = [timestamp, right_ascension, declination]
+            except Exception as e:
+                self.logger.exception("Exception occurred while calculating actualPointing: %s", e)
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
