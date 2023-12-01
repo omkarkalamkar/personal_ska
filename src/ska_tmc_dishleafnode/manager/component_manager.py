@@ -282,7 +282,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 e,
             )
 
-    def process_achieved_pointing(self, achieved_pointing_queue: Queue):
+    def process_achieved_pointing(self, achieved_pointing_queue: Queue) -> None:
         """Process the achieved pointing data to calculate actual pointing.
 
         :param achieved_pointing_queue: A queue containing the achieved pointing
