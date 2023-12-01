@@ -54,7 +54,7 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
     logger.info("The desired pointing is set to %s", desired_pointing)
 
     # Waiting for some time, to let the Track Thread Run.
-    sleep(5)
+    sleep(10)
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
