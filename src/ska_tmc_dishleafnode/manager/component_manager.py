@@ -257,10 +257,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return timestamp
 
     def update_achieved_pointing(self, value) -> None:
-        """Calculate and update the actual pointing from the achieved pointing
-        event.
+        """Update the achievedPointing attribute value to a Queue for processing.
 
-        :param value: The json dumped list containing timestamp, Az and El values.
+        :param value: A numpy array containing timestamp, Az and El values.
         :value dtype: str
         """
         try:
@@ -284,7 +283,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
     def process_achieved_pointing(self, achieved_pointing_queue: Queue):
-        """Process the achieved pointing data to calculate actual pointing."""
+        """Process the achieved pointing data to calculate actual pointing.
+
+        :param achieved_pointing_queue: A queue containing the achieved pointing
+            data collected from Dish Master device.
+        :achieved_pointing_queue dtype: Queue
+        """
         converter = AzElConverter(self)
         converter.create_antenna_obj()
         while achieved_pointing_queue.qsize() != 0:
