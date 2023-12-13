@@ -133,6 +133,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
+        if _liveliness_probe:
+            self.start_liveliness_probe(_liveliness_probe)
+
         self.update_availablity_callback = _update_availablity_callback
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
