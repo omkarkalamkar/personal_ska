@@ -14,7 +14,6 @@ def test_abort_command(tango_context):
     assert result_code == ResultCode.OK
 
 
-@pytest.mark.test
 def test_abort_command_fail_check_allowed_with_device_unresponsive(
     tango_context,
 ):
