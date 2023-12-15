@@ -17,11 +17,9 @@ def test_abort_command(tango_context):
 def test_abort_command_fail_check_allowed_with_device_unresponsive(
     tango_context,
 ):
+    logger.info("%s", tango_context)
     cm = create_cm(DISH_MASTER_DEVICE)
     cm.get_device().update_unresponsive(True)
-    result = wait_for_unresponsive(cm)
-    if result:
-        with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
-            cm.is_abortcommands_allowed()
-    else:
-        raise AssertionError("Failed to check DeviceUnresponsive with abort command.")
+    wait_for_unresponsive(cm)
+    with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
+        cm.is_abortcommands_allowed()
