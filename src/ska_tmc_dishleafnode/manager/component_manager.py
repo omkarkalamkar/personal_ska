@@ -103,7 +103,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-        self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
@@ -127,11 +126,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.backward_trasform_thread = threading.Thread(
             target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
         )
-
+        self._device = DishDeviceInfo(dish_dev_name)
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
+
+        if _liveliness_probe:
+            self.start_liveliness_probe(_liveliness_probe)
 
         self.update_availablity_callback = _update_availablity_callback
 
