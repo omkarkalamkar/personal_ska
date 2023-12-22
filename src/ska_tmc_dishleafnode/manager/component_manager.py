@@ -859,3 +859,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.el_limit = False
         return True
+
+    def device_failed(self, device_info, exception):  # pylint: disable=arguments-differ
+        """Set a device to failed and call the relative callback if available
+        :param device_info: a device info
+        :type device_info: DeviceInfo
+        :param exception: an exception
+        :type: Exception
+        """
+        device_info.update_unresponsive(True, exception)
+        with self.lock:
+            if self.update_availablity_callback is not None:
+                self.update_availablity_callback(False)
