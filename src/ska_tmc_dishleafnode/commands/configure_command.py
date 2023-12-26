@@ -163,7 +163,7 @@ class Configure(DishLNCommand):
 
             if current_dish_mode != DishMode.STOW and result_code[0] != ResultCode.FAILED:
                 result_code, message = self.start_dish_tracking(
-                    current_dish_mode, ra_value, dec_value
+                    current_dish_mode, receiver_band, ra_value, dec_value
                 )
 
         except Exception as e:
@@ -177,10 +177,10 @@ class Configure(DishLNCommand):
             )
         return result_code, message
 
-    def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
+    def start_dish_tracking(self, current_dish_mode, receiver_band, ra_value, dec_value):
         """Invoke Track after waiting for DishMode to Operate"""
         # Set wait for DishMode CONFIG
-        result_code, message = self.ensure_dish_is_configured(current_dish_mode)
+        result_code, message = self.ensure_dish_is_configured(current_dish_mode, receiver_band)
         if result_code == ResultCode.FAILED:
             return result_code, message
         if current_dish_mode == DishMode.STANDBY_FP:
@@ -191,7 +191,7 @@ class Configure(DishLNCommand):
         result_code, message = self.start_tracking_thread(ra_value, dec_value)
         return result_code, message
 
-    def ensure_dish_is_configured(self, current_dish_mode):
+    def ensure_dish_is_configured(self, current_dish_mode, receiver_band):
         """This method check for the completion of configure command
         :param current_dish_mode: str
         """
@@ -215,6 +215,19 @@ class Configure(DishLNCommand):
                 ResultCode.FAILED,
                 f"Timeout occurred while waiting for {current_dish_mode}"
                 + " dishMode in Configure Command.",
+            )
+
+        # Set wait for dish band to be configured
+        result = self.set_wait_for_configured_band(receiver_band)
+        if not result:
+            self.logger.error(
+                "Timeout occurred while waiting for %s configuredBand in Configure Command.",
+                receiver_band,
+            )
+            return (
+                ResultCode.FAILED,
+                f"Timeout occurred while waiting for {receiver_band}"
+                + " configuredBand in Configure Command.",
             )
         return ResultCode.OK, ""
 
