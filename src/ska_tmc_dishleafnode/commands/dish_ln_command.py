@@ -2,7 +2,7 @@
 import time
 
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common import AdapterFactory, AdapterType, Band, DishMode, TmcLeafNodeCommand
+from ska_tmc_common import AdapterFactory, AdapterType, DishMode, TmcLeafNodeCommand
 from tango import ConnectionFailed, DevFailed
 
 
@@ -69,13 +69,25 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.logger.info("Current Dishmode is %s", self.component_manager.dishMode)
         return False
 
-    def set_wait_for_configured_band(self, configured_band: Band):
+    def set_wait_for_configured_band(self, configured_band: str):
         """Waits for transition of configuredBand to the correct state."""
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
-            if self.component_manager.configuredBand == configured_band:
+            self.logger.info("configured band: %s, %s", configured_band, type(configured_band))
+            self.logger.info(
+                "Current configuredBand is %s, %s",
+                self.component_manager.configuredBand,
+                type(self.component_manager.configuredBand),
+            )
+            if str(self.component_manager.configuredBand) == configured_band:
+                self.logger.info("Dish band configured.")
                 return True
             elapsed_time = time.time() - start_time
+        self.logger.info("elapsed_time: %s", elapsed_time)
+        self.logger.info(
+            "self.component_manager.command_timeout: %s", self.component_manager.command_timeout
+        )
+        self.logger.info("configured band: %s", configured_band)
         self.logger.info("Current configuredBand is %s", self.component_manager.configuredBand)
         return False
