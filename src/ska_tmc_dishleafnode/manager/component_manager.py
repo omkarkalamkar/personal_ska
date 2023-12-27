@@ -871,3 +871,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.lock:
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
+
+    def update_ping_info(self, ping: int, device_name: str) -> None:
+        """
+        Update a device with the correct ping information.
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param ping: device response time
+        :type ping: int
+        """
+        with self.lock:
+            self._device.ping = ping
+            self._device.update_unresponsive(False)
+            if self.update_availablity_callback is not None:
+                self.update_availablity_callback(True)
