@@ -35,7 +35,6 @@ K8S_CHARTS ?= ska-tmc-dishleafnode test-parent## list of charts
 K8S_CHART ?= $(HELM_CHART)
 PYTHON_SWITCHES_FOR_ISORT ?=
 
-TEST_VERSION ?= 0.7.2
 CI_REGISTRY ?= gitlab.com
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)
 K8S_TEST_IMAGE_TO_TEST=$(CAR_OCI_REGISTRY_HOST)/$(PROJECT):$(VERSION)
@@ -43,7 +42,7 @@ ifneq ($(CI_JOB_ID),)
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.image=$(PROJECT) \
 	--set tmc-dishleafnode.dishleafnode.image.registry=$(CI_REGISTRY)/ska-telescope/ska-tmc/$(PROJECT) \
 	--set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)-dev.c$(CI_COMMIT_SHORT_SHA)
-K8S_TEST_IMAGE_TO_TEST=$(CI_REGISTRY)/ska-telescope/ska-tmc/$(PROJECT)/$(PROJECT):$(TEST_VERSION)-dev.c$(CI_COMMIT_SHORT_SHA)
+K8S_TEST_IMAGE_TO_TEST=$(CI_REGISTRY)/ska-telescope/ska-tmc/$(PROJECT)/$(PROJECT):$(VERSION)-dev.c$(CI_COMMIT_SHORT_SHA)
 endif
 
 CI_PROJECT_DIR ?= .
