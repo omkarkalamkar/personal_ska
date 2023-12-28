@@ -80,10 +80,13 @@ python-lint:
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
 
 k8s-test:
-  after_script:
-    - make k8s-uninstall-chart
-    - kubectl -n $KUBE_NAMESPACE delete pods,svc,daemonsets,deployments,replicasets,statefulsets,cronjobs,jobs,ingresses,configmaps --all
-    - make k8s-delete-namespace
   environment:
-    name: test/$CI_COMMIT_REF_SLUG
-    action: stop
+      name: test/$CI_COMMIT_REF_SLUG
+      on_stop: stop-k8s-test
+
+stop-k8s-test:
+  when: always
+  needs:
+    - k8s-test
+
+
