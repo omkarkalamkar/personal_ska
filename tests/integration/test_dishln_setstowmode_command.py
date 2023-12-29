@@ -33,7 +33,7 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
     )
 
     result, unique_id = dish_leaf_node.SetStandbyLPMode()
@@ -65,7 +65,7 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
         lookahead=3,
     )
 

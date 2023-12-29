@@ -54,7 +54,7 @@ def configure_dish_leaf_node(
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
@@ -103,7 +103,7 @@ def configure_dish_leaf_node(
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
         lookahead=8,
     )
     tear_down(dish_leaf_node, dish_master, group_callback)
@@ -159,7 +159,7 @@ def partial_configure_dish_leaf_node(
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
@@ -221,7 +221,7 @@ def partial_configure_dish_leaf_node(
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
         lookahead=8,
     )
     tear_down(dish_leaf_node, dish_master, group_callback)

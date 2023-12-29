@@ -83,7 +83,7 @@ def scan_command(tango_context, dishln_name, group_callback):
         lookahead=2,
     )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
         lookahead=2,
     )
 
