@@ -22,12 +22,12 @@ url = 'https://artefact.skao.int/repository/pypi-internal/simple'
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 numpy = "1.23.0"
-pytango = "9.3.3"
+pytango = "9.4.2"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
 fire = "^0.4.0"
-ska-tmc-common =  "0.10.6"
+ska-tmc-common = { git="https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git", branch="hm-379" }
 ska-ser-logging = "^0.4.1"
-ska-tango-base = "0.18.1"
+ska-tango-base = "0.19.1"
 astropy = "^5.0.4"
 katpoint = "1.0a2"
 pytz = "2021.3"
