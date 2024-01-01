@@ -17,9 +17,9 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     AdapterFactory,
     CommandNotAllowed,
+    DeviceInfo,
     DeviceUnresponsive,
     DishDeviceInfo,
-    DeviceInfo,
     DishMode,
     LivelinessProbeType,
     PointingState,
@@ -861,7 +861,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.el_limit = False
         return True
 
-    def device_failed(self, device_info: DeviceInfo , exception: str) -> None:  
+    # pylint: disable=arguments-differ
+    def device_failed(self, device_info: DeviceInfo, exception: str) -> None:
         """Set a device to failed and call the relative callback if available
         :param device_info: a device info
         :type device_info: DeviceInfo
