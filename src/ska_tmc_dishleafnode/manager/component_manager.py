@@ -65,7 +65,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _event_receiver: bool = True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
-        sleep_time: int = 1,
+        sleep_time: int = 2,
         command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
