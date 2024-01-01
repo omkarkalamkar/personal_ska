@@ -19,6 +19,7 @@ from ska_tmc_common import (
     CommandNotAllowed,
     DeviceUnresponsive,
     DishDeviceInfo,
+    DeviceInfo,
     DishMode,
     LivelinessProbeType,
     PointingState,
@@ -65,7 +66,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _event_receiver: bool = True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
-        sleep_time: int = 2,
+        sleep_time: int = 20,
         command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
@@ -860,7 +861,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.el_limit = False
         return True
 
-    def device_failed(self, device_info, exception):  # pylint: disable=arguments-differ
+    def device_failed(self, device_info: DeviceInfo , exception: str) -> None:  
         """Set a device to failed and call the relative callback if available
         :param device_info: a device info
         :type device_info: DeviceInfo
