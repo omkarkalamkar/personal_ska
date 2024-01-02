@@ -162,9 +162,16 @@ class Configure(DishLNCommand):
             )
 
             if current_dish_mode != DishMode.STOW and result_code[0] != ResultCode.FAILED:
-                result_code, message = self.start_dish_tracking(
-                    current_dish_mode, receiver_band, ra_value, dec_value
+                result_code, message = self.ensure_dish_is_configured(
+                    current_dish_mode, receiver_band
                 )
+                if result_code == ResultCode.FAILED:
+                    return result_code, message
+                result_code, message = self.start_dish_tracking(
+                    current_dish_mode, ra_value, dec_value
+                )
+                if result_code == ResultCode.FAILED:
+                    return result_code, message
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -177,12 +184,8 @@ class Configure(DishLNCommand):
             )
         return result_code, message
 
-    def start_dish_tracking(self, current_dish_mode, receiver_band, ra_value, dec_value):
+    def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
         """Invoke Track after waiting for DishMode to Operate"""
-        # Set wait for DishMode CONFIG
-        result_code, message = self.ensure_dish_is_configured(current_dish_mode, receiver_band)
-        if result_code == ResultCode.FAILED:
-            return result_code, message
         if current_dish_mode == DishMode.STANDBY_FP:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
@@ -195,6 +198,7 @@ class Configure(DishLNCommand):
         """This method check for the completion of configure command
         :param current_dish_mode: str
         """
+        # Set wait for DishMode CONFIG
         result = self.set_wait_for_dishmode(DishMode.CONFIG)
         if not result:
             self.logger.error(
