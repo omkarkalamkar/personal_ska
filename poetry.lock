@@ -1315,28 +1315,30 @@ version = "0.11.0"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
-python-versions = ">=3.10,<3.11"
+python-versions = "~3.10"
+develop = false
 
 [package.dependencies]
-black = ">=23.3.0,<24.0.0"
-fire = ">=0.4.0,<0.5.0"
-jsonschema = ">=4.0.1,<5.0.0"
+black = "^23.3.0"
+fire = "^0.4.0"
+jsonschema = "^4.0.1"
 katpoint = "1.0a2"
-marshmallow = ">=3.14.1,<4.0.0"
-mock = ">=4.0.3,<5.0.0"
+marshmallow = "^3.14.1"
+mock = "^4.0.3"
 msgpack = "1.0.7"
 msgpack_numpy = "0.4.8"
-numpy = ">=1.23.0,<2.0.0"
+numpy = "^1.23.0"
 pytango = "9.3.3"
-ska-ser-logging = ">=0.4.1,<0.5.0"
+ska-ser-logging = "^0.4.1"
 ska-tango-base = "0.18.1"
 ska-tango-testing = "0.6.0"
 ska-telmodel = "1.9.0"
 
 [package.source]
-type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = 'ska-nexus'
+type = "git"
+url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
+reference = "hm-391"
+resolved_reference = "efd47f42f7080ec12ed720f7b79d4488fd87bac1"
 
 [[package]]
 name = "snowballstemmer"
@@ -1584,7 +1586,7 @@ linecache2 = "*"
 
 [[package]]
 name = "traitlets"
-version = "5.14.0"
+version = "5.14.1"
 description = "Traitlets Python configuration system"
 category = "main"
 optional = false
@@ -1678,7 +1680,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "c3ef3876beac920c369b9a4b5bf8cf159e2a31eb9e8c20991f7cb23a30232a8b"
+content-hash = "6ad1c0ebd000ae3d99c02e9d90a82bef248334f31df9f518f1484fefc7e3ea2e"
 
 [metadata.files]
 alabaster = [
@@ -2679,10 +2681,7 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-7.3.1-py3-none-any.whl", hash = "sha256:6096dfd4d7c0211dad2ac58cfe0c3cc88b3d5448f20405c5cb7864ec44f28757"},
     {file = "ska_tmc_cdm-7.3.1.tar.gz", hash = "sha256:3129cd4ec33b207f80669f521ba80fd221a42041c841f6c2f44eb8225ed8c363"},
 ]
-ska-tmc-common = [
-    {file = "ska_tmc_common-0.11.0-py3-none-any.whl", hash = "sha256:a04d5296aa46db6de50b21d7d8df11d7bc6c9ec5d6b5b6cec5672f171885cae1"},
-    {file = "ska_tmc_common-0.11.0.tar.gz", hash = "sha256:8d60242cfd17b648a2d789876ac63d2b837d16a28968c69dfe7e1cb676aa44f2"},
-]
+ska-tmc-common = []
 snowballstemmer = [
     {file = "snowballstemmer-2.2.0-py2.py3-none-any.whl", hash = "sha256:c8e1716e83cc398ae16824e5572ae04e0d9fc2c6b985fb0f900f5f0c96ecba1a"},
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
@@ -2755,8 +2754,8 @@ traceback2 = [
     {file = "traceback2-1.4.0.tar.gz", hash = "sha256:05acc67a09980c2ecfedd3423f7ae0104839eccb55fc645773e1caa0951c3030"},
 ]
 traitlets = [
-    {file = "traitlets-5.14.0-py3-none-any.whl", hash = "sha256:f14949d23829023013c47df20b4a76ccd1a85effb786dc060f34de7948361b33"},
-    {file = "traitlets-5.14.0.tar.gz", hash = "sha256:fcdaa8ac49c04dfa0ed3ee3384ef6dfdb5d6f3741502be247279407679296772"},
+    {file = "traitlets-5.14.1-py3-none-any.whl", hash = "sha256:2e5a030e6eff91737c643231bfcf04a65b0132078dad75e4936700b213652e74"},
+    {file = "traitlets-5.14.1.tar.gz", hash = "sha256:8585105b371a04b8316a43d5ce29c098575c2e477850b62b848b964f1444527e"},
 ]
 transitions = [
     {file = "transitions-0.9.0-py2.py3-none-any.whl", hash = "sha256:5687ee8c6a3200830e44f988d16b0045f53293f7a873002d7bff70852331a078"},
