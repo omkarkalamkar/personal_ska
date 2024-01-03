@@ -74,7 +74,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
-            if self.component_manager.configuredBand == configured_band:
+            if self.component_manager.dishConfiguredBand == configured_band:
                 self.logger.info("Dish band %s is configured.", configured_band)
                 return True
             elapsed_time = time.time() - start_time

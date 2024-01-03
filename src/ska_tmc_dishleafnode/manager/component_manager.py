@@ -221,8 +221,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self._device.pointing_state
 
     @property
-    def configuredBand(self) -> str:
-        """Returns the configuredBand of dish device"""
+    def dishConfiguredBand(self) -> str:
+        """Returns the dishConfiguredBand of dish device"""
         return str(self._device.configured_band)
 
     @property
