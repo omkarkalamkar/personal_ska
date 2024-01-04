@@ -870,8 +870,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param exception: an exception
         :type: Exception
         """
-        self.stop_liveliness_probe()
-        self.start_liveliness_probe(self.liveliness_probe_type)
         device_info.update_unresponsive(True, exception)
         with self.lock:
             if self.update_availablity_callback is not None:
