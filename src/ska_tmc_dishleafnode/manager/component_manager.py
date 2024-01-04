@@ -875,6 +875,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
             self.stop_liveliness_probe()
+            time.sleep(1)
             self.start_liveliness_probe(self.liveliness_probe)
 
     def update_ping_info(self, ping: int, device_name: str) -> None:
