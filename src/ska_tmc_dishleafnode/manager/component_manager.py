@@ -104,7 +104,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-        self.liveliness_probe = _liveliness_probe
+        self.liveliness_probe_type = _liveliness_probe
         self.logger = logger
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
@@ -871,10 +871,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param exception: an exception
         :type: Exception
         """
-        device_info.update_unresponsive(True, exception)
         self.stop_liveliness_probe()
-        time.sleep(1)
-        self.start_liveliness_probe(self.liveliness_probe)
+        self.start_liveliness_probe(self.liveliness_probe_type)
+        device_info.update_unresponsive(True, exception)
         with self.lock:
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
