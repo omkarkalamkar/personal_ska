@@ -66,7 +66,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _event_receiver: bool = True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
-        sleep_time: int = 2,
+        sleep_time: int = 1,
         command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
@@ -128,7 +128,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.backward_trasform_thread = threading.Thread(
             target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
         )
-        self.lock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         # Event Receiver
         if _event_receiver:
