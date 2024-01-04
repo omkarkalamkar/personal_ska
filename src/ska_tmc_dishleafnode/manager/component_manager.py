@@ -128,6 +128,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.backward_trasform_thread = threading.Thread(
             target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
         )
+        self.lock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         # Event Receiver
         if _event_receiver:
@@ -871,12 +872,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type: Exception
         """
         device_info.update_unresponsive(True, exception)
+        self.stop_liveliness_probe()
+        time.sleep(1)
+        self.start_liveliness_probe(self.liveliness_probe)
         with self.lock:
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
-            self.stop_liveliness_probe()
-            time.sleep(1)
-            self.start_liveliness_probe(self.liveliness_probe)
 
     def update_ping_info(self, ping: int, device_name: str) -> None:
         """
