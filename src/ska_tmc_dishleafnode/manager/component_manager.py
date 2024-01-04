@@ -104,7 +104,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-        self.liveliness_probe_type = _liveliness_probe
         self.logger = logger
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
