@@ -194,31 +194,8 @@ class Configure(DishLNCommand):
 
     def ensure_dish_is_configured(self, receiver_band):
         """This method check for the completion of configure command
-        :param current_dish_mode: str
+        :param receiver_band: str
         """
-        # # Set wait for DishMode CONFIG
-        # result = self.set_wait_for_dishmode(DishMode.CONFIG)
-        # if not result:
-        #     self.logger.error(
-        #         "Timeout occurred while waiting for CONFIG dishMode in Configure Command."
-        #     )
-        #     return (
-        #         ResultCode.FAILED,
-        #         "Timeout occurred while waiting for CONFIG dishMode in Configure Command.",
-        #     )
-        # Set wait for initial Dish Mode
-        # result = self.set_wait_for_dishmode(current_dish_mode)
-        # if not result:
-        #     self.logger.error(
-        #         "Timeout occurred while waiting for %s dishMode in Configure Command.",
-        #         current_dish_mode,
-        #     )
-        #     return (
-        #         ResultCode.FAILED,
-        #         f"Timeout occurred while waiting for {current_dish_mode}"
-        #         + " dishMode in Configure Command.",
-        #     )
-
         # Set wait for dish band to be configured
         result = self.set_wait_for_configured_band(receiver_band)
         if not result:
