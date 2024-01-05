@@ -55,7 +55,7 @@ def track_dish_leaf_node(
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
     )
 
     result_config, unique_id_config = dish_leaf_node.Track(track_input_str)

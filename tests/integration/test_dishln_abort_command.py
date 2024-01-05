@@ -56,7 +56,7 @@ def abort_when_configured(
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
