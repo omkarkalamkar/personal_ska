@@ -16,6 +16,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     AdapterFactory,
+    Band,
     CommandNotAllowed,
     DeviceInfo,
     DeviceUnresponsive,
@@ -219,6 +220,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def pointingState(self) -> PointingState:
         """Returns the pointingState of dish master device"""
         return self._device.pointing_state
+
+    @property
+    def dishConfiguredBand(self) -> str:
+        """Returns the dishConfiguredBand of dish device"""
+        return str(self._device.configured_band)
 
     @property
     def actual_pointing(self) -> list:
@@ -731,6 +737,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.lock:
             dev_info = self.get_device()
             dev_info.pointing_state = pointingState
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+    def update_device_configured_band(self, configured_band: Band) -> None:
+        """
+        Update the configured band of the given dish and call
+        the relative callbacks if available.
+        :param configured_band: Configured band of the dish device
+        :type configured_band: Band
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 

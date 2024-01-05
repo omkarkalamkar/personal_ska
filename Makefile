@@ -12,7 +12,7 @@ PROJECT = ska-tmc-dishleafnode
 PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209
 TANGO_HOST ?= tango-databaseds:10000 ## TANGO_HOST connection to the Tango DS
 PYTHON_VARS_BEFORE_PYTEST ?= PYTHONPATH=.:./src \
-							 TANGO_HOST=$(TANGO_HOST)
+							TANGO_HOST=$(TANGO_HOST)
 TELESCOPE ?= SKA-mid
 MARK ?= ## What -m opt to pass to pytest
 # run one test with FILE=acceptance/test_subarray_node.py::test_check_internal_model_according_to_the_tango_ecosystem_deployed
@@ -91,14 +91,14 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set tmc-dishleafnode.telescope=$(TELESCOPE) \
 	--set tmc-dishleafnode.deviceServers.mocks.enabled=$(FAKE_DEVICES) \
 	--set global.exposeAllDS=false \
-	--set global.operator=true \
+	--set global.operator=false \
 	--set ska-taranta.enabled=$(TARANTA) \
 	$(CUSTOM_VALUES)
 
 K8S_TEST_TEST_COMMAND = $(PYTHON_VARS_BEFORE_PYTEST) $(PYTHON_RUNNER) \
 						pytest \
 						$(PYTHON_VARS_AFTER_PYTEST) ./tests \
-						 | tee pytest.stdout
+						| tee pytest.stdout
 -include .make/k8s.mk
 -include .make/python.mk
 -include .make/helm.mk

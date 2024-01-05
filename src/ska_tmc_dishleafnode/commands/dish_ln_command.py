@@ -68,3 +68,14 @@ class DishLNCommand(TmcLeafNodeCommand):
             elapsed_time = time.time() - start_time
         self.logger.info("Current Dishmode is %s", self.component_manager.dishMode)
         return False
+
+    def set_wait_for_configured_band(self, configured_band: str):
+        """Waits for transition of configuredBand to the correct state."""
+        start_time = time.time()
+        elapsed_time = 0
+        while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.dishConfiguredBand == configured_band:
+                self.logger.info("Dish band %s is configured.", configured_band)
+                return True
+            elapsed_time = time.time() - start_time
+        return False
