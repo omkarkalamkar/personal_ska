@@ -18,6 +18,7 @@ from ska_tmc_common import (
     AdapterFactory,
     Band,
     CommandNotAllowed,
+    DeviceInfo,
     DeviceUnresponsive,
     DishDeviceInfo,
     DishMode,
@@ -878,3 +879,31 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.el_limit = False
         return True
+
+    # pylint: disable=arguments-differ
+    def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:
+        """Set a device to failed and call the relative callback if available
+        :param device_info: a device info
+        :type device_info: DeviceInfo
+        :param exception: an exception
+        :type: Exception
+        """
+        device_info.update_unresponsive(True, exception)
+        with self.lock:
+            if self.update_availablity_callback is not None:
+                self.update_availablity_callback(False)
+
+    def update_ping_info(self, ping: int, device_name: str) -> None:
+        """
+        Update a device with the correct ping information.
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param ping: device response time
+        :type ping: int
+        """
+        with self.lock:
+            self._device.ping = ping
+            self._device.update_unresponsive(False)
+            if self.update_availablity_callback is not None:
+                self.update_availablity_callback(True)
