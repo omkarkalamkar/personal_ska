@@ -33,7 +33,7 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
     )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
@@ -68,7 +68,7 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
         lookahead=2,
     )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
-        None,
+        (),
         lookahead=2,
     )
 
