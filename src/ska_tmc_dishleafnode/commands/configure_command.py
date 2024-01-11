@@ -162,9 +162,14 @@ class Configure(DishLNCommand):
             )
 
             if current_dish_mode != DishMode.STOW and result_code[0] != ResultCode.FAILED:
+                result_code, message = self.ensure_dish_is_configured(receiver_band)
+                if result_code == ResultCode.FAILED:
+                    return result_code, message
                 result_code, message = self.start_dish_tracking(
                     current_dish_mode, ra_value, dec_value
                 )
+                if result_code == ResultCode.FAILED:
+                    return result_code, message
 
         except Exception as e:
             self.logger.exception(f"Command invocation failed: {e}")
@@ -179,10 +184,6 @@ class Configure(DishLNCommand):
 
     def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
         """Invoke Track after waiting for DishMode to Operate"""
-        # Set wait for DishMode CONFIG
-        result_code, message = self.ensure_dish_is_configured(current_dish_mode)
-        if result_code == ResultCode.FAILED:
-            return result_code, message
         if current_dish_mode == DishMode.STANDBY_FP:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
@@ -191,30 +192,21 @@ class Configure(DishLNCommand):
         result_code, message = self.start_tracking_thread(ra_value, dec_value)
         return result_code, message
 
-    def ensure_dish_is_configured(self, current_dish_mode):
+    def ensure_dish_is_configured(self, receiver_band):
         """This method check for the completion of configure command
-        :param current_dish_mode: str
+        :param receiver_band: str
         """
-        result = self.set_wait_for_dishmode(DishMode.CONFIG)
+        # Set wait for dish band to be configured
+        result = self.set_wait_for_configured_band(receiver_band)
         if not result:
             self.logger.error(
-                "Timeout occurred while waiting for CONFIG dishMode in Configure Command."
+                "Timeout occurred while waiting for %s configuredBand in Configure Command.",
+                receiver_band,
             )
             return (
                 ResultCode.FAILED,
-                "Timeout occurred while waiting for CONFIG dishMode in Configure Command.",
-            )
-        # Set wait for initial Dish Mode
-        result = self.set_wait_for_dishmode(current_dish_mode)
-        if not result:
-            self.logger.error(
-                "Timeout occurred while waiting for %s dishMode in Configure Command.",
-                current_dish_mode,
-            )
-            return (
-                ResultCode.FAILED,
-                f"Timeout occurred while waiting for {current_dish_mode}"
-                + " dishMode in Configure Command.",
+                f"Timeout occurred while waiting for {receiver_band}"
+                + " configuredBand in Configure Command.",
             )
         return ResultCode.OK, ""
 

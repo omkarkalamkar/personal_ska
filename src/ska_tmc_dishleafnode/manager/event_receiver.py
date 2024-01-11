@@ -25,32 +25,40 @@ class DishLNEventReceiver(EventReceiver):
             sleep(self._sleep_time)
 
     def subscribe_events(self, dev_info: DishDeviceInfo, attribute_dictionary=None) -> None:
-        try:
-            dish_dev_proxy = self._dev_factory.get_device(dev_info.dev_name)
-            dish_dev_proxy.subscribe_event(
-                "dishMode",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_dish_mode_event,
-                stateless=True,
-            )
+        with tango.EnsureOmniThread():
+            try:
+                dish_dev_proxy = self._dev_factory.get_device(dev_info.dev_name)
+                dish_dev_proxy.subscribe_event(
+                    "dishMode",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_dish_mode_event,
+                    stateless=True,
+                )
 
-            dish_dev_proxy.subscribe_event(
-                "pointingState",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_pointing_state_event,
-                stateless=True,
-            )
+                dish_dev_proxy.subscribe_event(
+                    "pointingState",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_pointing_state_event,
+                    stateless=True,
+                )
 
-            dish_dev_proxy.subscribe_event(
-                "achievedPointing",
-                tango.EventType.CHANGE_EVENT,
-                self.handle_achieved_pointing_event,
-                stateless=True,
-            )
+                dish_dev_proxy.subscribe_event(
+                    "achievedPointing",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_achieved_pointing_event,
+                    stateless=True,
+                )
 
-        except Exception as e:
-            log_msg = f"Event not working for device {dish_dev_proxy.dev_name}/{e}"
-            self._logger.exception(log_msg)
+                dish_dev_proxy.subscribe_event(
+                    "configuredBand",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_configured_band_event,
+                    stateless=True,
+                )
+
+            except Exception as e:
+                log_msg = f"Event not working for device {dish_dev_proxy.dev_name}/{e}"
+                self._logger.exception(log_msg)
 
     def handle_dish_mode_event(self, event_flag: tango.EventData) -> None:
         """Method to handle and update the latest value of dishMode
@@ -87,6 +95,24 @@ class DishLNEventReceiver(EventReceiver):
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_pointing_state(new_value)
         self._logger.info(f"PointingState value updated to {new_value}")
+
+    def handle_configured_band_event(self, event_flag: tango.EventData) -> None:
+        """Method to handle and update the latest value of
+        configuredBand attribute.
+
+        Args:
+            event_flag (tango.EventData): to flag the
+            change in event.
+        """
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(event_flag.device.dev_name())
+            return
+        new_value = event_flag.attr_value.value
+        self._component_manager.update_device_configured_band(new_value)
+        self._logger.info(f"ConfiguredBand value updated to {new_value}")
 
     def handle_achieved_pointing_event(self, event_flag: tango.EventData) -> None:
         """Method to handle and update the latest value of

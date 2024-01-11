@@ -16,7 +16,9 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     AdapterFactory,
+    Band,
     CommandNotAllowed,
+    DeviceInfo,
     DeviceUnresponsive,
     DishDeviceInfo,
     DishMode,
@@ -224,6 +226,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def pointingState(self) -> PointingState:
         """Returns the pointingState of dish master device"""
         return self._device.pointing_state
+
+    @property
+    def dishConfiguredBand(self) -> str:
+        """Returns the dishConfiguredBand of dish device"""
+        return str(self._device.configured_band)
 
     @property
     def actual_pointing(self) -> list:
@@ -756,6 +763,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
+    def update_device_configured_band(self, configured_band: Band) -> None:
+        """
+        Update the configured band of the given dish and call
+        the relative callbacks if available.
+        :param configured_band: Configured band of the dish device
+        :type configured_band: Band
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.configured_band = configured_band
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
     def set_dish_id(self, dish_master_fqdn: str) -> None:
         """Find out dish number from DishMasterFQDN
         property e.g. ska001/elt/master"""
@@ -882,3 +902,31 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.el_limit = False
         return True
+
+    # pylint: disable=arguments-differ
+    def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:
+        """Set a device to failed and call the relative callback if available
+        :param device_info: a device info
+        :type device_info: DeviceInfo
+        :param exception: an exception
+        :type: Exception
+        """
+        device_info.update_unresponsive(True, exception)
+        with self.lock:
+            if self.update_availablity_callback is not None:
+                self.update_availablity_callback(False)
+
+    def update_ping_info(self, ping: int, device_name: str) -> None:
+        """
+        Update a device with the correct ping information.
+
+        :param dev_name: name of the device
+        :type dev_name: str
+        :param ping: device response time
+        :type ping: int
+        """
+        with self.lock:
+            self._device.ping = ping
+            self._device.update_unresponsive(False)
+            if self.update_availablity_callback is not None:
+                self.update_availablity_callback(True)

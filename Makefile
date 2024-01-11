@@ -12,7 +12,7 @@ PROJECT = ska-tmc-dishleafnode
 PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209
 TANGO_HOST ?= tango-databaseds:10000 ## TANGO_HOST connection to the Tango DS
 PYTHON_VARS_BEFORE_PYTEST ?= PYTHONPATH=.:./src \
-							 TANGO_HOST=$(TANGO_HOST)
+							TANGO_HOST=$(TANGO_HOST)
 TELESCOPE ?= SKA-mid
 MARK ?= ## What -m opt to pass to pytest
 # run one test with FILE=acceptance/test_subarray_node.py::test_check_internal_model_according_to_the_tango_ecosystem_deployed
@@ -35,7 +35,6 @@ K8S_CHARTS ?= ska-tmc-dishleafnode test-parent## list of charts
 K8S_CHART ?= $(HELM_CHART)
 PYTHON_SWITCHES_FOR_ISORT ?=
 
-TEST_VERSION ?= 0.7.1
 CI_REGISTRY ?= gitlab.com
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)
 K8S_TEST_IMAGE_TO_TEST=$(CAR_OCI_REGISTRY_HOST)/$(PROJECT):$(VERSION)
@@ -43,7 +42,7 @@ ifneq ($(CI_JOB_ID),)
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.image=$(PROJECT) \
 	--set tmc-dishleafnode.dishleafnode.image.registry=$(CI_REGISTRY)/ska-telescope/ska-tmc/$(PROJECT) \
 	--set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)-dev.c$(CI_COMMIT_SHORT_SHA)
-K8S_TEST_IMAGE_TO_TEST=$(CI_REGISTRY)/ska-telescope/ska-tmc/$(PROJECT)/$(PROJECT):$(TEST_VERSION)-dev.c$(CI_COMMIT_SHORT_SHA)
+K8S_TEST_IMAGE_TO_TEST=$(CI_REGISTRY)/ska-telescope/ska-tmc/$(PROJECT)/$(PROJECT):$(VERSION)-dev.c$(CI_COMMIT_SHORT_SHA)
 endif
 
 CI_PROJECT_DIR ?= .
@@ -99,7 +98,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 K8S_TEST_TEST_COMMAND = $(PYTHON_VARS_BEFORE_PYTEST) $(PYTHON_RUNNER) \
 						pytest \
 						$(PYTHON_VARS_AFTER_PYTEST) ./tests \
-						 | tee pytest.stdout
+						| tee pytest.stdout
 -include .make/k8s.mk
 -include .make/python.mk
 -include .make/helm.mk
