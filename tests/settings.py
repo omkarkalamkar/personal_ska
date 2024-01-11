@@ -17,6 +17,7 @@ configure_logging()
 
 logger = logging.getLogger(__name__)
 
+KVALUE = 9
 SLEEP_TIME = 0.5
 TIMEOUT = 100
 
@@ -180,3 +181,39 @@ def build_partial_configure_data(
     configurations.append(json.dumps(partial_config))
 
     return configurations
+
+
+def wait_and_validate_device_attribute_value(
+    device: DeviceProxy,
+    attribute_name: str,
+    expected_value: str,
+    timeout: int = 60,
+):
+    """This method wait and validate if attribute value is equal to provided
+    expected value
+    """
+    count = 0
+    error = ""
+    while count <= timeout:
+        try:
+            attribute_value = device.read_attribute(attribute_name).value
+            if attribute_value:
+                logging.info("kValueValRes: %s", attribute_value)
+            if attribute_value == expected_value:
+                return True
+        except Exception as e:
+            # Device gets unavailable due to restart and the above command
+            # tries to access the attribute resulting into exception
+            # It keeps it printing till the attribute is accessible
+            # the exception log is suppressed by storing into variable
+            # the error is printed later into the log in case of failure
+            error = e
+        count += 1
+        time.sleep(1)
+
+    logging.info(
+        "Exception occurred while reading attribute %s and cnt is %s",
+        error,
+        count,
+    )
+    return False

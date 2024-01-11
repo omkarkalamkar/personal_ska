@@ -24,6 +24,7 @@ from ska_tmc_common import (
     PointingState,
     TmcLeafNodeComponentManager,
 )
+from ska_tmc_common.dev_factory import DevFactory
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -61,6 +62,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
         pointing_callback: Optional[Callable] = None,
+        kvalue_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -121,6 +123,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
         self._kvalue: int = 0
+        self.kvalue_callback = kvalue_callback
         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         self.achieved_pointing_data = Queue()
         self.backward_trasform_thread = threading.Thread(
@@ -198,16 +201,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger,
         )
 
+        dln_start_check_timer = threading.Timer(5, self.inform_central_node_kvalue_result)
+        dln_start_check_timer.start()
+
     @property
-    def kvalue(self) -> int:
-        """Returns the k value"""
+    def kValue(self) -> int:
+        """Returns the k-value"""
         return self._kvalue
 
-    @kvalue.setter
-    def kvalue(self, value: int) -> None:
-        """Update the kvalue property."""
-        if self._kvalue != value:
-            self._kvalue = value
+    @kValue.setter
+    def kValue(self, k_value: int) -> None:
+        """Update the k-value property."""
+        if self._kvalue != k_value:
+            self._kvalue = k_value
 
     @property
     def dishMode(self) -> DishMode:
@@ -241,6 +247,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = [timestamp, right_ascension, declination]
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
+
+    def inform_central_node_kvalue_result(self, **kwargs):
+        """This method informs the k-value validation result
+        to central node after DLN start/restart.
+        """
+        kvalueValidationResult = self.check_kvalue_match()
+        if self.kvalue_callback:
+            self.kvalue_callback(kvalueValidationResult)
+
+    def check_kvalue_match(self):
+        """This method does the validation of k-value after DLN restart"""
+        if self.kValue:
+            dish_manager = DevFactory().get_device(self.dish_dev_name)
+            if self.kValue == dish_manager.kValue:
+                return "identical"
+            return "not identical"
+        return "not set"
 
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc

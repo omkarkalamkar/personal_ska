@@ -1,9 +1,18 @@
 import pytest
 from ska_tango_base.commands import ResultCode
+from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.exceptions import DeviceUnresponsive
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from tests.settings import DISH_MASTER_DEVICE, create_cm, logger, wait_for_unresponsive
+from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    KVALUE,
+    create_cm,
+    logger,
+    wait_and_validate_device_attribute_value,
+    wait_for_unresponsive,
+)
 
 
 def test_set_kvalue_command(tango_context):
@@ -12,6 +21,42 @@ def test_set_kvalue_command(tango_context):
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
+
+
+def test_kvalue_after_dln_initialized(tango_context):
+    dev_factory = DevFactory()
+    dishln_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    assert wait_and_validate_device_attribute_value(
+        dishln_device, "kValueValidationResult", "not set"
+    )
+
+
+def test_kvalue_identical_after_dln_restart(tango_context):
+    """Directly setting the k-value.
+    Component manager looses the dish_dev_name after
+     device restart. The below code runs successfully if default
+     value of DishMasterFQDN is set in tango device class.
+    """
+    dev_factory = DevFactory()
+    dish_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    cm = create_cm(DISH_MASTER_DEVICE)
+    cm.kValue = KVALUE
+    dish_device.SetKValue(KVALUE)
+    cm.check_kvalue_match == "identical"
+
+
+def test_kvalue_not_identical_after_dln_restart(tango_context):
+    """Directly setting the k-value.
+    Component manager looses the dish_dev_name after
+     device restart. The below code runs successfully if default
+     value of DishMasterFQDN device property is set in tango device class.
+    """
+    dev_factory = DevFactory()
+    dish_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    cm = create_cm(DISH_MASTER_DEVICE)
+    cm.kValue = KVALUE
+    dish_device.SetKValue(KVALUE)
+    cm.check_kvalue_match == "not identical"
 
 
 @pytest.mark.skip("unstable")

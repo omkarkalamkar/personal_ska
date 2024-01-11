@@ -7,7 +7,7 @@ from typing import List, Tuple
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common.enum import LivelinessProbeType
-from tango import AttrWriteType, DebugIt
+from tango import AttrWriteType, Database, DebugIt
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
@@ -68,11 +68,6 @@ class DishLeafNode(SKABaseDevice):
         access=AttrWriteType.READ,
     )
 
-    kValue = attribute(
-        dtype="DevLong",
-        access=AttrWriteType.READ,
-    )
-
     # ---------------
     # General methods
     # ---------------
@@ -103,6 +98,8 @@ class DishLeafNode(SKABaseDevice):
             device._build_state = f"""{release.name},{release.version},
             {release.description}"""
             device._version_id = release.version
+            device._kValueValidationResult = ""
+            device._dishln_name = device.get_name()
             device.set_change_event("healthState", True, False)
             device.set_change_event("isSubsystemAvailable", True, False)
             device.set_change_event("actualPointing", True, False)
@@ -125,6 +122,12 @@ class DishLeafNode(SKABaseDevice):
         """Push an event for the actualPointing attribute."""
         self.push_change_event("actualPointing", json.dumps(actual_pointing))
 
+    def kvalue_callback(self, result: str) -> None:
+        """Push an event for the kValueValidationResult attribute."""
+        self._kValueValidationResult = result
+        self.push_change_event("kValueValidationResult", self._kValueValidationResult)
+        self.logger.info("k-value validation result: %s", result)
+
     # ------------------
     # Attributes methods
     # ------------------
@@ -145,9 +148,28 @@ class DishLeafNode(SKABaseDevice):
         """Returns the actualPointing attribute value."""
         return json.dumps(self.component_manager.actual_pointing)
 
-    def read_kValue(self) -> int:
-        """Returns the kValue attribute value."""
-        return self.component_manager.kvalue
+    @attribute(
+        dtype="DevLong",
+        access=AttrWriteType.READ_WRITE,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def kValue(self) -> int:
+        """Returns the k-value attribute value."""
+        return self.component_manager.kValue
+
+    @kValue.write
+    def kValue(self, k_value: int) -> None:
+        """Set the dish k-value."""
+        self.component_manager.kValue = k_value
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ,
+    )
+    def kValueValidationResult(self) -> str:
+        """Read method to get the k-value validation result"""
+        return self._kValueValidationResult
 
     # --------
     # Commands
@@ -539,9 +561,15 @@ class DishLeafNode(SKABaseDevice):
     @DebugIt()
     def SetKValue(self, k_value: int) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetKValue command on the DishMaster."""
-
         handler = self.get_command_object("SetKValue")
         result_code, unique_id = handler(k_value)
+        if result_code == ResultCode.OK:
+            db = Database()
+            value = {"kValue": {"__value": [self.component_manager.kValue]}}
+            db.put_device_attribute_property(self._dishln_name, value)
+            value = db.get_device_attribute_property(self._dishln_name, "kValue")
+            self.logger.info("k-value memorized successfully: %s", value)
+
         return [result_code], [unique_id]
 
     def create_component_manager(self):
@@ -551,6 +579,7 @@ class DishLeafNode(SKABaseDevice):
             communication_state_callback=None,
             component_state_callback=None,
             pointing_callback=self.pointing_callback,
+            kvalue_callback=self.kvalue_callback,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             sleep_time=self.SleepTime,
