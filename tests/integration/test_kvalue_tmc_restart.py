@@ -68,7 +68,7 @@ def test_kvalue_after_dln_restart():
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid1
+@pytest.mark.SKA_mid
 def test_kvalue_dln_restart_dm_unavailable():
     """dm = dish manager"""
     timeout = 60
