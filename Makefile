@@ -70,8 +70,10 @@ ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS +=  --forked
 MARK = not post_deployment and not acceptance
 endif
+
+COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
-ADD_ARGS +=  --true-context
+ADD_ARGS +=  --true-context --count=$(COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 

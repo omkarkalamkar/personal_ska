@@ -80,6 +80,8 @@ python-lint:
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
 
 k8s-test:
+  variable:
+    COUNT = 1
   environment:
       name: test/$CI_COMMIT_REF_SLUG
       on_stop: stop-k8s-test
