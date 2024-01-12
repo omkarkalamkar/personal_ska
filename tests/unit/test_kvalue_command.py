@@ -10,7 +10,7 @@ from tests.settings import (
     KVALUE,
     create_cm,
     logger,
-    wait_and_validate_device_attribute_value,
+    retry_for_attribute_value_after_restart,
     wait_for_unresponsive,
 )
 
@@ -23,11 +23,11 @@ def test_set_kvalue_command(tango_context):
     assert result_code == ResultCode.OK
 
 
-def test_kvalue_after_dln_initialized(tango_context):
+def test_dish_unavailable_check_after_dln_init_or_restart(tango_context):
     dev_factory = DevFactory()
     dishln_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    assert wait_and_validate_device_attribute_value(
-        dishln_device, "kValueValidationResult", "not set"
+    assert retry_for_attribute_value_after_restart(
+        dishln_device, "kValueValidationResult", "dish unavailable"
     )
 
 
@@ -53,14 +53,6 @@ def test_kvalue_not_identical_after_dln_restart(tango_context):
     cm.check_kvalue_match(KVALUE + 1) == "not identical"
 
 
-def test_kvalue_dish_unavailable():
-    cm = create_cm(DISH_MASTER_DEVICE)
-    dish_kvalue = []
-    cm.is_dish_manager_available(dish_kvalue)
-    assert not dish_kvalue
-
-
-@pytest.mark.test
 def test_kvalue_dish_available(tango_context):
     cm = create_cm(DISH_MASTER_DEVICE)
     dish_kvalue = []
