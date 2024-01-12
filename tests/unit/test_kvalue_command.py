@@ -35,14 +35,11 @@ def test_kvalue_identical_after_dln_restart(tango_context):
     """Directly setting the k-value.
     Component manager looses the dish_dev_name after
      device restart. The below code runs successfully if default
-     value of DishMasterFQDN is set in tango device class.
+     value of DishMasterFQDN device property is set in tango device class.
     """
-    dev_factory = DevFactory()
-    dish_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     cm = create_cm(DISH_MASTER_DEVICE)
     cm.kValue = KVALUE
-    dish_device.SetKValue(KVALUE)
-    cm.check_kvalue_match == "identical"
+    cm.check_kvalue_match(KVALUE) == "identical"
 
 
 def test_kvalue_not_identical_after_dln_restart(tango_context):
@@ -51,12 +48,24 @@ def test_kvalue_not_identical_after_dln_restart(tango_context):
      device restart. The below code runs successfully if default
      value of DishMasterFQDN device property is set in tango device class.
     """
-    dev_factory = DevFactory()
-    dish_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     cm = create_cm(DISH_MASTER_DEVICE)
     cm.kValue = KVALUE
-    dish_device.SetKValue(KVALUE)
-    cm.check_kvalue_match == "not identical"
+    cm.check_kvalue_match(KVALUE + 1) == "not identical"
+
+
+def test_kvalue_dish_unavailable():
+    cm = create_cm(DISH_MASTER_DEVICE)
+    dish_kvalue = []
+    cm.is_dish_manager_available(dish_kvalue)
+    assert not dish_kvalue
+
+
+@pytest.mark.test
+def test_kvalue_dish_available(tango_context):
+    cm = create_cm(DISH_MASTER_DEVICE)
+    dish_kvalue = []
+    cm.is_dish_manager_available(dish_kvalue)
+    assert dish_kvalue
 
 
 @pytest.mark.skip("unstable")

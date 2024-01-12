@@ -9,7 +9,8 @@ from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     KVALUE,
-    wait_and_validate_device_attribute_value,
+    dln_can_communicate_with_dish_master,
+    retry_for_attribute_value_after_restart,
 )
 
 
@@ -22,7 +23,7 @@ def test_kvalue_when_dln_initialized():
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_leaf_node.SetKValue(0)  # Set k-value to initialization value
     dish_leaf_node_server.RestartServer()
-    assert wait_and_validate_device_attribute_value(
+    assert retry_for_attribute_value_after_restart(
         dish_leaf_node,
         "kValueValidationResult",
         "not set",
@@ -42,22 +43,24 @@ def test_kvalue_after_dln_restart():
     # validate kvalue set on dish manager
     assert dish_master.kValue == dish_leaf_node.kValue
     # Scenario 2: restart the device and check k-value is identical
+
     dish_leaf_node_server.RestartServer()
-    assert wait_and_validate_device_attribute_value(
+    assert retry_for_attribute_value_after_restart(
         dish_leaf_node,
         "kValueValidationResult",
         "identical",
     )
+
     # Scenario 3: restart the device and check k-value is not identical
     dish_master.SetKValue(KVALUE + 1)
     dish_leaf_node_server.RestartServer()
-    assert wait_and_validate_device_attribute_value(
+    assert retry_for_attribute_value_after_restart(
         dish_leaf_node,
         "kValueValidationResult",
         "not identical",
     )
 
-    assert wait_and_validate_device_attribute_value(
+    assert retry_for_attribute_value_after_restart(
         dish_leaf_node,
         "State",
         DevState.ON,
@@ -65,8 +68,10 @@ def test_kvalue_after_dln_restart():
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_mid1
 def test_kvalue_dln_restart_dm_unavailable():
+    """dm = dish manager"""
+    timeout = 60
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device("ska_mid/tm_leaf_node/d0001")
     # dserver/
@@ -82,8 +87,10 @@ def test_kvalue_dln_restart_dm_unavailable():
     dish_master_server.RestartServer()
     count = 0
     # Make the dish master unavailable
-    while count < 20:
-        flag = wait_and_validate_device_attribute_value(
+    start_time = time.time()
+    elaplsed_time = 0
+    while count < 5 and elaplsed_time < timeout:
+        flag = retry_for_attribute_value_after_restart(
             dish_master,
             "State",
             DevState.DISABLE,
@@ -92,22 +99,19 @@ def test_kvalue_dln_restart_dm_unavailable():
             dish_master_server.RestartServer()
 
         time.sleep(2)
-        count = count + 5
+        elaplsed_time = time.time() - start_time
+        count = count + 1
 
-    assert wait_and_validate_device_attribute_value(
+    assert retry_for_attribute_value_after_restart(
         dish_leaf_node,
         "kValueValidationResult",
         "dish unavailable",
     )
-    assert wait_and_validate_device_attribute_value(
+    assert retry_for_attribute_value_after_restart(
         dish_leaf_node,
         "State",
         DevState.ON,
     )
-    assert wait_and_validate_device_attribute_value(
-        dish_master,
-        "State",
-        DevState.DISABLE,
-    )
-    dish_leaf_node.SetKValue(KVALUE)
+    # check the devices are stable and available for further testing.
+    assert dln_can_communicate_with_dish_master(dish_leaf_node)
     assert dish_leaf_node.kValue == dish_master.kValue
