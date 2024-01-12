@@ -198,7 +198,9 @@ def wait_and_validate_device_attribute_value(
         try:
             attribute_value = device.read_attribute(attribute_name).value
             if attribute_value:
-                logging.info("k-value validation result: %s", attribute_value)
+                logging.info(
+                    "%s current %s value: %s", device.name(), attribute_name, attribute_value
+                )
             if attribute_value == expected_value:
                 return True
         except Exception as e:

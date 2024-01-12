@@ -266,10 +266,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def check_kvalue_match(self):
         """This method does the validation of k-value after DLN restart"""
         if self.kValue:
-            dish_manager = DevFactory().get_device(self.dish_dev_name)
-            if self.kValue == dish_manager.kValue:
-                return "identical"
-            return "not identical"
+            try:
+                dish_manager = DevFactory().get_device(self.dish_dev_name)
+                if self.kValue == dish_manager.kValue:
+                    return "identical"
+                return "not identical"
+            except Exception as e:
+                self.logger.warning("%s device unavailable", self.dish_dev_name)
+                self.logger.exception("%s", e)
+                return "dish unavailable"
         return "not set"
 
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:

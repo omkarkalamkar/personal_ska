@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
@@ -60,3 +62,52 @@ def test_kvalue_after_dln_restart():
         "State",
         DevState.ON,
     )
+
+
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_kvalue_dln_restart_dm_unavailable():
+    dev_factory = DevFactory()
+    dish_leaf_node = dev_factory.get_device("ska_mid/tm_leaf_node/d0001")
+    # dserver/
+    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
+    dish_master_server = dev_factory.get_device("dserver/mocks/01")
+    dish_master = dev_factory.get_device("ska001/elt/master")
+    result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
+    assert result_fp == ResultCode.OK
+    # validate kvalue set on dish manager
+    assert dish_master.kValue == dish_leaf_node.kValue
+    # Scenario 4: restart DLN and dish unavailable
+    dish_leaf_node_server.RestartServer()
+    dish_master_server.RestartServer()
+    count = 0
+    # Make the dish master unavailable
+    while count < 20:
+        flag = wait_and_validate_device_attribute_value(
+            dish_master,
+            "State",
+            DevState.DISABLE,
+        )
+        if flag:
+            dish_master_server.RestartServer()
+
+        time.sleep(2)
+        count = count + 5
+
+    assert wait_and_validate_device_attribute_value(
+        dish_leaf_node,
+        "kValueValidationResult",
+        "dish unavailable",
+    )
+    assert wait_and_validate_device_attribute_value(
+        dish_leaf_node,
+        "State",
+        DevState.ON,
+    )
+    assert wait_and_validate_device_attribute_value(
+        dish_master,
+        "State",
+        DevState.DISABLE,
+    )
+    dish_leaf_node.SetKValue(KVALUE)
+    assert dish_leaf_node.kValue == dish_master.kValue
