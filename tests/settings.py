@@ -268,9 +268,10 @@ def dln_can_communicate_with_dish_master(
                 error = e
         retry = retry + 1
 
-    logging.exception(
-        "Exception occurred while reading attribute %s and cnt is %s",
-        error,
-        count,
-    )
+    if not flag:
+        logging.exception(
+            "Exception occurred while reading attribute %s and cnt is %s",
+            error,
+            count,
+        )
     return flag
