@@ -81,7 +81,7 @@ python-lint:
 
 k8s-test:
   variables:
-    COUNT = 1
+    COUNT: 1
   environment:
       name: test/$CI_COMMIT_REF_SLUG
       on_stop: stop-k8s-test
