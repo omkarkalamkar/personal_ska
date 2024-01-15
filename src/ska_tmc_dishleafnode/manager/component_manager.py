@@ -429,7 +429,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The invocation of the TrackStop command on this"
             + "device is not allowed."
             + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
+            + f"{self.dishMode} and PointingState is: {self.pointingState}"
             + "The command has NOT been executed."
             + "This device will continue with normal operation."
         )

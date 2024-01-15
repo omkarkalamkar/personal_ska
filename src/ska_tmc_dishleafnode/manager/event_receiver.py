@@ -93,7 +93,7 @@ class DishLNEventReceiver(EventReceiver):
             self._component_manager.update_event_failure(event_flag.device.dev_name())
             return
         new_value = event_flag.attr_value.value
-        self._component_manager.achieved_pointing_data.put(new_value)
+        self._component_manager.update_device_pointing_state(new_value)
         self._logger.info(f"PointingState value updated to {new_value}")
 
     def handle_configured_band_event(self, event_flag: tango.EventData) -> None:
@@ -129,5 +129,5 @@ class DishLNEventReceiver(EventReceiver):
             self._component_manager.update_event_failure(event_flag.device.dev_name())
             return
         new_value = event_flag.attr_value.value
-        self._component_manager.update_achieved_pointing(new_value)
+        self._component_manager.achieved_pointing_data.put(new_value)
         self._logger.info(f"achievedPointing value is updated to {new_value}")
