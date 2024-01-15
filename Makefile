@@ -23,6 +23,7 @@ PYTHON_LINE_LENGTH=99
 # using Helm.  If this does not already exist it will be created
 KUBE_NAMESPACE ?= ska-tmc-dishleafnode
 
+SKA_TANGO_OPERATOR = true
 # HELM_RELEASE is the release that all Kubernetes resources will be labelled
 # with
 HELM_RELEASE ?= test
@@ -75,7 +76,7 @@ ADD_ARGS +=  --true-context
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
-EXIT_AT_FAIL ?= false
+EXIT_AT_FAIL ?= true
 
 ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
