@@ -126,6 +126,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         self.achieved_pointing_data = Queue()
         self._device = DishDeviceInfo(dish_dev_name)
+        self.update_availablity_callback = _update_availablity_callback
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -133,8 +134,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if _liveliness_probe:
             self.start_liveliness_probe(_liveliness_probe)
-
-        self.update_availablity_callback = _update_availablity_callback
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
