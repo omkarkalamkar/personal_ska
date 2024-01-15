@@ -125,9 +125,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._kvalue: int = 0
         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         self.achieved_pointing_data = Queue()
-        self.backward_trasform_thread = threading.Thread(
-            target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
-        )
         self._device = DishDeviceInfo(dish_dev_name)
         # Event Receiver
         if _event_receiver:
@@ -199,6 +196,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
+        self.backward_trasform_thread = threading.Thread(
+            target=self.process_achieved_pointing,
+        )
+        self.backward_trasform_thread.start()
 
     @property
     def kvalue(self) -> int:
@@ -265,44 +266,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return timestamp
 
-    def update_achieved_pointing(self, value) -> None:
-        """Update the achievedPointing attribute value to a Queue for processing.
-
-        :param value: A numpy array containing timestamp, Az and El values.
-        :value dtype: str
-        """
-        try:
-            self.logger.info(
-                "Received an achievedPointing event with value: %s",
-                value,
-            )
-            value_list = value.tolist()
-            with self.lock:
-                self.achieved_pointing_data.put(value_list)
-            if not self.backward_trasform_thread.is_alive():
-                self.backward_trasform_thread = threading.Thread(
-                    target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
-                )
-                self.backward_trasform_thread.start()
-        except Exception as e:
-            self.logger.exception(
-                "Received an achievedPointing event with value: %s leading to exception : %s",
-                value,
-                e,
-            )
-
-    def process_achieved_pointing(self, achieved_pointing_queue: Queue) -> None:
-        """Process the achieved pointing data to calculate actual pointing.
-
-        :param achieved_pointing_queue: A queue containing the achieved pointing
-            data collected from Dish Master device.
-        :achieved_pointing_queue dtype: Queue
-        """
+    def process_achieved_pointing(self) -> None:
+        """Process the achieved pointing data to calculate actual pointing."""
         converter = AzElConverter(self)
         converter.create_antenna_obj()
-        while achieved_pointing_queue.qsize() != 0:
-            with self.lock:
-                value_list = achieved_pointing_queue.get()
+        while not self.achieved_pointing_data.empty():
+            value = self.achieved_pointing_data.get(block=False)
+            value_list = value.tolist()
             try:
                 timestamp_milliseconds, azimuth, elevation = value_list
 
