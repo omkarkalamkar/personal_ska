@@ -32,7 +32,6 @@ from ska_tmc_dishleafnode.commands import (
     Configure,
     Off,
     Scan,
-    SetKValue,
     SetOperateMode,
     SetStandbyFPMode,
     SetStandbyLPMode,
@@ -42,6 +41,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackStop,
 )
 
+from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
@@ -203,7 +203,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger,
         )
 
-        dln_start_check_timer = threading.Timer(5, self.inform_central_node_kvalue_result)
+        dln_start_check_timer = threading.Timer(2, self.inform_central_node_kvalue_result)
         dln_start_check_timer.start()
 
     @property
@@ -259,52 +259,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """This method informs the k-value validation result
         to central node after DLN start/restart.
         """
-        # pylint: disable=dangerous-default-value
-        dish_kvalue = []
-        # pylint: enable=dangerous-default-value
-        if self.kvalue_callback:
-            self.is_dish_manager_available(dish_kvalue)
-            if not dish_kvalue:
-                self.kvalue_callback("dish unavailable")
-            else:
-                self.kvalue_callback(self.check_kvalue_match(dish_kvalue[0]))
+        dish_kvalue = DishkValueValidationManager(self, self.logger)
+        if self.is_dish_manager_available(dish_kvalue):
+            dish_kvalue.validate_dish_kvalue()
+        else:
+            if self.kvalue_callback:
+                return self.kvalue_callback(ResultCode.NOT_ALLOWED)
 
-    def is_dish_manager_available(self, dish_kvalue: list):
-        """This method checks the dish master is available before
+    def is_dish_manager_available(self, dish_kvalue: DishkValueValidationManager):
+        """This method retries the dish master is available before
         getting the k-value from dish manager.
         """
-        adapter = SetKValue(self)
         retry = 0
-        timeout = 5
-        start_time = time.time()
-        elapsed_time = 0
-        error = ""
-        while retry < 3 and not dish_kvalue:
-            while elapsed_time < timeout and not dish_kvalue:
-                try:
-                    result_code, _ = adapter.init_adapter()
-                    if result_code == ResultCode.OK:
-                        dish_kvalue.append(adapter.dish_master_adapter._proxy.kValue)
-                        # turn the flag to true if dln able to communicate
-                        # with dish manager
-                except Exception as e:
-                    self.logger.warning("Retry: %s: %s is unavailable", retry, self.dish_dev_name)
-                    error = e
-                time.sleep(2)
-                elapsed_time = time.time() - start_time
+        flag = False
+        while retry < 3 and not flag:
+            flag = dish_kvalue.is_dish_manager_ready()
             retry = retry + 1
-            elapsed_time = 0
-            self.logger.warning("Retry exhausted. Dish manager unavailable.")
-        if not dish_kvalue:
-            self.logger.exception(error)
-
-    def check_kvalue_match(self, dish_kvalue: int):
-        """This method does the validation of k-value after DLN restart"""
-        if self.kValue:
-            if self.kValue == dish_kvalue:
-                return "identical"
-            return "not identical"
-        return "not set"
+        return flag
 
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc

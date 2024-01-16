@@ -72,10 +72,6 @@ class DishLeafNode(SKABaseDevice):
     # General methods
     # ---------------
 
-    def init_device(self):
-        super().init_device()
-        self._isSubsystemAvailable = True
-
     class InitCommand(SKABaseDevice.InitCommand):
         """
         A class for the TMC DishLeafNode init_device() method.
@@ -98,11 +94,13 @@ class DishLeafNode(SKABaseDevice):
             device._build_state = f"""{release.name},{release.version},
             {release.description}"""
             device._version_id = release.version
-            device._kValueValidationResult = ""
+            device._kValueValidationResult = ResultCode.STARTED
+            device._isSubsystemAvailable = True
             device._dishln_name = device.get_name()
             device.set_change_event("healthState", True, False)
             device.set_change_event("isSubsystemAvailable", True, False)
             device.set_change_event("actualPointing", True, False)
+            device.set_change_event("kValueValidationResult", True, False)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -122,11 +120,15 @@ class DishLeafNode(SKABaseDevice):
         """Push an event for the actualPointing attribute."""
         self.push_change_event("actualPointing", json.dumps(actual_pointing))
 
-    def kvalue_callback(self, result: str) -> None:
+    def kvalue_callback(self, result_code: ResultCode) -> None:
         """Push an event for the kValueValidationResult attribute."""
-        self._kValueValidationResult = result
-        self.push_change_event("kValueValidationResult", self._kValueValidationResult)
-        self.logger.info("k-value validation result: %s", result)
+        self._kValueValidationResult = str(int(result_code))
+        self.push_change_event(
+            "kValueValidationResult", self._kValueValidationResult
+        )
+        self.logger.info(
+            "k-value validation result is ResultCode.%s", ResultCode(result_code).name
+        )
 
     # ------------------
     # Attributes methods

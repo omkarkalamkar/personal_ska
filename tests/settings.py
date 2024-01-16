@@ -182,29 +182,11 @@ def build_partial_configure_data(
 
     return configurations
 
-
-def retry_for_attribute_value_after_restart(
+def wait_and_validate_attribute_value_available(
     device: DeviceProxy,
     attribute_name: str,
     expected_value: str,
-    retry: int = 0,
-):
-    """This method retries multiple times to get the attribute
-    value available.
-    """
-    flag = False
-    while retry < 3 and not flag:
-        logger.info("FLAG= %s Retry = %s", flag, retry)
-        flag = wait_and_validate_device_attribute_value(device, attribute_name, expected_value)
-        retry = retry + 1
-    return flag
-
-
-def wait_and_validate_device_attribute_value(
-    device: DeviceProxy,
-    attribute_name: str,
-    expected_value: str,
-    timeout: int = 60,
+    timeout: int = 300,
 ):
     """This method wait and validate if attribute value is equal to provided
     expected value
@@ -213,13 +195,18 @@ def wait_and_validate_device_attribute_value(
     error = ""
     while count <= timeout:
         try:
+            count += 30
+            time.sleep(30)
             attribute_value = device.read_attribute(attribute_name).value
             if attribute_value:
                 logging.info(
-                    "%s current %s value: %s", device.name(), attribute_name, attribute_value
+                    "%s current %s value: %s",
+                    device.name(),
+                    attribute_name,
+                    attribute_value,
                 )
-            if attribute_value == expected_value:
-                return True
+                if attribute_value == expected_value:
+                    return True
         except Exception as e:
             # Device gets unavailable due to restart and the above command
             # tries to access the attribute resulting into exception
@@ -227,26 +214,23 @@ def wait_and_validate_device_attribute_value(
             # the exception log is suppressed by storing into variable
             # the error is printed later into the log in case of failure
             error = e
-        count += 1
-        time.sleep(1)
 
-    logging.exception(
+    logger.exception(
         "Exception occurred while reading attribute %s and cnt is %s",
         error,
         count,
     )
     return False
 
-
 def dln_can_communicate_with_dish_master(
     device: DeviceProxy,
 ):
     """This method tries to check the dish manager is available
-    for execution of commands.
+    for execution of further commands.
     """
     retry = 0
     flag = False
-    timeout = 60
+    timeout = 120
     while retry < 3 and not flag:
         count = 0
         error = ""

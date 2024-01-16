@@ -1,117 +1,207 @@
-import time
-
 import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from tango import DevState
+import tango
 
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     KVALUE,
     dln_can_communicate_with_dish_master,
-    retry_for_attribute_value_after_restart,
+    wait_and_validate_attribute_value_available,
+    event_remover,
+    logger,
 )
 
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_kvalue_when_dln_initialized():
+def test_kvalue_when_dln_initialized(tango_context,group_callback):
     # Scenario 1: Start the device and check k-value when DLN initialized
     dev_factory = DevFactory()
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_leaf_node.SetKValue(0)  # Set k-value to initialization value
-    dish_leaf_node_server.RestartServer()
-    assert retry_for_attribute_value_after_restart(
-        dish_leaf_node,
-        "kValueValidationResult",
-        "not set",
-    )
-
+    try:
+        dish_leaf_node_server.RestartServer()
+        assert wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "kValueValidationResult",
+            str(int(ResultCode.UNKNOWN)),
+        )
+        dish_leaf_node.subscribe_event(
+            "kValueValidationResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["kValueValidationResult"],
+        )
+        group_callback["kValueValidationResult"].assert_change_event(
+            str(int(ResultCode.UNKNOWN)),
+            lookahead=8,
+        )
+        event_remover(
+            group_callback,
+            ["kValueValidationResult"],
+        )
+    except Exception as e:
+        logger.exception(e)
+        wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "State",
+            DevState.ON,
+        )
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_kvalue_after_dln_restart():
+def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     # dserver/
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
-    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
-    assert result_fp == ResultCode.OK
-    # validate kvalue set on dish manager
-    assert dish_master.kValue == dish_leaf_node.kValue
-    # Scenario 2: restart the device and check k-value is identical
-
-    dish_leaf_node_server.RestartServer()
-    assert retry_for_attribute_value_after_restart(
-        dish_leaf_node,
-        "kValueValidationResult",
-        "identical",
-    )
-
-    # Scenario 3: restart the device and check k-value is not identical
-    dish_master.SetKValue(KVALUE + 1)
-    dish_leaf_node_server.RestartServer()
-    assert retry_for_attribute_value_after_restart(
-        dish_leaf_node,
-        "kValueValidationResult",
-        "not identical",
-    )
-
-    assert retry_for_attribute_value_after_restart(
-        dish_leaf_node,
-        "State",
-        DevState.ON,
-    )
-
-
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
-def test_kvalue_dln_restart_dm_unavailable():
-    """dm = dish manager"""
-    timeout = 60
-    dev_factory = DevFactory()
-    dish_leaf_node = dev_factory.get_device("ska_mid/tm_leaf_node/d0001")
-    # dserver/
-    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
-    dish_master_server = dev_factory.get_device("dserver/mocks/01")
     dish_master = dev_factory.get_device("ska001/elt/master")
     result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_fp == ResultCode.OK
     # validate kvalue set on dish manager
     assert dish_master.kValue == dish_leaf_node.kValue
-    # Scenario 4: restart DLN and dish unavailable
-    dish_leaf_node_server.RestartServer()
-    dish_master_server.RestartServer()
-    count = 0
-    # Make the dish master unavailable
-    start_time = time.time()
-    elaplsed_time = 0
-    while count < 5 and elaplsed_time < timeout:
-        flag = retry_for_attribute_value_after_restart(
+    # Scenario 2: restart the device and check k-value is identical
+    try:
+        dish_leaf_node_server.RestartServer()
+        assert wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "kValueValidationResult",
+            str(int(ResultCode.OK)),
+        )
+        dish_leaf_node.subscribe_event(
+            "kValueValidationResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["kValueValidationResult"],
+        )
+        group_callback["kValueValidationResult"].assert_change_event(
+            str(int(ResultCode.OK)),
+            lookahead=8,
+        )
+        event_remover(
+            group_callback,
+            ["kValueValidationResult"],
+        )
+    except Exception as e:
+        logger.exception(e)
+        wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "State",
+            DevState.ON,
+        )
+
+
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
+    dev_factory = DevFactory()
+    dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    # dserver/
+    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
+    dish_master = dev_factory.get_device("ska001/elt/master")
+    result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
+    assert result_fp == ResultCode.OK
+    # validate kvalue set on dish manager
+    assert dish_master.kValue == dish_leaf_node.kValue
+    try:
+        # Scenario 3: restart the device and check k-value is not identical
+        dish_master.SetKValue(KVALUE + 1)
+        dish_leaf_node_server.RestartServer()
+        assert wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "kValueValidationResult",
+            str(int(ResultCode.FAILED)),
+        )
+        dish_leaf_node.subscribe_event(
+            "kValueValidationResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["kValueValidationResult"],
+        )
+        group_callback["kValueValidationResult"].assert_change_event(
+            str(int(ResultCode.FAILED)),
+            lookahead=8,
+        )
+        event_remover(
+            group_callback,
+            ["kValueValidationResult"],
+        )
+    except Exception as e:
+        logger.exception(e)
+        wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "State",
+            DevState.ON,
+        )
+
+
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
+    """dm = dish manager"""
+    db = tango.Database()
+    dev_info = tango.DbDevInfo()
+    dev_factory = DevFactory()
+    dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
+    dish_master_server = dev_factory.get_device("dserver/mocks/01")
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
+    assert result_fp == ResultCode.OK
+    # validate kvalue set on dish manager
+    assert dish_master.kValue == dish_leaf_node.kValue
+    try:
+        # Scenario 4: restart DLN and dish manager not unavailable
+        dish_leaf_node_server.RestartServer()
+        # Make the dish master unavailable
+        db.delete_device(DISH_MASTER_DEVICE)
+        dish_master_server.RestartServer()
+
+        assert wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "kValueValidationResult",
+            str(int(ResultCode.NOT_ALLOWED)),
+        )
+        dish_leaf_node.subscribe_event(
+            "kValueValidationResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["kValueValidationResult"],
+        )
+        group_callback["kValueValidationResult"].assert_change_event(
+            str(int(ResultCode.NOT_ALLOWED)),
+            lookahead=8,
+        )
+        event_remover(
+            group_callback,
+            ["kValueValidationResult"],
+        )
+        dev_info.name = DISH_MASTER_DEVICE
+        dev_info.server = "mocks/01"
+        dev_info._class = "HelperDishDevice"
+        db.add_device(dev_info)
+        dish_master_server.RestartServer()
+        wait_and_validate_attribute_value_available(
             dish_master,
             "State",
             DevState.DISABLE,
+            timeout=30
         )
-        if flag:
-            dish_master_server.RestartServer()
+        # check the devices are stable and available for further testing.
+        assert dln_can_communicate_with_dish_master(dish_leaf_node)
+        assert dish_leaf_node.kValue == dish_master.kValue
+    except Exception as e:
+        logger.info(e)
+        wait_and_validate_attribute_value_available(
+            dish_master,
+            "State",
+            DevState.DISABLE,
+            timeout=30
+        )
+        wait_and_validate_attribute_value_available(
+            dish_leaf_node,
+            "State",
+            DevState.ON,
+        )
 
-        time.sleep(2)
-        elaplsed_time = time.time() - start_time
-        count = count + 1
 
-    assert retry_for_attribute_value_after_restart(
-        dish_leaf_node,
-        "kValueValidationResult",
-        "dish unavailable",
-    )
-    assert retry_for_attribute_value_after_restart(
-        dish_leaf_node,
-        "State",
-        DevState.ON,
-    )
-    # check the devices are stable and available for further testing.
-    assert dln_can_communicate_with_dish_master(dish_leaf_node)
-    assert dish_leaf_node.kValue == dish_master.kValue
