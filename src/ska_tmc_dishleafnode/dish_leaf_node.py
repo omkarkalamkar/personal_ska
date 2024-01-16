@@ -123,9 +123,7 @@ class DishLeafNode(SKABaseDevice):
     def kvalue_callback(self, result_code: ResultCode) -> None:
         """Push an event for the kValueValidationResult attribute."""
         self._kValueValidationResult = str(int(result_code))
-        self.push_change_event(
-            "kValueValidationResult", self._kValueValidationResult
-        )
+        self.push_change_event("kValueValidationResult", self._kValueValidationResult)
         self.logger.info(
             "k-value validation result is ResultCode.%s", ResultCode(result_code).name
         )

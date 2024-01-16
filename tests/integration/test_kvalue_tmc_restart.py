@@ -1,23 +1,23 @@
 import pytest
+import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from tango import DevState
-import tango
 
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     KVALUE,
     dln_can_communicate_with_dish_master,
-    wait_and_validate_attribute_value_available,
     event_remover,
     logger,
+    wait_and_validate_attribute_value_available,
 )
 
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_kvalue_when_dln_initialized(tango_context,group_callback):
+def test_kvalue_when_dln_initialized(tango_context, group_callback):
     # Scenario 1: Start the device and check k-value when DLN initialized
     dev_factory = DevFactory()
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
@@ -50,6 +50,7 @@ def test_kvalue_when_dln_initialized(tango_context,group_callback):
             "State",
             DevState.ON,
         )
+
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
@@ -182,10 +183,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
         db.add_device(dev_info)
         dish_master_server.RestartServer()
         wait_and_validate_attribute_value_available(
-            dish_master,
-            "State",
-            DevState.DISABLE,
-            timeout=30
+            dish_master, "State", DevState.DISABLE, timeout=30
         )
         # check the devices are stable and available for further testing.
         assert dln_can_communicate_with_dish_master(dish_leaf_node)
@@ -193,15 +191,10 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     except Exception as e:
         logger.info(e)
         wait_and_validate_attribute_value_available(
-            dish_master,
-            "State",
-            DevState.DISABLE,
-            timeout=30
+            dish_master, "State", DevState.DISABLE, timeout=30
         )
         wait_and_validate_attribute_value_available(
             dish_leaf_node,
             "State",
             DevState.ON,
         )
-
-

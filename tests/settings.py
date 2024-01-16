@@ -182,6 +182,7 @@ def build_partial_configure_data(
 
     return configurations
 
+
 def wait_and_validate_attribute_value_available(
     device: DeviceProxy,
     attribute_name: str,
@@ -221,6 +222,7 @@ def wait_and_validate_attribute_value_available(
         count,
     )
     return False
+
 
 def dln_can_communicate_with_dish_master(
     device: DeviceProxy,

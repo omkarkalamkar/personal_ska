@@ -264,7 +264,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dish_kvalue.validate_dish_kvalue()
         else:
             if self.kvalue_callback:
-                return self.kvalue_callback(ResultCode.NOT_ALLOWED)
+                self.kvalue_callback(ResultCode.NOT_ALLOWED)
 
     def is_dish_manager_available(self, dish_kvalue: DishkValueValidationManager):
         """This method retries the dish master is available before
