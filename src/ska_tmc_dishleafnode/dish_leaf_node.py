@@ -42,6 +42,7 @@ class DishLeafNode(SKABaseDevice):
     DishMasterFQDN = device_property(dtype="str", doc="FQDN of Dish Master Device")
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
+    DishAvailabilityCheckTimeout = device_property(dtype="DevUShort", default_value=10)
     CommandTimeOut = device_property(dtype="DevFloat", default_value=15)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
     # Dish Track command properties
@@ -120,7 +121,7 @@ class DishLeafNode(SKABaseDevice):
         """Push an event for the actualPointing attribute."""
         self.push_change_event("actualPointing", json.dumps(actual_pointing))
 
-    def kvalue_callback(self, result_code: ResultCode) -> None:
+    def kvalue_validation_callback(self, result_code: ResultCode) -> None:
         """Push an event for the kValueValidationResult attribute."""
         self._kValueValidationResult = str(int(result_code))
         self.push_change_event("kValueValidationResult", self._kValueValidationResult)
@@ -579,10 +580,11 @@ class DishLeafNode(SKABaseDevice):
             communication_state_callback=None,
             component_state_callback=None,
             pointing_callback=self.pointing_callback,
-            kvalue_callback=self.kvalue_callback,
+            kvalue_validation_callback=self.kvalue_validation_callback,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             sleep_time=self.SleepTime,
+            dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,
             command_timeout=self.CommandTimeOut,
             elevation=self.Elevation,

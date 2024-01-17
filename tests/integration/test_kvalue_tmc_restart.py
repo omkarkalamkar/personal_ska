@@ -18,6 +18,8 @@ from tests.settings import (
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_kvalue_when_dln_initialized(tango_context, group_callback):
+    """Note: Its observed that frequent running of this test case makes the
+    k8s pod unstable due to restart which results in test case failure."""
     # Scenario 1: Start the device and check k-value when DLN initialized
     dev_factory = DevFactory()
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
@@ -55,13 +57,14 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
+    """Note: Its observed that frequent running of this test case makes the
+    k8s pod unstable due to restart which results in test case failure."""
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    # dserver/
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master = dev_factory.get_device("ska001/elt/master")
-    result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
-    assert result_fp == ResultCode.OK
+    result_code, _ = dish_leaf_node.SetKValue(KVALUE)
+    assert result_code == ResultCode.OK
     # validate kvalue set on dish manager
     assert dish_master.kValue == dish_leaf_node.kValue
     # Scenario 2: restart the device and check k-value is identical
@@ -97,13 +100,14 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
+    """Note: Its observed that frequent running of this test case makes the
+    k8s pod unstable due to restart which results in test case failure."""
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    # dserver/
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master = dev_factory.get_device("ska001/elt/master")
-    result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
-    assert result_fp == ResultCode.OK
+    result_code, _ = dish_leaf_node.SetKValue(KVALUE)
+    assert result_code == ResultCode.OK
     # validate kvalue set on dish manager
     assert dish_master.kValue == dish_leaf_node.kValue
     try:
@@ -140,7 +144,9 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
-    """dm = dish manager"""
+    """Note: Its observed that frequent running of this test case makes the
+    k8s pod unstable due to restart which results in test case failure.
+    dm = dish manager"""
     db = tango.Database()
     dev_info = tango.DbDevInfo()
     dev_factory = DevFactory()
@@ -148,8 +154,8 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master_server = dev_factory.get_device("dserver/mocks/01")
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    result_fp, _ = dish_leaf_node.SetKValue(KVALUE)
-    assert result_fp == ResultCode.OK
+    result_code, _ = dish_leaf_node.SetKValue(KVALUE)
+    assert result_code == ResultCode.OK
     # validate kvalue set on dish manager
     assert dish_master.kValue == dish_leaf_node.kValue
     try:

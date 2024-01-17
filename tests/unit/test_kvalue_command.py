@@ -2,12 +2,11 @@ import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.exceptions import DeviceUnresponsive
-
+from ska_tmc_dishleafnode.manager.dish_kvalue_validation_manager import DishkValueValidationManager
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    KVALUE,
     create_cm,
     logger,
     wait_and_validate_attribute_value_available,
@@ -23,41 +22,31 @@ def test_set_kvalue_command(tango_context):
     assert result_code == ResultCode.OK
 
 
+@pytest.mark.test
 def test_dish_unavailable_check_after_dln_init_or_restart(tango_context):
     dev_factory = DevFactory()
     dishln_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     assert wait_and_validate_attribute_value_available(
-        dishln_device, "kValueValidationResult", "dish unavailable"
+        dishln_device, "kValueValidationResult", str(int(ResultCode.NOT_ALLOWED))
     )
 
-
-def test_kvalue_identical_after_dln_restart(tango_context):
-    """Directly setting the k-value.
-    Component manager looses the dish_dev_name after
-     device restart. The below code runs successfully if default
-     value of DishMasterFQDN device property is set in tango device class.
-    """
+@pytest.mark.test
+def test_dish_unavailable_check_after_dln_init_or_restart(tango_context):
     cm = create_cm(DISH_MASTER_DEVICE)
-    cm.kValue = KVALUE
-    cm.check_kvalue_match(KVALUE) == "identical"
+    kvalue_validation_obj = DishkValueValidationManager()
+    cm.kValue = 9
+    kvalue_validation_obj.dish_manager_kvalue = 9
+    kvalue_validation_obj.validate_dish_kvalue()
+    cm.kvalue_validation_result == ResultCode.OK
 
-
-def test_kvalue_not_identical_after_dln_restart(tango_context):
-    """Directly setting the k-value.
-    Component manager looses the dish_dev_name after
-     device restart. The below code runs successfully if default
-     value of DishMasterFQDN device property is set in tango device class.
-    """
+@pytest.mark.test
+def test_dish_unavailable_check_after_dln_init_or_restart(tango_context):
     cm = create_cm(DISH_MASTER_DEVICE)
-    cm.kValue = KVALUE
-    cm.check_kvalue_match(KVALUE + 1) == "not identical"
-
-
-def test_kvalue_dish_available(tango_context):
-    cm = create_cm(DISH_MASTER_DEVICE)
-    dish_kvalue = []
-    cm.is_dish_manager_available(dish_kvalue)
-    assert dish_kvalue
+    kvalue_validation_obj = DishkValueValidationManager()
+    cm.kValue = 9
+    kvalue_validation_obj.dish_manager_kvalue = 10
+    kvalue_validation_obj.validate_dish_kvalue()
+    cm.kvalue_validation_result == ResultCode.FAILED
 
 
 @pytest.mark.skip("unstable")

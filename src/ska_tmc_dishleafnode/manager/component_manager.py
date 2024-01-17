@@ -64,12 +64,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
         pointing_callback: Optional[Callable] = None,
-        kvalue_callback: Optional[Callable] = None,
+        kvalue_validation_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
+        dish_availability_check_timeout: int = 10,
         command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
@@ -125,7 +126,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
         self._kvalue: int = 0
-        self.kvalue_callback = kvalue_callback
+        self.kvalue_validation_result = ""
+        self.kvalue_validation_callback = kvalue_validation_callback
+        self.dish_availability_check_timeout = dish_availability_check_timeout
         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         self.achieved_pointing_data = Queue()
         self.backward_trasform_thread = threading.Thread(
@@ -262,9 +265,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         dish_kvalue = DishkValueValidationManager(self, self.logger)
         if self.is_dish_manager_available(dish_kvalue):
             dish_kvalue.validate_dish_kvalue()
-        else:
-            if self.kvalue_callback:
-                self.kvalue_callback(ResultCode.NOT_ALLOWED)
+        elif self.kvalue_validation_callback:
+            self.kvalue_validation_callback(ResultCode.NOT_ALLOWED)
+            self.component_manager.kvalue_validation_result = ResultCode.NOT_ALLOWED
 
     def is_dish_manager_available(self, dish_kvalue: DishkValueValidationManager):
         """This method retries the dish master is available before
