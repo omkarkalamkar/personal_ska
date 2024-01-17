@@ -55,15 +55,15 @@ class DishkValueValidationManager:
             self.logger.info("kvalue not set")
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback(ResultCode.UNKNOWN)
-                self.component_manager.kvalue_validation_result = ResultCode.UNKNOWN
+            self.component_manager.kvalue_validation_result = ResultCode.UNKNOWN
 
         elif dish_manager_kvalue == dish_ln_kvalue:
             self.logger.info("kvalues are identical on dish manager and dln.")
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback(ResultCode.OK)
-                self.component_manager.kvalue_validation_result = ResultCode.OK
+            self.component_manager.kvalue_validation_result = ResultCode.OK
         else:
             self.logger.info("kvalue not identical on dish manager and dln.")
-            if self.component_manager.kvalue_callback:
+            if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback(ResultCode.FAILED)
-                self.component_manager.kvalue_validation_result = ResultCode.FAILED
+            self.component_manager.kvalue_validation_result = ResultCode.FAILED

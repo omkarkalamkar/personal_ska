@@ -145,7 +145,7 @@ class Configure(DishLNCommand):
                 # the key is omitted
                 ie_offset = json_argument["pointing"]["target"].get("ie_offset_arcsec") or 0.0
 
-                offsets_argin = json.dumps([ca_offset, ie_offset])
+                offsets_argin = [ca_offset, ie_offset]
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", offsets_argin
                 )

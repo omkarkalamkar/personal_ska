@@ -1,6 +1,7 @@
 """
 TrackLoadStaticOff command class for DishLeafNode.
 """
+import json
 import threading
 from logging import Logger
 from typing import Callable, Optional, Tuple
@@ -47,7 +48,6 @@ class TrackLoadStaticOff(DishLNCommand):
         """
 
         task_callback(status=TaskStatus.IN_PROGRESS)
-
         result_code, message = self.do(argin)
         if result_code == ResultCode.FAILED:
             logger.warning("Command failed with exception: %s", message)
@@ -82,8 +82,9 @@ class TrackLoadStaticOff(DishLNCommand):
             self.logger.info("%s adapter not found", self.component_manager.dish_dev_name)
             return result_code, message
 
+        offsets = json.loads(argin)
         result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", argin=argin
+            "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", argin=offsets
         )
 
         return result_code[0], message[0]
