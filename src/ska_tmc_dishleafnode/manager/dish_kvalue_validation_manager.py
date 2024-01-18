@@ -10,15 +10,18 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 
 
 class DishkValueValidationManager:
-    """Class dish vkvalue validation during initialization/restart"""
+    """Class for dish kValue validation during dish
+     leaf node initialization/restart"""
 
     def __init__(self, component_manager, logger) -> None:
         self.component_manager = component_manager
         self.logger = logger
         self.dish_manager_kvalue = ""
 
-    def is_dish_manager_ready(self):
-        """Wait and check if csp manager is ready"""
+    def is_dish_manager_ready(self) -> bool:
+        """Wait and check if dish manager is ready
+        :returns: bool
+        """
         count = 0
         setkvalue_obj = SetKValue(self.component_manager, self.logger)
         while count < self.component_manager.dish_availability_check_timeout:
@@ -26,7 +29,7 @@ class DishkValueValidationManager:
                 self.component_manager.check_device_responsive()
                 result_code, _ = setkvalue_obj.init_adapter()
                 if result_code == ResultCode.OK:
-                    self.dish_manager_kvalue = setkvalue_obj.dish_master_adapter._proxy.kValue
+                    self.dish_manager_kvalue = setkvalue_obj.dish_master_adapter.kValue
                     return True
             except Exception as e:
                 self.logger.exception("Dish manager is unresponsive %s", e)
@@ -35,15 +38,21 @@ class DishkValueValidationManager:
         return False
 
     def get_dish_manager_kvalue(self) -> int:
-        """Get kValue attribute value of dish manager"""
+        """Get kValue attribute value of dish manager
+        :returns: int
+        """
         return self.dish_manager_kvalue
 
-    def get_dish_ln_memorized_kvalue(self) -> str:
-        """Return memorized kvalue dish leaf node"""
+    def get_dish_ln_memorized_kvalue(self) -> int:
+        """Return memorized kvalue dish leaf node
+        :returns: int
+        """
         return self.component_manager.kValue
 
-    def validate_dish_kvalue(self):
-        """Validate kvalue of dish leaf node and dish manager"""
+    def validate_dish_kvalue(self) -> None:
+        """Validate kvalue of dish leaf node and dish manager
+        :returns: None
+        """
         dish_manager_kvalue = self.get_dish_manager_kvalue()
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
         self.logger.info("Dish Manager k-value: %s", dish_manager_kvalue)

@@ -206,7 +206,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.backward_trasform_thread.start()
 
-        dln_start_check_timer = threading.Timer(2, self.inform_central_node_kvalue_result)
+        dln_start_check_timer = threading.Timer(2, self.update_kvalue_validation_result)
         dln_start_check_timer.start()
 
     @property
@@ -269,25 +269,31 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
 
-    def inform_central_node_kvalue_result(self, **kwargs):
+    def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
         to central node after DLN start/restart.
+        :returns: None
         """
-        dish_kvalue = DishkValueValidationManager(self, self.logger)
-        if self.is_dish_manager_available(dish_kvalue):
-            dish_kvalue.validate_dish_kvalue()
+        dish_kvalue_validation_manager = DishkValueValidationManager(self, self.logger)
+        if self.is_dish_manager_available(dish_kvalue_validation_manager):
+            dish_kvalue_validation_manager.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
 
-    def is_dish_manager_available(self, dish_kvalue: DishkValueValidationManager):
+    def is_dish_manager_available(
+        self, dish_kvalue_validation_manager: DishkValueValidationManager
+    ) -> bool:
         """This method retries the dish master is available before
         getting the k-value from dish manager.
+        :param dish_kvalue_validation_manager: Object of DishkValueValidationManager
+        class
+        :returns: bool
         """
         retry = 0
         flag = False
         while retry < 3 and not flag:
-            flag = dish_kvalue.is_dish_manager_ready()
+            flag = dish_kvalue_validation_manager.is_dish_manager_ready()
             retry = retry + 1
         return flag
 

@@ -193,21 +193,21 @@ def wait_and_validate_attribute_value_available(
     expected value
     """
     count = 0
-    error = ""
+    error = None
+    attribute_value = None
     while count <= timeout:
         try:
             count += 30
             time.sleep(30)
             attribute_value = device.read_attribute(attribute_name).value
-            if attribute_value:
-                logging.info(
-                    "%s current %s value: %s",
-                    device.name(),
-                    attribute_name,
-                    attribute_value,
-                )
-                if attribute_value == expected_value:
-                    return True
+            if attribute_value == expected_value:
+                return True
+            logging.info(
+                "%s current %s value: %s",
+                device.name(),
+                attribute_name,
+                attribute_value,
+            )
         except Exception as e:
             # Device gets unavailable due to restart and the above command
             # tries to access the attribute resulting into exception

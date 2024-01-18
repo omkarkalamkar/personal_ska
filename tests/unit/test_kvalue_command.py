@@ -35,6 +35,13 @@ def test_dish_unavailable_check_after_dln_init_or_restart(tango_context):
     )
 
 
+def test_dm_available_after_dln_init_or_restart(tango_context):
+    cm = create_cm(DISH_MASTER_DEVICE)
+    kvalue_validation_obj = DishkValueValidationManager(cm, logger)
+    cm.dish_availability_check_timeout = 30
+    assert kvalue_validation_obj.is_dish_manager_ready()
+
+
 def test_kvalue_identical_after_dln_restart(tango_context):
     cm = create_cm(DISH_MASTER_DEVICE)
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
