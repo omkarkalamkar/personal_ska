@@ -26,11 +26,7 @@ class DishkValueValidationManager:
                 self.component_manager.check_device_responsive()
                 result_code, _ = setkvalue_obj.init_adapter()
                 if result_code == ResultCode.OK:
-                    self.dish_manager_kvalue = setkvalue_obj.dish_master_adapter.kValue
-                    self.logger.info(
-                        "kValue %s",
-                        setkvalue_obj.dish_master_adapter._proxy.kValue,
-                    )
+                    self.dish_manager_kvalue = setkvalue_obj.dish_master_adapter._proxy.kValue
                     return True
             except Exception as e:
                 self.logger.exception("Dish manager is unresponsive %s", e)
@@ -50,20 +46,22 @@ class DishkValueValidationManager:
         """Validate kvalue of dish leaf node and dish manager"""
         dish_manager_kvalue = self.get_dish_manager_kvalue()
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
+        self.logger.info("Dish Manager k-value: %s", dish_manager_kvalue)
+        self.logger.info("Dish Leaf Node k-value: %s", dish_ln_kvalue)
 
         if not dish_manager_kvalue or not dish_ln_kvalue:
             self.logger.info("kvalue not set")
+            self.component_manager.kValueValidationResult = ResultCode.UNKNOWN
             if self.component_manager.kvalue_validation_callback:
-                self.component_manager.kvalue_validation_callback(ResultCode.UNKNOWN)
-            self.component_manager.kvalue_validation_result = ResultCode.UNKNOWN
+                self.component_manager.kvalue_validation_callback()
 
         elif dish_manager_kvalue == dish_ln_kvalue:
             self.logger.info("kvalues are identical on dish manager and dln.")
+            self.component_manager.kValueValidationResult = ResultCode.OK
             if self.component_manager.kvalue_validation_callback:
-                self.component_manager.kvalue_validation_callback(ResultCode.OK)
-            self.component_manager.kvalue_validation_result = ResultCode.OK
+                self.component_manager.kvalue_validation_callback()
         else:
             self.logger.info("kvalue not identical on dish manager and dln.")
+            self.component_manager.kValueValidationResult = ResultCode.FAILED
             if self.component_manager.kvalue_validation_callback:
-                self.component_manager.kvalue_validation_callback(ResultCode.FAILED)
-            self.component_manager.kvalue_validation_result = ResultCode.FAILED
+                self.component_manager.kvalue_validation_callback()

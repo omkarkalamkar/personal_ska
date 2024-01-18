@@ -160,10 +160,9 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     assert dish_master.kValue == dish_leaf_node.kValue
     try:
         # Scenario 4: restart DLN and dish manager not unavailable
-        dish_leaf_node_server.RestartServer()
         # Make the dish master unavailable
         db.delete_device(DISH_MASTER_DEVICE)
-        dish_master_server.RestartServer()
+        dish_leaf_node_server.RestartServer()
 
         assert wait_and_validate_attribute_value_available(
             dish_leaf_node,

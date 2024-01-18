@@ -126,7 +126,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
         self._kvalue: int = 0
-        self.kvalue_validation_result = ""
+        self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
@@ -210,6 +210,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         dln_start_check_timer.start()
 
     @property
+    def kValueValidationResult(self) -> int:
+        """Returns the k-value validation result"""
+        return self._kValueValidationResult
+
+    @kValueValidationResult.setter
+    def kValueValidationResult(self, result_code: ResultCode) -> None:
+        """Update the k-value validation result property."""
+        if self._kValueValidationResult != result_code:
+            self._kValueValidationResult = result_code
+
+    @property
     def kValue(self) -> int:
         """Returns the k-value"""
         return self._kvalue
@@ -266,8 +277,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.is_dish_manager_available(dish_kvalue):
             dish_kvalue.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
-            self.kvalue_validation_callback(ResultCode.NOT_ALLOWED)
-            self.kvalue_validation_result = ResultCode.NOT_ALLOWED
+            self.kValueValidationResult = ResultCode.NOT_ALLOWED
+            self.kvalue_validation_callback()
 
     def is_dish_manager_available(self, dish_kvalue: DishkValueValidationManager):
         """This method retries the dish master is available before

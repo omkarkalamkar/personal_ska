@@ -42,7 +42,7 @@ class DishLeafNode(SKABaseDevice):
     DishMasterFQDN = device_property(dtype="str", doc="FQDN of Dish Master Device")
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
-    DishAvailabilityCheckTimeout = device_property(dtype="DevUShort", default_value=10)
+    DishAvailabilityCheckTimeout = device_property(dtype="DevUShort", default_value=40)
     CommandTimeOut = device_property(dtype="DevFloat", default_value=15)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
     # Dish Track command properties
@@ -95,7 +95,6 @@ class DishLeafNode(SKABaseDevice):
             device._build_state = f"""{release.name},{release.version},
             {release.description}"""
             device._version_id = release.version
-            device._kValueValidationResult = ResultCode.STARTED
             device._isSubsystemAvailable = True
             device._dishln_name = device.get_name()
             device.set_change_event("healthState", True, False)
@@ -121,12 +120,14 @@ class DishLeafNode(SKABaseDevice):
         """Push an event for the actualPointing attribute."""
         self.push_change_event("actualPointing", json.dumps(actual_pointing))
 
-    def kvalue_validation_callback(self, result_code: ResultCode) -> None:
+    def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""
-        self._kValueValidationResult = str(int(result_code))
-        self.push_change_event("kValueValidationResult", self._kValueValidationResult)
+        self.push_change_event(
+            "kValueValidationResult", str(int(self.component_manager.kValueValidationResult))
+        )
         self.logger.info(
-            "k-value validation result is ResultCode.%s", ResultCode(result_code).name
+            "k-value validation result: ResultCode.%s",
+            ResultCode(self.component_manager.kValueValidationResult).name,
         )
 
     # ------------------
@@ -170,7 +171,7 @@ class DishLeafNode(SKABaseDevice):
     )
     def kValueValidationResult(self) -> str:
         """Read method to get the k-value validation result"""
-        return self._kValueValidationResult
+        return str(int(self.component_manager.kValueValidationResult))
 
     # --------
     # Commands
