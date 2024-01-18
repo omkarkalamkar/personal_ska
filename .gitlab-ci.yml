@@ -80,6 +80,8 @@ python-lint:
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
 
 k8s-test:
+  tags:
+    - k8srunner-large
   variables:
     COUNT: 1
   environment:

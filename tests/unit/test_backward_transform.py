@@ -4,7 +4,6 @@ from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm
 
 
-@pytest.mark.skip("This test case is unstable on pipeline only.")
 @pytest.mark.parametrize(
     "timestamp, az, el, expected_ra, expected_dec",
     [
