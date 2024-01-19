@@ -81,7 +81,7 @@ python-lint:
 
 k8s-test:
   tags:
-    - k8srunner-large
+    - k8srunner
   variables:
     COUNT: 1
   environment:
