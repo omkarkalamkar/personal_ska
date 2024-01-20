@@ -55,6 +55,12 @@ class DishLNEventReceiver(EventReceiver):
                     self.handle_configured_band_event,
                     stateless=True,
                 )
+                dish_dev_proxy.subscribe_event(
+                    "longRunningCommandResult",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_long_running_command_result,
+                    stateless=True,
+                )
 
             except Exception as e:
                 log_msg = f"Event not working for device {dish_dev_proxy.dev_name}/{e}"
@@ -131,3 +137,21 @@ class DishLNEventReceiver(EventReceiver):
         new_value = event_flag.attr_value.value
         self._component_manager.achieved_pointing_data.put(new_value)
         self._logger.info(f"achievedPointing value is updated to {new_value}")
+
+    def handle_long_running_command_result(self, event_data: tango.EventData) -> None:
+        """Method to handle and update the latest value of longRunningCommandResult
+        attribute.
+
+        Args:
+            event_flag (tango.EventType.CHANGE_EVENT): to flag the
+            change in event.
+        """
+        if event_data.err:
+            error = event_data.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(event_data.device.dev_name())
+            return
+        new_value = event_data.attr_value.value
+        self._component_manager.update_device_long_running_command_result(new_value)
+        self._logger.info(f"long running command value updated to {new_value}")

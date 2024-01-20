@@ -9,7 +9,7 @@ import threading
 import time
 from logging import Logger
 from queue import Queue
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from astropy.utils import iers
 from ska_tango_base.commands import ResultCode
@@ -127,6 +127,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.achieved_pointing_data = Queue()
         self._device = DishDeviceInfo(dish_dev_name)
         self.update_availablity_callback = _update_availablity_callback
+        self.supported_commands: Tuple[str] = ("TrackLoadStaticOff",)
+        self.__command_in_progress: str = ""
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -230,6 +232,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def actual_pointing(self) -> list:
         """Returns the actualPointing of the dish device."""
         return self._actual_pointing
+
+    @property
+    def command_in_progress(self) -> str:
+        """Method to get value of current command in progress
+
+        Returns:
+            str:  command in progress variable data
+        """
+        return self.__command_in_progress
+
+    @command_in_progress.setter
+    def command_in_progress(self, cmd_in_progress: str):
+        self.__command_in_progress = cmd_in_progress
 
     @actual_pointing.setter
     def actual_pointing(self, value: list) -> None:
@@ -876,3 +891,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self._device.update_unresponsive(False)
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
+
+    def update_device_long_running_command_result(
+        self, lrc_result: Tuple[List[str], List[str]]
+    ) -> None:
+        """
+        Method to update task callback based on long running command result event data.
+
+        Args:
+            lrc_result (Tuple[List[str], List[str]]): longRunningCommandResult
+            attribute event data
+        """
+        self.logger.info(lrc_result)
+        if lrc_result[0]:
+            if (
+                lrc_result[0].endswith(self.supported_commands)
+                and self.command_in_progress in self.supported_commands
+            ):
+                try:
+                    if int(lrc_result[1]) in [ResultCode.OK, ResultCode.FAILED]:
+                        self.configure_command.update_task_callback(int(lrc_result[1]))
+                except ValueError:
+                    self.logger.error(f"Exception occurred: {lrc_result[1]}")
+                    self.configure_command.update_task_callback(ResultCode.FAILED, lrc_result[1])
