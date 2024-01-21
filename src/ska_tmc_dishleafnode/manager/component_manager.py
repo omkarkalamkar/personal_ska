@@ -201,6 +201,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             target=self.process_achieved_pointing,
         )
         self.backward_trasform_thread.start()
+        self.command_object: dict = {"TrackLoadStaticOff": self.configure_command}
 
     @property
     def kvalue(self) -> int:
@@ -910,7 +911,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ):
                 try:
                     if int(lrc_result[1]) in [ResultCode.OK, ResultCode.FAILED]:
-                        self.configure_command.update_task_callback(int(lrc_result[1]))
+                        command_object = self.command_object.get(self.command_in_progress)
+                        command_object.update_task_callback(int(lrc_result[1]))
                 except ValueError:
                     self.logger.error(f"Exception occurred: {lrc_result[1]}")
-                    self.configure_command.update_task_callback(ResultCode.FAILED, lrc_result[1])
+                    command_object.update_task_callback(ResultCode.FAILED, lrc_result[1])
