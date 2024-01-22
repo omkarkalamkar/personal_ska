@@ -910,9 +910,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 and self.command_in_progress in self.supported_commands
             ):
                 try:
+                    command_object = self.command_object.get(self.command_in_progress)
                     if int(lrc_result[1]) in [ResultCode.OK, ResultCode.FAILED]:
-                        command_object = self.command_object.get(self.command_in_progress)
                         command_object.update_task_callback(int(lrc_result[1]))
                 except ValueError:
-                    self.logger.error(f"Exception occurred: {lrc_result[1]}")
-                    command_object.update_task_callback(ResultCode.FAILED, lrc_result[1])
+                    if lrc_result[1] == f"{self.command_in_progress} completed":
+                        command_object.update_task_callback(ResultCode.OK)
+                    else:
+                        self.logger.error(f"Exception occurred: {lrc_result[1]}")
+                        command_object.update_task_callback(ResultCode.FAILED, lrc_result[1])
