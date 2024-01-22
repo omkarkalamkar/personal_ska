@@ -63,7 +63,6 @@ class DishkValueValidationManager:
             self.component_manager.kValueValidationResult = ResultCode.UNKNOWN
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
-
         elif dish_manager_kvalue == dish_ln_kvalue:
             self.logger.info("kvalues are identical on dish manager and dln.")
             self.component_manager.kValueValidationResult = ResultCode.OK

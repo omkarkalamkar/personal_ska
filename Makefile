@@ -78,7 +78,7 @@ ADD_ARGS +=  --true-context --count=$(COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
-EXIT_AT_FAIL ?= false
+EXIT_AT_FAIL ?= true
 
 ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x

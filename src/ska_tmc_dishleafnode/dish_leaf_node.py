@@ -571,6 +571,7 @@ class DishLeafNode(SKABaseDevice):
             db.put_device_attribute_property(self._dishln_name, value)
             value = db.get_device_attribute_property(self._dishln_name, "kValue")
             self.logger.info("k-value memorized successfully: %s", value)
+            self.component_manager.kValueValidationResult = ResultCode.OK
 
         return [result_code], [unique_id]
 
