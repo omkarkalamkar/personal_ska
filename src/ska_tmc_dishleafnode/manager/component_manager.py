@@ -893,29 +893,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def update_device_long_running_command_result(
-        self, lrc_result: Tuple[List[str], List[str]]
+    def update_device_long_running_command_status(
+        self, lrc_status: Tuple[List[str], List[str]]
     ) -> None:
         """
-        Method to update task callback based on long running command result event data.
+        Method to update task callback based on long running command status event data.
 
         Args:
-            lrc_result (Tuple[List[str], List[str]]): longRunningCommandResult
+            lrc_status (Tuple[List[str], List[str]]): longRunningCommandStatus
             attribute event data
         """
-        self.logger.info(lrc_result)
-        if lrc_result[0]:
+        self.logger.info(lrc_status)
+        if lrc_status[0]:
             if (
-                lrc_result[0].endswith(self.supported_commands)
+                lrc_status[0].endswith(self.supported_commands)
                 and self.command_in_progress in self.supported_commands
             ):
                 try:
                     command_object = self.command_object.get(self.command_in_progress)
-                    if int(lrc_result[1]) in [ResultCode.OK, ResultCode.FAILED]:
-                        command_object.update_task_callback(int(lrc_result[1]))
-                except ValueError:
-                    if lrc_result[1] == f'"{self.command_in_progress} completed"':
+                    if lrc_status[1] == "COMPLETED":
                         command_object.update_task_callback(ResultCode.OK)
-                    else:
-                        self.logger.error(f"Exception occurred: {lrc_result[1]}")
-                        command_object.update_task_callback(ResultCode.FAILED, lrc_result[1])
+                    elif lrc_status[1] == "FAILED":
+                        command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
+                except Exception as exception:
+                    self.logger.error(
+                        "Exception while processing longRunningCommandStatus", exception
+                    )
