@@ -129,10 +129,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
-        self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+
         self.achieved_pointing_data = Queue()
         self._device = DishDeviceInfo(dish_dev_name)
         self.update_availablity_callback = _update_availablity_callback
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as error:
+            self.logger.error(error)
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
