@@ -73,6 +73,8 @@ include:
 
 # retry to template job for python-test
 python-test:
+  tags:
+    - k8srunner-large
   retry: 1
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
 
@@ -81,7 +83,7 @@ python-lint:
 
 k8s-test:
   tags:
-    - k8srunner-large
+    - k8srunner
   variables:
     COUNT: 1
   environment:
