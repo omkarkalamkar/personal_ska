@@ -135,12 +135,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str] = ("TrackLoadStaticOff",)
         self.__command_in_progress: str = ""
-        try:
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-        except Exception as error:
-            self.logger.error(error)
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
+        self.__init_iers_url()
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -217,6 +213,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         dln_start_check_timer = threading.Timer(2, self.update_kvalue_validation_result)
         dln_start_check_timer.start()
+
+    def __init_iers_url(self):
+        """Downloads and initialises the IERS file.
+        Incase of error with main link , tries downloading using Mirror link.
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as error:
+            self.logger.error(error)
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     @property
     def kValueValidationResult(self) -> int:
