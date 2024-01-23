@@ -55,7 +55,7 @@ class SetKValue(DishLNCommand, FastCommand):
             "Dish Master", self.dish_master_adapter, "SetKValue", argin
         )
         if result_code[0] == ResultCode.OK:
-            self.component_manager.kvalue = argin
+            self.component_manager.kValue = argin
         self.logger.info(
             f"SetKValue command invoked, Result code is {result_code}\
                 and Message is {message}"

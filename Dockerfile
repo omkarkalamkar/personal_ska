@@ -12,7 +12,6 @@ RUN apt-get update && apt install git -y
 # RUN apt-get update && apt-get install pkg-config build-essential libboost-python-dev  -y
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     poetry config virtualenvs.create false
-
 WORKDIR /app
 
 COPY --chown=tango:tango . /app

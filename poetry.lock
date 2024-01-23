@@ -1345,7 +1345,7 @@ ska-telmodel = "1.9.0"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "skb-270"
-resolved_reference = "f17b3c7a59cc83e7f35f3cce1247f80ce561d7ad"
+resolved_reference = "34fe506b85a562c3f554d9eb11d1d20175ef4ee3"
 
 [[package]]
 name = "snowballstemmer"
