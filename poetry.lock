@@ -431,7 +431,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jsonschema"
-version = "4.20.0"
+version = "4.21.0"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
@@ -560,19 +560,18 @@ marshmallow = ">=2.0.0"
 
 [[package]]
 name = "marshmallow-oneofschema"
-version = "3.0.1"
+version = "3.1.0"
 description = "marshmallow multiplexing schema"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 
 [package.dependencies]
 marshmallow = ">=3.0.0,<4.0.0"
 
 [package.extras]
-dev = ["flake8 (==3.9.2)", "flake8-bugbear (==21.4.3)", "mock", "pre-commit (>=2.7,<3.0)", "pytest", "tox"]
-lint = ["flake8 (==3.9.2)", "flake8-bugbear (==21.4.3)", "pre-commit (>=2.7,<3.0)"]
-tests = ["mock", "pytest"]
+dev = ["marshmallow-oneofschema[tests]", "pre-commit (>=3.5,<4.0)", "tox"]
+tests = ["pytest"]
 
 [[package]]
 name = "matplotlib-inline"
@@ -1319,7 +1318,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.12.2"
+version = "0.12.4"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -1676,7 +1675,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "d1c3529bf973d2e248ee2c75e1f142dc94ad00c70cf301f4e70bcb15cdb35b0a"
+content-hash = "928f8edfef4b9bfb2cb555a308da6c2f4fe22d5d0aa883e2473fcb4edcb6295e"
 
 [metadata.files]
 alabaster = [
@@ -2024,8 +2023,8 @@ Jinja2 = [
     {file = "Jinja2-3.1.3.tar.gz", hash = "sha256:ac8bd6544d4bb2c9792bf3a159e80bba8fda7f07e81bc3aed565432d5925ba90"},
 ]
 jsonschema = [
-    {file = "jsonschema-4.20.0-py3-none-any.whl", hash = "sha256:ed6231f0429ecf966f5bc8dfef245998220549cbbcf140f913b7464c52c3b6b3"},
-    {file = "jsonschema-4.20.0.tar.gz", hash = "sha256:4f614fd46d8d61258610998997743ec5492a648b33cf478c1ddc23ed4598a5fa"},
+    {file = "jsonschema-4.21.0-py3-none-any.whl", hash = "sha256:70a09719d375c0a2874571b363c8a24be7df8071b80c9aa76bc4551e7297c63c"},
+    {file = "jsonschema-4.21.0.tar.gz", hash = "sha256:3ba18e27f7491ea4a1b22edce00fb820eec968d397feb3f9cb61d5894bb38167"},
 ]
 jsonschema-specifications = [
     {file = "jsonschema_specifications-2023.12.1-py3-none-any.whl", hash = "sha256:87e4fdf3a94858b8a2ba2778d9ba57d8a9cafca7c7489c46ba0d30a8bc6a9c3c"},
@@ -2161,8 +2160,8 @@ marshmallow-enum = [
     {file = "marshmallow_enum-1.5.1-py2.py3-none-any.whl", hash = "sha256:57161ab3dbfde4f57adeb12090f39592e992b9c86d206d02f6bd03ebec60f072"},
 ]
 marshmallow-oneofschema = [
-    {file = "marshmallow-oneofschema-3.0.1.tar.gz", hash = "sha256:62cd2099b29188c92493c2940ee79d1bf2f2619a71721664e5a98ec2faa58237"},
-    {file = "marshmallow_oneofschema-3.0.1-py2.py3-none-any.whl", hash = "sha256:bd29410a9f2f7457a2b428286e2a80ef76b8ddc3701527dc1f935a88914b02f2"},
+    {file = "marshmallow_oneofschema-3.1.0-py3-none-any.whl", hash = "sha256:5039ee02d74e3766578d4dac8f25c0218ef60ec2d4b4a422843d23c6c9b645b2"},
+    {file = "marshmallow_oneofschema-3.1.0.tar.gz", hash = "sha256:755bf89c326ba02ce7b0058165e34dfd72d00472e68d40ecb9470db9472bd79a"},
 ]
 matplotlib-inline = [
     {file = "matplotlib-inline-0.1.6.tar.gz", hash = "sha256:f887e5f10ba98e8d2b150ddcf4702c1e5f8b3a20005eb0f74bfdbd360ee6f304"},
@@ -2704,8 +2703,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-7.3.1.tar.gz", hash = "sha256:3129cd4ec33b207f80669f521ba80fd221a42041c841f6c2f44eb8225ed8c363"},
 ]
 ska-tmc-common = [
-    {file = "ska_tmc_common-0.12.2-py3-none-any.whl", hash = "sha256:1d9c38d494f66518e76b290fd4f9b2ddbd8916cbd1faefb0a53066f9174bb226"},
-    {file = "ska_tmc_common-0.12.2.tar.gz", hash = "sha256:c99ee12d5854d3dc4ab75e0b9e8b396c1df80fbcdf3a323cce51a873daa6c508"},
+    {file = "ska_tmc_common-0.12.4-py3-none-any.whl", hash = "sha256:3b4727e0ecbf8f40f87345f33594b70ca96703777d388de4e6055ba853777ccd"},
+    {file = "ska_tmc_common-0.12.4.tar.gz", hash = "sha256:487d5477d7a92caf13f9c4dd449f4d1fc49a9f01ea8789bd20ecf87b74612cf2"},
 ]
 snowballstemmer = [
     {file = "snowballstemmer-2.2.0-py2.py3-none-any.whl", hash = "sha256:c8e1716e83cc398ae16824e5572ae04e0d9fc2c6b985fb0f900f5f0c96ecba1a"},

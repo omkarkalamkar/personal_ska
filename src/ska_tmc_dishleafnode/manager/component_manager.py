@@ -41,6 +41,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackStop,
 )
 
+from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
@@ -63,11 +64,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
         pointing_callback: Optional[Callable] = None,
+        kvalue_validation_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
+        dish_availability_check_timeout: int = 10,
         command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
@@ -123,10 +126,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
         self._kvalue: int = 0
-        self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        self._kValueValidationResult = ResultCode.STARTED
+        self.kvalue_validation_callback = kvalue_validation_callback
+        self.dish_availability_check_timeout = dish_availability_check_timeout
+
         self.achieved_pointing_data = Queue()
         self._device = DishDeviceInfo(dish_dev_name)
         self.update_availablity_callback = _update_availablity_callback
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as error:
+            self.logger.error(error)
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -200,16 +212,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.backward_trasform_thread.start()
 
+        dln_start_check_timer = threading.Timer(2, self.update_kvalue_validation_result)
+        dln_start_check_timer.start()
+
     @property
-    def kvalue(self) -> int:
-        """Returns the k value"""
+    def kValueValidationResult(self) -> int:
+        """Returns the k-value validation result"""
+        return self._kValueValidationResult
+
+    @kValueValidationResult.setter
+    def kValueValidationResult(self, result_code: ResultCode) -> None:
+        """Update the k-value validation result property."""
+        if self._kValueValidationResult != result_code:
+            self._kValueValidationResult = result_code
+
+    @property
+    def kValue(self) -> int:
+        """Returns the k-value"""
         return self._kvalue
 
-    @kvalue.setter
-    def kvalue(self, value: int) -> None:
-        """Update the kvalue property."""
-        if self._kvalue != value:
-            self._kvalue = value
+    @kValue.setter
+    def kValue(self, k_value: int) -> None:
+        """Update the k-value property."""
+        if self._kvalue != k_value:
+            self._kvalue = k_value
 
     @property
     def dishMode(self) -> DishMode:
@@ -248,6 +274,34 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = [timestamp, right_ascension, declination]
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
+
+    def update_kvalue_validation_result(self) -> None:
+        """This method informs the k-value validation result
+        to central node after DLN start/restart.
+        :returns: None
+        """
+        dish_kvalue_validation_manager = DishkValueValidationManager(self, self.logger)
+        if self.is_dish_manager_available(dish_kvalue_validation_manager):
+            dish_kvalue_validation_manager.validate_dish_kvalue()
+        elif self.kvalue_validation_callback:
+            self.kValueValidationResult = ResultCode.NOT_ALLOWED
+            self.kvalue_validation_callback()
+
+    def is_dish_manager_available(
+        self, dish_kvalue_validation_manager: DishkValueValidationManager
+    ) -> bool:
+        """This method retries the dish master is available before
+        getting the k-value from dish manager.
+        :param dish_kvalue_validation_manager: Object of DishkValueValidationManager
+        class
+        :returns: bool
+        """
+        retry = 0
+        flag = False
+        while retry < 3 and not flag:
+            flag = dish_kvalue_validation_manager.is_dish_manager_ready()
+            retry = retry + 1
+        return flag
 
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc

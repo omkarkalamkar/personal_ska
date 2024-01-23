@@ -17,6 +17,7 @@ configure_logging()
 
 logger = logging.getLogger(__name__)
 
+KVALUE = 9
 SLEEP_TIME = 0.5
 TIMEOUT = 100
 
@@ -180,3 +181,83 @@ def build_partial_configure_data(
     configurations.append(json.dumps(partial_config))
 
     return configurations
+
+
+def wait_and_validate_attribute_value_available(
+    device: DeviceProxy,
+    attribute_name: str,
+    expected_value: str,
+    timeout: int = 300,
+):
+    """This method wait and validate if attribute value is equal to provided
+    expected value
+    """
+    count = 0
+    error = None
+    attribute_value = None
+    while count <= timeout:
+        try:
+            count += 30
+            time.sleep(30)
+            attribute_value = device.read_attribute(attribute_name).value
+            if attribute_value == expected_value:
+                return True
+            logging.info(
+                "%s current %s value: %s",
+                device.name(),
+                attribute_name,
+                attribute_value,
+            )
+        except Exception as e:
+            # Device gets unavailable due to restart and the above command
+            # tries to access the attribute resulting into exception
+            # It keeps it printing till the attribute is accessible
+            # the exception log is suppressed by storing into variable
+            # the error is printed later into the log in case of failure
+            error = e
+
+    logger.exception(
+        "Exception occurred while reading attribute %s and cnt is %s",
+        error,
+        count,
+    )
+    return False
+
+
+def dln_can_communicate_with_dish_master(
+    device: DeviceProxy,
+):
+    """This method tries to check the dish manager is available
+    for execution of further commands.
+    """
+    retry = 0
+    flag = False
+    timeout = 120
+    while retry < 3 and not flag:
+        count = 0
+        error = ""
+        while count <= timeout and not flag:
+            count += 20
+            # observed it dish master takes time to be available and to
+            # sync up with
+            time.sleep(20)
+            try:
+                result_code, _ = device.SetKValue(KVALUE)
+                if result_code == ResultCode.OK:
+                    flag = True
+            except Exception as e:
+                # Device gets unavailable due to restart and the above command
+                # tries to access the attribute resulting into exception
+                # It keeps it printing till the attribute is accessible
+                # the exception log is suppressed by storing into variable
+                # the error is printed later into the log in case of failure
+                error = e
+        retry = retry + 1
+
+    if not flag:
+        logging.exception(
+            "Exception occurred while reading attribute %s and cnt is %s",
+            error,
+            count,
+        )
+    return flag
