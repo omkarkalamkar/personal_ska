@@ -294,14 +294,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             value = self.achieved_pointing_data.get(block=False)
             value_list = value.tolist()
             try:
-                timestamp_milliseconds, azimuth, elevation = value_list
+                if value_list:
+                    timestamp_milliseconds, azimuth, elevation = value_list
 
-                timestamp = self.convert_timestamp(timestamp_milliseconds)
+                    timestamp = self.convert_timestamp(timestamp_milliseconds)
 
-                right_ascension, declination = converter.azel_to_radec(
-                    str(azimuth), str(elevation), timestamp, converter.weather_data
-                )
-                self.actual_pointing = [timestamp, right_ascension, declination]
+                    right_ascension, declination = converter.azel_to_radec(
+                        str(azimuth), str(elevation), timestamp, converter.weather_data
+                    )
+                    self.actual_pointing = [timestamp, right_ascension, declination]
             except Exception as e:
                 self.logger.exception("Exception occurred while calculating actualPointing: %s", e)
 
