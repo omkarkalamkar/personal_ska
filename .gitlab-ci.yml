@@ -76,7 +76,13 @@ python-test:
   tags:
     - k8srunner-large
   retry: 1
-  
+  image: artefact.skao.int/ska-tango-images-pytango-builder:9.4.3
+
+python-lint:
+  image: artefact.skao.int/ska-tango-images-pytango-builder:9.4.3
+
+
+
 k8s-test:
   tags:
     - k8srunner
