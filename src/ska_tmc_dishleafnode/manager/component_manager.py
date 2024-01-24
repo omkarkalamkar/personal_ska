@@ -227,7 +227,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         except Exception as exception:
-            self.logger.error(exception)
+            self.logger.exception(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     @property
