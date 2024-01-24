@@ -133,7 +133,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.achieved_pointing_data = Queue()
         self._device = DishDeviceInfo(dish_dev_name)
         self.update_availablity_callback = _update_availablity_callback
-        self.supported_commands: Tuple[str] = ("TrackLoadStaticOff",)
+        self.supported_commands: Tuple[str] = (
+            "Configure_TrackLoadStaticOff",
+            "TrackLoadStaticOff",
+        )
         self.__command_in_progress: str = ""
 
         self.__init_iers_url()
@@ -209,7 +212,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             target=self.process_achieved_pointing,
         )
         self.backward_trasform_thread.start()
-        self.command_object: dict = {"TrackLoadStaticOff": self.configure_command}
+        self.command_object: dict = {
+            "TrackLoadStaticOff": self.track_load_static_off_command,
+            "Configure_TrackLoadStaticOff": self.configure_command,
+        }
 
         dln_start_check_timer = threading.Timer(2, self.update_kvalue_validation_result)
         dln_start_check_timer.start()
