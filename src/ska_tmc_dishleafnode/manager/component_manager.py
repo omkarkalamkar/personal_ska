@@ -226,8 +226,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-        except Exception as error:
-            self.logger.error(error)
+        except Exception as exception:
+            self.logger.error(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     @property
@@ -283,6 +283,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @command_in_progress.setter
     def command_in_progress(self, cmd_in_progress: str):
+        """Method used to set command in progress value.
+
+        Args:
+            cmd_in_progress (str): Name of current command in progress
+        """
         self.__command_in_progress = cmd_in_progress
 
     @actual_pointing.setter
@@ -970,19 +975,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             lrc_status (Tuple[List[str], List[str]]): longRunningCommandStatus
             attribute event data
         """
-        if lrc_status:
-            if lrc_status[0]:
-                if (
-                    lrc_status[0].endswith(self.supported_commands)
-                    and self.command_in_progress in self.supported_commands
-                ):
-                    try:
+        try:
+            if lrc_status:
+                if lrc_status[0]:
+                    if (
+                        lrc_status[0].endswith(self.supported_commands)
+                        and self.command_in_progress in self.supported_commands
+                    ):
                         command_object = self.command_object.get(self.command_in_progress)
                         if lrc_status[1] == "COMPLETED":
                             command_object.update_task_callback(ResultCode.OK)
                         elif lrc_status[1] == "FAILED":
                             command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
-                    except Exception as exception:
-                        self.logger.error(
-                            "Exception while processing longRunningCommandStatus", exception
-                        )
+        except Exception as exception:
+            self.logger.error("Exception while processing longRunningCommandStatus", exception)

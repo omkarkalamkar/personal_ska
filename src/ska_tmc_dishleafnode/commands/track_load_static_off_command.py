@@ -72,7 +72,6 @@ class TrackLoadStaticOff(DishLNCommand):
             result_code (ResultCode): result code
             exception (str, optional): Exception occurred during command execution. Defaults to "".
         """
-        self.logger.info("updated task status")
         if exception:
             self.task_callback(
                 status=TaskStatus.COMPLETED, result=result_code, exception=exception

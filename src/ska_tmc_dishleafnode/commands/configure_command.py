@@ -82,7 +82,6 @@ class Configure(DishLNCommand):
             result_code (ResultCode): result code
             exception (str, optional): Exception occurred during command execution. Defaults to "".
         """
-        self.logger.info("updated task status")
         if exception:
             self.task_callback(
                 status=TaskStatus.COMPLETED, result=result_code, exception=exception
@@ -158,6 +157,7 @@ class Configure(DishLNCommand):
 
             json_argument = json.loads(argin)
             if json_argument.get("tmc"):
+                self.component_manager.command_in_progress = "Configure_TrackLoadStaticOff"
                 # Extracting and setting cross elevation offset. Considering
                 # 0.0 if the key is omitted
                 ca_offset = json_argument["pointing"]["target"].get("ca_offset_arcsec") or 0.0
@@ -167,7 +167,6 @@ class Configure(DishLNCommand):
                 ie_offset = json_argument["pointing"]["target"].get("ie_offset_arcsec") or 0.0
 
                 offsets_argin = [ca_offset, ie_offset]
-                self.component_manager.command_in_progress = "Configure_TrackLoadStaticOff"
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", offsets_argin
                 )
