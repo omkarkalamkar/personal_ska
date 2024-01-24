@@ -976,16 +976,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             attribute event data
         """
         try:
-            if lrc_status:
-                if lrc_status[0]:
-                    if (
-                        lrc_status[0].endswith(self.supported_commands)
-                        and self.command_in_progress in self.supported_commands
-                    ):
-                        command_object = self.command_object.get(self.command_in_progress)
-                        if lrc_status[1] == "COMPLETED":
-                            command_object.update_task_callback(ResultCode.OK)
-                        elif lrc_status[1] == "FAILED":
-                            command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
+            if not lrc_status:
+                return
+            if not lrc_status[0]:
+                return
+            if (
+                lrc_status[0].endswith(self.supported_commands)
+                and self.command_in_progress in self.supported_commands
+            ):
+                command_object = self.command_object.get(self.command_in_progress)
+                if lrc_status[1] == "COMPLETED":
+                    command_object.update_task_callback(ResultCode.OK)
+                elif lrc_status[1] == "FAILED":
+                    command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
         except Exception as exception:
             self.logger.error("Exception while processing longRunningCommandStatus", exception)
