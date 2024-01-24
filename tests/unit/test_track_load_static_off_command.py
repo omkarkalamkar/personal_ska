@@ -29,7 +29,9 @@ def test_trackloadstaticoff_command(tango_context, dish_master_device, task_call
         [0.5],
     ],
 )
-def test_trackloadstaticoff_command_invalid_input(dish_master_device, argin, task_callback):
+def test_trackloadstaticoff_command_invalid_input(
+    tango_context, dish_master_device, argin, task_callback
+):
     """Test the failure scenario while invoking TrackLoadStaticOff command."""
     cm = create_cm(dish_master_device)
     assert cm.is_trackloadstaticoff_allowed()
