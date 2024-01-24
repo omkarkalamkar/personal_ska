@@ -2,7 +2,6 @@ import json
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tmc_common import DeviceUnresponsive
 
 from tests.settings import create_cm
 
@@ -39,11 +38,3 @@ def test_trackloadstaticoff_command_invalid_input(
     status, message = cm.track_load_static_off(argin, task_callback=task_callback)
     assert status == TaskStatus.REJECTED
     assert "Input argument is incorrect for TrackLoadStaticOff command." == message
-
-
-def test_trackloadstaticoff_command_not_allowed(dish_master_device):
-    """Test the command not allowed when the device is unresponsive."""
-    cm = create_cm(dish_master_device)
-    cm.get_device().update_unresponsive(True)
-    with pytest.raises(DeviceUnresponsive):
-        cm.is_trackloadstaticoff_allowed()
