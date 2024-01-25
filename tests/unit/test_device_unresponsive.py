@@ -31,5 +31,6 @@ def test_abort_command_fail_check_allowed_with_device_unresponsive(
 def test_trackloadstaticoff_command_not_allowed(dish_master_device):
     """Test the command not allowed when the device is unresponsive."""
     cm = create_cm(dish_master_device)
+    wait_for_unresponsive(cm)
     with pytest.raises(DeviceUnresponsive):
         cm.is_trackloadstaticoff_allowed()

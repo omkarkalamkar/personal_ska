@@ -139,7 +139,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.__command_in_progress: str = ""
 
-        self.__init_iers_url()
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -147,7 +146,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if _liveliness_probe:
             self.start_liveliness_probe(_liveliness_probe)
-
+        self.__init_iers_url()
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
