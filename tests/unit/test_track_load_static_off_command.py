@@ -9,7 +9,6 @@ from ska_tmc_common import DevFactory
 from tests.settings import create_cm
 
 
-@pytest.mark.new
 def test_trackloadstaticoff_command(
     tango_context, dish_master_device, task_callback, group_callback
 ):
