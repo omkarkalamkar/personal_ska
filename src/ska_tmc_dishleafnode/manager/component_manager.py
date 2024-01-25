@@ -978,8 +978,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             if not lrc_status:
                 return
-            if not lrc_status[0]:
-                return
             if (
                 lrc_status[0].endswith(self.supported_commands)
                 and self.command_in_progress in self.supported_commands
