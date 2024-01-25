@@ -74,7 +74,6 @@ class Off(DishLNCommand):
             return result_code, message
 
         if self.component_manager.dishMode in [
-            DishMode.STANDBY_LP,
             DishMode.OPERATE,
             DishMode.STOW,
             DishMode.MAINTENANCE,
