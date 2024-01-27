@@ -37,7 +37,6 @@ def test_configure_command_completed(
     )
 
 
-@pytest.mark.new
 def test_configure_command_completed_partial_config(
     tango_context, task_callback, dish_master_device, json_factory, group_callback
 ):

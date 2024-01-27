@@ -75,7 +75,7 @@ class DishLNEventReceiver(EventReceiver):
                     stateless=True,
                 )
             except Exception as e:
-                log_msg = f"Event not working for device {dish_dev_proxy.dev_name}/{e}"
+                log_msg = f"Event not working for device {dev_info.dev_name}/{e}"
                 self._logger.exception(log_msg)
             else:
                 self.subscribed = True

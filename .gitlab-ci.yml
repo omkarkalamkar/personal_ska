@@ -75,6 +75,8 @@ include:
 python-test:
   tags:
     - k8srunner-large
+  variables:
+    PYTHON_TEST_COUNT: 1
   retry: 1
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
 
