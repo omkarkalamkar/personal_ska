@@ -32,10 +32,9 @@ class DishLNEventReceiver(EventReceiver):
         self.subscribed: bool = False
 
     def run(self) -> None:
-        while not self._stop:
+        while not self.subscribed:
             dishDevInfo = self._component_manager.get_device()
-            if not self.subscribed:
-                self.subscribe_events(dishDevInfo)
+            self.subscribe_events(dishDevInfo)
             sleep(self._sleep_time)
 
     def subscribe_events(self, dev_info: DishDeviceInfo, attribute_dictionary=None) -> None:

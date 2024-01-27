@@ -66,9 +66,9 @@ K8S_TEST_RUNNER = test-runner-$(HELM_RELEASE)
 CI_PROJECT_PATH_SLUG ?= ska-tmc-dishleafnode
 CI_ENVIRONMENT_SLUG ?= ska-tmc-dishleafnode
 $(shell echo 'global:\n  annotations:\n    app.gitlab.com/app: $(CI_PROJECT_PATH_SLUG)\n    app.gitlab.com/env: $(CI_ENVIRONMENT_SLUG)' > gitlab_values.yaml)
-
+PYTEST_COUNT ?= 20
 ifeq ($(MAKECMDGOALS),python-test)
-ADD_ARGS +=  --forked
+ADD_ARGS +=  --forked --count=$(PYTEST_COUNT)
 MARK = not post_deployment and not acceptance
 endif
 
@@ -84,7 +84,7 @@ ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
 endif
 
-PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE) --count=$(COUNT)
+PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE) 
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.tango_host=$(TANGO_HOST) \
