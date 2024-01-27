@@ -37,6 +37,7 @@ def test_configure_command_completed(
     )
 
 
+@pytest.mark.new
 def test_configure_command_completed_partial_config(
     tango_context, task_callback, dish_master_device, json_factory, group_callback
 ):
@@ -50,6 +51,7 @@ def test_configure_command_completed_partial_config(
         group_callback["longRunningCommandStatus"],
         stateless=True,
     )
+    assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
 

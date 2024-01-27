@@ -1,8 +1,7 @@
 """Event Receiver for Dish Leaf Node"""
 from logging import Logger
-
 from time import sleep
-from typing import Callable, Any
+from typing import Any, Callable
 
 import tango
 from ska_tmc_common import DishDeviceInfo, EventReceiver
@@ -17,9 +16,21 @@ class DishLNEventReceiver(EventReceiver):
     for the attribute of interest.
     For each of them a callback is defined.
     """
-    def __init__(self, component_manager, logger: Logger, attribute_dict: dict[str, Callable[..., Any]] | None = None, max_workers: int = 1, proxy_timeout: int = 500, sleep_time: int = 1):
-        super().__init__(component_manager, logger, attribute_dict, max_workers, proxy_timeout, sleep_time)
-        self.subscribed:bool = False
+
+    def __init__(
+        self,
+        component_manager,
+        logger: Logger,
+        attribute_dict: dict[str, Callable[..., Any]] | None = None,
+        max_workers: int = 1,
+        proxy_timeout: int = 500,
+        sleep_time: int = 1,
+    ):
+        super().__init__(
+            component_manager, logger, attribute_dict, max_workers, proxy_timeout, sleep_time
+        )
+        self.subscribed: bool = False
+
     def run(self) -> None:
         while not self._stop:
             dishDevInfo = self._component_manager.get_device()
