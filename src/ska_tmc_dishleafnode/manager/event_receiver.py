@@ -34,8 +34,10 @@ class DishLNEventReceiver(EventReceiver):
     def run(self) -> None:
         while not self.subscribed:
             dishDevInfo = self._component_manager.get_device()
-            self.subscribe_events(dishDevInfo)
-            sleep(self._sleep_time)
+            self._logger.info(dishDevInfo.dev_name)
+            if dishDevInfo.dev_name:
+                self.subscribe_events(dishDevInfo)
+                sleep(self._sleep_time)
 
     def subscribe_events(self, dev_info: DishDeviceInfo, attribute_dictionary=None) -> None:
         with tango.EnsureOmniThread():
