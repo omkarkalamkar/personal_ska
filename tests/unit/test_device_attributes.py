@@ -1,15 +1,13 @@
 from time import sleep
 
 from ska_tango_base.control_model import ControlMode, SimulationMode, TestMode
-from ska_tmc_common import DevFactory
 from tango import DevState
 
 from ska_tmc_dishleafnode import release
-from tests.settings import DISH_LEAF_NODE_DEVICE, SLEEP_TIME
+from tests.settings import SLEEP_TIME
 
 
-def test_attributes(tango_context):
-    dishln_device = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+def test_attributes(dishln_device):
     sleep(SLEEP_TIME)
     assert dishln_device.State() == DevState.ON
     dishln_device.loggingTargets = ["console::cout"]
