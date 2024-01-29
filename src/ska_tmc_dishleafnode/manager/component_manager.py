@@ -108,6 +108,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
+        self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
@@ -131,7 +132,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_availability_check_timeout = dish_availability_check_timeout
 
         self.achieved_pointing_data = Queue()
-        self._device = DishDeviceInfo(dish_dev_name)
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str] = (
             "Configure_TrackLoadStaticOff",
@@ -146,7 +146,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if _liveliness_probe:
             self.start_liveliness_probe(_liveliness_probe)
-        self.__init_iers_url()
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
@@ -218,6 +217,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         dln_start_check_timer = threading.Timer(2, self.update_kvalue_validation_result)
         dln_start_check_timer.start()
+        self.__init_iers_url()
 
     def __init_iers_url(self):
         """Downloads and initialises the IERS file.
