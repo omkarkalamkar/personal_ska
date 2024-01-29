@@ -1,6 +1,6 @@
 import pytest
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common.exceptions import DeviceUnresponsive
+from ska_tmc_common import DeviceUnresponsive
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.manager.dish_kvalue_validation_manager import DishkValueValidationManager
