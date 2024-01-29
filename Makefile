@@ -72,9 +72,9 @@ ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
 MARK = not post_deployment and not acceptance
 endif
 
-COUNT ?= 1
+K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
-ADD_ARGS +=  --true-context --count=$(COUNT)
+ADD_ARGS +=  --true-context --count=$(K8S_TEST_COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
@@ -84,7 +84,7 @@ ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
 endif
 
-PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE) 
+PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE)
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.tango_host=$(TANGO_HOST) \
