@@ -1,7 +1,9 @@
+from time import sleep
+
 import pytest
 
 from ska_tmc_dishleafnode import AzElConverter
-from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm
+from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm, logger
 
 
 @pytest.mark.parametrize(
@@ -28,7 +30,17 @@ def test_azel_to_radec(timestamp, az, el, expected_ra, expected_dec, tango_conte
     """Test the backward transform method from AzElConverter."""
     cm = create_cm(DISH_MASTER_DEVICE)
     converter = AzElConverter(component_manager=cm)
-    converter.create_antenna_obj()
+    retry = 0
+    while retry <= 3:
+        try:
+            converter.create_antenna_obj()
+            break
+        except Exception as e:
+            logger.exception("Exception occurred while creating antenna object: %s", e)
+            if retry == 2:
+                pytest.fail(f"{e}")
+            retry += 1
+        sleep(0.1)
     ra, dec = converter.azel_to_radec(az, el, timestamp, WEATHER_DATA)
     assert expected_ra == ra
     assert expected_dec == dec

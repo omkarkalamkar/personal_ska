@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 
 import pytest
 
@@ -22,7 +23,17 @@ def test_radec_to_azel(
     """Function to test AzEl conversion"""
     cm = create_cm(DISH_MASTER_DEVICE)
     converter = AzElConverter(component_manager=cm)
-    converter.create_antenna_obj()
+    retry = 0
+    while retry <= 3:
+        try:
+            converter.create_antenna_obj()
+            break
+        except Exception as e:
+            logger.exception("Exception occurred while creating antenna object: %s", e)
+            if retry == 2:
+                pytest.fail(f"{e}")
+            retry += 1
+        sleep(0.1)
     az, el = converter.radec_to_azel(ra, dec, timestamp, WEATHER_DATA)
     az = round(az, 7)
     el = round(el, 7)

@@ -80,8 +80,11 @@ endif
 
 EXIT_AT_FAIL ?= true
 
+# Applying exit at fail for k8s tests only
+ifeq ($(MAKECMDGOALS),k8s-test)
 ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
+endif
 endif
 
 PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE)
