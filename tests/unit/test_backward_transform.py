@@ -24,7 +24,7 @@ from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm
         ),
     ],
 )
-def test_azel_to_radec(timestamp, az, el, expected_ra, expected_dec):
+def test_azel_to_radec(timestamp, az, el, expected_ra, expected_dec, tango_context):
     """Test the backward transform method from AzElConverter."""
     cm = create_cm(DISH_MASTER_DEVICE)
     converter = AzElConverter(component_manager=cm)

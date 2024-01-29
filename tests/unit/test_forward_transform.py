@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
         ("10:14:56.82", "-14:44:15.13", "2022-03-19 09:21:50", 173.5146073, -43.8021646),
     ],
 )
-def test_radec_to_azel(ra: str, dec: str, timestamp: str, expected_az: float, expected_el: float):
+def test_radec_to_azel(
+    ra: str, dec: str, timestamp: str, expected_az: float, expected_el: float, tango_context
+):
     """Function to test AzEl conversion"""
     cm = create_cm(DISH_MASTER_DEVICE)
     converter = AzElConverter(component_manager=cm)
