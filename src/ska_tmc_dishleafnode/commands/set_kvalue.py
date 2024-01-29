@@ -56,6 +56,7 @@ class SetKValue(DishLNCommand, FastCommand):
         )
         if result_code[0] == ResultCode.OK:
             self.component_manager.kValue = argin
+            self.component_manager.kValueValidationResult = ResultCode.OK
         self.logger.info(
             f"SetKValue command invoked, Result code is {result_code}\
                 and Message is {message}"
