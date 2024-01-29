@@ -82,7 +82,9 @@ def dishln_device(request):
     """Create DeviceProxy for tests"""
     true_context = request.config.getoption("--true-context")
     if not true_context:
-        with DeviceTestContext(DishLeafNode, timeout=20) as proxy:
+        with DeviceTestContext(
+            DishLeafNode, timeout=20, properties={"DishMasterFQDN": "ska001/elt/master"}
+        ) as proxy:
             yield proxy
     else:
         database = tango.Database()
