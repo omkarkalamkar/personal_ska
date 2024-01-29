@@ -158,7 +158,7 @@ class DishLNEventReceiver(EventReceiver):
         attribute.
 
         Args:
-            event_flag (tango.EventType.CHANGE_EVENT): to flag the
+            event_data (tango.EventType.CHANGE_EVENT): to flag the
             change in event.
         """
         if event_data.err:
