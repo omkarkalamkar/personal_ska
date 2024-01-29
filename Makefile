@@ -66,10 +66,10 @@ K8S_TEST_RUNNER = test-runner-$(HELM_RELEASE)
 CI_PROJECT_PATH_SLUG ?= ska-tmc-dishleafnode
 CI_ENVIRONMENT_SLUG ?= ska-tmc-dishleafnode
 $(shell echo 'global:\n  annotations:\n    app.gitlab.com/app: $(CI_PROJECT_PATH_SLUG)\n    app.gitlab.com/env: $(CI_ENVIRONMENT_SLUG)' > gitlab_values.yaml)
-PYTHON_TEST_COUNT ?= 40
+PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
-MARK = new
+MARK = not post_deployment and not acceptance
 endif
 
 COUNT ?= 1

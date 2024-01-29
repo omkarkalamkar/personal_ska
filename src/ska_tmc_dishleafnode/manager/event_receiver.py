@@ -34,7 +34,6 @@ class DishLNEventReceiver(EventReceiver):
     def run(self) -> None:
         while not self.subscribed:
             dishDevInfo = self._component_manager.get_device()
-            self._logger.info(dishDevInfo.dev_name)
             if dishDevInfo.dev_name:
                 self.subscribe_events(dishDevInfo)
                 sleep(self._sleep_time)

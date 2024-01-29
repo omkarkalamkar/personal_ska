@@ -131,7 +131,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_availability_check_timeout = dish_availability_check_timeout
 
         self.achieved_pointing_data = Queue()
-        self.logger.info(dish_dev_name)
         self._device = DishDeviceInfo(dish_dev_name)
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str] = (

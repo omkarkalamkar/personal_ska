@@ -1,5 +1,4 @@
 import json
-import logging
 
 import pytest
 import tango
@@ -10,12 +9,10 @@ from ska_tmc_common import DevFactory
 from tests.settings import create_cm
 
 
-@pytest.mark.new
 def test_trackloadstaticoff_command(
     tango_context, dish_master_device, task_callback, group_callback
 ):
     """Test the successful completion of the TrackLoadStaticOff command."""
-    logging.info(dish_master_device)
     cm = create_cm(dish_master_device)
     dish_device = DevFactory().get_device("ska001/elt/master")
     assert cm.is_trackloadstaticoff_allowed()
