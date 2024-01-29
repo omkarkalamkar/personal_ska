@@ -215,9 +215,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
 
+        self.__init_iers_url()
         dln_start_check_timer = threading.Timer(2, self.update_kvalue_validation_result)
         dln_start_check_timer.start()
-        self.__init_iers_url()
 
     def __init_iers_url(self):
         """Downloads and initialises the IERS file.

@@ -11,7 +11,6 @@ from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common import DevFactory
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
 from tango.test_context import MultiDeviceTestContext
-from tango.test_utils import DeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
 
@@ -60,6 +59,12 @@ def devices_to_load():
                 {"name": "ska001/elt/master"},
             ],
         },
+        {
+            "class": DishLeafNode,
+            "devices": [
+                {"name": "ska_mid/tm_leaf_node/d0001", "DishMasterFQDN": "ska001/elt/master"},
+            ],
+        },
     )
 
 
@@ -75,27 +80,6 @@ def tango_context(devices_to_load, request):
             yield context
     else:
         yield None
-
-
-@pytest.fixture
-def dishln_device(request):
-    """Create DeviceProxy for tests"""
-    true_context = request.config.getoption("--true-context")
-    if not true_context:
-        with DeviceTestContext(
-            DishLeafNode,
-            device_name="ska_mid/tm_leaf_node/d0001",
-            timeout=30,
-            properties={"DishMasterFQDN": "ska001/elt/master"},
-            process=True,
-        ) as proxy:
-            yield proxy
-    else:
-        database = tango.Database()
-        instance_list = database.get_device_exported_for_class("DishLeafNode")
-        for instance in instance_list.value_string:
-            yield tango.DeviceProxy(instance)
-            break
 
 
 @pytest.fixture
