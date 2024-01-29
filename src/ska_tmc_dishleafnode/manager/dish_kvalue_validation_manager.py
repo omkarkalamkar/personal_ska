@@ -33,8 +33,8 @@ class DishkValueValidationManager:
                     return True
             except Exception as e:
                 self.logger.exception("Dish manager is unresponsive %s", e)
-            count += 3
-            time.sleep(3)
+            count += 1
+            time.sleep(1)
         return False
 
     def get_dish_manager_kvalue(self) -> int:

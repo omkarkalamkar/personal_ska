@@ -70,7 +70,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
-        dish_availability_check_timeout: int = 10,
+        dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
@@ -313,27 +313,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :returns: None
         """
         dish_kvalue_validation_manager = DishkValueValidationManager(self, self.logger)
-        if self.is_dish_manager_available(dish_kvalue_validation_manager):
+        if dish_kvalue_validation_manager.is_dish_manager_ready():
             dish_kvalue_validation_manager.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
-
-    def is_dish_manager_available(
-        self, dish_kvalue_validation_manager: DishkValueValidationManager
-    ) -> bool:
-        """This method retries the dish master is available before
-        getting the k-value from dish manager.
-        :param dish_kvalue_validation_manager: Object of DishkValueValidationManager
-        class
-        :returns: bool
-        """
-        retry = 0
-        flag = False
-        while retry < 3 and not flag:
-            flag = dish_kvalue_validation_manager.is_dish_manager_ready()
-            retry = retry + 1
-        return flag
 
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc
