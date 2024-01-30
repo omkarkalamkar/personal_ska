@@ -66,22 +66,25 @@ K8S_TEST_RUNNER = test-runner-$(HELM_RELEASE)
 CI_PROJECT_PATH_SLUG ?= ska-tmc-dishleafnode
 CI_ENVIRONMENT_SLUG ?= ska-tmc-dishleafnode
 $(shell echo 'global:\n  annotations:\n    app.gitlab.com/app: $(CI_PROJECT_PATH_SLUG)\n    app.gitlab.com/env: $(CI_ENVIRONMENT_SLUG)' > gitlab_values.yaml)
-
+PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
-ADD_ARGS +=  --forked
+ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
 MARK = not post_deployment and not acceptance
 endif
 
-COUNT ?= 1
+K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
-ADD_ARGS +=  --true-context --count=$(COUNT)
+ADD_ARGS +=  --true-context --count=$(K8S_TEST_COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
 EXIT_AT_FAIL ?= true
 
+# Applying exit at fail for k8s tests only
+ifeq ($(MAKECMDGOALS),k8s-test)
 ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
+endif
 endif
 
 PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE)

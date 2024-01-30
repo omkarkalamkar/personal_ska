@@ -46,25 +46,40 @@ class TrackLoadStaticOff(DishLNCommand):
 
         :rtype: None
         """
-
-        task_callback(status=TaskStatus.IN_PROGRESS)
+        self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
         result_code, message = self.do(argin)
+        self.component_manager.command_in_progress = "TrackLoadStaticOff"
         if result_code == ResultCode.FAILED:
             logger.warning("Command failed with exception: %s", message)
-            task_callback(
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ResultCode(result_code),
                 exception=message,
             )
+            self.component_manager.command_in_progress = ""
         else:
             logger.info(
                 "The TrackLoadStaticOff command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+
+    def update_task_callback(self, result_code: ResultCode, exception: str = "") -> None:
+        """
+        Method to update task callback.
+
+        Args:
+            result_code (ResultCode): result code
+            exception (str, optional): Exception occurred during command execution. Defaults to "".
+        """
+        if exception:
+            self.task_callback(
+                status=TaskStatus.COMPLETED, result=result_code, exception=exception
             )
+        else:
+            self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
+
+        self.component_manager.command_in_progress = ""
 
     # pylint: disable=signature-differs
     def do(self, argin: str) -> Tuple[ResultCode, str]:

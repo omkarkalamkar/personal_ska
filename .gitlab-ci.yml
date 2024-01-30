@@ -75,11 +75,15 @@ include:
 python-test:
   tags:
     - k8srunner-large
+  variables:
+    PYTHON_TEST_COUNT: 1
   retry: 1
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
 
 python-lint:
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.3.32
+
+
 
 k8s-test:
   tags:
@@ -91,7 +95,7 @@ k8s-test:
       on_stop: stop-k8s-test
 
 stop-k8s-test:
-  when: always
+  when: on_success
   needs:
     - k8s-test
 

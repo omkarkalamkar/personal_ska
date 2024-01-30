@@ -202,7 +202,7 @@ def wait_and_validate_attribute_value_available(
             attribute_value = device.read_attribute(attribute_name).value
             if attribute_value == expected_value:
                 return True
-            logging.info(
+            logger.info(
                 "%s current %s value: %s",
                 device.name(),
                 attribute_name,
@@ -217,7 +217,7 @@ def wait_and_validate_attribute_value_available(
             error = e
 
     logger.exception(
-        "Exception occurred while reading attribute %s and cnt is %s",
+        "Exception occurred while reading attribute %s and count is %s",
         error,
         count,
     )

@@ -48,29 +48,49 @@ class Configure(DishLNCommand):
         :type task_abort_event: Event, optional
         """
         # Indicate that the task has started
-        task_callback(status=TaskStatus.IN_PROGRESS)
+        self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
+        self.component_manager.command_in_progress = "Configure"
         return_code, message = self.do(argin)
         logger.info(message)
         logger.info(return_code)
 
         if return_code == ResultCode.FAILED:
-            task_callback(
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=ResultCode(return_code),
                 exception=message,
             )
+            self.component_manager.command_in_progress = ""
         else:
             logger.info(
                 "The Configure command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+            if self.component_manager.command_in_progress != "Configure_TrackLoadStaticOff":
+                self.component_manager.command_in_progress = ""
+                self.task_callback(
+                    status=TaskStatus.COMPLETED,
+                    result=ResultCode(return_code),
+                )
+
+    def update_task_callback(self, result_code: ResultCode, exception: str = "") -> None:
+        """
+        Method to update task callback.
+
+        Args:
+            result_code (ResultCode): result code
+            exception (str, optional): Exception occurred during command execution. Defaults to "".
+        """
+        if exception:
+            self.task_callback(
+                status=TaskStatus.COMPLETED, result=result_code, exception=exception
             )
+        else:
+            self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
+        self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument
-
     def validate_json_argument(self, input_argin: dict) -> tuple:
         """Validates the json argument"""
 
@@ -137,6 +157,7 @@ class Configure(DishLNCommand):
 
             json_argument = json.loads(argin)
             if json_argument.get("tmc"):
+                self.component_manager.command_in_progress = "Configure_TrackLoadStaticOff"
                 # Extracting and setting cross elevation offset. Considering
                 # 0.0 if the key is omitted
                 ca_offset = json_argument["pointing"]["target"].get("ca_offset_arcsec") or 0.0

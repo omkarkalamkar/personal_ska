@@ -1,22 +1,16 @@
 import pytest
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common.dev_factory import DevFactory
-from ska_tmc_common.exceptions import DeviceUnresponsive
+from ska_tmc_common import DeviceUnresponsive
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.manager.dish_kvalue_validation_manager import DishkValueValidationManager
 from tests.settings import (
-    DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     create_cm,
     logger,
     wait_and_validate_attribute_value_available,
     wait_for_unresponsive,
 )
-
-
-def kvalue_validation_callback(cm, result: ResultCode):
-    cm._
 
 
 def test_set_kvalue_command(tango_context):
@@ -27,9 +21,7 @@ def test_set_kvalue_command(tango_context):
     assert result_code == ResultCode.OK
 
 
-def test_dish_unavailable_check_after_dln_init_or_restart(tango_context):
-    dev_factory = DevFactory()
-    dishln_device = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     assert wait_and_validate_attribute_value_available(
         dishln_device, "kValueValidationResult", str(int(ResultCode.NOT_ALLOWED))
     )
