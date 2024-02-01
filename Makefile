@@ -97,7 +97,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set tmc-dishleafnode.telescope=$(TELESCOPE) \
 	--set tmc-dishleafnode.deviceServers.mocks.enabled=$(FAKE_DEVICES) \
 	--set global.exposeAllDS=false \
-	--set global.operator=true \
+	--set global.operator=false \
 	--set ska-taranta.enabled=$(TARANTA) \
 	$(CUSTOM_VALUES)
 
