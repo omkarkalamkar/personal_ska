@@ -4,7 +4,7 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 import datetime
 import json
 import threading
-
+import sched
 # pylint: disable=W0222
 import time
 from logging import Logger
@@ -42,11 +42,9 @@ from ska_tmc_dishleafnode.commands import (
 )
 
 from .event_receiver import DishLNEventReceiver
+from ska_tmc_dishleafnode.const import TRACK_TABLE_ENTRIES, POINTING_INTERVAL
 
 # pylint: disable=abstract-method
-
-EXTEND_MILLISECONDS = 100
-
 # pylint: disable=R0902
 
 
@@ -89,7 +87,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         EventReceiver object should be instantiated or not
         :param max_workers: allows to specify number of threads
         to be used by the liveliness probe;
-        :param proxy_timeout: allows to specify a client side timeou
+        :param proxy_timeout: allows to specify a client side timeout
         for sub-devices in milliseconds used by the liveliness probe;
         :param sleep_time: allows to specify the wait between
         each iteration of the liveliness probe and EventSubscriber;
@@ -138,6 +136,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.update_availablity_callback = _update_availablity_callback
+
+        self.scheduler = sched.scheduler(time.time, time.sleep)
+        self.program_track_table = []
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -792,7 +793,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def update_desired_pointing(self, dish_adapter, desired_pointing: list) -> None:
+    def update_desired_pointing(self, dish_adapter) -> None:
         """Write the desired pointing attribute on dish master device.
 
         :param dish_adapter: The dish master adapter.
@@ -803,19 +804,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: None
         """
-        self.logger.info(
-            "The desiredPointing coordinates are: %s",
-            desired_pointing,
-        )
-        dish_adapter.proxy.desiredPointing = desired_pointing
+        self.logger.info(f"Current_time: {datetime.datetime.utcnow().timestamp() * 1000}")
+        self.logger.info("The programTrackTable is: %s", self.program_track_table)
+        # Enable once programTrackTable is implemented on HelperDishDevice
+        # dish_adapter.proxy.programTrackTable = self.program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
-        """This thread writes az-el coordinates to desiredPointing
-        on DishMaster at the rate of 20 Hz.
-        Args:
-            ra_value (str): RA value in hours:minutes:sec
-            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
-            command_obj: Command Object which is used to set desired_pointing
+        """ 
+        This method manages calculation and writing of programTrackTable.
         """
         self.logger.info(
             "The track thread name is : %s %s",
@@ -825,23 +821,43 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
 
+        utc_now = datetime.datetime.utcnow()
+
+        # For the timestamp to be a future timestamp
+        # on Dish, 7.5 seconds are added to it.
+        self.extended_time = utc_now + datetime.timedelta(seconds=7.5)
+
         while self.event_track_time.is_set() is False:
-            utc_now = datetime.datetime.utcnow()
-            # For the timestamp to be a future timestamp
-            # on DishMaster, 100 ms are added to it.
-            extended_time = utc_now + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
-            utc_timestamp = extended_time.timestamp() * 1000
+            self.program_track_table_calculator(ra_value, dec_value, azel_converter)
+            first_entry_timestamp = self.program_track_table[0][0]
+            # 2500 is subtracted to provide programTrackTable 2.5 seconds in advance
+            # Divided by 1000 for milliseconds to seconds conversion
+            scheduled_time = (first_entry_timestamp - 2500)/1000
+            arguments = (command_obj.dish_master_adapter,)
+            # Check CPU consumption for scheduler
+            self.scheduler.enterabs(scheduled_time, 1, self.update_desired_pointing, arguments)
+            self.scheduler.run()
+
+
+    def program_track_table_calculator(self, ra_value: str, dec_value: str, azel_converter) -> None:
+        """This thread writes az-el coordinates to desiredPointing
+        on DishMaster at the rate of 20 Hz.
+        Args:
+            ra_value (str): RA value in hours:minutes:sec
+            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+            command_obj: Command Object which is used to set desired_pointing
+        """
+        self.program_track_table.clear()
+        for _ in range(TRACK_TABLE_ENTRIES):
+            utc_timestamp = self.extended_time.timestamp() * 1000  # MilliSeconds
             timestamp = self.convert_timestamp(utc_timestamp)
             az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
-            self.logger.info("The Az/El values are -> %s, %s", az_value, el_value)
-
+            
             if not self._is_elevation_within_mechanical_limits(el_value):
-                time.sleep(0.05)
+                time.sleep(POINTING_INTERVAL)
                 continue
-
             if az_value < 0:
                 az_value = 360 - abs(az_value)
-
             if self.event_track_time.is_set():
                 log_message = (
                     "Stop the Thread as event track time is set: "
@@ -849,19 +865,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
                 self.logger.debug(log_message)
                 break
-
             # utc_timestamp is the time used for AzEl calculation.
-            desired_pointing = [
+            desired_pointing = (
                 utc_timestamp,
                 round(az_value, 12),
                 round(el_value, 12),
-            ]
-            self.update_desired_pointing(command_obj.dish_master_adapter, desired_pointing)
-            self.logger.info("Observer: %s", self.observer)
+            )
+            # Add lock
+            self.program_track_table.append(desired_pointing)
 
-            time.sleep(0.05)
+            self.extended_time = self.extended_time + datetime.timedelta(milliseconds=POINTING_INTERVAL)
+        self.logger.info("Observer: %s", self.observer)
 
-    def _is_elevation_within_mechanical_limits(self, el_value):
+
+    def _is_elevation_within_mechanical_limits(self, el_value,):
         """Check if elevation is within mechanical limit
         Args:
             el_value: string

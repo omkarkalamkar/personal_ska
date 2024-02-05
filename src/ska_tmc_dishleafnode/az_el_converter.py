@@ -55,7 +55,7 @@ class AzElConverter:
 
     def point(self, right_ascension: str, declination: str, timestamp: str) -> list:
         """This method converts Target RaDec coordinates
-        to the AzEl coordinates.It is called continuosly
+        to the AzEl coordinates.It is called continuously
         from Track command (in a thread) at interval
         of 50ms till the StopTrack command is invoked.
         Args:
