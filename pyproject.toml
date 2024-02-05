@@ -34,7 +34,7 @@ ska-tango-testing = "0.6.0"
 ipython = "8.5.0"
 schema = "^0.7.5"
 ska-tmc-cdm = "7.3.1"
-ska-telmodel = "1.9.0"
+ska-telmodel = "1.11.2"
 mock = "^4.0.3"
 
 
