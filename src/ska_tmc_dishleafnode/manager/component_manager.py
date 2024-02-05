@@ -3,8 +3,9 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 import datetime
 import json
-import threading
 import sched
+import threading
+
 # pylint: disable=W0222
 import time
 from logging import Logger
@@ -40,9 +41,9 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
+from ska_tmc_dishleafnode.const import POINTING_INTERVAL, TRACK_TABLE_ENTRIES
 
 from .event_receiver import DishLNEventReceiver
-from ska_tmc_dishleafnode.const import TRACK_TABLE_ENTRIES, POINTING_INTERVAL
 
 # pylint: disable=abstract-method
 # pylint: disable=R0902
@@ -810,7 +811,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # dish_adapter.proxy.programTrackTable = self.program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
-        """ 
+        """
         This method manages calculation and writing of programTrackTable.
         """
         self.logger.info(
@@ -832,14 +833,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             first_entry_timestamp = self.program_track_table[0][0]
             # 2500 is subtracted to provide programTrackTable 2.5 seconds in advance
             # Divided by 1000 for milliseconds to seconds conversion
-            scheduled_time = (first_entry_timestamp - 2500)/1000
+            scheduled_time = (first_entry_timestamp - 2500) / 1000
             arguments = (command_obj.dish_master_adapter,)
             # Check CPU consumption for scheduler
             self.scheduler.enterabs(scheduled_time, 1, self.update_desired_pointing, arguments)
             self.scheduler.run()
 
-
-    def program_track_table_calculator(self, ra_value: str, dec_value: str, azel_converter) -> None:
+    def program_track_table_calculator(
+        self, ra_value: str, dec_value: str, azel_converter
+    ) -> None:
         """This thread writes az-el coordinates to desiredPointing
         on DishMaster at the rate of 20 Hz.
         Args:
@@ -852,7 +854,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             utc_timestamp = self.extended_time.timestamp() * 1000  # MilliSeconds
             timestamp = self.convert_timestamp(utc_timestamp)
             az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
-            
+
             if not self._is_elevation_within_mechanical_limits(el_value):
                 time.sleep(POINTING_INTERVAL)
                 continue
@@ -874,11 +876,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             # Add lock
             self.program_track_table.append(desired_pointing)
 
-            self.extended_time = self.extended_time + datetime.timedelta(milliseconds=POINTING_INTERVAL)
+            self.extended_time = self.extended_time + datetime.timedelta(
+                milliseconds=POINTING_INTERVAL
+            )
         self.logger.info("Observer: %s", self.observer)
 
-
-    def _is_elevation_within_mechanical_limits(self, el_value,):
+    def _is_elevation_within_mechanical_limits(
+        self,
+        el_value,
+    ):
         """Check if elevation is within mechanical limit
         Args:
             el_value: string
