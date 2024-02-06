@@ -1677,7 +1677,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "fccceb59ce90e9a419d4282921e9757bbd825dc3a592a1e259e9feac5716191e"
+content-hash = "d4f7a3510ac0ce03dbd0a12128ce3ea3119de3eb043af81c4fb2d395578defc4"
 
 [metadata.files]
 alabaster = [
