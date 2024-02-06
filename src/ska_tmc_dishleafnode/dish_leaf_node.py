@@ -263,12 +263,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    @command(
-        dtype_in="str",
-        doc_in="""The timestamp indicates the time, in UTC, at which command
-        execution should start.""",
-        dtype_out="DevVarLongStringArray",
-    )
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def Scan(self):
         """
@@ -612,6 +607,7 @@ class DishLeafNode(SKABaseDevice):
             ("Off", "off"),
             ("SetKValue", "SetKValue"),
             ("TrackLoadStaticOff", "track_load_static_off"),
+            ("Scan", "scan"),
         ]:
             self.register_command_object(
                 command_name,

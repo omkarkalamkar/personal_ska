@@ -1,4 +1,6 @@
-"""Event Receiver for Dish Leaf Node"""
+"""
+Event Receiver for Dish Leaf Node
+"""
 from logging import Logger
 from time import sleep
 from typing import Any, Callable
