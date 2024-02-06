@@ -140,6 +140,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.scheduler = sched.scheduler(time.time, time.sleep)
         self.program_track_table = []
+        self.dish_adapter = None
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -794,17 +795,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def update_desired_pointing(self, dish_adapter) -> None:
-        """Write the desired pointing attribute on dish master device.
-
-        :param dish_adapter: The dish master adapter.
-        :dish_adapter dtype: DishAdapter
-        :param desired_pointing: The desired pointing co-ordinates in the form
-            of a list.
-        :desired_pointing dtype: List of timestamp, Az, and El.
-
-        :rtype: None
-        """
+    def update_program_track_table(self) -> None:
+        """Write the programTrackTable attribute on dish master device."""
         self.logger.info(f"Current_time: {datetime.datetime.utcnow().timestamp() * 1000}")
         self.logger.info("The programTrackTable is: %s", self.program_track_table)
         # Enable once programTrackTable is implemented on HelperDishDevice
@@ -812,7 +804,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
-        This method manages calculation and writing of programTrackTable.
+        This method manages calculation and writing of programTrackTable attribute
+        on DishMaster at the rate of 20 Hz.
+
+        Args:
+            ra_value (str): RA value in hours:minutes:sec
+            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+            command_obj: Command Object which is used to set desired_pointing
         """
         self.logger.info(
             "The track thread name is : %s %s",
@@ -821,7 +819,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
-
+        self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
         # For the timestamp to be a future timestamp
@@ -834,20 +832,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             # 2500 is subtracted to provide programTrackTable 2.5 seconds in advance
             # Divided by 1000 for milliseconds to seconds conversion
             scheduled_time = (first_entry_timestamp - 2500) / 1000
-            arguments = (command_obj.dish_master_adapter,)
+            event_priority = 1
             # Check CPU consumption for scheduler
-            self.scheduler.enterabs(scheduled_time, 1, self.update_desired_pointing, arguments)
+            self.scheduler.enterabs(
+                scheduled_time, event_priority, self.update_program_track_table
+            )
             self.scheduler.run()
 
     def program_track_table_calculator(
         self, ra_value: str, dec_value: str, azel_converter
     ) -> None:
-        """This thread writes az-el coordinates to desiredPointing
-        on DishMaster at the rate of 20 Hz.
+        """This method calculates one set on timestamp, Az and El.
         Args:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
-            command_obj: Command Object which is used to set desired_pointing
         """
         self.program_track_table.clear()
         for _ in range(TRACK_TABLE_ENTRIES):

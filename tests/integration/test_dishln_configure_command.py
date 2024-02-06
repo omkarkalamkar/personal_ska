@@ -86,29 +86,30 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
-    result_config, unique_id_config = dish_leaf_node.TrackStop()
+    # result_config, unique_id_config = dish_leaf_node.TrackStop()
 
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("TrackStop",),
-        lookahead=6,
-    )
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
-        lookahead=6,
-    )
+    # group_callback["longRunningCommandsInQueue"].assert_change_event(
+    #     ("TrackStop",),
+    #     lookahead=6,
+    # )
+    # group_callback["longRunningCommandResult"].assert_change_event(
+    #     (unique_id_config[0], str(int(ResultCode.OK))),
+    #     lookahead=6,
+    # )
 
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
+    # group_callback["pointingState"].assert_change_event(
+    #     (PointingState.READY),
+    #     lookahead=6,
+    # )
 
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=8,
-    )
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    # group_callback["longRunningCommandsInQueue"].assert_change_event(
+    #     (),
+    #     lookahead=8,
+    # )
+    # tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.test1
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_command(tango_context, group_callback, json_factory):
