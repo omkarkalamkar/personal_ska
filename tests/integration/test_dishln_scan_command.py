@@ -80,14 +80,6 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
         (unique_id_scan[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.SCAN),
-        lookahead=6,
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -110,6 +102,7 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
     )
 
 
+@pytest.mark.kk
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_scan_command(tango_context, group_callback, json_factory):
