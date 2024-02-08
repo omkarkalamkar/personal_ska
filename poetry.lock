@@ -16,11 +16,11 @@ python-versions = "*"
 
 [[package]]
 name = "appnope"
-version = "0.1.3"
+version = "0.1.4"
 description = "Disable App Nap on macOS >= 10.9"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [[package]]
 name = "argparse"
@@ -1319,7 +1319,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.12.7"
+version = "0.12.8"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -1677,7 +1677,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "d4f7a3510ac0ce03dbd0a12128ce3ea3119de3eb043af81c4fb2d395578defc4"
+content-hash = "437dcbcdcf7a77c9fe187b698f843f20a0d5171e165c463d93908d144a122bf8"
 
 [metadata.files]
 alabaster = [
@@ -1689,8 +1689,8 @@ appdirs = [
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 appnope = [
-    {file = "appnope-0.1.3-py2.py3-none-any.whl", hash = "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"},
-    {file = "appnope-0.1.3.tar.gz", hash = "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24"},
+    {file = "appnope-0.1.4-py2.py3-none-any.whl", hash = "sha256:502575ee11cd7a28c0205f379b525beefebab9d161b7c964670864014ed7213c"},
+    {file = "appnope-0.1.4.tar.gz", hash = "sha256:1de3860566df9caf38f01f86f65e0e13e379af54f9e4bee1e66b48f2efffd1ee"},
 ]
 argparse = [
     {file = "argparse-1.4.0-py2.py3-none-any.whl", hash = "sha256:c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314"},
@@ -2705,8 +2705,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-7.3.1.tar.gz", hash = "sha256:3129cd4ec33b207f80669f521ba80fd221a42041c841f6c2f44eb8225ed8c363"},
 ]
 ska-tmc-common = [
-    {file = "ska_tmc_common-0.12.7-py3-none-any.whl", hash = "sha256:5ed737ff8277953c66ccff5d94e326136ed1f59d2b037dd4701a4ae0ef040c04"},
-    {file = "ska_tmc_common-0.12.7.tar.gz", hash = "sha256:74ee19b707921fe64a39b0de3bab5597d9529584bad91fad9df8d0216b7a3e91"},
+    {file = "ska_tmc_common-0.12.8-py3-none-any.whl", hash = "sha256:14cd58d2949486e361e0c3a02712fd2fb6ef56ebbc8081a7101259cec02a6fcc"},
+    {file = "ska_tmc_common-0.12.8.tar.gz", hash = "sha256:d6bcfd1b6dbe031c32e117eccd399715b9e7c149794e7886947565b3c02c3b39"},
 ]
 snowballstemmer = [
     {file = "snowballstemmer-2.2.0-py2.py3-none-any.whl", hash = "sha256:c8e1716e83cc398ae16824e5572ae04e0d9fc2c6b985fb0f900f5f0c96ecba1a"},
