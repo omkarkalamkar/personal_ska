@@ -1,6 +1,8 @@
+import datetime
 from time import sleep
 
 import pytest
+from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm, logger
@@ -44,3 +46,22 @@ def test_azel_to_radec(timestamp, az, el, expected_ra, expected_dec, tango_conte
     ra, dec = converter.azel_to_radec(az, el, timestamp, WEATHER_DATA)
     assert expected_ra == ra
     assert expected_dec == dec
+
+
+def test_actual_pointing(tango_context):
+    """Test to check actual pointing is getting updated"""
+    EXTEND_MILLISECONDS = 100
+    dm = DevFactory().get_device(DISH_MASTER_DEVICE)
+    cm = create_cm(DISH_MASTER_DEVICE)
+    timestamp_str = datetime.datetime.strptime("2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S")
+    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
+    extended_time = dt_utc + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
+    utc_timestamp = extended_time.timestamp() * 1000
+    dm.desiredPointing = [utc_timestamp, 287.2504396, 77.8694392]
+    # Sometimes loading the iers data takes more time
+    timeout = 60
+    count = 0
+    while len(cm.actual_pointing) <= 0 and count <= timeout:
+        count += 1
+        sleep(1)
+    assert cm.actual_pointing == ["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]

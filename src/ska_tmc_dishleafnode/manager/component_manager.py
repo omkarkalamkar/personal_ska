@@ -132,6 +132,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_availability_check_timeout = dish_availability_check_timeout
 
         self.achieved_pointing_data = Queue()
+        self.backward_trasform_thread_alive = True
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str] = (
             "Configure_TrackLoadStaticOff",
@@ -209,13 +210,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.backward_trasform_thread = threading.Thread(
             target=self.process_achieved_pointing,
         )
-        self.backward_trasform_thread.start()
         self.command_object: dict = {
             "TrackLoadStaticOff": self.track_load_static_off_command,
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
 
         self.__init_iers_url()
+        self.backward_trasform_thread.start()
         dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
         dln_start_check_timer.start()
 
@@ -339,21 +340,24 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Process the achieved pointing data to calculate actual pointing."""
         converter = AzElConverter(self)
         converter.create_antenna_obj()
-        while not self.achieved_pointing_data.empty():
-            value = self.achieved_pointing_data.get(block=False)
-            value_list = value.tolist()
-            try:
-                if value_list:
-                    timestamp_milliseconds, azimuth, elevation = value_list
+        while self.backward_trasform_thread_alive:
+            if not self.achieved_pointing_data.empty():
+                value = self.achieved_pointing_data.get(block=False)
+                value_list = value.tolist()
+                try:
+                    if value_list:
+                        timestamp_milliseconds, azimuth, elevation = value_list
+                        self.logger.info("AchievedPointing timestamp: %s", timestamp_milliseconds)
+                        timestamp = self.convert_timestamp(timestamp_milliseconds)
 
-                    timestamp = self.convert_timestamp(timestamp_milliseconds)
-
-                    right_ascension, declination = converter.azel_to_radec(
-                        str(azimuth), str(elevation), timestamp, converter.weather_data
+                        right_ascension, declination = converter.azel_to_radec(
+                            str(azimuth), str(elevation), timestamp, converter.weather_data
+                        )
+                        self.actual_pointing = [timestamp, right_ascension, declination]
+                except Exception as e:
+                    self.logger.exception(
+                        "Exception occurred while calculating actualPointing: %s", e
                     )
-                    self.actual_pointing = [timestamp, right_ascension, declination]
-            except Exception as e:
-                self.logger.exception("Exception occurred while calculating actualPointing: %s", e)
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
@@ -971,3 +975,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
         except Exception as exception:
             self.logger.error("Exception while processing longRunningCommandStatus", exception)
+
+    def __del__(self):
+        """
+        Dish Component Manager Destructor method.
+        This method is automatically called when the object is about to be destroyed.
+        """
+        if self.backward_trasform_thread.is_alive():
+            self.backward_trasform_thread_alive = False
+            self.backward_trasform_thread.join()
+        self.logger.debug("Dish Component Manager Destructor executed successfully")
