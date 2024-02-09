@@ -101,7 +101,7 @@ k8s-test:
       on_stop: stop-k8s-test
 
 stop-k8s-test:
-  when: on_success
+  when: always
   needs:
     - k8s-test
 
