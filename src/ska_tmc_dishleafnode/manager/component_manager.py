@@ -217,8 +217,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.__init_iers_url()
         self.backward_trasform_thread.start()
-        dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
-        dln_start_check_timer.start()
+        self.dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
+        self.dln_start_check_timer.start()
 
     def __init_iers_url(self):
         """Downloads and initialises the IERS file.

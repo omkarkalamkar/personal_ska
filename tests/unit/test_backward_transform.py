@@ -51,13 +51,13 @@ def test_azel_to_radec(timestamp, az, el, expected_ra, expected_dec, tango_conte
 def test_actual_pointing(tango_context):
     """Test to check actual pointing is getting updated"""
     EXTEND_MILLISECONDS = 100
-    dm = DevFactory().get_device(DISH_MASTER_DEVICE)
+    dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
     cm = create_cm(DISH_MASTER_DEVICE)
     timestamp_str = datetime.datetime.strptime("2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S")
     dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
     extended_time = dt_utc + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
     utc_timestamp = extended_time.timestamp() * 1000
-    dm.desiredPointing = [utc_timestamp, 287.2504396, 77.8694392]
+    dish_manager.desiredPointing = [utc_timestamp, 287.2504396, 77.8694392]
     # Sometimes loading the iers data takes more time
     timeout = 60
     count = 0

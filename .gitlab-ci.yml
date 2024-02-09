@@ -90,6 +90,12 @@ k8s-test:
     - k8srunner-large
   variables:
     COUNT: 1
+    SERVICE_ACCOUNT: "ci-svc-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-on-demand-tmc-test"
+  before_script:
+    - make cred SERVICE_ACCOUNT=$SERVICE_ACCOUNT
+    - '[ -f .make/k8s.mk ] || (echo "File k8s.mk not included in Makefile; exit 1")'
+    - make k8s-install-chart
+    - make k8s-wait
   environment:
       name: test/$CI_COMMIT_REF_SLUG
       on_stop: stop-k8s-test
