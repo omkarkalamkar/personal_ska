@@ -1,3 +1,5 @@
+from time import sleep
+
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -194,6 +196,8 @@ def partial_configure_dish_leaf_node(
     for input_str in partial_configurations:
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
+        # Wait for Configure to be stable
+        sleep(2)
 
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),

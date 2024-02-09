@@ -8,6 +8,15 @@ from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm, logger
 
 
+def wait_for_iers_data_available(cm):
+    """Function which waits for the IERS data to be available."""
+    elapsed_time = 0
+    timeout = 45
+    while cm.iers_a is not None and elapsed_time <= timeout:
+        elapsed_time = elapsed_time + 1
+        sleep(1)
+
+
 @pytest.mark.parametrize(
     "timestamp, az, el, expected_ra, expected_dec",
     [
@@ -31,6 +40,7 @@ from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm, logger
 def test_azel_to_radec(timestamp, az, el, expected_ra, expected_dec, tango_context):
     """Test the backward transform method from AzElConverter."""
     cm = create_cm(DISH_MASTER_DEVICE)
+    wait_for_iers_data_available(cm)
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:
@@ -53,6 +63,7 @@ def test_actual_pointing(tango_context):
     EXTEND_MILLISECONDS = 100
     dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
     cm = create_cm(DISH_MASTER_DEVICE)
+    wait_for_iers_data_available(cm)
     timestamp_str = datetime.datetime.strptime("2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S")
     dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
     extended_time = dt_utc + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)

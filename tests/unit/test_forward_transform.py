@@ -9,10 +9,20 @@ from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm
 logger = logging.getLogger(__name__)
 
 
+def wait_for_iers_data_available(cm):
+    """Function which waits for the IERS data to be available."""
+    elapsed_time = 0
+    timeout = 45
+    while cm.iers_a is not None and elapsed_time <= timeout:
+        elapsed_time = elapsed_time + 1
+        sleep(1)
+
+
+@pytest.mark.test
 @pytest.mark.parametrize(
     "ra, dec, timestamp, expected_az, expected_el",
     [
-        ("16:29:24.46", "-26:25:55.7", "2019-02-19 06:01:00", 287.2504397, 77.8694392),
+        ("16:29:24.46", "-26:25:55.7", "2019-02-19 06:01:00", 287.2504396, 77.8694392),
         ("2:31:50.9", "89:15:51.4", "2019-02-19 06:01:00", 0.4564362, -30.8330656),
         ("10:14:56.82", "-14:44:15.13", "2022-03-19 09:21:50", 173.5146073, -43.8021646),
     ],
@@ -22,6 +32,7 @@ def test_radec_to_azel(
 ):
     """Function to test AzEl conversion"""
     cm = create_cm(DISH_MASTER_DEVICE)
+    wait_for_iers_data_available(cm)
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:

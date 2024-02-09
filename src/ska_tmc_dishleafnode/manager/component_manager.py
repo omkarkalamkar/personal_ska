@@ -130,7 +130,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
-
+        self.iers_a = None
         self.achieved_pointing_data = Queue()
         self.backward_trasform_thread_alive = True
         self.update_availablity_callback = _update_availablity_callback
@@ -207,15 +207,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
-        self.backward_trasform_thread = threading.Thread(
-            target=self.process_achieved_pointing,
+        self.backward_trasform_thread = threading.Timer(
+            15,
+            self.process_achieved_pointing,
         )
         self.command_object: dict = {
             "TrackLoadStaticOff": self.track_load_static_off_command,
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
 
-        self.__init_iers_url()
+        self.iers_download_thread = threading.Timer(
+            10,
+            self.__init_iers_url,
+        )
+        self.iers_download_thread.start()
         self.backward_trasform_thread.start()
         self.dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
         self.dln_start_check_timer.start()
