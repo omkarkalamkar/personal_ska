@@ -87,7 +87,7 @@ python-lint:
 
 k8s-test:
   tags:
-    - k8srunner-large
+    - k8srunner
   variables:
     COUNT: 1
     SERVICE_ACCOUNT: "ci-svc-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-on-demand-tmc-test"
