@@ -1,11 +1,9 @@
-import json
-
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
-from ska_tmc_common.exceptions import CommandNotAllowed
 
 from tests.settings import create_cm, wait_for_dish_mode
+
 
 @pytest.mark.test2
 def test_configure_command_completed(

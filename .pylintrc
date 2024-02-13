@@ -213,7 +213,7 @@ valid-metaclass-classmethod-first-arg=mcs
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=15
+max-args=20
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore

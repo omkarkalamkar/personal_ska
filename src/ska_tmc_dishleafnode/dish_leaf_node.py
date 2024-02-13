@@ -49,8 +49,14 @@ class DishLeafNode(SKABaseDevice):
     Azimuth = device_property(dtype="DevFloat", default_value=0.0)
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
-    TrackTableEntries = device_property(dtype="DevShort", default_value=25, doc="Number of entries in programTrackTable")
-    PointingCalculationPeriod = device_property(dtype="DevShort", default_value=100, doc="Time difference between two consecutive entries of programTrackTable in milliseconds")
+    TrackTableEntries = device_property(
+        dtype="DevShort", default_value=25, doc="Number of entries in programTrackTable"
+    )
+    PointingCalculationPeriod = device_property(
+        dtype="DevShort",
+        default_value=100,
+        doc="Time difference between two consecutive entries of programTrackTable in milliseconds",
+    )
     # ----------
     # Attributes
     # ----------
@@ -550,8 +556,8 @@ class DishLeafNode(SKABaseDevice):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
             logger=self.logger,
-            track_table_entries = self.TrackTableEntries,
-            pointing_calculation_period = self.PointingCalculationPeriod,
+            track_table_entries=self.TrackTableEntries,
+            pointing_calculation_period=self.PointingCalculationPeriod,
             communication_state_callback=None,
             component_state_callback=None,
             pointing_callback=self.pointing_callback,

@@ -5,7 +5,7 @@ import datetime
 import json
 import sched
 import threading
-import numpy
+
 # pylint: disable=W0222
 import time
 from logging import Logger
@@ -879,7 +879,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.extended_time = self.extended_time + datetime.timedelta(
                 milliseconds=self.pointing_calculation_period
             )
-        #self.logger.info("Observer: %s", self.observer)
+        # self.logger.info("Observer: %s", self.observer)
 
     def _is_elevation_within_mechanical_limits(
         self,

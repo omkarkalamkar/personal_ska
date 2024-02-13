@@ -44,10 +44,7 @@ def wait_for_ping(dishleafnode_cm):
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
-        device,
-        logger=logger,
-        track_table_entries = 25,
-        pointing_calculation_period = 100
+        device, logger=logger, track_table_entries=25, pointing_calculation_period=100
     )
     return cm
 

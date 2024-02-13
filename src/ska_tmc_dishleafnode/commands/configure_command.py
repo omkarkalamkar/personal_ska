@@ -154,7 +154,7 @@ class Configure(DishLNCommand):
             receiver_band = json_argument["dish"]["receiver_band"]
             ra_value = json_argument["pointing"]["target"]["ra"]
             dec_value = json_argument["pointing"]["target"]["dec"]
-            
+
             # Start programTrackTable calculation
             self.component_manager.el_limit = True
             self.component_manager.event_track_time.clear()
@@ -236,8 +236,7 @@ class Configure(DishLNCommand):
         return ResultCode.OK, ""
 
     def invoke_track_command(self):
-        """Invoke Track command on dish
-        """
+        """Invoke Track command on dish"""
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
