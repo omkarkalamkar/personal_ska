@@ -25,6 +25,12 @@ server:
           - name: "LoggingLevelDefault"
             values:
               - "5"
+          - name: "TrackTableEntries"
+            values:
+              - "25"
+          - name: "PointingCalculationPeriod"
+            values:
+              - "100"  
   {{- end }}
 depends_on:
   - device: sys/database/2

@@ -5,7 +5,7 @@ import datetime
 import json
 import sched
 import threading
-
+import numpy
 # pylint: disable=W0222
 import time
 from logging import Logger
@@ -41,7 +41,6 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.const import POINTING_INTERVAL, TRACK_TABLE_ENTRIES
 
 from .event_receiver import DishLNEventReceiver
 
@@ -59,6 +58,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self,
         dish_dev_name: str,
         logger: Logger,
+        track_table_entries: int,
+        pointing_calculation_period: int,
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
         pointing_callback: Optional[Callable] = None,
@@ -141,6 +142,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.scheduler = sched.scheduler(time.time, time.sleep)
         self.program_track_table = []
         self.dish_adapter = None
+        self.track_table_entries = track_table_entries
+        self.pointing_calculation_period = pointing_calculation_period
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -252,7 +255,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
 
-    def convert_timestamp(self, timestamp_milliseconds: float) -> str:
+    def convert_timestamp(self, timestamp_seconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc
         timestamp with format -> %Y-%m-%d %H:%M:%S
 
@@ -262,7 +265,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
         """
-        timestamp_seconds = timestamp_milliseconds / 1000
         timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
@@ -800,7 +802,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info(f"Current_time: {datetime.datetime.utcnow().timestamp() * 1000}")
         self.logger.info("The programTrackTable is: %s", self.program_track_table)
         # Enable once programTrackTable is implemented on HelperDishDevice
-        # dish_adapter.proxy.programTrackTable = self.program_track_table
+        self.dish_adapter.proxy.programTrackTable = self.program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
@@ -823,21 +825,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         utc_now = datetime.datetime.utcnow()
 
         # For the timestamp to be a future timestamp
-        # on Dish, 7.5 seconds are added to it.
-        self.extended_time = utc_now + datetime.timedelta(seconds=7.5)
+        # on Dish, 5 seconds are added to it.
+        time_to_add = 2 * self.track_table_entries * self.pointing_calculation_period
+        self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
+
+        timestamp = self.convert_timestamp(self.extended_time.timestamp())
+        azel_converter.point(ra_value, dec_value, timestamp)
 
         while self.event_track_time.is_set() is False:
             self.program_track_table_calculator(ra_value, dec_value, azel_converter)
-            first_entry_timestamp = self.program_track_table[0][0]
-            # 2500 is subtracted to provide programTrackTable 2.5 seconds in advance
-            # Divided by 1000 for milliseconds to seconds conversion
-            scheduled_time = (first_entry_timestamp - 2500) / 1000
-            event_priority = 1
-            # Check CPU consumption for scheduler
-            self.scheduler.enterabs(
-                scheduled_time, event_priority, self.update_program_track_table
-            )
-            self.scheduler.run()
+            # first_entry_timestamp = self.program_track_table[0][0]
+            # # 2500 is subtracted to provide programTrackTable 2.5 seconds in advance
+            # # Divided by 1000 for milliseconds to seconds conversion
+            # scheduled_time = (first_entry_timestamp - 2500) / 1000
+            # event_priority = 1
+            # # Check CPU consumption for scheduler
+            # self.scheduler.enterabs(
+            #     scheduled_time, event_priority, self.update_program_track_table
+            # )
+            # self.scheduler.run()
+            self.update_program_track_table()
 
     def program_track_table_calculator(
         self, ra_value: str, dec_value: str, azel_converter
@@ -848,13 +855,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
         """
         self.program_track_table.clear()
-        for _ in range(TRACK_TABLE_ENTRIES):
-            utc_timestamp = self.extended_time.timestamp() * 1000  # MilliSeconds
-            timestamp = self.convert_timestamp(utc_timestamp)
+        for _ in range(self.track_table_entries):
+            # utc_timestamp = self.extended_time.timestamp() * 1000  # MilliSeconds
+            timestamp = self.convert_timestamp(self.extended_time.timestamp())
             az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
-
             if not self._is_elevation_within_mechanical_limits(el_value):
-                time.sleep(POINTING_INTERVAL)
+                time.sleep(self.pointing_calculation_period)
                 continue
             if az_value < 0:
                 az_value = 360 - abs(az_value)
@@ -865,19 +871,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
                 self.logger.debug(log_message)
                 break
-            # utc_timestamp is the time used for AzEl calculation.
-            desired_pointing = (
-                utc_timestamp,
-                round(az_value, 12),
-                round(el_value, 12),
-            )
-            # Add lock
-            self.program_track_table.append(desired_pointing)
+
+            self.program_track_table.append(self.extended_time.timestamp() * 1000)
+            self.program_track_table.append(round(az_value, 12))
+            self.program_track_table.append(round(el_value, 12))
 
             self.extended_time = self.extended_time + datetime.timedelta(
-                milliseconds=POINTING_INTERVAL
+                milliseconds=self.pointing_calculation_period
             )
-        self.logger.info("Observer: %s", self.observer)
+        #self.logger.info("Observer: %s", self.observer)
 
     def _is_elevation_within_mechanical_limits(
         self,

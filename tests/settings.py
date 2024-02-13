@@ -46,6 +46,8 @@ def create_cm(device: str) -> DishLNComponentManager:
     cm = DishLNComponentManager(
         device,
         logger=logger,
+        track_table_entries = 25,
+        pointing_calculation_period = 100
     )
     return cm
 
