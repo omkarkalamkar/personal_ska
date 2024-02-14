@@ -29,12 +29,12 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=2,
-    )
     # Wait for dish leaf node CM to update dish mode
     sleep(1)
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=4,
+    )
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
         tango.EventType.CHANGE_EVENT,

@@ -82,11 +82,12 @@ class Configure(DishLNCommand):
             result_code (ResultCode): result code
             exception (str, optional): Exception occurred during command execution. Defaults to "".
         """
-        task_callback_thread = threading.Thread(
-            target=self.task_callback,
-            kwargs={"status": TaskStatus.COMPLETED, "result": result_code, "exception": exception},
-        )
-        task_callback_thread.start()
+        if exception:
+            self.task_callback(
+                status=TaskStatus.COMPLETED, result=result_code, exception=exception
+            )
+        else:
+            self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
         self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument

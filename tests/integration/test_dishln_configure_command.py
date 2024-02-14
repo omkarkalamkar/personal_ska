@@ -194,10 +194,10 @@ def partial_configure_dish_leaf_node(
 
     partial_configurations = build_partial_configure_data(partial_configure_input_str, OFFSET)
     for input_str in partial_configurations:
+        # Give a pause before invoking next configuration
+        sleep(1)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
-        # Wait for Configure to be stable
-        sleep(2)
 
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),

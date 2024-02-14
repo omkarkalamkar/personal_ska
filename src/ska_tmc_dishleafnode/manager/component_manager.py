@@ -1,6 +1,7 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+import asyncio
 import datetime
 import json
 import threading
@@ -207,33 +208,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
-        self.backward_trasform_thread = threading.Timer(
-            15,
-            self.process_achieved_pointing,
-        )
         self.command_object: dict = {
             "TrackLoadStaticOff": self.track_load_static_off_command,
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
-
-        self.iers_download_thread = threading.Timer(
-            10,
-            self.__init_iers_url,
-        )
-        self.iers_download_thread.start()
-        self.backward_trasform_thread.start()
+        self.converter = AzElConverter(self)
+        self.asyncio_event_loop = asyncio.get_event_loop()
+        self.actual_pointing_asyncio_thread = threading.Thread(target=self.run_asyncio_coroutine)
+        self.actual_pointing_asyncio_thread.start()
         self.dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
         self.dln_start_check_timer.start()
-
-    def __init_iers_url(self):
-        """Downloads and initialises the IERS file.
-        Incase of error with main link , tries downloading using Mirror link.
-        """
-        try:
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-        except Exception as exception:
-            self.logger.exception(exception)
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     @property
     def kValueValidationResult(self) -> int:
@@ -302,14 +286,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param value: The list containing timestamp, RA and Dec values.
         :value dtype: list
         """
-        timestamp, right_ascension, declination = value
-        self.logger.info(
-            "The updated actual pointing values are: %s, %s, %s",
-            timestamp,
-            right_ascension,
-            declination,
-        )
-        self._actual_pointing = [timestamp, right_ascension, declination]
+        self._actual_pointing = value
+        self.logger.info("The updated actual pointing values are: %s", self._actual_pointing)
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
 
@@ -324,6 +302,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
+
+    async def download_iers_data(self):
+        """Downloads and initialises the IERS file.
+        Incase of error with main link , tries downloading using Mirror link.
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as exception:
+            self.logger.exception(exception)
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+        # Create the antenna list
+        self.converter.create_antenna_obj()
 
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc
@@ -341,28 +331,58 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return timestamp
 
-    def process_achieved_pointing(self) -> None:
-        """Process the achieved pointing data to calculate actual pointing."""
-        converter = AzElConverter(self)
-        converter.create_antenna_obj()
+    def run_asyncio_coroutine(self):
+        """This method runs the given routine in asyncio
+        :return: None
+        :rtype: void
+        """
+        asyncio.run(self.run_actual_pointng_calculation_until_stopped())
+
+    async def run_actual_pointng_calculation_until_stopped(self) -> None:
+        """This method runs the given co-routine until its stopped explicitly
+        :return: None
+        :rtype: void
+        """
+        # Wait for the IERS data to be downloaded
+        await self.download_iers_data()
+        self.asyncio_event_loop.run_forever(self.remove_data_from_pointing_queue())
+
+    def remove_data_from_pointing_queue(self) -> None:
+        """This method removes pointing data from the
+        achieved_pointing_data and instructs to process
+        further.
+        :return: None
+        :rtype: void
+        """
         while self.backward_trasform_thread_alive:
             if not self.achieved_pointing_data.empty():
-                value = self.achieved_pointing_data.get(block=False)
-                value_list = value.tolist()
                 try:
-                    if value_list:
-                        timestamp_milliseconds, azimuth, elevation = value_list
-                        self.logger.info("AchievedPointing timestamp: %s", timestamp_milliseconds)
-                        timestamp = self.convert_timestamp(timestamp_milliseconds)
-
-                        right_ascension, declination = converter.azel_to_radec(
-                            str(azimuth), str(elevation), timestamp, converter.weather_data
-                        )
-                        self.actual_pointing = [timestamp, right_ascension, declination]
+                    value = self.achieved_pointing_data.get(block=True)
+                    value = value.tolist()
+                    if value:
+                        self.process_actual_pointing(value)
                 except Exception as e:
-                    self.logger.exception(
-                        "Exception occurred while calculating actualPointing: %s", e
+                    self.logger.info(
+                        "Exception occurred in achieved pointing queue data removal %s", e
                     )
+
+    def process_actual_pointing(self, value_list: list) -> None:
+        """Process actual pointing by doing reverse transform
+
+        :param value_list:
+        :value_list dtype: list
+        :return: None
+        :rtype: void
+        """
+        try:
+            timestamp_milliseconds, azimuth, elevation = value_list
+            timestamp = self.convert_timestamp(timestamp_milliseconds)
+            right_ascension, declination = self.converter.azel_to_radec(
+                str(azimuth), str(elevation), timestamp, self.converter.weather_data
+            )
+            self.actual_pointing = [timestamp, right_ascension, declination]
+        except Exception as e:
+            self.logger.exception("Exception occurred while calculating actualPointing: %s", e)
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
@@ -986,7 +1006,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Dish Component Manager Destructor method.
         This method is automatically called when the object is about to be destroyed.
         """
-        if self.backward_trasform_thread.is_alive():
-            self.backward_trasform_thread_alive = False
-            self.backward_trasform_thread.join()
+        self.backward_trasform_thread_alive = False
+        if self.actual_pointing_asyncio_thread.is_alive():
+            self.asyncio_event_loop.stop()
+            self.actual_pointing_asyncio_thread.join()
+
         self.logger.debug("Dish Component Manager Destructor executed successfully")

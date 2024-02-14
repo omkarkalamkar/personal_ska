@@ -113,9 +113,10 @@ class DishLeafNode(SKABaseDevice):
         if hasattr(self, "component_manager"):
             self.component_manager.stop_event_receiver()
             self.component_manager.stop_liveliness_probe()
-            if self.component_manager.backward_trasform_thread.is_alive():
-                self.component_manager.backward_trasform_thread_alive = False
-                self.component_manager.backward_trasform_thread.join()
+            self.component_manager.backward_trasform_thread_alive = False
+            if self.component_manager.actual_pointing_asyncio_thread.is_alive():
+                self.component_manager.asyncio_event_loop.stop()
+                self.component_manager.actual_pointing_asyncio_thread.join()
 
     def update_availablity_callback(self, availablity):
         """Change event callback for isSubsystemAvailable"""
