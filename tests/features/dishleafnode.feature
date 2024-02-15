@@ -2,7 +2,7 @@
 Feature: DishLeafNode acceptance
 
 	#Test the ability to generically run a set of commands and that the execution is completed withing 5 seconds.
-	@XTP-6029 @post_deployment @acceptance @SKA_mid
+	@XTP-6029 @post_deployment1 @acceptance1 @SKA_mid1
 	Scenario: Ability to run commands on DishLeafNode
 		Given a DishLeafNode device
 		When I call the command <command_name> when DishMaster is in <dish_mode>

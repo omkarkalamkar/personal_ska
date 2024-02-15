@@ -241,7 +241,7 @@ class Configure(DishLNCommand):
 
         # Wait until 2 set of programTrackTable entries are reached
         # Add timeout
-        while len(self.dish_master_adapter.proxy.programTrackTable) < 150:
+        while len(self.dish_master_adapter.proxy.programTrackTable) != 150:
             time.sleep(1)
 
         result_code, message = self.call_adapter_method(
