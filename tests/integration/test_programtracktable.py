@@ -13,10 +13,8 @@ from tests.settings import (
     tear_down,
 )
 
-OFFSET = 5.0
 
-
-def configure_dish_leaf_node(
+def check_track_table(
     tango_context,
     dishln_name,
     group_callback,
@@ -100,6 +98,7 @@ def configure_dish_leaf_node(
     for item in dish_master.programTrackTable:
         assert isinstance(item, float)
 
+    time.sleep(30)
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -126,7 +125,7 @@ def configure_dish_leaf_node(
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_program_track_table(tango_context, group_callback, json_factory):
-    configure_dish_leaf_node(
+    check_track_table(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,

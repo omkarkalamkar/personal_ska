@@ -801,14 +801,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_program_track_table(self) -> None:
         """Write the programTrackTable attribute on dish master device."""
         program_track_table = list(self.dish_adapter.proxy.programTrackTable)
-        self.logger.info(f"programTrackTable: {program_track_table}")
-        self.logger.info(f"lenght 1: {len(program_track_table)}")
         if len(program_track_table) >= 150:
             num_of_values_to_remove = 3 * self.track_table_entries
             program_track_table = program_track_table[num_of_values_to_remove:]
 
         program_track_table = program_track_table + self.program_track_table
-        self.logger.info(f"lenght 2: {len(program_track_table)}")
+        self.logger.info(f"programTrackTable: {program_track_table}")
         self.dish_adapter.proxy.programTrackTable = program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
