@@ -130,4 +130,4 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_achieved_pointing(new_value)
-        self._logger.info(f"achievedPointing value is updated to {new_value}")
+        self._logger.debug(f"achievedPointing value is updated to {new_value}")

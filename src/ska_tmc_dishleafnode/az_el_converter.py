@@ -105,7 +105,7 @@ class AzElConverter:
 
         ra = angle_to_string(ra_dec.ra, unit=u.hour, precision=2, show_unit=False)
         dec = angle_to_string(ra_dec.dec, unit=u.deg, precision=2, show_unit=False)
-        logger.info(
+        logger.debug(
             "The Right Ascension is %s and the Declination is %s after backward transform",
             ra,
             dec,

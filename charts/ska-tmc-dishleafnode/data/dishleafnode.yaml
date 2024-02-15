@@ -24,7 +24,7 @@ server:
               - "tango::logger"
           - name: "LoggingLevelDefault"
             values:
-              - "5"
+              - "4"
           - name: "TrackTableEntries"
             values:
               - "25"

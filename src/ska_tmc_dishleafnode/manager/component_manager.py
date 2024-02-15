@@ -245,7 +245,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: list
         """
         timestamp, right_ascension, declination = value
-        self.logger.info(
+        self.logger.debug(
             "The updated actual pointing values are: %s, %s, %s",
             timestamp,
             right_ascension,
@@ -255,7 +255,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
 
-    def convert_timestamp(self, timestamp_seconds: float) -> str:
+    def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc
         timestamp with format -> %Y-%m-%d %H:%M:%S
 
@@ -265,6 +265,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
         """
+        timestamp_seconds = timestamp_milliseconds / 1000
         timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
@@ -277,7 +278,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: str
         """
         try:
-            self.logger.info(
+            self.logger.debug(
                 "Received an achievedPointing event with value: %s",
                 value,
             )
@@ -799,10 +800,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_program_track_table(self) -> None:
         """Write the programTrackTable attribute on dish master device."""
-        self.logger.info(f"Current_time: {datetime.datetime.utcnow().timestamp() * 1000}")
-        self.logger.info("The programTrackTable is: %s", self.program_track_table)
-        # Enable once programTrackTable is implemented on HelperDishDevice
-        self.dish_adapter.proxy.programTrackTable = self.program_track_table
+        program_track_table = list(self.dish_adapter.proxy.programTrackTable)
+        self.logger.info(f"programTrackTable: {program_track_table}")
+        self.logger.info(f"lenght 1: {len(program_track_table)}")
+        if len(program_track_table) >= 150:
+            num_of_values_to_remove = 3 * self.track_table_entries
+            program_track_table = program_track_table[num_of_values_to_remove:]
+
+        program_track_table = program_track_table + self.program_track_table
+        self.logger.info(f"lenght 2: {len(program_track_table)}")
+        self.dish_adapter.proxy.programTrackTable = program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
@@ -825,8 +832,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         utc_now = datetime.datetime.utcnow()
 
         # For the timestamp to be a future timestamp
-        # on Dish, 5 seconds are added to it.
-        time_to_add = 2 * self.track_table_entries * self.pointing_calculation_period
+        # on Dish, few seconds are added to it.
+        time_to_add = (2 * self.track_table_entries * self.pointing_calculation_period) / 1000
         self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
 
         timestamp = self.convert_timestamp(self.extended_time.timestamp())
@@ -856,8 +863,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.program_track_table.clear()
         for _ in range(self.track_table_entries):
-            # utc_timestamp = self.extended_time.timestamp() * 1000  # MilliSeconds
-            timestamp = self.convert_timestamp(self.extended_time.timestamp())
+            utc_timestamp = self.extended_time.timestamp() * 1000  # MilliSeconds
+            timestamp = self.convert_timestamp(utc_timestamp)
             az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
             if not self._is_elevation_within_mechanical_limits(el_value):
                 time.sleep(self.pointing_calculation_period)
@@ -872,7 +879,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug(log_message)
                 break
 
-            self.program_track_table.append(self.extended_time.timestamp() * 1000)
+            self.program_track_table.append(utc_timestamp)
             self.program_track_table.append(round(az_value, 12))
             self.program_track_table.append(round(el_value, 12))
 
