@@ -979,11 +979,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Inside Code-Cleanup")
         with self.process_lock:
             self.actual_pointing_process_alive.set()
+            time.sleep(1)
+            self.actual_pointing_process.terminate()
+            self.actual_pointing_process.join()
             self.stop_event_receiver()
             self.stop_liveliness_probe()
             self.process_manager.shutdown()
-            self.actual_pointing_process.terminate()
-            self.actual_pointing_process.join()
+            while not self.achieved_pointing_data.empty():
+                _ = self.achieved_pointing_data.get(block=True)
+            self.achieved_pointing_data.close()
+            self.achieved_pointing_data.join_thread()
             self.logger.info("Code clean-up successful")
 
     def __del__(self):
