@@ -1,7 +1,6 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
-import asyncio
 import datetime
 import json
 import threading
@@ -9,7 +8,7 @@ import threading
 # pylint: disable=W0222
 import time
 from logging import Logger
-from queue import Queue
+from multiprocessing import Event, Lock, Manager, Process, Queue
 from typing import Callable, List, Optional, Tuple
 
 from astropy.utils import iers
@@ -125,7 +124,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
         self.radec_value = ""
-        self._actual_pointing = []
+        self.process_manager = Manager()
+        self._actual_pointing = self.process_manager.list()
         self.pointing_callback = pointing_callback
         self._kvalue: int = 0
         self._kValueValidationResult = ResultCode.STARTED
@@ -133,7 +133,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_availability_check_timeout = dish_availability_check_timeout
         self.iers_a = None
         self.achieved_pointing_data = Queue()
-        self.backward_trasform_thread_alive = True
+        self.actual_pointing_process_alive = Event()
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str] = (
             "Configure_TrackLoadStaticOff",
@@ -208,16 +208,28 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
+
+        self.actual_pointing_process = Process(target=self.process_actual_pointing)
         self.command_object: dict = {
             "TrackLoadStaticOff": self.track_load_static_off_command,
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
+        self.process_lock = Lock()
         self.converter = AzElConverter(self)
-        self.asyncio_event_loop = asyncio.get_event_loop()
-        self.actual_pointing_asyncio_thread = threading.Thread(target=self.run_asyncio_coroutine)
-        self.actual_pointing_asyncio_thread.start()
+        self.converter.create_antenna_obj()
+        self.actual_pointing_process.start()
         self.dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
         self.dln_start_check_timer.start()
+
+    def download_iers_data(self):
+        """Downloads and initialises the IERS file.
+        Incase of error with main link , tries downloading using Mirror link.
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as exception:
+            self.logger.exception(exception)
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     @property
     def kValueValidationResult(self) -> int:
@@ -259,7 +271,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     @property
     def actual_pointing(self) -> list:
         """Returns the actualPointing of the dish device."""
-        return self._actual_pointing
+        return list(self._actual_pointing)
 
     @property
     def command_in_progress(self) -> str:
@@ -286,10 +298,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param value: The list containing timestamp, RA and Dec values.
         :value dtype: list
         """
-        self._actual_pointing = value
+        self._actual_pointing[:] = value
         self.logger.info("The updated actual pointing values are: %s", self._actual_pointing)
         if self.pointing_callback:
-            self.pointing_callback(self._actual_pointing)
+            self.pointing_callback(list(self._actual_pointing))
 
     def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
@@ -302,18 +314,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
-
-    async def download_iers_data(self):
-        """Downloads and initialises the IERS file.
-        Incase of error with main link , tries downloading using Mirror link.
-        """
-        try:
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-        except Exception as exception:
-            self.logger.exception(exception)
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
-        # Create the antenna list
-        self.converter.create_antenna_obj()
 
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc
@@ -331,49 +331,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return timestamp
 
-    def run_asyncio_coroutine(self):
-        """This method runs the given routine in asyncio
-        :return: None
-        :rtype: void
-        """
-        asyncio.run(self.run_actual_pointng_calculation_until_stopped())
-
-    async def run_actual_pointng_calculation_until_stopped(self) -> None:
-        """This method runs the given co-routine until its stopped explicitly
-        :return: None
-        :rtype: void
-        """
-        # Wait for the IERS data to be downloaded
-        await self.download_iers_data()
-        self.asyncio_event_loop.run_forever(self.remove_data_from_pointing_queue())
-
-    def remove_data_from_pointing_queue(self) -> None:
-        """This method removes pointing data from the
-        achieved_pointing_data and instructs to process
-        further.
-        :return: None
-        :rtype: void
-        """
-        while self.backward_trasform_thread_alive:
+    def process_actual_pointing(self) -> None:
+        """Process the achieved pointing data to calculate actual pointing."""
+        self.download_iers_data()
+        while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
                     value = self.achieved_pointing_data.get(block=True)
                     value = value.tolist()
                     if value:
-                        self.process_actual_pointing(value)
+                        self.perform_reverse_transform(value)
                 except Exception as e:
-                    self.logger.info(
-                        "Exception occurred in achieved pointing queue data removal %s", e
-                    )
+                    self.logger.info(e)
 
-    def process_actual_pointing(self, value_list: list) -> None:
-        """Process actual pointing by doing reverse transform
-
-        :param value_list:
-        :value_list dtype: list
-        :return: None
-        :rtype: void
-        """
+    def perform_reverse_transform(self, value_list):
+        """DO the reverse transform and publish it on
+        actualPointing attribute"""
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
             timestamp = self.convert_timestamp(timestamp_milliseconds)
@@ -1001,14 +974,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.error("Exception while processing longRunningCommandStatus", exception)
 
+    def code_cleanup(self):
+        """Method to clean up the code, stop running threads/sub-processes"""
+        self.logger.info("Inside Code-Cleanup")
+        with self.process_lock:
+            self.actual_pointing_process_alive.set()
+            self.stop_event_receiver()
+            self.stop_liveliness_probe()
+            self.process_manager.shutdown()
+            self.actual_pointing_process.terminate()
+            self.actual_pointing_process.join()
+            self.logger.info("Code clean-up successful")
+
     def __del__(self):
         """
         Dish Component Manager Destructor method.
         This method is automatically called when the object is about to be destroyed.
         """
-        self.backward_trasform_thread_alive = False
-        if self.actual_pointing_asyncio_thread.is_alive():
-            self.asyncio_event_loop.stop()
-            self.actual_pointing_asyncio_thread.join()
-
-        self.logger.debug("Dish Component Manager Destructor executed successfully")
+        self.logger.info("Inside Component Manager Destructor")
+        self.code_cleanup()

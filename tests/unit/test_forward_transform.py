@@ -4,7 +4,7 @@ from time import sleep
 import pytest
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, create_cm
+from tests.settings import WEATHER_DATA
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +28,9 @@ def wait_for_iers_data_available(cm):
     ],
 )
 def test_radec_to_azel(
-    ra: str, dec: str, timestamp: str, expected_az: float, expected_el: float, tango_context
+    ra: str, dec: str, timestamp: str, expected_az: float, expected_el: float, tango_context, cm
 ):
     """Function to test AzEl conversion"""
-    cm = create_cm(DISH_MASTER_DEVICE)
     wait_for_iers_data_available(cm)
     converter = AzElConverter(component_manager=cm)
     retry = 0

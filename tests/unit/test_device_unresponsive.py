@@ -2,7 +2,7 @@ import pytest
 from ska_tmc_common.exceptions import DeviceUnresponsive
 
 from ska_tmc_dishleafnode.dish_leaf_node import DishLeafNode
-from tests.settings import DISH_MASTER_DEVICE, create_cm, logger, wait_for_unresponsive
+from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_unresponsive
 
 
 @pytest.fixture()
@@ -18,19 +18,15 @@ def devices_to_load():
     )
 
 
-def test_abort_command_fail_check_allowed_with_device_unresponsive(
-    tango_context,
-):
+def test_abort_command_fail_check_allowed_with_device_unresponsive(tango_context, cm):
     logger.info("%s", tango_context)
-    cm = create_cm(DISH_MASTER_DEVICE)
     wait_for_unresponsive(cm)
     with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
         cm.is_abortcommands_allowed()
 
 
-def test_trackloadstaticoff_command_not_allowed(dish_master_device):
+def test_trackloadstaticoff_command_not_allowed(cm):
     """Test the command not allowed when the device is unresponsive."""
-    cm = create_cm(dish_master_device)
     wait_for_unresponsive(cm)
     with pytest.raises(DeviceUnresponsive):
         cm.is_trackloadstaticoff_allowed()

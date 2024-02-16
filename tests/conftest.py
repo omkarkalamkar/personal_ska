@@ -13,6 +13,10 @@ from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
+from ska_tmc_dishleafnode.manager import DishLNComponentManager
+
+logger = logging.getLogger(__name__)
+DISH_MASTER_DEVICE = "ska001/elt/master"
 
 
 def pytest_sessionstart(session):
@@ -151,3 +155,16 @@ def json_factory():
         return get_input_str(join(dirname(__file__), "data", f"{slug}.json"))
 
     return _get_json
+
+
+@pytest.fixture()
+def cm() -> DishLNComponentManager:
+    """Creates component manager for Dish Leaf Node."""
+    cm = DishLNComponentManager(
+        DISH_MASTER_DEVICE,
+        logger=logger,
+    )
+    yield cm
+    # pylint: disable=unnecessary-dunder-call
+    cm.__del__()
+    # pylint: enable=unnecessary-dunder-call
