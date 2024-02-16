@@ -85,7 +85,6 @@ def track_dish_leaf_node(
     )
 
 
-@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_command(tango_context, group_callback, json_factory):

@@ -240,11 +240,11 @@ class Configure(DishLNCommand):
         """Invoke Track command on dish"""
 
         # Wait until 2 set of programTrackTable entries are reached
-        # Add timeout
-        while True:
-            if len(self.dish_master_adapter.proxy.programTrackTable) == 150:
-                break
-            time.sleep(2)
+        while (
+            len(self.dish_master_adapter.proxy.programTrackTable)
+            != 6 * self.component_manager.track_table_entries
+        ):
+            time.sleep(1)
 
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"

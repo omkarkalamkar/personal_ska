@@ -13,7 +13,6 @@ def set_kvalue_command():
     assert result_fp == ResultCode.OK
 
 
-@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_set_kvalue_command():
