@@ -60,6 +60,7 @@ def configure_dish_leaf_node(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
+    sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
