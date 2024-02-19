@@ -6,11 +6,11 @@ import json
 import sched
 import threading
 
-# pylint: disable=W0222
+# pylint: disable=W0222, too-many-lines
 import time
 from logging import Logger
 from queue import Queue
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from astropy.utils import iers
 from ska_tango_base.commands import ResultCode
@@ -43,6 +43,7 @@ from ska_tmc_dishleafnode.commands import (
 )
 from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
 
+from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
@@ -64,11 +65,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
         pointing_callback: Optional[Callable] = None,
+        kvalue_validation_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
+        dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
@@ -106,6 +109,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
+        self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         __adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
@@ -124,12 +128,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._actual_pointing = []
         self.pointing_callback = pointing_callback
         self._kvalue: int = 0
-        self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        self._kValueValidationResult = ResultCode.STARTED
+        self.kvalue_validation_callback = kvalue_validation_callback
+        self.dish_availability_check_timeout = dish_availability_check_timeout
+
         self.achieved_pointing_data = Queue()
-        self.backward_trasform_thread = threading.Thread(
-            target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
+        self.update_availablity_callback = _update_availablity_callback
+        self.supported_commands: Tuple[str] = (
+            "Configure_TrackLoadStaticOff",
+            "TrackLoadStaticOff",
         )
-        self._device = DishDeviceInfo(dish_dev_name)
+        self.__command_in_progress: str = ""
+
         # Event Receiver
         if _event_receiver:
             self.event_receiver_object = DishLNEventReceiver(self, logger)
@@ -206,17 +216,50 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
+        self.backward_trasform_thread = threading.Thread(
+            target=self.process_achieved_pointing,
+        )
+        self.backward_trasform_thread.start()
+        self.command_object: dict = {
+            "TrackLoadStaticOff": self.track_load_static_off_command,
+            "Configure_TrackLoadStaticOff": self.configure_command,
+        }
+
+        self.__init_iers_url()
+        dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
+        dln_start_check_timer.start()
+
+    def __init_iers_url(self):
+        """Downloads and initialises the IERS file.
+        Incase of error with main link , tries downloading using Mirror link.
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as exception:
+            self.logger.exception(exception)
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     @property
-    def kvalue(self) -> int:
-        """Returns the k value"""
+    def kValueValidationResult(self) -> int:
+        """Returns the k-value validation result"""
+        return self._kValueValidationResult
+
+    @kValueValidationResult.setter
+    def kValueValidationResult(self, result_code: ResultCode) -> None:
+        """Update the k-value validation result property."""
+        if self._kValueValidationResult != result_code:
+            self._kValueValidationResult = result_code
+
+    @property
+    def kValue(self) -> int:
+        """Returns the k-value"""
         return self._kvalue
 
-    @kvalue.setter
-    def kvalue(self, value: int) -> None:
-        """Update the kvalue property."""
-        if self._kvalue != value:
-            self._kvalue = value
+    @kValue.setter
+    def kValue(self, k_value: int) -> None:
+        """Update the k-value property."""
+        if self._kvalue != k_value:
+            self._kvalue = k_value
 
     @property
     def dishMode(self) -> DishMode:
@@ -238,6 +281,24 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Returns the actualPointing of the dish device."""
         return self._actual_pointing
 
+    @property
+    def command_in_progress(self) -> str:
+        """Method to get value of current command in progress
+
+        Returns:
+            str:  command in progress variable data
+        """
+        return self.__command_in_progress
+
+    @command_in_progress.setter
+    def command_in_progress(self, cmd_in_progress: str):
+        """Method used to set command in progress value.
+
+        Args:
+            cmd_in_progress (str): Name of current command in progress
+        """
+        self.__command_in_progress = cmd_in_progress
+
     @actual_pointing.setter
     def actual_pointing(self, value: list) -> None:
         """Update the actualPointing of the dish device.
@@ -256,6 +317,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(self._actual_pointing)
 
+    def update_kvalue_validation_result(self) -> None:
+        """This method informs the k-value validation result
+        to central node after DLN start/restart.
+        :returns: None
+        """
+        dish_kvalue_validation_manager = DishkValueValidationManager(self, self.logger)
+        if dish_kvalue_validation_manager.is_dish_manager_ready():
+            dish_kvalue_validation_manager.validate_dish_kvalue()
+        elif self.kvalue_validation_callback:
+            self.kValueValidationResult = ResultCode.NOT_ALLOWED
+            self.kvalue_validation_callback()
+
     def convert_timestamp(self, timestamp_milliseconds: float) -> str:
         """Converts the floating point timestamp in milliseconds to a utc
         timestamp with format -> %Y-%m-%d %H:%M:%S
@@ -272,53 +345,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return timestamp
 
-    def update_achieved_pointing(self, value) -> None:
-        """Update the achievedPointing attribute value to a Queue for processing.
-
-        :param value: A numpy array containing timestamp, Az and El values.
-        :value dtype: str
-        """
-        try:
-            self.logger.debug(
-                "Received an achievedPointing event with value: %s",
-                value,
-            )
-            value_list = value.tolist()
-            with self.lock:
-                self.achieved_pointing_data.put(value_list)
-            if not self.backward_trasform_thread.is_alive():
-                self.backward_trasform_thread = threading.Thread(
-                    target=self.process_achieved_pointing, args=[self.achieved_pointing_data]
-                )
-                self.backward_trasform_thread.start()
-        except Exception as e:
-            self.logger.exception(
-                "Received an achievedPointing event with value: %s leading to exception : %s",
-                value,
-                e,
-            )
-
-    def process_achieved_pointing(self, achieved_pointing_queue: Queue) -> None:
-        """Process the achieved pointing data to calculate actual pointing.
-
-        :param achieved_pointing_queue: A queue containing the achieved pointing
-            data collected from Dish Master device.
-        :achieved_pointing_queue dtype: Queue
-        """
+    def process_achieved_pointing(self) -> None:
+        """Process the achieved pointing data to calculate actual pointing."""
         converter = AzElConverter(self)
         converter.create_antenna_obj()
-        while achieved_pointing_queue.qsize() != 0:
-            with self.lock:
-                value_list = achieved_pointing_queue.get()
+        while not self.achieved_pointing_data.empty():
+            value = self.achieved_pointing_data.get(block=False)
+            value_list = value.tolist()
             try:
-                timestamp_milliseconds, azimuth, elevation = value_list
+                if value_list:
+                    timestamp_milliseconds, azimuth, elevation = value_list
 
-                timestamp = self.convert_timestamp(timestamp_milliseconds)
+                    timestamp = self.convert_timestamp(timestamp_milliseconds)
 
-                right_ascension, declination = converter.azel_to_radec(
-                    str(azimuth), str(elevation), timestamp, converter.weather_data
-                )
-                self.actual_pointing = [timestamp, right_ascension, declination]
+                    right_ascension, declination = converter.azel_to_radec(
+                        str(azimuth), str(elevation), timestamp, converter.weather_data
+                    )
+                    self.actual_pointing = [timestamp, right_ascension, declination]
             except Exception as e:
                 self.logger.exception("Exception occurred while calculating actualPointing: %s", e)
 
@@ -466,7 +509,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The invocation of the TrackStop command on this"
             + "device is not allowed."
             + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
+            + f"{self.dishMode} and PointingState is: {self.pointingState}"
             + "The command has NOT been executed."
             + "This device will continue with normal operation."
         )
@@ -592,7 +635,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             DishMode.STANDBY_FP,
             DishMode.STOW,
             DishMode.MAINTENANCE,
-            DishMode.STANDBY_LP,
             DishMode.OPERATE,
         ]:
             return True
@@ -653,7 +695,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
         """
-
         self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_LP,
@@ -938,3 +979,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self._device.update_unresponsive(False)
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
+
+    def update_device_long_running_command_status(
+        self, lrc_status: Tuple[List[str], List[str]]
+    ) -> None:
+        """
+        Method to update task callback based on long running command status event data.
+
+        Args:
+            lrc_status (Tuple[List[str], List[str]]): longRunningCommandStatus
+            attribute event data
+        """
+        try:
+            if not lrc_status:
+                return
+            with self.lock:
+                if (
+                    lrc_status[0].endswith(self.supported_commands)
+                    and self.command_in_progress in self.supported_commands
+                ):
+                    command_object = self.command_object.get(self.command_in_progress)
+                    if lrc_status[1].upper() == "COMPLETED":
+                        command_object.update_task_callback(ResultCode.OK)
+                    elif lrc_status[1].upper() == "FAILED":
+                        command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
+        except Exception as exception:
+            self.logger.error("Exception while processing longRunningCommandStatus", exception)

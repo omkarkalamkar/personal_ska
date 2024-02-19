@@ -12,14 +12,14 @@ def off_command(tango_context, dishln_name, group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_master.SetDirectDishMode(DishMode.OPERATE)
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
     group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
+        (DishMode.OPERATE),
         lookahead=2,
     )
     event_remover(
@@ -62,5 +62,5 @@ def off_command(tango_context, dishln_name, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_on_command(tango_context, group_callback):
+def test_off_command(tango_context, group_callback):
     off_command(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)

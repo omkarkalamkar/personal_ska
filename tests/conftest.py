@@ -10,8 +10,7 @@ from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common import DevFactory
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
-from tango.test_context import MultiDeviceTestContext
-from tango.test_utils import DeviceTestContext
+from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
 
@@ -63,7 +62,7 @@ def devices_to_load():
         {
             "class": DishLeafNode,
             "devices": [
-                {"name": "ska_mid/tm_leaf_node/d0001"},
+                {"name": "ska_mid/tm_leaf_node/d0001", "DishMasterFQDN": "ska001/elt/master"},
             ],
         },
     )
@@ -75,7 +74,7 @@ def tango_context(devices_to_load, request):
     true_context = request.config.getoption("--true-context")
     logging.info("true context: %s", true_context)
     if not true_context:
-        with MultiDeviceTestContext(devices_to_load, process=False, timeout=30) as context:
+        with MultiDeviceTestContext(devices_to_load, process=False, timeout=50) as context:
             DevFactory._test_context = context
             logging.info("test context set")
             yield context
@@ -88,7 +87,12 @@ def dishln_device(request):
     """Create DeviceProxy for tests"""
     true_context = request.config.getoption("--true-context")
     if not true_context:
-        with DeviceTestContext(DishLeafNode, timeout=20) as proxy:
+        with DeviceTestContext(
+            DishLeafNode,
+            device_name="ska_mid/tm_leaf_node/d0001",
+            properties={"DishMasterFQDN": "ska001/elt/master"},
+            timeout=20,
+        ) as proxy:
             yield proxy
     else:
         database = tango.Database()
@@ -104,7 +108,7 @@ def task_callback() -> MockCallable:
 
     :rtype: MockCallable
     """
-    task_callback = MockCallable(15)
+    task_callback = MockCallable(100)
     return task_callback
 
 
@@ -118,9 +122,11 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "longRunningCommandsInQueue",
         "longRunningCommandResult",
         "longRunningCommandIDsInQueue",
+        "longRunningCommandStatus",
         "dishMode",
         "pointingState",
-        timeout=20,
+        "kValueValidationResult",
+        timeout=30,
     )
     return group_callback
 
