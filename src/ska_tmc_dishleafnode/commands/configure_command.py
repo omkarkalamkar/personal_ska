@@ -253,17 +253,5 @@ class Configure(DishLNCommand):
             self.logger.error(f"Track Invocation Failed {message}")
             return result_code[0], message[0]
 
-        # # start tracking thread
-        # self.component_manager.el_limit = True
-        # self.component_manager.event_track_time.clear()
-        # self.tracking_thread = threading.Thread(
-        #     target=self.component_manager.track_thread,
-        #     args=[ra_value, dec_value, self],
-        # )
-        # self.tracking_thread.start()
-        # self.logger.info(
-        #     "Track command invoked successfully with ra: %s and dec: %s",
-        #     ra_value,
-        #     dec_value,
-        # )
+        self.logger.info("Invoked Track command successfully on dish.")
         return result_code[0], message[0]

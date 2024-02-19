@@ -41,6 +41,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
+from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
 
 from .event_receiver import DishLNEventReceiver
 
@@ -801,12 +802,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_program_track_table(self) -> None:
         """Write the programTrackTable attribute on dish master device."""
         program_track_table = list(self.dish_adapter.proxy.programTrackTable)
-        if len(program_track_table) >= 150:
+        # If programTrackTable is full, remove older entries
+        if len(program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
             num_of_values_to_remove = 3 * self.track_table_entries
             program_track_table = program_track_table[num_of_values_to_remove:]
 
         program_track_table = program_track_table + self.program_track_table
-        self.logger.info(f"programTrackTable: {program_track_table}")
+        self.logger.debug("The programTrackTable is %s:", program_track_table)
         self.dish_adapter.proxy.programTrackTable = program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
