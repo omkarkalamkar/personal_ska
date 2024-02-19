@@ -138,6 +138,7 @@ def partial_configure_dish_leaf_node(
     )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    sleep(1)
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -165,6 +166,7 @@ def partial_configure_dish_leaf_node(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
+    sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
