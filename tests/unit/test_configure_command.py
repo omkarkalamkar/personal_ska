@@ -8,7 +8,7 @@ from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import wait_for_dish_mode
+from tests.settings import logger, wait_for_dish_mode
 
 
 def test_configure_command_completed(
@@ -81,6 +81,7 @@ def test_configure_command_completed_partial_config_missing_key(
 
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    logger.debug("Waiting for command completion")
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )

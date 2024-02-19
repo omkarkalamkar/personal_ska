@@ -223,16 +223,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
         self.dln_start_check_timer.start()
 
-    def download_iers_data(self):
-        """Downloads and initialises the IERS file.
-        Incase of error with main link , tries downloading using Mirror link.
-        """
-        try:
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-        except Exception as exception:
-            self.logger.exception(exception)
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
-
     @property
     def kValueValidationResult(self) -> int:
         """Returns the k-value validation result"""
@@ -305,6 +295,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
+    def download_iers_data(self):
+        """Downloads and initialises the IERS file.
+        Incase of error with main link , tries downloading using Mirror link.
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as exception:
+            self.logger.exception(exception)
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+
     def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
         to central node after DLN start/restart.
@@ -341,9 +341,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
-                    data = self.achieved_pointing_data.get(block=True).tolist()
-                    if data:
-                        self.perform_reverse_transform(data)
+                    self.perform_reverse_transform(
+                        self.achieved_pointing_data.get(block=True).tolist()
+                    )
                 except Exception as e:
                     self.logger.exception("Error in actual pointing process", e)
 
@@ -358,7 +358,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
             self.actual_pointing = [timestamp, right_ascension, declination]
         except Exception as e:
-            self.logger.exception("Exception occurred while calculating actualPointing: %s", e)
+            self.logger.exception(
+                "No values on achievedPointing dish master attribute,"
+                "the device will continue with its normal operation.: %s",
+                e,
+            )
 
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver"""
