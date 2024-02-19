@@ -47,10 +47,10 @@ dishleafnode:
 
 resources:
   limits:
-    cpu: 150m
+    cpu: 500m
     memory: 500Mi
   requests:
-    cpu: 150m
+    cpu: 500m
     memory: 500Mi
 
 deviceServers:

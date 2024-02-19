@@ -3,12 +3,13 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 import datetime
 import json
+import os
 import threading
 
 # pylint: disable=W0222
 import time
 from logging import Logger
-from multiprocessing import Event, Lock, Manager, Process, Queue
+from multiprocessing import Event, Lock, Manager, Process
 from typing import Callable, List, Optional, Tuple
 
 from astropy.utils import iers
@@ -132,7 +133,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
         self.iers_a = None
-        self.achieved_pointing_data = Queue()
+        self.achieved_pointing_data = self.process_manager.Queue()
         self.actual_pointing_process_alive = Event()
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str] = (
@@ -216,7 +217,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
-        self.converter.create_antenna_obj()
+        self.iers_data_download_thread = threading.Timer(2, self.download_iers_data)
+        self.iers_data_download_thread.start()
         self.actual_pointing_process.start()
         self.dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
         self.dln_start_check_timer.start()
@@ -333,16 +335,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def process_actual_pointing(self) -> None:
         """Process the achieved pointing data to calculate actual pointing."""
-        self.download_iers_data()
+        self.converter.create_antenna_obj()
+        self.logger.info("Main Process ID: %s", os.getppid())
+        self.logger.info("Sub-Process ID: %s", os.getpid())
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
-                    value = self.achieved_pointing_data.get(block=True)
-                    value = value.tolist()
-                    if value:
-                        self.perform_reverse_transform(value)
+                    data = self.achieved_pointing_data.get(block=True).tolist()
+                    if data:
+                        self.perform_reverse_transform(data)
                 except Exception as e:
-                    self.logger.info(e)
+                    self.logger.exception("Error in actual pointing process", e)
 
     def perform_reverse_transform(self, value_list):
         """DO the reverse transform and publish it on
@@ -977,24 +980,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def code_cleanup(self):
         """Method to clean up the code, stop running threads/sub-processes"""
         self.logger.info("Inside Code-Cleanup")
-        with self.process_lock:
-            self.actual_pointing_process_alive.set()
-            time.sleep(1)
-            self.actual_pointing_process.terminate()
-            self.actual_pointing_process.join()
+        if self.actual_pointing_process.is_alive():
             self.stop_event_receiver()
             self.stop_liveliness_probe()
-            self.process_manager.shutdown()
+            self.actual_pointing_process_alive.set()
+            self.actual_pointing_process.join()
+            self.actual_pointing[:] = [None]
             while not self.achieved_pointing_data.empty():
                 _ = self.achieved_pointing_data.get(block=True)
-            self.achieved_pointing_data.close()
-            self.achieved_pointing_data.join_thread()
-            self.logger.info("Code clean-up successful")
+            self.achieved_pointing_data.put(None)
+            self.process_manager.shutdown()
+            self.logger.info("Code clean-up successful**************")
 
     def __del__(self):
         """
-        Dish Component Manager Destructor method.
+        DishLN Component Manager Destructor method.
         This method is automatically called when the object is about to be destroyed.
         """
         self.logger.info("Inside Component Manager Destructor")
-        self.code_cleanup()
+        with self.process_lock:
+            self.code_cleanup()

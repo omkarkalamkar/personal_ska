@@ -39,10 +39,7 @@ class DishLeafNode(SKABaseDevice):
     # -----------------
     # Device Properties
     # -----------------
-    DishMasterFQDN = device_property(
-        dtype="str",
-        doc="FQDN of Dish Master Device",
-    )
+    DishMasterFQDN = device_property(dtype="str", doc="FQDN of Dish Master Device")
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
     DishAvailabilityCheckTimeout = device_property(dtype="DevUShort", default_value=120)

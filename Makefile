@@ -68,13 +68,13 @@ CI_ENVIRONMENT_SLUG ?= ska-tmc-dishleafnode
 $(shell echo 'global:\n  annotations:\n    app.gitlab.com/app: $(CI_PROJECT_PATH_SLUG)\n    app.gitlab.com/env: $(CI_ENVIRONMENT_SLUG)' > gitlab_values.yaml)
 PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
-ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
+ADD_ARGS +=  --cache-clear --count=$(PYTHON_TEST_COUNT)
 MARK = not post_deployment and not acceptance
 endif
 
 K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
-ADD_ARGS +=  -n 1 --true-context --count=$(K8S_TEST_COUNT)
+ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
