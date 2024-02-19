@@ -829,27 +829,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
-        # For the timestamp to be a future timestamp
-        # on Dish, few seconds are added to it.
+        # For future timestamp few seconds are added in current time.
+        # Divided by 1000 to convert ms to sec conversion.
         time_to_add = (2 * self.track_table_entries * self.pointing_calculation_period) / 1000
         self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
 
         timestamp = self.convert_timestamp(self.extended_time.timestamp())
         azel_converter.point(ra_value, dec_value, timestamp)
+        advance_time = self.track_table_entries * self.pointing_calculation_period
 
         while self.event_track_time.is_set() is False:
             self.program_track_table_calculator(ra_value, dec_value, azel_converter)
-            # first_entry_timestamp = self.program_track_table[0][0]
-            # # 2500 is subtracted to provide programTrackTable 2.5 seconds in advance
-            # # Divided by 1000 for milliseconds to seconds conversion
-            # scheduled_time = (first_entry_timestamp - 2500) / 1000
-            # event_priority = 1
-            # # Check CPU consumption for scheduler
-            # self.scheduler.enterabs(
-            #     scheduled_time, event_priority, self.update_program_track_table
-            # )
-            # self.scheduler.run()
-            self.update_program_track_table()
+            first_entry_timestamp = self.program_track_table[0][0]
+            # advance_time is subtracted to provide programTrackTable few seconds in advance
+            # Divided by 1000 for milliseconds to seconds conversion
+            scheduled_time = (first_entry_timestamp - advance_time) / 1000
+            if scheduled_time > datetime.datetime.utcnow().timestamp():
+                event_priority = 1
+                self.scheduler.enterabs(
+                    scheduled_time, event_priority, self.update_program_track_table
+                )
+                self.scheduler.run()
+            else:
+                self.update_program_track_table()
 
     def program_track_table_calculator(
         self, ra_value: str, dec_value: str, azel_converter
@@ -861,7 +863,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.program_track_table.clear()
         for _ in range(self.track_table_entries):
-            utc_timestamp = self.extended_time.timestamp() * 1000  # MilliSeconds
+            utc_timestamp = self.extended_time.timestamp() * 1000
             timestamp = self.convert_timestamp(utc_timestamp)
             az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
             if not self._is_elevation_within_mechanical_limits(el_value):
@@ -884,7 +886,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.extended_time = self.extended_time + datetime.timedelta(
                 milliseconds=self.pointing_calculation_period
             )
-        # self.logger.info("Observer: %s", self.observer)
 
     def _is_elevation_within_mechanical_limits(
         self,
