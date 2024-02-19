@@ -69,7 +69,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
-        command_timeout: int = 60,
+        command_timeout: int = 15,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
@@ -842,7 +842,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         while self.event_track_time.is_set() is False:
             self.program_track_table_calculator(ra_value, dec_value, azel_converter)
-            first_entry_timestamp = self.program_track_table[0][0]
+            first_entry_timestamp = self.program_track_table[0]
             # advance_time is subtracted to provide programTrackTable few seconds in advance
             # Divided by 1000 for milliseconds to seconds conversion
             scheduled_time = (first_entry_timestamp - advance_time) / 1000
