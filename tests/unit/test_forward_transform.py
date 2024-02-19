@@ -18,7 +18,6 @@ def wait_for_iers_data_available(cm):
         sleep(1)
 
 
-@pytest.mark.test
 @pytest.mark.parametrize(
     "ra, dec, timestamp, expected_az, expected_el",
     [
