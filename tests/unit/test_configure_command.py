@@ -31,7 +31,6 @@ def test_configure_command_completed(
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    logger.debug("Waiting for command completion")
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -61,7 +60,6 @@ def test_configure_command_completed_partial_config(
         (Anything, "COMPLETED"),
         lookahead=6,
     )
-    logger.debug("Waiting for command completion")
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=4
     )
@@ -89,7 +87,7 @@ def test_configure_command_completed_partial_config_missing_key(
     )
 
 
-def test_configure_command_adapter_none(cm, task_callback, json_factory):
+def test_configure_command_adapter_none(task_callback, cm, json_factory):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")

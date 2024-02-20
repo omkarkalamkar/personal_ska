@@ -1,6 +1,7 @@
 """conftest module for CSP Subarray Leaf Node."""
 # pylint: disable=unused-argument,redefined-outer-name
 import json
+from time import sleep
 import logging
 from os.path import dirname, join
 
@@ -167,4 +168,5 @@ def cm() -> DishLNComponentManager:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
+    sleep(1) #Give some time to pytest cleanup
     # pylint: enable=unnecessary-dunder-call

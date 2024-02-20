@@ -1,12 +1,9 @@
-import logging
 from time import sleep
 
 import pytest
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from tests.settings import WEATHER_DATA
-
-logger = logging.getLogger(__name__)
+from tests.settings import WEATHER_DATA, logger
 
 
 def wait_for_iers_data_available(cm):

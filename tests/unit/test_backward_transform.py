@@ -37,7 +37,7 @@ def wait_for_iers_data_available(cm):
         ),
     ],
 )
-def test_azel_to_radec(timestamp, az, el, expected_ra, expected_dec, cm):
+def test_azel_to_radec(tango_context, timestamp, az, el, expected_ra, expected_dec, cm):
     """Test the backward transform method from AzElConverter."""
     wait_for_iers_data_available(cm)
     converter = AzElConverter(component_manager=cm)

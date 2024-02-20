@@ -35,7 +35,9 @@ def test_off_command_in_fp(tango_context, cm, task_callback, group_callback):
     cm.off(task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.OK)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
+    )
 
 
 def test_off_command_adapter_none(cm, task_callback):
@@ -46,8 +48,7 @@ def test_off_command_adapter_none(cm, task_callback):
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     asserted_data = task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED,
-        result=ResultCode.FAILED,
+        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
     )
 
     assert (
