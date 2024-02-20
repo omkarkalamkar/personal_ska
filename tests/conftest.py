@@ -94,7 +94,7 @@ def dishln_device(request):
         with DeviceTestContext(
             DishLeafNode,
             device_name="ska_mid/tm_leaf_node/d0001",
-            properties={"DishMasterFQDN": "ska001/elt/master"},
+            properties={"DishMasterFQDN": "ska001/elt/master", "DishAvailabilityCheckTimeout": 10},
             timeout=20,
         ) as proxy:
             yield proxy
