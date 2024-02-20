@@ -31,6 +31,7 @@ def test_configure_command_completed(
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    logger.debug("Waiting for command completion")
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -60,6 +61,7 @@ def test_configure_command_completed_partial_config(
         (Anything, "COMPLETED"),
         lookahead=6,
     )
+    logger.debug("Waiting for command completion")
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=4
     )
