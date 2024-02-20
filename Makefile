@@ -73,7 +73,7 @@ PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
 ifeq ($(EXIT_AT_FAIL),true)
-ADD_ARGS += -x
+ADD_ARGS += --cache-clear -x
 endif
 MARK = not post_deployment and not acceptance
 endif
