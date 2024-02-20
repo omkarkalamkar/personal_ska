@@ -146,11 +146,11 @@ class AzElConverter:
             weather_data["humidity"],
         )
         refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
-        # logger.debug(
-        #     "The Azimuth value is %s and the Elevation is %s after forward transform.",
-        #     azel.az.deg,
-        #     refraction_corrected_angle.deg,
-        # )
+        logger.debug(
+            "The Azimuth value is %s and the Elevation is %s after forward transform.",
+            azel.az.deg,
+            refraction_corrected_angle.deg,
+        )
         return [
             azel.az.deg,
             refraction_corrected_angle.deg,

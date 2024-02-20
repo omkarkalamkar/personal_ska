@@ -150,7 +150,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.update_availablity_callback = _update_availablity_callback
 
-        self.scheduler = sched.scheduler(time.time, time.sleep)
+        self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.program_track_table = []
         self.dish_adapter = None
         self.track_table_entries = track_table_entries
@@ -889,12 +889,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             scheduled_time = (first_entry_timestamp - advance_time) / 1000
             if scheduled_time > datetime.datetime.utcnow().timestamp():
                 event_priority = 1
-                self.scheduler.enterabs(
+                self.track_table_scheduler.enterabs(
                     scheduled_time, event_priority, self.update_program_track_table
                 )
-                self.scheduler.run()
+                self.track_table_scheduler.run()
             else:
-                self.update_program_track_table()
+                with self.lock:
+                    self.update_program_track_table()
 
     def program_track_table_calculator(
         self, ra_value: str, dec_value: str, azel_converter
