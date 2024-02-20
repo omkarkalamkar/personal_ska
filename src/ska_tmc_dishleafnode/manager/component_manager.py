@@ -1,6 +1,7 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+import asyncio
 import datetime
 import json
 import os
@@ -217,11 +218,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
-        self.iers_data_download_thread = threading.Timer(2, self.download_iers_data)
-        self.iers_data_download_thread.start()
+        self.kvalue_validation_iers_download_thread = threading.Timer(5, self.asyncio_run)
+        self.kvalue_validation_iers_download_thread.start()
         self.actual_pointing_process.start()
-        self.dln_start_check_timer = threading.Timer(5, self.update_kvalue_validation_result)
-        self.dln_start_check_timer.start()
 
     @property
     def kValueValidationResult(self) -> int:
@@ -295,7 +294,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
-    def download_iers_data(self):
+    def asyncio_run(self) -> None:
+        """This method assures proper execution of kvalue validation
+        and iers data download.
+        """
+        asyncio.run(self.run_init_threads())
+
+    async def run_init_threads(self) -> None:
+        """Await for the completion of beolw tasks"""
+        await self.update_kvalue_validation_result()
+        await self.download_iers_data()
+
+    async def download_iers_data(self):
         """Downloads and initialises the IERS file.
         Incase of error with main link , tries downloading using Mirror link.
         """
@@ -305,7 +315,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
-    def update_kvalue_validation_result(self) -> None:
+    async def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
         to central node after DLN start/restart.
         :returns: None

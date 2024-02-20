@@ -61,14 +61,13 @@ def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
     EXTEND_MILLISECONDS = 100
     dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
-    wait_for_iers_data_available(cm)
     timestamp_str = datetime.datetime.strptime("2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S")
     dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
     extended_time = dt_utc + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
     utc_timestamp = extended_time.timestamp() * 1000
     dish_manager.desiredPointing = [utc_timestamp, 287.2504396, 77.8694392]
     # Sometimes loading the iers data takes more time
-    timeout = 60
+    timeout = 30
     count = 0
     while len(list(cm.actual_pointing)) <= 0 and count <= timeout:
         count += 1
