@@ -1,3 +1,5 @@
+from time import sleep
+
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -58,6 +60,7 @@ def configure_dish_leaf_node(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
+    sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
@@ -136,6 +139,7 @@ def partial_configure_dish_leaf_node(
     )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    sleep(1)
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -163,6 +167,7 @@ def partial_configure_dish_leaf_node(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
+    sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
@@ -192,6 +197,8 @@ def partial_configure_dish_leaf_node(
 
     partial_configurations = build_partial_configure_data(partial_configure_input_str, OFFSET)
     for input_str in partial_configurations:
+        # Give a pause before invoking next configuration
+        sleep(1)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
 

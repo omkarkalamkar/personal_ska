@@ -3,6 +3,7 @@
 import json
 import logging
 from os.path import dirname, join
+from time import sleep
 
 import pytest
 import tango
@@ -13,6 +14,10 @@ from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
+from ska_tmc_dishleafnode.manager import DishLNComponentManager
+
+logger = logging.getLogger(__name__)
+DISH_MASTER_DEVICE = "ska001/elt/master"
 
 
 def pytest_sessionstart(session):
@@ -90,7 +95,7 @@ def dishln_device(request):
         with DeviceTestContext(
             DishLeafNode,
             device_name="ska_mid/tm_leaf_node/d0001",
-            properties={"DishMasterFQDN": "ska001/elt/master"},
+            properties={"DishMasterFQDN": "ska001/elt/master", "DishAvailabilityCheckTimeout": 10},
             timeout=20,
         ) as proxy:
             yield proxy
@@ -151,3 +156,16 @@ def json_factory():
         return get_input_str(join(dirname(__file__), "data", f"{slug}.json"))
 
     return _get_json
+
+
+@pytest.fixture()
+def cm() -> DishLNComponentManager:
+    """Creates component manager for Dish Leaf Node."""
+    cm = DishLNComponentManager(
+        DISH_MASTER_DEVICE, logger=logger, dish_availability_check_timeout=5
+    )
+    yield cm
+    # pylint: disable=unnecessary-dunder-call
+    cm.__del__()
+    sleep(1)  # Give some time to pytest cleanup
+    # pylint: enable=unnecessary-dunder-call

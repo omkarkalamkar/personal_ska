@@ -7,8 +7,6 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import create_cm
-
 
 def get_track_input_str(
     track_input_file="dishleafnode_track.json",
@@ -19,8 +17,7 @@ def get_track_input_str(
     return config_str
 
 
-def test_track_command_completed(tango_context, task_callback, dish_master_device):
-    cm = create_cm(dish_master_device)
+def test_track_command_completed(tango_context, task_callback, cm):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_track_allowed()
@@ -33,8 +30,7 @@ def test_track_command_completed(tango_context, task_callback, dish_master_devic
     )
 
 
-def test_track_command_adapter_none(task_callback, dish_master_device):
-    cm = create_cm(dish_master_device)
+def test_track_command_adapter_none(task_callback, cm):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_track_allowed()
@@ -46,8 +42,7 @@ def test_track_command_adapter_none(task_callback, dish_master_device):
     task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
 
 
-def test_json_validation(tango_context, task_callback, dish_master_device):
-    cm = create_cm(dish_master_device)
+def test_json_validation(tango_context, task_callback, cm):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_track_allowed()
@@ -57,8 +52,7 @@ def test_json_validation(tango_context, task_callback, dish_master_device):
     assert "key is not present" in message
 
 
-def test_track_command_not_allowed(tango_context, dish_master_device):
-    cm = create_cm(dish_master_device)
+def test_track_command_not_allowed(tango_context, cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_track_allowed()
