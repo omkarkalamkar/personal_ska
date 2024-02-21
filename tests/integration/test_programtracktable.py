@@ -5,6 +5,7 @@ import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
+from ska_tmc_dishleafnode.constants import TRACK_TABLE_ENTRY_SIZE
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -84,21 +85,21 @@ def check_track_table(
         lookahead=6,
     )
 
-    counter = 0
     TIMEOUT = 10
-    while len(dish_master.programTrackTable) == 0 or counter <= TIMEOUT:
-        counter = counter + 1
-        logger.info(f"ProgramTrackTable: {dish_master.programTrackTable}")
-        time.sleep(1)
+    start_time = time.time()
+    while (time.time() - start_time) < TIMEOUT:
+        if len(dish_master.programTrackTable) != 0:
+            break
+        time.sleep(0.5)
 
-    logger.info(f"ProgramTrackTable: {dish_master.programTrackTable}")
+    program_track_table = dish_master.programTrackTable
+    logger.info(f"ProgramTrackTable: {program_track_table}")
 
-    assert len(dish_master.programTrackTable) > 0 and len(dish_master.programTrackTable) % 3 == 0
+    assert len(program_track_table) > 0 and len(program_track_table) % TRACK_TABLE_ENTRY_SIZE == 0
 
-    for item in dish_master.programTrackTable:
+    for item in program_track_table:
         assert isinstance(item, float)
 
-    time.sleep(30)
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(

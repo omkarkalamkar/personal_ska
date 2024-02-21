@@ -41,7 +41,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
+from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, TRACK_TABLE_ENTRY_SIZE
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -842,15 +842,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_program_track_table(self) -> None:
         """Write the programTrackTable attribute on dish master device."""
-        program_track_table = list(self.dish_adapter.proxy.programTrackTable)
+        program_track_table = list(self.dish_adapter.programTrackTable)
         # If programTrackTable is full, remove older entries
         if len(program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
-            num_of_values_to_remove = 3 * self.track_table_entries
+            num_of_values_to_remove = TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
             program_track_table = program_track_table[num_of_values_to_remove:]
 
         program_track_table = program_track_table + self.program_track_table
         self.logger.debug("The programTrackTable is %s:", program_track_table)
-        self.dish_adapter.proxy.programTrackTable = program_track_table
+        self.dish_adapter.programTrackTable = program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
@@ -943,14 +943,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         if not self.elevation_min_limit <= el_value <= self.elevation_max_limit:
-            self.el_limit = True
+            self.elevation_limit = True
             self.logger.info(
                 "Minimum/maximum elevation limit has been reached."
                 + " Source is not visible currently."
             )
             return False
 
-        self.el_limit = False
+        self.elevation_limit = False
         return True
 
     # pylint: disable=arguments-differ
@@ -1006,3 +1006,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
         except Exception as exception:
             self.logger.error("Exception while processing longRunningCommandStatus", exception)
+
+    @property
+    def elevation_limit(self) -> bool:
+        """Returns the True if dish is within its mechanical limit."""
+        return self.el_limit
+
+    @elevation_limit.setter
+    def elevation_limit(self, elevation_limit: bool) -> None:
+        """Sets flag for elevation limit."""
+        if self.el_limit != elevation_limit:
+            self.el_limit = elevation_limit
