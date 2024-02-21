@@ -218,7 +218,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
-        self.kvalue_validation_iers_download_thread = threading.Timer(5, self.asyncio_run)
+        self.kvalue_validation_iers_download_thread = threading.Timer(
+            5, self.start_init_operations
+        )
         self.kvalue_validation_iers_download_thread.start()
         self.actual_pointing_process.start()
 
@@ -294,7 +296,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
-    def asyncio_run(self) -> None:
+    def start_init_operations(self) -> None:
         """This method assures proper execution of kvalue validation
         and iers data download.
         """
@@ -991,9 +993,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.error("Exception while processing longRunningCommandStatus", exception)
 
-    def code_cleanup(self):
+    def stop_executors_and_cleanup_memory(self):
         """Method to clean up the code, stop running threads/sub-processes"""
-        self.logger.info("Inside Code-Cleanup")
+        self.logger.info("Inside stop_executors_and_cleanup_memory")
         if self.actual_pointing_process.is_alive():
             self.stop_event_receiver()
             self.stop_liveliness_probe()
@@ -1004,7 +1006,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 _ = self.achieved_pointing_data.get(block=True)
             self.achieved_pointing_data.put(None)
             self.process_manager.shutdown()
-            self.logger.info("Code clean-up successful**************")
+            self.logger.info("stop_executors_and_cleanup_memory successful")
 
     def __del__(self):
         """
@@ -1013,4 +1015,4 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.logger.info("Inside Component Manager Destructor")
         with self.process_lock:
-            self.code_cleanup()
+            self.stop_executors_and_cleanup_memory()
