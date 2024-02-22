@@ -67,7 +67,7 @@ def test_actual_pointing(tango_context, cm):
     utc_timestamp = extended_time.timestamp() * 1000
     dish_manager.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
     # Sometimes loading the iers data takes more time
-    timeout = 30
+    timeout = 60
     count = 0
     while len(list(cm.actual_pointing)) <= 0 and count <= timeout:
         count += 1
