@@ -47,11 +47,11 @@ dishleafnode:
 
 resources:
   limits:
-    cpu: 150m
-    memory: 150Mi
+    cpu: 500m
+    memory: 500Mi
   requests:
-    cpu: 50m
-    memory: 50Mi
+    cpu: 500m
+    memory: 500Mi
 
 deviceServers:
   mocks:

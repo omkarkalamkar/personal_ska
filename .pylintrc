@@ -117,7 +117,7 @@ ignore-long-lines=^\s*(# )?<?https?://\S+>?$
 single-line-if-stmt=no
 
 # Maximum number of lines in a module
-max-module-lines=1000
+max-module-lines=1020
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
@@ -241,7 +241,7 @@ max-attributes=20
 min-public-methods=1
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods=50
+max-public-methods=60
 
 
 [EXCEPTIONS]

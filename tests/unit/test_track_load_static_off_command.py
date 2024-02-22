@@ -6,14 +6,9 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory
 
-from tests.settings import create_cm
 
-
-def test_trackloadstaticoff_command(
-    tango_context, dish_master_device, task_callback, group_callback
-):
+def test_trackloadstaticoff_command(tango_context, cm, task_callback, group_callback):
     """Test the successful completion of the TrackLoadStaticOff command."""
-    cm = create_cm(dish_master_device)
     dish_device = DevFactory().get_device("ska001/elt/master")
     assert cm.is_trackloadstaticoff_allowed()
     dish_device.subscribe_event(
@@ -44,11 +39,8 @@ def test_trackloadstaticoff_command(
         [0.5],
     ],
 )
-def test_trackloadstaticoff_command_invalid_input(
-    tango_context, dish_master_device, argin, task_callback
-):
+def test_trackloadstaticoff_command_invalid_input(tango_context, cm, argin, task_callback):
     """Test the failure scenario while invoking TrackLoadStaticOff command."""
-    cm = create_cm(dish_master_device)
     assert cm.is_trackloadstaticoff_allowed()
 
     status, message = cm.track_load_static_off(argin, task_callback=task_callback)

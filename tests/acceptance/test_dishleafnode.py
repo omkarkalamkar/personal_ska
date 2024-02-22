@@ -10,19 +10,18 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import create_cm, event_remover, wait_for_ping
+from tests.settings import event_remover, wait_for_ping
 
 
 @given(
     parsers.parse("DishLeafNode and DishMaster devices are running"),
     target_fixture="dishleafnode_cm",
 )
-def dishleafnode_cm(tango_context, dish_master_device):
+def dishleafnode_cm(tango_context, cm):
     database = Database()
     instance_list = database.get_device_exported_for_class("DishLeafNode")
     for instance in instance_list.value_string:
         assert "ska_mid/tm_leaf_node/d" in DeviceProxy(instance).dev_name()
-    cm = create_cm(dish_master_device)
     return cm
 
 

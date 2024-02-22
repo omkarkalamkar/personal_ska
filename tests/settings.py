@@ -50,9 +50,9 @@ def create_cm(device: str) -> DishLNComponentManager:
     return cm
 
 
-def get_dishln_command_obj(command_class) -> tuple:
+def get_dishln_command_obj(command_class, cm) -> tuple:
     """Returns component manager and command class object for Dish Leaf Node"""
-    cm = create_cm(DISH_MASTER_DEVICE)
+
     adapter_factory = HelperAdapterFactory()
     cm.dish_dev_name = DISH_MASTER_DEVICE
     command_obj = command_class(cm, cm.op_state_model, adapter_factory, logger)
