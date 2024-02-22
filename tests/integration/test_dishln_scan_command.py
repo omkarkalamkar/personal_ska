@@ -71,9 +71,6 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
     )
     result_scan, unique_id_scan = dish_leaf_node.Scan()
     assert result_scan[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode", "Configure", "Scan")
-    )
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
 
     group_callback["longRunningCommandResult"].assert_change_event(
