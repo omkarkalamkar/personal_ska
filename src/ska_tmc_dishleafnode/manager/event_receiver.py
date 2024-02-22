@@ -153,7 +153,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.achieved_pointing_data.put(new_value)
-        self._logger.info(f"achievedPointing value is updated to {new_value}")
+        self._logger.debug(f"achievedPointing value is updated to {new_value}")
 
     def handle_long_running_command_status(self, event_data: tango.EventData) -> None:
         """Method to handle and update the latest value of longRunningCommandStatus

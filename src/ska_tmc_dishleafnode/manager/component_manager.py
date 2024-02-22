@@ -930,6 +930,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.extended_time = self.extended_time + datetime.timedelta(
                 milliseconds=self.pointing_calculation_period
             )
+            time.sleep(0.001)
 
     def _is_elevation_within_mechanical_limits(
         self,
