@@ -185,7 +185,8 @@ class Configure(DishLNCommand):
                 target=self.component_manager.track_thread,
                 args=[ra_value, dec_value, self],
             )
-            self.tracking_thread.start()
+            if not self.tracking_thread.is_alive():
+                self.component_manager.tracking_thread.start()
 
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"

@@ -48,10 +48,10 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    assert wait_for_attribute_value(dish_master, "desiredPointing")
+    assert wait_for_attribute_value(dish_master, "programTrackTable")
 
-    desired_pointing = dish_master.read_attribute("desiredPointing").value
-    logger.info("The desired pointing is set to %s", desired_pointing)
+    program_track_table = dish_master.read_attribute("programTrackTable").value
+    logger.info("The desired pointing is set to %s", program_track_table)
 
     # Waiting for some time, to let the Track Thread Run.
     sleep(10)

@@ -131,7 +131,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
-
         self.achieved_pointing_data = Queue()
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str] = (
@@ -930,7 +929,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.extended_time = self.extended_time + datetime.timedelta(
                 milliseconds=self.pointing_calculation_period
             )
-            time.sleep(0.001)
+            time.sleep(0.00005)
 
     def _is_elevation_within_mechanical_limits(
         self,
