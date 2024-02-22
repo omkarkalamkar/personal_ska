@@ -302,7 +302,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: list
         """
         self._actual_pointing[:] = value
-        self.logger.info("The updated actual pointing values are: %s", self._actual_pointing)
+        self.logger.debug("The updated actual pointing values are: %s", self._actual_pointing)
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
