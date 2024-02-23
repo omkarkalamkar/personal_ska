@@ -53,10 +53,10 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
-    assert wait_for_attribute_value(dish_master, "desiredPointing")
+    assert wait_for_attribute_value(dish_master, "programTrackTable")
 
-    desired_pointing = dish_master.read_attribute("desiredPointing").value
-    logger.info("The desired pointing is set to %s", desired_pointing)
+    program_track_table = dish_master.read_attribute("programTrackTable").value
+    logger.info("The desired pointing is set to %s", program_track_table)
 
     # Waiting for some time, to let the Track Thread Run.
     sleep(10)
@@ -91,7 +91,7 @@ def actual_pointing_attr(tango_context):
     dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
     extended_time = dt_utc + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
     utc_timestamp = extended_time.timestamp() * 1000
-    dish_master.desiredPointing = [utc_timestamp, 287.2504396, 77.8694392]
+    dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
     verify_value = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "actualPointing", expected_value=verify_value

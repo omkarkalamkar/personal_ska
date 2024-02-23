@@ -162,7 +162,11 @@ def json_factory():
 def cm() -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
-        DISH_MASTER_DEVICE, logger=logger, dish_availability_check_timeout=5
+        DISH_MASTER_DEVICE,
+        logger=logger,
+        track_table_entries=25,
+        pointing_calculation_period=100,
+        dish_availability_check_timeout=5,
     )
     yield cm
     # pylint: disable=unnecessary-dunder-call

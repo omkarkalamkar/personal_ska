@@ -42,6 +42,14 @@ def wait_for_ping(dishleafnode_cm):
             raise TimeoutError("Timeout waiting for device ping")
 
 
+def create_cm(device: str) -> DishLNComponentManager:
+    """Creates component manager for Dish Leaf Node."""
+    cm = DishLNComponentManager(
+        device, logger=logger, track_table_entries=25, pointing_calculation_period=100
+    )
+    return cm
+
+
 def get_dishln_command_obj(command_class, cm) -> tuple:
     """Returns component manager and command class object for Dish Leaf Node"""
 

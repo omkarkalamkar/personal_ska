@@ -3,6 +3,8 @@ function: telescope-monitoring
 domain: general-monitoring
 instances: ["01", "02", "03", "04"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
+{{- $TrackTableEntries := .Values.deviceServers.dishln.TrackTableEntries }}
+{{- $PointingCalculationPeriod := .Values.deviceServers.dishln.PointingCalculationPeriod }}
 server:
   name: "dish_leaf_node"
   instances:
@@ -25,6 +27,12 @@ server:
           - name: "LoggingLevelDefault"
             values:
               - "5"
+          - name: "TrackTableEntries"
+            values:
+              - "{{ $TrackTableEntries }}"
+          - name: "PointingCalculationPeriod"
+            values:
+              - "{{ $PointingCalculationPeriod }}"
   {{- end }}
 depends_on:
   - device: sys/database/2

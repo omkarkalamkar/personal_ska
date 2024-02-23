@@ -5,9 +5,10 @@ import asyncio
 import datetime
 import json
 import os
+import sched
 import threading
 
-# pylint: disable=W0222
+# pylint: disable=W0222, too-many-lines
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
@@ -42,14 +43,12 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
+from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, TRACK_TABLE_ENTRY_SIZE
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 
 # pylint: disable=abstract-method
-
-EXTEND_MILLISECONDS = 100
-
 # pylint: disable=R0902
 
 
@@ -63,6 +62,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self,
         dish_dev_name: str,
         logger: Logger,
+        track_table_entries: int,
+        pointing_calculation_period: int,
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
         pointing_callback: Optional[Callable] = None,
@@ -94,7 +95,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         EventReceiver object should be instantiated or not
         :param max_workers: allows to specify number of threads
         to be used by the liveliness probe;
-        :param proxy_timeout: allows to specify a client side timeou
+        :param proxy_timeout: allows to specify a client side timeout
         for sub-devices in milliseconds used by the liveliness probe;
         :param sleep_time: allows to specify the wait between
         each iteration of the liveliness probe and EventSubscriber;
@@ -150,6 +151,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if _liveliness_probe:
             self.start_liveliness_probe(_liveliness_probe)
+
+        self.update_availablity_callback = _update_availablity_callback
+
+        self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
+        self.program_track_table = []
+        self.dish_adapter = None
+        self.track_table_entries = track_table_entries
+        self.pointing_calculation_period = pointing_calculation_period
+
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
@@ -292,7 +302,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :value dtype: list
         """
         self._actual_pointing[:] = value
-        self.logger.info("The updated actual pointing values are: %s", self._actual_pointing)
+        self.logger.debug("The updated actual pointing values are: %s", self._actual_pointing)
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
@@ -851,26 +861,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def update_desired_pointing(self, dish_adapter, desired_pointing: list) -> None:
-        """Write the desired pointing attribute on dish master device.
+    def update_program_track_table(self) -> None:
+        """Write the programTrackTable attribute on dish master device."""
+        program_track_table = list(self.dish_adapter.programTrackTable)
+        # If programTrackTable is full, remove older entries
+        if len(program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
+            num_of_values_to_remove = TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
+            program_track_table = program_track_table[num_of_values_to_remove:]
 
-        :param dish_adapter: The dish master adapter.
-        :dish_adapter dtype: DishAdapter
-        :param desired_pointing: The desired pointing co-ordinates in the form
-            of a list.
-        :desired_pointing dtype: List of timestamp, Az, and El.
-
-        :rtype: None
-        """
-        self.logger.info(
-            "The desiredPointing coordinates are: %s",
-            desired_pointing,
-        )
-        dish_adapter.proxy.desiredPointing = desired_pointing
+        program_track_table = program_track_table + self.program_track_table
+        self.logger.debug("The programTrackTable is %s:", program_track_table)
+        self.dish_adapter.programTrackTable = program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
-        """This thread writes az-el coordinates to desiredPointing
+        """
+        This method manages calculation and writing of programTrackTable attribute
         on DishMaster at the rate of 20 Hz.
+
         Args:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
@@ -883,24 +890,52 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
+        self.dish_adapter = command_obj.dish_master_adapter
+        utc_now = datetime.datetime.utcnow()
+
+        # For future timestamp few seconds are added in current time.
+        # Divided by 1000 to convert ms to sec conversion.
+        time_to_add = (2 * self.track_table_entries * self.pointing_calculation_period) / 1000
+        self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
+
+        timestamp = self.convert_timestamp(self.extended_time.timestamp())
+        azel_converter.point(ra_value, dec_value, timestamp)
+        advance_time = self.track_table_entries * self.pointing_calculation_period
 
         while self.event_track_time.is_set() is False:
-            utc_now = datetime.datetime.utcnow()
-            # For the timestamp to be a future timestamp
-            # on DishMaster, 100 ms are added to it.
-            extended_time = utc_now + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
-            utc_timestamp = extended_time.timestamp() * 1000
+            self.program_track_table_calculator(ra_value, dec_value, azel_converter)
+            first_entry_timestamp = self.program_track_table[0]
+            # advance_time is subtracted to provide programTrackTable few seconds in advance
+            # Divided by 1000 for milliseconds to seconds conversion
+            scheduled_time = (first_entry_timestamp - advance_time) / 1000
+            if scheduled_time > datetime.datetime.utcnow().timestamp():
+                event_priority = 1
+                self.track_table_scheduler.enterabs(
+                    scheduled_time, event_priority, self.update_program_track_table
+                )
+                self.track_table_scheduler.run()
+            else:
+                with self.lock:
+                    self.update_program_track_table()
+
+    def program_track_table_calculator(
+        self, ra_value: str, dec_value: str, azel_converter
+    ) -> None:
+        """This method calculates one set on timestamp, Az and El.
+        Args:
+            ra_value (str): RA value in hours:minutes:sec
+            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+        """
+        self.program_track_table.clear()
+        for _ in range(self.track_table_entries):
+            utc_timestamp = self.extended_time.timestamp() * 1000
             timestamp = self.convert_timestamp(utc_timestamp)
             az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
-            self.logger.info("The Az/El values are -> %s, %s", az_value, el_value)
-
             if not self._is_elevation_within_mechanical_limits(el_value):
-                time.sleep(0.05)
+                time.sleep(self.pointing_calculation_period)
                 continue
-
             if az_value < 0:
                 az_value = 360 - abs(az_value)
-
             if self.event_track_time.is_set():
                 log_message = (
                     "Stop the Thread as event track time is set: "
@@ -909,18 +944,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug(log_message)
                 break
 
-            # utc_timestamp is the time used for AzEl calculation.
-            desired_pointing = [
-                utc_timestamp,
-                round(az_value, 12),
-                round(el_value, 12),
-            ]
-            self.update_desired_pointing(command_obj.dish_master_adapter, desired_pointing)
-            self.logger.info("Observer: %s", self.observer)
+            self.program_track_table.append(utc_timestamp)
+            self.program_track_table.append(round(az_value, 12))
+            self.program_track_table.append(round(el_value, 12))
 
-            time.sleep(0.05)
+            self.extended_time = self.extended_time + datetime.timedelta(
+                milliseconds=self.pointing_calculation_period
+            )
+            time.sleep(0.00005)
 
-    def _is_elevation_within_mechanical_limits(self, el_value):
+    def _is_elevation_within_mechanical_limits(
+        self,
+        el_value,
+    ):
         """Check if elevation is within mechanical limit
         Args:
             el_value: string
@@ -929,14 +965,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         if not self.elevation_min_limit <= el_value <= self.elevation_max_limit:
-            self.el_limit = True
+            self.elevation_limit = True
             self.logger.info(
                 "Minimum/maximum elevation limit has been reached."
                 + " Source is not visible currently."
             )
             return False
 
-        self.el_limit = False
+        self.elevation_limit = False
         return True
 
     # pylint: disable=arguments-differ
@@ -992,6 +1028,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         command_object.update_task_callback(ResultCode.FAILED, lrc_status[1])
         except Exception as exception:
             self.logger.error("Exception while processing longRunningCommandStatus", exception)
+
+    @property
+    def elevation_limit(self) -> bool:
+        """Returns the True if dish is within its mechanical limit."""
+        return self.el_limit
+
+    @elevation_limit.setter
+    def elevation_limit(self, elevation_limit: bool) -> None:
+        """Sets flag for elevation limit."""
+        if self.el_limit != elevation_limit:
+            self.el_limit = elevation_limit
 
     def stop_executors_and_cleanup_memory(self):
         """Method to clean up the code, stop running threads/sub-processes"""

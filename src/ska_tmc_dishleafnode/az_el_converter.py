@@ -55,7 +55,7 @@ class AzElConverter:
 
     def point(self, right_ascension: str, declination: str, timestamp: str) -> list:
         """This method converts Target RaDec coordinates
-        to the AzEl coordinates.It is called continuosly
+        to the AzEl coordinates.It is called continuously
         from Track command (in a thread) at interval
         of 50ms till the StopTrack command is invoked.
         Args:
@@ -105,7 +105,7 @@ class AzElConverter:
 
         ra = angle_to_string(ra_dec.ra, unit=u.hour, precision=2, show_unit=False)
         dec = angle_to_string(ra_dec.dec, unit=u.deg, precision=2, show_unit=False)
-        logger.info(
+        logger.debug(
             "The Right Ascension is %s and the Declination is %s after backward transform",
             ra,
             dec,
@@ -146,7 +146,7 @@ class AzElConverter:
             weather_data["humidity"],
         )
         refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
-        logger.info(
+        logger.debug(
             "The Azimuth value is %s and the Elevation is %s after forward transform.",
             azel.az.deg,
             refraction_corrected_angle.deg,

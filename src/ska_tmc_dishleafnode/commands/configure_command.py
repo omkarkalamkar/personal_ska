@@ -3,6 +3,7 @@ Configure class for DishLeafNode.
 """
 import json
 import threading
+import time
 from logging import Logger
 from typing import Callable, Optional
 
@@ -11,6 +12,7 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import TRACK_COMMAND_TIMEOUT, TRACK_TABLE_ENTRY_SIZE
 
 
 class Configure(DishLNCommand):
@@ -175,6 +177,17 @@ class Configure(DishLNCommand):
             receiver_band = json_argument["dish"]["receiver_band"]
             ra_value = json_argument["pointing"]["target"]["ra"]
             dec_value = json_argument["pointing"]["target"]["dec"]
+
+            # Start programTrackTable calculation
+            self.component_manager.elevation_limit = True
+            self.component_manager.event_track_time.clear()
+            self.tracking_thread = threading.Thread(
+                target=self.component_manager.track_thread,
+                args=[ra_value, dec_value, self],
+            )
+            if not self.tracking_thread.is_alive():
+                self.tracking_thread.start()
+
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance with Dish Master
@@ -186,9 +199,7 @@ class Configure(DishLNCommand):
                 result_code, message = self.ensure_dish_is_configured(receiver_band)
                 if result_code == ResultCode.FAILED:
                     return result_code, message
-                result_code, message = self.start_dish_tracking(
-                    current_dish_mode, ra_value, dec_value
-                )
+                result_code, message = self.start_dish_tracking(current_dish_mode)
                 if result_code == ResultCode.FAILED:
                     return result_code, message
 
@@ -203,14 +214,14 @@ class Configure(DishLNCommand):
             )
         return result_code, message
 
-    def start_dish_tracking(self, current_dish_mode, ra_value, dec_value):
+    def start_dish_tracking(self, current_dish_mode):
         """Invoke Track after waiting for DishMode to Operate"""
         if current_dish_mode == DishMode.STANDBY_FP:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
                 return result_code, message
         # start tracking thread
-        result_code, message = self.start_tracking_thread(ra_value, dec_value)
+        result_code, message = self.invoke_track_command()
         return result_code, message
 
     def ensure_dish_is_configured(self, receiver_band):
@@ -248,11 +259,18 @@ class Configure(DishLNCommand):
             )
         return ResultCode.OK, ""
 
-    def start_tracking_thread(self, ra_value, dec_value):
-        """Invoke Track command and start tracking thread
-        :param ra_value: Ra value
-        :param dec_value: Dec value
-        """
+    def invoke_track_command(self):
+        """Invoke Track command on dish"""
+        # Wait until 2 set of programTrackTable entries are reached
+        start_time = time.time()
+        while (time.time() - start_time) < TRACK_COMMAND_TIMEOUT:
+            if (
+                len(self.dish_master_adapter.programTrackTable)
+                >= 2 * TRACK_TABLE_ENTRY_SIZE * self.component_manager.track_table_entries
+            ):
+                break
+            time.sleep(0.5)
+
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
@@ -260,17 +278,5 @@ class Configure(DishLNCommand):
             self.logger.error(f"Track Invocation Failed {message}")
             return result_code[0], message[0]
 
-        # start tracking thread
-        self.component_manager.el_limit = True
-        self.component_manager.event_track_time.clear()
-        self.tracking_thread = threading.Thread(
-            target=self.component_manager.track_thread,
-            args=[ra_value, dec_value, self],
-        )
-        self.tracking_thread.start()
-        self.logger.info(
-            "Track command invoked successfully with ra: %s and dec: %s",
-            ra_value,
-            dec_value,
-        )
+        self.logger.info("Invoked Track command successfully on dish.")
         return result_code[0], message[0]

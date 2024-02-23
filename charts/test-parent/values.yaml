@@ -33,6 +33,8 @@ tmc-dishleafnode:
       enabled: true
     dishln:
       enabled: true
+      TrackTableEntries: 25
+      PointingCalculationPeriod: 100
 
 ska-taranta:
   enabled: false
