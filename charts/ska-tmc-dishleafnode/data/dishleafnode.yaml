@@ -26,7 +26,7 @@ server:
               - "tango::logger"
           - name: "LoggingLevelDefault"
             values:
-              - "4"
+              - "5"
           - name: "TrackTableEntries"
             values:
               - "{{ $TrackTableEntries }}"
