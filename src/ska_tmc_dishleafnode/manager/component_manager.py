@@ -864,14 +864,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_program_track_table(self) -> None:
         """Write the programTrackTable attribute on dish master device."""
         program_track_table = list(self.dish_adapter.programTrackTable)
+        self.logger.info("program_track_table: %s", program_track_table)
+        self.logger.info("len of program_track_table: %s", len(program_track_table))
         # If programTrackTable is full, remove older entries
         if len(program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
             num_of_values_to_remove = TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
             program_track_table = program_track_table[num_of_values_to_remove:]
 
         program_track_table = program_track_table + self.program_track_table
-        self.logger.debug("The programTrackTable is %s:", program_track_table)
+        self.logger.debug("self.program_track_table is %s:", self.program_track_table)
+        self.logger.debug("len of The programTrackTable is %s:", len(program_track_table))
+        self.logger.debug("The program_track_table is %s:", program_track_table)
         self.dish_adapter.programTrackTable = program_track_table
+        self.logger.debug(
+            "The programTrackTable is %s:", list(self.dish_adapter.programTrackTable)
+        )
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
@@ -909,12 +916,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             # Divided by 1000 for milliseconds to seconds conversion
             scheduled_time = (first_entry_timestamp - advance_time) / 1000
             if scheduled_time > datetime.datetime.utcnow().timestamp():
+                self.logger.info("In if part of program track table calling")
                 event_priority = 1
                 self.track_table_scheduler.enterabs(
                     scheduled_time, event_priority, self.update_program_track_table
                 )
                 self.track_table_scheduler.run()
             else:
+                self.logger.info("In else part of program track table calling")
                 with self.lock:
                     self.update_program_track_table()
 
