@@ -155,7 +155,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.update_availablity_callback = _update_availablity_callback
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.program_track_table = []
         self.dish_adapter = None
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
@@ -864,8 +863,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_program_track_table(self, program_track_table) -> None:
         """Write the programTrackTable attribute on dish master device."""
         dish_program_track_table = list(self.dish_adapter.programTrackTable)
-        self.logger.info("program_track_table: %s", dish_program_track_table)
-        self.logger.info("len of program_track_table: %s", len(dish_program_track_table))
         # If programTrackTable is full, remove older entries
         if len(dish_program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
             num_of_values_to_remove = TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
