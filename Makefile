@@ -110,6 +110,7 @@ K8S_TEST_TEST_COMMAND = $(PYTHON_VARS_BEFORE_PYTEST) $(PYTHON_RUNNER) \
 						pytest \
 						$(PYTHON_VARS_AFTER_PYTEST) ./tests \
 						| tee pytest.stdout
+-include .make/base.mk
 -include .make/k8s.mk
 -include .make/python.mk
 -include .make/helm.mk
