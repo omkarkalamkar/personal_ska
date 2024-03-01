@@ -869,7 +869,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # If programTrackTable is full, remove older entries
         if len(program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
             num_of_values_to_remove = TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
-            program_track_table = program_track_table[num_of_values_to_remove:]
+            program_track_table = program_track_table[
+                num_of_values_to_remove:PROGRAM_TRACK_TABLE_SIZE
+            ]
 
         program_track_table = program_track_table + self.program_track_table
         self.logger.debug("self.program_track_table is %s:", self.program_track_table)
