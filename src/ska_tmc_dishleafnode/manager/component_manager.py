@@ -914,7 +914,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             # Divided by 1000 for milliseconds to seconds conversion
             scheduled_time = (first_entry_timestamp - advance_time) / 1000
             if scheduled_time > datetime.datetime.utcnow().timestamp():
-                self.logger.info("In if part of program track table calling")
                 event_priority = 1
                 self.track_table_scheduler.enterabs(
                     scheduled_time,
@@ -924,7 +923,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
                 self.track_table_scheduler.run()
             else:
-                self.logger.info("In else part of program track table calling")
                 with self.lock:
                     self.update_program_track_table(program_track_table)
 
