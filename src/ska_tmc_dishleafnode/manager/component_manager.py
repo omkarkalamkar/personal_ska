@@ -861,23 +861,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def update_program_track_table(self) -> None:
+    def update_program_track_table(self, program_track_table) -> None:
         """Write the programTrackTable attribute on dish master device."""
-        program_track_table = list(self.dish_adapter.programTrackTable)
-        self.logger.info("program_track_table: %s", program_track_table)
-        self.logger.info("len of program_track_table: %s", len(program_track_table))
+        dish_program_track_table = list(self.dish_adapter.programTrackTable)
+        self.logger.info("program_track_table: %s", dish_program_track_table)
+        self.logger.info("len of program_track_table: %s", len(dish_program_track_table))
         # If programTrackTable is full, remove older entries
-        if len(program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
+        if len(dish_program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
             num_of_values_to_remove = TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
-            program_track_table = program_track_table[
+            dish_program_track_table = dish_program_track_table[
                 num_of_values_to_remove:PROGRAM_TRACK_TABLE_SIZE
             ]
 
-        program_track_table = program_track_table + self.program_track_table
-        self.logger.debug("self.program_track_table is %s:", self.program_track_table)
-        self.logger.debug("len of The programTrackTable is %s:", len(program_track_table))
-        self.logger.debug("The program_track_table is %s:", program_track_table)
-        self.dish_adapter.programTrackTable = program_track_table
+        updated_program_track_table = dish_program_track_table + program_track_table
+        self.dish_adapter.programTrackTable = updated_program_track_table
         self.logger.debug(
             "The programTrackTable is %s:", list(self.dish_adapter.programTrackTable)
         )
@@ -912,8 +909,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         advance_time = self.track_table_entries * self.pointing_calculation_period
 
         while self.event_track_time.is_set() is False:
-            self.program_track_table_calculator(ra_value, dec_value, azel_converter)
-            first_entry_timestamp = self.program_track_table[0]
+            program_track_table = self.program_track_table_calculator(
+                ra_value, dec_value, azel_converter
+            )
+            first_entry_timestamp = program_track_table[0]
             # advance_time is subtracted to provide programTrackTable few seconds in advance
             # Divided by 1000 for milliseconds to seconds conversion
             scheduled_time = (first_entry_timestamp - advance_time) / 1000
@@ -921,23 +920,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.info("In if part of program track table calling")
                 event_priority = 1
                 self.track_table_scheduler.enterabs(
-                    scheduled_time, event_priority, self.update_program_track_table
+                    scheduled_time,
+                    event_priority,
+                    self.update_program_track_table,
+                    argument=(program_track_table,),
                 )
                 self.track_table_scheduler.run()
             else:
                 self.logger.info("In else part of program track table calling")
                 with self.lock:
-                    self.update_program_track_table()
+                    self.update_program_track_table(program_track_table)
 
     def program_track_table_calculator(
         self, ra_value: str, dec_value: str, azel_converter
-    ) -> None:
+    ) -> list:
         """This method calculates one set on timestamp, Az and El.
         Args:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
         """
-        self.program_track_table.clear()
+        program_track_table = []
         for _ in range(self.track_table_entries):
             utc_timestamp = self.extended_time.timestamp() * 1000
             timestamp = self.convert_timestamp(utc_timestamp)
@@ -955,14 +957,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug(log_message)
                 break
 
-            self.program_track_table.append(utc_timestamp)
-            self.program_track_table.append(round(az_value, 12))
-            self.program_track_table.append(round(el_value, 12))
+            program_track_table.append(utc_timestamp)
+            program_track_table.append(round(az_value, 12))
+            program_track_table.append(round(el_value, 12))
 
             self.extended_time = self.extended_time + datetime.timedelta(
                 milliseconds=self.pointing_calculation_period
             )
             time.sleep(0.00005)
+        return program_track_table
 
     def _is_elevation_within_mechanical_limits(
         self,
