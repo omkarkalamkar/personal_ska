@@ -50,8 +50,8 @@ resources:
     cpu: 1000m
     memory: 1000Mi
   requests:
-    cpu: 700m
-    memory: 700Mi
+    cpu: 800m
+    memory: 800Mi
 
 deviceServers:
   mocks:
