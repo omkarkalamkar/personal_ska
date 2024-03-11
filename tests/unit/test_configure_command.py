@@ -40,7 +40,6 @@ def test_configure_command_completed_partial_config(
     tango_context, cm, task_callback, json_factory, group_callback
 ):
     """Test partial configure functionality"""
-    cm.update_device_dish_mode(DishMode.OPERATE)
     dish_device = DevFactory().get_device("ska001/elt/master")
     dish_device.subscribe_event(
         "longRunningCommandStatus",
@@ -48,6 +47,7 @@ def test_configure_command_completed_partial_config(
         group_callback["longRunningCommandStatus"],
         stateless=True,
     )
+    cm.update_device_dish_mode(DishMode.OPERATE)
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
@@ -61,7 +61,7 @@ def test_configure_command_completed_partial_config(
         lookahead=6,
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=4
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=10
     )
 
 

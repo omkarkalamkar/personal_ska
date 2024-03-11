@@ -73,12 +73,11 @@ def event_remover(group_callback, attributes: List[str]) -> None:
 
 def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
     """Waits for dishmode to become given dish mode. Times out if the change
-    does not occure. Current timeout is 10s.
+    does not occur. Current timeout is 10s.
     """
     start_time = time.time()
     elapsed_time = 0
     while elapsed_time < TIMEOUT:
-        logger.info("Current Dishmode is %s", cm.dishMode)
         if cm.dishMode == dish_mode:
             return True
         elapsed_time = time.time() - start_time
