@@ -1051,7 +1051,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def stop_executors_and_cleanup_memory(self):
         """Method to clean up the code, stop running threads/sub-processes"""
-        self.logger.info("Inside stop_executors_and_cleanup_memory")
         if self.actual_pointing_process.is_alive():
             self.stop_event_receiver()
             self.stop_liveliness_probe()
@@ -1069,6 +1068,5 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         DishLN Component Manager Destructor method.
         This method is automatically called when the object is about to be destroyed.
         """
-        self.logger.info("Inside Component Manager Destructor")
         with self.process_lock:
             self.stop_executors_and_cleanup_memory()
