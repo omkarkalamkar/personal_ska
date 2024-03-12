@@ -262,14 +262,14 @@ class Configure(DishLNCommand):
     def invoke_track_command(self):
         """Invoke Track command on dish"""
         # Wait until 2 set of programTrackTable entries are reached
-        start_time = time.time()
-        while (time.time() - start_time) < TRACK_COMMAND_TIMEOUT:
-            if (
-                len(self.dish_master_adapter.programTrackTable)
-                >= 2 * TRACK_TABLE_ENTRY_SIZE * self.component_manager.track_table_entries
-            ):
-                break
-            time.sleep(0.5)
+        # start_time = time.time()
+        # while (time.time() - start_time) < TRACK_COMMAND_TIMEOUT:
+        #     if (
+        #         len(self.dish_master_adapter.programTrackTable)
+        #         >= 2 * TRACK_TABLE_ENTRY_SIZE * self.component_manager.track_table_entries
+        #     ):
+        #         break
+        #     time.sleep(0.5)
 
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
