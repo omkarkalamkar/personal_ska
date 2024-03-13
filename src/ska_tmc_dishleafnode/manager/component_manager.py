@@ -67,6 +67,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         communication_state_callback: Optional[Callable] = None,
         component_state_callback: Optional[Callable] = None,
         pointing_callback: Optional[Callable] = None,
+        _update_dishMode_callback=None,
+        _update_pointingstate_callback=None,
         kvalue_validation_callback: Optional[Callable] = None,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
@@ -130,6 +132,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
         self.pointing_callback = pointing_callback
+        self._update_dishMode_callback = _update_dishMode_callback
+        self._update_pointingstate_callback = _update_pointingstate_callback
         self._kvalue: int = 0
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
@@ -795,6 +799,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+            self.logger.info(f"dishMode value updated to {dish_mode}")
+            if self._update_dishMode_callback:
+                self._update_dishMode_callback(dish_mode)
 
     def update_device_pointing_state(self, pointingState: PointingState) -> None:
         """
@@ -808,6 +815,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+            self.logger.info(f"PoitingState value updated to {pointingState}")
+            if self._update_pointingstate_callback:
+                self._update_pointingstate_callback(pointingState)
 
     def update_device_configured_band(self, configured_band: Band) -> None:
         """
