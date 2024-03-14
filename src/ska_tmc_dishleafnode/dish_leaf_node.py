@@ -36,14 +36,6 @@ class DishLeafNode(SKABaseDevice):
             Stores Dish Master Device name.
     """
 
-    def init_devices(self):
-        """
-        Initialise the tango device after startup.
-        """
-        super().init_devices()
-        self._dishMode = DishMode.UNKNOWN
-        self._pointingState = PointingState.NONE
-
     # -----------------
     # Device Properties
     # -----------------
@@ -123,6 +115,8 @@ class DishLeafNode(SKABaseDevice):
             {release.description}"""
             device._version_id = release.version
             device._isSubsystemAvailable = True
+            device._dishMode = DishMode.UNKNOWN
+            device._pointingState = PointingState.NONE
             device._dishln_name = device.get_name()
             device.set_change_event("healthState", True, False)
             device.set_change_event("isSubsystemAvailable", True, False)
