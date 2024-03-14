@@ -134,6 +134,24 @@ def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callb
         )
     dish_master.SetDirectPointingState(PointingState.NONE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.NONE),
+        lookahead=5,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,

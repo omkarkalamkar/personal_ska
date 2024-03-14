@@ -122,6 +122,8 @@ class DishLeafNode(SKABaseDevice):
             device.set_change_event("isSubsystemAvailable", True, False)
             device.set_change_event("actualPointing", True, False)
             device.set_change_event("kValueValidationResult", True, False)
+            device.set_change_event("dishMode", True, False)
+            device.set_change_event("pointingState", True, False)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -622,6 +624,8 @@ class DishLeafNode(SKABaseDevice):
             kvalue_validation_callback=self.kvalue_validation_callback,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
+            _update_dishMode_callback=(self.update_dishMode_callback),
+            _update_pointingstate_callback=(self.update_pointingstate_callback),
             sleep_time=self.SleepTime,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,

@@ -815,7 +815,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-            self.logger.info(f"PoitingState value updated to {pointingState}")
+            self.logger.info(f"PointingState value updated to {pointingState}")
             if self._update_pointingstate_callback:
                 self._update_pointingstate_callback(pointingState)
 
