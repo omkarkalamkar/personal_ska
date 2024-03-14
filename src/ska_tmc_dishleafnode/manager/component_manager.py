@@ -47,6 +47,7 @@ from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, TRACK_TABLE
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
+from .program_track_table_calculator import ProgramTrackTableCalculator
 
 # pylint: disable=abstract-method
 # pylint: disable=R0902
@@ -158,6 +159,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_adapter = None
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
+        self.track_table_calculator = ProgramTrackTableCalculator(self, self.logger)
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -906,7 +908,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         advance_time = self.track_table_entries * self.pointing_calculation_period
 
         while self.event_track_time.is_set() is False:
-            program_track_table = self.program_track_table_calculator(
+            program_track_table = self.track_table_calculator.program_track_table_calculator(
                 ra_value, dec_value, azel_converter
             )
             first_entry_timestamp = program_track_table[0]
@@ -925,64 +927,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             else:
                 with self.lock:
                     self.update_program_track_table(program_track_table)
-
-    def program_track_table_calculator(
-        self, ra_value: str, dec_value: str, azel_converter
-    ) -> list:
-        """This method calculates one set on timestamp, Az and El.
-        Args:
-            ra_value (str): RA value in hours:minutes:sec
-            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
-        """
-        program_track_table = []
-        for _ in range(self.track_table_entries):
-            utc_timestamp = self.extended_time.timestamp() * 1000
-            timestamp = self.convert_timestamp(utc_timestamp)
-            az_value, el_value = azel_converter.point(ra_value, dec_value, timestamp)
-            if not self._is_elevation_within_mechanical_limits(el_value):
-                time.sleep(self.pointing_calculation_period)
-                continue
-            if az_value < 0:
-                az_value = 360 - abs(az_value)
-            if self.event_track_time.is_set():
-                log_message = (
-                    "Stop the Thread as event track time is set: "
-                    f"{self.event_track_time.is_set()}"
-                )
-                self.logger.debug(log_message)
-                break
-
-            program_track_table.append(utc_timestamp)
-            program_track_table.append(round(az_value, 12))
-            program_track_table.append(round(el_value, 12))
-
-            self.extended_time = self.extended_time + datetime.timedelta(
-                milliseconds=self.pointing_calculation_period
-            )
-            time.sleep(0.00005)
-        return program_track_table
-
-    def _is_elevation_within_mechanical_limits(
-        self,
-        el_value,
-    ):
-        """Check if elevation is within mechanical limit
-        Args:
-            el_value: string
-        Return:
-            bool
-        """
-
-        if not self.elevation_min_limit <= el_value <= self.elevation_max_limit:
-            self.elevation_limit = True
-            self.logger.info(
-                "Minimum/maximum elevation limit has been reached."
-                + " Source is not visible currently."
-            )
-            return False
-
-        self.elevation_limit = False
-        return True
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:

@@ -5,6 +5,7 @@ import json
 import threading
 import time
 from logging import Logger
+from multiprocessing import Process
 from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
@@ -181,12 +182,20 @@ class Configure(DishLNCommand):
             # Start programTrackTable calculation
             self.component_manager.elevation_limit = True
             self.component_manager.event_track_time.clear()
-            self.tracking_thread = threading.Thread(
+
+            # self.tracking_thread = threading.Thread(
+            #     target=self.component_manager.track_thread,
+            #     args=[ra_value, dec_value, self],
+            # )
+            # if not self.tracking_thread.is_alive():
+            #     self.tracking_thread.start()
+
+            self.track_table_process = Process(
                 target=self.component_manager.track_thread,
                 args=[ra_value, dec_value, self],
             )
-            # if not self.tracking_thread.is_alive():
-            #     self.tracking_thread.start()
+            if not self.track_table_process.is_alive():
+                self.track_table_process.start()
 
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
