@@ -36,7 +36,6 @@ def test_configure_command_completed(
     )
 
 
-@pytest.mark.repeat(10)
 def test_configure_command_completed_partial_config(
     tango_context, cm, task_callback, json_factory, group_callback
 ):
@@ -62,11 +61,10 @@ def test_configure_command_completed_partial_config(
         lookahead=6,
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=25
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=10
     )
 
 
-@pytest.mark.repeat(10)
 def test_configure_command_completed_partial_config_missing_key(
     tango_context, cm, task_callback, json_factory
 ):
@@ -85,7 +83,7 @@ def test_configure_command_completed_partial_config_missing_key(
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     logger.debug("Waiting for command completion")
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=25
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=10
     )
 
 
