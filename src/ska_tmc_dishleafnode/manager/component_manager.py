@@ -906,7 +906,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         timestamp = self.convert_timestamp(self.extended_time.timestamp())
         azel_converter.point(ra_value, dec_value, timestamp)
         advance_time = self.track_table_entries * self.pointing_calculation_period
-        
 
         while self.event_track_time.is_set() is False:
             program_track_table = self.track_table_calculator.calculate_program_track_table(
@@ -928,7 +927,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             else:
                 with self.lock:
                     self.update_program_track_table(program_track_table)
-
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:
