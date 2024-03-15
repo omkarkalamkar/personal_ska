@@ -190,8 +190,10 @@ class Configure(DishLNCommand):
                 target=self.component_manager.track_thread,
                 args=[ra_value, dec_value, self],
             )
-            if not self.tracking_thread.is_alive():
-                self.tracking_thread.start()
+
+            # tracking is not starting to debug unit test failures
+            # if not self.tracking_thread.is_alive():
+            #     self.tracking_thread.start()
 
             # self.track_table_process = Process(
             #     target=self.component_manager.track_thread,
