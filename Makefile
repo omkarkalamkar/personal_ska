@@ -87,7 +87,7 @@ endif
 
 # Applying exit at fail for k8s tests only
 ifeq ($(MAKECMDGOALS),k8s-test)
-ifeq ($(EXIT_AT_FAIL),true)
+ifeq ($(EXIT_AT_FAIL),false)
 ADD_ARGS += -x
 endif
 endif

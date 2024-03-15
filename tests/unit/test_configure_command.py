@@ -36,6 +36,7 @@ def test_configure_command_completed(
     )
 
 
+@pytest.mark.repeat(10)
 def test_configure_command_completed_partial_config(
     tango_context, cm, task_callback, json_factory, group_callback
 ):
@@ -65,6 +66,7 @@ def test_configure_command_completed_partial_config(
     )
 
 
+@pytest.mark.repeat(10)
 def test_configure_command_completed_partial_config_missing_key(
     tango_context, cm, task_callback, json_factory
 ):
