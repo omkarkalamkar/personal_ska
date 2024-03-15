@@ -78,7 +78,6 @@ def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
     start_time = time.time()
     elapsed_time = 0
     while elapsed_time < TIMEOUT:
-        logger.info("DishMode in while loop: %s", cm.dishMode)
         if cm.dishMode == dish_mode:
             return True
         elapsed_time = time.time() - start_time
