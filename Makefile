@@ -72,7 +72,7 @@ EXIT_AT_FAIL ?= true
 PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
-ifeq ($(EXIT_AT_FAIL),true)
+ifeq ($(EXIT_AT_FAIL),false)
 ADD_ARGS += -x
 endif
 MARK = not post_deployment and not acceptance
@@ -87,7 +87,7 @@ endif
 
 # Applying exit at fail for k8s tests only
 ifeq ($(MAKECMDGOALS),k8s-test)
-ifeq ($(EXIT_AT_FAIL),false)
+ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
 endif
 endif
