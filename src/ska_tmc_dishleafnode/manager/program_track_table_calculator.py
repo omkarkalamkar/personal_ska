@@ -11,7 +11,7 @@ class ProgramTrackTableCalculator:
         self.component_manager = component_manager
         self.logger = logger
 
-    def program_track_table_calculator(
+    def calculate_program_track_table(
         self, ra_value: str, dec_value: str, azel_converter
     ) -> list:
         """This method calculates programTrackTable.
