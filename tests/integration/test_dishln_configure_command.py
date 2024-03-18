@@ -39,11 +39,6 @@ def configure_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
@@ -160,11 +155,6 @@ def partial_configure_dish_leaf_node(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
-    )
-    dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
     )
 
     group_callback["dishMode"].assert_change_event(

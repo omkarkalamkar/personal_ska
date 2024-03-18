@@ -146,12 +146,12 @@ class DishLeafNode(SKABaseDevice):
         self.push_change_event("actualPointing", json.dumps(actual_pointing))
 
     def update_dishMode_callback(self, dish_mode: DishMode) -> None:
-        """Push an event for the update_dishMode_callback attribute."""
+        """Push an event for the change of dishMode attribute."""
         self._dishMode = dish_mode
         self.push_change_event("dishMode", self._dishMode)
 
     def update_pointingstate_callback(self, pointing_state: PointingState) -> None:
-        """Push an event for the update_pointingstate_callback attribute."""
+        """Push an event for change of pointingState attribute."""
         self._pointingState = pointing_state
         self.push_change_event("pointingState", self._pointingState)
 
@@ -186,11 +186,25 @@ class DishLeafNode(SKABaseDevice):
         return json.dumps(self.component_manager.actual_pointing)
 
     def read_dishMode(self):
-        """Returns the read_dishMode attribute value."""
+        """
+        Returns the dishMode attribute value.
+
+        :return: The current value of the dishMode attribute.
+
+        :rtype: DishMode
+
+        """
         return self._dishMode
 
     def read_pointingState(self):
-        """Returns the read_pointingState attribute value."""
+        """
+        Returns the pointingState attribute value.
+
+        :return: The current value of the pointingState attribute.
+
+        :rtype: PointingState
+
+        """
         return self._pointingState
 
     @attribute(
@@ -624,8 +638,8 @@ class DishLeafNode(SKABaseDevice):
             kvalue_validation_callback=self.kvalue_validation_callback,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
-            _update_dishMode_callback=(self.update_dishMode_callback),
-            _update_pointingstate_callback=(self.update_pointingstate_callback),
+            _update_dishMode_callback=self.update_dishMode_callback,
+            _update_pointingstate_callback=self.update_pointingstate_callback,
             sleep_time=self.SleepTime,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,

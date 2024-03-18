@@ -23,12 +23,6 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,

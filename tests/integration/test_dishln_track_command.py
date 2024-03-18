@@ -27,6 +27,16 @@ def track_dish_leaf_node(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
     dish_master.SetDirectPointingState(PointingState.READY)
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=2,
+    )
+
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,

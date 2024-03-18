@@ -64,12 +64,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         track_table_entries: int,
         pointing_calculation_period: int,
-        communication_state_callback: Optional[Callable] = None,
-        component_state_callback: Optional[Callable] = None,
-        pointing_callback: Optional[Callable] = None,
-        _update_dishMode_callback=None,
-        _update_pointingstate_callback=None,
-        kvalue_validation_callback: Optional[Callable] = None,
+        _update_dishMode_callback: Callable,
+        _update_pointingstate_callback: Callable,
+        communication_state_callback: Callable,
+        component_state_callback: Callable,
+        pointing_callback: Callable,
+        kvalue_validation_callback: Callable,
+        _update_availablity_callback: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -82,7 +83,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
-        _update_availablity_callback: Optional[Callable] = None,
     ):
         """
         Initialise a new ComponentManager instance.

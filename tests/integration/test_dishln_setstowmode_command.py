@@ -13,6 +13,15 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_FP)
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=2,
+    )
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
