@@ -6,8 +6,7 @@ import threading
 
 # import time
 from logging import Logger
-
-# from multiprocessing import Process
+from multiprocessing import Process
 from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
@@ -191,14 +190,13 @@ class Configure(DishLNCommand):
                 args=[ra_value, dec_value, self],
             )
 
-            # tracking is not starting to debug unit test failures
-            # if not self.tracking_thread.is_alive():
-            #     self.tracking_thread.start()
+            if not self.tracking_thread.is_alive():
+                self.tracking_thread.start()
 
-            # self.track_table_process = Process(
-            #     target=self.component_manager.track_thread,
-            #     args=[ra_value, dec_value, self],
-            # )
+            self.track_table_process = Process(
+                target=self.component_manager.track_thread,
+                args=[ra_value, dec_value, self],
+            )
             # if not self.track_table_process.is_alive():
             #     self.logger.info("Start ProgramTrackTable calculation...")
             #     self.track_table_process.start()
