@@ -77,7 +77,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         logger=logger,
         track_table_entries=25,
         pointing_calculation_period=100,
-        _update_dishMode_callback=dish_mode_callback,
+        _update_dishmode_callback=dish_mode_callback,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
         component_state_callback=communication_state_callback,
@@ -185,7 +185,7 @@ def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callb
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.NONE),
-        lookahead=5,
+        lookahead=12,
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),

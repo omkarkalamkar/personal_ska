@@ -37,7 +37,7 @@ def test_configure_command_completed(
     )
 
 
-@pytest.mark.skip(reason="test case will be fixed as parat of SAH-1472")
+@pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_configure_command_completed_partial_config(
     tango_context, cm, task_callback, json_factory, group_callback
 ):
@@ -67,7 +67,7 @@ def test_configure_command_completed_partial_config(
     )
 
 
-@pytest.mark.skip(reason="test case will be fixed as parat of SAH-1472")
+@pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_configure_command_completed_partial_config_missing_key(
     tango_context, cm, task_callback, json_factory
 ):
@@ -90,7 +90,7 @@ def test_configure_command_completed_partial_config_missing_key(
     )
 
 
-@pytest.mark.skip(reason="test case will be fixed as parat of SAH-1472")
+@pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_configure_command_adapter_none(task_callback, cm, json_factory):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()

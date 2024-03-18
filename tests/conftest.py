@@ -196,7 +196,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         track_table_entries=25,
         pointing_calculation_period=100,
         dish_availability_check_timeout=5,
-        _update_dishMode_callback=dish_mode_callback,
+        _update_dishmode_callback=dish_mode_callback,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
         component_state_callback=communication_state_callback,

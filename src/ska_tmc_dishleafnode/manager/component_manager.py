@@ -64,7 +64,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         track_table_entries: int,
         pointing_calculation_period: int,
-        _update_dishMode_callback: Callable,
+        _update_dishmode_callback: Callable,
         _update_pointingstate_callback: Callable,
         communication_state_callback: Callable,
         component_state_callback: Callable,
@@ -132,7 +132,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
         self.pointing_callback = pointing_callback
-        self._update_dishMode_callback = _update_dishMode_callback
+        self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
         self._kvalue: int = 0
         self._kValueValidationResult = ResultCode.STARTED
@@ -800,8 +800,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
             self.logger.info(f"dishMode value updated to {dish_mode}")
-            if self._update_dishMode_callback:
-                self._update_dishMode_callback(dish_mode)
+            if self._update_dishmode_callback:
+                self._update_dishmode_callback(dish_mode)
 
     def update_device_pointing_state(self, pointingState: PointingState) -> None:
         """
