@@ -232,7 +232,7 @@ def partial_configure_dish_leaf_node(
         lookahead=2,
     )
     group_callback["dishMode"].assert_change_event(
-        (DishMode.STAND_FP),
+        (DishMode.STANDBY_FP),
         lookahead=6,
     )
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
