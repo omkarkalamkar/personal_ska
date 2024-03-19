@@ -159,11 +159,11 @@ def json_factory():
     return _get_json
 
 
-def dish_mode_callback():
+def dish_mode_callback(argin):
     """An empty dishmode callback"""
 
 
-def pointing_state_callback():
+def pointing_state_callback(argin):
     """An empty pointingstate callback"""
 
 
@@ -175,7 +175,7 @@ def component_state_callback():
     """An empty component_state callback"""
 
 
-def pointing_callback():
+def pointing_callback(argin):
     """An empty pointing callback"""
 
 
@@ -183,7 +183,7 @@ def kvalue_validation_callback():
     """An empty kvalue_validation callback"""
 
 
-def update_availablity_callback():
+def update_availablity_callback(argin):
     """An empty update_availablity callback"""
 
 
