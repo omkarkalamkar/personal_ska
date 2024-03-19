@@ -1,4 +1,4 @@
-"""Scan command class for Dishleafnode."""
+"""EndScan command class for Dishleafnode."""
 
 import threading
 from logging import Logger
@@ -10,27 +10,24 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
 
-class Scan(DishLNCommand):
+class EndScan(DishLNCommand):
     """
-    A class for Dishleafnode's Scan command. Scan command is
+    A class for Dishleafnode's EndScan command. EndScan command is
     inherited from DishLNCommand.
 
-    This command invokes Scan command on Dish Master
+    This command invokes EndScan command on Dish Master
     """
 
     # pylint: disable=unused-argument
-    def scan(
+    def endscan(
         self,
-        argin: str,
         logger: Logger,
-        task_callback: Callable = None,
+        task_callback: Callable,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-        """This is a long running method for Scan command, it
-        executes the do hook, invoking Scan command on Dish Master
+        """This is a long running method for EndScan command, it
+        executes the do hook, invoking EndScan command on Dish Master
 
-        :param argin: Input JSON string
-        :type argin : str
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
@@ -40,7 +37,7 @@ class Scan(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        result_code, message = self.do(argin)
+        result_code, message = self.do()
         logger.info(message)
         if result_code == ResultCode.FAILED:
             task_callback(
@@ -54,13 +51,10 @@ class Scan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    # pylint: disable=signature-differs
-    def do(self, argin: str):
+    # pylint: disable=arguments-differ
+    def do(self):
         """
-        Method to invoke Scan command on Dish Master.
-
-        param argin:
-            None
+        Method to invoke EndScan command on Dish Master.
 
         return:
             (ResultCode, str)
@@ -69,9 +63,16 @@ class Scan(DishLNCommand):
         if result_code == ResultCode.FAILED:
             self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
             return result_code, message
-
         result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "Scan", argin
+            "Dish Master",
+            self.dish_master_adapter,
+            "EndScan",
         )
-
+        self.logger.info(
+            "The scanID attribute of dish master is %s", self.dish_master_adapter.scanID
+        )
+        self.dish_master_adapter.scanID = ""
+        self.logger.info(
+            "The updated scanID attribute of dish master is %s", self.dish_master_adapter.scanID
+        )
         return result_code[0], message[0]

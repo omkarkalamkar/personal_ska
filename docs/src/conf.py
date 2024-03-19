@@ -31,7 +31,6 @@ autodoc_mock_imports = [
     "command",
     "future",
     "future.utils",
-    "numpy",
     "CODEC",
     "ValidationError",
     "transitions",

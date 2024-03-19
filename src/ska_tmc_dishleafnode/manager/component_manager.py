@@ -33,6 +33,7 @@ from ska_tmc_common import (
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     Configure,
+    EndScan,
     Off,
     Scan,
     SetOperateMode,
@@ -191,6 +192,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.scan_command = Scan(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.endscan_command = EndScan(
             self,
             self.op_state_model,
             __adapter_factory,
@@ -455,17 +462,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
-    def scan(self, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
+    def scan(self, argin: str, task_callback: Optional[Callable] = None) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
         :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.scan_command.scan,
-            args=[self.logger],
+            args=[argin, self.logger],
             task_callback=task_callback,
         )
         self.logger.info("Scan command queued for execution")
+        return task_status, response
+
+    def endscan(self, task_callback) -> Tuple[TaskStatus, str]:
+        """Submits the EndScan command for execution.
+
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.endscan_command.endscan,
+            args=[self.logger],
+            task_callback=task_callback,
+        )
+        self.logger.info("EndScan command queued for execution")
         return task_status, response
 
     def is_track_allowed(self) -> bool:
@@ -771,6 +791,28 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         raise CommandNotAllowed(
             "The invocation of the Scan command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_endscan_allowed(self) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+        """
+        self.check_device_responsive()
+        if self.dishMode in [
+            DishMode.OPERATE,
+            DishMode.STANDBY_FP,
+            DishMode.STOW,
+            DishMode.MAINTENANCE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the EndScan command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "

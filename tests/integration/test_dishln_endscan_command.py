@@ -1,4 +1,6 @@
-"""Test to verify Scan command on dishleafnode"""
+"""Test to verify EndScan command on dishleafnode"""
+import time
+
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -8,7 +10,7 @@ from ska_tmc_common.enum import DishMode, PointingState
 from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
 
 
-def scan_command(tango_context, dishln_name, group_callback, configure_input_str):
+def endscan_command(tango_context, dishln_name, group_callback, configure_input_str):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
@@ -78,11 +80,21 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
         (unique_id_scan[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
+    result_endscan, unique_id_endscan = dish_leaf_node.EndScan()
+    assert result_endscan[0] == ResultCode.QUEUED
+    logger.info(f"Command ID: {unique_id_endscan} Returned result: {result_endscan}")
+    time.sleep(0.2)
+    assert dish_master.scanID == ""
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_endscan[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("TrackStop",),
-        lookahead=6,
+        lookahead=8,
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
@@ -102,8 +114,8 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_scan_command(tango_context, group_callback, json_factory):
-    scan_command(
+def test_endscan_command(tango_context, group_callback, json_factory):
+    endscan_command(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,

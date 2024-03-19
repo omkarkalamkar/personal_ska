@@ -1,67 +1,137 @@
-ska\_tmc\_dishleafnode\_mid.commands package
-==============================================
+ska\_tmc\_dishleafnode.commands package
+=========================================
 
 Submodules
-----------
+==========
 
-ska\_tmc\_dishleafnode\_mid.commands.abstract\_command module
--------------------------------------------------------------
+*abort\_command*
+------------------
+**Path:** *src/ska\_tmc\_dishleafnode/commands/abort\_command.py*
 
-.. automodule:: ska_tmc_dishleafnode.commands.abstract_command
+.. automodule:: ska_tmc_dishleafnode.commands.abort_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setoperatemode\_command module
--------------------------------------------------------------------
+*configure\_command*
+----------------------
+**Path:** *src/ska\_tmc\_dishleafnode/commands/configure\_command.py*
 
-.. automodule:: ska_tmc_dishleafnode.commands.setoperatemode_command
+.. automodule:: ska_tmc_dishleafnode.configure_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setstandbyfpmode\_command module
----------------------------------------------------------------------
+*dish\_ln\_command*
+---------------------
+**Path:** *src/ska\_tmc\_dishleafnode/commands/dish\_ln\_command.py*
 
-.. automodule:: ska_tmc_dishleafnode.commands.setstandbyfpmode_command
+.. automodule:: ska_tmc_dishleafnode.dish_ln_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setstandbylpmode\_command module
----------------------------------------------------------------------
+*endscan\_command*
+--------------------
+**Path:** *src/ska\_tmc\_dishleafnode/commands/endscan\_command.py*
 
-.. automodule:: ska_tmc_dishleafnode.commands.setstandbylpmode_command
+.. automodule:: ska_tmc_dishleafnode.endscan_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setstowmode\_command module
-----------------------------------------------------------------
+*off\_command*
+---------------
+**Path:** *src/ska\_tmc\_dishleafnode/commands/off\_command.py*
 
-.. automodule:: ska_tmc_dishleafnode.commands.setstowmode_command
+.. automodule:: ska_tmc_dishleafnode.off_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.track_load_static_off\_command module
---------------------------------------------------------------------------
+*scan\_command*
+----------------
+**Path:** *src/ska\_tmc\_dishleafnode/commands/scan\_command.py*
 
-.. automodule:: ska_tmc_dishleafnode.commands.track_load_static_off_command
+.. automodule:: ska_tmc_dishleafnode.scan_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.set_kvalue\_command module
---------------------------------------------------------------------------
+*set\_kvalue*
+--------------
+**Path:** *src/ska\_tmc\_dishleafnode/commands/set\_kvalue.py*
 
-.. automodule:: ska_tmc_dishleafnode.commands.set_kvalue
+.. automodule:: ska_tmc_dishleafnode.set_kvalue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+*setoperatemode*
+------------------
+**Path:** *src/ska\_tmc\_dishleafnode/setoperatemode.py*
+
+.. automodule:: ska_tmc_dishleafnode.setoperatemode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+*setstandbyfpmode*
+-------------------
+**Path:** *src/ska\_tmc\_dishleafnode/setstandbyfpmode.py*
+
+.. automodule:: ska_tmc_dishleafnode.setstandbyfpmode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+*setstandbylpmode*
+-------------------
+**Path:** *src/ska\_tmc\_dishleafnode/setstandbylpmode.py*
+
+.. automodule:: ska_tmc_dishleafnode.setstandbylpmode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+*setstowmode*
+--------------
+**Path:** *src/ska\_tmc\_dishleafnode/setstowmode.py*
+
+.. automodule:: ska_tmc_dishleafnode.setstowmode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+*track\_command*
+-----------------
+**Path:** *src/ska\_tmc\_dishleafnode/track\_command.py*
+
+.. automodule:: ska_tmc_dishleafnode.track_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+*track\_load\_static\_off\_command*
+------------------------------------
+**Path:** *src/ska\_tmc\_dishleafnode/track\_load\_static\_off\_command.py*
+
+.. automodule:: ska_tmc_dishleafnode.track_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+*trackstop\_command*
+-----------------------------
+**Path:** *src/ska\_tmc\_dishleafnode/trackstop\_command.py*
+
+.. automodule:: ska_tmc_dishleafnode.trackstop_command
    :members:
    :undoc-members:
    :show-inheritance:
 
 Module contents
----------------
+----------------
 
 .. automodule:: ska_tmc_dishleafnode.commands
    :members:
