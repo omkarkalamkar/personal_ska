@@ -27,30 +27,43 @@ def track_dish_leaf_node(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
     dish_master.SetDirectPointingState(PointingState.READY)
+    dish_master.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_master.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=2,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=2,
+    )
+
     dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=2,
-    )
-
-    dish_master.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=2,
-    )
-
-    dish_master.subscribe_event(
+    dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=2,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=2,
     )
 
     dish_leaf_node.subscribe_event(
@@ -78,6 +91,14 @@ def track_dish_leaf_node(
         lookahead=6,
     )
 
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.TRACK),
+        lookahead=5,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=5,
+    )
     time.sleep(3)
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
@@ -87,7 +108,11 @@ def track_dish_leaf_node(
     )
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
-        lookahead=2,
+        lookahead=5,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=5,
     )
     event_remover(
         group_callback,

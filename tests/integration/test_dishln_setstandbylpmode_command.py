@@ -80,6 +80,10 @@ def setstandbylpmode_command(tango_context, dishln_name, group_callback):
         (),
         lookahead=3,
     )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=5,
+    )
 
 
 @pytest.mark.post_deployment

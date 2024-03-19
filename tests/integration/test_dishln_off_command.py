@@ -49,7 +49,10 @@ def off_command(tango_context, dishln_name, group_callback):
         ("Off",),
         lookahead=2,
     )
-
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=6,
+    )
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
 

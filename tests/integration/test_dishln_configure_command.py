@@ -93,6 +93,11 @@ def configure_dish_leaf_node(
         lookahead=2,
     )
 
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
+
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -102,6 +107,14 @@ def configure_dish_leaf_node(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.TRACK),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
 
@@ -218,7 +231,10 @@ def partial_configure_dish_leaf_node(
         (unique_id_fp[0], str(int(ResultCode.OK))),
         lookahead=2,
     )
-
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STAND_FP),
+        lookahead=6,
+    )
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(

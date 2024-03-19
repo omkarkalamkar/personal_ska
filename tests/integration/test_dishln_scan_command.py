@@ -75,6 +75,11 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
         lookahead=2,
     )
 
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
+
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -84,6 +89,14 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
     result_scan, unique_id_scan = dish_leaf_node.Scan()

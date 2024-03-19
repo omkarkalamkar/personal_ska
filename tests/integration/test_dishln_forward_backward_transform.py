@@ -6,7 +6,7 @@ from time import sleep
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common import DevFactory, DishMode
+from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
@@ -40,6 +40,11 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
+    dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=4,
@@ -67,6 +72,15 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
     program_track_table = dish_master.read_attribute("programTrackTable").value
     logger.info("The desired pointing is set to %s", program_track_table)
 
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.TRACK),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=6,
+    )
+
     # Waiting for some time, to let the Track Thread Run.
     sleep(10)
 
@@ -76,6 +90,14 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_trackstop[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
     assert wait_for_attribute_value(dish_master, "achievedPointing")
