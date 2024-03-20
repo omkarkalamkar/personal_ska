@@ -52,7 +52,7 @@ class EndScan(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self):
+    def do(self, argin=None):
         """
         Method to invoke EndScan command on Dish Master.
 

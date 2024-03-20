@@ -17,7 +17,6 @@ autodoc_mock_imports = [
     "backoff",
     "fire",
     "jsonschema",
-    "numpy",
     "pyfabil",
     "scipy",
     "ska_tango_base",

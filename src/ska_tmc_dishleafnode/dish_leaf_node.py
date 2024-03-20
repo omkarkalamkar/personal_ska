@@ -21,19 +21,10 @@ class DishLeafNode(SKABaseDevice):
     A Leaf control node for DishMaster.
 
     :Device Properties:
-
-        DishMasterFQDN:
-            FQDN of Dish Master Device
-
-
+    :DishMasterFQDN: FQDN of Dish Master Device
     :Device Attributes:
-
-        commandExecuted:
-            Stores command executed on the device.
-
-
-        dishMasterDevName:
-            Stores Dish Master Device name.
+    :commandExecuted:  Stores command executed on the device.
+    :dishMasterDevName:Stores Dish Master Device name.
     """
 
     # -----------------

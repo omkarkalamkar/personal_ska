@@ -425,8 +425,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Initializes the attributes and properties of the DishLeafNode.
         :return:
-            A tuple containing a return code and a string message
-            indicating status. The message is for information purpose only.
+        A tuple containing a return code and a string message
+        indicating status. The message is for information purpose only.
         """
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,

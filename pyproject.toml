@@ -18,6 +18,9 @@ DishLeafNodeDS = 'ska_tmc_dishleafnode.dish_leaf_node:main'
 [[tool.poetry.source]]
 name = 'ska-nexus'
 url = 'https://artefact.skao.int/repository/pypi-internal/simple'
+[[tool.poetry.source]]
+name = "PyPI-public"
+url = 'https://pypi.org/simple'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
@@ -34,7 +37,7 @@ ska-tango-testing = "0.6.0"
 ipython = "8.5.0"
 schema = "^0.7.5"
 ska-tmc-cdm = "7.3.1"
-ska-telmodel = "1.11.2"
+ska-telmodel = "1.14.0"
 mock = "^4.0.3"
 
 

@@ -54,8 +54,7 @@ class Scan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    # pylint: disable=signature-differs
-    def do(self, argin: str):
+    def do(self, argin: str = None):
         """
         Method to invoke Scan command on Dish Master.
 
