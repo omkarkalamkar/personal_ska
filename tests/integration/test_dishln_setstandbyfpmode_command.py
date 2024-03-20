@@ -22,6 +22,16 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
+
     event_remover(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
@@ -57,6 +67,10 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         (),
         lookahead=2,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=5,
     )
 
 

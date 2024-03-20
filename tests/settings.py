@@ -42,10 +42,48 @@ def wait_for_ping(dishleafnode_cm):
             raise TimeoutError("Timeout waiting for device ping")
 
 
+def dish_mode_callback():
+    """An empty dishmode callback"""
+
+
+def pointing_state_callback():
+    """An empty pointingstate callback"""
+
+
+def communication_state_callback():
+    """An empty communication_state callback"""
+
+
+def component_state_callback():
+    """An empty component_state callback"""
+
+
+def pointing_callback():
+    """An empty pointing callback"""
+
+
+def kvalue_validation_callback():
+    """An empty kvalue_validation callback"""
+
+
+def update_availablity_callback():
+    """An empty update_availablity callback"""
+
+
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
-        device, logger=logger, track_table_entries=25, pointing_calculation_period=100
+        device,
+        logger=logger,
+        track_table_entries=25,
+        pointing_calculation_period=100,
+        _update_dishmode_callback=dish_mode_callback,
+        _update_pointingstate_callback=pointing_state_callback,
+        communication_state_callback=communication_state_callback,
+        component_state_callback=communication_state_callback,
+        pointing_callback=pointing_callback,
+        kvalue_validation_callback=kvalue_validation_callback,
+        _update_availablity_callback=update_availablity_callback,
     )
     return cm
 
@@ -147,11 +185,11 @@ def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callb
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.NONE),
-        lookahead=5,
+        lookahead=12,
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
-        lookahead=8,
+        lookahead=12,
     )
 
 

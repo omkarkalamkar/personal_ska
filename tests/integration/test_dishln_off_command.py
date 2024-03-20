@@ -22,6 +22,15 @@ def off_command(tango_context, dishln_name, group_callback):
         (DishMode.OPERATE),
         lookahead=2,
     )
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=2,
+    )
     event_remover(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
@@ -40,7 +49,10 @@ def off_command(tango_context, dishln_name, group_callback):
         ("Off",),
         lookahead=2,
     )
-
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=6,
+    )
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
 

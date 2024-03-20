@@ -13,6 +13,16 @@ def setstandbylpmode_command(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -69,6 +79,10 @@ def setstandbylpmode_command(tango_context, dishln_name, group_callback):
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         (),
         lookahead=3,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=5,
     )
 
 

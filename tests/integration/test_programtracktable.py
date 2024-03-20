@@ -45,6 +45,20 @@ def check_track_table(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
 
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
@@ -70,6 +84,10 @@ def check_track_table(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], str(int(ResultCode.OK))),
+        lookahead=2,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
         lookahead=2,
     )
 
@@ -115,7 +133,10 @@ def check_track_table(
         (PointingState.READY),
         lookahead=6,
     )
-
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=6,
+    )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         (),
         lookahead=8,

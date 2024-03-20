@@ -4,6 +4,7 @@ import json
 import logging
 from os.path import dirname, join
 from time import sleep
+from typing import Generator
 
 import pytest
 import tango
@@ -158,8 +159,36 @@ def json_factory():
     return _get_json
 
 
+def dish_mode_callback(argin):
+    """An empty dishmode callback"""
+
+
+def pointing_state_callback(argin):
+    """An empty pointingstate callback"""
+
+
+def communication_state_callback():
+    """An empty communication_state callback"""
+
+
+def component_state_callback():
+    """An empty component_state callback"""
+
+
+def pointing_callback(argin):
+    """An empty pointing callback"""
+
+
+def kvalue_validation_callback():
+    """An empty kvalue_validation callback"""
+
+
+def update_availablity_callback(argin):
+    """An empty update_availablity callback"""
+
+
 @pytest.fixture()
-def cm() -> DishLNComponentManager:
+def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
         DISH_MASTER_DEVICE,
@@ -167,6 +196,13 @@ def cm() -> DishLNComponentManager:
         track_table_entries=25,
         pointing_calculation_period=100,
         dish_availability_check_timeout=5,
+        _update_dishmode_callback=dish_mode_callback,
+        _update_pointingstate_callback=pointing_state_callback,
+        communication_state_callback=communication_state_callback,
+        component_state_callback=communication_state_callback,
+        pointing_callback=pointing_callback,
+        kvalue_validation_callback=kvalue_validation_callback,
+        _update_availablity_callback=update_availablity_callback,
     )
     yield cm
     # pylint: disable=unnecessary-dunder-call

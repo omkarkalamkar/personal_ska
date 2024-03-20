@@ -22,6 +22,16 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
         (DishMode.STANDBY_FP),
         lookahead=2,
     )
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=2,
+    )
+
     event_remover(
         group_callback,
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
@@ -42,6 +52,10 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
     )
     result_stow, unique_id_stow = dish_leaf_node.SetStowMode()
 
