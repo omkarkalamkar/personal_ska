@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
-from ska_tmc_common.enum import LivelinessProbeType
+from ska_tmc_common import DishMode, LivelinessProbeType, PointingState
 from tango import AttrWriteType, Database, DebugIt
 from tango.server import attribute, command, device_property, run
 
@@ -58,6 +58,7 @@ class DishLeafNode(SKABaseDevice):
         default_value=100,
         doc="Time difference between two consecutive entries of programTrackTable in milliseconds",
     )
+
     # ----------
     # Attributes
     # ----------
@@ -74,6 +75,16 @@ class DishLeafNode(SKABaseDevice):
 
     actualPointing = attribute(
         dtype=str,
+        access=AttrWriteType.READ,
+    )
+
+    dishMode = attribute(
+        dtype=DishMode,
+        access=AttrWriteType.READ,
+    )
+
+    pointingState = attribute(
+        dtype=PointingState,
         access=AttrWriteType.READ,
     )
 
@@ -104,11 +115,15 @@ class DishLeafNode(SKABaseDevice):
             {release.description}"""
             device._version_id = release.version
             device._isSubsystemAvailable = True
+            device._dishMode = DishMode.UNKNOWN
+            device._pointingState = PointingState.NONE
             device._dishln_name = device.get_name()
             device.set_change_event("healthState", True, False)
             device.set_change_event("isSubsystemAvailable", True, False)
             device.set_change_event("actualPointing", True, False)
             device.set_change_event("kValueValidationResult", True, False)
+            device.set_change_event("dishMode", True, False)
+            device.set_change_event("pointingState", True, False)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -129,6 +144,16 @@ class DishLeafNode(SKABaseDevice):
     def pointing_callback(self, actual_pointing: list) -> None:
         """Push an event for the actualPointing attribute."""
         self.push_change_event("actualPointing", json.dumps(actual_pointing))
+
+    def update_dishmode_callback(self, dish_mode: DishMode) -> None:
+        """Push an event for the change of dishMode attribute."""
+        self._dishMode = dish_mode
+        self.push_change_event("dishMode", self._dishMode)
+
+    def update_pointingstate_callback(self, pointing_state: PointingState) -> None:
+        """Push an event for change of pointingState attribute."""
+        self._pointingState = pointing_state
+        self.push_change_event("pointingState", self._pointingState)
 
     def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""
@@ -159,6 +184,28 @@ class DishLeafNode(SKABaseDevice):
     def read_actualPointing(self) -> str:
         """Returns the actualPointing attribute value."""
         return json.dumps(self.component_manager.actual_pointing)
+
+    def read_dishMode(self):
+        """
+        Returns the dishMode attribute value.
+
+        :return: The current value of the dishMode attribute.
+
+        :rtype: DishMode
+
+        """
+        return self._dishMode
+
+    def read_pointingState(self):
+        """
+        Returns the pointingState attribute value.
+
+        :return: The current value of the pointingState attribute.
+
+        :rtype: PointingState
+
+        """
+        return self._pointingState
 
     @attribute(
         dtype="DevLong",
@@ -591,6 +638,8 @@ class DishLeafNode(SKABaseDevice):
             kvalue_validation_callback=self.kvalue_validation_callback,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
+            _update_dishmode_callback=self.update_dishmode_callback,
+            _update_pointingstate_callback=self.update_pointingstate_callback,
             sleep_time=self.SleepTime,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,

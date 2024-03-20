@@ -64,10 +64,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         track_table_entries: int,
         pointing_calculation_period: int,
-        communication_state_callback: Optional[Callable] = None,
-        component_state_callback: Optional[Callable] = None,
-        pointing_callback: Optional[Callable] = None,
-        kvalue_validation_callback: Optional[Callable] = None,
+        _update_dishmode_callback: Callable,
+        _update_pointingstate_callback: Callable,
+        communication_state_callback: Callable,
+        component_state_callback: Callable,
+        pointing_callback: Callable,
+        kvalue_validation_callback: Callable,
+        _update_availablity_callback: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -80,7 +83,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
-        _update_availablity_callback: Optional[Callable] = None,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -130,6 +132,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
         self.pointing_callback = pointing_callback
+        self._update_dishmode_callback = _update_dishmode_callback
+        self._update_pointingstate_callback = _update_pointingstate_callback
         self._kvalue: int = 0
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
@@ -795,6 +799,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+            self.logger.info(f"dishMode value updated to {dish_mode}")
+            if self._update_dishmode_callback:
+                self._update_dishmode_callback(dish_mode)
 
     def update_device_pointing_state(self, pointingState: PointingState) -> None:
         """
@@ -808,6 +815,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+            self.logger.info(f"PointingState value updated to {pointingState}")
+            if self._update_pointingstate_callback:
+                self._update_pointingstate_callback(pointingState)
 
     def update_device_configured_band(self, configured_band: Band) -> None:
         """
