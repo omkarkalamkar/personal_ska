@@ -20,6 +20,7 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
     )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -30,11 +31,27 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
+
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
+
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
         tango.EventType.CHANGE_EVENT,
@@ -60,6 +77,11 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
         lookahead=2,
     )
 
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
+
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -71,6 +93,15 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
         (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=6,
+    )
+
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
