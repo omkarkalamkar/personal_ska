@@ -100,7 +100,7 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
         lookahead=6,
     )
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
-    
+
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
     assert dish_master.scanID == "1"
