@@ -185,21 +185,20 @@ class Configure(DishLNCommand):
             self.component_manager.elevation_limit = True
             self.component_manager.event_track_time.clear()
 
-            self.tracking_thread = threading.Thread(
-                target=self.component_manager.track_thread,
-                args=[ra_value, dec_value, self],
-            )
+            # self.tracking_thread = threading.Thread(
+            #     target=self.component_manager.track_thread,
+            #     args=[ra_value, dec_value, self],
+            # )
 
-            if not self.tracking_thread.is_alive():
-                self.tracking_thread.start()
+            # if not self.tracking_thread.is_alive():
+            #     self.tracking_thread.start()
 
             self.track_table_process = Process(
                 target=self.component_manager.track_thread,
                 args=[ra_value, dec_value, self],
             )
-            # if not self.track_table_process.is_alive():
-            #     self.logger.info("Start ProgramTrackTable calculation...")
-            #     self.track_table_process.start()
+            if not self.track_table_process.is_alive():
+                self.track_table_process.start()
 
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
@@ -274,16 +273,6 @@ class Configure(DishLNCommand):
 
     def invoke_track_command(self):
         """Invoke Track command on dish"""
-        # Wait until 2 set of programTrackTable entries are reached
-        # start_time = time.time()
-        # while (time.time() - start_time) < TRACK_COMMAND_TIMEOUT:
-        #     if (
-        #         len(self.dish_master_adapter.programTrackTable)
-        #         >= 2 * TRACK_TABLE_ENTRY_SIZE * self.component_manager.track_table_entries
-        #     ):
-        #         break
-        #     time.sleep(0.5)
-
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )

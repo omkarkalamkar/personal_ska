@@ -115,7 +115,7 @@ def task_callback() -> MockCallable:
 
     :rtype: MockCallable
     """
-    task_callback = MockCallable(150)
+    task_callback = MockCallable(100)
     return task_callback
 
 

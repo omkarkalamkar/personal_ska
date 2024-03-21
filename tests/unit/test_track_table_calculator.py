@@ -10,17 +10,17 @@ from tests.settings import logger
 
 def test_calculate_time_stamp_array(cm):
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
-    cm.extended_time = datetime.datetime.utcnow()
-    time_stamp_array, tai_timestamp_array = track_table_calculator.calculate_time_stamp_array()
+    track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
+    time_stamp_array, tai_timestamp_array = track_table_calculator.calculate_time_stamp_list()
     assert len(time_stamp_array) == cm.track_table_entries
     assert len(tai_timestamp_array) == cm.track_table_entries
 
 
 def test_calculate_program_track_table(cm):
-    cm.extended_time = datetime.datetime.utcnow()
     wait_for_iers_data_available(cm)
     azel_converter = AzElConverter(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
+    track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
 
     retry = 0
     while retry <= 3:
@@ -56,8 +56,7 @@ def test_calculate_program_track_table(cm):
 
 def wait_for_iers_data_available(cm):
     """Function which waits for the IERS data to be available."""
-    elapsed_time = 0
-    timeout = 45
-    while cm.iers_a is not None and elapsed_time <= timeout:
-        elapsed_time = elapsed_time + 1
-        time.sleep(1)
+    TIMEOUT = 45
+    start_time = time.time()
+    while cm.iers_a is not None and (time.time() - start_time) < TIMEOUT:
+        time.sleep(0.5)

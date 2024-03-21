@@ -863,7 +863,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_program_track_table(self, program_track_table) -> None:
         """Write the programTrackTable attribute on dish master device."""
-        self.dish_adapter.programTrackTable = program_track_table
+        self.logger.debug("ProgramTrackTable: %s", program_track_table)
+        with self.lock:
+            self.dish_adapter.programTrackTable = program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
@@ -884,28 +886,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azel_converter.create_antenna_obj()
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
-        # datetime.datetime(2024, 3, 20, 13, 6, 21, 840094)
 
         # For future timestamp few seconds are added in current time.
         # Divided by 1000 to convert ms to sec conversion.
         time_to_add = (2 * self.track_table_entries * self.pointing_calculation_period) / 1000
 
         self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
-        # datetime.datetime(2024, 3, 20, 13, 6, 31, 840094)
+        self.track_table_calculator.track_table_time_stamp = self.extended_time
 
-        timestamp = self.convert_timestamp(self.extended_time.timestamp())
-
+        # This is dummy calculation because first time calculation takes
+        # time due to IERS file downloads
+        timestamp = self.convert_timestamp(self.extended_time.timestamp() * 1000)
         azel_converter.point(ra_value, dec_value, timestamp)
-        advance_time = self.track_table_entries * self.pointing_calculation_period
+
+        advance_time = (self.track_table_entries * self.pointing_calculation_period) / 1000
 
         while self.event_track_time.is_set() is False:
             program_track_table = self.track_table_calculator.calculate_program_track_table(
                 ra_value, dec_value, azel_converter
             )
-            first_entry_timestamp = program_track_table[0]
+            first_entry_timestamp = self.track_table_calculator.track_table_start_time
+
             # advance_time is subtracted to provide programTrackTable few seconds in advance
-            # Divided by 1000 for milliseconds to seconds conversion
-            scheduled_time = (first_entry_timestamp - advance_time) / 1000
+            scheduled_time = first_entry_timestamp - advance_time
+
             if scheduled_time > datetime.datetime.utcnow().timestamp():
                 event_priority = 1
                 self.track_table_scheduler.enterabs(
@@ -916,9 +920,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
                 self.track_table_scheduler.run()
             else:
-                # Case for tracktable calculation takes more time than one tracktable window
-                # (default 2.5 seconds)
-                pass
+                self.update_program_track_table(program_track_table)
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:
