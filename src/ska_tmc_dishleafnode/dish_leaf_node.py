@@ -2,11 +2,17 @@
 # flake8: noqa
 
 import json
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
-from ska_tmc_common import DishMode, LivelinessProbeType, PointingState
+from ska_tmc_common import (
+    CommandNotAllowed,
+    DeviceUnresponsive,
+    DishMode,
+    LivelinessProbeType,
+    PointingState,
+)
 from tango import AttrWriteType, Database, DebugIt
 from tango.server import attribute, command, device_property, run
 
@@ -23,8 +29,8 @@ class DishLeafNode(SKABaseDevice):
     :Device Properties:
     :DishMasterFQDN: FQDN of Dish Master Device
     :Device Attributes:
-    :commandExecuted:  Stores command executed on the device.
-    :dishMasterDevName:Stores Dish Master Device name.
+    :commandExecuted: Stores command executed on the device.
+    :dishMasterDevName: Stores Dish Master Device name.
     """
 
     # -----------------
@@ -328,27 +334,29 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [str(unique_id)]
 
-    def is_Scan_allowed(self) -> bool:
+    def is_Scan_allowed(self) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
 
         :return: True if this command is allowed to be run in current
-            dish mode.
+            dish mode, raises CommandNotAllowed in case is is not allowed and
+            DeviceUnresponsive in case Device is not responsive.
 
-        :rtype: bool
+        :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
         """
         return self.component_manager.is_scan_allowed()
 
-    def is_EndScan_allowed(self) -> bool:
+    def is_EndScan_allowed(self) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
 
         :return: True if this command is allowed to be run in current
-            dish mode.
+            dish mode, raises CommandNotAllowed in case is is not allowed and
+            DeviceUnresponsive in case Device is not responsive.
 
-        :rtype: bool
+        :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
         """
         return self.component_manager.is_endscan_allowed()
 

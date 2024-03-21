@@ -110,7 +110,7 @@ track_load_static_off\_command
 trackstop\_command
 ---------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.track_command
+.. automodule:: ska_tmc_dishleafnode.commands.trackstop_command
    :members:
    :undoc-members:
    :show-inheritance:

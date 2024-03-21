@@ -67,11 +67,6 @@ class EndScan(DishLNCommand):
             )
             return result_code, message
 
-        self.logger.info(
-            "The scanID for dish master %s is %s",
-            self.dish_master_adapter,
-            self.dish_master_adapter.scanID,
-        )
         self.dish_master_adapter.scanID = ""
         self.logger.info(
             "The updated scanID for dish master  %s is %s",

@@ -467,7 +467,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
-    def scan(self, argin: str, task_callback: TaskCallbackType = None) -> Tuple[TaskStatus, str]:
+    def scan(
+        self, argin: str, task_callback: Optional[TaskCallbackType]
+    ) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
         :rtype: Tuple
@@ -480,7 +482,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Scan command queued for execution")
         return task_status, response
 
-    def endscan(self, task_callback: TaskCallbackType = None) -> Tuple[TaskStatus, str]:
+    def endscan(self, task_callback: Optional[TaskCallbackType]) -> Tuple[TaskStatus, str]:
         """Submits the EndScan command for execution.
 
         :rtype: Tuple
@@ -781,14 +783,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def is_scan_allowed(self) -> Union[bool, CommandNotAllowed]:
+    def is_scan_allowed(self) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """Checks if the given command is allowed in current operational
         state.
 
-        :return: True if this command is allowed to be run in current
-            dish mode and raises CommandNotAllowed in case is is not allowed.
+         :return: True if this command is allowed to be run in current
+            dish mode, raises CommandNotAllowed in case is is not allowed and
+            DeviceUnresponsive in case Device is not responsive.
 
-        :rtype: Union[bool, CommandNotAllowed]
+        :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
         """
         self.check_device_responsive()
         if self.dishMode in [
@@ -808,14 +811,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def is_endscan_allowed(self) -> Union[bool, CommandNotAllowed]:
+    def is_endscan_allowed(self) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """Checks if the given command is allowed in current operational
         state.
 
         :return: True if this command is allowed to be run in current
-            dish mode and raises CommandNotAllowed in case is is not allowed.
+            dish mode, raises CommandNotAllowed in case is is not allowed and
+            DeviceUnresponsive in case Device is not responsive.
 
-        :rtype: Union[bool, CommandNotAllowed]
+        :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
         """
         self.check_device_responsive()
         if self.dishMode in [
