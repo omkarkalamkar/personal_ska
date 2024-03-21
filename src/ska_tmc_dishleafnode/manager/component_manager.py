@@ -1046,7 +1046,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     # pylint: disable=arguments-differ
     def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:
         """Set a device to failed and call the relative callback if available
-        
+
         :param device_info: a device info
         :type device_info: DeviceInfo
         :param exception: an exception

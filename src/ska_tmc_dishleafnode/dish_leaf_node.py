@@ -723,7 +723,7 @@ class DishLeafNode(SKABaseDevice):
 def main(args=None, **kwargs):
     """
     Runs the DishLeafNode.
-    
+
     :param args: Arguments internal to TANGO
     :param kwargs: Arguments internal to TANGO
     :return: DishLeafNode TANGO object.
