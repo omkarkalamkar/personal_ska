@@ -69,11 +69,11 @@ class ProgramTrackTableCalculator:
         self,
         el_value: float,
     ) -> bool:
-        """Check if elevation is within mechanical limit
+        """Check if elevation is within mechanical limit.
+
         Args:
-            el_value: string
-        :return:
-            bool
+            el_value (string): Elevation of the target.
+        :return (bool): False if elevation is within the limit.
         """
         if (
             not self.component_manager.elevation_min_limit
@@ -92,11 +92,13 @@ class ProgramTrackTableCalculator:
 
     def calculate_time_stamp_list(self) -> tuple:
         """
-        This methods calculates an array of number of requested timestamps
+        This methods calculates an list of requested timestamps
         (TrackTableEntries) with a requested time difference
-        (PointingCalculationPeriod).
+        (PointingCalculationPeriod) and corresponding list of time
+        in TAI format.
 
-        :return: An array of timestamps (list)
+        :return (tuple): Tuple with list of timestamps (UTC) in string format and
+            timestamp in TAI format
         """
         self.track_table_start_time = self.track_table_time_stamp.timestamp()
         time_stamp_list = []
@@ -115,10 +117,10 @@ class ProgramTrackTableCalculator:
         return time_stamp_list, tai_timestamp_list
 
     def point(self, timestamp: str) -> list:
-        """This method converts Target RaDec coordinates
-        to the AzEl coordinates.It is called continuously
-        from Track command (in a thread) at interval
-        of 50ms till the StopTrack command is invoked.
+        """This method converts Target RaDec coordinates to the AzEl
+        coordinates. It is called continuously from Configure command (in a thread)
+        at interval of 50ms till the StopTrack command is invoked.
+
         Args:
             timestamp(str): utc timestamp in string format
         Return:
@@ -132,6 +134,7 @@ class ProgramTrackTableCalculator:
         """
         This method converts utc time to tai format time.
         :param: utc_time: time in utc (seconds)
+        :returns: time in TAI format (seconds)
         """
         ska_epoch_utc = Time(SKA_EPOCH, scale="utc")
         return utc_time - ska_epoch_utc.unix_tai
