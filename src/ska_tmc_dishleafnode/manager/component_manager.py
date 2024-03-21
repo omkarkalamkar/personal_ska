@@ -90,21 +90,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Initialise a new ComponentManager instance.
         :param logger: a logger for this component manager
         :param liveliness_probe: allows enabling/disabling the
-        liveliness probe
+            liveliness probe
         :param component_state_callback: callback to be called
-        when state of the component changed
+            when state of the component changed
         :param communication_state_callback: callback to be called
-        when communication status of the component changed
+            when communication status of the component changed
         :param event_receiver: flag used to control whether
-        EventReceiver object should be instantiated or not
+            EventReceiver object should be instantiated or not
         :param max_workers: allows to specify number of threads
-        to be used by the liveliness probe;
+            to be used by the liveliness probe;
         :param proxy_timeout: allows to specify a client side timeout
-        for sub-devices in milliseconds used by the liveliness probe;
+            for sub-devices in milliseconds used by the liveliness probe;
         :param sleep_time: allows to specify the wait between
-        each iteration of the liveliness probe and EventSubscriber;
+            each iteration of the liveliness probe and EventSubscriber;
         :param timeout: Time period to wait for initialization
-        of adapter.
+            of adapter.
         """
         super().__init__(
             logger=logger,
@@ -786,7 +786,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
 
         :return: True if this command is allowed to be run in current
-        dish mode and raises CommandNotAllowed in case is is not allowed.
+            dish mode and raises CommandNotAllowed in case is is not allowed.
 
         :rtype: Union[bool, CommandNotAllowed]
         """
@@ -813,7 +813,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         state.
 
         :return: True if this command is allowed to be run in current
-        dish mode and raises CommandNotAllowed in case is is not allowed.
+            dish mode and raises CommandNotAllowed in case is is not allowed.
 
         :rtype: Union[bool, CommandNotAllowed]
         """
@@ -844,6 +844,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Update the dish mode of the given dish and call
         the relative callbacks if available.
+
         :param dishMode: Dish mode of the device
         :type dishMode: DishMode
         """
@@ -860,6 +861,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Update the pointing state of the given dish and call
         the relative callbacks if available.
+
         :param pointingState: Pointing state of the dish device
         :type pointingState: PointingState
         """
@@ -876,6 +878,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Update the configured band of the given dish and call
         the relative callbacks if available.
+
         :param configured_band: Configured band of the dish device
         :type configured_band: Band
         """
@@ -985,6 +988,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self, ra_value: str, dec_value: str, azel_converter
     ) -> None:
         """This method calculates one set on timestamp, Az and El.
+
         Args:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
@@ -1021,6 +1025,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         el_value,
     ):
         """Check if elevation is within mechanical limit
+
         Args:
             el_value: string
         Return:
@@ -1041,6 +1046,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     # pylint: disable=arguments-differ
     def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:
         """Set a device to failed and call the relative callback if available
+        
         :param device_info: a device info
         :type device_info: DeviceInfo
         :param exception: an exception

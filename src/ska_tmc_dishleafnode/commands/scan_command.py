@@ -31,7 +31,7 @@ class Scan(DishLNCommand):
         executes the do hook, invoking Scan command on Dish Master
 
         :param argin: Input JSON string
-        :type argin : str
+        :type argin: str
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None

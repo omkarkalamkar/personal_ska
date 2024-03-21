@@ -31,7 +31,7 @@ class Off(DishLNCommand):
         It sets the task_callback status according to command progress.
 
         :param argin: Input JSON string
-        :type argin : str
+        :type argin: str
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None

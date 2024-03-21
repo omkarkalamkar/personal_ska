@@ -231,7 +231,7 @@ class DishLeafNode(SKABaseDevice):
         dish mode.
 
         :return: True if this command is allowed to be run in current
-        dish mode.
+            dish mode.
 
         :rtype: boolean
         """
@@ -253,7 +253,7 @@ class DishLeafNode(SKABaseDevice):
         dish mode.
 
         :return: True if this command is allowed to be run in current
-        dish mode
+            dish mode
         :rtype: boolean
         """
         return self.component_manager.is_setstandbylpmode_allowed()
@@ -274,7 +274,7 @@ class DishLeafNode(SKABaseDevice):
         dish mode.
 
         :return: True if this command is allowed to be run in current
-        dish mode.
+            dish mode.
 
         :rtype: boolean
         """
@@ -295,7 +295,7 @@ class DishLeafNode(SKABaseDevice):
         dish mode.
 
         :return: True if this command is allowed to be run in current
-        dish mode.
+            dish mode.
 
         :rtype: boolean
         """
@@ -321,6 +321,7 @@ class DishLeafNode(SKABaseDevice):
     def Scan(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes Scan command on DishMaster
+
         :rtype: Tuple[[ResultCode], [str]]
         """
         handler = self.get_command_object("Scan")
@@ -333,7 +334,7 @@ class DishLeafNode(SKABaseDevice):
         dish mode.
 
         :return: True if this command is allowed to be run in current
-        dish mode.
+            dish mode.
 
         :rtype: bool
         """
@@ -345,7 +346,7 @@ class DishLeafNode(SKABaseDevice):
         dish mode.
 
         :return: True if this command is allowed to be run in current
-        dish mode.
+            dish mode.
 
         :rtype: bool
         """
@@ -374,7 +375,7 @@ class DishLeafNode(SKABaseDevice):
         device state.
 
         :return: True if this command is allowed to be run in current
-        device state.
+            device state.
 
         :rtype: boolean
         """
@@ -396,7 +397,7 @@ class DishLeafNode(SKABaseDevice):
         dish mode.
 
         :return: True if this command is allowed to be run in current
-        dish mode.
+            dish mode.
 
         :rtype: boolean
         """
@@ -423,7 +424,7 @@ class DishLeafNode(SKABaseDevice):
         device state.
 
         :return: True if this command is allowed to be run in current
-        device state.
+            device state.
 
         :rtype: boolean
         """
@@ -451,7 +452,7 @@ class DishLeafNode(SKABaseDevice):
         device state.
 
         :return: True if this command is allowed to be run in current
-        device state.
+            device state.
 
         :rtype: boolean
         """
@@ -479,7 +480,7 @@ class DishLeafNode(SKABaseDevice):
         device state.
 
         :return: True if this command is allowed to be run in current
-        device state.
+            device state.
 
         :rtype: boolean
         """
@@ -517,7 +518,7 @@ class DishLeafNode(SKABaseDevice):
         device state.
 
         :return: True if this command is allowed to be run in current
-        device state.
+            device state.
 
         :rtype: boolean
         """
@@ -546,7 +547,7 @@ class DishLeafNode(SKABaseDevice):
         device state.
 
         :return: True if this command is allowed to be run in current
-        device state.
+            device state.
 
         :rtype: boolean
         """
@@ -558,7 +559,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current device
-        state
+            state
 
         :rtype: boolean
         """
@@ -579,7 +580,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current
-        device state
+            device state
         :rtype: boolean
         """
         return False
@@ -600,7 +601,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current
-        device state
+            device state
 
         :rtype: boolean
         """
@@ -622,7 +623,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current device
-        state
+            state
 
         :rtype: boolean
         """
@@ -722,6 +723,7 @@ class DishLeafNode(SKABaseDevice):
 def main(args=None, **kwargs):
     """
     Runs the DishLeafNode.
+    
     :param args: Arguments internal to TANGO
     :param kwargs: Arguments internal to TANGO
     :return: DishLeafNode TANGO object.
