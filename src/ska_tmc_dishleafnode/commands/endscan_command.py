@@ -16,7 +16,7 @@ class EndScan(DishLNCommand):
     A class for Dishleafnode's EndScan command. EndScan command is
     inherited from DishLNCommand.
 
-    This command invokes EndScan command on Dish Master
+    This command to set scanID attribute of Dish Master to empty string.
     """
 
     # pylint: disable=unused-argument
