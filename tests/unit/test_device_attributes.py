@@ -2,6 +2,7 @@ from time import sleep
 
 import pytest
 from ska_tango_base.control_model import ControlMode, SimulationMode, TestMode
+from ska_tmc_common import DishMode, PointingState
 from tango import DevState
 
 from ska_tmc_dishleafnode import release
@@ -28,3 +29,5 @@ def test_attributes(dishln_device):
         == f"""{release.name},{release.version},
             {release.description}"""
     )
+    assert dishln_device.dishMode == DishMode.UNKNOWN
+    assert dishln_device.pointingState == PointingState.NONE

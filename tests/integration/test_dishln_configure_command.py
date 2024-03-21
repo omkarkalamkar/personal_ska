@@ -33,12 +33,28 @@ def configure_dish_leaf_node(
     )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
     dish_master.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -77,6 +93,11 @@ def configure_dish_leaf_node(
         lookahead=2,
     )
 
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
+
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -86,6 +107,14 @@ def configure_dish_leaf_node(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.TRACK),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
 
@@ -102,6 +131,10 @@ def configure_dish_leaf_node(
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
 
@@ -155,6 +188,21 @@ def partial_configure_dish_leaf_node(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
 
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
@@ -183,7 +231,10 @@ def partial_configure_dish_leaf_node(
         (unique_id_fp[0], str(int(ResultCode.OK))),
         lookahead=2,
     )
-
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
@@ -224,6 +275,10 @@ def partial_configure_dish_leaf_node(
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
 

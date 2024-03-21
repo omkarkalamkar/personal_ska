@@ -43,6 +43,21 @@ def abort_when_configured(
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
+
+    dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
@@ -60,6 +75,11 @@ def abort_when_configured(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
+
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
@@ -77,6 +97,14 @@ def abort_when_configured(
     )
 
     result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.TRACK),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=6,
+    )
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode", "Configure")
@@ -95,6 +123,10 @@ def abort_when_configured(
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
+        lookahead=6,
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
 
