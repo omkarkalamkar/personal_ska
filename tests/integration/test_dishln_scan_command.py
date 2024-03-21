@@ -49,6 +49,10 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.NONE),
+        lookahead=3,
+    )
 
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",

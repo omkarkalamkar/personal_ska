@@ -66,17 +66,17 @@ $ make requirements
 Run python-test:
 ::
 $ make python-test
-PyTango 9.3.3 (9, 3, 3)
+PyTango 9.4.2 
 PyTango compiled with:
-Python : 3.8.5
-Numpy  : 0.0.0 ## output generated from a WSL windows machine
-Tango  : 9.2.5
-Boost  : 1.71.0
+Python : 3.10,3.11
+Numpy  : 1.23.0
+Tango  : 9.4.2
+
 
 PyTango runtime is:
-Python : 3.8.5
+Python : 3.10,3.11
 Numpy  : None
-Tango  : 9.2.5
+Tango  : 9.4.2
 
 PyTango running on:
 uname_result(system='Linux', node='LAPTOP-5LBGJH83', release='4.19.128-microsoft-standard', version='#1 SMP Tue Jun 23 12:58:10 UTC 2020', machine='x86_64', processor='x86_64')

@@ -51,7 +51,10 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
-
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.NONE),
+        lookahead=4,
+    )
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
         tango.EventType.CHANGE_EVENT,
@@ -105,6 +108,7 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
+    time.sleep(0.2)
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -143,6 +147,7 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
     )
 
 
+@pytest.mark.kk
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_endscan_command(tango_context, group_callback, json_factory):

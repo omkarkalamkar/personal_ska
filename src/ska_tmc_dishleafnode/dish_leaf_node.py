@@ -315,21 +315,19 @@ class DishLeafNode(SKABaseDevice):
         dtype_in="DevString",
         doc_in="The scan_id in string",
         dtype_out="DevVarLongStringArray",
-        doc_out="information-only string",
+        doc_out="(ReturnType, 'informational message')",
     )
     @DebugIt()
-    def Scan(self, argin: str) -> tuple:
+    def Scan(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
         """
-        Invokes Scan command on DishMaster (Standby-Full power)
-        mode
-
-        :rtype: tuple
+        Invokes Scan command on DishMaster
+        :rtype: Tuple[[ResultCode], [str]]
         """
         handler = self.get_command_object("Scan")
         result_code, unique_id = handler(argin)
         return [result_code], [str(unique_id)]
 
-    def is_Scan_allowed(self):
+    def is_Scan_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -337,11 +335,11 @@ class DishLeafNode(SKABaseDevice):
         :return: True if this command is allowed to be run in current
         dish mode.
 
-        :rtype: boolean
+        :rtype: bool
         """
         return self.component_manager.is_scan_allowed()
 
-    def is_EndScan_allowed(self):
+    def is_EndScan_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -349,18 +347,21 @@ class DishLeafNode(SKABaseDevice):
         :return: True if this command is allowed to be run in current
         dish mode.
 
-        :rtype: boolean
+        :rtype: bool
         """
         return self.component_manager.is_endscan_allowed()
 
-    @command(dtype_out="DevVarLongStringArray")
+    @command(
+        dtype_in="DevVoid",
+        dtype_out="DevVarLongStringArray",
+        doc_out="(ReturnType, 'informational message')",
+    )
     @DebugIt()
-    def EndScan(self) -> tuple:
+    def EndScan(self) -> Tuple[List[ResultCode], List[str]]:
         """
-        Invokes EndScan command on DishMaster (Standby-Full power)
-        mode
+        Updates the scanID attribute of Dish Master to empty string
 
-        :rtype: tuple
+        :rtype: Tuple[[ResultCode], [str]]
         """
         handler = self.get_command_object("EndScan")
         result_code, unique_id = handler()

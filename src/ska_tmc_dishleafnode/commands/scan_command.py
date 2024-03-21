@@ -2,8 +2,9 @@
 
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Optional
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
@@ -23,7 +24,7 @@ class Scan(DishLNCommand):
         self,
         argin: str,
         logger: Logger,
-        task_callback: Callable = None,
+        task_callback: TaskCallbackType = None,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """This is a long running method for Scan command, it
@@ -54,7 +55,7 @@ class Scan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    def do(self, argin: str = None):
+    def do(self, argin: Optional[str] = None):
         """
         Method to invoke Scan command on Dish Master.
 

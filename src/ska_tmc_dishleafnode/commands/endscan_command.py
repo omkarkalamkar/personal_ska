@@ -2,8 +2,9 @@
 
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Optional
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
@@ -22,11 +23,12 @@ class EndScan(DishLNCommand):
     def endscan(
         self,
         logger: Logger,
-        task_callback: Callable,
+        task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-        """This is a long running method for EndScan command, it
-        executes the do hook, invoking EndScan command on Dish Master
+        """This is a method for long running command EndScan command, it
+        executes the do hook, to set scanID attribute of Dish Master to empty
+        string.
 
         :param logger: logger
         :type logger: logging.Logger
@@ -51,28 +53,29 @@ class EndScan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    # pylint: disable=arguments-differ
-    def do(self, argin=None):
+    def do(self, argin: Optional[str] = None):
         """
-        Method to invoke EndScan command on Dish Master.
+        Method to set scanID attribute of Dish Master to empty string.
 
         return:
             (ResultCode, str)
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "Error while creating adapter %s", self.component_manager.dish_dev_name
+            )
             return result_code, message
-        result_code, message = self.call_adapter_method(
-            "Dish Master",
-            self.dish_master_adapter,
-            "EndScan",
-        )
+
         self.logger.info(
-            "The scanID attribute of dish master is %s", self.dish_master_adapter.scanID
+            "The scanID for dish master %s is %s",
+            self.dish_master_adapter,
+            self.dish_master_adapter.scanID,
         )
         self.dish_master_adapter.scanID = ""
         self.logger.info(
-            "The updated scanID attribute of dish master is %s", self.dish_master_adapter.scanID
+            "The updated scanID for dish master  %s is %s",
+            self.dish_master_adapter,
+            self.dish_master_adapter.scanID,
         )
-        return result_code[0], message[0]
+        return result_code, message
