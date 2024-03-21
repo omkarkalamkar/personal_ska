@@ -55,7 +55,7 @@ class Scan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    def do(self, argin: Optional[str] = None):
+    def do(self, argin: str = None):
         """
         Method to invoke Scan command on Dish Master.
 
