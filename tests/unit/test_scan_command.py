@@ -8,7 +8,7 @@ def test_scan_command(tango_context, cm, task_callback):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_scan_allowed()
 
-    cm.scan(task_callback=task_callback)
+    cm.scan("1", task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     task_callback.assert_against_call(
@@ -20,7 +20,7 @@ def test_scan_command_adapter_none(cm, task_callback):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_scan_allowed()
 
-    cm.scan(task_callback=task_callback)
+    cm.scan("1", task_callback=task_callback)
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
     task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
