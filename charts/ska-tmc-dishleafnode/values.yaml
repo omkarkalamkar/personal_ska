@@ -62,8 +62,8 @@ deviceServers:
     enabled: true
     instances: ["01", "02", "03", "04"]
     file: "data/dishleafnode.yaml"
-    TrackTableEntries: 25
-    PointingCalculationPeriod: 100
+    TrackTableEntries: 50
+    PointingCalculationPeriod: 50
 
 nodeSelector: {}
 

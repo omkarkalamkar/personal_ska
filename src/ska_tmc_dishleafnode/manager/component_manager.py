@@ -43,7 +43,6 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, TRACK_TABLE_ENTRY_SIZE
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -864,19 +863,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_program_track_table(self, program_track_table) -> None:
         """Write the programTrackTable attribute on dish master device."""
-        dish_program_track_table = list(self.dish_adapter.programTrackTable)
-        # If programTrackTable is full, remove older entries
-        if len(dish_program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
-            num_of_values_to_remove = TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
-            dish_program_track_table = dish_program_track_table[
-                num_of_values_to_remove:PROGRAM_TRACK_TABLE_SIZE
-            ]
-
-        updated_program_track_table = dish_program_track_table + program_track_table
-        self.dish_adapter.programTrackTable = updated_program_track_table
-        self.logger.debug(
-            "The programTrackTable is %s:", list(self.dish_adapter.programTrackTable)
-        )
+        self.dish_adapter.programTrackTable = program_track_table
 
     def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
@@ -897,13 +884,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azel_converter.create_antenna_obj()
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
+        # datetime.datetime(2024, 3, 20, 13, 6, 21, 840094)
 
         # For future timestamp few seconds are added in current time.
         # Divided by 1000 to convert ms to sec conversion.
         time_to_add = (2 * self.track_table_entries * self.pointing_calculation_period) / 1000
+
         self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
+        # datetime.datetime(2024, 3, 20, 13, 6, 31, 840094)
 
         timestamp = self.convert_timestamp(self.extended_time.timestamp())
+
         azel_converter.point(ra_value, dec_value, timestamp)
         advance_time = self.track_table_entries * self.pointing_calculation_period
 
@@ -925,8 +916,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
                 self.track_table_scheduler.run()
             else:
-                with self.lock:
-                    self.update_program_track_table(program_track_table)
+                # Case for tracktable calculation takes more time than one tracktable window
+                # (default 2.5 seconds)
+                pass
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:

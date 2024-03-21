@@ -7,6 +7,7 @@ from time import sleep
 
 import pytest
 import tango
+from ska_ser_logging.configuration import configure_logging
 from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common import DevFactory
@@ -16,6 +17,7 @@ from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 from ska_tmc_dishleafnode import DishLeafNode
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
+configure_logging()
 logger = logging.getLogger(__name__)
 DISH_MASTER_DEVICE = "ska001/elt/master"
 
@@ -167,6 +169,8 @@ def cm() -> DishLNComponentManager:
         track_table_entries=25,
         pointing_calculation_period=100,
         dish_availability_check_timeout=5,
+        elevation_max_limit=90.0,
+        elevation_min_limit=17.5,
     )
     yield cm
     # pylint: disable=unnecessary-dunder-call
