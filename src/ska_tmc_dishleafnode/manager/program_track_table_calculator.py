@@ -30,8 +30,7 @@ class ProgramTrackTableCalculator:
 
     def calculate_program_track_table(self, ra_value: str, dec_value: str, azel_converter) -> list:
         """This method calculates programTrackTable.
-        Example of TrackTable:
-        [TAI1, Az1, El1, TAI2, Az2, El2,,,,,,TAIn, Azn, Eln]
+
         Args:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
@@ -91,7 +90,7 @@ class ProgramTrackTableCalculator:
         self.elevation_limit = False
         return True
 
-    def calculate_time_stamp_list(self) -> list:
+    def calculate_time_stamp_list(self) -> tuple:
         """
         This methods calculates an array of number of requested timestamps
         (TrackTableEntries) with a requested time difference
@@ -138,7 +137,7 @@ class ProgramTrackTableCalculator:
         return utc_time - ska_epoch_utc.unix_tai
 
     def convert_timestamp(self, timestamp_seconds: float) -> str:
-        """Converts the floating point timestamp in milliseconds to a utc
+        """Converts the floating point timestamp in seconds to a utc
         timestamp with format -> %Y-%m-%d %H:%M:%S
 
         :param timestamp_seconds: Input timestamp with time in seconds

@@ -7,7 +7,8 @@ import enum
 import logging
 import math
 import re
-
+from ska_ser_logging import configure_logging
+configure_logging()
 module_logger = logging.getLogger(__name__)
 
 

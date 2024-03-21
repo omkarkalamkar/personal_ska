@@ -3,8 +3,6 @@ Configure class for DishLeafNode.
 """
 import json
 import threading
-
-# import time
 from logging import Logger
 from multiprocessing import Process
 from typing import Callable, Optional
@@ -14,8 +12,6 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-
-# from ska_tmc_dishleafnode.constants import TRACK_COMMAND_TIMEOUT, TRACK_TABLE_ENTRY_SIZE
 
 
 class Configure(DishLNCommand):
