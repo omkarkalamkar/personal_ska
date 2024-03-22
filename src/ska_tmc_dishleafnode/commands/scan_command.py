@@ -25,7 +25,7 @@ class Scan(DishLNCommand):
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event],
+        task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """This is a long running method for Scan command, it
         executes the do hook, invoking Scan command on Dish Master

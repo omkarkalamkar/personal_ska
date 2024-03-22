@@ -24,7 +24,7 @@ class EndScan(DishLNCommand):
         self,
         logger: Logger,
         task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event],
+        task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """This is a method for long running command EndScan command, it
         executes the do hook, to set scanID attribute of Dish Master to empty
