@@ -1,4 +1,6 @@
 """Test to verify Scan command on dishleafnode"""
+import time
+
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -51,7 +53,7 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
     )
     group_callback["pointingState"].assert_change_event(
         (PointingState.NONE),
-        lookahead=3,
+        lookahead=4,
     )
 
     dish_leaf_node.subscribe_event(
@@ -107,6 +109,8 @@ def scan_command(tango_context, dishln_name, group_callback, configure_input_str
 
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
+    # It takes time to get scanID attribute updated.
+    time.sleep(0.1)
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(

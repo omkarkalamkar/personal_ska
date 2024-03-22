@@ -328,7 +328,7 @@ class DishLeafNode(SKABaseDevice):
         """
         Invokes Scan command on DishMaster
 
-        :rtype: Tuple[[ResultCode], [str]]
+        :rtype: Tuple[List[ResultCode], List[str]]
         """
         handler = self.get_command_object("Scan")
         result_code, unique_id = handler(argin)
@@ -370,7 +370,7 @@ class DishLeafNode(SKABaseDevice):
         """
         Updates the scanID attribute of Dish Master to empty string
 
-        :rtype: Tuple[[ResultCode], [str]]
+        :rtype: Tuple[List[ResultCode], List[str]]
         """
         handler = self.get_command_object("EndScan")
         result_code, unique_id = handler()

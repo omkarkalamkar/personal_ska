@@ -2,7 +2,6 @@
 
 import threading
 from logging import Logger
-from typing import Optional
 
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -16,7 +15,7 @@ class EndScan(DishLNCommand):
     A class for Dishleafnode's EndScan command. EndScan command is
     inherited from DishLNCommand.
 
-    This command to set scanID attribute of Dish Master to empty string.
+    This command sets scanID attribute of Dish Master to empty string.
     """
 
     # pylint: disable=unused-argument
@@ -24,7 +23,7 @@ class EndScan(DishLNCommand):
         self,
         logger: Logger,
         task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
+        task_abort_event: threading.Event,
     ) -> None:
         """This is a method for long running command EndScan command, it
         executes the do hook, to set scanID attribute of Dish Master to empty
@@ -53,7 +52,8 @@ class EndScan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    def do(self, argin: Optional[str] = None):
+    # pylint: disable=arguments-differ
+    def do(self):
         """
         Method to set scanID attribute of Dish Master to empty string.
 

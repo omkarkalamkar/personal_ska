@@ -14,9 +14,11 @@
 #
 
 autodoc_mock_imports = [
+    "astropy",
     "backoff",
     "fire",
     "jsonschema",
+    "numpy",
     "pyfabil",
     "scipy",
     "ska_tango_base",
@@ -30,12 +32,17 @@ autodoc_mock_imports = [
     "command",
     "future",
     "future.utils",
-    "CODEC",
     "ValidationError",
     "transitions",
     "ska_tmc_common",
-    "ska_ser_log_transactions"
+    "ska_control_model",
+    "katpoint",
+    "ska_ser_logging",
+    "ska_telmodel",
+    "ska_ser_log_transactions",
+    "load_dish_cfg_command"
 ]
+
 
 import os
 import sys

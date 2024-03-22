@@ -108,7 +108,8 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
-    time.sleep(0.2)
+    # It takes time to get scanID attribute updated.
+    time.sleep(0.1)
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -118,7 +119,8 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
     result_endscan, unique_id_endscan = dish_leaf_node.EndScan()
     assert result_endscan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_endscan} Returned result: {result_endscan}")
-    time.sleep(0.2)
+    # It takes time to get scanID attribute updated.
+    time.sleep(0.1)
     assert dish_master.scanID == ""
 
     group_callback["longRunningCommandResult"].assert_change_event(

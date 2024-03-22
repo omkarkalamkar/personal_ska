@@ -467,9 +467,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
-    def scan(
-        self, argin: str, task_callback: Optional[TaskCallbackType]
-    ) -> Tuple[TaskStatus, str]:
+    def scan(self, argin: str, task_callback: TaskCallbackType) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
         :rtype: Tuple
@@ -482,7 +480,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Scan command queued for execution")
         return task_status, response
 
-    def endscan(self, task_callback: Optional[TaskCallbackType]) -> Tuple[TaskStatus, str]:
+    def endscan(self, task_callback: TaskCallbackType) -> Tuple[TaskStatus, str]:
         """Submits the EndScan command for execution.
 
         :rtype: Tuple
