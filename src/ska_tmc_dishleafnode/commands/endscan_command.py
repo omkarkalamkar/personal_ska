@@ -2,6 +2,7 @@
 
 import threading
 from logging import Logger
+from typing import Optional
 
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -23,7 +24,7 @@ class EndScan(DishLNCommand):
         self,
         logger: Logger,
         task_callback: TaskCallbackType,
-        task_abort_event: threading.Event,
+        task_abort_event: Optional[threading.Event],
     ) -> None:
         """This is a method for long running command EndScan command, it
         executes the do hook, to set scanID attribute of Dish Master to empty
