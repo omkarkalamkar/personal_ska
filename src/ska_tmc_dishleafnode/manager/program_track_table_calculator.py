@@ -1,16 +1,18 @@
 """Class for programTrackTable calculator."""
 import datetime
 from concurrent.futures import ThreadPoolExecutor
+from logging import Logger
 
 from astropy.time import Time
 
+from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import SKA_EPOCH
 
 
 class ProgramTrackTableCalculator:
     """Class for programTrackTableCalculator"""
 
-    def __init__(self, component_manager, logger) -> None:
+    def __init__(self, component_manager, logger: Logger) -> None:
         """
         Init method for ProgramTrackTableCalculator class.
 
@@ -28,7 +30,9 @@ class ProgramTrackTableCalculator:
         self.track_table_time_stamp = None
         self.track_table_start_time = None
 
-    def calculate_program_track_table(self, ra_value: str, dec_value: str, azel_converter) -> list:
+    def calculate_program_track_table(
+        self, ra_value: str, dec_value: str, azel_converter: AzElConverter
+    ) -> list:
         """This method calculates programTrackTable.
 
         Args:

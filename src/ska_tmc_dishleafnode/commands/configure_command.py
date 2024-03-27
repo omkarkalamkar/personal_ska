@@ -157,6 +157,21 @@ class Configure(DishLNCommand):
                 return result_code, message
 
             json_argument = json.loads(argin)
+
+            ra_value = json_argument["pointing"]["target"]["ra"]
+            dec_value = json_argument["pointing"]["target"]["dec"]
+
+            # Start programTrackTable calculation
+            self.component_manager.elevation_limit = True
+            self.component_manager.event_track_time.clear()
+
+            self.track_table_process = Process(
+                target=self.component_manager.track_process,
+                args=[ra_value, dec_value, self],
+            )
+            if not self.track_table_process.is_alive():
+                self.track_table_process.start()
+
             if json_argument.get("tmc"):
                 self.component_manager.command_in_progress = "Configure_TrackLoadStaticOff"
                 # Extracting and setting cross elevation offset. Considering
@@ -174,28 +189,6 @@ class Configure(DishLNCommand):
                 return result_code[0], message[0]
 
             receiver_band = json_argument["dish"]["receiver_band"]
-            ra_value = json_argument["pointing"]["target"]["ra"]
-            dec_value = json_argument["pointing"]["target"]["dec"]
-
-            # Start programTrackTable calculation
-            self.component_manager.elevation_limit = True
-            self.component_manager.event_track_time.clear()
-
-            # self.tracking_thread = threading.Thread(
-            #     target=self.component_manager.track_thread,
-            #     args=[ra_value, dec_value, self],
-            # )
-
-            # if not self.tracking_thread.is_alive():
-            #     self.tracking_thread.start()
-
-            self.track_table_process = Process(
-                target=self.component_manager.track_thread,
-                args=[ra_value, dec_value, self],
-            )
-            if not self.track_table_process.is_alive():
-                self.track_table_process.start()
-
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance with Dish Master
@@ -228,7 +221,7 @@ class Configure(DishLNCommand):
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
                 return result_code, message
-        # start tracking thread
+
         result_code, message = self.invoke_track_command()
         return result_code, message
 

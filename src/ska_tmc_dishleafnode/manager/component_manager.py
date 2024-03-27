@@ -871,16 +871,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def update_program_track_table(self, program_track_table) -> None:
+    def update_program_track_table(self, program_track_table: List) -> None:
         """Write the programTrackTable attribute on dish master device."""
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
         with self.lock:
             self.dish_adapter.programTrackTable = program_track_table
 
-    def track_thread(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
+    def track_process(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
         This method manages calculation and writing of programTrackTable attribute
-        on DishMaster at the rate of 20 Hz.
+        on DishMaster at the required frequency.
 
         Args:
             ra_value (str): RA value in hours:minutes:sec
@@ -901,12 +901,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # Divided by 1000 to convert ms to sec conversion.
         time_to_add = (2 * self.track_table_entries * self.pointing_calculation_period) / 1000
 
-        self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
-        self.track_table_calculator.track_table_time_stamp = self.extended_time
+        extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
+        self.track_table_calculator.track_table_time_stamp = extended_time
 
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
-        timestamp = self.convert_timestamp(self.extended_time.timestamp() * 1000)
+        timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
         azel_converter.point(ra_value, dec_value, timestamp)
 
         advance_time = (self.track_table_entries * self.pointing_calculation_period) / 1000
