@@ -29,6 +29,11 @@ class Configure(DishLNCommand):
 
     """
 
+    def __init__(self, component_manager, op_state_model, adapter_factory=None, logger=None):
+        super().__init__(component_manager, op_state_model, adapter_factory, logger)
+        self.task_callback = None
+        self.tracking_thread = None
+
     # pylint: disable=unused-argument
     def invoke_configure(
         self,

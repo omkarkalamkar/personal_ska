@@ -18,6 +18,18 @@ class Track(DishLNCommand):
     This command invokes Track command on Dish Master
     """
 
+    def __init__(
+        self,
+        component_manager,
+        op_state_model,
+        adapter_factory=None,
+        logger=None,
+    ):
+        super().__init__(component_manager, op_state_model, adapter_factory, logger)
+        self.ra_value = ""
+        self.dec_value = ""
+        self.tracking_thread = None
+
     # pylint: disable=unused-argument
     def track(
         self,

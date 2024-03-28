@@ -141,6 +141,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
         )
+        self.extended_time: int = (0,)
         self.__command_in_progress: str = ""
 
         # Event Receiver

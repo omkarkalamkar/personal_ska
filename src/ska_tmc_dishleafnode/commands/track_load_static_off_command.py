@@ -21,6 +21,10 @@ class TrackLoadStaticOff(DishLNCommand):
     offsets provided in the partial configurations on the Dish Master Device.
     """
 
+    def __init__(self, component_manager, op_state_model, adapter_factory=None, logger=None):
+        super().__init__(component_manager, op_state_model, adapter_factory, logger)
+        self.task_callback = None
+
     # pylint: disable=unused-argument
     def invoke_track_load_static_off(
         self,

@@ -16,6 +16,7 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
+# pylint: disable = attribute-defined-outside-init
 class DishLeafNode(SKABaseDevice):
     """
     A Leaf control node for DishMaster.
