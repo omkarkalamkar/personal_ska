@@ -573,11 +573,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             input_json = json.loads(argin)
-        except Exception as e:
-            self.logger.exception("Exception occured while loading the input json: %s", e)
+        except json.JSONDecodeError as json_error:
+            self.logger.exception("Exception occured while loading the input json: %s", json_error)
             return (
                 ResultCode.FAILED,
-                f"Error while loading the input json: {e}",
+                f"Error while loading the input json: {json_error}",
             )
 
         # validate the JSON argument

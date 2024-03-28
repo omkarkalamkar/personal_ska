@@ -1,5 +1,6 @@
 """This module provides base command class for DishLeafNode."""
 import time
+from typing import Any, Optional
 
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import AdapterFactory, AdapterType, DishMode, TmcLeafNodeCommand
@@ -35,25 +36,25 @@ class DishLNCommand(TmcLeafNodeCommand):
                     dev_name, AdapterType.DISH
                 )
                 self.logger.info("Adapter created successfully")
-            except ConnectionFailed as cf:
+            except ConnectionFailed as connection_failed:
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
                         ResultCode.FAILED,
-                        str(cf),
+                        str(connection_failed),
                     )
-            except DevFailed as df:
+            except DevFailed as device_failed:
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
                         ResultCode.FAILED,
-                        str(df),
+                        str(device_failed),
                     )
 
-            except Exception as e:
+            except (AttributeError, ValueError, TypeError) as exception:
                 return (
                     ResultCode.FAILED,
-                    str(e),
+                    str(exception),
                 )
 
         return ResultCode.OK, ""
@@ -79,3 +80,37 @@ class DishLNCommand(TmcLeafNodeCommand):
                 return True
             elapsed_time = time.time() - start_time
         return False
+
+    def init_adapter_low(self):
+        self.init_adapter()
+
+    def init_adapter_mid(self):
+        self.init_adapter()
+
+    def do_mid(self, argin: Optional[Any] = None):
+        """Abstract Method from TmcLeafNodeCommand is
+            defined here but not utilized by this Class.
+        Args:
+            argin (_type_, optional): Accepts argument if required.
+            Defaults to None.
+        """
+
+    def do_low(self, argin: Optional[Any] = None):
+        """Abstract Method from TmcLeafNodeCommand is
+            defined here but not utilized by this Class.
+        Args:
+            argin (_type_, optional): Accepts argument if required.
+            Defaults to None.
+        """
+
+    def do(self, argin: Optional[Any] = None):
+        """Abstract Method from TmcLeafNodeCommand is
+            defined here but not utilized by this Class.
+        Args:
+            argin (_type_, optional): Accepts argument if required.
+            Defaults to None.
+        """
+
+    def update_task_status(self, **kwargs):
+        """Abstract Method from BaseTMCCommand is
+        defined here but not utilized by this Class."""

@@ -981,14 +981,14 @@ test = ["black (>=22.1.0)", "flake8 (>=4.0.1)", "pre-commit (>=2.17.0)", "tox (>
 
 [[package]]
 name = "pytest-mock"
-version = "3.12.0"
+version = "3.14.0"
 description = "Thin-wrapper around the mock package for easier use with pytest"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 
 [package.dependencies]
-pytest = ">=5.0"
+pytest = ">=6.2.5"
 
 [package.extras]
 dev = ["pre-commit", "pytest-asyncio", "tox"]
@@ -1056,7 +1056,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "referencing"
-version = "0.33.0"
+version = "0.34.0"
 description = "JSON Referencing + Python"
 category = "main"
 optional = false
@@ -1187,11 +1187,11 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-ser-logging"
-version = "0.4.2"
+version = "0.4.3"
 description = "Square Kilometre Array logging configuration library"
 category = "main"
 optional = false
-python-versions = ">=3.10,<3.11"
+python-versions = ">=3.10,<4.0"
 
 [package.source]
 type = "legacy"
@@ -2424,8 +2424,8 @@ pytest-metadata = [
     {file = "pytest_metadata-3.1.1.tar.gz", hash = "sha256:d2a29b0355fbc03f168aa96d41ff88b1a3b44a3b02acbe491801c98a048017c8"},
 ]
 pytest-mock = [
-    {file = "pytest-mock-3.12.0.tar.gz", hash = "sha256:31a40f038c22cad32287bb43932054451ff5583ff094bca6f675df2f8bc1a6e9"},
-    {file = "pytest_mock-3.12.0-py3-none-any.whl", hash = "sha256:0972719a7263072da3a21c7f4773069bcc7486027d7e8e1f81d98a47e701bc4f"},
+    {file = "pytest-mock-3.14.0.tar.gz", hash = "sha256:2719255a1efeceadbc056d6bf3df3d1c5015530fb40cf347c0f9afac88410bd0"},
+    {file = "pytest_mock-3.14.0-py3-none-any.whl", hash = "sha256:0b72c38033392a5f4621342fe11e9219ac11ec9d375f8e2a0c164539e0d70f6f"},
 ]
 pytest-repeat = [
     {file = "pytest_repeat-0.9.3-py3-none-any.whl", hash = "sha256:26ab2df18226af9d5ce441c858f273121e92ff55f5bb311d25755b8d7abdd8ed"},
@@ -2496,8 +2496,8 @@ PyYAML = [
     {file = "PyYAML-6.0.1.tar.gz", hash = "sha256:bfdf460b1736c775f2ba9f6a92bca30bc2095067b8a9d77876d1fad6cc3b4a43"},
 ]
 referencing = [
-    {file = "referencing-0.33.0-py3-none-any.whl", hash = "sha256:39240f2ecc770258f28b642dd47fd74bc8b02484de54e1882b74b35ebd779bd5"},
-    {file = "referencing-0.33.0.tar.gz", hash = "sha256:c775fedf74bc0f9189c2a3be1c12fd03e8c23f4d371dce795df44e06c5b412f7"},
+    {file = "referencing-0.34.0-py3-none-any.whl", hash = "sha256:d53ae300ceddd3169f1ffa9caf2cb7b769e92657e4fafb23d34b93679116dfd4"},
+    {file = "referencing-0.34.0.tar.gz", hash = "sha256:5773bd84ef41799a5a8ca72dc34590c041eb01bf9aa02632b4a973fb0181a844"},
 ]
 requests = [
     {file = "requests-2.31.0-py3-none-any.whl", hash = "sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f"},
@@ -2679,8 +2679,8 @@ ska-ser-log-transactions = [
     {file = "ska_ser_log_transactions-0.2.2+ae0f5c92.tar.gz", hash = "sha256:383fb54f9d5c5a2c7f5a9e6747d7b6feec7631c8dbc580444a48c782967ff7e4"},
 ]
 ska-ser-logging = [
-    {file = "ska_ser_logging-0.4.2-py3-none-any.whl", hash = "sha256:86c66cbbe0ccc5b35e13704ce3e3121ef4fa2c0f35423635b77ffce80da70578"},
-    {file = "ska_ser_logging-0.4.2.tar.gz", hash = "sha256:3626b5f04ff32e547100bc771549544a8efda3730ff7b96c9b3e05e1d16adc16"},
+    {file = "ska_ser_logging-0.4.3-py3-none-any.whl", hash = "sha256:06a337e4e726f36d24b86087ec106fbb9e65be4566fe328eb56f56f2310322f8"},
+    {file = "ska_ser_logging-0.4.3.tar.gz", hash = "sha256:a94aa51db54ad2a88af4c320c850c766c1733d9f8534381dd67f993e8e4f5d11"},
 ]
 ska-ser-skuid = [
     {file = "ska-ser-skuid-3.3.3.tar.gz", hash = "sha256:91ad1dda3e3a397e39dbb362046888f5a80e4f5ef022628cde7ccc93c4d9b057"},
