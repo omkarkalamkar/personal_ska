@@ -67,7 +67,6 @@ class Track(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-    # pylint: disable=W0201
     def do(self, argin=None):
         """
         Method to invoke Track command on Dish Master.

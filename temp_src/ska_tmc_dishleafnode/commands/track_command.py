@@ -109,7 +109,6 @@ class Track(BaseCommand):
                 tango.ErrSeverity.ERR,
             )
 
-    # pylint: disable=logging-fstring-interpolation
     def track_thread(self):
         """This thread writes coordinates to desiredPointing on DishMaster at the rate of 20 Hz."""
         self.logger.info(
