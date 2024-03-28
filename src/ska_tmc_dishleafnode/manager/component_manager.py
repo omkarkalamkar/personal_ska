@@ -163,6 +163,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
         self.track_table_calculator = ProgramTrackTableCalculator(self, self.logger)
+        self.track_table_process = None
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -931,6 +932,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
             else:
                 self.update_program_track_table(program_track_table)
+
+    def start_track_table_calculation(self, ra_value: str, dec_value: str, command_obj: Configure):
+        """
+        This method starts track table calculation.
+        """
+        self.track_table_process = Process(
+            target=self.track_process,
+            args=[ra_value, dec_value, command_obj],
+        )
+        if not self.track_table_process.is_alive():
+            self.track_table_process.start()
+
+    def stop_track_table_calculation(self):
+        """
+        Terminates track table calculation process.
+        """
+        self.logger.info("Stopping track table calculation.")
+        self.event_track_time.set()
+        if self.track_table_process.is_alive():
+            self.track_table_process.terminate()
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(self, device_info: DeviceInfo, exception: str) -> None:

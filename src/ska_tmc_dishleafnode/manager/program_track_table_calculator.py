@@ -50,6 +50,7 @@ class ProgramTrackTableCalculator:
         with ThreadPoolExecutor(max_workers=2) as executor:
             time_stamp_list, tai_timestamp_list = self.calculate_time_stamp_list()
             results = executor.map(self.point, time_stamp_list)
+        try:
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):
                     tai_timestamp_list.pop(0)
@@ -67,6 +68,9 @@ class ProgramTrackTableCalculator:
                     )
                     self.logger.debug(log_message)
                     break
+        except Exception as exception:
+            self.logger.error(exception)
+
         return program_track_table
 
     def _is_elevation_within_mechanical_limits(
