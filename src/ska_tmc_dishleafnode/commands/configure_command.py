@@ -4,6 +4,7 @@ Configure class for DishLeafNode.
 import json
 import threading
 from logging import Logger
+from multiprocessing import Process
 from typing import Callable, Optional
 
 from ska_tango_base.commands import ResultCode
@@ -163,13 +164,12 @@ class Configure(DishLNCommand):
             if not json_argument.get("tmc"):
                 ra_value = json_argument["pointing"]["target"]["ra"]
                 dec_value = json_argument["pointing"]["target"]["dec"]
-                self.component_manager.start_track_table_calculation(ra_value, dec_value, self)
-                # self.track_table_process = Process(
-                #     target=self.component_manager.track_process,
-                #     args=[ra_value, dec_value, self],
-                # )
-                # if not self.track_table_process.is_alive():
-                #     self.track_table_process.start()
+                self.track_table_process = Process(
+                    target=self.component_manager.track_process,
+                    args=[ra_value, dec_value, self],
+                )
+                if not self.track_table_process.is_alive():
+                    self.track_table_process.start()
 
             if json_argument.get("tmc"):
                 self.component_manager.command_in_progress = "Configure_TrackLoadStaticOff"

@@ -63,7 +63,6 @@ class TrackStop(DishLNCommand):
             return result_code, message
         # Stop the thread which started when Track command was invoked
         self.component_manager.event_track_time.set()
-        self.component_manager.stop_track_table_calculation()
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "TrackStop"
         )
