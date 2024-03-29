@@ -362,7 +362,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
         """
         timestamp_seconds = timestamp_milliseconds / 1000
-        timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
+        timestamp = datetime.datetime.fromtimestamp(timestamp_seconds).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
         return timestamp
