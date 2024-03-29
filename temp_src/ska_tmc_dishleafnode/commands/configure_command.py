@@ -111,5 +111,3 @@ class Configure(BaseCommand):
             )
         except DevFailed as dev_failed:
             raise dev_failed
-
-    # pylint: enable= unbalanced-tuple-unpacking

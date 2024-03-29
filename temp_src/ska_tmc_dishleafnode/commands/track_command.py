@@ -169,8 +169,6 @@ class Track(BaseCommand):
 
             time.sleep(0.05)
 
-    # pylint: enable=logging-fstring-interpolation, unbalanced-tuple-unpacking
-
     def _is_elevation_within_mechanical_limits(self):
         device_data = self.target
 
