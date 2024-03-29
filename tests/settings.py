@@ -245,13 +245,13 @@ def wait_and_validate_attribute_value_available(
                 attribute_name,
                 attribute_value,
             )
-        except Exception as e:
+        except Exception as exception:
             # Device gets unavailable due to restart and the above command
             # tries to access the attribute resulting into exception
             # It keeps it printing till the attribute is accessible
             # the exception log is suppressed by storing into variable
             # the error is printed later into the log in case of failure
-            error = e
+            error = exception
 
     logger.exception(
         "Exception occurred while reading attribute %s and count is %s",
@@ -282,13 +282,13 @@ def dln_can_communicate_with_dish_master(
                 result_code, _ = device.SetKValue(KVALUE)
                 if result_code == ResultCode.OK:
                     flag = True
-            except Exception as e:
+            except Exception as exception:
                 # Device gets unavailable due to restart and the above command
                 # tries to access the attribute resulting into exception
                 # It keeps it printing till the attribute is accessible
                 # the exception log is suppressed by storing into variable
                 # the error is printed later into the log in case of failure
-                error = e
+                error = exception
         retry = retry + 1
 
     if not flag:

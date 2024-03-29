@@ -366,8 +366,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.perform_reverse_transform(
                         self.achieved_pointing_data.get(block=True).tolist()
                     )
-                except Exception as e:
-                    self.logger.exception("Error in actual pointing process", e)
+                except ValueError as value_error:
+                    self.logger.exception(
+                        "Value error occurred in actual pointing process: %s", value_error
+                    )
+                except Exception as exception:
+                    self.logger.exception("Error in actual pointing process: %s", exception)
 
     def perform_reverse_transform(self, value_list):
         """DO the reverse transform and publish it on
@@ -379,11 +383,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 str(azimuth), str(elevation), timestamp, self.converter.weather_data
             )
             self.actual_pointing = [timestamp, right_ascension, declination]
-        except Exception as e:
+        except (ValueError, IndexError) as exception:
             self.logger.exception(
                 "No values on achievedPointing dish master attribute,"
                 "the device will continue with its normal operation.: %s",
-                e,
+                exception,
             )
 
     def stop_event_receiver(self) -> None:
@@ -496,11 +500,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             input_json = json.loads(argin)
-        except json.JSONDecodeError as e:
-            self.logger.exception("Exception occured while loading the input json: %s", e)
+        except json.JSONDecodeError as exception:
+            self.logger.exception("Exception occured while loading the input json: %s", exception)
             return (
                 ResultCode.FAILED,
-                f"Error while loading the input json: {e}",
+                f"Error while loading the input json: {exception}",
             )
 
         # validate the JSON argument
@@ -601,7 +605,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 raise ValueError(
                     f"The input string contains {len(offsets)} values, but should have 2."
                 )
-        except Exception as exception:
+        except (ValueError, json.JSONDecodeError) as exception:
             self.logger.exception(
                 "Exception occured while validating the argin for TrackLoadStaticOff command: %s",
                 exception,

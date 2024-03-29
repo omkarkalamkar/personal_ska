@@ -77,8 +77,8 @@ class DishLNEventReceiver(EventReceiver):
                     self.handle_long_running_command_status,
                     stateless=True,
                 )
-            except Exception as e:
-                log_msg = f"Event not working for device {dev_info.dev_name}/{e}"
+            except Exception as exception:
+                log_msg = f"Event not working for device {dev_info.dev_name}/{exception}"
                 self._logger.exception(log_msg)
             else:
                 self.subscribed = True
