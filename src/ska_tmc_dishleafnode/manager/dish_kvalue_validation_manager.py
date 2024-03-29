@@ -29,7 +29,9 @@ class DishkValueValidationManager:
                 self.component_manager.check_device_responsive()
                 result_code, _ = setkvalue_obj.init_adapter()
                 if result_code == ResultCode.OK:
-                    self.dish_manager_kvalue = setkvalue_obj.dish_master_adapter.kValue
+                    self.dish_manager_kvalue = (
+                        setkvalue_obj.dish_master_adapter.kValue
+                    )
                     return True
             except Exception as e:
                 self.logger.exception("Dish manager is unresponsive %s", e)

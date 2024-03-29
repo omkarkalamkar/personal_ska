@@ -8,7 +8,9 @@ import tango
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState
-from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
+from ska_tmc_common.test_helpers.helper_adapter_factory import (
+    HelperAdapterFactory,
+)
 from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
@@ -101,7 +103,9 @@ def event_remover(group_callback, attributes: List[str]) -> None:
     """Removes residual events from the queue."""
     for attribute in attributes:
         try:
-            iterable = group_callback._mock_consumer_group._views[attribute]._iterable
+            iterable = group_callback._mock_consumer_group._views[
+                attribute
+            ]._iterable
             for node in iterable:
                 logger.info("Payload is: %s", repr(node.payload))
                 node.drop()
@@ -109,7 +113,9 @@ def event_remover(group_callback, attributes: List[str]) -> None:
             pass
 
 
-def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
+def wait_for_dish_mode(
+    cm: DishLNComponentManager, dish_mode: DishMode
+) -> bool:
     """Waits for dishmode to become given dish mode. Times out if the change
     does not occure. Current timeout is 10s.
     """
@@ -123,7 +129,9 @@ def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
     return False
 
 
-def wait_for_attribute_value(device: DeviceProxy, attribute_name: str, value: str = "[]") -> bool:
+def wait_for_attribute_value(
+    device: DeviceProxy, attribute_name: str, value: str = "[]"
+) -> bool:
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
     while device.read_attribute(attribute_name).value == value:
@@ -145,7 +153,9 @@ def wait_for_unresponsive(cm):
     return False
 
 
-def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback):
+def tear_down(
+    dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback
+):
     """Teardown for the Dish Leaf Node device."""
     current_pointing_state = dish_master.pointingState
     if current_pointing_state == PointingState.TRACK:

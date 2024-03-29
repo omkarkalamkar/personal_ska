@@ -53,7 +53,9 @@ class AzElConverter:
             if antenna.name == self.component_manager.dish_id:
                 self.component_manager.observer = antenna
 
-    def point(self, right_ascension: str, declination: str, timestamp: str) -> list:
+    def point(
+        self, right_ascension: str, declination: str, timestamp: str
+    ) -> list:
         """This method converts Target RaDec coordinates
         to the AzEl coordinates.It is called continuously
         from Track command (in a thread) at interval
@@ -65,10 +67,16 @@ class AzElConverter:
         Return:
             az_el_coordinates (list)
         """
-        return self.radec_to_azel(right_ascension, declination, timestamp, self.weather_data)
+        return self.radec_to_azel(
+            right_ascension, declination, timestamp, self.weather_data
+        )
 
     def azel_to_radec(
-        self, az_value: str, el_value: str, timestamp: str, weather_data: dict[str, float]
+        self,
+        az_value: str,
+        el_value: str,
+        timestamp: str,
+        weather_data: dict[str, float],
     ) -> list:
         """This method converts given Azimuth/Elevation to RA/Dec after
         reversing the refraction correction and performing the topocentric and
@@ -101,12 +109,19 @@ class AzElConverter:
 
         # Preloading the IERS A chart for Astrop's usage.
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
-            ra_dec = target.radec(timestamp=timestamp, antenna=self.component_manager.observer)
+            ra_dec = target.radec(
+                timestamp=timestamp, antenna=self.component_manager.observer
+            )
 
-        ra = angle_to_string(ra_dec.ra, unit=u.hour, precision=2, show_unit=False)
-        dec = angle_to_string(ra_dec.dec, unit=u.deg, precision=2, show_unit=False)
+        ra = angle_to_string(
+            ra_dec.ra, unit=u.hour, precision=2, show_unit=False
+        )
+        dec = angle_to_string(
+            ra_dec.dec, unit=u.deg, precision=2, show_unit=False
+        )
         logger.debug(
-            "The Right Ascension is %s and the Declination is %s after backward transform",
+            "The Right Ascension is %s and the Declination is %s after "
+            "backward transform",
             ra,
             dec,
         )
@@ -147,7 +162,8 @@ class AzElConverter:
         )
         refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
         logger.debug(
-            "The Azimuth value is %s and the Elevation is %s after forward transform.",
+            "The Azimuth value is %s and the Elevation is %s after "
+            "forward transform.",
             azel.az.deg,
             refraction_corrected_angle.deg,
         )

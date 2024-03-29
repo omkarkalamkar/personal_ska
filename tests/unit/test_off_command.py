@@ -23,18 +23,28 @@ def test_off_command_in_fp(tango_context, cm, task_callback, group_callback):
         stateless=True,
     )
     cm.setstandbyfpmode(task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
-    group_callback["dishMode"].assert_change_event(DishMode.STANDBY_FP, lookahead=4)
+    group_callback["dishMode"].assert_change_event(
+        DishMode.STANDBY_FP, lookahead=4
+    )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_off_allowed()
 
     cm.off(task_callback=task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -45,15 +55,19 @@ def test_off_command_adapter_none(cm, task_callback):
     assert cm.is_off_allowed()
     cm.command_timeout = 2
     cm.off(task_callback=task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     asserted_data = task_callback.assert_against_call(
         status=TaskStatus.COMPLETED, result=ResultCode.FAILED
     )
 
     assert (
-        "Failed to connect to database on host tango-databaseds with port 10000"
-        in asserted_data["exception"]
+        "Failed to connect to database on host tango-databaseds with"
+        "port 10000" in asserted_data["exception"]
     )
 
 

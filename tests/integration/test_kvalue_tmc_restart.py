@@ -178,7 +178,9 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     dev_info._class = "HelperDishDevice"
     db.add_device(dev_info)
     dish_master_server.RestartServer()
-    wait_and_validate_attribute_value_available(dish_master, "State", DevState.DISABLE, timeout=30)
+    wait_and_validate_attribute_value_available(
+        dish_master, "State", DevState.DISABLE, timeout=30
+    )
     # check the devices are stable and available for further testing.
     assert dln_can_communicate_with_dish_master(dish_leaf_node)
     assert dish_leaf_node.kValue == dish_master.kValue

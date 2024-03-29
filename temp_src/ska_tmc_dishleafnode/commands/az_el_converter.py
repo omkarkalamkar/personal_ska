@@ -10,7 +10,8 @@ class AzElConverter:
         self.logger = log
 
     def create_antenna_obj(self):
-        """This method identifies the KATPoint.Antenna object to be used from the Dish Number."""
+        """This method identifies the KATPoint.Antenna object to be used 
+        from the Dish Number."""
         try:
             device_data = DeviceData.get_instance()
 
@@ -39,8 +40,9 @@ class AzElConverter:
                 device_data.observer = ant
 
     def point(self, ra_value, dec_value, timestamp):
-        """This method converts Target RaDec coordinates to the AzEl coordinates. It is called
-        continuosly from Track command (in a thread) at interval of 50ms till the StopTrack command is invoked.
+        """This method converts Target RaDec coordinates to the AzEl 
+        coordinates. It is called continuosly from Track command (in a thread) 
+        at interval of 50ms till the StopTrack command is invoked.
         """
         device_data = DeviceData.get_instance()
         # Create KATPoint Target object
@@ -52,8 +54,9 @@ class AzElConverter:
         return az_el_coordinates
 
     def download_IERS_file(self):
-        """This method performs one pointing calculation with dummy values to download the IERS file in advanced
-        to the potinting calcualtions on DishLeafNode."""
+        """This method performs one pointing calculation with dummy values to 
+        download the IERS file in advanced to the potinting calcualtions on 
+        DishLeafNode."""
         # Create an example radec target
         ra = "21:08:47.92"
         dec = "-88:57:22.9"

@@ -11,8 +11,12 @@ def test_trackstop_command_completed(tango_context, task_callback, cm):
     cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_trackstop_allowed()
     cm.trackstop(task_callback=task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -24,9 +28,15 @@ def test_trackstop_command_adapter_none(task_callback, cm):
     assert cm.is_trackstop_allowed()
     cm.trackstop(task_callback=task_callback)
 
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
+    )
 
 
 def test_trackstop_command_not_allowed(tango_context, cm):

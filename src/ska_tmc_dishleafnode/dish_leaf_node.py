@@ -40,10 +40,14 @@ class DishLeafNode(SKABaseDevice):
     # -----------------
     # Device Properties
     # -----------------
-    DishMasterFQDN = device_property(dtype="str", doc="FQDN of Dish Master Device")
+    DishMasterFQDN = device_property(
+        dtype="str", doc="FQDN of Dish Master Device"
+    )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
-    DishAvailabilityCheckTimeout = device_property(dtype="DevUShort", default_value=120)
+    DishAvailabilityCheckTimeout = device_property(
+        dtype="DevUShort", default_value=120
+    )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=15)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
     # Dish Track command properties
@@ -52,12 +56,15 @@ class DishLeafNode(SKABaseDevice):
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
     TrackTableEntries = device_property(
-        dtype="DevShort", default_value=25, doc="Number of entries in programTrackTable"
+        dtype="DevShort",
+        default_value=25,
+        doc="Number of entries in programTrackTable",
     )
     PointingCalculationPeriod = device_property(
         dtype="DevShort",
         default_value=100,
-        doc="Time difference between two consecutive entries of programTrackTable in milliseconds",
+        doc="Time difference between two consecutive entries of "
+        + "programTrackTable in milliseconds",
     )
 
     # ----------
@@ -151,7 +158,9 @@ class DishLeafNode(SKABaseDevice):
         self._dishMode = dish_mode
         self.push_change_event("dishMode", self._dishMode)
 
-    def update_pointingstate_callback(self, pointing_state: PointingState) -> None:
+    def update_pointingstate_callback(
+        self, pointing_state: PointingState
+    ) -> None:
         """Push an event for change of pointingState attribute."""
         self._pointingState = pointing_state
         self.push_change_event("pointingState", self._pointingState)
@@ -159,7 +168,8 @@ class DishLeafNode(SKABaseDevice):
     def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""
         self.push_change_event(
-            "kValueValidationResult", str(int(self.component_manager.kValueValidationResult))
+            "kValueValidationResult",
+            str(int(self.component_manager.kValueValidationResult)),
         )
         self.logger.info(
             "k-value validation result: ResultCode.%s",
@@ -504,11 +514,14 @@ class DishLeafNode(SKABaseDevice):
 
     @command(
         dtype_in="str",
-        doc_in="The JSON input string containing cross elevation/elevation offsets.",
+        doc_in="The JSON input string containing cross "
+        + "elevation/elevation offsets.",
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def TrackLoadStaticOff(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
+    def TrackLoadStaticOff(
+        self, argin: str
+    ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes TrackLoadStaticOff command on DishMaster
 
@@ -622,7 +635,9 @@ class DishLeafNode(SKABaseDevice):
             db = Database()
             value = {"kValue": {"__value": [self.component_manager.kValue]}}
             db.put_device_attribute_property(self._dishln_name, value)
-            value = db.get_device_attribute_property(self._dishln_name, "kValue")
+            value = db.get_device_attribute_property(
+                self._dishln_name, "kValue"
+            )
             self.logger.info("k-value memorized successfully: %s", value)
             self.kvalue_validation_callback()
         return [result_code], [unique_id]

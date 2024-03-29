@@ -70,7 +70,9 @@ class Off(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         if self.component_manager.dishMode in [
@@ -84,21 +86,26 @@ class Off(DishLNCommand):
             result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if not result:
                 self.logger.error(
-                    "Timeout occurred while invoking the SetStandbyFPMode Command.",
+                    "Timeout occurred while invoking the SetStandbyFPMode "
+                    + "Command.",
                 )
                 return (
                     ResultCode.FAILED,
-                    "Timeout occurred while invoking the SetStandbyFPMode Command.",
+                    "Timeout occurred while invoking the SetStandbyFPMode "
+                    + "Command.",
                 )
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
-            self.logger.error("Timeout occurred while invoking the SetStandbyLPMode Command.")
+            self.logger.error(
+                "Timeout occurred while invoking the SetStandbyLPMode Command."
+            )
             return (
                 ResultCode.FAILED,
-                "Timeout occurred while invoking the SetStandbyLPMode Command.",
+                "Timeout occurred while invoking the SetStandbyLPMode "
+                + "Command.",
             )
 
         return result_code[0], message[0]

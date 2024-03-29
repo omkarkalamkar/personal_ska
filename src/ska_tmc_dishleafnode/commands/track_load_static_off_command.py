@@ -21,8 +21,16 @@ class TrackLoadStaticOff(DishLNCommand):
     offsets provided in the partial configurations on the Dish Master Device.
     """
 
-    def __init__(self, component_manager, op_state_model, adapter_factory=None, logger=None):
-        super().__init__(component_manager, op_state_model, adapter_factory, logger)
+    def __init__(
+        self,
+        component_manager,
+        op_state_model,
+        adapter_factory=None,
+        logger=None,
+    ):
+        super().__init__(
+            component_manager, op_state_model, adapter_factory, logger
+        )
         self.task_callback = None
 
     # pylint: disable=unused-argument
@@ -68,17 +76,22 @@ class TrackLoadStaticOff(DishLNCommand):
                 self.dish_master_adapter.dev_name,
             )
 
-    def update_task_callback(self, result_code: ResultCode, exception: str = "") -> None:
+    def update_task_callback(
+        self, result_code: ResultCode, exception: str = ""
+    ) -> None:
         """
         Method to update task callback.
 
         Args:
             result_code (ResultCode): result code
-            exception (str, optional): Exception occurred during command execution. Defaults to "".
+            exception (str, optional): Exception occurred during command
+            execution. Defaults to "".
         """
         if exception:
             self.task_callback(
-                status=TaskStatus.COMPLETED, result=result_code, exception=exception
+                status=TaskStatus.COMPLETED,
+                result=result_code,
+                exception=exception,
             )
         else:
             self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
@@ -98,12 +111,17 @@ class TrackLoadStaticOff(DishLNCommand):
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         offsets = json.loads(argin)
         result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "TrackLoadStaticOff", argin=offsets
+            "Dish Master",
+            self.dish_master_adapter,
+            "TrackLoadStaticOff",
+            argin=offsets,
         )
 
         return result_code[0], message[0]

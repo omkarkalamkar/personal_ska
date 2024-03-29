@@ -98,12 +98,16 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
-    result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
+    result_config, unique_id_config = dish_leaf_node.Configure(
+        configure_input_str
+    )
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode", "Configure")
     )
-    logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
+    logger.info(
+        f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
@@ -235,7 +239,9 @@ def partial_configure_dish_leaf_node(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
-    result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
+    result_config, unique_id_config = dish_leaf_node.Configure(
+        configure_input_str
+    )
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode", "Configure")
@@ -246,7 +252,9 @@ def partial_configure_dish_leaf_node(
         lookahead=6,
     )
 
-    partial_configurations = build_partial_configure_data(partial_configure_input_str, OFFSET)
+    partial_configurations = build_partial_configure_data(
+        partial_configure_input_str, OFFSET
+    )
     for input_str in partial_configurations:
         # Give a pause before invoking next configuration
         sleep(1)
@@ -262,7 +270,9 @@ def partial_configure_dish_leaf_node(
     assert result_trackstop[0] == ResultCode.QUEUED
 
     while True:
-        assertion_data = group_callback["longRunningCommandsInQueue"].assert_change_event(
+        assertion_data = group_callback[
+            "longRunningCommandsInQueue"
+        ].assert_change_event(
             Anything,
         )
         if "TrackStop" in assertion_data["attribute_value"]:
@@ -291,7 +301,9 @@ def partial_configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_partial_configure_command(tango_context, group_callback, json_factory):
+def test_partial_configure_command(
+    tango_context, group_callback, json_factory
+):
     """Test partial configure functionality on Dish Leaf Node."""
     partial_configure_dish_leaf_node(
         tango_context,

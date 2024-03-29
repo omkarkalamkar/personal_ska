@@ -25,7 +25,9 @@ class Track(DishLNCommand):
         adapter_factory=None,
         logger=None,
     ):
-        super().__init__(component_manager, op_state_model, adapter_factory, logger)
+        super().__init__(
+            component_manager, op_state_model, adapter_factory, logger
+        )
         self.ra_value = ""
         self.dec_value = ""
         self.tracking_thread = None
@@ -90,7 +92,9 @@ class Track(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         result_code, message = self.call_adapter_method(

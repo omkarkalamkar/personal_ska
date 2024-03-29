@@ -17,7 +17,9 @@ class SetKValue(DishLNCommand, FastCommand):
     The sample rate for each Band is calculated based on k value
     """
 
-    def __init__(self, component_manager, op_state_model=None, logger=None) -> None:
+    def __init__(
+        self, component_manager, op_state_model=None, logger=None
+    ) -> None:
         super().__init__(
             component_manager=component_manager,
             op_state_model=op_state_model,
@@ -48,7 +50,9 @@ class SetKValue(DishLNCommand, FastCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         result_code, message = self.call_adapter_method(
