@@ -124,7 +124,6 @@ class Track(BaseCommand):
             timestamp = str(now)
             utc_time = now.replace(tzinfo=timezone.utc)
             utc_timestamp = utc_time.timestamp()
-            # pylint: disable=unbalanced-tuple-unpacking
             device_data.az, device_data.el = azel_converter.point(
                 self.ra_value, self.dec_value, timestamp
             )

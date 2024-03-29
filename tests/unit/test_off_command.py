@@ -66,8 +66,9 @@ def test_off_command_adapter_none(cm, task_callback):
     )
 
     assert (
-        "Failed to connect to database on host tango-databaseds with"
-        "port 10000" in asserted_data["exception"]
+        "Failed to connect to database on host tango-databaseds with "
+        + "port 10000"
+        in asserted_data["exception"]
     )
 
 
