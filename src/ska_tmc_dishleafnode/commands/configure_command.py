@@ -5,7 +5,7 @@ import json
 import threading
 from logging import Logger
 from multiprocessing import Process
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -92,7 +92,7 @@ class Configure(DishLNCommand):
         self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument
-    def validate_json_argument(self, input_argin: dict) -> tuple:
+    def validate_json_argument(self, input_argin: dict) -> Tuple[ResultCode, str]:
         """Validates the json argument"""
 
         if "pointing" not in input_argin:
@@ -122,7 +122,7 @@ class Configure(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-    def do(self, argin: str = None):
+    def do(self, argin: str = None) -> Tuple[ResultCode, str]:
         """
         Method to invoke Configure command on dish.
 
@@ -214,7 +214,7 @@ class Configure(DishLNCommand):
             )
         return result_code, message
 
-    def start_dish_tracking(self, current_dish_mode):
+    def start_dish_tracking(self, current_dish_mode) -> Tuple[ResultCode, str]:
         """Invoke Track after waiting for DishMode to Operate"""
         if current_dish_mode == DishMode.STANDBY_FP:
             result_code, message = self.ensure_dish_in_right_dish_mode()
@@ -224,7 +224,7 @@ class Configure(DishLNCommand):
         result_code, message = self.invoke_track_command()
         return result_code, message
 
-    def ensure_dish_is_configured(self, receiver_band):
+    def ensure_dish_is_configured(self, receiver_band) -> Tuple[ResultCode, str]:
         """This method check for the completion of configure command
         :param receiver_band: str
         """
@@ -242,7 +242,7 @@ class Configure(DishLNCommand):
             )
         return ResultCode.OK, ""
 
-    def ensure_dish_in_right_dish_mode(self):
+    def ensure_dish_in_right_dish_mode(self) -> Tuple[ResultCode, str]:
         """This method set dish to Operate Mode"""
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetOperateMode"
@@ -259,7 +259,7 @@ class Configure(DishLNCommand):
             )
         return ResultCode.OK, ""
 
-    def invoke_track_command(self):
+    def invoke_track_command(self) -> Tuple[ResultCode, str]:
         """Invoke Track command on dish"""
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
