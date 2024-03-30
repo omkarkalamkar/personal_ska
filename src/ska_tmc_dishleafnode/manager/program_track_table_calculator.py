@@ -1,4 +1,4 @@
-"""Class for programTrackTable calculator."""
+"""Module for programTrackTable calculator."""
 import datetime
 from concurrent.futures import ThreadPoolExecutor
 from logging import Logger
@@ -10,16 +10,17 @@ from ska_tmc_dishleafnode.constants import SKA_EPOCH
 
 
 class ProgramTrackTableCalculator:
-    """Class for programTrackTableCalculator"""
+    """Class for programTrackTableCalculator."""
 
     def __init__(self, component_manager, logger: Logger) -> None:
         """
         Init method for ProgramTrackTableCalculator class.
-
-        param: component_manager: Dish Leaf Node component manager object
-        param: logger: logger
-
-        :return: None
+        :param component_manager: Dish Leaf Node component manager object
+        :type component_manager: DishLNComponentManager
+        :param logger: logger
+        :type logger: Logger
+        :return: : None
+        :rtype: None
         """
         self.component_manager = component_manager
         self.logger = logger
@@ -35,11 +36,12 @@ class ProgramTrackTableCalculator:
     ) -> list:
         """This method calculates programTrackTable.
 
-        Args:
-            ra_value (str): RA value in hours:minutes:sec
-            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
-
-        :return: list in the form of [TAI1, Az1, El1, TAI2, Az2, El2,,,,,,TAIn, Azn, Eln]
+        :param ra_value: Right Ascension of the source in hours:minutes:sec.
+        :type ra_value: str
+        :param dec_value: Declination of the source in degree:arc_minutes:arc_sec.
+        :type dec_value: str
+        :return: list in the form of [TAI1, Az1, El1, TAI2, Az2, El2,,,,,,TAIn, Azn, Eln].
+        :rtype: list
         """
         self.right_ascension = ra_value
         self.declination = dec_value
@@ -79,9 +81,10 @@ class ProgramTrackTableCalculator:
     ) -> bool:
         """Check if elevation is within mechanical limit.
 
-        Args:
-            el_value (string): Elevation of the target.
-        :return (bool): False if elevation is within the limit.
+        :param el_value: Elevation of the source.
+        :type el_value: float
+        :return: False if elevation is within the limit.
+        :rtype: bool
         """
         if (
             not self.component_manager.elevation_min_limit
@@ -105,8 +108,9 @@ class ProgramTrackTableCalculator:
         (PointingCalculationPeriod) and corresponding list of time
         in TAI format.
 
-        :return (tuple): Tuple with list of timestamps (UTC) in string format and
-            timestamp in TAI format
+        :return: Tuple with list of timestamps (UTC) in string format and
+            timestamp in TAI format.
+        :rtype: tuple
         """
         self.track_table_start_time = self.track_table_time_stamp.timestamp()
         time_stamp_list = []
@@ -125,14 +129,15 @@ class ProgramTrackTableCalculator:
         return time_stamp_list, tai_timestamp_list
 
     def point(self, timestamp: str) -> list:
-        """This method converts Target RaDec coordinates to the AzEl
+        """
+        This method converts Target RaDec coordinates to the AzEl
         coordinates. It is called continuously from Configure command (in a thread)
         at interval of 50ms till the StopTrack command is invoked.
 
-        Args:
-            timestamp(str): utc timestamp in string format
-        Return:
-            az_el_coordinates (list)
+        :param timestamp: utc timestamp
+        :type timestamp: str
+        :return: Azimuth and Elevation coordinates (Az, El) of source.
+        :rtype: list
         """
         return self.azel_converter.radec_to_azel(
             self.right_ascension, self.declination, timestamp, self.weather_data
@@ -142,19 +147,23 @@ class ProgramTrackTableCalculator:
         """
         This method converts utc time to tai format time.
         :param: utc_time: time in utc (seconds)
-        :returns: time in TAI format (seconds)
+        :type utc_time: float
+        :returns: Time in TAI format (seconds)
+        :rtype: float
         """
+
         ska_epoch_utc = Time(SKA_EPOCH, scale="utc")
         return utc_time - ska_epoch_utc.unix_tai
 
     def convert_timestamp(self, timestamp_seconds: float) -> str:
-        """Converts the floating point timestamp in seconds to a utc
+        """
+        Converts the floating point timestamp in seconds to a utc
         timestamp with format -> %Y-%m-%d %H:%M:%S
 
         :param timestamp_seconds: Input timestamp with time in seconds
         :type timestamp_seconds: float
-
-        :returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+        :return: Timestamp with format "%Y-%m-%d %H:%M:%S".
+        :rtype: string
         """
         timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
             "%Y-%m-%d %H:%M:%S"

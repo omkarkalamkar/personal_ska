@@ -11,7 +11,7 @@ import threading
 # pylint: disable=W0222, too-many-lines
 import time
 from logging import Logger
-from multiprocessing import Event, Lock, Manager, Process
+from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Optional, Tuple
 
 from astropy.utils import iers
@@ -872,7 +872,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return True
 
     def update_program_track_table(self, program_track_table: List) -> None:
-        """Write the programTrackTable attribute on dish master device."""
+        """
+        This method writes the programTrackTable attribute on dish master device.
+
+        :param program_track_table: It a list of TAI time, Az and El for expected
+        number of TAI times (TrackTableEntries).
+        :type program_track_table: list
+        :return: : None
+        :rtype: None
+        """
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
         with self.lock:
             self.dish_adapter.programTrackTable = program_track_table
@@ -882,16 +890,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         This method manages calculation and writing of programTrackTable attribute
         on DishMaster at the required frequency.
 
-        Args:
-            ra_value (str): RA value in hours:minutes:sec
-            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
-            command_obj: Command Object which is used to set desired_pointing
+        :param ra_value: Right Ascension of the source in hours:minutes:sec.
+        :type ra_value: str
+        :param dec_value: Declination of the source in degree:arc_minutes:arc_sec.
+        :type dec_value: str
+        :param command_obj: Command Object which is used to set desired_pointing.
+        :type command_obj: Configure or Track.
+        :return: None
+        :rtype: None
         """
-        self.logger.info(
-            "The track thread name is : %s %s",
-            threading.current_thread().name,
-            threading.get_ident(),
-        )
+        self.logger.info("The track process name is : %s", Process(target=current_process().name))
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
         self.dish_adapter = command_obj.dish_master_adapter
@@ -988,12 +996,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @property
     def elevation_limit(self) -> bool:
-        """Returns the True if dish is within its mechanical limit."""
+        """
+        Returns the True if dish is within its mechanical limit.
+
+        :return: True if dish is within its mechanical limit.
+        :rtype: bool
+        """
         return self.el_limit
 
     @elevation_limit.setter
     def elevation_limit(self, elevation_limit: bool) -> None:
-        """Sets flag for elevation limit."""
+        """
+        Sets flag for elevation limit.
+
+        :param elevation_limit: Flag is set to True if elevation is out of dish's
+        observable boundary.
+        :type elevation_limit: bool
+        :return: : None
+        :rtype: None
+        """
         if self.el_limit != elevation_limit:
             self.el_limit = elevation_limit
 
