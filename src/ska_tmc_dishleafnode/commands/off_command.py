@@ -2,7 +2,7 @@
 
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -55,7 +55,7 @@ class Off(DishLNCommand):
                 result=ResultCode(return_code),
             )
 
-    def do(self, argin=None):
+    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
         """
         "Invokes StandbyFP and StandbyLP mode commands on dish master device
         after waiting for correct dish modes. First invokes and waits for

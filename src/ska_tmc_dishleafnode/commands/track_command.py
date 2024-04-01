@@ -2,7 +2,7 @@
 
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -81,7 +81,7 @@ class Track(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-    def do(self, argin=None):
+    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
         """
         Method to invoke Track command on Dish Master.
 

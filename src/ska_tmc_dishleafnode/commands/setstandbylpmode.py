@@ -2,7 +2,7 @@
 SetStandbyLPMode command class for DishLeafNode.
 """
 import threading
-from typing import Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -57,7 +57,7 @@ class SetStandbyLPMode(DishLNCommand):
             )
 
     # pylint: enable=unused-argument
-    def do(self, argin=None):
+    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
         """
         Method to invoke SetStandbyLPMode (Low power mode) command on
         DishMaster.

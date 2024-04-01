@@ -2,7 +2,7 @@
 
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -53,7 +53,7 @@ class Scan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    def do(self, argin=None):
+    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
         """
         Method to invoke Scan command on Dish Master.
 
