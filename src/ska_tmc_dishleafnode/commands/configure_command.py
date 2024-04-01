@@ -5,8 +5,9 @@ import json
 import threading
 import time
 from logging import Logger
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Optional, Tuple
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
@@ -50,7 +51,7 @@ class Configure(DishLNCommand):
         self,
         argin: str,
         logger: Logger,
-        task_callback: Callable = None,
+        task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """This is a long running method for Configure command, it
@@ -61,7 +62,7 @@ class Configure(DishLNCommand):
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: Callable, optional
+        :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         """
@@ -250,14 +251,14 @@ class Configure(DishLNCommand):
                 if result_code == ResultCode.FAILED:
                     return result_code, message
 
-        except Exception as e:
-            self.logger.exception(f"Command invocation failed: {e}")
+        except Exception as exception:
+            self.logger.exception(f"Command invocation failed: {exception}")
             return (
                 ResultCode.FAILED,
                 "The invocation of the Configure command is failed on"
                 + f" Dish Master Device {self.dish_master_adapter.dev_name}."
                 + "Reason: Error in calling the Configure command on"
-                + f" Dish Master: {e}",
+                + f" Dish Master: {exception}",
             )
         return result_code, message
 

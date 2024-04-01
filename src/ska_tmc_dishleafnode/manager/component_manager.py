@@ -10,9 +10,10 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Tuple
 
 from astropy.utils import iers
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
@@ -422,9 +423,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._device
 
-    def off(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    # pylint: disable=signature-differs
+    def off(self, task_callback: TaskCallbackType) -> Tuple[TaskStatus, str]:
         """Submits the Off command for execution.
 
         :rtype: Tuple
@@ -438,7 +438,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstandbyfpmode(
-        self, task_callback: Optional[Callable] = None
+        self, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """
         Initializes the attributes and properties of the DishLeafNode.
@@ -455,7 +455,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstandbylpmode(
-        self, task_callback: Optional[Callable] = None
+        self, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
@@ -470,7 +470,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstowmode(
-        self, task_callback: Optional[Callable] = None
+        self, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetStowMode command for execution.
 
@@ -484,9 +484,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
-    def scan(
-        self, task_callback: Optional[Callable] = None
-    ) -> Tuple[TaskStatus, str]:
+    def scan(self, task_callback: TaskCallbackType) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
         :rtype: Tuple
@@ -519,7 +517,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def track(
-        self, argin: str, task_callback: Optional[Callable] = None
+        self, argin: str, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the Track command for execution.
 
@@ -571,7 +569,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def trackstop(
-        self, task_callback: Optional[Callable] = None
+        self, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the TrackStop command for execution.
 
@@ -586,7 +584,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setoperatemode(
-        self, task_callback: Optional[Callable] = None
+        self, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
@@ -600,9 +598,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def configure(
-        self, argin: str, task_callback: Optional[Callable] = None
-    ) -> tuple:
+    def configure(self, argin: str, task_callback: TaskCallbackType) -> tuple:
         """
         Submit the Configure command in queue.
 
@@ -651,6 +647,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(
                 "Exception occured while validating the argin for "
                 + "TrackLoadStaticOff command: %s",
+                exception,
+            )
+        except Exception as exception:
+            self.logger.exception(
+                "An unexpected exception occurred: %s",
                 exception,
             )
             return (

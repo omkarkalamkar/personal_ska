@@ -2,8 +2,9 @@
 
 import threading
 from logging import Logger
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Optional, Tuple
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
@@ -23,7 +24,7 @@ class Off(DishLNCommand):
     def invoke_off(
         self,
         logger: Logger,
-        task_callback: Callable = None,
+        task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """
@@ -35,7 +36,7 @@ class Off(DishLNCommand):
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: Callable, optional
+        :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         """
