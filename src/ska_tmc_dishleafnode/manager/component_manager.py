@@ -633,7 +633,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def track_load_static_off(
-        self, argin: str, task_callback: Callable
+        self, argin: str, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the TrackLoadStaticOff command for execution"""
         try:
@@ -643,15 +643,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     f"The input string contains {len(offsets)} values,"
                     + "but should have 2."
                 )
-        except (ValueError, json.JSONDecodeError) as exception:
+        except Exception as exception:
             self.logger.exception(
                 "Exception occured while validating the argin for "
                 + "TrackLoadStaticOff command: %s",
-                exception,
-            )
-        except Exception as exception:
-            self.logger.exception(
-                "An unexpected exception occurred: %s",
                 exception,
             )
             return (
