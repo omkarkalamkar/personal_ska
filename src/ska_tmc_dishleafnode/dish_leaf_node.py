@@ -3,7 +3,6 @@
 
 import json
 from typing import List, Tuple
-
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common import DishMode, LivelinessProbeType, PointingState
@@ -180,15 +179,15 @@ class DishLeafNode(SKABaseDevice):
     # Attributes methods
     # ------------------
 
-    def read_dishMasterDevName(self):
+    def read_dishMasterDevName(self) -> str:
         """Returns the dishMasterDevName attribute value."""
         return self.component_manager.dish_dev_name
 
-    def write_dishMasterDevName(self, value):
+    def write_dishMasterDevName(self, value: str) -> None:
         """Set the dishMasterDevName attribute."""
         self.component_manager.dish_dev_name = value
 
-    def read_isSubsystemAvailable(self):
+    def read_isSubsystemAvailable(self) -> bool:
         """Read method for isSubsystemAvailable"""
         return self._isSubsystemAvailable
 
@@ -245,7 +244,7 @@ class DishLeafNode(SKABaseDevice):
     # Commands
     # --------
 
-    def is_SetStowMode_allowed(self):
+    def is_SetStowMode_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -267,7 +266,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetStandbyLPMode_allowed(self):
+    def is_SetStandbyLPMode_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -288,7 +287,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetOperateMode_allowed(self):
+    def is_SetOperateMode_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -309,7 +308,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetStandbyFPMode_allowed(self):
+    def is_SetStandbyFPMode_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -345,7 +344,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_Scan_allowed(self):
+    def is_Scan_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -357,7 +356,7 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_scan_allowed()
 
-    def is_off_allowed(self):
+    def is_off_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -379,7 +378,7 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
-    def is_Configure_allowed(self):
+    def is_Configure_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -406,7 +405,7 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
-    def is_StartCapture_allowed(self):
+    def is_StartCapture_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -434,7 +433,7 @@ class DishLeafNode(SKABaseDevice):
             ["StartCapture command will be refactored in later PI's"],
         ]
 
-    def is_StopCapture_allowed(self):
+    def is_StopCapture_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -462,7 +461,7 @@ class DishLeafNode(SKABaseDevice):
             ["StopCapture command will be refactored in later PI's"],
         ]
 
-    def is_Track_allowed(self):
+    def is_Track_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -500,7 +499,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_TrackStop_allowed(self):
+    def is_TrackStop_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -532,7 +531,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_TrackLoadStaticOff_allowed(self):
+    def is_TrackLoadStaticOff_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -544,7 +543,7 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_trackloadstaticoff_allowed()
 
-    def is_AbortCommands_allowed(self):
+    def is_AbortCommands_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -565,7 +564,7 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
-    def is_Restart_allowed(self):
+    def is_Restart_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -586,7 +585,7 @@ class DishLeafNode(SKABaseDevice):
             ["Restart command will be refactored in later PI's"],
         ]
 
-    def is_ObsReset_allowed(self):
+    def is_ObsReset_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -608,7 +607,7 @@ class DishLeafNode(SKABaseDevice):
             ["ObsReset command will be refactored in later PI's"],
         ]
 
-    def is_SetKValue_allowed(self):
+    def is_SetKValue_allowed(self) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state

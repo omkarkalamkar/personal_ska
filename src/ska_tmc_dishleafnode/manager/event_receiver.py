@@ -29,12 +29,12 @@ class DishLNEventReceiver(EventReceiver):
         sleep_time: int = 1,
     ):
         super().__init__(
-            component_manager,
-            logger,
-            attribute_dict,
-            max_workers,
-            proxy_timeout,
-            sleep_time,
+            component_manager=component_manager,
+            logger=logger,
+            attribute_dict=attribute_dict,
+            max_workers=max_workers,
+            proxy_timeout=proxy_timeout,
+            sleep_time=sleep_time,
         )
         self.subscribed: bool = False
 
