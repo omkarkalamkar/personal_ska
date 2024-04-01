@@ -145,7 +145,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
     return group_callback
 
 
-def get_input_str(path:str)->str:
+def get_input_str(path: str) -> str:
     """
     Returns input json string
     :rtype: String
