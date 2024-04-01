@@ -169,7 +169,7 @@ class Configure(DishLNCommand):
                 "dish":{"receiver_band":"1"}}
 
         return:
-            None
+            (ResultCode, str)
 
         raises:
             DevFailed If error occurs while invoking ConfigureBand<> command
