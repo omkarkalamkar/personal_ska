@@ -3,6 +3,7 @@
 
 import json
 from typing import List, Tuple
+
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common import DishMode, LivelinessProbeType, PointingState
