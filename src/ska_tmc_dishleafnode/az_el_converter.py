@@ -11,6 +11,7 @@ This module defines the AzElConverter class,
 which is used to convert given Ra and Dec values into AzEl."""
 # Standard Python imports
 import logging
+from typing import List
 
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -55,7 +56,7 @@ class AzElConverter:
 
     def point(
         self, right_ascension: str, declination: str, timestamp: str
-    ) -> list:
+    ) -> list[float]:
         """This method converts Target RaDec coordinates
         to the AzEl coordinates.It is called continuously
         from Track command (in a thread) at interval
@@ -77,7 +78,7 @@ class AzElConverter:
         el_value: str,
         timestamp: str,
         weather_data: dict[str, float],
-    ) -> list:
+    ) -> List[str]:
         """This method converts given Azimuth/Elevation to RA/Dec after
         reversing the refraction correction and performing the topocentric and
         geocentric conversions.
@@ -133,7 +134,7 @@ class AzElConverter:
         declination: str,
         timestamp: str,
         weather_data: dict[str, float],
-    ) -> list:
+    ) -> List[str]:
         """This method invokes the katpoint commands to do the forward
         transform required for pointing a celestial object.
         Forward Transform ie: Geocentric conversion then topocentric and then
