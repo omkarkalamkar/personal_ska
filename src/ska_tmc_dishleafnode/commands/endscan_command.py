@@ -67,11 +67,7 @@ class EndScan(DishLNCommand):
                 "Error while creating adapter %s", self.component_manager.dish_dev_name
             )
             return result_code, message
-
-        self.dish_master_adapter.scanID = ""
-        self.logger.info(
-            "The updated scanID for dish master  %s is %s",
-            self.dish_master_adapter,
-            self.dish_master_adapter.scanID,
+        result_code, message = self.call_adapter_method(
+            "Dish Master", self.dish_master_adapter, "EndScan"
         )
         return result_code, message
