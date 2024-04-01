@@ -122,7 +122,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_id = dish_dev_name.split("/")[-3].upper() if dish_dev_name else None
         self.observer = None
         self.dish_number = None
-        self.event_track_time = threading.Event()
+        self.event_track_time = Event()
         self.elevation = elevation
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
@@ -882,8 +882,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
-        with self.lock:
-            self.dish_adapter.programTrackTable = program_track_table
+        self.dish_adapter.programTrackTable = program_track_table
 
     def track_process(self, ra_value: str, dec_value: str, command_obj: Configure | Track) -> None:
         """
