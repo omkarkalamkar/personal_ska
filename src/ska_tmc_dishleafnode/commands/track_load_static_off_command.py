@@ -4,7 +4,7 @@ TrackLoadStaticOff command class for DishLeafNode.
 import json
 import threading
 from logging import Logger
-from typing import Callable, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -98,8 +98,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
         self.component_manager.command_in_progress = ""
 
-    # pylint: disable=signature-differs
-    def do(self, argin: str) -> Tuple[ResultCode, str]:
+    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
         """
         Method to invoke TrackLoadStaticOff command on DishMaster.
 

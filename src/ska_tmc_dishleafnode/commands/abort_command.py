@@ -2,7 +2,7 @@
 AbortCommands command class for DishLeafNode.
 """
 
-from typing import Tuple
+from typing import Any, Optional, Tuple
 
 from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 from ska_tmc_common.enum import PointingState
@@ -28,8 +28,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         self._validator = ArgumentValidator()
         self._name = "AbortCommands"
 
-    # pylint: disable=arguments-differ
-    def do(self) -> Tuple[ResultCode, str]:
+    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
         """
         Invokes AbortCommands command on the DishMaster.
 
