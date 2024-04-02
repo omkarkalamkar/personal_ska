@@ -12,7 +12,8 @@ PROJECT = ska-tmc-dishleafnode
 PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209
 TANGO_HOST ?= tango-databaseds:10000 ## TANGO_HOST connection to the Tango DS
 PYTHON_VARS_BEFORE_PYTEST ?= PYTHONPATH=.:./src \
-							TANGO_HOST=$(TANGO_HOST)
+							TANGO_HOST=$(TANGO_HOST) \
+							CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) \
 TELESCOPE ?= SKA-mid
 MARK ?= ## What -m opt to pass to pytest
 # run one test with FILE=acceptance/test_subarray_node.py::test_check_internal_model_according_to_the_tango_ecosystem_deployed
@@ -35,6 +36,8 @@ UMBRELLA_CHART_PATH ?= charts/$(HELM_CHART)/
 K8S_CHARTS ?= ska-tmc-dishleafnode test-parent## list of charts
 K8S_CHART ?= $(HELM_CHART)
 PYTHON_SWITCHES_FOR_ISORT ?=
+
+CLUSTER_DOMAIN ?= cluster.local
 
 CI_REGISTRY ?= gitlab.com
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)
@@ -103,6 +106,7 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set tmc-dishleafnode.deviceServers.mocks.enabled=$(FAKE_DEVICES) \
 	--set global.exposeAllDS=false \
 	--set global.operator=false \
+	--set global.cluster_domain=$(CLUSTER_DOMAIN) \
 	--set ska-taranta.enabled=$(TARANTA) \
 	$(CUSTOM_VALUES)
 
