@@ -6,7 +6,7 @@ import logging
 import threading
 import time
 from logging import Logger
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -157,7 +157,8 @@ class Configure(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
+    # pylint: disable=signature-differs
+    def do(self, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke Configure command on dish.
 
@@ -277,7 +278,7 @@ class Configure(DishLNCommand):
         result_code, message = self.invoke_track_command()
         return result_code, message
 
-    def ensure_dish_is_configured(self, receiver_band):
+    def ensure_dish_is_configured(self, receiver_band: str):
         """This method check for the completion of configure command
         :param receiver_band: str
         """

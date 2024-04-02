@@ -3,7 +3,7 @@
 import logging
 import threading
 from logging import Logger
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -87,7 +87,9 @@ class Track(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
+    # pylint: disable=signature-differs
+    # pylint: disable=arguments-differ
+    def do(self, argin: dict) -> Tuple[ResultCode, str]:
         """
         Method to invoke Track command on Dish Master.
 

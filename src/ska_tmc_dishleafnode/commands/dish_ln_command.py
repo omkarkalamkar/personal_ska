@@ -1,7 +1,9 @@
 """This module provides base command class for DishLeafNode."""
+import logging
 import time
 from typing import Any, Optional
 
+from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import (
     AdapterFactory,
@@ -10,6 +12,9 @@ from ska_tmc_common import (
     TmcLeafNodeCommand,
 )
 from tango import ConnectionFailed, DevFailed
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 class DishLNCommand(TmcLeafNodeCommand):
@@ -21,7 +26,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         component_manager,
         op_state_model,
         adapter_factory=None,
-        logger=None,
+        logger: logging.Logger = LOGGER,
     ):
         super().__init__(component_manager, logger)
         self.op_state_model = op_state_model

@@ -3,7 +3,7 @@ SetStowMode command class for DishLeafNode.
 """
 import threading
 from logging import Logger
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -59,8 +59,8 @@ class SetStowMode(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    # pylint: enable=unused-argument
-    def do(self, argin: Optional[Any] = None) -> Tuple[ResultCode, str]:
+    # pylint: disable=arguments-differ
+    def do(self) -> Tuple[ResultCode, str]:
         """
         Method to invoke SetStowMode command on DishMaster.
 
