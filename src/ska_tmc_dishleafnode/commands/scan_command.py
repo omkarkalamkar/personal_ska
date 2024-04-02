@@ -54,6 +54,7 @@ class Scan(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
+    # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
         """
         Method to invoke Scan command on Dish Master.
