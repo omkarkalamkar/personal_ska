@@ -2,11 +2,16 @@
 SetKValue command class for DishLeafNode.
 """
 
+import logging
 from typing import Tuple
 
+from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 class SetKValue(DishLNCommand, FastCommand):
@@ -18,7 +23,10 @@ class SetKValue(DishLNCommand, FastCommand):
     """
 
     def __init__(
-        self, component_manager, op_state_model=None, logger=None
+        self,
+        component_manager,
+        op_state_model=None,
+        logger: logging.Logger = LOGGER,
     ) -> None:
         super().__init__(
             component_manager=component_manager,

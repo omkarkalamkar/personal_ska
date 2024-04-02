@@ -2,12 +2,17 @@
 AbortCommands command class for DishLeafNode.
 """
 
+import logging
 from typing import Any, Optional, Tuple
 
+from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 class AbortCommands(DishLNCommand, FastCommand):
@@ -17,7 +22,10 @@ class AbortCommands(DishLNCommand, FastCommand):
     """
 
     def __init__(
-        self, component_manager, op_state_model=None, logger=None
+        self,
+        component_manager,
+        op_state_model=None,
+        logger: logging.Logger = LOGGER,
     ) -> None:
         super().__init__(
             component_manager=component_manager,

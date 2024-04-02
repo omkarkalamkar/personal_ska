@@ -2,11 +2,13 @@
 Configure class for DishLeafNode.
 """
 import json
+import logging
 import threading
 import time
 from logging import Logger
 from typing import Any, Optional, Tuple
 
+from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -17,6 +19,9 @@ from ska_tmc_dishleafnode.constants import (
     TRACK_COMMAND_TIMEOUT,
     TRACK_TABLE_ENTRY_SIZE,
 )
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 class Configure(DishLNCommand):
@@ -37,11 +42,11 @@ class Configure(DishLNCommand):
         self,
         component_manager,
         op_state_model,
-        adapter_factory,
-        logger: Logger,
+        adapter_factory=None,
+        logger: logging.Logger = LOGGER,
     ):
         super().__init__(
-            component_manager, op_state_model, adapter_factory, logger=logger
+            component_manager, op_state_model, adapter_factory, logger
         )
         self.task_callback = None
         self.tracking_thread = None

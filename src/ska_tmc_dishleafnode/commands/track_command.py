@@ -1,14 +1,19 @@
 """Track command class for Dishleafnode."""
 
+import logging
 import threading
 from logging import Logger
 from typing import Any, Optional, Tuple
 
+from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 class Track(DishLNCommand):
@@ -24,7 +29,7 @@ class Track(DishLNCommand):
         component_manager,
         op_state_model,
         adapter_factory=None,
-        logger=None,
+        logger: logging.Logger = LOGGER,
     ):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
