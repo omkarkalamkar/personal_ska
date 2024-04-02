@@ -2,6 +2,7 @@
 SetOperateMode command class for DishLeafNode.
 """
 import threading
+from logging import Logger
 from typing import Any, Optional, Tuple
 
 from ska_tango_base.base import TaskCallbackType
@@ -22,7 +23,7 @@ class SetOperateMode(DishLNCommand):
     # pylint: disable=unused-argument
     def set_operate_mode(
         self,
-        logger,
+        logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:

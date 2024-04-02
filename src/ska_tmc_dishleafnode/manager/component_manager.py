@@ -1025,7 +1025,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def _is_elevation_within_mechanical_limits(
         self,
         el_value,
-    ):
+    ) -> bool:
         """Check if elevation is within mechanical limit
         Args:
             el_value: string

@@ -2,6 +2,7 @@
 SetStowMode command class for DishLeafNode.
 """
 import threading
+from logging import Logger
 from typing import Any, Optional, Tuple
 
 from ska_tango_base.base import TaskCallbackType
@@ -23,7 +24,7 @@ class SetStowMode(DishLNCommand):
     # pylint: disable=unused-argument
     def set_stow_mode(
         self,
-        logger,
+        logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ):

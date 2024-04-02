@@ -37,11 +37,11 @@ class Configure(DishLNCommand):
         self,
         component_manager,
         op_state_model,
-        adapter_factory=None,
-        logger=None,
+        adapter_factory,
+        logger: Logger,
     ):
         super().__init__(
-            component_manager, op_state_model, adapter_factory, logger
+            component_manager, op_state_model, adapter_factory, logger=logger
         )
         self.task_callback = None
         self.tracking_thread = None
