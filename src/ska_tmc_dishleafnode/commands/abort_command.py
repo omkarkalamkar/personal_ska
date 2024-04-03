@@ -36,7 +36,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         self._name = "AbortCommands"
 
     # pylint: disable=arguments-differ
-    def do(self):
+    def do(self)-> Tuple[ResultCode, str]:
         """
         Invokes AbortCommands command on the DishMaster.
 
@@ -73,7 +73,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         )
         return result_code, message
 
-    def stop_dish_tracking(self):
+    def stop_dish_tracking(self)-> Tuple[ResultCode, str]:
         """Method to invoke track stop when abortcommands command is invoked"""
         self.component_manager.event_track_time.set()
         pointing_state = self.component_manager.pointingState

@@ -107,7 +107,7 @@ class Configure(DishLNCommand):
         """
         Method to update task callback.
 
-        Args:
+        Args:-> Tuple[ResultCode, str]
             result_code (ResultCode): result code
             exception (str, optional): Exception occurred during command
             execution. Defaults to "".

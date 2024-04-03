@@ -1041,7 +1041,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.elevation_limit = True
             self.logger.info(
                 "Minimum/maximum elevation limit has been reached."
-                + " Source is not visible currently."
+                " Source is not visible currently."
             )
             return False
 

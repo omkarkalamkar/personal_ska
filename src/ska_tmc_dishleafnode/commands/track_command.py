@@ -128,7 +128,7 @@ class Track(DishLNCommand):
         radec_value = f"{self.ra_value}, {self.dec_value}"
         self.logger.info(
             "Track command ignores RA dec coordinates passed in: %s. "
-            + "Uses coordinates from Configure command instead.",
+            "Uses coordinates from Configure command instead.",
             radec_value,
         )
 
