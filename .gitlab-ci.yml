@@ -74,7 +74,7 @@ include:
 # retry to template job for python-test
 python-test:
   tags:
-    - k8srunner-large-cicd
+    - k8srunner-large
   variables:
     PYTHON_TEST_COUNT: 1
   retry: 1
@@ -87,7 +87,7 @@ python-lint:
 
 k8s-test:
   tags:
-    - k8srunner-large-cicd
+    - k8srunner-large
   variables:
     COUNT: 1
     SERVICE_ACCOUNT: "ci-svc-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-on-demand-tmc-test"
@@ -104,46 +104,4 @@ stop-k8s-test:
   when: always
   needs:
     - k8s-test
-
-
-# Overrides
-default:
-  tags:
-    - k8srunner-cicd
-
-docs-build:
-  tags:
-    - k8srunner-cicd
-
-docs-pages:
-  tags:
-    - k8srunner-cicd
-
-build-changelog:
-  tags:
-    - k8srunner-cicd
-
-python-lint:
-  tags:
-    - k8srunner-cicd
-
-helm-chart-lint:
-  tags:
-    - k8srunner-cicd
-
-helm-chart-build:
-  tags:
-    - k8srunner-cicd
-
-helm-chart-publish:
-  tags:
-    - k8srunner-cicd
-
-stop-k8s-test:
-  tags:
-    - k8srunner-cicd
-
-create-ci-metrics:
-  tags:
-    - k8srunner-cicd
 
