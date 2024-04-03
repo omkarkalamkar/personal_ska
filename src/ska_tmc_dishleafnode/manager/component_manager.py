@@ -246,8 +246,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def kValueValidationResult(self) -> int:
         """Returns the k-value validation result
 
-        Returns:
-        int: The k-value validation result.
+        return: int: The k-value validation result.
         """
 
         return self._kValueValidationResult
@@ -293,17 +292,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def command_in_progress(self) -> str:
         """Method to get value of current command in progress
 
-        Returns:
+        return:
             str:  command in progress variable data
         """
         return self.__command_in_progress
 
     @command_in_progress.setter
-    def command_in_progress(self, cmd_in_progress: str):
+    def command_in_progress(self, cmd_in_progress: str) -> None:
         """Method used to set command in progress value.
 
         Args:
             cmd_in_progress (str): Name of current command in progress
+
+        return: None
         """
         self.__command_in_progress = cmd_in_progress
 
@@ -313,6 +314,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param value: The list containing timestamp, RA and Dec values.
         :value dtype: list
+        :return: None
         """
         self._actual_pointing[:] = value
         self.logger.debug(
@@ -347,7 +349,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     async def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
         to central node after DLN start/restart.
-        :returns: None
+        :return: None
         """
         dish_kvalue_validation_manager = DishkValueValidationManager(
             self, self.logger
@@ -366,7 +368,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             milliseconds
         :type timestamp_milliseconds: float
 
-        :Returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+        :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
         """
         timestamp_seconds = timestamp_milliseconds / 1000
         timestamp = datetime.datetime.utcfromtimestamp(
@@ -377,7 +379,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def process_actual_pointing(self) -> None:
         """Process the achieved pointing data to calculate actual pointing.
 
-        :Returns: None
+        :return: None
         """
         self.converter.create_antenna_obj()
         self.logger.info("Main Process ID: %s", os.getppid())
@@ -407,7 +409,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             value_list (List[float]): A list containing timestamp
                                       in milliseconds,azimuth, and elevation.
 
-        Returns:None
+        return:None
         """
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
@@ -429,7 +431,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def stop_event_receiver(self) -> None:
         """Stops the Event Receiver
 
-        :Returns: None
+        :return: None
         """
         if self.event_receiver_object._thread.is_alive():
             self.event_receiver_object.stop()
@@ -522,7 +524,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
         if self.dishMode == DishMode.OPERATE and self.pointingState not in (
             PointingState.NONE,
@@ -576,7 +578,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype: boolean
+        :rtype: boolean
         """
         if self.dishMode == DishMode.OPERATE and self.pointingState not in (
             PointingState.NONE,
@@ -693,7 +695,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_trackloadstaticoff_allowed(self) -> bool:
         """Checks if the command TrackLoadStaticOff is allowed.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -703,7 +705,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -727,7 +729,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
 
         if self.dishMode in [
@@ -751,7 +753,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -776,7 +778,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -798,7 +800,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
         self.check_device_responsive()
         if self.dishMode in [
@@ -822,7 +824,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -846,7 +848,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
-        rtype:  boolean
+        :rtype:  boolean
         """
         self.check_device_responsive()
         if self.dishMode in [
@@ -983,7 +985,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
             command_obj: Command Object which is used to set desired_pointing
 
-        Returns:None
+        return:None
 
         """
         self.logger.info(
@@ -1038,7 +1040,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
 
-        Returns: None
+        return: None
         """
         self.program_track_table.clear()
         for _ in range(self.track_table_entries):
@@ -1076,7 +1078,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Check if elevation is within mechanical limit
         Args:
             el_value: string
-        Return:
+        rtype:
             boolean
         """
 
@@ -1175,8 +1177,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes
 
-        Returns:
-        None
+        return: None
         """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
         if self.actual_pointing_process.is_alive():

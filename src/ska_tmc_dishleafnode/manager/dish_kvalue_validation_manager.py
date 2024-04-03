@@ -53,7 +53,7 @@ class DishkValueValidationManager:
 
     def validate_dish_kvalue(self) -> None:
         """Validate kvalue of dish leaf node and dish manager
-        :returns: None
+        :return: None
         """
         dish_manager_kvalue = self.get_dish_manager_kvalue()
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()

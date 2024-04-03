@@ -17,7 +17,7 @@ class CommandCallBack:
     def __init__(self, log):
         self.logger = log
 
-    def cmd_ended_cb(self, event):
+    def cmd_ended_cb(self, event)->None:
         """
         Callback function immediately executed when the asynchronous invoked
         command returns. Checks whether the command has been successfully invoked on DishMaster.

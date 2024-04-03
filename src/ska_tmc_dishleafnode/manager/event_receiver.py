@@ -102,7 +102,7 @@ class DishLNEventReceiver(EventReceiver):
         Args:
             event_flag (tango.EventType.CHANGE_EVENT): to flag the
             change in event.
-        Returns: None
+        return: None
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -123,7 +123,7 @@ class DishLNEventReceiver(EventReceiver):
         Args:
             event_flag (tango.EventData): to flag the
             change in event.
-        Returns: None
+        return: None
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -146,7 +146,7 @@ class DishLNEventReceiver(EventReceiver):
         Args:
             event_flag (tango.EventData): to flag the
             change in event.
-        Returns: None
+        return: None
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -169,7 +169,7 @@ class DishLNEventReceiver(EventReceiver):
         Args:
             event_flag (tango.EventData): to flag the
             change in event.
-        Returns: None
+        return: None
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -192,7 +192,7 @@ class DishLNEventReceiver(EventReceiver):
         Args:
             event_data (tango.EventType.CHANGE_EVENT): to flag the
             change in event.
-        Returns: None
+        return: None
         """
         if event_data.err:
             error = event_data.errors[0]

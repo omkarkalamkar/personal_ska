@@ -9,7 +9,7 @@ class AzElConverter:
     def __init__(self, log):
         self.logger = log
 
-    def create_antenna_obj(self):
+    def create_antenna_obj(self)->None:
         """This method identifies the KATPoint.Antenna object to be used 
         from the Dish Number."""
         try:
@@ -53,7 +53,7 @@ class AzElConverter:
         az_el_coordinates = [azel.az.deg, azel.alt.deg]
         return az_el_coordinates
 
-    def download_IERS_file(self):
+    def download_IERS_file(self)->None:
         """This method performs one pointing calculation with dummy values to 
         download the IERS file in advanced to the potinting calcualtions on 
         DishLeafNode."""

@@ -196,7 +196,7 @@ class DishLeafNode(SKABaseDevice):
         """Returns the actualPointing attribute value."""
         return json.dumps(self.component_manager.actual_pointing)
 
-    def read_dishMode(self):
+    def read_dishMode(self) -> DishMode:
         """
         Returns the dishMode attribute value.
 
@@ -207,7 +207,7 @@ class DishLeafNode(SKABaseDevice):
         """
         return self._dishMode
 
-    def read_pointingState(self):
+    def read_pointingState(self) -> PointingState:
         """
         Returns the pointingState attribute value.
 
@@ -259,8 +259,10 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetStowMode(self):
-        """Invokes SetStowMode command on DishMaster."""
+    def SetStowMode(self) -> Tuple[List[ResultCode], List[str]]:
+        """Invokes SetStowMode command on DishMaster.
+
+        :rtype: Tuple"""
 
         handler = self.get_command_object("SetStowMode")
         result_code, unique_id = handler()
@@ -302,8 +304,10 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetOperateMode(self):
-        """Invokes SetOperateMode command on DishMaster device."""
+    def SetOperateMode(self) -> Tuple[List[ResultCode], List[str]]:
+        """Invokes SetOperateMode command on DishMaster device.
+
+        :rtype: Tuple"""
         handler = self.get_command_object("SetOperateMode")
         result_code, unique_id = handler()
 
@@ -323,7 +327,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetStandbyFPMode(self):
+    def SetStandbyFPMode(self) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetStandbyFPMode command on DishMaster (Standby-Full power)
         mode."""
         handler = self.get_command_object("SetStandbyFPMode")
@@ -333,7 +337,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def Scan(self):
+    def Scan(self) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes Scan command on DishMaster (Standby-Full power)
         mode
@@ -489,7 +493,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def TrackStop(self):
+    def TrackStop(self) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes TrackStop command on DishMaster
 
@@ -668,7 +672,7 @@ class DishLeafNode(SKABaseDevice):
         )
         return cm
 
-    def init_command_objects(self):
+    def init_command_objects(self) -> None:
         """
         Initializes the command handlers for commands supported by this device.
         """

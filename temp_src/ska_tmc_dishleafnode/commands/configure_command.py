@@ -34,7 +34,7 @@ class Configure(BaseCommand):
 
     """
 
-    def check_allowed(self):
+    def check_allowed(self)->bool:
         """
         Checks whether this command is allowed to be run in the current device state.
 
@@ -51,7 +51,7 @@ class Configure(BaseCommand):
 
         return True
 
-    def do(self, argin):
+    def do(self, argin)->None:
         """
         Method to invoke Configure command on dish.
 

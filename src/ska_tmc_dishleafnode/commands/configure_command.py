@@ -271,8 +271,14 @@ class Configure(DishLNCommand):
             )
         return result_code, message
 
-    def start_dish_tracking(self, current_dish_mode):
-        """Invoke Track after waiting for DishMode to Operate"""
+    def start_dish_tracking(self, current_dish_mode) -> Tuple[ResultCode, str]:
+        """
+        Invoke Track after waiting for DishMode to Operate
+
+        Args:
+        current_dish_mode (DishMode): The current dish mode.
+
+        return: Tuple[ResultCode, str]"""
         if current_dish_mode == DishMode.STANDBY_FP:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
@@ -281,9 +287,14 @@ class Configure(DishLNCommand):
         result_code, message = self.invoke_track_command()
         return result_code, message
 
-    def ensure_dish_is_configured(self, receiver_band: str):
+    def ensure_dish_is_configured(
+        self, receiver_band: str
+    ) -> Tuple[ResultCode, str]:
         """This method check for the completion of configure command
+
         :param receiver_band: str
+
+        return: Tuple[ResultCode, str]
         """
         # Set wait for dish band to be configured
         result = self.set_wait_for_configured_band(receiver_band)
@@ -300,8 +311,11 @@ class Configure(DishLNCommand):
             )
         return ResultCode.OK, ""
 
-    def ensure_dish_in_right_dish_mode(self):
-        """This method set dish to Operate Mode"""
+    def ensure_dish_in_right_dish_mode(self) -> Tuple[ResultCode, str]:
+        """This method set dish to Operate Mode
+
+        return: Tuple[ResultCode, str]
+        """
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
@@ -319,8 +333,11 @@ class Configure(DishLNCommand):
             )
         return ResultCode.OK, ""
 
-    def invoke_track_command(self):
-        """Invoke Track command on dish"""
+    def invoke_track_command(self) -> Tuple[ResultCode, str]:
+        """Invoke Track command on dish
+
+        return: Tuple[ResultCode, str]
+        """
         # Wait until 2 set of programTrackTable entries are reached
         start_time = time.time()
         while (time.time() - start_time) < TRACK_COMMAND_TIMEOUT:
