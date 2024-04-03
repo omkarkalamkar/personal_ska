@@ -1201,22 +1201,3 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Inside Component Manager Destructor")
         with self.process_lock:
             self.stop_executors_and_cleanup_memory()
-
-    def start_communicating(self) -> None:
-        """
-        Empty method for resolving lint issue
-        """
-
-    def stop_communicating(self) -> None:
-        """
-        Empty method for resolving lint issue
-        """
-
-    def on(self):
-        "Empty method for resolving lint issue"
-
-    def standby(self):
-        "Empty method for resolving lint issue"
-
-    def is_command_allowed(self):
-        "Empty method for resolving lint issue"
