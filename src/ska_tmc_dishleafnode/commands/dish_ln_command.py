@@ -109,32 +109,3 @@ class DishLNCommand(TmcLeafNodeCommand):
 
     def init_adapter_mid(self):
         self.init_adapter()
-
-    # pylint: disable=arguments-differ
-    def do_mid(self):
-        """Abstract Method from TmcLeafNodeCommand is
-            defined here but not utilized by this Class.
-        Args:
-            argin (_type_, optional): Accepts argument if required.
-            Defaults to None.
-        """
-
-    def do_low(self):
-        """Abstract Method from TmcLeafNodeCommand is
-            defined here but not utilized by this Class.
-        Args:
-            argin (_type_, optional): Accepts argument if required.
-            Defaults to None.
-        """
-
-    def do(self):
-        """Abstract Method from TmcLeafNodeCommand is
-            defined here but not utilized by this Class.
-        Args:
-            argin (_type_, optional): Accepts argument if required.
-            Defaults to None.
-        """
-
-    def update_task_status(self, **kwargs):
-        """Abstract Method from BaseTMCCommand is
-        defined here but not utilized by this Class."""
