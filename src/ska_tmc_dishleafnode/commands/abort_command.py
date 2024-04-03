@@ -3,6 +3,7 @@ AbortCommands command class for DishLeafNode.
 """
 
 import logging
+from typing import Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
@@ -36,7 +37,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         self._name = "AbortCommands"
 
     # pylint: disable=arguments-differ
-    def do(self)-> Tuple[ResultCode, str]:
+    def do(self) -> Tuple[ResultCode, str]:
         """
         Invokes AbortCommands command on the DishMaster.
 
@@ -73,7 +74,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         )
         return result_code, message
 
-    def stop_dish_tracking(self)-> Tuple[ResultCode, str]:
+    def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
         """Method to invoke track stop when abortcommands command is invoked"""
         self.component_manager.event_track_time.set()
         pointing_state = self.component_manager.pointingState
