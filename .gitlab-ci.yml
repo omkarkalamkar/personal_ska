@@ -74,7 +74,7 @@ include:
 # retry to template job for python-test
 python-test:
   tags:
-    - k8srunner
+    - k8srunner-large
   variables:
     PYTHON_TEST_COUNT: 1
   retry: 1
