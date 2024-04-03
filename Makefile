@@ -6,7 +6,7 @@
 # value for CAR_OCI_REGISTRY_HOST (artefact.skao.int) and overwrites
 # CAR_OCI_REGISTRY_USER and PROJECT to give a final Docker tag of
 # artefact.skao.int/ska-tmc-dishleafnode
-
+CLUSTER_DOMAIN ?= cluster.local
 CAR_OCI_REGISTRY_HOST:=artefact.skao.int
 PROJECT = ska-tmc-dishleafnode
 PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209
@@ -36,8 +36,6 @@ UMBRELLA_CHART_PATH ?= charts/$(HELM_CHART)/
 K8S_CHARTS ?= ska-tmc-dishleafnode test-parent## list of charts
 K8S_CHART ?= $(HELM_CHART)
 PYTHON_SWITCHES_FOR_ISORT ?=
-
-CLUSTER_DOMAIN ?= cluster.local
 
 CI_REGISTRY ?= gitlab.com
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)
