@@ -20,7 +20,7 @@ class DishkValueValidationManager:
 
     def is_dish_manager_ready(self) -> bool:
         """Wait and check if dish manager is ready
-        :returns: bool
+        :return: bool
         """
         count = 0
         setkvalue_obj = SetKValue(self.component_manager, self.logger)
@@ -41,13 +41,13 @@ class DishkValueValidationManager:
 
     def get_dish_manager_kvalue(self) -> int:
         """Get kValue attribute value of dish manager
-        :returns: int
+        :return: int
         """
         return self.dish_manager_kvalue
 
     def get_dish_ln_memorized_kvalue(self) -> int:
         """Return memorized kvalue dish leaf node
-        :returns: int
+        :return: int
         """
         return self.component_manager.kValue
 

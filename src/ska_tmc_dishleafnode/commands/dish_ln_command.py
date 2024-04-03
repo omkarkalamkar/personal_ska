@@ -104,8 +104,5 @@ class DishLNCommand(TmcLeafNodeCommand):
             elapsed_time = time.time() - start_time
         return False
 
-    def init_adapter_low(self):
-        self.init_adapter()
-
     def init_adapter_mid(self):
         self.init_adapter()

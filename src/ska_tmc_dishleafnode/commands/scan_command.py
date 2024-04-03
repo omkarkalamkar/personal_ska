@@ -37,7 +37,7 @@ class Scan(DishLNCommand):
         :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
-
+        :return: : None
         :rtype: None
         """
         # Indicate that the task has started
