@@ -105,6 +105,7 @@ class TrackLoadStaticOff(DishLNCommand):
         self.component_manager.command_in_progress = ""
 
     # pylint: disable=signature-differs
+    # pylint: disable=arguments-differ
     def do(self, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke TrackLoadStaticOff command on DishMaster.

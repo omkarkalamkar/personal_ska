@@ -244,7 +244,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @property
     def kValueValidationResult(self) -> int:
-        """Returns the k-value validation result"""
+        """Returns the k-value validation result
+
+        Returns:
+        int: The k-value validation result.
+        """
+
         return self._kValueValidationResult
 
     @kValueValidationResult.setter
@@ -327,9 +332,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         await self.update_kvalue_validation_result()
         await self.download_iers_data()
 
-    async def download_iers_data(self):
+    async def download_iers_data(self) -> None:
         """Downloads and initialises the IERS file.
         Incase of error with main link , tries downloading using Mirror link.
+
+        :return: None
         """
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
@@ -359,7 +366,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             milliseconds
         :type timestamp_milliseconds: float
 
-        :returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+        :Returns: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
         """
         timestamp_seconds = timestamp_milliseconds / 1000
         timestamp = datetime.datetime.utcfromtimestamp(
@@ -368,7 +375,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return timestamp
 
     def process_actual_pointing(self) -> None:
-        """Process the achieved pointing data to calculate actual pointing."""
+        """Process the achieved pointing data to calculate actual pointing.
+
+        :Returns: None
+        """
         self.converter.create_antenna_obj()
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
@@ -389,8 +399,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
 
     def perform_reverse_transform(self, value_list):
-        """DO the reverse transform and publish it on
-        actualPointing attribute"""
+        """
+        Performs the reverse transform and publishes it on the actualPointing
+        attribute.
+
+        Args:
+            value_list (List[float]): A list containing timestamp
+                                      in milliseconds,azimuth, and elevation.
+
+        Returns:None
+        """
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
             timestamp = self.convert_timestamp(timestamp_milliseconds)
@@ -409,7 +427,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
     def stop_event_receiver(self) -> None:
-        """Stops the Event Receiver"""
+        """Stops the Event Receiver
+
+        :Returns: None
+        """
         if self.event_receiver_object._thread.is_alive():
             self.event_receiver_object.stop()
 
@@ -500,6 +521,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_track_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
         if self.dishMode == DishMode.OPERATE and self.pointingState not in (
             PointingState.NONE,
@@ -552,6 +575,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_trackstop_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype: boolean
         """
         if self.dishMode == DishMode.OPERATE and self.pointingState not in (
             PointingState.NONE,
@@ -666,7 +691,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def is_trackloadstaticoff_allowed(self) -> bool:
-        """Checks if the command TrackLoadStaticOff is allowed."""
+        """Checks if the command TrackLoadStaticOff is allowed.
+
+        rtype:  boolean
+        """
 
         self.check_device_responsive()
         return True
@@ -674,6 +702,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_configure_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -696,6 +726,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_off_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
 
         if self.dishMode in [
@@ -718,6 +750,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_setstowmode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -741,6 +775,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_setoperatemode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -761,6 +797,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_setstandbyfpmode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
         self.check_device_responsive()
         if self.dishMode in [
@@ -783,6 +821,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_setstandbylpmode_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
 
         self.check_device_responsive()
@@ -805,6 +845,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_scan_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
+
+        rtype:  boolean
         """
         self.check_device_responsive()
         if self.dishMode in [
@@ -940,6 +982,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
             command_obj: Command Object which is used to set desired_pointing
+
+        Returns:None
+
         """
         self.logger.info(
             "The track thread name is : %s %s",
@@ -992,6 +1037,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Args:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+
+        Returns: None
         """
         self.program_track_table.clear()
         for _ in range(self.track_table_entries):
@@ -1030,7 +1077,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Args:
             el_value: string
         Return:
-            bool
+            boolean
         """
 
         if (
@@ -1057,6 +1104,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type device_info: DeviceInfo
         :param exception: an exception
         :type: Exception
+        :rtype: None
         """
         device_info.update_unresponsive(True, exception)
         with self.lock:
@@ -1071,6 +1119,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type dev_name: str
         :param ping: device response time
         :type ping: int
+        :rtype: None
         """
         with self.lock:
             self._device.ping = ping
@@ -1123,8 +1172,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.el_limit != elevation_limit:
             self.el_limit = elevation_limit
 
-    def stop_executors_and_cleanup_memory(self):
-        """Method to clean up the code, stop running threads/sub-processes"""
+    def stop_executors_and_cleanup_memory(self) -> None:
+        """Method to clean up the code, stop running threads/sub-processes
+
+        Returns:
+        None
+        """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
         if self.actual_pointing_process.is_alive():
             self.stop_event_receiver()

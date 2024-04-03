@@ -70,6 +70,8 @@ class Configure(DishLNCommand):
         :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
+
+        :rtype: None
         """
         # Indicate that the task has started
         self.task_callback = task_callback
@@ -158,6 +160,7 @@ class Configure(DishLNCommand):
         return (ResultCode.OK, "")
 
     # pylint: disable=signature-differs
+    # pylint: disable=arguments-differ
     def do(self, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke Configure command on dish.

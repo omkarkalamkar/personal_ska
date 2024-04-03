@@ -1,7 +1,6 @@
 """This module provides base command class for DishLeafNode."""
 import logging
 import time
-from typing import Any, Optional
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
@@ -72,7 +71,11 @@ class DishLNCommand(TmcLeafNodeCommand):
         return ResultCode.OK, ""
 
     def set_wait_for_dishmode(self, dishmode: DishMode) -> bool:
-        """Waits for transition of DishMode to the correct state."""
+        """Waits for transition of DishMode to the correct state.
+
+        Returns:
+        bool: True if the DishMode transitions to the correct state within
+              the timeout period,False otherwise."""
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
@@ -85,7 +88,11 @@ class DishLNCommand(TmcLeafNodeCommand):
         return False
 
     def set_wait_for_configured_band(self, configured_band: str):
-        """Waits for transition of configuredBand to the correct state."""
+        """Waits for transition of configuredBand to the correct state.
+
+        Returns:
+            bool: True if the DishMode transitions to the correct state within
+              the timeout period,False otherwise."""
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
@@ -103,7 +110,8 @@ class DishLNCommand(TmcLeafNodeCommand):
     def init_adapter_mid(self):
         self.init_adapter()
 
-    def do_mid(self, argin: Optional[Any] = None):
+    # pylint: disable=arguments-differ
+    def do_mid(self):
         """Abstract Method from TmcLeafNodeCommand is
             defined here but not utilized by this Class.
         Args:
@@ -111,7 +119,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             Defaults to None.
         """
 
-    def do_low(self, argin: Optional[Any] = None):
+    def do_low(self):
         """Abstract Method from TmcLeafNodeCommand is
             defined here but not utilized by this Class.
         Args:
@@ -119,7 +127,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             Defaults to None.
         """
 
-    def do(self, argin: Optional[Any] = None):
+    def do(self):
         """Abstract Method from TmcLeafNodeCommand is
             defined here but not utilized by this Class.
         Args:

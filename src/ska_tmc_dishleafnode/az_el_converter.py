@@ -89,7 +89,7 @@ class AzElConverter:
         :dtype: Degrees.
 
         :return: List of RA and Dec values in Hours Minutes Seconds and Degree
-            Minutes Seconds respectively.
+                 Minutes Seconds respectively.
         """
 
         elevation = Angle(el_value, u.deg)

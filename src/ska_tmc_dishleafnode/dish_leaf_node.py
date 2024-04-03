@@ -571,7 +571,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current
-        device state
+                 device state
         :rtype: boolean
         """
         return False
@@ -592,7 +592,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current
-        device state
+                 device state
 
         :rtype: boolean
         """
@@ -614,7 +614,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current device
-        state
+                 state
 
         :rtype: boolean
         """
