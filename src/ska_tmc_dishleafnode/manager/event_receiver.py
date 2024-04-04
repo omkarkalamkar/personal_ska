@@ -196,8 +196,8 @@ class DishLNEventReceiver(EventReceiver):
         Args:
             event_data (tango.EventType.CHANGE_EVENT): to flag the
             change in event.
-        return: None
-        rtype: None
+        :return: None
+        :rtype: None
         """
         if event_data.err:
             error = event_data.errors[0]

@@ -1,6 +1,9 @@
 """This module provides base command class for DishLeafNode."""
+from __future__ import annotations
+
 import logging
 import time
+from typing import TYPE_CHECKING
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
@@ -14,6 +17,8 @@ from tango import ConnectionFailed, DevFailed
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from ..manager.component_manager import DishLNComponentManager
 
 
 class DishLNCommand(TmcLeafNodeCommand):
@@ -22,7 +27,7 @@ class DishLNCommand(TmcLeafNodeCommand):
 
     def __init__(
         self,
-        component_manager,
+        component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,

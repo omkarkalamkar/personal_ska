@@ -1,11 +1,13 @@
 """
 TrackLoadStaticOff command class for DishLeafNode.
 """
+from __future__ import annotations
+
 import json
 import logging
 import threading
 from logging import Logger
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -16,6 +18,8 @@ from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from ..manager.component_manager import DishLNComponentManager
 
 
 class TrackLoadStaticOff(DishLNCommand):
@@ -29,7 +33,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
     def __init__(
         self,
-        component_manager,
+        component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,

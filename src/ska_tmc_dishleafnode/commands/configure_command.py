@@ -1,12 +1,14 @@
 """
 Configure class for DishLeafNode.
 """
+from __future__ import annotations
+
 import json
 import logging
 import threading
 import time
 from logging import Logger
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -22,6 +24,9 @@ from ska_tmc_dishleafnode.constants import (
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from ..manager.component_manager import DishLNComponentManager
 
 
 class Configure(DishLNCommand):
@@ -40,7 +45,7 @@ class Configure(DishLNCommand):
 
     def __init__(
         self,
-        component_manager,
+        component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
