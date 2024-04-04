@@ -79,9 +79,12 @@ class Configure(DishLNCommand):
         """
         Method to update task callback.
 
-        Args:
-            result_code (ResultCode): result code
-            exception (str, optional): Exception occurred during command execution. Defaults to "".
+        :param result_code: result code
+        :type result_code: ResultCode
+        :param exception: Exception occurred during command execution
+        :type exception: str
+        :return: None
+        :rtype: NoneType.
         """
         if exception:
             self.task_callback(
@@ -93,7 +96,11 @@ class Configure(DishLNCommand):
 
     # pylint: enable=unused-argument
     def validate_json_argument(self, input_argin: dict) -> Tuple[ResultCode, str]:
-        """Validates the json argument"""
+        """Validates the json argument
+
+        :return: Resulcode and message
+        :rtype: tuple
+        """
 
         if "pointing" not in input_argin:
             return (
@@ -138,8 +145,8 @@ class Configure(DishLNCommand):
                 "dec":"-88:57:22.9"}},
                 "dish":{"receiver_band":"1"}}
 
-        return:
-            None
+        :return: Resulcode and message
+        :rtype: tuple
 
         raises:
             DevFailed If error occurs while invoking ConfigureBand<> command
@@ -215,7 +222,11 @@ class Configure(DishLNCommand):
         return result_code, message
 
     def start_dish_tracking(self, current_dish_mode) -> Tuple[ResultCode, str]:
-        """Invoke Track after waiting for DishMode to Operate"""
+        """Invoke Track after waiting for DishMode to Operate
+
+        :return: Resulcode and message
+        :rtype: tuple
+        """
         if current_dish_mode == DishMode.STANDBY_FP:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
@@ -226,7 +237,11 @@ class Configure(DishLNCommand):
 
     def ensure_dish_is_configured(self, receiver_band) -> Tuple[ResultCode, str]:
         """This method check for the completion of configure command
-        :param receiver_band: str
+        :param receiver_band
+        :type receiver_band: str
+
+        :return: Resulcode and message
+        :rtype: tuple
         """
         # Set wait for dish band to be configured
         result = self.set_wait_for_configured_band(receiver_band)
@@ -243,7 +258,11 @@ class Configure(DishLNCommand):
         return ResultCode.OK, ""
 
     def ensure_dish_in_right_dish_mode(self) -> Tuple[ResultCode, str]:
-        """This method set dish to Operate Mode"""
+        """This method set dish to Operate Mode
+
+        :return: Resulcode and message
+        :rtype: tuple
+        """
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetOperateMode"
         )
@@ -260,7 +279,11 @@ class Configure(DishLNCommand):
         return ResultCode.OK, ""
 
     def invoke_track_command(self) -> Tuple[ResultCode, str]:
-        """Invoke Track command on dish"""
+        """Invoke Track command on dish
+
+        :return: Resulcode and message
+        :rtype: tuple
+        """
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
