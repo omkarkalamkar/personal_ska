@@ -235,10 +235,19 @@ def wait_and_validate_attribute_value_available(
     attribute_name: str,
     expected_value: str,
     timeout: int = 300,
-):
+) -> bool:
     """This method wait and validate if attribute value is equal to provided
     expected value
-    """
+
+    Args:
+        device (DeviceProxy): The Tango DeviceProxy object.
+        attribute_name (str): The name of the attribute.
+        expected_value (str): The expected value of the attribute.
+        timeout (int, optional): Timeout in seconds. Defaults to 300.
+
+    return: True if attribute value matches the expected value within the
+        timeout, False otherwise.
+    rtype: bool"""
     count = 0
     error = None
     attribute_value = None
