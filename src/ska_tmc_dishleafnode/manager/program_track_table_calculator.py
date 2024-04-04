@@ -63,10 +63,10 @@ class ProgramTrackTableCalculator:
                 program_track_table.append(tai_timestamp_list.pop(0))
                 program_track_table.extend([round(result[0], 12), round(result[1], 12)])
 
-                if self.component_manager.event_track_time.is_set():
+                if self.component_manager.get_track_process_event_status():
                     log_message = (
                         "Stop the Thread as event track time is set: "
-                        f"{self.component_manager.event_track_time.is_set()}"
+                        f"{self.component_manager.get_track_process_event_status()}"
                     )
                     self.logger.debug(log_message)
                     break

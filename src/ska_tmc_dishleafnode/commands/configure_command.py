@@ -159,7 +159,7 @@ class Configure(DishLNCommand):
             json_argument = json.loads(argin)
             # Start programTrackTable calculation
             self.component_manager.elevation_limit = True
-            self.component_manager.event_track_time.clear()
+            self.component_manager.reset_track_process_event()
 
             if not json_argument.get("tmc"):
                 ra_value = json_argument["pointing"]["target"]["ra"]

@@ -122,7 +122,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_id = dish_dev_name.split("/")[-3].upper() if dish_dev_name else None
         self.observer = None
         self.dish_number = None
-        self.event_track_time = Event()
+        self._track_process_event = Event()
         self.elevation = elevation
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
@@ -918,7 +918,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         advance_time = (self.track_table_entries * self.pointing_calculation_period) / 1000
 
-        while self.event_track_time.is_set() is False:
+        while self.get_track_process_event_status() is False:
             program_track_table = self.track_table_calculator.calculate_program_track_table(
                 ra_value, dec_value, azel_converter
             )
@@ -1016,6 +1016,33 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         if self.el_limit != elevation_limit:
             self.el_limit = elevation_limit
+
+    def set_track_process_event(self) -> None:
+        """
+        Sets event for track process.
+
+        :return: None.
+        :rtype: NoneType
+        """
+        self._track_process_event.set()
+
+    def get_track_process_event_status(self) -> bool:
+        """
+        Returns track process event status
+
+        :return: Status of track process event.
+        :rtype: bool
+        """
+        return self._track_process_event.is_set()
+
+    def reset_track_process_event(self) -> None:
+        """
+        Resets track process event
+
+        :return: None.
+        :rtype: NoneType
+        """
+        self._track_process_event.clear()
 
     def stop_executors_and_cleanup_memory(self):
         """Method to clean up the code, stop running threads/sub-processes"""
