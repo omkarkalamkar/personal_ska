@@ -246,7 +246,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def kValueValidationResult(self) -> int:
         """Returns the k-value validation result
 
-        return: int: The k-value validation result.
+        :return: int: The k-value validation result.
+        :rtype: int
         """
 
         return self._kValueValidationResult
@@ -315,6 +316,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param value: The list containing timestamp, RA and Dec values.
         :value dtype: list
         :return: None
+        :rtype: None
         """
         self._actual_pointing[:] = value
         self.logger.debug(
@@ -339,6 +341,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Incase of error with main link , tries downloading using Mirror link.
 
         :return: None
+        :rtype: None
         """
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
@@ -350,6 +353,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """This method informs the k-value validation result
         to central node after DLN start/restart.
         :return: None
+        :rtype: None
         """
         dish_kvalue_validation_manager = DishkValueValidationManager(
             self, self.logger
@@ -369,6 +373,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type timestamp_milliseconds: float
 
         :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+        :rtype: string
         """
         timestamp_seconds = timestamp_milliseconds / 1000
         timestamp = datetime.datetime.utcfromtimestamp(
@@ -380,6 +385,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Process the achieved pointing data to calculate actual pointing.
 
         :return: None
+        :rtype: None
         """
         self.converter.create_antenna_obj()
         self.logger.info("Main Process ID: %s", os.getppid())
@@ -409,7 +415,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             value_list (List[float]): A list containing timestamp
                                       in milliseconds,azimuth, and elevation.
 
-        return:None
+        return: None
+        rtype: None
         """
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
@@ -468,6 +475,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return:
             A tuple containing a return code and a string message
             indicating status. The message is for information purpose only.
+        :rtype: Tuple
         """
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
@@ -482,6 +490,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
+         Args:
+        task_callback (TaskCallbackType): Callback function to handle task
+            status.
+        :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
         task_status, response = self.submit_task(
@@ -497,6 +509,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetStowMode command for execution.
 
+         Args:
+        task_callback (TaskCallbackType): Callback function to handle task
+            status.
+        :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
         task_status, response = self.submit_task(
@@ -510,6 +526,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def scan(self, task_callback: TaskCallbackType) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
+        Args:
+        task_callback (TaskCallbackType): Callback function to handle task
+            status.
+        :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
         task_status, response = self.submit_task(
@@ -523,7 +543,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_track_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
         state.
-
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
         :rtype:  boolean
         """
         if self.dishMode == DishMode.OPERATE and self.pointingState not in (
@@ -546,6 +567,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> Tuple[TaskStatus, str]:
         """Submits the Track command for execution.
 
+        Args:
+        argin (str): JSON string containing necessary arguments.
+        task_callback (TaskCallbackType): Callback function to handle
+            task status.
+        :return:  A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
         try:
@@ -578,6 +604,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
+        :return:True if the command is allowed in the current operational
+            state, False otherwise.
         :rtype: boolean
         """
         if self.dishMode == DishMode.OPERATE and self.pointingState not in (
@@ -600,6 +628,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> Tuple[TaskStatus, str]:
         """Submits the TrackStop command for execution.
 
+        Args:
+        task_callback (TaskCallbackType): Callback function to handle task
+            status.
+        :return:  A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
         task_status, response = self.submit_task(
@@ -614,7 +646,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
-
+        Args:
+        task_callback (TaskCallbackType): Callback function to handle task
+            status.
+        :return:  A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
         task_status, response = self.submit_task(
@@ -630,6 +665,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Submit the Configure command in queue.
 
         :return: a result code and message
+        :rtype: Tuple
         """
         try:
             input_json = json.loads(argin)
@@ -662,7 +698,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def track_load_static_off(
         self, argin: str, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
-        """Submits the TrackLoadStaticOff command for execution"""
+        """Submits the TrackLoadStaticOff command for execution
+
+         Args:
+        argin (str): JSON string containing offsets in the form of param.
+        task_callback (TaskCallbackType): Callback function to handle
+            task status.
+
+        :return: A tuple containing TaskStatus and a message string.
+        :rtype: Tuple"""
         try:
             offsets = json.loads(argin)
             if len(offsets) != 2:
@@ -695,6 +739,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def is_trackloadstaticoff_allowed(self) -> bool:
         """Checks if the command TrackLoadStaticOff is allowed.
 
+        :return: True if the command 'TrackLoadStaticOff' is allowed,
+            False otherwise.
         :rtype:  boolean
         """
 
@@ -705,6 +751,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
         :rtype:  boolean
         """
 
@@ -729,6 +777,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
         :rtype:  boolean
         """
 
@@ -753,6 +803,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
         :rtype:  boolean
         """
 
@@ -778,6 +830,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Checks if the given command is allowed in current operational
         state.
 
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
         :rtype:  boolean
         """
 
@@ -895,8 +949,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Update the pointing state of the given dish and call
         the relative callbacks if available.
+
         :param pointingState: Pointing state of the dish device
         :type pointingState: PointingState
+        :return: None
+        :rtype: None
         """
         with self.lock:
             dev_info = self.get_device()
@@ -911,6 +968,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Update the configured band of the given dish and call
         the relative callbacks if available.
+
         :param configured_band: Configured band of the dish device
         :type configured_band: Band
         """
@@ -1078,6 +1136,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Check if elevation is within mechanical limit
         Args:
             el_value: string
+        return:True if the elevation is within the mechanical limits,
+            False otherwise.
         rtype:
             boolean
         """
@@ -1165,7 +1225,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @property
     def elevation_limit(self) -> bool:
-        """Returns the True if dish is within its mechanical limit."""
+        """Returns the True if dish is within its mechanical limit.
+
+        return: True if the dish is within its mechanical elevation limit,
+            False otherwise.
+        rtype: boolean"""
         return self.el_limit
 
     @elevation_limit.setter
@@ -1177,7 +1241,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes
 
-        return: None
+        :return: None
+        :rtype: None
         """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
         if self.actual_pointing_process.is_alive():
