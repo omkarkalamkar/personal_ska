@@ -65,7 +65,7 @@ class AzElConverter:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
             timestamp(str): utc timestamp in string format
-        Return:
+        return:
             az_el_coordinates (list)
         """
         return self.radec_to_azel(
