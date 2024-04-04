@@ -1,5 +1,5 @@
 import importlib.resources
-
+from typing import List
 import katpoint
 
 from .device_data import DeviceData
@@ -39,10 +39,18 @@ class AzElConverter:
             if ant.name == device_data.dish_number:
                 device_data.observer = ant
 
-    def point(self, ra_value, dec_value, timestamp):
+    def point(self, ra_value:str, dec_value:str, timestamp:str)-> List[float]:
         """This method converts Target RaDec coordinates to the AzEl 
         coordinates. It is called continuosly from Track command (in a thread) 
         at interval of 50ms till the StopTrack command is invoked.
+
+        Args:
+        ra_value (str): RA value in hours:minutes:seconds.
+        dec_value (str): Dec value in degrees:arcminutes:arcseconds.
+        timestamp (str): UTC timestamp in string format.
+
+        :return: Azimuth and Elevation coordinates.
+        :rtype: List[float]: 
         """
         device_data = DeviceData.get_instance()
         # Create KATPoint Target object

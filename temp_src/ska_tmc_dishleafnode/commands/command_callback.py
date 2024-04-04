@@ -34,6 +34,7 @@ class CommandCallBack:
                             False otherwise
             - errors     : (sequence<DevError>) The error stack
             - ext
+        :return: None
         """
         this_server = TangoServerHelper.get_instance()
         if event.err:

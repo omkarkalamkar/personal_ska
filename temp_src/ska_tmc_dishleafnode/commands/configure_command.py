@@ -99,8 +99,15 @@ class Configure(BaseCommand):
             )
         self.logger.info("'%s' command executed successfully.", command_name)
 
-    def _configure_band(self, band):
-        """ "Send the ConfigureBand<band-number> command to Dish Master"""
+    def _configure_band(self, band)->None:
+        """ "Send the ConfigureBand<band-number> command to Dish Master
+        
+        Args:
+        band (int): The band number.
+
+        :raises:
+        DevFailed: If there is an error while sending the command.
+        :return: None"""
         command_name = f"ConfigureBand{band}"
 
         try:
