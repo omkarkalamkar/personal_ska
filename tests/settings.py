@@ -100,7 +100,14 @@ def get_dishln_command_obj(command_class, cm) -> tuple:
 
 
 def event_remover(group_callback, attributes: List[str]) -> None:
-    """Removes residual events from the queue."""
+    """Removes residual events from the queue.
+
+    Args:
+        group_callback: The group callback object.
+        attributes (List[str]): List of attribute names.
+
+    :return: None
+    :rtype: None"""
     for attribute in attributes:
         try:
             iterable = group_callback._mock_consumer_group._views[
@@ -141,8 +148,12 @@ def wait_for_attribute_value(
     return True
 
 
-def wait_for_unresponsive(cm):
-    """Waits for device unresponsive update to True."""
+def wait_for_unresponsive(cm: DishLNComponentManager) -> bool:
+    """Waits for device unresponsive update to True.
+
+    :return: True if the device becomes unresponsive within the timeout,
+        False otherwise.
+    :return: boolean"""
     start_time = time.time()
     elapsed_time = 0
     timeout = 50
@@ -243,7 +254,7 @@ def wait_and_validate_attribute_value_available(
         device (DeviceProxy): The Tango DeviceProxy object.
         attribute_name (str): The name of the attribute.
         expected_value (str): The expected value of the attribute.
-        timeout (int, optional): Timeout in seconds. Defaults to 300.
+        timeout (int, optional): Timeout in seconds.
 
     return: True if attribute value matches the expected value within the
         timeout, False otherwise.
@@ -285,6 +296,12 @@ def dln_can_communicate_with_dish_master(
 ):
     """This method tries to check the dish manager is available
     for execution of further commands.
+
+     Args:
+        device (DeviceProxy): The DishLN device proxy.
+
+    :return: True if the dish manager is available, False otherwise.
+    :rtype: bool: True if the dish manager is available, False otherwise.
     """
     retry = 0
     flag = False
