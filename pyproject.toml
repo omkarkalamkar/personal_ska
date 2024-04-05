@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-tmc-dishleafnodes"
-version = "0.11.1"
+version = "0.12.1"
 description = """The Dish Leaf Node is a TMC component responsible to monitor and control the SKA dish."""
 authors = ["Team HIMALAYA", "Team SAHYADRI"]
 license = "BSD-3-Clause"
@@ -16,6 +16,9 @@ include = [
 DishLeafNodeDS = 'ska_tmc_dishleafnode.dish_leaf_node:main'
 
 [[tool.poetry.source]]
+name = 'ska-nexus'
+url = 'https://artefact.skao.int/repository/pypi-internal/simple'
+[[tool.poetry.source]]
 name = "PyPI-public"
 url = 'https://pypi.org/simple'
 
@@ -25,7 +28,7 @@ numpy = "1.23.0"
 pytango = "9.4.2"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
 fire = "^0.4.0"
-ska-tmc-common = "0.15.0"
+ska-tmc-common = "0.15.2"
 ska-tango-base = "0.19.1"
 astropy = "^5.0.4"
 katpoint = "1.0a2"

@@ -18,12 +18,4 @@ This project is developing the TMC Dish Leaf Nodes component of the Telescope Mo
    :maxdepth: 1
    :caption: Dish Leaf Node
 
-   dishleafnode/ska_tmc_dishleafnode
-
-Indices and tables
-------------------
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-* :ref:`search`
+   dishleafnode/contents

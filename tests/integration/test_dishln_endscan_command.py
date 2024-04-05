@@ -1,4 +1,4 @@
-"""Test to verify Scan command on dishleafnode"""
+"""Test to verify EndScan command on dishleafnode"""
 import time
 
 import pytest
@@ -15,7 +15,7 @@ from tests.settings import (
 )
 
 
-def scan_command(
+def endscan_command(
     tango_context, dishln_name, group_callback, configure_input_str
 ):
     logger.info(f"{tango_context}")
@@ -62,7 +62,6 @@ def scan_command(
         (PointingState.NONE),
         lookahead=4,
     )
-
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
         tango.EventType.CHANGE_EVENT,
@@ -116,8 +115,8 @@ def scan_command(
         (DishMode.OPERATE),
         lookahead=6,
     )
-    result_scan, unique_id_scan = dish_leaf_node.Scan("1")
 
+    result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
     # It takes time to get scanID attribute updated.
@@ -128,11 +127,24 @@ def scan_command(
         (unique_id_scan[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
+    result_endscan, unique_id_endscan = dish_leaf_node.EndScan()
+    assert result_endscan[0] == ResultCode.QUEUED
+    logger.info(
+        f"Command ID: {unique_id_endscan} Returned result: {result_endscan}"
+    )
+    # It takes time to get scanID attribute updated.
+    time.sleep(0.1)
+    assert dish_master.scanID == ""
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_endscan[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("TrackStop",),
-        lookahead=6,
+        lookahead=8,
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
@@ -143,10 +155,6 @@ def scan_command(
         (PointingState.READY),
         lookahead=6,
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
 
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         (),
@@ -154,11 +162,10 @@ def scan_command(
     )
 
 
-@pytest.mark.skip(reason="Test case is fixed in sah-1498")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_scan_command(tango_context, group_callback, json_factory):
-    scan_command(
+def test_endscan_command(tango_context, group_callback, json_factory):
+    endscan_command(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,

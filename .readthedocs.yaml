@@ -12,8 +12,7 @@ build:
       # Install poetry
       # https://python-poetry.org/docs/#installing-manually
       - pip install poetry
-      # Tell poetry to not use a virtual environment
-      - poetry config virtualenvs.create false
+      
     post_install:
       # Install dependencies with 'docs' dependency group. If you do not have docs group, please omit it
       # https://python-poetry.org/docs/managing-dependencies/#dependency-groups
@@ -21,4 +20,5 @@ build:
  
 sphinx:
   configuration: docs/src/conf.py
+  # Fail the docs build if there is a warning (eg if the autoimports are not configured)
   fail_on_warning: true

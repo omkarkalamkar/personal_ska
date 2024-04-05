@@ -108,7 +108,6 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-taranta.enabled=$(TARANTA) \
 	$(CUSTOM_VALUES)
 
-
 PYTHON_VARS_BEFORE_PYTEST ?= PYTHONPATH=.:./src \
 							TANGO_HOST=$(TANGO_HOST) \
 							CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) \
