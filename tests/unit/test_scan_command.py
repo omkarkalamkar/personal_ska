@@ -9,8 +9,12 @@ def test_scan_command(tango_context, cm, task_callback):
     assert cm.is_scan_allowed()
 
     cm.scan("1", task_callback=task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -21,9 +25,15 @@ def test_scan_command_adapter_none(cm, task_callback):
     assert cm.is_scan_allowed()
 
     cm.scan("1", task_callback=task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
+    )
 
 
 def test_scan_mode_command_not_allowed(tango_context, cm):

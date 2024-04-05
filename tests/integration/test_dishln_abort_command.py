@@ -4,7 +4,12 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
+from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    event_remover,
+    logger,
+)
 
 
 def abort_on_dish_leaf_node(
@@ -96,7 +101,9 @@ def abort_when_configured(
         lookahead=2,
     )
 
-    result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
+    result_config, unique_id_config = dish_leaf_node.Configure(
+        configure_input_str
+    )
     group_callback["pointingState"].assert_change_event(
         (PointingState.TRACK),
         lookahead=6,
@@ -109,7 +116,9 @@ def abort_when_configured(
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode", "Configure")
     )
-    logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
+    logger.info(
+        f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
@@ -117,7 +126,9 @@ def abort_when_configured(
     )
 
     result_abort, unique_id_abort = dish_leaf_node.AbortCommands()
-    logger.info(f"Command ID: {unique_id_abort} Returned result: {result_abort}")
+    logger.info(
+        f"Command ID: {unique_id_abort} Returned result: {result_abort}"
+    )
 
     assert result_abort == ResultCode.OK
 

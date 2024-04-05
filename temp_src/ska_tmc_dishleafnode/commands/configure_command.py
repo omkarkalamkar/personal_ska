@@ -34,7 +34,7 @@ class Configure(BaseCommand):
 
     """
 
-    def check_allowed(self):
+    def check_allowed(self)->bool:
         """
         Checks whether this command is allowed to be run in the current device state.
 
@@ -51,7 +51,7 @@ class Configure(BaseCommand):
 
         return True
 
-    def do(self, argin):
+    def do(self, argin)->None:
         """
         Method to invoke Configure command on dish.
 
@@ -99,8 +99,15 @@ class Configure(BaseCommand):
             )
         self.logger.info("'%s' command executed successfully.", command_name)
 
-    def _configure_band(self, band):
-        """ "Send the ConfigureBand<band-number> command to Dish Master"""
+    def _configure_band(self, band)->None:
+        """ "Send the ConfigureBand<band-number> command to Dish Master
+        
+        Args:
+        band (int): The band number.
+
+        :raises:
+        DevFailed: If there is an error while sending the command.
+        :return: None"""
         command_name = f"ConfigureBand{band}"
 
         try:
@@ -111,5 +118,3 @@ class Configure(BaseCommand):
             )
         except DevFailed as dev_failed:
             raise dev_failed
-
-    # pylint: enable= unbalanced-tuple-unpacking

@@ -34,7 +34,7 @@ load-plugins=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=invalid-name,broad-except,protected-access,abstract-method, attribute-defined-outside-init
+disable=invalid-name,protected-access, abstract-method
 
 
 [REPORTS]
@@ -117,7 +117,7 @@ ignore-long-lines=^\s*(# )?<?https?://\S+>?$
 single-line-if-stmt=no
 
 # Maximum number of lines in a module
-max-module-lines=1020
+max-module-lines=1400
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
@@ -235,7 +235,7 @@ max-statements=65
 max-parents=7
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=20
+max-attributes=60
 
 # Minimum number of public methods for a class (see R0903).
 min-public-methods=1
@@ -247,5 +247,5 @@ max-public-methods=60
 [EXCEPTIONS]
 
 # Exceptions that will emit a warning when being caught. Defaults to
-# "Exception"
-overgeneral-exceptions= builtins.Exception
+# "BaseException"
+overgeneral-exceptions=builtins.BaseException

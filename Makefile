@@ -16,7 +16,7 @@ MARK ?= ## What -m opt to pass to pytest
 # run one test with FILE=acceptance/test_subarray_node.py::test_check_internal_model_according_to_the_tango_ecosystem_deployed
 FILE ?= tests## A specific test file to pass to pytest
 ADD_ARGS ?= ## Additional args to pass to pytest
-PYTHON_LINE_LENGTH=99
+PYTHON_LINE_LENGTH=79
 # KUBE_NAMESPACE defines the Kubernetes Namespace that will be deployed to
 # using Helm.  If this does not already exist it will be created
 KUBE_NAMESPACE ?= ska-tmc-dishleafnode
@@ -89,6 +89,7 @@ ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
 endif
 endif
+CLUSTER_DOMAIN ?= cluster.local
 
 CLUSTER_DOMAIN ?= cluster.local
 

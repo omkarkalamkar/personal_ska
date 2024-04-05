@@ -28,7 +28,7 @@ class Scan(BaseCommand):
     A class for DishLeafNode's Scan() command.
     """
 
-    def check_allowed(self):
+    def check_allowed(self)->bool:
         """
         Checks whether this command is allowed to be run in the current device state.
 

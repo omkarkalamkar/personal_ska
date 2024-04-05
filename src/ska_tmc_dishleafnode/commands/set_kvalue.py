@@ -2,11 +2,20 @@
 SetKValue command class for DishLeafNode.
 """
 
-from typing import Tuple
+from __future__ import annotations
 
+import logging
+from typing import TYPE_CHECKING, Tuple
+
+from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from ..manager.component_manager import DishLNComponentManager
 
 
 class SetKValue(DishLNCommand, FastCommand):
@@ -17,7 +26,12 @@ class SetKValue(DishLNCommand, FastCommand):
     The sample rate for each Band is calculated based on k value
     """
 
-    def __init__(self, component_manager, op_state_model=None, logger=None) -> None:
+    def __init__(
+        self,
+        component_manager: DishLNComponentManager,
+        op_state_model=None,
+        logger: logging.Logger = LOGGER,
+    ) -> None:
         super().__init__(
             component_manager=component_manager,
             op_state_model=op_state_model,
@@ -48,7 +62,9 @@ class SetKValue(DishLNCommand, FastCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         result_code, message = self.call_adapter_method(

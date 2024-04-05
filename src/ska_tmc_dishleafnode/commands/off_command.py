@@ -2,8 +2,9 @@
 
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Optional, Tuple
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
@@ -23,7 +24,7 @@ class Off(DishLNCommand):
     def invoke_off(
         self,
         logger: Logger,
-        task_callback: Callable = None,
+        task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """
@@ -35,9 +36,11 @@ class Off(DishLNCommand):
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: Callable, optional
+        :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
+        :return: : None
+        :rtype: None
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
@@ -55,7 +58,8 @@ class Off(DishLNCommand):
                 result=ResultCode(return_code),
             )
 
-    def do(self, argin=None):
+    # pylint: disable=arguments-differ
+    def do(self) -> Tuple[ResultCode, str]:
         """
         "Invokes StandbyFP and StandbyLP mode commands on dish master device
         after waiting for correct dish modes. First invokes and waits for
@@ -70,7 +74,9 @@ class Off(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         if self.component_manager.dishMode in [
@@ -84,21 +90,26 @@ class Off(DishLNCommand):
             result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if not result:
                 self.logger.error(
-                    "Timeout occurred while invoking the SetStandbyFPMode Command.",
+                    "Timeout occurred while invoking the SetStandbyFPMode "
+                    "Command.",
                 )
                 return (
                     ResultCode.FAILED,
-                    "Timeout occurred while invoking the SetStandbyFPMode Command.",
+                    "Timeout occurred while invoking the SetStandbyFPMode "
+                    "Command.",
                 )
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
-            self.logger.error("Timeout occurred while invoking the SetStandbyLPMode Command.")
+            self.logger.error(
+                "Timeout occurred while invoking the SetStandbyLPMode Command."
+            )
             return (
                 ResultCode.FAILED,
-                "Timeout occurred while invoking the SetStandbyLPMode Command.",
+                "Timeout occurred while invoking the SetStandbyLPMode "
+                "Command.",
             )
 
         return result_code[0], message[0]

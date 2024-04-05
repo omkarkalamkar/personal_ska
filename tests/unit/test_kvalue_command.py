@@ -3,7 +3,9 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DeviceUnresponsive
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from ska_tmc_dishleafnode.manager.dish_kvalue_validation_manager import DishkValueValidationManager
+from ska_tmc_dishleafnode.manager.dish_kvalue_validation_manager import (
+    DishkValueValidationManager,
+)
 from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
@@ -22,7 +24,9 @@ def test_set_kvalue_command(tango_context, cm):
 @pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     assert wait_and_validate_attribute_value_available(
-        dishln_device, "kValueValidationResult", str(int(ResultCode.NOT_ALLOWED))
+        dishln_device,
+        "kValueValidationResult",
+        str(int(ResultCode.NOT_ALLOWED)),
     )
 
 
@@ -48,9 +52,13 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, cm):
 
 
 @pytest.mark.skip("unstable")
-def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(tango_context, cm):
+def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
+    tango_context, cm
+):
     logger.info("%s", tango_context)
     cm.get_device().update_unresponsive(True)
     wait_for_unresponsive(cm)
-    with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
+    with pytest.raises(
+        DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
+    ):
         cm.is_set_kvalue_allowed()

@@ -21,8 +21,12 @@ def test_configure_command_completed(
     cm.update_device_dish_mode(DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
     cm.setstandbyfpmode(task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -30,10 +34,15 @@ def test_configure_command_completed(
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=4
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
+        lookahead=4,
     )
 
 
@@ -56,14 +65,19 @@ def test_configure_command_completed_partial_config(
 
     cm.configure(configure_input_str, task_callback=task_callback)
 
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     group_callback["longRunningCommandStatus"].assert_change_event(
         (Anything, "COMPLETED"),
         lookahead=6,
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=4
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
+        lookahead=4,
     )
 
 
@@ -82,11 +96,16 @@ def test_configure_command_completed_partial_config_missing_key(
 
     cm.configure(configure_input_str, task_callback=task_callback)
 
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     logger.debug("Waiting for command completion")
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}, lookahead=10
+        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
+        lookahead=10,
     )
 
 
@@ -97,9 +116,15 @@ def test_configure_command_adapter_none(task_callback, cm, json_factory):
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
 
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
+    )
 
 
 @pytest.mark.skip(reason="test case will be fixed as parat of SAH-1472")
@@ -111,7 +136,9 @@ def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     config_json = json.loads(configure_input_str)
     del config_json[key]
     configure_input_str = json.dumps(config_json)
-    result, message = cm.configure(configure_input_str, task_callback=task_callback)
+    result, message = cm.configure(
+        configure_input_str, task_callback=task_callback
+    )
     assert result == ResultCode.FAILED
     assert f"{key} key is not present" in message
 

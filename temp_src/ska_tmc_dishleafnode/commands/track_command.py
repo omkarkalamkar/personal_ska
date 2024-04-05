@@ -30,7 +30,7 @@ class Track(BaseCommand):
     A class for DishLeafNode's Track() command.
     """
 
-    def check_allowed(self):
+    def check_allowed(self)->bool:
         """
         Checks whether this command is allowed to be run in the current device state.
 
@@ -109,7 +109,6 @@ class Track(BaseCommand):
                 tango.ErrSeverity.ERR,
             )
 
-    # pylint: disable=logging-fstring-interpolation
     def track_thread(self):
         """This thread writes coordinates to desiredPointing on DishMaster at the rate of 20 Hz."""
         self.logger.info(
@@ -125,7 +124,6 @@ class Track(BaseCommand):
             timestamp = str(now)
             utc_time = now.replace(tzinfo=timezone.utc)
             utc_timestamp = utc_time.timestamp()
-            # pylint: disable=unbalanced-tuple-unpacking
             device_data.az, device_data.el = azel_converter.point(
                 self.ra_value, self.dec_value, timestamp
             )
@@ -169,8 +167,6 @@ class Track(BaseCommand):
                 self.track_on_dish = True
 
             time.sleep(0.05)
-
-    # pylint: enable=logging-fstring-interpolation, unbalanced-tuple-unpacking
 
     def _is_elevation_within_mechanical_limits(self):
         device_data = self.target

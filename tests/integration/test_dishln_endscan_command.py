@@ -7,10 +7,17 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
+from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    event_remover,
+    logger,
+)
 
 
-def endscan_command(tango_context, dishln_name, group_callback, configure_input_str):
+def endscan_command(
+    tango_context, dishln_name, group_callback, configure_input_str
+):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
@@ -85,12 +92,16 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
         lookahead=6,
     )
 
-    result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
+    result_config, unique_id_config = dish_leaf_node.Configure(
+        configure_input_str
+    )
     assert result_config[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode", "Configure")
     )
-    logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
+    logger.info(
+        f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
@@ -118,7 +129,9 @@ def endscan_command(tango_context, dishln_name, group_callback, configure_input_
     )
     result_endscan, unique_id_endscan = dish_leaf_node.EndScan()
     assert result_endscan[0] == ResultCode.QUEUED
-    logger.info(f"Command ID: {unique_id_endscan} Returned result: {result_endscan}")
+    logger.info(
+        f"Command ID: {unique_id_endscan} Returned result: {result_endscan}"
+    )
     # It takes time to get scanID attribute updated.
     time.sleep(0.1)
     assert dish_master.scanID == ""

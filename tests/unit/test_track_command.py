@@ -23,8 +23,12 @@ def test_track_command_completed(tango_context, task_callback, cm):
     assert cm.is_track_allowed()
     track_input_str = get_track_input_str()
     cm.track(track_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
@@ -37,9 +41,15 @@ def test_track_command_adapter_none(task_callback, cm):
     track_input_str = get_track_input_str()
     cm.track(track_input_str, task_callback=task_callback)
 
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.QUEUED})
-    task_callback.assert_against_call(call_kwargs={"status": TaskStatus.IN_PROGRESS})
-    task_callback.assert_against_call(status=TaskStatus.COMPLETED, result=ResultCode.FAILED)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
+    )
 
 
 def test_json_validation(tango_context, task_callback, cm):

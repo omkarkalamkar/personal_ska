@@ -20,7 +20,7 @@ class DishkValueValidationManager:
 
     def is_dish_manager_ready(self) -> bool:
         """Wait and check if dish manager is ready
-        :returns: bool
+        :return: bool
         """
         count = 0
         setkvalue_obj = SetKValue(self.component_manager, self.logger)
@@ -29,7 +29,9 @@ class DishkValueValidationManager:
                 self.component_manager.check_device_responsive()
                 result_code, _ = setkvalue_obj.init_adapter()
                 if result_code == ResultCode.OK:
-                    self.dish_manager_kvalue = setkvalue_obj.dish_master_adapter.kValue
+                    self.dish_manager_kvalue = (
+                        setkvalue_obj.dish_master_adapter.kValue
+                    )
                     return True
             except Exception as e:
                 self.logger.exception("Dish manager is unresponsive %s", e)
@@ -39,19 +41,19 @@ class DishkValueValidationManager:
 
     def get_dish_manager_kvalue(self) -> int:
         """Get kValue attribute value of dish manager
-        :returns: int
+        :return: int
         """
         return self.dish_manager_kvalue
 
     def get_dish_ln_memorized_kvalue(self) -> int:
         """Return memorized kvalue dish leaf node
-        :returns: int
+        :return: int
         """
         return self.component_manager.kValue
 
     def validate_dish_kvalue(self) -> None:
         """Validate kvalue of dish leaf node and dish manager
-        :returns: None
+        :return: None
         """
         dish_manager_kvalue = self.get_dish_manager_kvalue()
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
