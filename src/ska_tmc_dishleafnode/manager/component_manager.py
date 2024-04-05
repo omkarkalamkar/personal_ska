@@ -1109,7 +1109,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param ra_value (str): RA value in hours:minutes:sec
         :param dec_value (str): Dec Value in degree:arc_minutes:arc_sec
         :param command_obj: Command Object which is used to set
-        desired_pointing
+            desired_pointing
 
         :return: None
         """
