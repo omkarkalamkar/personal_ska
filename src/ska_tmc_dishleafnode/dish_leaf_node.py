@@ -89,6 +89,18 @@ class DishLeafNode(SKABaseDevice):
     # General methods
     # ---------------
 
+    def init_device(self):
+        super().init_device()
+        self._isSubsystemAvailable = True
+        self._dishMode = DishMode.UNKNOWN
+        self._pointingState = PointingState.NONE
+        self.set_change_event("healthState", True, False)
+        self.set_change_event("isSubsystemAvailable", True, False)
+        self.set_change_event("actualPointing", True, False)
+        self.set_change_event("kValueValidationResult", True, False)
+        self.set_change_event("dishMode", True, False)
+        self.set_change_event("pointingState", True, False)
+
     class InitCommand(SKABaseDevice.InitCommand):
         """
         A class for the TMC DishLeafNode init_device() method.
@@ -111,16 +123,7 @@ class DishLeafNode(SKABaseDevice):
             device._build_state = f"""{release.name},{release.version},
             {release.description}"""
             device._version_id = release.version
-            device._isSubsystemAvailable = True
-            device._dishMode = DishMode.UNKNOWN
-            device._pointingState = PointingState.NONE
             device._dishln_name = device.get_name()
-            device.set_change_event("healthState", True, False)
-            device.set_change_event("isSubsystemAvailable", True, False)
-            device.set_change_event("actualPointing", True, False)
-            device.set_change_event("kValueValidationResult", True, False)
-            device.set_change_event("dishMode", True, False)
-            device.set_change_event("pointingState", True, False)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -133,10 +136,11 @@ class DishLeafNode(SKABaseDevice):
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call
 
-    def update_availablity_callback(self, availablity):
+    def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        self._isSubsystemAvailable = availablity
-        self.push_change_event("isSubsystemAvailable", availablity)
+        if self._isSubsystemAvailable != availability:
+            self._isSubsystemAvailable = availability
+            self.push_change_event("isSubsystemAvailable", availability)
 
     def pointing_callback(self, actual_pointing: list) -> None:
         """Push an event for the actualPointing attribute."""

@@ -158,8 +158,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if _liveliness_probe:
             self.start_liveliness_probe(_liveliness_probe)
 
-        self.update_availablity_callback = _update_availablity_callback
-
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.program_track_table = []
         self.dish_adapter = None
