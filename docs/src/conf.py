@@ -38,7 +38,8 @@ autodoc_mock_imports = [
     "ska_tmc_common",
     "ska_ser_log_transactions",
     "astropy",
-    "katpoint"
+    "katpoint",
+    "ska_ser_logging"
 ]
 
 import os
