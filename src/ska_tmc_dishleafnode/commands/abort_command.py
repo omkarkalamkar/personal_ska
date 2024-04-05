@@ -74,7 +74,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         )
         return result_code, message
 
-    def stop_dish_tracking(self)-> Tuple[ResultCode, str]:
+    def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
         """Method to invoke track stop when abortcommands command is invoked
 
         rtype:
