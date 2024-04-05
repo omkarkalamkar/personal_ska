@@ -16,8 +16,8 @@ include = [
 DishLeafNodeDS = 'ska_tmc_dishleafnode.dish_leaf_node:main'
 
 [[tool.poetry.source]]
-name = 'ska-nexus'
-url = 'https://artefact.skao.int/repository/pypi-internal/simple'
+name = "PyPI-public"
+url = 'https://pypi.org/simple'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
