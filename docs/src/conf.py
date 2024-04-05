@@ -36,7 +36,8 @@ autodoc_mock_imports = [
     "ValidationError",
     "transitions",
     "ska_tmc_common",
-    "ska_ser_log_transactions"
+    "ska_ser_log_transactions",
+    "astropy"
 ]
 
 import os
