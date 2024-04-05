@@ -2,11 +2,17 @@
 # flake8: noqa
 
 import json
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
-from ska_tmc_common import DishMode, LivelinessProbeType, PointingState
+from ska_tmc_common import (
+    CommandNotAllowed,
+    DeviceUnresponsive,
+    DishMode,
+    LivelinessProbeType,
+    PointingState,
+)
 from tango import AttrWriteType, Database, DebugIt
 from tango.server import attribute, command, device_property, run
 
@@ -22,19 +28,10 @@ class DishLeafNode(SKABaseDevice):
     A Leaf control node for DishMaster.
 
     :Device Properties:
-
-        DishMasterFQDN:
-            FQDN of Dish Master Device
-
-
+    :DishMasterFQDN: FQDN of Dish Master Device
     :Device Attributes:
-
-        commandExecuted:
-            Stores command executed on the device.
-
-
-        dishMasterDevName:
-            Stores Dish Master Device name.
+    :commandExecuted: Stores command executed on the device.
+    :dishMasterDevName: Stores Dish Master Device name.
     """
 
     # -----------------
@@ -100,6 +97,18 @@ class DishLeafNode(SKABaseDevice):
     # General methods
     # ---------------
 
+    def init_device(self):
+        super().init_device()
+        self._isSubsystemAvailable = True
+        self._dishMode = DishMode.UNKNOWN
+        self._pointingState = PointingState.NONE
+        self.set_change_event("healthState", True, False)
+        self.set_change_event("isSubsystemAvailable", True, False)
+        self.set_change_event("actualPointing", True, False)
+        self.set_change_event("kValueValidationResult", True, False)
+        self.set_change_event("dishMode", True, False)
+        self.set_change_event("pointingState", True, False)
+
     class InitCommand(SKABaseDevice.InitCommand):
         """
         A class for the TMC DishLeafNode init_device() method.
@@ -122,16 +131,7 @@ class DishLeafNode(SKABaseDevice):
             device._build_state = f"""{release.name},{release.version},
             {release.description}"""
             device._version_id = release.version
-            device._isSubsystemAvailable = True
-            device._dishMode = DishMode.UNKNOWN
-            device._pointingState = PointingState.NONE
             device._dishln_name = device.get_name()
-            device.set_change_event("healthState", True, False)
-            device.set_change_event("isSubsystemAvailable", True, False)
-            device.set_change_event("actualPointing", True, False)
-            device.set_change_event("kValueValidationResult", True, False)
-            device.set_change_event("dishMode", True, False)
-            device.set_change_event("pointingState", True, False)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -144,10 +144,11 @@ class DishLeafNode(SKABaseDevice):
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call
 
-    def update_availablity_callback(self, availablity: bool) -> None:
+    def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        self._isSubsystemAvailable = availablity
-        self.push_change_event("isSubsystemAvailable", availablity)
+        if self._isSubsystemAvailable != availability:
+            self._isSubsystemAvailable = availability
+            self.push_change_event("isSubsystemAvailable", availability)
 
     def pointing_callback(self, actual_pointing: list) -> None:
         """Push an event for the actualPointing attribute."""
@@ -335,33 +336,71 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    @command(dtype_out="DevVarLongStringArray")
+    @command(
+        dtype_in="DevString",
+        doc_in="The scan_id in string",
+        dtype_out="DevVarLongStringArray",
+        doc_out="(ReturnType, 'informational message')",
+    )
     @DebugIt()
-    def Scan(self) -> Tuple[List[ResultCode], List[str]]:
+    def Scan(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
         """
-        Invokes Scan command on DishMaster (Standby-Full power)
-        mode
+        Invokes Scan command on DishMaster
 
-        :rtype: tuple
+        :rtype: Tuple[List[ResultCode], List[str]]
         """
         handler = self.get_command_object("Scan")
-        result_code, unique_id = handler()
-
+        result_code, unique_id = handler(argin)
         return [result_code], [str(unique_id)]
 
-    def is_Scan_allowed(self) -> bool:
+    def is_Scan_allowed(
+        self,
+    ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
 
         :return: True if this command is allowed to be run in current
-            dish mode.
+            dish mode, raises CommandNotAllowed in case is is not allowed and
+            DeviceUnresponsive in case Device is not responsive.
 
-        :rtype: boolean
+        :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
         """
         return self.component_manager.is_scan_allowed()
 
-    def is_off_allowed(self) -> bool:
+    def is_EndScan_allowed(
+        self,
+    ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
+        """
+        Checks whether this command is allowed to be run in the current
+        dish mode.
+
+        :return: True if this command is allowed to be run in current
+            dish mode, raises CommandNotAllowed in case is is not allowed and
+            DeviceUnresponsive in case Device is not responsive.
+
+        :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
+        """
+        return self.component_manager.is_endscan_allowed()
+
+    @command(
+        dtype_in="DevVoid",
+        dtype_out="DevVarLongStringArray",
+        doc_out="(ReturnType, 'informational message')",
+    )
+    @DebugIt()
+    def EndScan(self) -> Tuple[List[ResultCode], List[str]]:
+        """
+        Updates the scanID attribute of Dish Master to empty string
+
+        :rtype: Tuple[List[ResultCode], List[str]]
+        """
+        handler = self.get_command_object("EndScan")
+        result_code, unique_id = handler()
+
+        return [result_code], [str(unique_id)]
+
+    def is_off_allowed(self):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -575,7 +614,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current
-                 device state
+            device state
         :rtype: boolean
         """
         return False
@@ -596,7 +635,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current
-                 device state
+            device state
 
         :rtype: boolean
         """
@@ -618,7 +657,7 @@ class DishLeafNode(SKABaseDevice):
         device state
 
         :return: True if this command is allowed to be run in current device
-                 state
+            state
 
         :rtype: boolean
         """
@@ -689,6 +728,7 @@ class DishLeafNode(SKABaseDevice):
             ("SetKValue", "SetKValue"),
             ("TrackLoadStaticOff", "track_load_static_off"),
             ("Scan", "scan"),
+            ("EndScan", "endscan"),
         ]:
             self.register_command_object(
                 command_name,
@@ -719,6 +759,7 @@ class DishLeafNode(SKABaseDevice):
 def main(args=None, **kwargs):
     """
     Runs the DishLeafNode.
+
     :param args: Arguments internal to TANGO
     :param kwargs: Arguments internal to TANGO
     :return: DishLeafNode TANGO object.

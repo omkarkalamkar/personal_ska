@@ -2,6 +2,7 @@
 from .abort_command import AbortCommands
 from .configure_command import Configure
 from .dish_ln_command import DishLNCommand
+from .endscan_command import EndScan
 from .off_command import Off
 from .scan_command import Scan
 from .set_kvalue import SetKValue
@@ -19,6 +20,7 @@ __all__ = [
     "SetStandbyFPMode",
     "SetStowMode",
     "Scan",
+    "EndScan",
     "Off",
     "Configure",
     "Track",

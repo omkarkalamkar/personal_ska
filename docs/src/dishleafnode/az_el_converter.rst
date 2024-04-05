@@ -1,14 +1,9 @@
-AzElConverter
-============================================
+ska\_tmc\_dishleafnode.az_el_converter module
+==============================================
 
-.. toctree::
-   :maxdepth: 2
-
-
-1. AzElConverter
---------------------
 .. automodule:: ska_tmc_dishleafnode.az_el_converter
-.. autoclass:: ska_tmc_dishleafnode.az_el_converter.AzElConverter
-    :members:
-    :undoc-members:
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 

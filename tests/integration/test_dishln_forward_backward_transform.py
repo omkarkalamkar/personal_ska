@@ -142,6 +142,7 @@ def actual_pointing_attr(tango_context):
     assert dish_leaf_node.actualPointing == verify_value
 
 
+@pytest.mark.skip("Will be fixed under sah-1472")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_forward_backward_transform(

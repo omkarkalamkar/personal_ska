@@ -78,9 +78,10 @@ class DishLNCommand(TmcLeafNodeCommand):
     def set_wait_for_dishmode(self, dishmode: DishMode) -> bool:
         """Waits for transition of DishMode to the correct state.
 
-        Returns:
-        bool: True if the DishMode transitions to the correct state within
-              the timeout period,False otherwise."""
+        :return: True if the DishMode transitions to the correct state within
+            the timeout period,False otherwise.
+        :rtype: boolean
+        """
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
@@ -95,9 +96,10 @@ class DishLNCommand(TmcLeafNodeCommand):
     def set_wait_for_configured_band(self, configured_band: str):
         """Waits for transition of configuredBand to the correct state.
 
-        Returns:
-            bool: True if the DishMode transitions to the correct state within
-              the timeout period,False otherwise."""
+        :return: True if the DishMode transitions to the correct state within
+            the timeout period,False otherwise.
+        :rtype: boolean
+        """
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:

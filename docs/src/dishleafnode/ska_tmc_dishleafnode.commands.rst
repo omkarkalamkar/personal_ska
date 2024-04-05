@@ -1,69 +1,118 @@
-ska\_tmc\_dishleafnode\_mid.commands package
-==============================================
+ska\_tmc\_dishleafnode.commands 
+================================
 
 Submodules
-----------
+==========
+abort\_command
+-----------------------------------------------------
 
-ska\_tmc\_dishleafnode\_mid.commands.abstract\_command module
+.. automodule:: ska_tmc_dishleafnode.commands.abort_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+configure\_command 
+---------------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.configure_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+dish_ln\_command
 -------------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.abstract_command
+.. automodule:: ska_tmc_dishleafnode.commands.dish_ln_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setoperatemode\_command module
--------------------------------------------------------------------
+endscan\_command
+-------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.setoperatemode_command
+.. automodule:: ska_tmc_dishleafnode.commands.endscan_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setstandbyfpmode\_command module
----------------------------------------------------------------------
+off\_command
+-------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.setstandbyfpmode_command
+.. automodule:: ska_tmc_dishleafnode.commands.off_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setstandbylpmode\_command module
----------------------------------------------------------------------
+scan\_command
+----------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.setstandbylpmode_command
+.. automodule:: ska_tmc_dishleafnode.commands.scan_command
    :members:
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode\_mid.commands.setstowmode\_command module
-----------------------------------------------------------------
-
-.. automodule:: ska_tmc_dishleafnode.commands.setstowmode_command
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ska\_tmc\_dishleafnode\_mid.commands.track_load_static_off\_command module
---------------------------------------------------------------------------
-
-.. automodule:: ska_tmc_dishleafnode.commands.track_load_static_off_command
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ska\_tmc\_dishleafnode\_mid.commands.set_kvalue\_command module
---------------------------------------------------------------------------
+set_kvalue
+----------------------------------------------------------
 
 .. automodule:: ska_tmc_dishleafnode.commands.set_kvalue
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
+setoperatemode
+--------------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands
+.. automodule:: ska_tmc_dishleafnode.commands.setoperatemode
    :members:
    :undoc-members:
    :show-inheritance:
+
+setstandbyfpmode
+----------------------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.setstandbyfpmode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+setstandbylpmode
+----------------------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.setstandbylpmode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+setstowmode 
+-----------------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.setstowmode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+track\_command 
+-----------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.track_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+track_load_static_off\_command
+---------------------------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.track_load_static_off_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+trackstop\_command
+---------------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.trackstop_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+

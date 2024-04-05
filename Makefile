@@ -91,6 +91,8 @@ endif
 endif
 CLUSTER_DOMAIN ?= cluster.local
 
+CLUSTER_DOMAIN ?= cluster.local
+
 PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE)
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
@@ -106,7 +108,6 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-taranta.enabled=$(TARANTA) \
 	$(CUSTOM_VALUES)
 
-
 PYTHON_VARS_BEFORE_PYTEST ?= PYTHONPATH=.:./src \
 							TANGO_HOST=$(TANGO_HOST) \
 							CLUSTER_DOMAIN=$(CLUSTER_DOMAIN) \
@@ -115,12 +116,13 @@ K8S_TEST_TEST_COMMAND = $(PYTHON_VARS_BEFORE_PYTEST) $(PYTHON_RUNNER) \
 						pytest \
 						$(PYTHON_VARS_AFTER_PYTEST) ./tests \
 						| tee pytest.stdout
+
+-include .make/base.mk
 -include .make/k8s.mk
 -include .make/python.mk
 -include .make/helm.mk
 -include .make/oci.mk
 -include PrivateRules.mak
--include .make/base.mk 
 
 cred:
 	make k8s-namespace
