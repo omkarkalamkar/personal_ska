@@ -18,7 +18,9 @@ from tests.settings import (
 )
 
 
-def forward_backward_transform(tango_context, dishln_name, configure_input_str, group_callback):
+def forward_backward_transform(
+    tango_context, dishln_name, configure_input_str, group_callback
+):
     """Execute Configure and test forward and backward transform."""
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
@@ -59,9 +61,13 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
+    result_config, unique_id_config = dish_leaf_node.Configure(
+        configure_input_str
+    )
     assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(("Configure",), lookahead=2)
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
+        ("Configure",), lookahead=2
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], str(int(ResultCode.OK))),
@@ -86,7 +92,9 @@ def forward_backward_transform(tango_context, dishln_name, configure_input_str, 
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(("TrackStop",), lookahead=4)
+    group_callback["longRunningCommandsInQueue"].assert_change_event(
+        ("TrackStop",), lookahead=4
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_trackstop[0], str(int(ResultCode.OK))),
@@ -118,9 +126,13 @@ def actual_pointing_attr(tango_context):
     EXTEND_MILLISECONDS = 100
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
-    timestamp_str = datetime.datetime.strptime("2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S")
+    timestamp_str = datetime.datetime.strptime(
+        "2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S"
+    )
     dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
-    extended_time = dt_utc + datetime.timedelta(milliseconds=EXTEND_MILLISECONDS)
+    extended_time = dt_utc + datetime.timedelta(
+        milliseconds=EXTEND_MILLISECONDS
+    )
     utc_timestamp = extended_time.timestamp() * 1000
     dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
     verify_value = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
@@ -132,7 +144,9 @@ def actual_pointing_attr(tango_context):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_forward_backward_transform(tango_context, json_factory, group_callback):
+def test_forward_backward_transform(
+    tango_context, json_factory, group_callback
+):
     """Test forward and backward transform calculations."""
     forward_backward_transform(
         tango_context,
@@ -144,6 +158,8 @@ def test_forward_backward_transform(tango_context, json_factory, group_callback)
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_actual_pointing_attribute(tango_context, json_factory, group_callback):
+def test_actual_pointing_attribute(
+    tango_context, json_factory, group_callback
+):
     """Test forward and backward transform calculations."""
     actual_pointing_attr(tango_context)

@@ -28,7 +28,7 @@ class EndScan(BaseCommand):
     A class for DishLeafNode's EndScan() command.
     """
 
-    def check_allowed(self):
+    def check_allowed(self)->bool:
         """
         Checks whether this command is allowed to be run in the current device state.
 

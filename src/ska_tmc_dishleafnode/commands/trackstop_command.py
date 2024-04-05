@@ -2,8 +2,9 @@
 
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import Optional, Tuple
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
@@ -22,7 +23,7 @@ class TrackStop(DishLNCommand):
     def trackstop(
         self,
         logger: Logger,
-        task_callback: Callable = None,
+        task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """This is a long running method for TrackStop command, it
@@ -31,9 +32,11 @@ class TrackStop(DishLNCommand):
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: Callable, optional
+        :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
+        :return: : None
+        :rtype: None
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
@@ -51,7 +54,8 @@ class TrackStop(DishLNCommand):
                 result=ResultCode(result_code),
             )
 
-    def do(self, argin=None):
+    # pylint: disable=arguments-differ
+    def do(self) -> Tuple[ResultCode, str]:
         """
         Method to invoke TrackStop command on Dish Master.
         return:
@@ -59,7 +63,9 @@ class TrackStop(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
         # Stop the thread which started when Track command was invoked
         self.component_manager.event_track_time.set()
