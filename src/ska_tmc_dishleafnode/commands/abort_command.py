@@ -74,8 +74,12 @@ class AbortCommands(DishLNCommand, FastCommand):
         )
         return result_code, message
 
-    def stop_dish_tracking(self):
-        """Method to invoke track stop when abortcommands command is invoked"""
+    def stop_dish_tracking(self)-> Tuple[ResultCode, str]:
+        """Method to invoke track stop when abortcommands command is invoked
+
+        rtype:
+            (ResultCode, str)
+        """
         self.component_manager.set_track_process_event()
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
