@@ -8,7 +8,9 @@ import tango
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState
-from ska_tmc_common.test_helpers.helper_adapter_factory import HelperAdapterFactory
+from ska_tmc_common.test_helpers.helper_adapter_factory import (
+    HelperAdapterFactory,
+)
 from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
@@ -98,10 +100,19 @@ def get_dishln_command_obj(command_class, cm) -> tuple:
 
 
 def event_remover(group_callback, attributes: List[str]) -> None:
-    """Removes residual events from the queue."""
+    """Removes residual events from the queue.
+
+    Args:
+        group_callback: The group callback object.
+        attributes (List[str]): List of attribute names.
+
+    :return: None
+    :rtype: None"""
     for attribute in attributes:
         try:
-            iterable = group_callback._mock_consumer_group._views[attribute]._iterable
+            iterable = group_callback._mock_consumer_group._views[
+                attribute
+            ]._iterable
             for node in iterable:
                 logger.info("Payload is: %s", repr(node.payload))
                 node.drop()
@@ -109,7 +120,9 @@ def event_remover(group_callback, attributes: List[str]) -> None:
             pass
 
 
-def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
+def wait_for_dish_mode(
+    cm: DishLNComponentManager, dish_mode: DishMode
+) -> bool:
     """Waits for dishmode to become given dish mode. Times out if the change
     does not occur. Current timeout is 10s.
     """
@@ -123,7 +136,9 @@ def wait_for_dish_mode(cm: DishLNComponentManager, dish_mode: DishMode) -> bool:
     return False
 
 
-def wait_for_attribute_value(device: DeviceProxy, attribute_name: str, value: str = "[]") -> bool:
+def wait_for_attribute_value(
+    device: DeviceProxy, attribute_name: str, value: str = "[]"
+) -> bool:
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
     while device.read_attribute(attribute_name).value == value:
@@ -133,8 +148,12 @@ def wait_for_attribute_value(device: DeviceProxy, attribute_name: str, value: st
     return True
 
 
-def wait_for_unresponsive(cm):
-    """Waits for device unresponsive update to True."""
+def wait_for_unresponsive(cm: DishLNComponentManager) -> bool:
+    """Waits for device unresponsive update to True.
+
+    :return: True if the device becomes unresponsive within the timeout,
+        False otherwise.
+    :return: boolean"""
     start_time = time.time()
     elapsed_time = 0
     timeout = 50
@@ -145,7 +164,9 @@ def wait_for_unresponsive(cm):
     return False
 
 
-def tear_down(dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback):
+def tear_down(
+    dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback
+):
     """Teardown for the Dish Leaf Node device."""
     current_pointing_state = dish_master.pointingState
     if current_pointing_state == PointingState.TRACK:
@@ -225,10 +246,19 @@ def wait_and_validate_attribute_value_available(
     attribute_name: str,
     expected_value: str,
     timeout: int = 300,
-):
+) -> bool:
     """This method wait and validate if attribute value is equal to provided
     expected value
-    """
+
+    Args:
+        device (DeviceProxy): The Tango DeviceProxy object.
+        attribute_name (str): The name of the attribute.
+        expected_value (str): The expected value of the attribute.
+        timeout (int, optional): Timeout in seconds.
+
+    return: True if attribute value matches the expected value within the
+        timeout, False otherwise.
+    rtype: bool"""
     count = 0
     error = None
     attribute_value = None
@@ -245,13 +275,13 @@ def wait_and_validate_attribute_value_available(
                 attribute_name,
                 attribute_value,
             )
-        except Exception as e:
+        except Exception as exception:
             # Device gets unavailable due to restart and the above command
             # tries to access the attribute resulting into exception
             # It keeps it printing till the attribute is accessible
             # the exception log is suppressed by storing into variable
             # the error is printed later into the log in case of failure
-            error = e
+            error = exception
 
     logger.exception(
         "Exception occurred while reading attribute %s and count is %s",
@@ -266,6 +296,12 @@ def dln_can_communicate_with_dish_master(
 ):
     """This method tries to check the dish manager is available
     for execution of further commands.
+
+     Args:
+        device (DeviceProxy): The DishLN device proxy.
+
+    :return: True if the dish manager is available, False otherwise.
+    :rtype: bool: True if the dish manager is available, False otherwise.
     """
     retry = 0
     flag = False
@@ -282,13 +318,13 @@ def dln_can_communicate_with_dish_master(
                 result_code, _ = device.SetKValue(KVALUE)
                 if result_code == ResultCode.OK:
                     flag = True
-            except Exception as e:
+            except Exception as exception:
                 # Device gets unavailable due to restart and the above command
                 # tries to access the attribute resulting into exception
                 # It keeps it printing till the attribute is accessible
                 # the exception log is suppressed by storing into variable
                 # the error is printed later into the log in case of failure
-                error = e
+                error = exception
         retry = retry + 1
 
     if not flag:

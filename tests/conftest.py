@@ -70,7 +70,10 @@ def devices_to_load():
         {
             "class": DishLeafNode,
             "devices": [
-                {"name": "ska_mid/tm_leaf_node/d0001", "DishMasterFQDN": "ska001/elt/master"},
+                {
+                    "name": "ska_mid/tm_leaf_node/d0001",
+                    "DishMasterFQDN": "ska001/elt/master",
+                },
             ],
         },
     )
@@ -82,7 +85,9 @@ def tango_context(devices_to_load, request):
     true_context = request.config.getoption("--true-context")
     logging.info("true context: %s", true_context)
     if not true_context:
-        with MultiDeviceTestContext(devices_to_load, process=False, timeout=50) as context:
+        with MultiDeviceTestContext(
+            devices_to_load, process=False, timeout=50
+        ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
             yield context
@@ -98,7 +103,10 @@ def dishln_device(request):
         with DeviceTestContext(
             DishLeafNode,
             device_name="ska_mid/tm_leaf_node/d0001",
-            properties={"DishMasterFQDN": "ska001/elt/master", "DishAvailabilityCheckTimeout": 10},
+            properties={
+                "DishMasterFQDN": "ska001/elt/master",
+                "DishAvailabilityCheckTimeout": 10,
+            },
             timeout=20,
         ) as proxy:
             yield proxy
@@ -139,7 +147,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
     return group_callback
 
 
-def get_input_str(path):
+def get_input_str(path: str) -> str:
     """
     Returns input json string
     :rtype: String

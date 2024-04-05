@@ -1,13 +1,23 @@
 """Track command class for Dishleafnode."""
 
+from __future__ import annotations
+
+import logging
 import threading
 from logging import Logger
-from typing import Callable, Optional
+from typing import TYPE_CHECKING, Optional, Tuple
 
+from ska_ser_logging import configure_logging
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from ..manager.component_manager import DishLNComponentManager
 
 
 class Track(DishLNCommand):
@@ -18,12 +28,26 @@ class Track(DishLNCommand):
     This command invokes Track command on Dish Master
     """
 
+    def __init__(
+        self,
+        component_manager: DishLNComponentManager,
+        op_state_model,
+        adapter_factory=None,
+        logger: logging.Logger = LOGGER,
+    ):
+        super().__init__(
+            component_manager, op_state_model, adapter_factory, logger
+        )
+        self.ra_value = ""
+        self.dec_value = ""
+        self.tracking_thread = None
+
     # pylint: disable=unused-argument
     def track(
         self,
         argin: str,
         logger: Logger,
-        task_callback: Callable = None,
+        task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """This is a long running method for Track command, it
@@ -34,9 +58,11 @@ class Track(DishLNCommand):
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: Callable, optional
+        :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
+        :return: : None
+        :rtype: None
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
@@ -67,8 +93,9 @@ class Track(DishLNCommand):
 
         return (ResultCode.OK, "")
 
-    # pylint: disable=W0201
-    def do(self, argin=None):
+    # pylint: disable=signature-differs
+    # pylint: disable=arguments-differ
+    def do(self, argin: dict) -> Tuple[ResultCode, str]:
         """
         Method to invoke Track command on Dish Master.
 
@@ -79,7 +106,9 @@ class Track(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         result_code, message = self.call_adapter_method(
@@ -97,7 +126,7 @@ class Track(DishLNCommand):
         radec_value = f"{self.ra_value}, {self.dec_value}"
         self.logger.info(
             "Track command ignores RA dec coordinates passed in: %s. "
-            + "Uses coordinates from Configure command instead.",
+            "Uses coordinates from Configure command instead.",
             radec_value,
         )
 

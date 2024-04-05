@@ -2,12 +2,17 @@
 AbortCommands command class for DishLeafNode.
 """
 
+import logging
 from typing import Tuple
 
+from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 class AbortCommands(DishLNCommand, FastCommand):
@@ -16,7 +21,12 @@ class AbortCommands(DishLNCommand, FastCommand):
     Command to abort the Dish Master and bring it to its ABORTED state.
     """
 
-    def __init__(self, component_manager, op_state_model=None, logger=None) -> None:
+    def __init__(
+        self,
+        component_manager,
+        op_state_model=None,
+        logger: logging.Logger = LOGGER,
+    ) -> None:
         super().__init__(
             component_manager=component_manager,
             op_state_model=op_state_model,
@@ -45,7 +55,9 @@ class AbortCommands(DishLNCommand, FastCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info("%s adapter not found ", self.component_manager.dish_dev_name)
+            self.logger.info(
+                "%s adapter not found ", self.component_manager.dish_dev_name
+            )
             return result_code, message
 
         result_code, message = self.call_adapter_method(

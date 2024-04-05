@@ -4,7 +4,12 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, event_remover, logger
+from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    event_remover,
+    logger,
+)
 
 
 def device_unavailability(tango_context, dishln_name, group_callback):
@@ -13,7 +18,9 @@ def device_unavailability(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
 
-    availablity_value = dish_leaf_node.read_attribute("isSubsystemAvailable").value
+    availablity_value = dish_leaf_node.read_attribute(
+        "isSubsystemAvailable"
+    ).value
     assert availablity_value
 
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)

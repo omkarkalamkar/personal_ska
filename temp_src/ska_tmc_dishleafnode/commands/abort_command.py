@@ -29,7 +29,7 @@ class Abort(BaseCommand):
     A class for DishLeafNode's Abort command.
     """
 
-    def check_allowed(self):
+    def check_allowed(self)->bool:
         """
         Checks whether this command is allowed to be run in current device state
 
@@ -45,7 +45,7 @@ class Abort(BaseCommand):
 
         return True
 
-    def do(self):
+    def do(self)->None:
         """
         Invokes TrackStop command on the DishMaster.
 

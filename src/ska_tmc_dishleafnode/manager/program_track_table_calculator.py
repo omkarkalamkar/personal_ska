@@ -1,3 +1,4 @@
+# flake8: noqa
 """Module for programTrackTable calculator."""
 import datetime
 from concurrent.futures import ThreadPoolExecutor
@@ -30,6 +31,7 @@ class ProgramTrackTableCalculator:
         self.azel_converter = None
         self.track_table_time_stamp = None
         self.track_table_start_time = None
+        self.elevation_limit = None
 
     def calculate_program_track_table(
         self, ra_value: str, dec_value: str, azel_converter: AzElConverter
@@ -38,9 +40,11 @@ class ProgramTrackTableCalculator:
 
         :param ra_value: Right Ascension of the source in hours:minutes:sec.
         :type ra_value: str
-        :param dec_value: Declination of the source in degree:arc_minutes:arc_sec.
+        :param dec_value: Declination of the source in
+        degree:arc_minutes:arc_sec.
         :type dec_value: str
-        :return: list in the form of [TAI1, Az1, El1, TAI2, Az2, El2,,,,,,TAIn, Azn, Eln].
+        :return: list in the form of [TAI1, Az1, El1, TAI2, Az2,
+        El2,,,,,,TAIn, Azn, Eln].
         :rtype: list
         """
         self.right_ascension = ra_value
@@ -50,7 +54,10 @@ class ProgramTrackTableCalculator:
         program_track_table = []
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            time_stamp_list, tai_timestamp_list = self.calculate_time_stamp_list()
+            (
+                time_stamp_list,
+                tai_timestamp_list,
+            ) = self.calculate_time_stamp_list()
             results = executor.map(self.point, time_stamp_list)
         try:
             for result in results:
@@ -61,13 +68,17 @@ class ProgramTrackTableCalculator:
                     result[0] = 360 - abs(result[0])
 
                 program_track_table.append(tai_timestamp_list.pop(0))
-                program_track_table.extend([round(result[0], 12), round(result[1], 12)])
+                program_track_table.extend(
+                    [round(result[0], 12), round(result[1], 12)]
+                )
 
                 if self.component_manager.get_track_process_event_status():
+                    # pylint: disable = line-too-long
                     log_message = (
-                        "Stop the Thread as event track time is set: "
-                        f"{self.component_manager.get_track_process_event_status()}"
+                        "Stop the Thread as event track time is set: %s",
+                        self.component_manager.get_track_process_event_status(),
                     )
+                    # pylint: enable = line-too-long
                     self.logger.debug(log_message)
                     break
         except Exception as exception:
@@ -123,16 +134,19 @@ class ProgramTrackTableCalculator:
             tai_time = self.convert_utc_to_tai(timestamp_sec)
             tai_timestamp_list.append(tai_time)
 
+            # pylint: disable = line-too-long
             self.track_table_time_stamp = self.track_table_time_stamp + datetime.timedelta(
                 milliseconds=self.component_manager.pointing_calculation_period
             )
+            # pylint: enable = line-too-long
         return time_stamp_list, tai_timestamp_list
 
     def point(self, timestamp: str) -> list:
         """
         This method converts Target RaDec coordinates to the AzEl
-        coordinates. It is called continuously from Configure command (in a thread)
-        at interval of 50ms till the StopTrack command is invoked.
+        coordinates. It is called continuously from Configure command
+        (in a thread) at interval of 50ms till the StopTrack command is
+        invoked.
 
         :param timestamp: utc timestamp
         :type timestamp: str
@@ -140,7 +154,10 @@ class ProgramTrackTableCalculator:
         :rtype: list
         """
         return self.azel_converter.radec_to_azel(
-            self.right_ascension, self.declination, timestamp, self.weather_data
+            self.right_ascension,
+            self.declination,
+            timestamp,
+            self.weather_data,
         )
 
     def convert_utc_to_tai(self, utc_time: float) -> float:
@@ -165,7 +182,7 @@ class ProgramTrackTableCalculator:
         :return: Timestamp with format "%Y-%m-%d %H:%M:%S".
         :rtype: string
         """
-        timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        timestamp = datetime.datetime.utcfromtimestamp(
+            timestamp_seconds
+        ).strftime("%Y-%m-%d %H:%M:%S")
         return timestamp

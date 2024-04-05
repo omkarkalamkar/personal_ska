@@ -18,10 +18,14 @@ def devices_to_load():
     )
 
 
-def test_abort_command_fail_check_allowed_with_device_unresponsive(tango_context, cm):
+def test_abort_command_fail_check_allowed_with_device_unresponsive(
+    tango_context, cm
+):
     logger.info("%s", tango_context)
     wait_for_unresponsive(cm)
-    with pytest.raises(DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"):
+    with pytest.raises(
+        DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
+    ):
         cm.is_abortcommands_allowed()
 
 

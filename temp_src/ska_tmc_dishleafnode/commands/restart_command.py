@@ -30,7 +30,7 @@ class Restart(BaseCommand):
     Invokes Restart command on the DishMaster.
     """
 
-    def check_allowed(self):
+    def check_allowed(self)->bool:
         """
         Checks whether this command is allowed to be run in current device state
 

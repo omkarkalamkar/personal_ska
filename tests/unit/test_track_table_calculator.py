@@ -4,14 +4,19 @@ import time
 import pytest
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.manager.program_track_table_calculator import ProgramTrackTableCalculator
+from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
+    ProgramTrackTableCalculator,
+)
 from tests.settings import logger
 
 
 def test_calculate_time_stamp_array(cm):
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
-    time_stamp_array, tai_timestamp_array = track_table_calculator.calculate_time_stamp_list()
+    (
+        time_stamp_array,
+        tai_timestamp_array,
+    ) = track_table_calculator.calculate_time_stamp_list()
     assert len(time_stamp_array) == cm.track_table_entries
     assert len(tai_timestamp_array) == cm.track_table_entries
 
@@ -28,7 +33,9 @@ def test_calculate_program_track_table(cm):
             azel_converter.create_antenna_obj()
             break
         except Exception as e:
-            logger.exception("Exception occurred while creating antenna object: %s", e)
+            logger.exception(
+                "Exception occurred while creating antenna object: %s", e
+            )
             if retry == 2:
                 pytest.fail(f"{e}")
             retry += 1

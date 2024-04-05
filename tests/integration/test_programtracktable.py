@@ -74,12 +74,16 @@ def check_track_table(
             lookahead=2,
         )
 
-        result_config, unique_id_config = dish_leaf_node.Configure(configure_input_str)
+        result_config, unique_id_config = dish_leaf_node.Configure(
+            configure_input_str
+        )
         assert result_config[0] == ResultCode.QUEUED
         group_callback["longRunningCommandsInQueue"].assert_change_event(
             ("SetStandbyFPMode", "Configure")
         )
-        logger.info(f"Command ID: {unique_id_config} Returned result: {result_config}")
+        logger.info(
+            f"Command ID: {unique_id_config} Returned result: {result_config}"
+        )
 
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),
@@ -96,12 +100,15 @@ def check_track_table(
         program_track_table = dish_master.programTrackTable
 
         if len(program_track_table) == 0:
-            raise Exception("TrackTable is not generated, Timeout has occurred")
+            raise Exception(
+                "TrackTable is not generated, Timeout has occurred"
+            )
 
         logger.info(f"ProgramTrackTable: {program_track_table}")
 
         assert (
-            len(program_track_table) > 0 and len(program_track_table) % TRACK_TABLE_ENTRY_SIZE == 0
+            len(program_track_table) > 0
+            and len(program_track_table) % TRACK_TABLE_ENTRY_SIZE == 0
         )
 
         for item in program_track_table:
