@@ -6,8 +6,8 @@ from __future__ import annotations
 import json
 import logging
 import threading
-import time
 from logging import Logger
+from multiprocessing import Process
 from typing import TYPE_CHECKING, Optional, Tuple
 
 from ska_ser_logging import configure_logging
@@ -17,10 +17,6 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import (
-    TRACK_COMMAND_TIMEOUT,
-    TRACK_TABLE_ENTRY_SIZE,
-)
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -54,7 +50,7 @@ class Configure(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.task_callback = None
-        self.tracking_thread = None
+        self.track_table_process = None
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -114,10 +110,12 @@ class Configure(DishLNCommand):
         """
         Method to update task callback.
 
-        Args:-> Tuple[ResultCode, str]
-            result_code (ResultCode): result code
-            exception (str, optional): Exception occurred during command
-            execution. Defaults to "".
+        :param result_code: result code
+        :type result_code: ResultCode
+        :param exception: Exception occurred during command execution
+        :type exception: str
+        :return: None
+        :rtype: NoneType.
         """
         if exception:
             self.task_callback(
@@ -130,8 +128,14 @@ class Configure(DishLNCommand):
         self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument
-    def validate_json_argument(self, input_argin: dict) -> tuple:
-        """Validates the json argument"""
+    def validate_json_argument(
+        self, input_argin: dict
+    ) -> Tuple[ResultCode, str]:
+        """Validates the json argument
+
+        :return: Resulcode and message
+        :rtype: tuple
+        """
 
         if "pointing" not in input_argin:
             return (
@@ -182,8 +186,8 @@ class Configure(DishLNCommand):
                 "dec":"-88:57:22.9"}},
                 "dish":{"receiver_band":"1"}}
 
-        return:
-            (ResultCode, str)
+        :return: Resulcode and message
+        :rtype: tuple
 
         raises:
             DevFailed If error occurs while invoking ConfigureBand<> command
@@ -201,6 +205,20 @@ class Configure(DishLNCommand):
                 return result_code, message
 
             json_argument = json.loads(argin)
+            # Start programTrackTable calculation
+            self.component_manager.elevation_limit = True
+            self.component_manager.reset_track_process_event()
+
+            if not json_argument.get("tmc"):
+                ra_value = json_argument["pointing"]["target"]["ra"]
+                dec_value = json_argument["pointing"]["target"]["dec"]
+                self.track_table_process = Process(
+                    target=self.component_manager.track_process,
+                    args=[ra_value, dec_value, self],
+                )
+                if not self.track_table_process.is_alive():
+                    self.track_table_process.start()
+
             if json_argument.get("tmc"):
                 self.component_manager.command_in_progress = (
                     "Configure_TrackLoadStaticOff"
@@ -229,19 +247,6 @@ class Configure(DishLNCommand):
                 return result_code[0], message[0]
 
             receiver_band = json_argument["dish"]["receiver_band"]
-            ra_value = json_argument["pointing"]["target"]["ra"]
-            dec_value = json_argument["pointing"]["target"]["dec"]
-
-            # Start programTrackTable calculation
-            self.component_manager.elevation_limit = True
-            self.component_manager.event_track_time.clear()
-            self.tracking_thread = threading.Thread(
-                target=self.component_manager.track_thread,
-                args=[ra_value, dec_value, self],
-            )
-            if not self.tracking_thread.is_alive():
-                self.tracking_thread.start()
-
             current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
@@ -288,7 +293,7 @@ class Configure(DishLNCommand):
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
                 return result_code, message
-        # start tracking thread
+
         result_code, message = self.invoke_track_command()
         return result_code, message
 
@@ -341,20 +346,9 @@ class Configure(DishLNCommand):
     def invoke_track_command(self) -> Tuple[ResultCode, str]:
         """Invoke Track command on dish
 
-        return: Tuple[ResultCode, str]
+        :return: Resulcode and message
+        :rtype: tuple
         """
-        # Wait until 2 set of programTrackTable entries are reached
-        start_time = time.time()
-        while (time.time() - start_time) < TRACK_COMMAND_TIMEOUT:
-            if (
-                len(self.dish_master_adapter.programTrackTable)
-                >= 2
-                * TRACK_TABLE_ENTRY_SIZE
-                * self.component_manager.track_table_entries
-            ):
-                break
-            time.sleep(0.5)
-
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )

@@ -121,16 +121,8 @@ class Track(DishLNCommand):
         self.ra_value = argin["pointing"]["target"]["ra"]
         self.dec_value = argin["pointing"]["target"]["dec"]
         self.component_manager.el_limit = True
-        self.component_manager.event_track_time.clear()
+        self.component_manager.reset_track_process_event()
 
-        # Start pointing calculations in a Track Thread
-        self.tracking_thread = threading.Thread(
-            None,
-            self.component_manager.track_thread,
-            "DishLeafNode",
-            args=(self.ra_value, self.dec_value, self),
-        )
-        self.tracking_thread.start()
         radec_value = f"{self.ra_value}, {self.dec_value}"
         self.logger.info(
             "Track command ignores RA dec coordinates passed in: %s. "

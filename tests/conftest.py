@@ -8,6 +8,7 @@ from typing import Generator
 
 import pytest
 import tango
+from ska_ser_logging.configuration import configure_logging
 from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common import DevFactory
@@ -17,6 +18,7 @@ from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 from ska_tmc_dishleafnode import DishLeafNode
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
+configure_logging()
 logger = logging.getLogger(__name__)
 DISH_MASTER_DEVICE = "ska001/elt/master"
 
@@ -203,7 +205,6 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         logger=logger,
         track_table_entries=25,
         pointing_calculation_period=100,
-        dish_availability_check_timeout=5,
         _update_dishmode_callback=dish_mode_callback,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
@@ -211,6 +212,9 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
+        dish_availability_check_timeout=5,
+        elevation_max_limit=90.0,
+        elevation_min_limit=17.5,
     )
     yield cm
     # pylint: disable=unnecessary-dunder-call

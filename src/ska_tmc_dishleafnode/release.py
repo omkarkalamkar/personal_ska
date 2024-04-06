@@ -11,12 +11,12 @@
 """Release information for Python Package"""
 
 name = """ska_tmc_dishleafnode"""
-version = "0.12.0"
+version = "0.12.1"
 version_info = version.split(".")
 description = """ The primary responsibility of the Dish
                   Leaf node is to monitor the Dish Master
                   and issue control actions during an observation."""
-author = "Team NCRA"
+author = "Team Sahyadri, Team Himalaya"
 author_email = "telmgt-internal@googlegroups.com"
 license = """BSD-3-Clause"""
 url = """https://www.skatelescope.org"""

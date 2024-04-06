@@ -9,7 +9,7 @@ import sched
 import threading
 import time
 from logging import Logger
-from multiprocessing import Event, Lock, Manager, Process
+from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Tuple, Union
 
 from astropy.utils import iers
@@ -43,13 +43,10 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import (
-    PROGRAM_TRACK_TABLE_SIZE,
-    TRACK_TABLE_ENTRY_SIZE,
-)
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
+from .program_track_table_calculator import ProgramTrackTableCalculator
 
 
 class DishLNComponentManager(TmcLeafNodeComponentManager):
@@ -125,7 +122,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.observer = None
         self.dish_number = None
-        self.event_track_time = threading.Event()
+        self._track_process_event = Event()
         self.elevation = elevation
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
@@ -161,10 +158,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.program_track_table = []
         self.dish_adapter = None
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
+        self.track_table_calculator = ProgramTrackTableCalculator(
+            self, self.logger
+        )
 
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -1085,38 +1084,41 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def update_program_track_table(self) -> None:
-        """Write the programTrackTable attribute on dish master device."""
-        program_track_table = list(self.dish_adapter.programTrackTable)
-        # If programTrackTable is full, remove older entries
-        if len(program_track_table) >= PROGRAM_TRACK_TABLE_SIZE:
-            num_of_values_to_remove = (
-                TRACK_TABLE_ENTRY_SIZE * self.track_table_entries
-            )
-            program_track_table = program_track_table[num_of_values_to_remove:]
+    def update_program_track_table(self, program_track_table: List) -> None:
+        """
+        This method writes the programTrackTable attribute on dish master
+        device.
 
-        program_track_table = program_track_table + self.program_track_table
-        self.logger.debug("The programTrackTable is %s:", program_track_table)
+        :param program_track_table: It a list of TAI time, Az and El for
+        expected number of TAI times (TrackTableEntries).
+        :type program_track_table: list
+        :return: : None
+        :rtype: None
+        """
+        self.logger.debug("ProgramTrackTable: %s", program_track_table)
         self.dish_adapter.programTrackTable = program_track_table
 
-    def track_thread(
+    def track_process(
         self, ra_value: str, dec_value: str, command_obj: Configure | Track
     ) -> None:
         """
-        This method manages calculation and writing of
-        programTrackTable attribute on DishMaster at the rate of 20 Hz.
+        This method manages calculation and writing of programTrackTable
+        attribute on DishMaster at the required frequency.
 
-        :param ra_value (str): RA value in hours:minutes:sec
-        :param dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+        :param ra_value: Right Ascension of the source in hours:minutes:sec.
+        :type ra_value: str
+        :param dec_value: Declination of the source in
+        degree:arc_minutes:arc_sec.
+        :type dec_value: str
         :param command_obj: Command Object which is used to set
-            desired_pointing
-
+        desired_pointing.
+        :type command_obj: Configure or Track.
         :return: None
+        :rtype: None
         """
         self.logger.info(
-            "The track thread name is : %s %s",
-            threading.current_thread().name,
-            threading.get_ident(),
+            "The track process name is : %s",
+            Process(target=current_process().name),
         )
         azel_converter = AzElConverter(self)
         azel_converter.create_antenna_obj()
@@ -1128,101 +1130,44 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         time_to_add = (
             2 * self.track_table_entries * self.pointing_calculation_period
         ) / 1000
-        self.extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
 
-        timestamp = self.convert_timestamp(self.extended_time.timestamp())
+        extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
+        self.track_table_calculator.track_table_time_stamp = extended_time
+
+        # This is dummy calculation because first time calculation takes
+        # time due to IERS file downloads
+        timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
         azel_converter.point(ra_value, dec_value, timestamp)
+
         advance_time = (
             self.track_table_entries * self.pointing_calculation_period
-        )
+        ) / 1000
 
-        while self.event_track_time.is_set() is False:
-            self.program_track_table_calculator(
-                ra_value, dec_value, azel_converter
+        while self.get_track_process_event_status() is False:
+            program_track_table = (
+                self.track_table_calculator.calculate_program_track_table(
+                    ra_value, dec_value, azel_converter
+                )
             )
-            first_entry_timestamp = self.program_track_table[0]
-            # advance_time is subtracted to provide programTrackTable
-            # few seconds in advance
-            # Divided by 1000 for milliseconds to seconds conversion
-            scheduled_time = (first_entry_timestamp - advance_time) / 1000
+            first_entry_timestamp = (
+                self.track_table_calculator.track_table_start_time
+            )
+
+            # advance_time is subtracted to provide programTrackTable few
+            # seconds in advance
+            scheduled_time = first_entry_timestamp - advance_time
+
             if scheduled_time > datetime.datetime.utcnow().timestamp():
                 event_priority = 1
                 self.track_table_scheduler.enterabs(
                     scheduled_time,
                     event_priority,
                     self.update_program_track_table,
+                    argument=(program_track_table,),
                 )
                 self.track_table_scheduler.run()
             else:
-                with self.lock:
-                    self.update_program_track_table()
-
-    def program_track_table_calculator(
-        self, ra_value: str, dec_value: str, azel_converter
-    ) -> None:
-        """This method calculates one set on timestamp, Az and El.
-
-        :param ra_value (str): RA value in hours:minutes:sec
-        :param dec_value (str): Dec Value in degree:arc_minutes:arc_sec
-
-        :return: None
-        """
-        self.program_track_table.clear()
-        for _ in range(self.track_table_entries):
-            utc_timestamp = self.extended_time.timestamp() * 1000
-            timestamp = self.convert_timestamp(utc_timestamp)
-            az_value, el_value = azel_converter.point(
-                ra_value, dec_value, timestamp
-            )
-            if not self._is_elevation_within_mechanical_limits(el_value):
-                time.sleep(self.pointing_calculation_period)
-                continue
-            if az_value < 0:
-                az_value = 360 - abs(az_value)
-            if self.event_track_time.is_set():
-                log_message = (
-                    "Stop the Thread as event track time is set: "
-                    f"{self.event_track_time.is_set()}"
-                )
-                self.logger.debug(log_message)
-                break
-
-            self.program_track_table.append(utc_timestamp)
-            self.program_track_table.append(round(az_value, 12))
-            self.program_track_table.append(round(el_value, 12))
-
-            self.extended_time = self.extended_time + datetime.timedelta(
-                milliseconds=self.pointing_calculation_period
-            )
-            time.sleep(0.00005)
-
-    def _is_elevation_within_mechanical_limits(
-        self,
-        el_value,
-    ) -> bool:
-        """
-        Check if elevation is within mechanical limit
-
-        :param el_value: string
-        :return: True if the elevation is within the mechanical limits,
-            False otherwise.
-        :rtype: boolean
-        """
-
-        if (
-            not self.elevation_min_limit
-            <= el_value
-            <= self.elevation_max_limit
-        ):
-            self.elevation_limit = True
-            self.logger.info(
-                "Minimum/maximum elevation limit has been reached."
-                " Source is not visible currently."
-            )
-            return False
-
-        self.elevation_limit = False
-        return True
+                self.update_program_track_table(program_track_table)
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
@@ -1302,9 +1247,44 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @elevation_limit.setter
     def elevation_limit(self, elevation_limit: bool) -> None:
-        """Sets flag for elevation limit."""
+        """
+        Sets flag for elevation limit.
+
+        :param elevation_limit: Flag is set to True if elevation is out of
+        dish's observable boundary.
+        :type elevation_limit: bool
+        :return: : None
+        :rtype: None
+        """
         if self.el_limit != elevation_limit:
             self.el_limit = elevation_limit
+
+    def set_track_process_event(self) -> None:
+        """
+        Sets event for track process.
+
+        :return: None.
+        :rtype: NoneType
+        """
+        self._track_process_event.set()
+
+    def get_track_process_event_status(self) -> bool:
+        """
+        Returns track process event status
+
+        :return: Status of track process event.
+        :rtype: bool
+        """
+        return self._track_process_event.is_set()
+
+    def reset_track_process_event(self) -> None:
+        """
+        Resets track process event
+
+        :return: None.
+        :rtype: NoneType
+        """
+        self._track_process_event.clear()
 
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes
@@ -1331,6 +1311,5 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         This method is automatically called when the object is about to be
         destroyed.
         """
-        self.logger.info("Inside Component Manager Destructor")
         with self.process_lock:
             self.stop_executors_and_cleanup_memory()

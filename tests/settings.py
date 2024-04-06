@@ -124,7 +124,7 @@ def wait_for_dish_mode(
     cm: DishLNComponentManager, dish_mode: DishMode
 ) -> bool:
     """Waits for dishmode to become given dish mode. Times out if the change
-    does not occure. Current timeout is 10s.
+    does not occur. Current timeout is 10s.
     """
     start_time = time.time()
     elapsed_time = 0

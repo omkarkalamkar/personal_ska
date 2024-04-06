@@ -80,7 +80,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         rtype:
             (ResultCode, str)
         """
-        self.component_manager.event_track_time.set()
+        self.component_manager.set_track_process_event()
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state == PointingState.TRACK:

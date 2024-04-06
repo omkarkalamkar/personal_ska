@@ -2,16 +2,12 @@ apiVersion: v2
 name: ska-tmc-dishleafnode
 description: A subchart for ska-tmc-dishleafnode deployment.
 type: application
-version: 0.12.0
-appVersion: 0.12.0
+version: 0.12.1
+appVersion: 0.12.1
 icon: https://www.skatelescope.org/wp-content/uploads/2016/07/09545_NEW_LOGO_2014.png
 maintainers:
-  - name: Aditya Dange
-    email: adityadange.ska@gmail.com
-  - name: Jayant Kumbhar
-    email: jayant.ska@gmail.com
-  - name: Kalyani Thigale
-    email: kalyanit.ska@gmail.com
+  - name: Team Sahyadri, Team Himalaya
+    email: telmgt-internal@googlegroups.com
 dependencies:
 - name: ska-tango-base
   version: 0.4.9

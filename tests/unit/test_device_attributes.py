@@ -9,7 +9,7 @@ from ska_tmc_dishleafnode import release
 from tests.settings import SLEEP_TIME
 
 
-@pytest.mark.skip(reason="Test fails randomly and need investigation")
+@pytest.mark.skip(reason="Test case fails with Segmentation fault")
 def test_attributes(dishln_device):
     sleep(SLEEP_TIME)
     assert dishln_device.State() == DevState.ON
