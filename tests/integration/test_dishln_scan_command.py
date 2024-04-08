@@ -154,7 +154,6 @@ def scan_command(
     )
 
 
-@pytest.mark.skip(reason="Test case is fixed in sah-1498")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_scan_command(tango_context, group_callback, json_factory):

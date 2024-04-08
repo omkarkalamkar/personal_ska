@@ -41,10 +41,10 @@ class ProgramTrackTableCalculator:
         :param ra_value: Right Ascension of the source in hours:minutes:sec.
         :type ra_value: str
         :param dec_value: Declination of the source in
-        degree:arc_minutes:arc_sec.
+            degree:arc_minutes:arc_sec.
         :type dec_value: str
         :return: list in the form of [TAI1, Az1, El1, TAI2, Az2,
-        El2,,,,,,TAIn, Azn, Eln].
+            El2,,,,,,TAIn, Azn, Eln].
         :rtype: list
         """
         self.right_ascension = ra_value

@@ -1090,9 +1090,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         device.
 
         :param program_track_table: It a list of TAI time, Az and El for
-        expected number of TAI times (TrackTableEntries).
+            expected number of TAI times (TrackTableEntries).
         :type program_track_table: list
-        :return: : None
+        :return: None
         :rtype: None
         """
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
@@ -1108,10 +1108,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param ra_value: Right Ascension of the source in hours:minutes:sec.
         :type ra_value: str
         :param dec_value: Declination of the source in
-        degree:arc_minutes:arc_sec.
+            degree:arc_minutes:arc_sec.
         :type dec_value: str
         :param command_obj: Command Object which is used to set
-        desired_pointing.
+            desired_pointing.
         :type command_obj: Configure or Track.
         :return: None
         :rtype: None
@@ -1253,7 +1253,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param elevation_limit: Flag is set to True if elevation is out of
         dish's observable boundary.
         :type elevation_limit: bool
-        :return: : None
+        :return: None
         :rtype: None
         """
         if self.el_limit != elevation_limit:
