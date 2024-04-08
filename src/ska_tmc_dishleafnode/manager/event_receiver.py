@@ -96,14 +96,12 @@ class DishLNEventReceiver(EventReceiver):
                 self.subscribed = True
 
     def handle_dish_mode_event(self, event_flag: tango.EventData) -> None:
-        """Method to handle and update the latest value of dishMode
-        attribute.
+        """Method to handle and update the latest value of dishMode attribute.
 
-        Args:
-            event_flag (tango.EventType.CHANGE_EVENT): to flag the
-            change in event.
-        return: None
-        rtype: None
+        :parameter event_flag: To flag the change in event for dishMode.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -121,11 +119,10 @@ class DishLNEventReceiver(EventReceiver):
         """Method to handle and update the latest value of
         pointingState attribute.
 
-        Args:
-            event_flag (tango.EventData): to flag the
-            change in event.
-        return: None
-        rtype: None
+        :parameter event_flag: To flag the change in event for pointingState.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -145,11 +142,10 @@ class DishLNEventReceiver(EventReceiver):
         """Method to handle and update the latest value of
         configuredBand attribute.
 
-        Args:
-            event_flag (tango.EventData): to flag the
-            change in event.
-        return: None
-        rtype: None
+        :parameter event_flag: To flag the change in event for configuredBand.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -169,11 +165,11 @@ class DishLNEventReceiver(EventReceiver):
         """Method to handle and update the latest value of
         achievedPointing attribute.
 
-        Args:
-            event_flag (tango.EventData): to flag the
-            change in event.
-        return: None
-        rtype: None
+        :parameter event_flag: To flag the change in event for
+            achievedPointing.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
         """
         if event_flag.err:
             error = event_flag.errors[0]
@@ -193,11 +189,10 @@ class DishLNEventReceiver(EventReceiver):
         """Method to handle and update the latest value of
         longRunningCommandStatus attribute.
 
-        Args:
-            event_data (tango.EventType.CHANGE_EVENT): to flag the
-            change in event.
+        :parameter event_flag: To flag the change in event.
+        :type event_flag: tango.EventType.CHANGE_EVENT
         :return: None
-        :rtype: None
+        :rtype: NoneType
         """
         if event_data.err:
             error = event_data.errors[0]

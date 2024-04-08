@@ -11,7 +11,8 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 
 class DishkValueValidationManager:
     """Class for dish kValue validation during dish
-    leaf node initialization/restart"""
+    leaf node initialization/restart
+    """
 
     def __init__(self, component_manager, logger) -> None:
         self.component_manager = component_manager
