@@ -7,7 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Added
 ======
-[0.12.1]
+[0.12.2]
 *********
 * Improved program track table calculation logic by using multiprocessing in separate class.
 

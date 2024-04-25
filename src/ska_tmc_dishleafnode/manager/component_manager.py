@@ -28,6 +28,7 @@ from ska_tmc_common import (
     PointingState,
     TmcLeafNodeComponentManager,
 )
+from ska_tmc_common.lrcr_callback import LRCRCallback
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -146,6 +147,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
         )
+        self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
 
@@ -1304,6 +1306,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.achieved_pointing_data.put(None)
             self.process_manager.shutdown()
             self.logger.info("stop_executors_and_cleanup_memory successful")
+
+    def get_dish_state(self):  # FIXIT update -> ObsState:
+        """Returns aggregated subarray ObsState"""
+        # FIXIT Add logic to get this info
+        return DishMode.OPERATE, PointingState.TRACK, ResultCode.OK
 
     def __del__(self):
         """
