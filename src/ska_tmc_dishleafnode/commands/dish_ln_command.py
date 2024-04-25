@@ -113,3 +113,19 @@ class DishLNCommand(TmcLeafNodeCommand):
 
     def init_adapter_mid(self):
         self.init_adapter()
+
+
+    def set_command_id(self, command_name: str):
+        """
+        Sets the command id for error propagation.
+
+        :param command_name: Name of the command
+        :type command_name: str
+        """
+        command_id = f"{time.time()}-{command_name}"
+        self.logger.info(
+            "Setting command id as %s for command: %s",
+            command_id,
+            command_name,
+        )
+        self.component_manager.command_id = command_id
