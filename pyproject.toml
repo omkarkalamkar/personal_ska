@@ -61,7 +61,8 @@ datetime = "4.3"
 attrs = "*"
 jsonschema = "*"
 jsonschema-specifications = "*"
-rpds = "*"
+referencing = "*"
+rpds-py = "*"
 
 [tool.poetry.group.docs.dependencies]
 docutils = "^0.18.1"
