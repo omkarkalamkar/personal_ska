@@ -96,7 +96,7 @@ def track_dish_leaf_node(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], str(int(ResultCode.QUEUED))),
         lookahead=6,
     )
 

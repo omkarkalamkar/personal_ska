@@ -2,6 +2,7 @@
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 import asyncio
+import copy
 import datetime
 import json
 import os
@@ -45,6 +46,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackStop,
 )
 
+from .common_utils import process_long_running_command_result
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 from .program_track_table_calculator import ProgramTrackTableCalculator
@@ -146,10 +148,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.supported_commands: Tuple[str] = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
+            "Track",
+            "SetOperateMode",
+            "ConfigureBand1",
+            "ConfigureBand2",
+            "ConfigureBand3",
+            "ConfigureBand4",
+            "ConfigureBand5a",
+            "ConfigureBand5b",
         )
         self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
+        self.command_mapping = {}
 
         # Event Receiver
         if _event_receiver:
@@ -1237,6 +1248,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 exception,
             )
 
+    def get_lrcr_result(self, command_id: str) -> List[str]:
+        """Returns long running command result for command
+        with given command ID"""
+
+        self.logger.info(f"Working on command_id : {command_id}")
+        command_dict_ref = {}
+        command_dict_ref = copy.deepcopy(self.command_mapping)
+
+        for key, command_dict in command_dict_ref.items():
+            if key == command_id:
+                # Iterate through the  dictionary for each command Id
+                for inner_key, value in command_dict.items():
+                    if inner_key == "ResultCode":
+                        self.logger.info(
+                            "command mapping has required command ID"
+                            " and ResultCode  as here \n"
+                            " %s",
+                            self.command_mapping,
+                        )
+                        return [value]
+
+        return [None]
+
+    def update_device_long_running_command_result(
+        self, device_name: str, value: str
+    ) -> None:
+        """
+        Method to update task callback based on long running command result
+        event data.
+        """
+        process_long_running_command_result(self, device_name, value)
+
     @property
     def elevation_limit(self) -> bool:
         """Returns the True if dish is within its mechanical limit.
@@ -1307,10 +1350,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.process_manager.shutdown()
             self.logger.info("stop_executors_and_cleanup_memory successful")
 
-    def get_dish_state(self):  # FIXIT update -> ObsState:
+    def get_dish_state(self, command_id) -> List[str]:
         """Returns aggregated subarray ObsState"""
         # FIXIT Add logic to get this info
-        return DishMode.OPERATE, PointingState.TRACK, ResultCode.OK
+
+        return [
+            self.dishMode,
+            self.pointingState,
+            self.get_lrcr_result(command_id)[0],
+        ]
 
     def __del__(self):
         """

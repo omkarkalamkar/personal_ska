@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
@@ -114,7 +114,6 @@ class DishLNCommand(TmcLeafNodeCommand):
     def init_adapter_mid(self):
         self.init_adapter()
 
-
     def set_command_id(self, command_name: str):
         """
         Sets the command id for error propagation.
@@ -129,3 +128,48 @@ class DishLNCommand(TmcLeafNodeCommand):
             command_name,
         )
         self.component_manager.command_id = command_id
+
+    def check_device_state(
+        self,
+        state_function: Callable,
+        state_to_achieve: Any,
+        expected_state: list,
+    ) -> bool:
+        """Waits for expected state with or without
+        transitional state. On expected state occurrence,
+        it sets ResultCode to OK and stops the tracker thread
+
+        :param state_function: The function to determine the state of the
+            device. Should be accessible in the component_manager.
+        :type state_function: str
+
+        :param state_to_achieve: A particular state to needs to be
+                                achieved for command completion.
+
+        :param expected_state: Expected state of the device in case of
+                    successful command execution. It's a list contains
+                    transitional obsState if exists for a command.
+        :return: boolean value if state change occurred or not
+        """
+        self.logger.info(
+            "Target value is %s",
+            state_to_achieve,
+        )
+
+        current_state = state_function()
+        self.logger.info(f"Current target values are : {current_state}")
+        if state_to_achieve in current_state:
+            self.logger.info(
+                "Target State change to %s has occurred",
+                state_to_achieve,
+            )
+            if len(expected_state) > self.index + 1:
+                self.index += 1
+                state_to_achieve = expected_state[self.index]
+            else:
+                self.logger.info(
+                    "All target state changes have occurred, "
+                    "command successful"
+                )
+                return True
+        return False

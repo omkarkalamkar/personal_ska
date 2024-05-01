@@ -7,6 +7,7 @@ import json
 import logging
 import threading
 import time
+from functools import partial
 from logging import Logger
 from multiprocessing import Process
 from typing import TYPE_CHECKING, Callable, Optional, Tuple
@@ -55,6 +56,7 @@ class Configure(DishLNCommand):
         self.timeout_id = f"{time.time()}_{__class__.__name__}"
         self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         self.task_callback: Callable
+        self.paritial = False
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -89,8 +91,6 @@ class Configure(DishLNCommand):
             self.timeout_callback,
         )
         return_code, message = self.do(argin)
-        logger.info(message)
-        logger.info(return_code)
         lrcr_callback = self.component_manager.long_running_result_callback
 
         if return_code == ResultCode.FAILED:
@@ -101,51 +101,66 @@ class Configure(DishLNCommand):
             )
             self.component_manager.command_in_progress = ""
         else:
-            self.start_tracker_thread(
-                self.component_manager.get_dish_state,
-                [DishMode.OPERATE, PointingState.TRACK, ResultCode.OK],
-                task_abort_event,
-                self.timeout_id,
-                self.timeout_callback,
-                command_id=self.component_manager.command_id,
-                lrcr_callback=lrcr_callback,
-            )
+            if not self.paritial:
+                self.start_tracker_thread(
+                    partial(
+                        self.component_manager.get_dish_state,
+                        self.component_manager.command_id,
+                    ),
+                    [DishMode.OPERATE, PointingState.TRACK, ResultCode.OK],
+                    task_abort_event,
+                    self.timeout_id,
+                    self.timeout_callback,
+                    command_id=self.component_manager.command_id,
+                    lrcr_callback=lrcr_callback,
+                )
+            else:
+                self.start_tracker_thread(
+                    partial(
+                        self.component_manager.get_lrcr_result,
+                        self.component_manager.command_id,
+                    ),
+                    [ResultCode.OK],
+                    task_abort_event,
+                    self.timeout_id,
+                    self.timeout_callback,
+                    command_id=self.component_manager.command_id,
+                    lrcr_callback=lrcr_callback,
+                )
+
             logger.info(
                 "The Configure command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-            if (
-                self.component_manager.command_in_progress
-                != "Configure_TrackLoadStaticOff"
-            ):
-                self.component_manager.command_in_progress = ""
+
+    def update_task_status(self, **kwargs) -> None:
+        """Method to update task status with result code and exception message
+        if any."""
+        try:
+            result = kwargs.get("result")
+            status = kwargs.get("status", TaskStatus.COMPLETED)
+            message = kwargs.get("message")
+
+            if result == ResultCode.OK:
+                self.component_manager.command_in_progress = None
+                self.task_callback(result=result, status=status)
+            elif status == TaskStatus.ABORTED:
+                self.task_callback(status=status)
+                return
+            else:
                 self.task_callback(
-                    status=TaskStatus.COMPLETED,
-                    result=ResultCode(return_code),
+                    result=result,
+                    status=status,
+                    exception=message,
                 )
+                self.component_manager.command_in_progress = None
 
-    def update_task_callback(
-        self, result_code: ResultCode, exception: str = ""
-    ) -> None:
-        """
-        Method to update task callback.
+            self.component_manager.command_id = ""
 
-        :param result_code: result code
-        :type result_code: ResultCode
-        :param exception: Exception occurred during command execution
-        :type exception: str
-        :return: None
-        :rtype: NoneType.
-        """
-        if exception:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=result_code,
-                exception=exception,
+        except Exception as e:
+            self.logger.exception(
+                "exception occured while updating task status %s", e
             )
-        else:
-            self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
-        self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument
     def validate_json_argument(
@@ -243,6 +258,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = (
                     "Configure_TrackLoadStaticOff"
                 )
+                self.paritial = True
                 # Extracting and setting cross elevation offset. Considering
                 # 0.0 if the key is omitted
                 ca_offset = (
@@ -258,13 +274,23 @@ class Configure(DishLNCommand):
                 )
 
                 offsets_argin = [ca_offset, ie_offset]
-                result_code, message = self.call_adapter_method(
+                result_code, message_or_unique_id = self.call_adapter_method(
                     "Dish Master",
                     self.dish_master_adapter,
                     "TrackLoadStaticOff",
                     offsets_argin,
                 )
-                return result_code[0], message[0]
+
+                if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
+                    self.component_manager.command_mapping.setdefault(
+                        self.component_manager.command_id, {}
+                    )["message_or_unique_id"] = message_or_unique_id[0]
+                    self.logger.info(
+                        f"component_manager.command_mapping -"
+                        f"{self.component_manager.command_mapping}"
+                    )
+
+                return result_code[0], message_or_unique_id[0]
 
             receiver_band = json_argument["dish"]["receiver_band"]
             current_dish_mode = self.component_manager.dishMode
@@ -369,12 +395,25 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
-        result_code, message = self.call_adapter_method(
+
+        self.component_manager.command_in_progress = "Track"
+        result_code, message_or_unique_id = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "Track"
         )
         if result_code[0] == ResultCode.FAILED:
-            self.logger.error(f"Track Invocation Failed {message}")
-            return result_code[0], message[0]
+            self.logger.error(
+                f"Track Invocation Failed {message_or_unique_id}"
+            )
 
-        self.logger.info("Invoked Track command successfully on dish.")
-        return result_code[0], message[0]
+        if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
+            self.component_manager.command_mapping.setdefault(
+                self.component_manager.command_id, {}
+            )["message_or_unique_id"] = message_or_unique_id[0]
+            self.logger.info(
+                f"component_manager.command_mapping -"
+                f"{self.component_manager.command_mapping}"
+            )
+
+            self.logger.info("Invoked Track command successfully on dish.")
+
+        return result_code[0], message_or_unique_id[0]

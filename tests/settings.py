@@ -168,6 +168,8 @@ def tear_down(
     dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback
 ):
     """Teardown for the Dish Leaf Node device."""
+
+    logger.info("Invoked tear_down")
     current_pointing_state = dish_master.pointingState
     if current_pointing_state == PointingState.TRACK:
         result, unique_id = dish_leaf_node.TrackStop()

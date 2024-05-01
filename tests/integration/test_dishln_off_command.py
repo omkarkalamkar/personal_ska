@@ -9,6 +9,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     event_remover,
     logger,
+    tear_down,
 )
 
 
@@ -75,6 +76,7 @@ def off_command(tango_context, dishln_name, group_callback):
         (),
         lookahead=2,
     )
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment

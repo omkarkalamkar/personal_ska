@@ -12,6 +12,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     event_remover,
     logger,
+    tear_down,
 )
 
 
@@ -160,6 +161,8 @@ def endscan_command(
         (),
         lookahead=8,
     )
+
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment
