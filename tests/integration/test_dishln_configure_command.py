@@ -7,12 +7,13 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
-from tests.settings import (  # tear_down,
+from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     build_partial_configure_data,
     event_remover,
     logger,
+    tear_down,
 )
 
 OFFSET = 5.0
@@ -146,7 +147,7 @@ def configure_dish_leaf_node(
         (),
         lookahead=8,
     )
-    # tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 def unhappy_configure_command(
@@ -299,7 +300,7 @@ def unhappy_configure_command(
         (),
         lookahead=8,
     )
-    # tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 def partial_configure_dish_leaf_node(
@@ -438,7 +439,7 @@ def partial_configure_dish_leaf_node(
         (),
         lookahead=8,
     )
-    # tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.manual
