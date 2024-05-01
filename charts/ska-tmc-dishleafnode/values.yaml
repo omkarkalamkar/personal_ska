@@ -40,9 +40,9 @@ itango:
 
 dishleafnode:
   image:
-    registry: artefact.skao.int
+    registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-dishleafnode
     image: ska-tmc-dishleafnode
-    tag: 0.12.2
+    tag: 0.12.2-dev.ce313628f
     pullPolicy: IfNotPresent
 
 resources:
