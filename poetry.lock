@@ -1495,6 +1495,19 @@ url = "https://pypi.org/simple"
 reference = "PyPI-public"
 
 [[package]]
+name = "rpds"
+version = "1.7.1"
+description = "A multi-use Python-based data storage format."
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "PyPI-public"
+
+[[package]]
 name = "schema"
 version = "0.7.5"
 description = "Simple data validation library"
@@ -2204,7 +2217,7 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "1b695396c3f7dc232dc04b86f212ec09da8fecc170f86b22ef4c605da82528be"
+content-hash = "a651f65f2e5be0be4fef07bfd49e577e436aa481afbdbf2fef2574ea60dcdfc9"
 
 [metadata.files]
 alabaster = [
@@ -2934,6 +2947,10 @@ requests = [
 requests-toolbelt = [
     {file = "requests-toolbelt-1.0.0.tar.gz", hash = "sha256:7681a0a3d047012b5bdc0ee37d7f8f07ebe76ab08caeccfc3921ce23c88d5bc6"},
     {file = "requests_toolbelt-1.0.0-py2.py3-none-any.whl", hash = "sha256:cccfdd665f0a24fcf4726e690f65639d272bb0637b9b92dfd91a5568ccf6bd06"},
+]
+rpds = [
+    {file = "rpds-1.7.1-py3-none-any.whl", hash = "sha256:36aa16070e641e271b3cdcb6cd384e81a343203a357f65b1591d13ac576d5554"},
+    {file = "rpds-1.7.1.tar.gz", hash = "sha256:55ee33143195f12228148f439f009108c63b286be6f86f1d1c7d9e20d85d6c9f"},
 ]
 schema = [
     {file = "schema-0.7.5-py2.py3-none-any.whl", hash = "sha256:f3ffdeeada09ec34bf40d7d79996d9f7175db93b7a5065de0faa7f41083c1e6c"},

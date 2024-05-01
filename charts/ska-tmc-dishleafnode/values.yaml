@@ -42,7 +42,7 @@ dishleafnode:
   image:
     registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-dishleafnode
     image: ska-tmc-dishleafnode
-    tag: 0.12.2-dev.ce313628f
+    tag: 0.12.2-dev.c25028683
     pullPolicy: IfNotPresent
 
 resources:
