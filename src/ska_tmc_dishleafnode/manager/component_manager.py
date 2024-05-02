@@ -12,6 +12,7 @@ from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Tuple, Union
 
+import tango
 from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -26,6 +27,7 @@ from ska_tmc_common import (
     DishMode,
     LivelinessProbeType,
     PointingState,
+    SdpQueueConnectorDeviceInfo,
     TmcLeafNodeComponentManager,
 )
 
@@ -43,6 +45,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
+from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -68,6 +71,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         pointing_callback: Callable,
         kvalue_validation_callback: Callable,
         _update_availablity_callback: Callable,
+        _update_source_offset_callback: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -141,8 +145,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.achieved_pointing_data = self.process_manager.Queue()
         self.actual_pointing_process_alive = Event()
+        self.queue_connector_device_info: SdpQueueConnectorDeviceInfo = (
+            SdpQueueConnectorDeviceInfo()
+        )
+        self.sdpqc_pointing_data = self.process_manager.list(
+            [self.queue_connector_device_info]
+        )
+        self._update_source_offset_callback = _update_source_offset_callback
+        self._update_availablity_callback = _update_availablity_callback
         self.update_availablity_callback = _update_availablity_callback
-        self.supported_commands: Tuple[str] = (
+        self.supported_commands: Tuple[str, str] = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
         )
@@ -158,7 +170,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.dish_adapter = None
+        self.dish_adapter: DishLNCommand = self.get_dish_adapter()
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
         self.track_table_calculator = ProgramTrackTableCalculator(
@@ -233,7 +245,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.actual_pointing_process = Process(
-            target=self.process_actual_pointing
+            target=self.process_actual_pointing,
         )
         self.command_object: dict = {
             "TrackLoadStaticOff": self.track_load_static_off_command,
@@ -425,6 +437,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
+            azimuth = (
+                azimuth - list(self.sdpqc_pointing_data)[0].pointing_data[1]
+            )
+            elevation = (
+                elevation - list(self.sdpqc_pointing_data)[0].pointing_data[2]
+            )
             timestamp = self.convert_timestamp(timestamp_milliseconds)
             right_ascension, declination = self.converter.azel_to_radec(
                 str(azimuth),
@@ -1285,6 +1303,78 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: NoneType
         """
         self._track_process_event.clear()
+
+    def get_sdpqc_device_info(self) -> SdpQueueConnectorDeviceInfo:
+        """Method to get the SDP queue connector device info"""
+        return self.queue_connector_device_info
+
+    def subscribe_to_sqpqc_attribute(
+        self, sdpqc_fqdn: str, dish_id: str
+    ) -> None:
+        """Method to subscribe to SDP queue connector attribute.
+        :type attribute_name: str
+        :return: None
+        :rtype: None"""
+        dev_name = sdpqc_fqdn.rsplit("/", 1)[0]
+        sdpqc_info = self.get_sdpqc_device_info()
+        # Return if same FQDN exists
+        if dev_name == sdpqc_info.dev_name:
+            return
+
+        # Unsubscribe the old FQDN if new FQDN comes
+        if sdpqc_info.dev_name:
+            if dev_name != sdpqc_info.dev_name:
+                self.event_receiver_object.unsubscribe_to_sdpqc_attribute(
+                    sdpqc_info
+                )
+
+        # Subscribe to the SDP queue connector attribute
+        sdpqc_info.dev_name = dev_name
+        attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(dish_id=dish_id)
+        event_id = self.event_receiver_object.subscribe_to_sdpqc_attribute(
+            sdpqc_info, attribute_name
+        )
+        sdpqc_info.event_id = event_id
+        sdpqc_info.subscribed_to_attribute = True
+        self.logger.info(
+            "Subscribed to %s of %s.",
+            attribute_name,
+            sdpqc_info.dev_name,
+        )
+
+    def process_pointing_calibration(self, event_data: tango.EventData):
+        """Method to process pointing offsets received
+        from SDP queue connector device"""
+        try:
+            sdpqc_info = self.get_sdpqc_device_info()
+            if sdpqc_info.subscribed_to_attribute:
+                sdpqc_info.pointing_data = event_data.attr_value.value
+                self.sdpqc_pointing_data[:] = [sdpqc_info]
+                offsets = [
+                    event_data.attr_value.value[1],
+                    event_data.attr_value.value[2],
+                ]
+                self.dish_adapter.call_adapter_method(
+                    "Dish Master",
+                    self.dish_adapter.dish_master_adapter,
+                    "TrackLoadStaticOff",
+                    offsets,
+                )
+                self.logger.info(
+                    "Received SDPQC pointing calibrration: %s",
+                    event_data.attr_value.value,
+                )
+        except ValueError as e:
+            self.logger.info(
+                "Exception occurred while processing pointing_cal %s", e
+            )
+
+    def get_dish_adapter(self) -> DishLNCommand:
+        """Method TO get the dish adapter"""
+        adapter = DishLNCommand(self, self.op_state_model)
+        adapter.init_adapter()
+        self.logger.info("%s adapter not found ", self.dish_dev_name)
+        return adapter
 
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes

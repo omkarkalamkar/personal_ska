@@ -6,7 +6,11 @@ from time import sleep
 from typing import Any, Callable
 
 import tango
-from ska_tmc_common import DishDeviceInfo, EventReceiver
+from ska_tmc_common import (
+    DishDeviceInfo,
+    EventReceiver,
+    SdpQueueConnectorDeviceInfo,
+)
 
 
 class DishLNEventReceiver(EventReceiver):
@@ -207,3 +211,32 @@ class DishLNEventReceiver(EventReceiver):
             new_value
         )
         self._logger.info(f"long running command value updated to {new_value}")
+
+    def subscribe_to_sdpqc_attribute(
+        self, dev_info: SdpQueueConnectorDeviceInfo, attribute_name: str
+    ) -> None:
+        """Subscribe to the given SDP queue connector attribute"""
+        self._logger.info(">>>>>>>>>>>>>>>%s", dev_info.dev_name)
+        sdp_queue_connector_proxy = self._dev_factory.get_device(
+            dev_info.dev_name
+        )
+        return sdp_queue_connector_proxy.subscribe_event(
+            attribute_name,
+            tango.EventType.CHANGE_EVENT,
+            self._component_manager.process_pointing_calibration,
+            stateless=True,
+        )
+
+    def unsubscribe_to_sdpqc_attribute(
+        self, dev_info: SdpQueueConnectorDeviceInfo
+    ) -> None:
+        """Subscribe to the given SDP queue connector attribute"""
+        sdp_queue_connector_proxy = self._dev_factory.get_device(
+            dev_info.dev_name
+        )
+        sdp_queue_connector_proxy.unsubscribe_event(dev_info.event_id)
+        dev_info.subscribed_to_attribute = False
+        self._logger.info(
+            "Unubscribed %s Sdp queuue connector attribute event.",
+            dev_info.dev_name,
+        )

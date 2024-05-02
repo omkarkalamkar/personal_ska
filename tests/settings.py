@@ -25,6 +25,9 @@ TIMEOUT = 100
 
 DISH_MASTER_DEVICE = "ska001/elt/master"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
+SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
+SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
+
 WEATHER_DATA: Final = {
     "temperature": 30.0,
     "pressure": 900.0,
@@ -72,6 +75,10 @@ def update_availablity_callback():
     """An empty update_availablity callback"""
 
 
+def update_source_offset_callback():
+    """An empty update_source_offset callback"""
+
+
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
@@ -86,6 +93,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
     )
     return cm
 

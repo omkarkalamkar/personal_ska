@@ -4,6 +4,7 @@ domain: mocks
 instances: ["01", "02", "03", "04"]
 entrypoints:
   - name: "ska_tmc_common.test_helpers.helper_dish_device.HelperDishDevice"
+  - name: "ska_tmc_common.test_helpers.helper_sdp_queue_connector_device.HelperSdpQueueConnector"
 server:
   name: "mocks"
   instances:
@@ -14,6 +15,12 @@ server:
         devices:
         - name: "ska{{ printf "%03s" . }}/elt/master"
   {{- end }}
+    - name: "05"
+      classes:
+      - name: "HelperSdpQueueConnector"
+        devices:
+        - name: "mid-sdp/queueconnector/01"
+
 depends_on:
   - device: sys/database/2
 image:

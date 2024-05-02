@@ -13,6 +13,9 @@ from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common import DevFactory
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
+from ska_tmc_common.test_helpers.helper_sdp_queue_connector_device import (
+    HelperSdpQueueConnector,
+)
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
@@ -73,6 +76,17 @@ def devices_to_load():
                 {
                     "name": "ska_mid/tm_leaf_node/d0001",
                     "DishMasterFQDN": "ska001/elt/master",
+                },
+            ],
+        },
+        {
+            "class": HelperSdpQueueConnector,
+            "devices": [
+                {
+                    "name": "test-sdp/queueconnector/01",
+                },
+                {
+                    "name": "test-sdp/queueconnector/02",
                 },
             ],
         },
@@ -142,6 +156,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "dishMode",
         "pointingState",
         "kValueValidationResult",
+        "sourceOffset",
         timeout=30,
     )
     return group_callback
@@ -197,6 +212,10 @@ def update_availablity_callback(argin):
     """An empty update_availablity callback"""
 
 
+def update_source_offset_callback():
+    """An empty update_source_offset callback"""
+
+
 @pytest.fixture()
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
@@ -212,6 +231,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,

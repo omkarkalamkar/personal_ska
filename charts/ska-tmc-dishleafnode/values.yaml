@@ -20,7 +20,7 @@ global:
   dish_devices:
     - "dishleafnode"
   dishes: ["01", "02", "03", "04"]
-  instances : ["01", "02", "03", "04"]
+  instances : ["01", "02", "03", "04", "05"]
 
 dsconfig:
   configuration_file: data/configuration.json

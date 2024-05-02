@@ -244,6 +244,9 @@ class Configure(DishLNCommand):
                     "TrackLoadStaticOff",
                     offsets_argin,
                 )
+                self.component_manager._update_source_offset_callback(
+                    offsets_argin
+                )
                 return result_code[0], message[0]
 
             receiver_band = json_argument["dish"]["receiver_band"]
