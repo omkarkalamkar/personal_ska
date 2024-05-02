@@ -1389,6 +1389,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
             self.actual_pointing[:] = [None]
+            self.sdpqc_pointing_data[:] = []
             while not self.achieved_pointing_data.empty():
                 _ = self.achieved_pointing_data.get(block=True)
             self.achieved_pointing_data.put(None)

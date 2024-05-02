@@ -216,27 +216,42 @@ class DishLNEventReceiver(EventReceiver):
         self, dev_info: SdpQueueConnectorDeviceInfo, attribute_name: str
     ) -> None:
         """Subscribe to the given SDP queue connector attribute"""
-        self._logger.info(">>>>>>>>>>>>>>>%s", dev_info.dev_name)
-        sdp_queue_connector_proxy = self._dev_factory.get_device(
-            dev_info.dev_name
-        )
-        return sdp_queue_connector_proxy.subscribe_event(
-            attribute_name,
-            tango.EventType.CHANGE_EVENT,
-            self._component_manager.process_pointing_calibration,
-            stateless=True,
-        )
+        try:
+            sdp_queue_connector_proxy = self._dev_factory.get_device(
+                dev_info.dev_name
+            )
+            event_id = sdp_queue_connector_proxy.subscribe_event(
+                attribute_name,
+                tango.EventType.CHANGE_EVENT,
+                self._component_manager.process_pointing_calibration,
+                stateless=True,
+            )
+        except Exception as exception:
+            log_msg = (
+                f"Unable to subscribe {attribute_name} "
+                f"device {dev_info.dev_name}/{exception}"
+            )
+            self._logger.exception(log_msg)
+
+        return event_id
 
     def unsubscribe_to_sdpqc_attribute(
         self, dev_info: SdpQueueConnectorDeviceInfo
     ) -> None:
         """Subscribe to the given SDP queue connector attribute"""
-        sdp_queue_connector_proxy = self._dev_factory.get_device(
-            dev_info.dev_name
-        )
-        sdp_queue_connector_proxy.unsubscribe_event(dev_info.event_id)
-        dev_info.subscribed_to_attribute = False
-        self._logger.info(
-            "Unubscribed %s Sdp queuue connector attribute event.",
-            dev_info.dev_name,
-        )
+        try:
+            sdp_queue_connector_proxy = self._dev_factory.get_device(
+                dev_info.dev_name
+            )
+            sdp_queue_connector_proxy.unsubscribe_event(dev_info.event_id)
+            dev_info.subscribed_to_attribute = False
+            self._logger.info(
+                "Unubscribed %s Sdp queuue connector attribute event.",
+                dev_info.dev_name,
+            )
+        except Exception as exception:
+            log_msg = (
+                f"Unable to un-subscribe {dev_info.event_id} "
+                f"device {dev_info.dev_name}/{exception}"
+            )
+            self._logger.exception(log_msg)
