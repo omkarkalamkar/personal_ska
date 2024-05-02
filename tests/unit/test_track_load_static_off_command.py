@@ -33,7 +33,10 @@ def test_trackloadstaticoff_command(
         lookahead=6,
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": ResultCode.QUEUED,
+        },
         lookahead=4,
     )
 

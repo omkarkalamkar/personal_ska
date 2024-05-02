@@ -56,7 +56,7 @@ class Configure(DishLNCommand):
         self.timeout_id = f"{time.time()}_{__class__.__name__}"
         self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         self.task_callback: Callable
-        self.paritial = False
+        self.partial = False
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -101,7 +101,7 @@ class Configure(DishLNCommand):
             )
             self.component_manager.command_in_progress = ""
         else:
-            if not self.paritial:
+            if not self.partial:
                 self.start_tracker_thread(
                     partial(
                         self.component_manager.get_dish_state,
@@ -258,7 +258,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = (
                     "Configure_TrackLoadStaticOff"
                 )
-                self.paritial = True
+                self.partial = True
                 # Extracting and setting cross elevation offset. Considering
                 # 0.0 if the key is omitted
                 ca_offset = (
