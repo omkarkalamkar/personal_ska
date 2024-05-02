@@ -178,9 +178,10 @@ def test_configure_timeout(tango_context, cm, task_callback, json_factory):
 
     dev_factory = DevFactory()
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    dish_master.SetDefective(json.dumps(defect))
+
     assert cm.is_configure_allowed()
+
+    dish_master.SetDefective(json.dumps(defect))
     cm.configure(configure_input_str, task_callback=task_callback)
 
     task_callback.assert_against_call(
