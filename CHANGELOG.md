@@ -7,7 +7,13 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Added
 ======
+
 [0.12.2]
+*********
+* Added Error propagation and Timeout logic to Configure command.
+
+
+[0.12.1]
 *********
 * Improved program track table calculation logic by using multiprocessing in separate class.
 
