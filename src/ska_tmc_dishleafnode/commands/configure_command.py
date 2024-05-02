@@ -159,7 +159,7 @@ class Configure(DishLNCommand):
 
         except Exception as e:
             self.logger.exception(
-                "exception occured while updating task status %s", e
+                "Exception occured while updating task status %s", e
             )
 
     # pylint: enable=unused-argument

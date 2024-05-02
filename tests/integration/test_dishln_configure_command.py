@@ -442,7 +442,6 @@ def partial_configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.manual
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_partial_configure_command(
@@ -458,7 +457,6 @@ def test_partial_configure_command(
     )
 
 
-@pytest.mark.manual
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_command(tango_context, group_callback, json_factory):
@@ -470,7 +468,6 @@ def test_configure_command(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.manual
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_unhappy_configure_command(
