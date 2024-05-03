@@ -1,3 +1,4 @@
+import pytest
 import tango
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
@@ -9,6 +10,7 @@ from tests.settings import (
 )
 
 
+@pytest.mark.ktest
 def test_sdpqc_functionality(tango_context, group_callback):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)

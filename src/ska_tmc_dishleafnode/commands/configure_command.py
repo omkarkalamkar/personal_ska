@@ -244,7 +244,7 @@ class Configure(DishLNCommand):
                     "TrackLoadStaticOff",
                     offsets_argin,
                 )
-                self.component_manager._update_source_offset_callback(
+                self.component_manager.update_source_offset_callback(
                     offsets_argin
                 )
                 return result_code[0], message[0]

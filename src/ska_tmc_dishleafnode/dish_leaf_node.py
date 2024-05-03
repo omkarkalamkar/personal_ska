@@ -42,7 +42,6 @@ class DishLeafNode(SKABaseDevice):
     DishMasterFQDN = device_property(
         dtype="str",
         doc="FQDN of Dish Master Device",
-        default_value="ska001/elt/master",
     )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
@@ -282,7 +281,7 @@ class DishLeafNode(SKABaseDevice):
             r"\b(?:ska|mkt)\w*", self.DishMasterFQDN, flags=re.IGNORECASE
         )[0].upper()
         self._sdpQueueConnectorFqdn = sdpqc_fqdn
-        self.component_manager.subscribe_to_sqpqc_attribute(
+        self.component_manager.process_sqpqc_attribute_fqdn(
             sdpqc_fqdn, dish_id
         )
         self.push_change_event(

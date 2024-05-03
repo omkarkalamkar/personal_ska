@@ -30,6 +30,7 @@ from ska_tmc_common import (
     SdpQueueConnectorDeviceInfo,
     TmcLeafNodeComponentManager,
 )
+from ska_tmc_common.adapters import DishAdapter
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -170,7 +171,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.dish_adapter: DishLNCommand = self.get_dish_adapter()
+        self.dish_adapter: Union[DishAdapter, None] = self.get_dish_adapter()
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
         self.track_table_calculator = ProgramTrackTableCalculator(
@@ -256,7 +257,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_iers_download_thread = threading.Timer(
             5, self.start_init_operations
         )
-        self.kvalue_validation_iers_download_thread.start()
+        # self.kvalue_validation_iers_download_thread.start()
         self.actual_pointing_process.start()
 
     @property
@@ -340,6 +341,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
+
+    def update_source_offset_callback(self, source_offset: list) -> None:
+        """Method to update the sourceOffset attribute"""
+        with self.lock:
+            if self._update_source_offset_callback:
+                self._update_source_offset_callback(source_offset)
 
     def start_init_operations(self) -> None:
         """This method assures proper execution of kvalue validation
@@ -1308,7 +1315,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Method to get the SDP queue connector device info"""
         return self.queue_connector_device_info
 
-    def subscribe_to_sqpqc_attribute(
+    def process_sqpqc_attribute_fqdn(
         self, sdpqc_fqdn: str, dish_id: str
     ) -> None:
         """Method to subscribe to SDP queue connector attribute.
@@ -1331,16 +1338,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # Subscribe to the SDP queue connector attribute
         sdpqc_info.dev_name = dev_name
         attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(dish_id=dish_id)
-        event_id = self.event_receiver_object.subscribe_to_sdpqc_attribute(
+        self.event_receiver_object.subscribe_to_sdpqc_attribute(
             sdpqc_info, attribute_name
         )
-        sdpqc_info.event_id = event_id
-        sdpqc_info.subscribed_to_attribute = True
-        self.logger.info(
-            "Subscribed to %s of %s.",
-            attribute_name,
-            sdpqc_info.dev_name,
-        )
+        if sdpqc_info.event_id:
+            sdpqc_info.subscribed_to_attribute = True
+            self.logger.info(
+                "Subscribed to %s of %s.",
+                attribute_name,
+                sdpqc_info.dev_name,
+            )
 
     def process_pointing_calibration(self, event_data: tango.EventData):
         """Method to process pointing offsets received
@@ -1354,12 +1361,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     event_data.attr_value.value[1],
                     event_data.attr_value.value[2],
                 ]
-                self.dish_adapter.call_adapter_method(
-                    "Dish Master",
-                    self.dish_adapter.dish_master_adapter,
-                    "TrackLoadStaticOff",
-                    offsets,
-                )
+                if self.dish_adapter:
+                    self.dish_adapter.TrackLoadStaticOff(offsets)
+                else:
+                    self.logger.exception("Failed to create dish adapter.")
                 self.logger.info(
                     "Received SDPQC pointing calibrration: %s",
                     event_data.attr_value.value,
@@ -1369,12 +1374,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "Exception occurred while processing pointing_cal %s", e
             )
 
-    def get_dish_adapter(self) -> DishLNCommand:
+    def get_dish_adapter(self) -> Union[DishAdapter, None]:
         """Method TO get the dish adapter"""
-        adapter = DishLNCommand(self, self.op_state_model)
-        adapter.init_adapter()
-        self.logger.info("%s adapter not found ", self.dish_dev_name)
-        return adapter
+        command_class_object = DishLNCommand(self, self.op_state_model)
+        result_code, _ = command_class_object.init_adapter()
+        if result_code == ResultCode.FAILED:
+            return None
+        return command_class_object.dish_master_adapter
 
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes

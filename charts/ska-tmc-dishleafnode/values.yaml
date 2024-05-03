@@ -20,7 +20,6 @@ global:
   dish_devices:
     - "dishleafnode"
   dishes: ["01", "02", "03", "04"]
-  instances : ["01", "02", "03", "04", "05"]
 
 dsconfig:
   configuration_file: data/configuration.json
@@ -61,6 +60,10 @@ deviceServers:
     file: "data/dishleafnode.yaml"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
+  sdpqc:
+    enabled: true
+    instances: ["01"]
+    file: "data/sdpqcmockdevice.yaml"
 
 nodeSelector: {}
 
