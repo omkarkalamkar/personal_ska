@@ -26,7 +26,7 @@ def test_off_command_in_fp(tango_context, cm, task_callback):
     )
 
 
-def test_off_command_adapter_none(tango_context, cm, task_callback):
+def test_off_command_adapter_none(cm, task_callback):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_off_allowed()
     cm.command_timeout = 2

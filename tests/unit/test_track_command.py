@@ -37,7 +37,7 @@ def test_track_command_completed(tango_context, task_callback, cm):
     )
 
 
-def test_track_command_adapter_none(tango_context, task_callback, cm):
+def test_track_command_adapter_none(task_callback, cm):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_track_allowed()

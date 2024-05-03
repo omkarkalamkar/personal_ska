@@ -20,7 +20,8 @@ def test_endscan_command(tango_context, cm, task_callback):
     )
 
 
-def test_endscan_command_adapter_none(tango_context, cm, task_callback):
+# if tango_context was added to it , this test case fails.
+def test_endscan_command_adapter_none(cm, task_callback):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_endscan_allowed()
 
