@@ -18,7 +18,7 @@ def test_sdpqc_fqdn_info_is_stored(tango_context, cm):
     )
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     dish_id = "ska001"
-    cm.subscribe_to_sqpqc_attribute(SDP_QUEUE_CONNECTOR_FQDN, dish_id)
+    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN, dish_id)
     assert dev_name == cm.queue_connector_device_info.dev_name
 
 
@@ -31,7 +31,7 @@ def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     )
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     dish_id = "ska001"
-    cm.subscribe_to_sqpqc_attribute(SDP_QUEUE_CONNECTOR_FQDN, dish_id)
+    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN, dish_id)
     assert dev_name == cm.queue_connector_device_info.dev_name
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
     assert np.array_equal(
@@ -50,14 +50,14 @@ def test_with_updated_sdpqc_fqdn(tango_context, cm):
     )
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     dish_id = "ska001"
-    cm.subscribe_to_sqpqc_attribute(SDP_QUEUE_CONNECTOR_FQDN, dish_id)
+    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN, dish_id)
     assert dev_name == cm.queue_connector_device_info.dev_name
     SDP_QUEUE_CONNECTOR_FQDN2 = (
         f"{SDP_QUEUE_CONNECTOR_DEVICE2}/pointing_cal_SKA001"
     )
     dev_name = SDP_QUEUE_CONNECTOR_FQDN2.rsplit("/", 1)[0]
     dish_id = "ska001"
-    cm.subscribe_to_sqpqc_attribute(SDP_QUEUE_CONNECTOR_FQDN2, dish_id)
+    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN2, dish_id)
     assert dev_name == cm.queue_connector_device_info.dev_name
     sdp_queue_connector2.SetPointingCalSka001(POINTING_CAL2)
     sdp_queue_connector1.SetPointingCalSka001(POINTING_CAL1)

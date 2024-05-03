@@ -20,10 +20,14 @@ from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
+from tests.settings import (
+    DISH_MASTER_DEVICE,
+    SDP_QUEUE_CONNECTOR_DEVICE,
+    SDP_QUEUE_CONNECTOR_DEVICE2,
+)
 
 configure_logging()
 logger = logging.getLogger(__name__)
-DISH_MASTER_DEVICE = "ska001/elt/master"
 
 
 def pytest_sessionstart(session):
@@ -83,10 +87,10 @@ def devices_to_load():
             "class": HelperSdpQueueConnector,
             "devices": [
                 {
-                    "name": "test-sdp/queueconnector/01",
+                    "name": SDP_QUEUE_CONNECTOR_DEVICE,
                 },
                 {
-                    "name": "test-sdp/queueconnector/02",
+                    "name": SDP_QUEUE_CONNECTOR_DEVICE2,
                 },
             ],
         },

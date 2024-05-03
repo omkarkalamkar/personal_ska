@@ -171,7 +171,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.dish_adapter: Union[DishAdapter, None] = self.get_dish_adapter()
+        self.dish_adapter: Union[DishAdapter, None] = None
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
         self.track_table_calculator = ProgramTrackTableCalculator(
@@ -1323,6 +1323,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None"""
         dev_name = sdpqc_fqdn.rsplit("/", 1)[0]
+        self.dish_adapter = self.get_dish_adapter()
         sdpqc_info = self.get_sdpqc_device_info()
         # Return if same FQDN exists
         if dev_name == sdpqc_info.dev_name:
@@ -1357,6 +1358,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if sdpqc_info.subscribed_to_attribute:
                 sdpqc_info.pointing_data = event_data.attr_value.value
                 self.sdpqc_pointing_data[:] = [sdpqc_info]
+                self.logger.info(
+                    ">>>>>>>>>>>>>>>>>>%s", sdpqc_info.pointing_data
+                )
                 offsets = [
                     event_data.attr_value.value[1],
                     event_data.attr_value.value[2],
