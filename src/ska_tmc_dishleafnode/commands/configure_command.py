@@ -247,7 +247,6 @@ class Configure(DishLNCommand):
                 return result_code[0], message[0]
 
             receiver_band = json_argument["dish"]["receiver_band"]
-            current_dish_mode = self.component_manager.dishMode
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
@@ -256,7 +255,7 @@ class Configure(DishLNCommand):
             )
 
             if (
-                current_dish_mode != DishMode.STOW
+                self.component_manager.dishMode != DishMode.STOW
                 and result_code[0] != ResultCode.FAILED
             ):
                 result_code, message = self.ensure_dish_is_configured(
@@ -264,9 +263,7 @@ class Configure(DishLNCommand):
                 )
                 if result_code == ResultCode.FAILED:
                     return result_code, message
-                result_code, message = self.start_dish_tracking(
-                    current_dish_mode
-                )
+                result_code, message = self.start_dish_tracking()
                 if result_code == ResultCode.FAILED:
                     return result_code, message
 
@@ -281,15 +278,14 @@ class Configure(DishLNCommand):
             )
         return result_code, message
 
-    def start_dish_tracking(self, current_dish_mode) -> Tuple[ResultCode, str]:
+    def start_dish_tracking(self) -> Tuple[ResultCode, str]:
         """
         Invoke Track after waiting for DishMode to Operate
 
-        Args:
-        current_dish_mode (DishMode): The current dish mode.
+        Args: None
 
         return: Tuple[ResultCode, str]"""
-        if current_dish_mode == DishMode.STANDBY_FP:
+        if self.component_manager.dishMode == DishMode.STANDBY_FP:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
                 return result_code, message
