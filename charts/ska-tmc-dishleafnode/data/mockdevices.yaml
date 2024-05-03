@@ -4,7 +4,6 @@ domain: mocks
 instances: ["01", "02", "03", "04"]
 entrypoints:
   - name: "ska_tmc_common.test_helpers.helper_dish_device.HelperDishDevice"
-  - name: "ska_tmc_common.test_helpers.helper_sdp_queue_connector_device.HelperSdpQueueConnector"
 server:
   name: "mocks"
   instances:

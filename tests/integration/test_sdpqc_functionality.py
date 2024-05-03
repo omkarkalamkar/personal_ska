@@ -1,7 +1,8 @@
+import pytest
 import tango
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
-import pytest
+
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
