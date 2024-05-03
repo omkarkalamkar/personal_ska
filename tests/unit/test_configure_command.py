@@ -150,7 +150,6 @@ def test_configure_command_not_allowed(tango_context, cm):
         cm.is_configure_allowed()
 
 
-@pytest.mark.manual10
 def test_configure_timeout(tango_context, cm, task_callback, json_factory):
     cm.update_device_dish_mode(DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()

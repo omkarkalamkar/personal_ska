@@ -166,6 +166,10 @@ def unhappy_configure_command(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
 
+    # This is needed since we want to exeute test case 10 times.
+    dish_master.set_configured_band(1)
+    sleep(1)
+
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
