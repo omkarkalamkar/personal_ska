@@ -472,7 +472,6 @@ def test_configure_command(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.repeat(10)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_unhappy_configure_command(

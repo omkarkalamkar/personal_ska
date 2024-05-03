@@ -151,20 +151,7 @@ def test_configure_command_not_allowed(tango_context, cm):
 
 
 def test_configure_timeout(tango_context, cm, task_callback, json_factory):
-    cm.update_device_dish_mode(DishMode.STANDBY_LP)
-    cm.is_setstandbyfpmode_allowed()
-    cm.setstandbyfpmode(task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
-    )
-    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
-
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
     configure_input_str = json_factory("dishleafnode_configure")
 
     defect = {

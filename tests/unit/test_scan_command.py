@@ -20,7 +20,7 @@ def test_scan_command(tango_context, cm, task_callback):
     )
 
 
-def test_scan_command_adapter_none(cm, task_callback):
+def test_scan_command_adapter_none(tango_context, cm, task_callback):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_scan_allowed()
 

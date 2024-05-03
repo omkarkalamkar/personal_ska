@@ -10,7 +10,7 @@ from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
 from tests.settings import logger
 
 
-def test_calculate_time_stamp_array(cm):
+def test_calculate_time_stamp_array(tango_context, cm):
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
     (
@@ -21,7 +21,7 @@ def test_calculate_time_stamp_array(cm):
     assert len(tai_timestamp_array) == cm.track_table_entries
 
 
-def test_calculate_program_track_table(cm):
+def test_calculate_program_track_table(cm, tango_context):
     wait_for_iers_data_available(cm)
     azel_converter = AzElConverter(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
