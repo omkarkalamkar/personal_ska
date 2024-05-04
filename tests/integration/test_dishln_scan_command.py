@@ -26,8 +26,6 @@ def scan_command(
         ["longRunningCommandsInQueue", "longRunningCommandResult"],
     )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-
     dish_master.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -38,35 +36,29 @@ def scan_command(
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-
-    dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.NONE),
-        lookahead=4,
-    )
-
     dish_leaf_node.subscribe_event(
         "longRunningCommandsInQueue",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandsInQueue"],
+    )
+
+    dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
+
+    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    dish_master.SetDirectPointingState(PointingState.NONE)
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_LP),
+        lookahead=2,
+    )
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.NONE),
+        lookahead=4,
     )
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         (),
@@ -77,15 +69,10 @@ def scan_command(
         ("SetStandbyFPMode",),
         lookahead=2,
     )
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], str(int(ResultCode.OK))),
-        lookahead=2,
+        lookahead=4,
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -156,6 +143,7 @@ def scan_command(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.ktest
 def test_scan_command(tango_context, group_callback, json_factory):
     scan_command(
         tango_context,
