@@ -1,5 +1,6 @@
 import pytest
 import tango
+from numpy import NaN
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 
@@ -17,8 +18,10 @@ def test_sdpqc_functionality(tango_context, group_callback):
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     device_host = tango.Database().get_db_host()
     device_port = tango.Database().get_db_port()
-    FQDN = f"{device_host}:{device_port}/{SDP_QUEUE_CONNECTOR_DEVICE}"
-    SDPQC_FQDN = f"tango://{FQDN}/pointing_cal_SKA001"
+    SDPQC_FQDN = (
+        f"{device_host}:{device_port}/"
+        f"{SDP_QUEUE_CONNECTOR_DEVICE}/pointing_cal_SKA001"
+    )
     dish_leaf_node.sdpQueueConnectorFqdn = SDPQC_FQDN
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
     dish_master.subscribe_event(
@@ -57,3 +60,17 @@ def test_sdpqc_functionality(tango_context, group_callback):
 
     assert "TrackLoadStaticOff" in unique_id
     assert "COMPLETED" in message
+
+    # Assert TrackLoadStaticOff command not invoked when NaN
+    # received in pointing cal
+    with pytest.raises(AssertionError):
+        sdp_queue_connector.SetPointingCalSka001([3.1, NaN, 5.3])
+        unique_id, _ = group_callback[
+            "longRunningCommandStatus"
+        ].assert_change_event(
+            (Anything, "COMPLETED"),
+            lookahead=6,
+        )[
+            "attribute_value"
+        ]
+        assert "TrackLoadStaticOff" not in unique_id

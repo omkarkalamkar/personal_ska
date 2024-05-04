@@ -212,7 +212,7 @@ class DishLNEventReceiver(EventReceiver):
         )
         self._logger.info(f"long running command value updated to {new_value}")
 
-    def subscribe_to_sdpqc_attribute(
+    def subscribe_sdpqc_attribute(
         self, dev_info: SdpQueueConnectorDeviceInfo, attribute_name: str
     ) -> None:
         """Subscribe to the given SDP queue connector attribute"""
@@ -235,7 +235,7 @@ class DishLNEventReceiver(EventReceiver):
             )
             self._logger.exception(log_msg)
 
-    def unsubscribe_to_sdpqc_attribute(
+    def unsubscribe_sdpqc_attribute(
         self, dev_info: SdpQueueConnectorDeviceInfo
     ) -> None:
         """Subscribe to the given SDP queue connector attribute"""
@@ -248,12 +248,12 @@ class DishLNEventReceiver(EventReceiver):
                 dev_info.event_id = 0
                 dev_info.subscribed_to_attribute = False
                 self._logger.info(
-                    "Unubscribed %s Sdp queuue connector attribute event.",
+                    "Unsubscribed %s Sdp queuue connector attribute event.",
                     dev_info.dev_name,
                 )
         except Exception as exception:
             log_msg = (
-                f"Unable to un-subscribe {dev_info.event_id} "
+                f"Unable to unsubscribe {dev_info.attribute_name} "
                 f"device {dev_info.dev_name}/{exception}"
             )
             self._logger.exception(log_msg)

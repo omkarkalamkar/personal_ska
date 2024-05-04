@@ -300,7 +300,15 @@ class DishLeafNode(SKABaseDevice):
         received as a part of delta/partial configuration.
         This attribute is subscribed by SDP queue connector
         device.
-        :return: sourceOffset
+        delta/partial configuration values like ca_offset_arcsec
+        and ie_offset_arcsec are provided in the partial configuration
+        json.
+        source offset example:
+        [cross_elevation_offset, elevation_offset]
+        [0, .5]
+        [.5, 0]
+        [0, -.5], etc
+        :return: list[float]
         """
         return self._sourceOffset
 
