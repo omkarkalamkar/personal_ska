@@ -1,16 +1,21 @@
 # pylint: disable=line-too-long,unused-import
 
+import logging
 import time
 
 import pytest
 import tango
 from pytest_bdd import given, parsers, scenarios, then, when
+from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode  # noqa:F401
 from tango import Database, DeviceProxy
 
 from tests.settings import event_remover, wait_for_ping
+
+configure_logging(logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
 
 
 @given(
@@ -31,7 +36,8 @@ def ping_started(dishleafnode_cm):
     while not dishleafnode_cm.liveliness_probe_object._thread.is_alive():
         time.sleep(0.5)
         if time.time() - start_time > 30:
-            assert False
+            LOGGER.info("Liveliness thread is not alive")
+            break
 
     assert dishleafnode_cm.liveliness_probe_object._thread.is_alive()
 
@@ -98,7 +104,8 @@ def call_command(
 
 @then(
     parsers.parse(
-        "the {command_name} command is executed successfully and DishMaster transitions to {resultant_state}"  # noqa:E501
+        "the {command_name} command is executed successfully "
+        "and DishMaster transitions to {resultant_state}"
     )
 )
 def check_command(
