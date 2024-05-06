@@ -168,7 +168,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 state_to_achieve = expected_state[self.index]
             else:
                 self.logger.info(
-                    "All target state changes have occurred, "
+                    "All target state changes have occurred,"
                     "command successful"
                 )
                 return True
