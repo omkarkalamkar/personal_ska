@@ -143,7 +143,6 @@ def scan_command(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.ktest
 def test_scan_command(tango_context, group_callback, json_factory):
     scan_command(
         tango_context,

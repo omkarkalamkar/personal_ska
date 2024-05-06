@@ -83,9 +83,13 @@ def test_actual_pointing(tango_context, cm):
     # Sometimes loading the iers data takes more time
     timeout = 60
     count = 0
-    while len(list(cm.actual_pointing)) <= 0 and count <= timeout:
+    flag = True
+    while flag and count <= timeout:
+        if cm.actual_pointing and "2019" in cm.actual_pointing[0]:
+            flag = False
         count += 1
         sleep(1)
+
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",
         "16:29:24.46",
