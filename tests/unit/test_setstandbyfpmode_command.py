@@ -20,7 +20,7 @@ def test_setstandbyfpmode_command(tango_context, cm, task_callback):
     )
 
 
-@pytest.mark.skip("Test causes Non Usable Profile Error")
+@pytest.mark.skip("Will be resolved as a part of HM-461")
 def test_setstandbyfpmode_command_adapter_none(task_callback, cm):
     cm.update_device_dish_mode(DishMode.STANDBY_LP)
     assert cm.is_setstandbyfpmode_allowed()

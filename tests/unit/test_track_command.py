@@ -37,7 +37,7 @@ def test_track_command_completed(tango_context, task_callback, cm):
     )
 
 
-@pytest.mark.skip("Test causes Non Usable Profile Error")
+@pytest.mark.skip("Will be resolved as a part of HM-461")
 def test_track_command_adapter_none(task_callback, cm):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)

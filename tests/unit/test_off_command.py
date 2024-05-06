@@ -28,7 +28,7 @@ def test_off_command_in_fp(tango_context, cm, task_callback):
     )
 
 
-@pytest.mark.skip("Test causes Non Usable Profile Error")
+@pytest.mark.skip("Will be resolved as a part of HM-461")
 def test_off_command_adapter_none(cm, task_callback):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_off_allowed()
