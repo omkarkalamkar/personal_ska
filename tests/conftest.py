@@ -271,6 +271,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
     )
+    cm.actual_pointing_process_alive.set()
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
