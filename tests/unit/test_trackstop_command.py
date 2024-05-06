@@ -21,6 +21,7 @@ def test_trackstop_command_completed(tango_context, task_callback, cm):
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
     )
 
+
 def test_trackstop_command_adapter_none(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)

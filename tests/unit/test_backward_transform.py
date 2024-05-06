@@ -69,6 +69,7 @@ def test_azel_to_radec(
 
 def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
+    wait_for_iers_data_available(cm)
     EXTEND_MILLISECONDS = 100
     dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
     timestamp_str = datetime.datetime.strptime(
