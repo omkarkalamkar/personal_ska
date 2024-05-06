@@ -77,7 +77,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         proxy_timeout: int = 500,
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
-        command_timeout: int = 15,
+        command_timeout: int = 30,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
@@ -352,6 +352,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Await for the completion of beolw tasks"""
         await self.update_kvalue_validation_result()
         await self.download_iers_data()
+        self.logger.info("download_iers_data completed")
 
     async def download_iers_data(self) -> None:
         """Downloads and initialises the IERS file.
@@ -364,6 +365,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         except Exception as exception:
             self.logger.exception(exception)
+            self.logger.info(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     async def update_kvalue_validation_result(self) -> None:
@@ -1252,7 +1254,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Returns long running command result for command
         with given command ID"""
 
-        self.logger.info(f"Working on command_id : {command_id}")
+        self.logger.info(f"Check ResultCode for command_id : {command_id}")
         command_dict_ref = {}
         command_dict_ref = copy.deepcopy(self.command_mapping)
 
@@ -1350,9 +1352,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.process_manager.shutdown()
             self.logger.info("stop_executors_and_cleanup_memory successful")
 
-    def get_dish_state(self, command_id) -> List[str]:
+    def get_dish_state(
+        self, command_id
+    ) -> Tuple[DishMode, PointingState, ResultCode]:
         """Returns aggregated subarray ObsState"""
-        # FIXIT Add logic to get this info
 
         return [
             self.dishMode,
