@@ -61,7 +61,7 @@ def pytest_addoption(parser):
 @pytest.fixture
 def dish_master_device():
     """Returns dish 1 device name."""
-    return "ska001/elt/master"
+    return DISH_MASTER_DEVICE
 
 
 @pytest.fixture()
@@ -71,7 +71,7 @@ def devices_to_load():
         {
             "class": HelperDishDevice,
             "devices": [
-                {"name": "ska001/elt/master"},
+                {"name": DISH_MASTER_DEVICE},
             ],
         },
         {
@@ -79,7 +79,7 @@ def devices_to_load():
             "devices": [
                 {
                     "name": "ska_mid/tm_leaf_node/d0001",
-                    "DishMasterFQDN": "ska001/elt/master",
+                    "DishMasterFQDN": DISH_MASTER_DEVICE,
                 },
             ],
         },
@@ -122,7 +122,7 @@ def dishln_device(request):
             DishLeafNode,
             device_name="ska_mid/tm_leaf_node/d0001",
             properties={
-                "DishMasterFQDN": "ska001/elt/master",
+                "DishMasterFQDN": DISH_MASTER_DEVICE,
                 "DishAvailabilityCheckTimeout": 10,
             },
             timeout=20,

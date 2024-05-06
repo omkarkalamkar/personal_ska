@@ -5,6 +5,7 @@ import asyncio
 import datetime
 import json
 import os
+import re
 import sched
 import threading
 import time
@@ -123,7 +124,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dish_id = (
-            dish_dev_name.split("/")[-3].upper() if dish_dev_name else None
+            re.findall(
+                r"\b(?:ska|mkt)\w*", dish_dev_name, flags=re.IGNORECASE
+            )[0]
+            if dish_dev_name
+            else None
         )
         self.observer = None
         self.dish_number = None
@@ -1079,10 +1084,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def set_dish_id(self, dish_master_fqdn: str) -> None:
         """Find out dish number from DishMasterFQDN
-        property e.g. ska001/elt/master"""
-        self.dish_id = dish_master_fqdn.split("/")[
-            -3
-        ].upper()  # station names in the layout json are in capital
+        property e.g. mid-dish/dish-manager/SKA001
+        Here, SKA001 is the dish number.
+        """
+        self.dish_id = re.findall(
+            r"\b(?:ska|mkt)\w*", dish_master_fqdn, flags=re.IGNORECASE
+        )[
+            0
+        ]  # station names in the layout json are in capital
 
     def is_abortcommands_allowed(self) -> bool:
         """

@@ -8,7 +8,7 @@ from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import logger, wait_for_dish_mode
+from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_dish_mode
 
 
 def test_configure_command_completed(
@@ -51,7 +51,7 @@ def test_configure_command_completed_partial_config(
 ):
     """Test partial configure functionality"""
     cm.update_device_dish_mode(DishMode.OPERATE)
-    dish_device = DevFactory().get_device("ska001/elt/master")
+    dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     dish_device.subscribe_event(
         "longRunningCommandStatus",
         tango.EventType.CHANGE_EVENT,
