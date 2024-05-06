@@ -108,10 +108,10 @@ def test_configure_command_completed_partial_config_missing_key(
     )
 
 
-@pytest.mark.skip(
-    reason="Test case runs with CORBA exception for indefinite time"
-)
-def test_configure_command_adapter_none(task_callback, cm, json_factory):
+def test_configure_command_adapter_none(
+    task_callback, cm_without_er_lp, json_factory
+):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")

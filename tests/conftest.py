@@ -11,7 +11,7 @@ import tango
 from ska_ser_logging.configuration import configure_logging
 from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
-from ska_tmc_common import DevFactory
+from ska_tmc_common import DevFactory, LivelinessProbeType
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
 from ska_tmc_common.test_helpers.helper_sdp_queue_connector_device import (
     HelperSdpQueueConnector,
@@ -229,6 +229,37 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         track_table_entries=25,
         pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
+        _update_pointingstate_callback=pointing_state_callback,
+        communication_state_callback=communication_state_callback,
+        component_state_callback=communication_state_callback,
+        pointing_callback=pointing_callback,
+        kvalue_validation_callback=kvalue_validation_callback,
+        _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
+        dish_availability_check_timeout=5,
+        elevation_max_limit=90.0,
+        elevation_min_limit=17.5,
+    )
+    yield cm
+    # pylint: disable=unnecessary-dunder-call
+    cm.__del__()
+    sleep(1)  # Give some time to pytest cleanup
+    # pylint: enable=unnecessary-dunder-call
+
+
+@pytest.fixture()
+def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
+    """Creates component manager without event receiver and liveliness
+    probe for Dish Leaf Node.
+    """
+    cm = DishLNComponentManager(
+        DISH_MASTER_DEVICE,
+        logger=logger,
+        track_table_entries=25,
+        pointing_calculation_period=100,
+        _update_dishmode_callback=dish_mode_callback,
+        _event_receiver=False,
+        _liveliness_probe=LivelinessProbeType.NONE,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
         component_state_callback=communication_state_callback,

@@ -20,7 +20,8 @@ def test_setstowmode_command(tango_context, cm, task_callback):
     )
 
 
-def test_setstowmode_command_adapter_none(task_callback, cm):
+def test_setstowmode_command_adapter_none(task_callback, cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_setstowmode_allowed()
 
