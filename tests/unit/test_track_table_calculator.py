@@ -21,7 +21,6 @@ def test_calculate_time_stamp_array(tango_context, cm):
     assert len(tai_timestamp_array) == cm.track_table_entries
 
 
-@pytest.mark.utest
 def test_calculate_program_track_table(cm_without_er_lp):
     wait_for_iers_data_available(cm_without_er_lp)
     azel_converter = AzElConverter(cm_without_er_lp)

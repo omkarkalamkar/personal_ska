@@ -161,6 +161,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
         self.command_mapping = {}
+        self.event_receiver = _event_receiver
 
         # Event Receiver
         if _event_receiver:
@@ -1343,8 +1344,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
-        self.stop_event_receiver()
-        self.stop_liveliness_probe()
+        if self.liveliness_probe_object:
+            self.stop_liveliness_probe()
+
+        if self.event_receiver:
+            self.stop_event_receiver()
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
