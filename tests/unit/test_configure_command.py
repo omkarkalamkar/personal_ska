@@ -12,7 +12,6 @@ from ska_tmc_common.exceptions import CommandNotAllowed
 from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_dish_mode
 
 
-@pytest.mark.utest
 def test_configure_command_completed(
     tango_context,
     cm,

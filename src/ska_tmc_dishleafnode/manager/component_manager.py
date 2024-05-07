@@ -255,7 +255,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
-        self.converter.create_antenna_obj()
+
         self.kvalue_validation_iers_download_thread = threading.Timer(
             5, self.start_init_operations
         )
@@ -414,7 +414,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         self.logger.info("Main Process ID: %s", os.getppid())
+        self.converter.create_antenna_obj()
         self.logger.info("Sub-Process ID: %s", os.getpid())
+
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
@@ -1350,6 +1352,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.event_receiver:
             self.stop_event_receiver()
+
+        # We need to terminate thread running in asyncio
+        # Hence below code is needed and pylint warning needs to be
+        # supressed
+        # pylint: disable=pointless-exception-statement
+        if self.kvalue_validation_iers_download_thread.is_alive():
+            asyncio.CancelledError()
+            self.kvalue_validation_iers_download_thread.join()
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()

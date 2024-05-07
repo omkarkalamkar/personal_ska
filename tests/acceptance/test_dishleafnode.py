@@ -22,12 +22,12 @@ LOGGER = logging.getLogger(__name__)
     parsers.parse("DishLeafNode and DishMaster devices are running"),
     target_fixture="dishleafnode_cm",
 )
-def dishleafnode_cm(tango_context, cm):
+def dishleafnode_cm(tango_context, cm_new):
     database = Database()
     instance_list = database.get_device_exported_for_class("DishLeafNode")
     for instance in instance_list.value_string:
         assert "ska_mid/tm_leaf_node/d" in DeviceProxy(instance).dev_name()
-    return cm
+    return cm_new
 
 
 @when(parsers.parse("DishLeafNode pings the DishMaster device"))
