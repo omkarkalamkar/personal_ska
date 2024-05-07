@@ -255,6 +255,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
+        self.converter.create_antenna_obj()
         self.kvalue_validation_iers_download_thread = threading.Timer(
             5, self.start_init_operations
         )
@@ -400,7 +401,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: string
         """
         timestamp_seconds = timestamp_milliseconds / 1000
-        timestamp = datetime.datetime.fromtimestamp(
+        timestamp = datetime.datetime.utcfromtimestamp(
             timestamp_seconds
         ).strftime("%Y-%m-%d %H:%M:%S")
         return timestamp
@@ -411,7 +412,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.converter.create_antenna_obj()
+
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
         while self.actual_pointing_process_alive.is_set() is False:
@@ -1353,11 +1354,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
-            self.actual_pointing[:] = [None]
-            while not self.achieved_pointing_data.empty():
-                _ = self.achieved_pointing_data.get(block=True)
-            self.achieved_pointing_data.put(None)
-            self.process_manager.shutdown()
+        self.actual_pointing[:] = [None]
+        while not self.achieved_pointing_data.empty():
+            _ = self.achieved_pointing_data.get(block=True)
+        self.achieved_pointing_data.put(None)
+        self.process_manager.shutdown()
 
         self.logger.info("stop_executors_and_cleanup_memory successful")
 
