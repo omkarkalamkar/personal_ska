@@ -89,7 +89,7 @@ def test_actual_pointing(tango_context, cm):
         if cm.actual_pointing and "2019" in cm.actual_pointing[0]:
             flag = False
         count += 1
-        sleep(1)
+        sleep(0.1)
 
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",

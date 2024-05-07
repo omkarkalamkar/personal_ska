@@ -1403,11 +1403,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.stop_liveliness_probe()
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
-            self.actual_pointing[:] = [None]
-            self.sdpqc_pointing_data[:] = []
+            del self._actual_pointing
+            del self.sdpqc_pointing_data
             while not self.achieved_pointing_data.empty():
                 _ = self.achieved_pointing_data.get(block=True)
-            self.achieved_pointing_data.put(None)
+            del self.achieved_pointing_data
             self.process_manager.shutdown()
             self.logger.info("stop_executors_and_cleanup_memory successful")
 

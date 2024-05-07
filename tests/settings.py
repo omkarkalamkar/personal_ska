@@ -128,6 +128,17 @@ def event_remover(group_callback, attributes: List[str]) -> None:
             pass
 
 
+def wait_for_device_to_up(device_proxy):
+    """This test case waits for the device"""
+    timeout = 0
+    while timeout < 30:
+        time.sleep(1)
+        timeout = timeout + 1
+        if device_proxy.dishMode == DishMode.STANDBY_LP:
+            return True
+    return False
+
+
 def wait_for_dish_mode(
     cm: DishLNComponentManager, dish_mode: DishMode
 ) -> bool:
