@@ -1,5 +1,5 @@
 import datetime
-from time import sleep, time
+import time
 
 import pytest
 from ska_tmc_common import DevFactory
@@ -60,7 +60,7 @@ def test_azel_to_radec(
             if retry == 2:
                 pytest.fail(f"{e}")
             retry += 1
-        sleep(0.1)
+        time.sleep(0.1)
     ra, dec = converter.azel_to_radec(az, el, timestamp, WEATHER_DATA)
     assert expected_ra == ra
     assert expected_dec == dec
@@ -88,7 +88,7 @@ def test_actual_pointing(tango_context, cm):
         if cm.actual_pointing and "2019" in cm.actual_pointing[0]:
             flag = False
         count += 1
-        sleep(0.1)
+        time.sleep(0.1)
 
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",
