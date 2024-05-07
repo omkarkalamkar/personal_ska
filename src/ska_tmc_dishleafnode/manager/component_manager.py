@@ -346,13 +346,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """This method assures proper execution of kvalue validation
         and iers data download.
         """
-        asyncio.run(self.run_init_threads())
+
+        try:
+            asyncio.run(self.run_init_threads())
+        except asyncio.CancelledError:
+            self.logger.exception("Initialization stopped.")
 
     async def run_init_threads(self) -> None:
         """Await for the completion of beolw tasks"""
         await self.update_kvalue_validation_result()
         await self.download_iers_data()
-        self.logger.info("download_iers_data completed")
 
     async def download_iers_data(self) -> None:
         """Downloads and initialises the IERS file.
@@ -363,9 +366,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+            self.logger.info("IERS file download completed")
         except Exception as exception:
             self.logger.exception(exception)
-            self.logger.info(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
 
     async def update_kvalue_validation_result(self) -> None:
@@ -1340,9 +1343,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
+        self.stop_event_receiver()
+        self.stop_liveliness_probe()
+
         if self.actual_pointing_process.is_alive():
-            self.stop_event_receiver()
-            self.stop_liveliness_probe()
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
             self.actual_pointing[:] = [None]
@@ -1350,7 +1354,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 _ = self.achieved_pointing_data.get(block=True)
             self.achieved_pointing_data.put(None)
             self.process_manager.shutdown()
-            self.logger.info("stop_executors_and_cleanup_memory successful")
+
+        self.logger.info("stop_executors_and_cleanup_memory successful")
 
     def get_dish_state(
         self, command_id
