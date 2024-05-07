@@ -1,5 +1,5 @@
 import datetime
-from time import sleep
+from time import sleep, time
 
 import pytest
 from ska_tmc_common import DevFactory
@@ -10,11 +10,10 @@ from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, logger
 
 def wait_for_iers_data_available(cm):
     """Function which waits for the IERS data to be available."""
-    elapsed_time = 0
-    timeout = 45
-    while cm.iers_a is not None and elapsed_time <= timeout:
-        elapsed_time = elapsed_time + 1
-        sleep(1)
+    TIMEOUT = 45
+    start_time = time.time()
+    while cm.iers_a is not None and (time.time() - start_time) < TIMEOUT:
+        time.sleep(0.5)
 
 
 @pytest.mark.parametrize(
