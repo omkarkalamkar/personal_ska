@@ -1382,10 +1382,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     ]
                 )
                 self.track_load_static_off_command.do(offsets)
-                self.logger.info(
-                    "Received SDPQC pointing calibrration: %s",
-                    event_data.attr_value.value,
-                )
+            self.logger.info(
+                "Received SDPQC pointing calibrration: %s",
+                event_data.attr_value.value,
+            )
         except ValueError as e:
             self.logger.info(
                 "Exception occurred while processing pointing_cal %s", e
