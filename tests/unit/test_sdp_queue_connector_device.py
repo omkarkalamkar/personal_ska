@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from ska_tmc_common import DevFactory
 
 from tests.settings import (
@@ -12,7 +11,6 @@ POINTING_CAL2 = [3.1, 4.2, 5.3]
 POINTING_CAL3 = [5.5, np.NAN, 7.3]
 
 
-@pytest.mark.utest
 def test_sdpqc_fqdn_info_is_stored(tango_context, cm):
     """This test case checks the received SDP Queue connector
     information getting stored in component manager as expected."""
@@ -25,7 +23,6 @@ def test_sdpqc_fqdn_info_is_stored(tango_context, cm):
     assert dev_name == cm.queue_connector_device_info.dev_name
 
 
-@pytest.mark.utest
 def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     """This test case verifies the dish leaf node gets the
     SDP pointing calibration data from SDP Queue connector device."""
@@ -43,7 +40,6 @@ def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     )
 
 
-@pytest.mark.utest
 def test_with_updated_sdpqc_fqdn(tango_context, cm):
     """This test case verifies dish leaf node is subscribed
     to only one SDP queuconnector device in given observation.
@@ -71,7 +67,6 @@ def test_with_updated_sdpqc_fqdn(tango_context, cm):
     )
 
 
-@pytest.mark.utest
 def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     """This test case verifies the dish leaf node gets the
     SDP pointing calibration data from SDP Queue connector device."""
