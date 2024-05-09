@@ -5,6 +5,9 @@ import logging
 from os.path import dirname, join
 from time import sleep
 from typing import Generator
+from unittest.mock import patch
+from astropy.utils import iers
+
 
 import pytest
 import tango
@@ -187,6 +190,18 @@ def json_factory():
 
     return _get_json
 
+@pytest.fixture(scope="session")
+def iers_data():
+    """
+    Fixture to get the iers data
+    """
+    try:
+        iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+    except Exception as exception:
+        logger.exception(exception)
+        iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+    return iers_a
+
 
 def dish_mode_callback(argin):
     """An empty dishmode callback"""
@@ -240,7 +255,10 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
     )
-    yield cm
+    def download_iers_data(self):
+        print("IERS Data downloaded")
+    with patch.object(DishLNComponentManager, 'download_iers_data', side_effect=download_iers_data):
+        yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
     sleep(1)  # Give some time to pytest cleanup

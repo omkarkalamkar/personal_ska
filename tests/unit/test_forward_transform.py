@@ -6,14 +6,6 @@ from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from tests.settings import WEATHER_DATA, logger
 
 
-def wait_for_iers_data_available(cm):
-    """Function which waits for the IERS data to be available."""
-    elapsed_time = 0
-    timeout = 45
-    while cm.iers_a is not None and elapsed_time <= timeout:
-        elapsed_time = elapsed_time + 1
-        sleep(1)
-
 
 @pytest.mark.parametrize(
     "ra, dec, timestamp, expected_az, expected_el",
@@ -45,9 +37,10 @@ def test_radec_to_azel(
     expected_el: float,
     tango_context,
     cm,
+    iers_data,
 ):
     """Function to test AzEl conversion"""
-    wait_for_iers_data_available(cm)
+    cm.iers_a = iers_data
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:

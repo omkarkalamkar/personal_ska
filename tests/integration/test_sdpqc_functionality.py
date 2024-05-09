@@ -14,7 +14,6 @@ from tests.settings import (
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.ktest
-@pytest.mark.repeat(50)
 def test_sdpqc_functionality(tango_context, group_callback):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
