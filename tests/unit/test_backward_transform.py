@@ -8,7 +8,6 @@ from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, logger
 
 
-
 @pytest.mark.parametrize(
     "timestamp, az, el, expected_ra, expected_dec",
     [
@@ -36,8 +35,7 @@ from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, logger
     ],
 )
 def test_azel_to_radec(
-    tango_context, timestamp, az, el, expected_ra, expected_dec, cm,
-    iers_data
+    tango_context, timestamp, az, el, expected_ra, expected_dec, cm, iers_data
 ):
     """Test the backward transform method from AzElConverter."""
     cm.iers_a = iers_data

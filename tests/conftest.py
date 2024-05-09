@@ -6,11 +6,10 @@ from os.path import dirname, join
 from time import sleep
 from typing import Generator
 from unittest.mock import patch
-from astropy.utils import iers
-
 
 import pytest
 import tango
+from astropy.utils import iers
 from ska_ser_logging.configuration import configure_logging
 from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
@@ -190,6 +189,7 @@ def json_factory():
 
     return _get_json
 
+
 @pytest.fixture(scope="session")
 def iers_data():
     """
@@ -255,9 +255,15 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
     )
+
     def download_iers_data(self):
         print("IERS Data downloaded")
-    with patch.object(DishLNComponentManager, 'download_iers_data', side_effect=download_iers_data):
+
+    with patch.object(
+        DishLNComponentManager,
+        "download_iers_data",
+        side_effect=download_iers_data,
+    ):
         yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()

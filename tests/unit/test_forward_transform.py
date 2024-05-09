@@ -6,7 +6,6 @@ from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from tests.settings import WEATHER_DATA, logger
 
 
-
 @pytest.mark.parametrize(
     "ra, dec, timestamp, expected_az, expected_el",
     [
