@@ -73,14 +73,14 @@ ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
 ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
 endif
-MARK = not post_deployment and not acceptance
+MARK = utest not post_deployment and not acceptance
 endif
 
 
 K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
 ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT) 
-MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
+MARK = ktest and (post_deployment or acceptance) #$(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
 # Applying exit at fail for k8s tests only

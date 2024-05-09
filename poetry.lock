@@ -1730,26 +1730,28 @@ version = "0.16.4"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
-python-versions = ">=3.10,<3.11"
+python-versions = "~3.10"
+develop = false
 
 [package.dependencies]
-black = ">=23.3.0,<24.0.0"
-fire = ">=0.4.0,<0.5.0"
-jsonschema = ">=4.0.1,<5.0.0"
+black = "^23.3.0"
+fire = "^0.4.0"
+jsonschema = "^4.0.1"
 katpoint = "1.0a2"
-marshmallow = ">=3.14.1,<4.0.0"
-mock = ">=4.0.3,<5.0.0"
-numpy = ">=1.23.0,<2.0.0"
+marshmallow = "^3.14.1"
+mock = "^4.0.3"
+numpy = "^1.23.0"
 pytango = "9.4.2"
-ska-ser-logging = ">=0.4.1,<0.5.0"
+ska-ser-logging = "^0.4.1"
 ska-tango-base = "0.19.1"
 ska-tango-testing = "0.6.0"
 ska-telmodel = "1.15.1"
 
 [package.source]
-type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = 'ska-nexus'
+type = "git"
+url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
+reference = "hm-461"
+resolved_reference = "01d6154bb1bc2838573ef306b1bf5b13470d223b"
 
 [[package]]
 name = "snowballstemmer"
@@ -2035,7 +2037,7 @@ reference = "PyPI-public"
 
 [[package]]
 name = "tomlkit"
-version = "0.12.4"
+version = "0.12.5"
 description = "Style preserving TOML library"
 category = "dev"
 optional = false
@@ -2195,7 +2197,7 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "df33231b3d2855084340fecd907b59f80539531a1811b80020387b8047c51e5b"
+content-hash = "4edc1a2498ca0b35b64462b93e4e282cb836e92874d0b4e1f54cd41e5543869d"
 
 [metadata.files]
 alabaster = [
@@ -3121,10 +3123,7 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-7.3.1-py3-none-any.whl", hash = "sha256:6096dfd4d7c0211dad2ac58cfe0c3cc88b3d5448f20405c5cb7864ec44f28757"},
     {file = "ska_tmc_cdm-7.3.1.tar.gz", hash = "sha256:3129cd4ec33b207f80669f521ba80fd221a42041c841f6c2f44eb8225ed8c363"},
 ]
-ska-tmc-common = [
-    {file = "ska_tmc_common-0.16.4-py3-none-any.whl", hash = "sha256:4f800c65bcab34e2bba990aa38558d7579df444af8222de2e849f3eeb0bee3bf"},
-    {file = "ska_tmc_common-0.16.4.tar.gz", hash = "sha256:1923690bd562127652f3a117c2e51c6d2ea89adfc19b2efd29db16629c669139"},
-]
+ska-tmc-common = []
 snowballstemmer = [
     {file = "snowballstemmer-2.2.0-py2.py3-none-any.whl", hash = "sha256:c8e1716e83cc398ae16824e5572ae04e0d9fc2c6b985fb0f900f5f0c96ecba1a"},
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
@@ -3185,8 +3184,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 tomlkit = [
-    {file = "tomlkit-0.12.4-py3-none-any.whl", hash = "sha256:5cd82d48a3dd89dee1f9d64420aa20ae65cfbd00668d6f094d7578a78efbb77b"},
-    {file = "tomlkit-0.12.4.tar.gz", hash = "sha256:7ca1cfc12232806517a8515047ba66a19369e71edf2439d0f5824f91032b6cc3"},
+    {file = "tomlkit-0.12.5-py3-none-any.whl", hash = "sha256:af914f5a9c59ed9d0762c7b64d3b5d5df007448eb9cd2edc8a46b1eafead172f"},
+    {file = "tomlkit-0.12.5.tar.gz", hash = "sha256:eef34fba39834d4d6b73c9ba7f3e4d1c417a4e56f89a7e96e090dd0d24b8fb3c"},
 ]
 toolz = [
     {file = "toolz-0.12.1-py3-none-any.whl", hash = "sha256:d22731364c07d72eea0a0ad45bafb2c2937ab6fd38a3507bf55eae8744aa7d85"},
