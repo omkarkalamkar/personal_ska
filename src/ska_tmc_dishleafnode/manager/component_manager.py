@@ -1,7 +1,6 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
-import asyncio
 import datetime
 import json
 import os
@@ -260,9 +259,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
         self.kvalue_validation_iers_download_thread = threading.Timer(
-            5, self.start_init_operations
+            5, self.update_kvalue_validation_result
+        )
+        self.iers_data_download_thread = threading.Thread(
+            target=self.download_iers_data
         )
         self.kvalue_validation_iers_download_thread.start()
+        self.iers_data_download_thread.start()
         self.actual_pointing_process.start()
 
     @property
@@ -358,18 +361,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self._update_source_offset_callback:
                 self._update_source_offset_callback(source_offset)
 
-    def start_init_operations(self) -> None:
-        """This method assures proper execution of kvalue validation
-        and iers data download.
-        """
-        asyncio.run(self.run_init_threads())
-
-    async def run_init_threads(self) -> None:
-        """Await for the completion of beolw tasks"""
-        await self.update_kvalue_validation_result()
-        await self.download_iers_data()
-
-    async def download_iers_data(self) -> None:
+    def download_iers_data(self) -> None:
         """Downloads and initialises the IERS file.
         Incase of error with main link, tries downloading using Mirror link.
 
@@ -381,8 +373,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+        self.logger.info("IERS COMPLETED")
 
-    async def update_kvalue_validation_result(self) -> None:
+    def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
         to central node after DLN start/restart.
 
@@ -1360,36 +1353,69 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.queue_connector_device_info.dev_name,
             )
 
-    def process_pointing_calibration(self, event_data: tango.EventData):
+    def process_pointing_calibration(
+        self, event_data: tango.EventData
+    ) -> None:
         """Method to process pointing offsets received
         from SDP queue connector device
         """
         try:
-            if (
-                self.queue_connector_device_info.subscribed_to_attribute
-                and not np.isnan(event_data.attr_value.value).any()
-            ):
-                self.queue_connector_device_info.pointing_data = (
-                    event_data.attr_value.value
-                )
-                self.sdpqc_pointing_data[:] = [
-                    self.queue_connector_device_info
-                ]
-                offsets = json.dumps(
-                    [
-                        event_data.attr_value.value[1],
-                        event_data.attr_value.value[2],
+            if self.queue_connector_device_info.subscribed_to_attribute:
+                if (
+                    self.validate_float_list(
+                        event_data.attr_value.value, number_of_values=3
+                    )
+                    and not np.isnan(event_data.attr_value.value).any()
+                ):
+                    self.queue_connector_device_info.pointing_data = (
+                        event_data.attr_value.value
+                    )
+                    self.sdpqc_pointing_data[:] = [
+                        self.queue_connector_device_info
                     ]
+                    offsets = json.dumps(
+                        [
+                            event_data.attr_value.value[1],
+                            event_data.attr_value.value[2],
+                        ]
+                    )
+                    self.track_load_static_off_command.do(offsets)
+                self.logger.info(
+                    "Received SDPQC pointing calibrration: %s",
+                    event_data.attr_value.value,
                 )
-                self.track_load_static_off_command.do(offsets)
-            self.logger.info(
-                "Received SDPQC pointing calibrration: %s",
-                event_data.attr_value.value,
+        except Exception as e:
+            self.logger.exception(
+                f"Error while processing {event_data.attr_value.value}"
+                f"Exception Message is: {e}"
             )
-        except ValueError as e:
-            self.logger.info(
-                "Exception occurred while processing pointing_cal %s", e
+
+    def validate_float_list(
+        self, lst: np.ndarray, number_of_values: int
+    ) -> bool:
+        """Method to check the list in valid format
+
+        :type lst: list
+        :type: number_of_values: int
+        :return: bool
+        :rtype: bool
+        """
+        flag: bool = True
+        if not isinstance(lst, np.ndarray):
+            flag = False
+
+        if len(lst) != number_of_values:
+            flag = False
+
+        for element in lst:
+            if not isinstance(element, float):
+                flag = False
+
+        if not flag:
+            raise ValueError(
+                f"The data {lst}" " received is not in expected format."
             )
+        return flag
 
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes
@@ -1398,18 +1424,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
-        if self.actual_pointing_process.is_alive():
+
+        if self.event_receiver:
             self.stop_event_receiver()
+
+        if self.liveliness_probe_object:
             self.stop_liveliness_probe()
+
+        if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
-            del self._actual_pointing
-            del self.sdpqc_pointing_data
-            while not self.achieved_pointing_data.empty():
-                _ = self.achieved_pointing_data.get(block=True)
-            del self.achieved_pointing_data
-            self.process_manager.shutdown()
-            self.logger.info("stop_executors_and_cleanup_memory successful")
+        del self._actual_pointing
+        del self.sdpqc_pointing_data
+        while not self.achieved_pointing_data.empty():
+            _ = self.achieved_pointing_data.get(block=True)
+        del self.achieved_pointing_data
+        self.process_manager.shutdown()
+        self.logger.info("stop_executors_and_cleanup_memory successful")
 
     def __del__(self):
         """
