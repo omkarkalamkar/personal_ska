@@ -163,7 +163,6 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "pointingState",
         "kValueValidationResult",
         "sourceOffset",
-        "lastPointingData",
         timeout=30,
     )
     return group_callback
