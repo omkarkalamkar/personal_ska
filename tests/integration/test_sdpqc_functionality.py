@@ -15,10 +15,11 @@ from tests.settings import (
     SDP_QUEUE_CONNECTOR_DEVICE,
 )
 
-POINTING_CAL = [1.1, 2.2, 3.3]
+POINTING_CAL = [1.1, 0.5, 0.2]
 POINTING_CAL_NAN = [3.1, NaN, 5.3]
 EXTEND_MILLISECONDS = 100
 TIMESTAMP_RA_DEC = ["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]
+TIMEOUT = 10
 
 
 @pytest.mark.post_deployment
@@ -70,10 +71,18 @@ def test_sdpqc_functionality(tango_context, group_callback):
     assert array_equal(
         json.loads(dish_leaf_node.lastPointingData), POINTING_CAL
     )
-    dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
-    time.sleep(1)
 
     # Verify actual pointing affected with pointing calibration data
+    dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
+    elapsed_time = 0
+    flag = False
+    while elapsed_time < TIMEOUT:
+        if "2019-02-19 06:01:00" in json.loads(dish_leaf_node.actualpointing):
+            flag = True
+            break
+        elapsed_time = elapsed_time + 1
+        time.sleep(1)
+    assert flag
     received_actual_pointing = json.loads(dish_leaf_node.actualpointing)
     assert TIMESTAMP_RA_DEC[0] == received_actual_pointing[0]
     assert TIMESTAMP_RA_DEC[1] != received_actual_pointing[1]
