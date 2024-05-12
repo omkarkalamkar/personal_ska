@@ -217,23 +217,28 @@ class DishLNEventReceiver(EventReceiver):
     ) -> None:
         """Subscribe to the given SDP queue connector attribute"""
         # Initialized to avoid linting issue.
-        try:
-            sdp_queue_connector_proxy = self._dev_factory.get_device(
-                dev_info.dev_name
-            )
-            if sdp_queue_connector_proxy.ping() > 0:
-                dev_info.event_id = sdp_queue_connector_proxy.subscribe_event(
-                    attribute_name,
-                    tango.EventType.CHANGE_EVENT,
-                    self._component_manager.process_pointing_calibration,
-                    stateless=True,
-                )
-        except Exception as exception:
-            log_msg = (
-                f"Unable to subscribe {attribute_name} "
-                f"device {dev_info.dev_name}/{exception}"
-            )
-            self._logger.exception(log_msg)
+
+        while not dev_info.subscribed_to_attribute:
+            with tango.EnsureOmniThread():
+                try:
+                    sdp_queue_connector = self._dev_factory.get_device(
+                        dev_info.dev_name
+                    )
+                    dev_info.event_id = sdp_queue_connector.subscribe_event(
+                        attribute_name,
+                        tango.EventType.CHANGE_EVENT,
+                        self._component_manager.process_pointing_calibration,
+                        stateless=True,
+                    )
+                except Exception as exception:
+                    log_msg = (
+                        f"Unable to subscribe {attribute_name} "
+                        f"device {dev_info.dev_name}/{exception}"
+                    )
+                    self._logger.exception(log_msg)
+                    sleep(1)
+                else:
+                    dev_info.subscribed_to_attribute = True
 
     def unsubscribe_sdpqc_attribute(
         self, dev_info: SdpQueueConnectorDeviceInfo

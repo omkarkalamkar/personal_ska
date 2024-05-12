@@ -73,6 +73,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         kvalue_validation_callback: Callable,
         _update_availablity_callback: Callable,
         _update_source_offset_callback: Callable,
+        _update_last_pointing_data_cb: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -124,7 +125,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_dev_name = dish_dev_name
         self.dish_id = (
             re.findall(
-                r"\b(?:ska|mkt)\w*", dish_dev_name, flags=re.IGNORECASE
+                "\\b(?:SKA|MKT)\\d{3}\\b", dish_dev_name, flags=re.IGNORECASE
             )[0]
             if dish_dev_name
             else None
@@ -153,11 +154,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._queue_connector_device_info: SdpQueueConnectorDeviceInfo = (
             SdpQueueConnectorDeviceInfo()
         )
-        self.sdpqc_pointing_data = self.process_manager.list(
+        self.received_pointing_data = self.process_manager.list(
             [self._queue_connector_device_info]
         )
+        self._last_pointing_data = np.array([0.0, 0.0, 0.0])
         self._update_source_offset_callback = _update_source_offset_callback
-        self._update_availablity_callback = _update_availablity_callback
+        self._update_source_offset_callback = _update_source_offset_callback
+        self._update_last_pointing_data_callback = (
+            _update_last_pointing_data_cb
+        )
         self.update_availablity_callback = _update_availablity_callback
         self.supported_commands: Tuple[str, str] = (
             "Configure_TrackLoadStaticOff",
@@ -355,6 +360,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
+    @property
+    def last_pointing_data(self):
+        """Property for last pointing data"""
+        return self._last_pointing_data
+
+    @last_pointing_data.setter
+    def last_pointing_data(self, last_pointing_data) -> None:
+        """Method to update the lastPointingData attribute"""
+        self._last_pointing_data = last_pointing_data
+        with self.lock:
+            if self._update_last_pointing_data_callback:
+                self._update_last_pointing_data_callback(last_pointing_data)
+
     def update_source_offset_callback(self, source_offset: list) -> None:
         """Method to update the sourceOffset attribute"""
         with self.lock:
@@ -373,7 +391,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
-        self.logger.info("IERS COMPLETED")
+        self.logger.info("IERS data download completed.")
 
     def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
@@ -403,7 +421,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: string
         """
         timestamp_seconds = timestamp_milliseconds / 1000
-        timestamp = datetime.datetime.utcfromtimestamp(
+        timestamp = datetime.datetime.fromtimestamp(
             timestamp_seconds
         ).strftime("%Y-%m-%d %H:%M:%S")
         return timestamp
@@ -448,10 +466,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
             azimuth = (
-                azimuth - list(self.sdpqc_pointing_data)[0].pointing_data[1]
+                azimuth - list(self.received_pointing_data)[0].pointing_data[1]
             )
             elevation = (
-                elevation - list(self.sdpqc_pointing_data)[0].pointing_data[2]
+                elevation
+                - list(self.received_pointing_data)[0].pointing_data[2]
             )
             timestamp = self.convert_timestamp(timestamp_milliseconds)
             right_ascension, declination = self.converter.azel_to_radec(
@@ -1081,7 +1100,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Here, SKA001 is the dish number.
         """
         self.dish_id = re.findall(
-            r"\b(?:ska|mkt)\w*", dish_master_fqdn, flags=re.IGNORECASE
+            "\\b(?:SKA|MKT)\\d{3}\\b", dish_master_fqdn, flags=re.IGNORECASE
         )[
             0
         ]  # station names in the layout json are in capital
@@ -1344,11 +1363,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_receiver_object.subscribe_sdpqc_attribute(
             self.queue_connector_device_info, attribute_name
         )
+
         if self.queue_connector_device_info.event_id:
             self.queue_connector_device_info.subscribed_to_attribute = True
             self.queue_connector_device_info.attribute_name = attribute_name
             self.logger.info(
                 "Subscribed to %s of %s.",
+                self.queue_connector_device_info.attribute_name,
+                self.queue_connector_device_info.dev_name,
+            )
+        else:
+            self.logger.exception(
+                "Failed to subscribe to %s of %s.",
                 self.queue_connector_device_info.attribute_name,
                 self.queue_connector_device_info.dev_name,
             )
@@ -1361,38 +1387,42 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             if self.queue_connector_device_info.subscribed_to_attribute:
-                if (
-                    self.validate_float_list(
-                        event_data.attr_value.value, number_of_values=3
-                    )
-                    and not np.isnan(event_data.attr_value.value).any()
+                if self.validate_float_list(
+                    event_data.attr_value.value, number_of_values=3
                 ):
-                    self.queue_connector_device_info.pointing_data = (
-                        event_data.attr_value.value
-                    )
-                    self.sdpqc_pointing_data[:] = [
-                        self.queue_connector_device_info
-                    ]
-                    offsets = json.dumps(
-                        [
-                            event_data.attr_value.value[1],
-                            event_data.attr_value.value[2],
+                    if np.isnan(event_data.attr_value.value).any():
+                        self.last_pointing_data = event_data.attr_value.value
+                        self.logger.error(
+                            "NaN value found in %s receeived pointing data",
+                            self.last_pointing_data,
+                        )
+                    else:
+                        self.queue_connector_device_info.pointing_data = (
+                            event_data.attr_value.value
+                        )
+                        self.received_pointing_data[:] = [
+                            self.queue_connector_device_info
                         ]
-                    )
-                    self.track_load_static_off_command.do(offsets)
-                self.logger.info(
-                    "Received SDPQC pointing calibrration: %s",
-                    event_data.attr_value.value,
-                )
+                        self.last_pointing_data = event_data.attr_value.value
+                        offsets = json.dumps(
+                            [
+                                event_data.attr_value.value[1],
+                                event_data.attr_value.value[2],
+                            ]
+                        )
+                        self.track_load_static_off_command.do(offsets)
+            self.logger.info(
+                "Received SDPQC pointing calibrration: %s",
+                event_data.attr_value.value,
+            )
         except Exception as e:
             self.logger.exception(
                 f"Error while processing {event_data.attr_value.value}"
                 f"Exception Message is: {e}"
             )
+        # pdb.set_trace()
 
-    def validate_float_list(
-        self, lst: np.ndarray, number_of_values: int
-    ) -> bool:
+    def validate_float_list(self, lst: list, number_of_values: int) -> bool:
         """Method to check the list in valid format
 
         :type lst: list
@@ -1401,16 +1431,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: bool
         """
         flag: bool = True
-        if not isinstance(lst, np.ndarray):
-            flag = False
-
         if len(lst) != number_of_values:
             flag = False
 
         for element in lst:
             if not isinstance(element, float):
                 flag = False
-
         if not flag:
             raise ValueError(
                 f"The data {lst}" " received is not in expected format."
@@ -1435,7 +1461,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
         del self._actual_pointing
-        del self.sdpqc_pointing_data
+        del self.received_pointing_data
         while not self.achieved_pointing_data.empty():
             _ = self.achieved_pointing_data.get(block=True)
         del self.achieved_pointing_data

@@ -163,6 +163,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "pointingState",
         "kValueValidationResult",
         "sourceOffset",
+        "lastPointingData",
         timeout=30,
     )
     return group_callback
@@ -235,6 +236,11 @@ def update_source_offset_callback():
     """An empty update_source_offset callback"""
 
 
+def update_last_pointing_data_callback(temp):
+    """An empty last pointing data callback"""
+    logger.debug(temp)
+
+
 @pytest.fixture()
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
@@ -251,6 +257,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
@@ -291,11 +298,15 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
     )
     cm.actual_pointing_process_alive.set()
+    if cm.event_receiver:
+        cm.stop_event_receiver()
+
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()

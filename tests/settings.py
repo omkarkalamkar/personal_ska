@@ -79,6 +79,11 @@ def update_source_offset_callback():
     """An empty update_source_offset callback"""
 
 
+def update_last_pointing_data_callback(temp):
+    """An empty last pointing data callback"""
+    logger.debug(temp)
+
+
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
@@ -94,6 +99,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
     )
     return cm
 

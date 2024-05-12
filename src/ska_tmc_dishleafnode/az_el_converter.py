@@ -51,8 +51,12 @@ class AzElConverter:
         Antenna object to be used from the Dish Number."""
         antennas = self.dish_helper.get_dish_antennas_list()
         for antenna in antennas:
-            if antenna.name == self.component_manager.dish_id:
-                self.component_manager.observer = antenna
+            if self.component_manager.dish_id:
+                if (
+                    antenna.name.lower()
+                    == self.component_manager.dish_id.lower()
+                ):
+                    self.component_manager.observer = antenna
 
     def point(
         self, right_ascension: str, declination: str, timestamp: str
