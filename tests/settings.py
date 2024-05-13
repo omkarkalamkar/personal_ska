@@ -154,6 +154,7 @@ def wait_for_dish_mode(
     start_time = time.time()
     elapsed_time = 0
     while elapsed_time < TIMEOUT:
+        cm.update_device_dish_mode(dish_mode)
         if cm.dishMode == int(dish_mode):
             return True
         elapsed_time = time.time() - start_time

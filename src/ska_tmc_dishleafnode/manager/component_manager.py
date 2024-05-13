@@ -266,8 +266,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
+
+        self.download_iers_data()
         self.kvalue_validation_thread.start()
-        # self.download_iers_data()
         self.actual_pointing_process.start()
 
     @property

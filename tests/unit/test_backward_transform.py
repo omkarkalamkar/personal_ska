@@ -71,16 +71,20 @@ def test_actual_pointing(tango_context, cm, iers_data):
         milliseconds=EXTEND_MILLISECONDS
     )
     utc_timestamp = extended_time.timestamp() * 1000
-    dish_manager.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
     # Sometimes loading the iers data takes more time
     timeout = 60
     count = 0
     flag = True
     while flag and count <= timeout:
+        dish_manager.programTrackTable = [
+            utc_timestamp,
+            287.2504396,
+            77.8694392,
+        ]
         if cm.actual_pointing and "2019" in cm.actual_pointing[0]:
             flag = False
         count += 1
-        time.sleep(0.1)
+        time.sleep(1)
 
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",

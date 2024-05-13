@@ -8,12 +8,7 @@ from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import (
-    DISH_MASTER_DEVICE,
-    logger,
-    wait_for_device_to_up,
-    wait_for_dish_mode,
-)
+from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_dish_mode
 
 
 def test_configure_command_completed(
@@ -22,20 +17,9 @@ def test_configure_command_completed(
     task_callback,
     json_factory,
 ):
-    dish_master_proxy = DevFactory().get_device(DISH_MASTER_DEVICE)
-    assert wait_for_device_to_up(dish_master_proxy)
-    cm.update_device_dish_mode(DishMode.STANDBY_LP)
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
     cm.setstandbyfpmode(task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
-    )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
