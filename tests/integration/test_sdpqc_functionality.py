@@ -23,7 +23,7 @@ TIMESTAMP_RA_DEC = ["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]
 TIMEOUT = 10
 
 
-def timestamp(timestamp: str) -> float:
+def utc_timestamp(timestamp: str) -> float:
     """Method to return  timestamp in float for given date"""
     timestamp_str = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
     dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
@@ -36,8 +36,6 @@ def timestamp(timestamp: str) -> float:
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.ktest
-@pytest.mark.repeat(50)
 def test_sdpqc_functionality(tango_context, group_callback):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
@@ -76,7 +74,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
 
     # Verify actual pointing affected with pointing calibration data
     dish_master.programTrackTable = [
-        timestamp("2019-02-19 06:01:00"),
+        utc_timestamp("2019-02-19 06:01:00"),
         287.2504396,
         77.8694392,
     ]
@@ -114,7 +112,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
     )
     # Change actual pointing timestamp
     dish_master.programTrackTable = [
-        timestamp("2024-02-19 06:01:00"),
+        utc_timestamp("2024-02-19 06:01:00"),
         11.2504396,
         33.8694392,
     ]
