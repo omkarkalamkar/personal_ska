@@ -2,11 +2,12 @@ import json
 
 import pytest
 import tango
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_tango_base.commands import TaskStatus
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory
 
 from tests.settings import DISH_MASTER_DEVICE
+
 
 @pytest.mark.utest
 def test_trackloadstaticoff_command(
@@ -24,10 +25,14 @@ def test_trackloadstaticoff_command(
 
     argin = json.dumps([0.01, 0.02])
     cm.track_load_static_off(argin, task_callback=task_callback)
-    unique_id, message = group_callback["longRunningCommandStatus"].assert_change_event(
+    unique_id, message = group_callback[
+        "longRunningCommandStatus"
+    ].assert_change_event(
         (Anything, "COMPLETED"),
         lookahead=10,
-    )["attribute_value"]
+    )[
+        "attribute_value"
+    ]
 
     assert "TrackLoadStaticOff" in unique_id
     assert "COMPLETED" in message
@@ -39,8 +44,8 @@ def test_trackloadstaticoff_command(
     #     call_kwargs={"status": TaskStatus.IN_PROGRESS}
     # )
     # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-    #     lookahead=4,
+    # call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
+    #  lookahead=4,
     # )
 
 
