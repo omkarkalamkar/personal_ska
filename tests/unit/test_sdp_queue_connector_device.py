@@ -1,3 +1,5 @@
+from time import sleep
+
 import numpy as np
 import pytest
 from ska_tmc_common import DevFactory
@@ -38,6 +40,7 @@ def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN, DISH_ID)
+    sleep(1)
     assert dev_name == cm.queue_connector_device_info.dev_name
     assert ATTRIBUTE_NAME == cm.queue_connector_device_info.attribute_name
     assert cm.queue_connector_device_info.subscribed_to_attribute
@@ -61,6 +64,7 @@ def test_with_updated_sdpqc_fqdn(tango_context, cm):
     sdp_queue_connector2 = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE2)
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN, DISH_ID)
+    sleep(1)
     assert dev_name == cm.queue_connector_device_info.dev_name
     SDP_QUEUE_CONNECTOR_FQDN2 = (
         f"{SDP_QUEUE_CONNECTOR_DEVICE2}/" "pointing_cal_{dish_id}"
@@ -88,6 +92,7 @@ def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     """This test case verifies the dish leaf node gets the
     SDP pointing calibration data from SDP Queue connector device."""
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN, DISH_ID)
+    sleep(1)
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL3)
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]

@@ -263,14 +263,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
-        self.kvalue_validation_iers_download_thread = threading.Timer(
+        self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
-        self.iers_data_download_thread = threading.Thread(
-            target=self.download_iers_data
-        )
-        self.kvalue_validation_iers_download_thread.start()
-        self.iers_data_download_thread.start()
+        self.kvalue_validation_thread.start()
+        # self.download_iers_data()
         self.actual_pointing_process.start()
 
     @property
@@ -354,7 +351,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._actual_pointing[:] = value
-        self.logger.debug(
+        self.logger.info(
             "The updated actual pointing values are: %s", self._actual_pointing
         )
         if self.pointing_callback:
@@ -1373,6 +1370,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.queue_connector_device_info.dev_name,
             )
         else:
+            self.queue_connector_device_info.dev_name = ""
             self.logger.exception(
                 "Failed to subscribe to %s of %s.",
                 self.queue_connector_device_info.attribute_name,

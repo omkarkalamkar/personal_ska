@@ -15,11 +15,23 @@ from tests.settings import (
     SDP_QUEUE_CONNECTOR_DEVICE,
 )
 
-POINTING_CAL = [1.1, 0.5, 0.2]
+POINTING_CAL = [1.1, 1.1, 1.2]
 POINTING_CAL_NAN = [3.1, NaN, 5.3]
+POINTING_CAL_RESET = [1.1, 0.0, 0.0]
 EXTEND_MILLISECONDS = 100
 TIMESTAMP_RA_DEC = ["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]
 TIMEOUT = 10
+
+
+def timestamp(timestamp: str) -> float:
+    """Method to return  timestamp in float for given date"""
+    timestamp_str = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
+    extended_time = dt_utc + datetime.timedelta(
+        milliseconds=EXTEND_MILLISECONDS
+    )
+    utc_timestamp = extended_time.timestamp() * 1000
+    return utc_timestamp
 
 
 @pytest.mark.post_deployment
@@ -30,16 +42,6 @@ def test_sdpqc_functionality(tango_context, group_callback):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
-
-    timestamp_str = datetime.datetime.strptime(
-        "2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S"
-    )
-    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
-    extended_time = dt_utc + datetime.timedelta(
-        milliseconds=EXTEND_MILLISECONDS
-    )
-    utc_timestamp = extended_time.timestamp() * 1000
-
     device_host = tango.Database().get_db_host()
     device_port = tango.Database().get_db_port()
     SDPQC_FQDN = (
@@ -73,16 +75,20 @@ def test_sdpqc_functionality(tango_context, group_callback):
     )
 
     # Verify actual pointing affected with pointing calibration data
-    dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
+    dish_master.programTrackTable = [
+        timestamp("2019-02-19 06:01:00"),
+        287.2504396,
+        77.8694392,
+    ]
     elapsed_time = 0
-    flag = False
-    while elapsed_time < TIMEOUT:
-        if "2019-02-19 06:01:00" in json.loads(dish_leaf_node.actualpointing):
-            flag = True
+    flag = True
+    while flag and elapsed_time < TIMEOUT:
+        if "2019" in json.loads(dish_leaf_node.actualpointing)[0]:
+            flag = False
             break
         elapsed_time = elapsed_time + 1
         time.sleep(1)
-    assert flag
+    assert not flag
     received_actual_pointing = json.loads(dish_leaf_node.actualpointing)
     assert TIMESTAMP_RA_DEC[0] == received_actual_pointing[0]
     assert TIMESTAMP_RA_DEC[1] != received_actual_pointing[1]
@@ -106,3 +112,11 @@ def test_sdpqc_functionality(tango_context, group_callback):
         dish_leaf_node.read_attribute("lastPointingData").quality
         == AttrQuality.ATTR_ALARM
     )
+    # Change actual pointing timestamp
+    dish_master.programTrackTable = [
+        timestamp("2024-02-19 06:01:00"),
+        11.2504396,
+        33.8694392,
+    ]
+    # Reset pointing offsets
+    sdp_queue_connector.SetPointingCalSka001(POINTING_CAL_RESET)
