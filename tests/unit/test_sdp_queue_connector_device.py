@@ -86,6 +86,7 @@ def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN, DISH_ID)
     sleep(1)
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+    sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL3)
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     assert dev_name == cm.queue_connector_device_info.dev_name
@@ -94,7 +95,9 @@ def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     # Verify NaN list is not processed by DLN
     assert not np.isnan(list(cm.received_pointing_data)[0].pointing_data).any()
     assert not np.isnan(cm.queue_connector_device_info.pointing_data).any()
-    assert np.isnan(cm.last_pointing_data).any()
+    assert np.array_equal(
+        list(cm.received_pointing_data)[0].pointing_data, POINTING_CAL1
+    )
 
 
 @pytest.mark.parametrize(
