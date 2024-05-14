@@ -160,7 +160,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self._last_pointing_data = np.array([0.0, 0.0, 0.0])
         self._update_source_offset_callback = _update_source_offset_callback
-        self._update_source_offset_callback = _update_source_offset_callback
         self._update_last_pointing_data_callback = (
             _update_last_pointing_data_cb
         )
@@ -468,7 +467,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 list(self.received_pointing_data)[0].pointing_data[1]
                 / math.cos(elevation)
             )
-
             elevation = (
                 elevation
                 - list(self.received_pointing_data)[0].pointing_data[2]
@@ -1432,18 +1430,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: bool
         :rtype: bool
         """
-        flag: bool = True
         if len(lst) != number_of_values:
-            flag = False
+            raise ValueError(
+                f"The data {lst}"
+                " should contain atleast {number_of_values} numbers in list."
+            )
 
-        for element in lst:
-            if not isinstance(element, float):
-                flag = False
-        if not flag:
+        is_all_float = all(isinstance(element, float) for element in lst)
+        if not is_all_float:
             raise ValueError(
                 f"The data {lst}" " received is not in expected format."
             )
-        return flag
+        return True
 
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes
