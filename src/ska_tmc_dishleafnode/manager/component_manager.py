@@ -464,14 +464,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
-            azimuth = azimuth - abs(
-                (
-                    list(self.received_pointing_data)[0].pointing_data[1]
-                    / math.cos(elevation)
-                )
+            azimuth = azimuth - (
+                list(self.received_pointing_data)[0].pointing_data[1]
+                / math.cos(elevation)
             )
-            elevation = elevation - abs(
-                list(self.received_pointing_data)[0].pointing_data[2]
+
+            elevation = (
+                elevation
+                - list(self.received_pointing_data)[0].pointing_data[2]
             )
             timestamp = self.convert_timestamp(timestamp_milliseconds)
             right_ascension, declination = self.converter.azel_to_radec(
