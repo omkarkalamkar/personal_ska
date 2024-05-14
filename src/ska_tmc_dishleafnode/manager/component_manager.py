@@ -8,6 +8,7 @@ import re
 import sched
 import threading
 import time
+import math
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Tuple
@@ -464,11 +465,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
             azimuth = (
-                azimuth - list(self.received_pointing_data)[0].pointing_data[1]
+                azimuth - abs((list(self.received_pointing_data)[0].pointing_data[1]/math.cos(elevation)))
             )
             elevation = (
                 elevation
-                - list(self.received_pointing_data)[0].pointing_data[2]
+                - abs(list(self.received_pointing_data)[0].pointing_data[2])
             )
             timestamp = self.convert_timestamp(timestamp_milliseconds)
             right_ascension, declination = self.converter.azel_to_radec(
