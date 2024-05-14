@@ -103,21 +103,20 @@ def scan_command(
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
-        lookahead=6,
-    )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
+        (PointingState.TRACK),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=6,
     )
-    result_scan, unique_id_scan = dish_leaf_node.Scan("1")
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_config[0], str(int(ResultCode.OK))),
+        lookahead=6,
+    )
 
+    result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
     # It takes time to get scanID attribute updated.
