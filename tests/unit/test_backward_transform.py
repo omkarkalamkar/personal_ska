@@ -35,10 +35,15 @@ from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, logger
     ],
 )
 def test_azel_to_radec(
-    tango_context, timestamp, az, el, expected_ra, expected_dec, cm, iers_data
+    tango_context,
+    timestamp,
+    az,
+    el,
+    expected_ra,
+    expected_dec,
+    cm,
 ):
     """Test the backward transform method from AzElConverter."""
-    cm.iers_a = iers_data
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:
@@ -58,9 +63,8 @@ def test_azel_to_radec(
     assert expected_dec == dec
 
 
-def test_actual_pointing(tango_context, cm, iers_data):
+def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
-    cm.iers_a = iers_data
     EXTEND_MILLISECONDS = 100
     dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
     timestamp_str = datetime.datetime.strptime(

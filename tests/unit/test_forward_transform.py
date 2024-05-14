@@ -36,10 +36,8 @@ def test_radec_to_azel(
     expected_el: float,
     tango_context,
     cm,
-    iers_data,
 ):
     """Function to test AzEl conversion"""
-    cm.iers_a = iers_data
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:

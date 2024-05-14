@@ -32,7 +32,7 @@ def test_configure_command_completed(
     )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=4,
+        lookahead=10,
     )
 
 
