@@ -123,6 +123,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
+        self.reset_track_process_event()
         self.elevation = elevation
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit

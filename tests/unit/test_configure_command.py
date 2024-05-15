@@ -1,4 +1,5 @@
 import json
+import time
 
 import pytest
 import tango
@@ -12,7 +13,7 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, wait_for_dish_mode
 
 
-@pytest.mark.repeat(25)
+@pytest.mark.repeat(50)
 def test_configure_command_completed(
     tango_context,
     cm,
@@ -29,6 +30,10 @@ def test_configure_command_completed(
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
+    time.sleep(0.5)
+    cm.update_device_configured_band("2")
+    time.sleep(0.5)
+    cm.update_device_dish_mode(DishMode.OPERATE)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
