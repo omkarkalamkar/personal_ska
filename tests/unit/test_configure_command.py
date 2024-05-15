@@ -13,7 +13,6 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, wait_for_dish_mode
 
 
-@pytest.mark.repeat(50)
 def test_configure_command_completed(
     tango_context,
     cm,
