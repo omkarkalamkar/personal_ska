@@ -1420,7 +1420,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"Error while processing {event_data.attr_value.value}"
                 f"Exception Message is: {e}"
             )
-        # pdb.set_trace()
 
     def validate_float_list(self, lst: list, number_of_values: int) -> bool:
         """Method to check the list in valid format
