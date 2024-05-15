@@ -410,6 +410,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.logger.exception(
                         "Error in actual pointing process: %s", exception
                     )
+                time.sleep(0.01)
 
     def perform_reverse_transform(self, value_list):
         """
