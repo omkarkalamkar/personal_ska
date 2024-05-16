@@ -71,7 +71,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
-        proxy_timeout: int = 500,
+        proxy_timeout: int = 5000,
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
