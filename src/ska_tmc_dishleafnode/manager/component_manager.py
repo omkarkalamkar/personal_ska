@@ -1169,6 +1169,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
             else:
                 self.update_program_track_table(program_track_table)
+            time.sleep(0.01)
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
