@@ -1,3 +1,4 @@
+import json
 from time import sleep
 
 import pytest
@@ -203,6 +204,12 @@ def partial_configure_dish_leaf_node(
         group_callback["pointingState"],
     )
 
+    dish_leaf_node.subscribe_event(
+        "sourceOffset",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["sourceOffset"],
+    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -260,10 +267,18 @@ def partial_configure_dish_leaf_node(
         sleep(1)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
-
+        load_conf = json.loads(input_str)
+        ca_offset = load_conf["pointing"]["target"]["ca_offset_arcsec"]
+        ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),
             lookahead=6,
+        )
+        # Assert change event is occuring and values are reflecting
+        # on sourceOffset attribute.
+        group_callback["sourceOffset"].assert_change_event(
+            [ca_offset, ie_offset],
+            lookahead=2,
         )
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()

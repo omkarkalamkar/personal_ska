@@ -6,7 +6,11 @@ from time import sleep
 from typing import Any, Callable
 
 import tango
-from ska_tmc_common import DishDeviceInfo, EventReceiver
+from ska_tmc_common import (
+    DishDeviceInfo,
+    EventReceiver,
+    SdpQueueConnectorDeviceInfo,
+)
 
 
 class DishLNEventReceiver(EventReceiver):
@@ -207,3 +211,55 @@ class DishLNEventReceiver(EventReceiver):
             new_value
         )
         self._logger.info(f"long running command value updated to {new_value}")
+
+    def subscribe_sdpqc_attribute(
+        self, dev_info: SdpQueueConnectorDeviceInfo, attribute_name: str
+    ) -> None:
+        """Subscribe to the given SDP queue connector attribute"""
+        # Initialized to avoid linting issue.
+        TIMEOUT = 120
+        elapsed_time = 0
+        while not dev_info.subscribed_to_attribute and elapsed_time < TIMEOUT:
+            try:
+                sdp_queue_connector = self._dev_factory.get_device(
+                    dev_info.dev_name
+                )
+                if sdp_queue_connector.ping() > 0:
+                    dev_info.event_id = sdp_queue_connector.subscribe_event(
+                        attribute_name,
+                        tango.EventType.CHANGE_EVENT,
+                        self._component_manager.process_pointing_calibration,
+                        stateless=True,
+                    )
+                    dev_info.subscribed_to_attribute = True
+            except Exception as exception:
+                log_msg = (
+                    f"Unable to subscribe {attribute_name} "
+                    f"device {dev_info.dev_name}/{exception}"
+                )
+                self._logger.exception(log_msg)
+                elapsed_time = elapsed_time + 1
+                sleep(1)
+
+    def unsubscribe_sdpqc_attribute(
+        self, dev_info: SdpQueueConnectorDeviceInfo
+    ) -> None:
+        """Subscribe to the given SDP queue connector attribute"""
+        try:
+            if dev_info.event_id:
+                sdp_queue_connector_proxy = self._dev_factory.get_device(
+                    dev_info.dev_name
+                )
+                sdp_queue_connector_proxy.unsubscribe_event(dev_info.event_id)
+                dev_info.event_id = 0
+                dev_info.subscribed_to_attribute = False
+                self._logger.info(
+                    "Unsubscribed %s Sdp queuue connector attribute event.",
+                    dev_info.dev_name,
+                )
+        except Exception as exception:
+            log_msg = (
+                f"Unable to unsubscribe {dev_info.attribute_name} "
+                f"device {dev_info.dev_name}/{exception}"
+            )
+            self._logger.exception(log_msg)

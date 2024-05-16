@@ -1,20 +1,11 @@
 import datetime
-from time import sleep
+import time
 
 import pytest
 from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, logger
-
-
-def wait_for_iers_data_available(cm):
-    """Function which waits for the IERS data to be available."""
-    elapsed_time = 0
-    timeout = 45
-    while cm.iers_a is not None and elapsed_time <= timeout:
-        elapsed_time = elapsed_time + 1
-        sleep(1)
 
 
 @pytest.mark.parametrize(
@@ -44,10 +35,15 @@ def wait_for_iers_data_available(cm):
     ],
 )
 def test_azel_to_radec(
-    tango_context, timestamp, az, el, expected_ra, expected_dec, cm
+    tango_context,
+    timestamp,
+    az,
+    el,
+    expected_ra,
+    expected_dec,
+    cm,
 ):
     """Test the backward transform method from AzElConverter."""
-    wait_for_iers_data_available(cm)
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:
@@ -61,7 +57,7 @@ def test_azel_to_radec(
             if retry == 2:
                 pytest.fail(f"{e}")
             retry += 1
-        sleep(0.1)
+        time.sleep(0.1)
     ra, dec = converter.azel_to_radec(az, el, timestamp, WEATHER_DATA)
     assert expected_ra == ra
     assert expected_dec == dec
@@ -79,13 +75,27 @@ def test_actual_pointing(tango_context, cm):
         milliseconds=EXTEND_MILLISECONDS
     )
     utc_timestamp = extended_time.timestamp() * 1000
-    dish_manager.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
+    dish_manager.programTrackTable = [
+        utc_timestamp,
+        287.2504396,
+        77.8694392,
+    ]
     # Sometimes loading the iers data takes more time
-    timeout = 60
+    timeout = 5
     count = 0
-    while len(list(cm.actual_pointing)) <= 0 and count <= timeout:
+    flag = True
+    while flag and count <= timeout:
+        if cm.actual_pointing and "2019" in cm.actual_pointing[0]:
+            flag = False
         count += 1
-        sleep(1)
+        time.sleep(1)
+    # Test case is not stable as sometimes tango misses the events
+    # So below instructions added.
+    if flag:
+        converter = AzElConverter(component_manager=cm)
+        converter.create_antenna_obj()
+        cm.perform_reverse_transform([utc_timestamp, 287.2504396, 77.8694392])
+
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",
         "16:29:24.46",

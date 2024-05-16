@@ -1,17 +1,20 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
-import asyncio
 import datetime
 import json
+import math
 import os
+import re
 import sched
 import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 
+import numpy as np
+import tango
 from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -26,8 +29,10 @@ from ska_tmc_common import (
     DishMode,
     LivelinessProbeType,
     PointingState,
+    SdpQueueConnectorDeviceInfo,
     TmcLeafNodeComponentManager,
 )
+from ska_tmc_common.adapters import DishAdapter
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -68,6 +73,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         pointing_callback: Callable,
         kvalue_validation_callback: Callable,
         _update_availablity_callback: Callable,
+        _update_source_offset_callback: Callable,
+        _update_last_pointing_data_cb: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
@@ -118,7 +125,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dish_id = (
-            dish_dev_name.split("/")[-3].upper() if dish_dev_name else None
+            re.findall(
+                "\\b(?:SKA|MKT)\\d{3}\\b", dish_dev_name, flags=re.IGNORECASE
+            )[0]
+            if dish_dev_name
+            else None
         )
         self.observer = None
         self.dish_number = None
@@ -141,8 +152,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.achieved_pointing_data = self.process_manager.Queue()
         self.actual_pointing_process_alive = Event()
+        self._queue_connector_device_info: SdpQueueConnectorDeviceInfo = (
+            SdpQueueConnectorDeviceInfo()
+        )
+        self.received_pointing_data = self.process_manager.list(
+            [self._queue_connector_device_info]
+        )
+        self._last_pointing_data = np.array([0.0, 0.0, 0.0])
+        self._update_source_offset_callback = _update_source_offset_callback
+        self._update_last_pointing_data_callback = (
+            _update_last_pointing_data_cb
+        )
         self.update_availablity_callback = _update_availablity_callback
-        self.supported_commands: Tuple[str] = (
+        self.supported_commands: Tuple[str, str] = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
         )
@@ -158,7 +180,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.dish_adapter = None
+        self.dish_adapter: DishAdapter | None = None
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
         self.track_table_calculator = ProgramTrackTableCalculator(
@@ -233,7 +255,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.actual_pointing_process = Process(
-            target=self.process_actual_pointing
+            target=self.process_actual_pointing,
         )
         self.command_object: dict = {
             "TrackLoadStaticOff": self.track_load_static_off_command,
@@ -241,10 +263,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.process_lock = Lock()
         self.converter = AzElConverter(self)
-        self.kvalue_validation_iers_download_thread = threading.Timer(
-            5, self.start_init_operations
+        self.kvalue_validation_thread = threading.Timer(
+            5, self.update_kvalue_validation_result
         )
-        self.kvalue_validation_iers_download_thread.start()
+
+        self.download_iers_data()
+        self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
 
     @property
@@ -303,6 +327,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self.__command_in_progress
 
+    @property
+    def queue_connector_device_info(self) -> SdpQueueConnectorDeviceInfo:
+        """Get the queue connector device object"""
+        return self._queue_connector_device_info
+
     @command_in_progress.setter
     def command_in_progress(self, cmd_in_progress: str) -> None:
         """Method used to set command in progress value.
@@ -323,24 +352,32 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._actual_pointing[:] = value
-        self.logger.debug(
+        self.logger.info(
             "The updated actual pointing values are: %s", self._actual_pointing
         )
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
-    def start_init_operations(self) -> None:
-        """This method assures proper execution of kvalue validation
-        and iers data download.
-        """
-        asyncio.run(self.run_init_threads())
+    @property
+    def last_pointing_data(self):
+        """Property for last pointing data"""
+        return self._last_pointing_data
 
-    async def run_init_threads(self) -> None:
-        """Await for the completion of beolw tasks"""
-        await self.update_kvalue_validation_result()
-        await self.download_iers_data()
+    @last_pointing_data.setter
+    def last_pointing_data(self, last_pointing_data) -> None:
+        """Method to update the lastPointingData attribute"""
+        self._last_pointing_data = last_pointing_data
+        with self.lock:
+            if self._update_last_pointing_data_callback:
+                self._update_last_pointing_data_callback(last_pointing_data)
 
-    async def download_iers_data(self) -> None:
+    def update_source_offset_callback(self, source_offset: list) -> None:
+        """Method to update the sourceOffset attribute"""
+        with self.lock:
+            if self._update_source_offset_callback:
+                self._update_source_offset_callback(source_offset)
+
+    def download_iers_data(self) -> None:
         """Downloads and initialises the IERS file.
         Incase of error with main link, tries downloading using Mirror link.
 
@@ -352,8 +389,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(exception)
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+        self.logger.info("IERS data download completed.")
 
-    async def update_kvalue_validation_result(self) -> None:
+    def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result
         to central node after DLN start/restart.
 
@@ -425,6 +463,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             timestamp_milliseconds, azimuth, elevation = value_list
+            azimuth = azimuth - (
+                list(self.received_pointing_data)[0].pointing_data[1]
+                / math.cos(elevation)
+            )
+            elevation = (
+                elevation
+                - list(self.received_pointing_data)[0].pointing_data[2]
+            )
             timestamp = self.convert_timestamp(timestamp_milliseconds)
             right_ascension, declination = self.converter.azel_to_radec(
                 str(azimuth),
@@ -931,7 +977,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def is_scan_allowed(
         self,
-    ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
+    ) -> bool | CommandNotAllowed | DeviceUnresponsive:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -961,7 +1007,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def is_endscan_allowed(
         self,
-    ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
+    ) -> bool | CommandNotAllowed | DeviceUnresponsive:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -1049,10 +1095,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def set_dish_id(self, dish_master_fqdn: str) -> None:
         """Find out dish number from DishMasterFQDN
-        property e.g. ska001/elt/master"""
-        self.dish_id = dish_master_fqdn.split("/")[
-            -3
-        ].upper()  # station names in the layout json are in capital
+        property e.g. mid-dish/dish-manager/SKA001
+        Here, SKA001 is the dish number.
+        """
+        self.dish_id = re.findall(
+            "\\b(?:SKA|MKT)\\d{3}\\b", dish_master_fqdn, flags=re.IGNORECASE
+        )[
+            0
+        ]  # station names in the layout json are in capital
 
     def is_abortcommands_allowed(self) -> bool:
         """
@@ -1286,6 +1336,112 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self._track_process_event.clear()
 
+    def process_sqpqc_attribute_fqdn(
+        self, sdpqc_fqdn: str, dish_id: str
+    ) -> None:
+        """Method to subscribe to SDP queue connector attribute.
+        :type attribute_name: str
+        :return: None
+        :rtype: None
+        """
+        dev_name = sdpqc_fqdn.rsplit("/", 1)[0]
+        # Return if same FQDN exists
+        if dev_name == self.queue_connector_device_info.dev_name:
+            return
+        # Unsubscribe the old FQDN if new FQDN comes
+        if (
+            self.queue_connector_device_info.dev_name
+            and dev_name != self.queue_connector_device_info.dev_name
+        ):
+            self.event_receiver_object.unsubscribe_sdpqc_attribute(
+                self.queue_connector_device_info
+            )
+        # Subscribe to the SDP queue connector attribute
+        self.queue_connector_device_info.dev_name = dev_name
+        attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(dish_id=dish_id)
+        self.event_receiver_object.subscribe_sdpqc_attribute(
+            self.queue_connector_device_info, attribute_name
+        )
+
+        if self.queue_connector_device_info.event_id:
+            self.queue_connector_device_info.subscribed_to_attribute = True
+            self.queue_connector_device_info.attribute_name = attribute_name
+            self.logger.info(
+                "Subscribed to %s of %s.",
+                self.queue_connector_device_info.attribute_name,
+                self.queue_connector_device_info.dev_name,
+            )
+        else:
+            self.queue_connector_device_info.dev_name = ""
+            self.logger.exception(
+                "Failed to subscribe to %s of %s.",
+                self.queue_connector_device_info.attribute_name,
+                self.queue_connector_device_info.dev_name,
+            )
+
+    def process_pointing_calibration(
+        self, event_data: tango.EventData
+    ) -> None:
+        """Method to process pointing offsets received
+        from SDP queue connector device
+        """
+        try:
+            if self.queue_connector_device_info.subscribed_to_attribute:
+                if self.validate_float_list(
+                    event_data.attr_value.value, number_of_values=3
+                ):
+                    if np.isnan(event_data.attr_value.value).any():
+                        self.last_pointing_data = event_data.attr_value.value
+                        self.logger.error(
+                            "NaN value found in %s receeived pointing data",
+                            self.last_pointing_data,
+                        )
+                    else:
+                        self.queue_connector_device_info.pointing_data = (
+                            event_data.attr_value.value
+                        )
+                        self.received_pointing_data[:] = [
+                            self.queue_connector_device_info
+                        ]
+                        self.last_pointing_data = event_data.attr_value.value
+                        offsets = json.dumps(
+                            [
+                                event_data.attr_value.value[1],
+                                event_data.attr_value.value[2],
+                            ]
+                        )
+                        self.track_load_static_off_command.do(offsets)
+            self.logger.info(
+                "Received SDPQC pointing calibrration: %s",
+                event_data.attr_value.value,
+            )
+        except Exception as e:
+            self.logger.exception(
+                f"Error while processing {event_data.attr_value.value}"
+                f"Exception Message is: {e}"
+            )
+
+    def validate_float_list(self, lst: list, number_of_values: int) -> bool:
+        """Method to check the list in valid format
+
+        :type lst: list
+        :type: number_of_values: int
+        :return: bool
+        :rtype: bool
+        """
+        if len(lst) != number_of_values:
+            raise ValueError(
+                f"The data {lst}"
+                " should contain atleast {number_of_values} numbers in list."
+            )
+
+        is_all_float = all(isinstance(element, float) for element in lst)
+        if not is_all_float:
+            raise ValueError(
+                f"The data {lst}" " received is not in expected format."
+            )
+        return True
+
     def stop_executors_and_cleanup_memory(self) -> None:
         """Method to clean up the code, stop running threads/sub-processes
 
@@ -1293,17 +1449,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
-        if self.actual_pointing_process.is_alive():
+
+        if self.event_receiver:
             self.stop_event_receiver()
+
+        if self.liveliness_probe_object:
             self.stop_liveliness_probe()
+
+        if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
-            self.actual_pointing[:] = [None]
-            while not self.achieved_pointing_data.empty():
-                _ = self.achieved_pointing_data.get(block=True)
-            self.achieved_pointing_data.put(None)
-            self.process_manager.shutdown()
-            self.logger.info("stop_executors_and_cleanup_memory successful")
+        del self._actual_pointing
+        del self.received_pointing_data
+        while not self.achieved_pointing_data.empty():
+            _ = self.achieved_pointing_data.get(block=True)
+        del self.achieved_pointing_data
+        self.process_manager.shutdown()
+        self.logger.info("stop_executors_and_cleanup_memory successful")
 
     def __del__(self):
         """

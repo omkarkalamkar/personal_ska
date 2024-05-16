@@ -2,8 +2,11 @@
 # flake8: noqa
 
 import json
+import re
 from typing import List, Tuple, Union
 
+from numpy import isnan
+from numpy import nan as NaN
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common import (
@@ -13,7 +16,15 @@ from ska_tmc_common import (
     LivelinessProbeType,
     PointingState,
 )
-from tango import AttrWriteType, Database, DebugIt
+from tango import (
+    ArgType,
+    AttrDataFormat,
+    AttrQuality,
+    AttrWriteType,
+    Database,
+    DebugIt,
+    TimeVal,
+)
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
@@ -38,7 +49,8 @@ class DishLeafNode(SKABaseDevice):
     # Device Properties
     # -----------------
     DishMasterFQDN = device_property(
-        dtype="str", doc="FQDN of Dish Master Device"
+        dtype="str",
+        doc="FQDN of Dish Master Device",
     )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
@@ -102,12 +114,21 @@ class DishLeafNode(SKABaseDevice):
         self._isSubsystemAvailable = True
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
+        self._sdpQueueConnectorFqdn = ""
+        self._sourceOffset: List = [NaN, NaN]
+        self._lastPointingData: str = "Not Set"
+        self._last_pointing_data_attr_quality = getattr(
+            AttrQuality, "ATTR_VALID"
+        )
         self.set_change_event("healthState", True, False)
         self.set_change_event("isSubsystemAvailable", True, False)
         self.set_change_event("actualPointing", True, False)
         self.set_change_event("kValueValidationResult", True, False)
         self.set_change_event("dishMode", True, False)
         self.set_change_event("pointingState", True, False)
+        self.set_change_event("sdpQueueConnectorFqdn", True, False)
+        self.set_change_event("sourceOffset", True, False)
+        self.set_change_event("lastPointingData", True, True)
 
     class InitCommand(SKABaseDevice.InitCommand):
         """
@@ -143,6 +164,26 @@ class DishLeafNode(SKABaseDevice):
             # pylint: disable=unnecessary-dunder-call
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call
+
+    def update_source_offset_callback(self, source_offset: List) -> None:
+        """Change event callback for sourceOffset attribute"""
+        self._sourceOffset = source_offset
+        self.push_change_event("sourceOffset", self._sourceOffset)
+        self.logger.info(
+            "sourceOffset updated to value: %s", self._sourceOffset
+        )
+
+    def update_last_pointing_data_cb(self, last_pointing_data: List) -> None:
+        """Change event callback for lastPointingData attribute"""
+        if isnan(last_pointing_data).any():
+            self._last_pointing_data_attr_quality = getattr(
+                AttrQuality, "ATTR_ALARM"
+            )
+        self._lastPointingData = json.dumps(last_pointing_data.tolist())
+        self.push_change_event("lastPointingData", self._lastPointingData)
+        self.logger.info(
+            "lastPointingData updated to value: %s", last_pointing_data
+        )
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
@@ -180,7 +221,6 @@ class DishLeafNode(SKABaseDevice):
     # ------------------
     # Attributes methods
     # ------------------
-
     def read_dishMasterDevName(self) -> str:
         """Returns the dishMasterDevName attribute value."""
         return self.component_manager.dish_dev_name
@@ -241,6 +281,81 @@ class DishLeafNode(SKABaseDevice):
     def kValueValidationResult(self) -> str:
         """Read method to get the k-value validation result"""
         return str(int(self.component_manager.kValueValidationResult))
+
+    @attribute(
+        dtype=ArgType.DevString,
+        dformat=AttrDataFormat.SCALAR,
+        access=AttrWriteType.READ_WRITE,
+    )
+    def sdpQueueConnectorFqdn(self) -> str:
+        """
+        This attribute is used for storing the FQDN of pointing_cal
+        attribute from SDP queue connector device, which is required in
+        calibration scan.
+        :return: str
+        """
+        return self._sdpQueueConnectorFqdn
+
+    @sdpQueueConnectorFqdn.write
+    def sdpQueueConnectorFqdn(self, sdpqc_fqdn: str) -> None:
+        """
+        This Method is used to get the SDP queue connector FQDN from
+        subarray node and then Dish Leaf Node have to subscribe to its
+        respective pointing_cal attribute on queue connector device.
+        """
+        dish_id = re.findall(
+            r"\b(?:ska|mkt)\w*", self.DishMasterFQDN, flags=re.IGNORECASE
+        )[0].upper()
+        self._sdpQueueConnectorFqdn = sdpqc_fqdn
+        self.component_manager.process_sqpqc_attribute_fqdn(
+            sdpqc_fqdn, dish_id
+        )
+        self.push_change_event(
+            "sdpQueueConnectorFqdn", self._sdpQueueConnectorFqdn
+        )
+
+    @attribute(
+        dtype=ArgType.DevDouble,
+        dformat=AttrDataFormat.SPECTRUM,
+        access=AttrWriteType.READ,
+        max_dim_x=2,
+    )
+    def sourceOffset(self) -> list[float]:
+        """
+        This attribute is used for storing the commanded offsets
+        received as a part of delta/partial configuration.
+        This attribute is subscribed by SDP queue connector
+        device.
+        delta/partial configuration values like ca_offset_arcsec
+        and ie_offset_arcsec are provided in the partial configuration
+        json.
+        source offset example:
+        [cross_elevation_offset, elevation_offset]
+        [0, .5]
+        [.5, 0]
+        [0, -.5], etc
+        :return: list[float]
+        """
+        return self._sourceOffset
+
+    @attribute(
+        dtype=ArgType.DevString,
+        dformat=AttrDataFormat.SCALAR,
+        access=AttrWriteType.READ,
+    )
+    def lastPointingData(self):
+        """
+        This attribute is used to store the recent
+        pointing data received in calibration scan
+        :return: str
+        """
+        if self._last_pointing_data_attr_quality is AttrQuality.ATTR_VALID:
+            return self._lastPointingData
+        return (
+            self._lastPointingData,
+            TimeVal.totime(TimeVal.now()),
+            self._last_pointing_data_attr_quality,
+        )
 
     # --------
     # Commands
@@ -708,6 +823,8 @@ class DishLeafNode(SKABaseDevice):
             elevation_max_limit=self.ElevationMaxLimit,
             elevation_min_limit=self.ElevationMinLimit,
             _update_availablity_callback=self.update_availablity_callback,
+            _update_source_offset_callback=self.update_source_offset_callback,
+            _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
         )
         return cm
 
