@@ -1100,7 +1100,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_adapter.programTrackTable = program_track_table
 
     def track_process(
-        self, ra_value: str, dec_value: str, command_obj: Configure | Track
+        self,
+        ra_value: str,
+        dec_value: str,
+        command_obj: Configure | Track,
+        azel_converter,
     ) -> None:
         """
         This method manages calculation and writing of programTrackTable
@@ -1121,8 +1125,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        azel_converter = AzElConverter(self)
-        azel_converter.create_antenna_obj()
+        # azel_converter = AzElConverter(self)
+        # azel_converter.create_antenna_obj()
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
@@ -1159,14 +1163,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             scheduled_time = first_entry_timestamp - advance_time
 
             if scheduled_time > datetime.datetime.utcnow().timestamp():
-                event_priority = 1
-                self.track_table_scheduler.enterabs(
-                    scheduled_time,
-                    event_priority,
-                    self.update_program_track_table,
-                    argument=(program_track_table,),
+                # event_priority = 1
+                # self.track_table_scheduler.enterabs(
+                #     scheduled_time,
+                #     event_priority,
+                #     self.update_program_track_table,
+                #     argument=(program_track_table,),
+                # )
+                # self.track_table_scheduler.run()
+                time.sleep(
+                    scheduled_time - datetime.datetime.utcnow().timestamp()
                 )
-                self.track_table_scheduler.run()
             else:
                 self.update_program_track_table(program_track_table)
 
