@@ -197,7 +197,7 @@ class Configure(DishLNCommand):
 
         """
         try:
-            azel_converter = AzElConverter(self)
+            azel_converter = AzElConverter(self.component_manager)
             azel_converter.create_antenna_obj()
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
