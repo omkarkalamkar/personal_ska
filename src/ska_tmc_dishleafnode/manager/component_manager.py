@@ -1146,7 +1146,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.debug("ProgramTrackTable: %s", program_track_table)
+        self.logger.info("ProgramTrackTable: %s", program_track_table)
         self.dish_adapter.programTrackTable = program_track_table
 
     def track_process(
@@ -1212,17 +1212,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             scheduled_time = first_entry_timestamp - advance_time
 
             if scheduled_time > datetime.datetime.utcnow().timestamp():
-                # event_priority = 1
-                # self.track_table_scheduler.enterabs(
-                #     scheduled_time,
-                #     event_priority,
-                #     self.update_program_track_table,
-                #     argument=(program_track_table,),
-                # )
-                # self.track_table_scheduler.run()
-                time.sleep(
-                    scheduled_time - datetime.datetime.utcnow().timestamp()
+                event_priority = 1
+                self.track_table_scheduler.enterabs(
+                    scheduled_time,
+                    event_priority,
+                    self.update_program_track_table,
+                    argument=(program_track_table,),
                 )
+                self.track_table_scheduler.run()
+                # time.sleep(
+                #     scheduled_time - datetime.datetime.utcnow().timestamp()
+                # )
             else:
                 self.update_program_track_table(program_track_table)
 
