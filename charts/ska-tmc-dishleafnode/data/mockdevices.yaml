@@ -12,8 +12,9 @@ server:
       classes:
       - name: "HelperDishDevice"
         devices:
-        - name: "ska{{ printf "%03s" . }}/elt/master"
+        - name: "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"
   {{- end }}
+
 depends_on:
   - device: sys/database/2
 image:

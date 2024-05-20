@@ -53,7 +53,7 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
-    dish_master = dev_factory.get_device("ska001/elt/master")
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_code == ResultCode.OK
     # validate kvalue set on dish manager
@@ -94,7 +94,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
-    dish_master = dev_factory.get_device("ska001/elt/master")
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_code == ResultCode.OK
     # validate kvalue set on dish manager

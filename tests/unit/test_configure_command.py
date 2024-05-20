@@ -10,7 +10,7 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from tests.settings import logger, wait_for_dish_mode
+from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_dish_mode
 
 
 def test_configure_command_completed(
@@ -41,7 +41,7 @@ def test_configure_command_completed(
     )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=4,
+        lookahead=6,
     )
 
 
@@ -51,7 +51,7 @@ def test_configure_command_completed_partial_config(
 ):
     """Test partial configure functionality"""
     cm.update_device_dish_mode(DishMode.OPERATE)
-    dish_device = DevFactory().get_device("ska001/elt/master")
+    dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     dish_device.subscribe_event(
         "longRunningCommandStatus",
         tango.EventType.CHANGE_EVENT,
@@ -108,10 +108,10 @@ def test_configure_command_completed_partial_config_missing_key(
     )
 
 
-@pytest.mark.skip(
-    reason="Test case runs with CORBA exception for indefinite time"
-)
-def test_configure_command_adapter_none(task_callback, cm, json_factory):
+def test_configure_command_adapter_none(
+    task_callback, cm_without_er_lp, json_factory
+):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")

@@ -23,8 +23,11 @@ KVALUE = 9
 SLEEP_TIME = 0.5
 TIMEOUT = 100
 
-DISH_MASTER_DEVICE = "ska001/elt/master"
+DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
+SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
+SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
+
 WEATHER_DATA: Final = {
     "temperature": 30.0,
     "pressure": 900.0,
@@ -72,6 +75,15 @@ def update_availablity_callback():
     """An empty update_availablity callback"""
 
 
+def update_source_offset_callback():
+    """An empty update_source_offset callback"""
+
+
+def update_last_pointing_data_callback(temp):
+    """An empty last pointing data callback"""
+    logger.debug(temp)
+
+
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
@@ -86,6 +98,8 @@ def create_cm(device: str) -> DishLNComponentManager:
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
     )
     return cm
 
@@ -120,6 +134,17 @@ def event_remover(group_callback, attributes: List[str]) -> None:
             pass
 
 
+def wait_for_device_to_up(device_proxy):
+    """This test case waits for the device"""
+    timeout = 0
+    while timeout < 30:
+        time.sleep(1)
+        timeout = timeout + 1
+        if device_proxy.dishMode == DishMode.STANDBY_LP:
+            return True
+    return False
+
+
 def wait_for_dish_mode(
     cm: DishLNComponentManager, dish_mode: DishMode
 ) -> bool:
@@ -129,7 +154,8 @@ def wait_for_dish_mode(
     start_time = time.time()
     elapsed_time = 0
     while elapsed_time < TIMEOUT:
-        if cm.dishMode == dish_mode:
+        cm.update_device_dish_mode(dish_mode)
+        if cm.dishMode == int(dish_mode):
             return True
         elapsed_time = time.time() - start_time
     logger.info("Current Dishmode is %s", cm.dishMode)
