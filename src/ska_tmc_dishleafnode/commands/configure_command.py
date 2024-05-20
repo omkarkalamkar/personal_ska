@@ -16,7 +16,6 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
 configure_logging()
@@ -197,8 +196,6 @@ class Configure(DishLNCommand):
 
         """
         try:
-            azel_converter = AzElConverter(self.component_manager)
-            azel_converter.create_antenna_obj()
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
                 self.logger.info(
@@ -217,7 +214,7 @@ class Configure(DishLNCommand):
                 dec_value = json_argument["pointing"]["target"]["dec"]
                 self.track_table_process = Process(
                     target=self.component_manager.track_process,
-                    args=[ra_value, dec_value, self, azel_converter],
+                    args=[ra_value, dec_value, self],
                 )
                 if not self.track_table_process.is_alive():
                     self.track_table_process.start()

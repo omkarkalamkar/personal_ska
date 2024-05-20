@@ -1154,7 +1154,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ra_value: str,
         dec_value: str,
         command_obj: Configure | Track,
-        azel_converter,
     ) -> None:
         """
         This method manages calculation and writing of programTrackTable
@@ -1175,8 +1174,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        # azel_converter = AzElConverter(self)
-        # azel_converter.create_antenna_obj()
+        azel_converter = AzElConverter(self)
+        azel_converter.create_antenna_obj()
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
