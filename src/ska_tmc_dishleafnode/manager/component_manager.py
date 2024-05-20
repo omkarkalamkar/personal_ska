@@ -78,7 +78,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         max_workers: int = 1,
-        proxy_timeout: int = 500,
+        proxy_timeout: int = 5000,
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
@@ -448,6 +448,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.logger.exception(
                         "Error in actual pointing process: %s", exception
                     )
+                time.sleep(0.01)
 
     def perform_reverse_transform(self, value_list):
         """
@@ -1218,6 +1219,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
             else:
                 self.update_program_track_table(program_track_table)
+            time.sleep(0.01)
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
