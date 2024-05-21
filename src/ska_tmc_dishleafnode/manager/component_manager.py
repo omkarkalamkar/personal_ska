@@ -448,7 +448,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.logger.exception(
                         "Error in actual pointing process: %s", exception
                     )
-                time.sleep(0.001)
+                # time.sleep(0.001)
 
     def perform_reverse_transform(self, value_list):
         """
@@ -1219,7 +1219,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
             else:
                 self.update_program_track_table(program_track_table)
-            time.sleep(0.01)
+            # time.sleep(0.01)
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
