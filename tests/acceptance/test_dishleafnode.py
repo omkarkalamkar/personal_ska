@@ -7,7 +7,7 @@ import tango
 from pytest_bdd import given, parsers, scenarios, then, when
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
-from ska_tmc_common.enum import DishMode, pointingState  # noqa:F401
+from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
 from tests.settings import event_remover, wait_for_ping
@@ -143,7 +143,7 @@ def check_command(
     if "Configure" in unique_id:
         if (
             dishleaf_node.dishMode == DishMode.OPERATE
-            and dishleaf_node.pointingState == pointingState.TRACK
+            and dishleaf_node.pointingState == PointingState.TRACK
         ):
             dishleaf_node.TrackStop()
     group_callback["longRunningCommandsInQueue"].assert_change_event(
