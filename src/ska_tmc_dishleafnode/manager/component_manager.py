@@ -271,6 +271,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self.converter.create_antenna_obj()
 
     @property
     def kValueValidationResult(self) -> int:
@@ -1174,8 +1175,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        azel_converter = AzElConverter(self)
-        azel_converter.create_antenna_obj()
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
@@ -1191,7 +1190,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
         timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
-        azel_converter.point(ra_value, dec_value, timestamp)
+        self.converter.point(ra_value, dec_value, timestamp)
 
         advance_time = (
             self.track_table_entries * self.pointing_calculation_period
@@ -1200,7 +1199,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while self.get_track_process_event_status() is False:
             program_track_table = (
                 self.track_table_calculator.calculate_program_track_table(
-                    ra_value, dec_value, azel_converter
+                    ra_value, dec_value, self.converter
                 )
             )
             first_entry_timestamp = (

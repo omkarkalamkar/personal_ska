@@ -142,10 +142,10 @@ def check_command(
     # device server and intermittent test failure.
     if dishleaf_node.pointingState == PointingState.TRACK:
         dishleaf_node.TrackStop()
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=6,
-    )
+        group_callback["longRunningCommandsInQueue"].assert_change_event(
+            (),
+            lookahead=6,
+        )
     assert str(dish_master_proxy.state()) == resultant_state
 
 
