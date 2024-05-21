@@ -1220,9 +1220,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     argument=(program_track_table,),
                 )
                 self.track_table_scheduler.run()
-                # time.sleep(
-                #     scheduled_time - datetime.datetime.utcnow().timestamp()
-                # )
             else:
                 self.update_program_track_table(program_track_table)
 

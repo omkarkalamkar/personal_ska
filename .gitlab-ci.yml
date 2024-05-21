@@ -74,7 +74,7 @@ include:
 # retry to template job for python-test
 python-test:
   tags:
-    - ska-k8s
+    - k8srunner-large
   variables:
     PYTHON_TEST_COUNT: 1
   retry: 1
@@ -87,10 +87,9 @@ python-lint:
 
 k8s-test:
   tags:
-    - ska-k8s
+    - k8srunner-large
   variables:
     COUNT: 1
-    CI_KEEP_NAMESPACE: "true"
     SERVICE_ACCOUNT: "ci-svc-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-on-demand-tmc-test"
   before_script:
     - make cred SERVICE_ACCOUNT=$SERVICE_ACCOUNT
