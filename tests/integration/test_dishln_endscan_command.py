@@ -102,17 +102,16 @@ def endscan_command(
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
+        (PointingState.TRACK),
         lookahead=6,
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_config[0], str(int(ResultCode.OK))),
         lookahead=6,
     )
 

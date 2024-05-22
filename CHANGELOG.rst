@@ -8,10 +8,15 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Added
 ======
 
+[0.13.1]
+*********
+* Updated Configure command to support multi-configure functionality.
+
+
 [0.13.0]
 *********
 * Added improvements in dish leaf node as per modifications outlined in ADR-76.
-  
+
 
 [0.12.1]
 *********
