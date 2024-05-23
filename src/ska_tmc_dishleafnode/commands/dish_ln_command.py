@@ -51,6 +51,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                         dev_name, AdapterType.DISH
                     )
                 )
+                self.dish_master_adapter.proxy.set_timeout_millis(5000)
                 self.logger.info("Adapter created successfully")
             except ConnectionFailed as connection_failed:
                 elapsed_time = time.time() - start_time
