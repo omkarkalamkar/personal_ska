@@ -1148,7 +1148,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        # self.logger.info("ProgramTrackTable: %s", program_track_table)
+        self.logger.info("ProgramTrackTable: %s", program_track_table)
         self.dish_adapter.programTrackTable = program_track_table
 
     def track_process(
