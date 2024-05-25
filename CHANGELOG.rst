@@ -30,3 +30,9 @@ Added
 *********
 * Updated Scan command interface to include scan_id as argument
 * EndScan command has been added in in Dish Leaf Node to invoke EndScan command on Dish Master.
+
+Fixed
+======
+[0.13.3]
+*********
+Fixed the dish id not coming as expected from real dish master fqdn.
