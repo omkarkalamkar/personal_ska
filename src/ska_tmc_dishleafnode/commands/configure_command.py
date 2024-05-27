@@ -216,8 +216,8 @@ class Configure(DishLNCommand):
                     target=self.component_manager.track_process,
                     args=[ra_value, dec_value, self],
                 )
-                if not self.track_table_process.is_alive():
-                    self.track_table_process.start()
+                # if not self.track_table_process.is_alive():
+                #     self.track_table_process.start()
 
             if json_argument.get("tmc"):
                 self.component_manager.command_in_progress = (

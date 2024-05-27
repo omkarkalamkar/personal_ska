@@ -1148,22 +1148,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        dish_command_in_progress = (
-            self.dish_adapter.proxy.longRunningCommandProgress
-        )
-        self.logger.info(
-            "Dish command in progress: %s", dish_command_in_progress
-        )
-
-        if not dish_command_in_progress:
-            self.dish_adapter.programTrackTable = program_track_table
-        else:
-            self.logger.info(
-                "programTrackTable attribute on dish won't get "
-                + "new coordinates since dish is busy with processing"
-                + "%s command",
-                dish_command_in_progress,
-            )
+        self.logger.debug("Updating programTrackTable attribute...")
+        self.logger.debug("programTrackTable: %s", program_track_table)
+        self.dish_adapter.programTrackTable = program_track_table
 
     def track_process(
         self,
