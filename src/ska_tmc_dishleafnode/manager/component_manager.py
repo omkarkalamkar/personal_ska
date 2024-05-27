@@ -267,11 +267,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
-
+        self.converter.create_antenna_obj()
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self.converter.create_antenna_obj()
 
     @property
     def kValueValidationResult(self) -> int:
@@ -432,7 +431,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.converter.create_antenna_obj()
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
         while self.actual_pointing_process_alive.is_set() is False:

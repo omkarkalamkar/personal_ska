@@ -179,6 +179,10 @@ class DishLeafNode(SKABaseDevice):
             self._last_pointing_data_attr_quality = getattr(
                 AttrQuality, "ATTR_ALARM"
             )
+        else:
+            self._last_pointing_data_attr_quality = getattr(
+                AttrQuality, "ATTR_VALID"
+            )
         self._lastPointingData = json.dumps(last_pointing_data.tolist())
         self.push_change_event("lastPointingData", self._lastPointingData)
         self.logger.info(
