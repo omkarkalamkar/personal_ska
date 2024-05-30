@@ -78,8 +78,9 @@ class SetOperateMode(DishLNCommand):
             )
             return result_code, message
 
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "SetOperateMode"
-        )
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "SetOperateMode"
+            )
 
         return result_code[0], message[0]
