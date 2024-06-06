@@ -131,6 +131,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
+        self.tango_operation_execution_lock = threading.Lock()
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
@@ -1148,9 +1149,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.debug("Updating programTrackTable attribute...")
-        self.logger.debug("programTrackTable: %s", program_track_table)
-        self.dish_adapter.programTrackTable = program_track_table
+        self.logger.info("ProgramTrackTable: %s", program_track_table)
+        if not self.tango_operation_execution_lock.locked():
+            self.dish_adapter.programTrackTable = program_track_table
+        else:
+            self.logger.info("Can't update tracktable since dish is busy")
 
     def track_process(
         self,
