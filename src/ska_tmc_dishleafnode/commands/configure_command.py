@@ -216,8 +216,11 @@ class Configure(DishLNCommand):
                     target=self.component_manager.track_process,
                     args=[ra_value, dec_value, self],
                 )
-                if not self.track_table_process.is_alive():
-                    self.track_table_process.start()
+                # TrackTable generation is disabled due to CORBA exceptions
+                # observed on DishLeafNode and it will worked out as part
+                # of SAH-1543
+                # if not self.track_table_process.is_alive():
+                #     self.track_table_process.start()
 
             if json_argument.get("tmc"):
                 self.component_manager.command_in_progress = (
