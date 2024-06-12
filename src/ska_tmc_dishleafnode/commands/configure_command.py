@@ -291,7 +291,7 @@ class Configure(DishLNCommand):
         Args: None
 
         return: Tuple[ResultCode, str]"""
-        if self.component_manager.dishMode == DishMode.STANDBY_FP:
+        if self.component_manager.dishMode != DishMode.OPERATE:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
                 return result_code, message
