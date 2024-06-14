@@ -264,14 +264,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
         self.process_lock = Lock()
-        self.converter = AzElConverter(self)
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
-        self.converter.create_antenna_obj()
+        self.create_converter_obj_and_antenna_obj()
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+
+    def create_converter_obj_and_antenna_obj(self):
+        """Create AzElConverter Object and antenna object"""
+        try:
+            self.converter = AzElConverter(self)
+            self.converter.create_antenna_obj()
+        except Exception as exp:
+            self.logger.exception("Error while creating antenna obj %s", exp)
 
     @property
     def kValueValidationResult(self) -> int:
