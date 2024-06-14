@@ -227,7 +227,7 @@ class DishLeafNode(SKABaseDevice):
         """Push an event for the kValue attribute."""
         self.push_change_event(
             "kValue",
-            str(int(self.component_manager.kValue)),
+            int(self.component_manager.kValue),
         )
         self.logger.info(
             "k-value : %s",
