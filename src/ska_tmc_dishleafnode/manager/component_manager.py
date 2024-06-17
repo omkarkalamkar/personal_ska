@@ -1277,15 +1277,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 return
             with self.lock:
                 if (
-                    lrc_status[0].endswith(self.supported_commands)
+                    lrc_status[-2].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
                     command_object = self.command_object.get(
                         self.command_in_progress
                     )
-                    if lrc_status[1].upper() == "COMPLETED":
+                    if lrc_status[-1].upper() == "COMPLETED":
                         command_object.update_task_callback(ResultCode.OK)
-                    elif lrc_status[1].upper() == "FAILED":
+                    elif lrc_status[-1].upper() == "FAILED":
                         command_object.update_task_callback(
                             ResultCode.FAILED, lrc_status[1]
                         )
