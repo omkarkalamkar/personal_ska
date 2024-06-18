@@ -85,9 +85,9 @@ class DishLNEventReceiver(EventReceiver):
                     stateless=True,
                 )
                 dish_dev_proxy.subscribe_event(
-                    "longRunningCommandStatus",
+                    "longRunningCommandResult",
                     tango.EventType.CHANGE_EVENT,
-                    self.handle_long_running_command_status,
+                    self.handle_long_running_command_result,
                     stateless=True,
                 )
             except Exception as exception:
@@ -187,7 +187,7 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.achieved_pointing_data.put(new_value)
         self._logger.debug(f"achievedPointing value is updated to {new_value}")
 
-    def handle_long_running_command_status(
+    def handle_long_running_command_result(
         self, event_data: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
