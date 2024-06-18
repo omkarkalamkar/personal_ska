@@ -19,7 +19,7 @@ global:
   - "--sleep=5"
   dish_devices:
     - "dishleafnode"
-  dishes: ["01", "02", "03", "04"]
+  dishes: ["01"]
 
 dsconfig:
   configuration_file: data/configuration.json
@@ -52,11 +52,11 @@ resources:
 deviceServers:
   mocks:
     enabled: true
-    instances: ["01", "02", "03", "04"]
+    instances: ["01"]
     file: "data/mockdevices.yaml"
   dishln:
     enabled: true
-    instances: ["01", "02", "03", "04"]
+    instances: ["01"]
     file: "data/dishleafnode.yaml"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50

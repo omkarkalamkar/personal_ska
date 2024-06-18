@@ -45,6 +45,7 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
     )
 
 
+@pytest.mark.SKA_mid1
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
@@ -80,6 +81,17 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
         str(int(ResultCode.OK)),
         lookahead=8,
     )
+
+    dish_leaf_node.subscribe_event(
+        "kValue",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["kValue"],
+    )
+    group_callback["kValue"].assert_change_event(
+        dish_leaf_node.kValue,
+        lookahead=8,
+    )
+
     event_remover(
         group_callback,
         ["kValueValidationResult"],
