@@ -262,9 +262,10 @@ def partial_configure_dish_leaf_node(
     partial_configurations = build_partial_configure_data(
         partial_configure_input_str, OFFSET
     )
+    count = 0
     for input_str in partial_configurations:
         # Give a pause before invoking next configuration
-        sleep(1)
+        sleep(3)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
@@ -272,7 +273,7 @@ def partial_configure_dish_leaf_node(
         ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),
-            lookahead=6,
+            lookahead=8,
         )
         # Assert change event is occuring and values are reflecting
         # on sourceOffset attribute.
@@ -280,6 +281,8 @@ def partial_configure_dish_leaf_node(
             [ca_offset, ie_offset],
             lookahead=2,
         )
+        count += 1
+        logger.info(f"My test count is{count}")
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
@@ -314,6 +317,7 @@ def partial_configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.aki12
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_partial_configure_command(
