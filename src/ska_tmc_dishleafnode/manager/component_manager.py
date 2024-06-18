@@ -1276,19 +1276,50 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if not lrc_status:
                 return
             with self.lock:
+                if lrc_status == ("", ""):
+                    self.logger.info("Empty longRunningCommandResult event")
                 if (
-                    lrc_status[-2].endswith(self.supported_commands)
+                    lrc_status[0].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
-                    command_object = self.command_object.get(
-                        self.command_in_progress
-                    )
-                    if lrc_status[-1].upper() == "COMPLETED":
-                        command_object.update_task_callback(ResultCode.OK)
-                    elif lrc_status[-1].upper() == "FAILED":
-                        command_object.update_task_callback(
-                            ResultCode.FAILED, lrc_status[1]
+                    command_result = lrc_status[1].strip("][)(").split(", ")
+                    self.logger.info("command_result: %s", command_result)
+
+                    # if ResultCode is a 0th element of command_result then
+                    # ignore the event
+                    if "ResultCode" in command_result[0]:
+                        self.logger.info(
+                            "Command result code is %s type: %s",
+                            command_result[0],
+                            type(command_result[0]),
                         )
+                    else:
+                        # Exception will be raised if 0th element of
+                        # command_result is exception
+                        result_code = int(command_result[0])
+                        command_object = self.command_object.get(
+                            self.command_in_progress
+                        )
+                        if result_code == ResultCode.OK:
+                            command_object.update_task_callback(ResultCode.OK)
+                        elif result_code == ResultCode.FAILED:
+                            command_object.update_task_callback(
+                                ResultCode.FAILED, command_result[1]
+                            )
+
+                # if (
+                #     lrc_status[-2].endswith(self.supported_commands)
+                #     and self.command_in_progress in self.supported_commands
+                # ):
+                #     command_object = self.command_object.get(
+                #         self.command_in_progress
+                #     )
+                #     if lrc_status[-1].upper() == "COMPLETED":
+                #         command_object.update_task_callback(ResultCode.OK)
+                #     elif lrc_status[-1].upper() == "FAILED":
+                #         command_object.update_task_callback(
+                #             ResultCode.FAILED, lrc_status[1]
+                #         )
         except Exception as exception:
             self.logger.error(
                 "Exception while processing longRunningCommandStatus",
