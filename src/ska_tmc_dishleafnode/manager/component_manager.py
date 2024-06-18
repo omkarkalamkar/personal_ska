@@ -1273,6 +1273,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type: (Tuple[List[str], List[str]])
         """
         try:
+            self.logger.info(f"My lrcr status{lrc_status}")
             if not lrc_status:
                 return
             with self.lock:
@@ -1287,25 +1288,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
                     # if ResultCode is a 0th element of command_result then
                     # ignore the event
-                    if "ResultCode" in command_result[0]:
-                        self.logger.info(
-                            "Command result code is %s type: %s",
-                            command_result[0],
-                            type(command_result[0]),
+
+                    # Exception will be raised if 0th element of
+                    # command_result is exception
+                    result_code = int(command_result[0])
+                    self.logger.info(
+                        f"My result code is{result_code},{ResultCode.OK.value}"
+                    )
+                    self.logger.info(f"{result_code == ResultCode.OK.value}")
+                    command_object = self.command_object.get(
+                        self.command_in_progress
+                    )
+                    if result_code == ResultCode.OK.value:
+                        command_object.update_task_callback(ResultCode.OK)
+                    elif result_code == ResultCode.FAILED.value:
+                        command_object.update_task_callback(
+                            ResultCode.FAILED, command_result[1]
                         )
-                    else:
-                        # Exception will be raised if 0th element of
-                        # command_result is exception
-                        result_code = int(command_result[0])
-                        command_object = self.command_object.get(
-                            self.command_in_progress
-                        )
-                        if result_code == ResultCode.OK:
-                            command_object.update_task_callback(ResultCode.OK)
-                        elif result_code == ResultCode.FAILED:
-                            command_object.update_task_callback(
-                                ResultCode.FAILED, command_result[1]
-                            )
 
                 # if (
                 #     lrc_status[-2].endswith(self.supported_commands)
