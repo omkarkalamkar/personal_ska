@@ -216,8 +216,11 @@ class Configure(DishLNCommand):
                     target=self.component_manager.track_process,
                     args=[ra_value, dec_value, self],
                 )
-                if not self.track_table_process.is_alive():
-                    self.track_table_process.start()
+                # TrackTable generation is disabled due to CORBA exceptions
+                # observed on DishLeafNode and it will worked out as part
+                # of SAH-1543
+                # if not self.track_table_process.is_alive():
+                #     self.track_table_process.start()
 
             if json_argument.get("tmc"):
                 self.component_manager.command_in_progress = (
@@ -288,7 +291,7 @@ class Configure(DishLNCommand):
         Args: None
 
         return: Tuple[ResultCode, str]"""
-        if self.component_manager.dishMode == DishMode.STANDBY_FP:
+        if self.component_manager.dishMode != DishMode.OPERATE:
             result_code, message = self.ensure_dish_in_right_dish_mode()
             if result_code == ResultCode.FAILED:
                 return result_code, message
