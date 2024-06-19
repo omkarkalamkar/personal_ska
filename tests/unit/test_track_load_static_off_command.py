@@ -2,7 +2,7 @@ import json
 
 import pytest
 import tango
-from ska_tango_base.commands import TaskStatus
+from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory
 
@@ -17,25 +17,25 @@ def test_trackloadstaticoff_command(
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     assert cm.is_trackloadstaticoff_allowed()
     dish_device.subscribe_event(
-        "longRunningCommandStatus",
+        "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandStatus"],
+        group_callback["longRunningCommandResult"],
         stateless=True,
     )
 
     argin = json.dumps([0.01, 0.02])
     cm.track_load_static_off(argin, task_callback=task_callback)
     unique_id, message = group_callback[
-        "longRunningCommandStatus"
+        "longRunningCommandResult"
     ].assert_change_event(
-        (Anything, "COMPLETED"),
+        (Anything, f"[{ResultCode.OK.value}, 'TrackLoadStaticOff completed']"),
         lookahead=10,
     )[
         "attribute_value"
     ]
 
     assert "TrackLoadStaticOff" in unique_id
-    assert "COMPLETED" in message
+    assert "completed" in message
     # Task Callback is not stable.
     # task_callback.assert_against_call(
     #     call_kwargs={"status": TaskStatus.QUEUED}
