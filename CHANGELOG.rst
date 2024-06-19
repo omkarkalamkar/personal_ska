@@ -7,6 +7,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Added
 ======
+[0.14.1]
+********
+* ProgramTrackTable Enabled.
+* LongRunningCommandResult used for TrackLoadStaticOff command result.
+
 [0.14.0]
 ********
 * Disabled programTrackTable updates
