@@ -131,7 +131,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
-        self.tango_operation_execution_lock = threading.Lock()
+        self.tango_operation_execution_lock = Lock()
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
