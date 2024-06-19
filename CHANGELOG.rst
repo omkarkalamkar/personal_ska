@@ -7,6 +7,19 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Added
 ======
+[0.14.1]
+********
+* ProgramTrackTable Enabled.
+* LongRunningCommandResult used for TrackLoadStaticOff command result.
+
+[0.14.0]
+********
+* Disabled programTrackTable updates
+
+[0.13.3]
+********
+* Bug resolved: Dish ID not coming as expected from read dish fqdn.
+
 [0.13.2]
 *********
 * Utilised ska-tmc-common 0.16.7 that resolves dish leaf node Configure command_inout CORBA exception
@@ -36,3 +49,8 @@ Fixed
 [0.13.3]
 *********
 Fixed the dish id not coming as expected from real dish master fqdn.
+
+======
+[0.13.4]
+*********
+Program Track Table Process disabled .

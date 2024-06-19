@@ -222,8 +222,8 @@ class Configure(DishLNCommand):
                 # TrackTable generation is disabled due to CORBA exceptions
                 # observed on DishLeafNode and it will worked out as part
                 # of SAH-1543
-                # if not self.track_table_process.is_alive():
-                #     self.track_table_process.start()
+                if not self.track_table_process.is_alive():
+                    self.track_table_process.start()
 
             if json_argument.get("tmc"):
                 self.component_manager.command_in_progress = (
@@ -244,12 +244,13 @@ class Configure(DishLNCommand):
                 )
 
                 offsets_argin = [ca_offset, ie_offset]
-                result_code, message = self.call_adapter_method(
-                    "Dish Master",
-                    self.dish_master_adapter,
-                    "TrackLoadStaticOff",
-                    offsets_argin,
-                )
+                with self.component_manager.tango_operation_execution_lock:
+                    result_code, message = self.call_adapter_method(
+                        "Dish Master",
+                        self.dish_master_adapter,
+                        "TrackLoadStaticOff",
+                        offsets_argin,
+                    )
                 self.component_manager.update_source_offset_callback(
                     offsets_argin
                 )
@@ -259,9 +260,10 @@ class Configure(DishLNCommand):
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, command_name, True
-            )
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, command_name, True
+                )
 
             if (
                 self.component_manager.dishMode != DishMode.STOW
@@ -331,9 +333,10 @@ class Configure(DishLNCommand):
 
         return: Tuple[ResultCode, str]
         """
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "SetOperateMode"
-        )
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "SetOperateMode"
+            )
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
 
@@ -354,9 +357,10 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "Track"
-        )
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "Track"
+            )
         if result_code[0] == ResultCode.FAILED:
             self.logger.error(f"Track Invocation Failed {message}")
             return result_code[0], message[0]
