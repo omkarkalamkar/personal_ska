@@ -35,7 +35,6 @@ def utc_timestamp(timestamp: str) -> float:
     return utc_timestamp
 
 
-@pytest.mark.sdp
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_sdpqc_functionality(tango_context, group_callback):
