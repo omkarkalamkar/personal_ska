@@ -7,6 +7,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Added
 ======
+[0.14.1]
+********
+* Enabled push event mechanism for kValue , kValueValidationResult
+
 [0.14.0]
 ********
 * Disabled programTrackTable updates
