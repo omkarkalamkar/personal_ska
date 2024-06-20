@@ -98,9 +98,6 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress
                 != "Configure_TrackLoadStaticOff"
             ):
-                logger.info(
-                    "The Configure command is invoked successfully on>>>"
-                )
                 self.component_manager.command_in_progress = ""
                 self.task_callback(
                     status=TaskStatus.COMPLETED,

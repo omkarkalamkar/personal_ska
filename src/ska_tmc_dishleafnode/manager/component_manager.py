@@ -1273,7 +1273,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type: (Tuple[List[str], List[str]])
         """
         try:
-            self.logger.info(f"My lrcr status{lrc_status}")
             if not lrc_status:
                 return
             with self.lock:
@@ -1292,10 +1291,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     # Exception will be raised if 0th element of
                     # command_result is exception
                     result_code = int(command_result[0])
-                    self.logger.info(
-                        f"My result code is{result_code},{ResultCode.OK.value}"
-                    )
-                    self.logger.info(f"{result_code == ResultCode.OK.value}")
                     command_object = self.command_object.get(
                         self.command_in_progress
                     )
@@ -1305,20 +1300,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         command_object.update_task_callback(
                             ResultCode.FAILED, command_result[1]
                         )
-
-                # if (
-                #     lrc_status[-2].endswith(self.supported_commands)
-                #     and self.command_in_progress in self.supported_commands
-                # ):
-                #     command_object = self.command_object.get(
-                #         self.command_in_progress
-                #     )
-                #     if lrc_status[-1].upper() == "COMPLETED":
-                #         command_object.update_task_callback(ResultCode.OK)
-                #     elif lrc_status[-1].upper() == "FAILED":
-                #         command_object.update_task_callback(
-                #             ResultCode.FAILED, lrc_status[1]
-                #         )
         except Exception as exception:
             self.logger.error(
                 "Exception while processing longRunningCommandStatus",
