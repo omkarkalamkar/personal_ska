@@ -274,6 +274,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def create_converter_obj_and_antenna_obj(self):
         """Create AzElConverter Object and antenna object"""
+        # Once SKB-398 is fixed from TelModel then this
+        # exception handling can be removed.
         try:
             self.converter = AzElConverter(self)
             self.converter.create_antenna_obj()
