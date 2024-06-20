@@ -60,9 +60,10 @@ class AbortCommands(DishLNCommand, FastCommand):
             )
             return result_code, message
 
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "AbortCommands"
-        )
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "AbortCommands"
+            )
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
         # call stop_tracking_thread to stop live thread
@@ -84,8 +85,9 @@ class AbortCommands(DishLNCommand, FastCommand):
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state == PointingState.TRACK:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "TrackStop"
-            )
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "TrackStop"
+                )
             return result_code[0], message[0]
         return ResultCode.OK, ""
