@@ -45,7 +45,6 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
     )
 
 
-@pytest.mark.repeat(10)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
