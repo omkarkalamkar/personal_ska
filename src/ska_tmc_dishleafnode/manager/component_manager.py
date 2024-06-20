@@ -1264,27 +1264,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def update_device_long_running_command_status(
-        self, lrc_status: Tuple[List[str], List[str]]
+    def update_device_long_running_command_result(
+        self, lrc_result: Tuple[List[str], List[str]]
     ) -> None:
         """
-        Method to update task callback based on long running command status
+        Method to update task callback based on long running command result
         event data.
 
-        :param lrc_status: longRunningCommandStatus attribute event data
+        :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
         try:
-            if not lrc_status:
+            if not lrc_result:
                 return
             with self.lock:
-                if lrc_status == ("", ""):
+                if lrc_result == ("", ""):
                     self.logger.info("Empty longRunningCommandResult event")
                 if (
-                    lrc_status[0].endswith(self.supported_commands)
+                    lrc_result[0].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
-                    command_result = lrc_status[1].strip("][)(").split(", ")
+                    command_result = lrc_result[1].strip("][)(").split(", ")
                     self.logger.info("command_result: %s", command_result)
 
                     # if ResultCode is a 0th element of command_result then
