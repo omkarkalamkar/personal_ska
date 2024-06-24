@@ -41,7 +41,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.14.1
+    tag: 0.14.2
     pullPolicy: IfNotPresent
 
 resources:
@@ -56,7 +56,7 @@ deviceServers:
     file: "data/mockdevices.yaml"
   dishln:
     enabled: true
-    instances: ["01", "02", "03", "04"]
+    instances: ["01"]
     file: "data/dishleafnode.yaml"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50

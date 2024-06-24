@@ -129,6 +129,7 @@ class DishLeafNode(SKABaseDevice):
         self.set_change_event("sdpQueueConnectorFqdn", True, False)
         self.set_change_event("sourceOffset", True, False)
         self.set_change_event("lastPointingData", True, True)
+        self.set_change_event("kValue", True, False)
 
     class InitCommand(SKABaseDevice.InitCommand):
         """
@@ -220,6 +221,17 @@ class DishLeafNode(SKABaseDevice):
         self.logger.info(
             "k-value validation result: ResultCode.%s",
             ResultCode(self.component_manager.kValueValidationResult).name,
+        )
+
+    def update_kvalue_callback(self) -> None:
+        """Push an event for the kValue attribute."""
+        self.push_change_event(
+            "kValue",
+            int(self.component_manager.kValue),
+        )
+        self.logger.info(
+            "k-value : %s",
+            self.component_manager.kValue,
         )
 
     # ------------------
@@ -802,6 +814,7 @@ class DishLeafNode(SKABaseDevice):
             )
             self.logger.info("k-value memorized successfully: %s", value)
             self.kvalue_validation_callback()
+            self.update_kvalue_callback()
         return [result_code], [unique_id]
 
     def create_component_manager(self):

@@ -81,7 +81,7 @@ def configure_dish_leaf_node(
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
-        lookahead=2,
+        lookahead=6,
     )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
@@ -91,7 +91,7 @@ def configure_dish_leaf_node(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], str(int(ResultCode.OK))),
-        lookahead=2,
+        lookahead=6,
     )
 
     group_callback["dishMode"].assert_change_event(
