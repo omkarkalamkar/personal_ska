@@ -168,6 +168,7 @@ class DishLeafNode(SKABaseDevice):
 
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
+        self.logger.info("source_offset: %s", source_offset)
         self._sourceOffset = source_offset
         self.push_change_event("sourceOffset", self._sourceOffset)
         self.logger.info(

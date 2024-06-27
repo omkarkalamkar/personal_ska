@@ -386,6 +386,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Method to update the sourceOffset attribute"""
         with self.lock:
             if self._update_source_offset_callback:
+                self.logger.info("source_offset: %s", source_offset)
                 self._update_source_offset_callback(source_offset)
 
     def download_iers_data(self) -> None:
@@ -429,10 +430,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
         :rtype: string
         """
+        self.logger.info("timestamp_milliseconds: %s", timestamp_milliseconds)
         timestamp_seconds = timestamp_milliseconds / 1000
+        self.logger.info("timestamp_seconds: %s", timestamp_seconds)
         timestamp = datetime.datetime.fromtimestamp(
             timestamp_seconds
         ).strftime("%Y-%m-%d %H:%M:%S")
+        self.logger.info("timestamp: %s", timestamp)
         return timestamp
 
     def process_actual_pointing(self) -> None:
@@ -481,6 +485,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 elevation
                 - list(self.received_pointing_data)[0].pointing_data[2]
             )
+            self.logger.info("azimuth: %s", azimuth)
+            self.logger.info("elevation: %s", elevation)
             timestamp = self.convert_timestamp(timestamp_milliseconds)
             right_ascension, declination = self.converter.azel_to_radec(
                 str(azimuth),
@@ -488,6 +494,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 timestamp,
                 self.converter.weather_data,
             )
+            self.logger.info("right_ascension: %s", right_ascension)
+            self.logger.info("declination: %s", declination)
             self.actual_pointing = [timestamp, right_ascension, declination]
         except (ValueError, IndexError) as exception:
             self.logger.exception(

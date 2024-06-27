@@ -248,6 +248,7 @@ class Configure(DishLNCommand):
                         "TrackLoadStaticOff",
                         offsets_argin,
                     )
+                self.logger.info("offsets_argin: %s", offsets_argin)
                 self.component_manager.update_source_offset_callback(
                     offsets_argin
                 )

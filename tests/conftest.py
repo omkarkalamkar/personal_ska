@@ -104,7 +104,7 @@ def tango_context(devices_to_load, request):
     logging.info("true context: %s", true_context)
     if not true_context:
         with MultiDeviceTestContext(
-            devices_to_load, process=False, timeout=50
+            devices_to_load, process=False, timeout=200
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -217,8 +217,9 @@ def update_availablity_callback(argin):
     """An empty update_availablity callback"""
 
 
-def update_source_offset_callback():
+def update_source_offset_callback(source_offset):
     """An empty update_source_offset callback"""
+    logger.info("Source offset is: %s", source_offset)
 
 
 def update_last_pointing_data_callback(temp):
