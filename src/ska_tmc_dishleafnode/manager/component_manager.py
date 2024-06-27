@@ -77,7 +77,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_last_pointing_data_cb: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
-        max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
@@ -100,8 +99,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             when communication status of the component changed
         :param event_receiver: flag used to control whether
             EventReceiver object should be instantiated or not
-        :param max_workers: allows to specify number of threads
-            to be used by the liveliness probe;
         :param proxy_timeout: allows to specify a client side timeout
             for sub-devices in milliseconds used by the liveliness probe
         :param sleep_time: allows to specify the wait between
@@ -114,7 +111,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _liveliness_probe=_liveliness_probe,
             communication_state_callback=communication_state_callback,
             component_state_callback=component_state_callback,
-            max_workers=max_workers,
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )

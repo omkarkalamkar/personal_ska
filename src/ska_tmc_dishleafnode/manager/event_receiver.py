@@ -28,7 +28,6 @@ class DishLNEventReceiver(EventReceiver):
         component_manager,
         logger: Logger,
         attribute_dict: dict[str, Callable[..., Any]] | None = None,
-        max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
     ):
@@ -36,7 +35,6 @@ class DishLNEventReceiver(EventReceiver):
             component_manager=component_manager,
             logger=logger,
             attribute_dict=attribute_dict,
-            max_workers=max_workers,
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
