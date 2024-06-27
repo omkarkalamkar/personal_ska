@@ -44,13 +44,13 @@ class EndScan(DishLNCommand):
         if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(result_code, message),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(ResultCode.OK, "Command Completed"),
             )
 
     # pylint: disable=arguments-differ

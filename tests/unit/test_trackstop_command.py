@@ -18,7 +18,10 @@ def test_trackstop_command_completed(tango_context, task_callback, cm):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, "Command Completed"),
+        }
     )
 
 

@@ -71,13 +71,13 @@ class Track(DishLNCommand):
         if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(return_code, message),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(ResultCode.OK, "Command Completed"),
             )
 
     def validate_json_argument(self, input_argin: dict) -> tuple:
