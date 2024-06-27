@@ -181,13 +181,13 @@ def wait_for_unresponsive(cm: DishLNComponentManager) -> bool:
     :return: True if the device becomes unresponsive within the timeout,
         False otherwise.
     :return: boolean"""
-    start_time = time.time()
-    elapsed_time = 0
-    timeout = 50
-    while elapsed_time < timeout:
+    count = 0
+    timeout = 20
+    while count < timeout:
         if cm.get_device().unresponsive:
             return True
-        elapsed_time = time.time() - start_time
+        time.sleep(1)
+        count += 1
     return False
 
 

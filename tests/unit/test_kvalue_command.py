@@ -51,7 +51,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, cm):
     assert cm.kValueValidationResult == ResultCode.FAILED
 
 
-@pytest.mark.skip("unstable")
+# @pytest.mark.skip("unstable")
 def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
     tango_context, cm
 ):
