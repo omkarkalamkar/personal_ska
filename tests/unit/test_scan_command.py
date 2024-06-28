@@ -36,7 +36,26 @@ def test_scan_command_adapter_none(cm_without_er_lp, task_callback):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED, result=(ResultCode.FAILED)
+        status=TaskStatus.COMPLETED,
+        result=(
+            ResultCode.FAILED,
+            "DevFailed[\n"
+            "DevError[\n"
+            "    desc = TRANSIENT CORBA system exception:"
+            + " TRANSIENT_NoUsableProfile\n"
+            "  origin = void Tango::Connection::connect(const string&) at"
+            + " (/src/cppTango/src/client/devapi_base.cpp:609)\n"
+            "  reason = API_CorbaException\n"
+            "severity = ERR]\n\n"
+            "DevError[\n"
+            "    desc = Failed to connect to database on host tango-databaseds"
+            + " with port 10000\n"
+            "  origin = void Tango::Connection::connect(const string&) at"
+            + " (/src/cppTango/src/client/devapi_base.cpp:609)\n"
+            "  reason = API_CantConnectToDatabase\n"
+            "severity = ERR]\n"
+            "]",
+        ),
     )
 
 
