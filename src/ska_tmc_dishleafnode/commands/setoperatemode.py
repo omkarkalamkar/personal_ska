@@ -82,5 +82,6 @@ class SetOperateMode(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetOperateMode"
             )
-
+        self.logger.info(message[0])
+        self.logger.info("..............................")
         return result_code[0], message[0]

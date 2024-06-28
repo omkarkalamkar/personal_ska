@@ -36,7 +36,7 @@ def test_scan_command_adapter_none(cm_without_er_lp, task_callback):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
+        status=TaskStatus.COMPLETED, result=(ResultCode.FAILED)
     )
 
 
