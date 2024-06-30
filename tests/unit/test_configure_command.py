@@ -2,12 +2,7 @@ import json
 import time
 
 import pytest
-
-# import tango
 from ska_tango_base.commands import ResultCode, TaskStatus
-
-# from ska_tango_testing.mock.placeholders import Anything
-# from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
