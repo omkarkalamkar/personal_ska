@@ -74,9 +74,7 @@ def test_actual_pointing(tango_context, cm):
     extended_time = dt_utc + datetime.timedelta(
         milliseconds=EXTEND_MILLISECONDS
     )
-    logger.info("extended_time: %s", extended_time)
     utc_timestamp = extended_time.timestamp() * 1000
-    logger.info("utc_timestamp in milliseconds: %s", utc_timestamp)
     dish_manager.programTrackTable = [
         utc_timestamp,
         287.2504396,
@@ -87,7 +85,6 @@ def test_actual_pointing(tango_context, cm):
     count = 0
     flag = True
     while flag and count <= timeout:
-        logger.info("cm.actual_pointing: %s", cm.actual_pointing)
         if cm.actual_pointing and "2019" in cm.actual_pointing[0]:
             flag = False
         count += 1

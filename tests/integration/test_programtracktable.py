@@ -121,7 +121,6 @@ def check_track_table(
         tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.skip(reason="Tracktable generation is disabled")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_program_track_table(tango_context, group_callback, json_factory):

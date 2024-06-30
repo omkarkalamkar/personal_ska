@@ -94,10 +94,6 @@ class Configure(DishLNCommand):
                 "The Configure command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-            logger.info(
-                "command in progress is: %s",
-                self.component_manager.command_in_progress,
-            )
             if (
                 self.component_manager.command_in_progress
                 != "Configure_TrackLoadStaticOff"
@@ -252,7 +248,6 @@ class Configure(DishLNCommand):
                         "TrackLoadStaticOff",
                         offsets_argin,
                     )
-                self.logger.info("offsets_argin: %s", offsets_argin)
                 self.component_manager.update_source_offset_callback(
                     offsets_argin
                 )

@@ -1,6 +1,5 @@
 import datetime
 import json
-import logging
 import time
 
 import pytest
@@ -83,9 +82,6 @@ def test_sdpqc_functionality(tango_context, group_callback):
     elapsed_time = 0
     flag = True
     while flag and elapsed_time < TIMEOUT:
-        logging.info(
-            "ACTUAL POINTING: %s", json.loads(dish_leaf_node.actualpointing)[0]
-        )
         if "2019" in json.loads(dish_leaf_node.actualpointing)[0]:
             flag = False
             break

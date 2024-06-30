@@ -1,6 +1,5 @@
 from time import sleep
 
-# import pytest
 from ska_tango_base.control_model import ControlMode, SimulationMode, TestMode
 from ska_tmc_common import DishMode, PointingState
 from tango import DevState
@@ -9,7 +8,6 @@ from ska_tmc_dishleafnode import release
 from tests.settings import SLEEP_TIME
 
 
-# @pytest.mark.skip(reason="Test case fails with Segmentation fault")
 def test_attributes(dishln_device):
     sleep(SLEEP_TIME)
     assert dishln_device.State() == DevState.ON

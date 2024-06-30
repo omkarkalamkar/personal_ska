@@ -361,3 +361,24 @@ def dln_can_communicate_with_dish_master(
             count,
         )
     return flag
+
+
+def simulate_result_code_event(
+    cm: DishLNComponentManager,
+    command_name: str,
+    result: ResultCode,
+):
+    """Simulate LRCR event from given device for given result."""
+    command_id = f"{time.time()}_{command_name}"
+
+    command_result = (
+        command_id,
+        str(
+            [
+                result.value,
+                f"{command_name} completed",
+            ]
+        ),
+    )
+
+    cm.update_device_long_running_command_result(command_result)
