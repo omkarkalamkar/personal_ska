@@ -72,4 +72,4 @@ class EndScan(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "EndScan"
             )
-        return result_code, message
+        return result_code[0], message[0]

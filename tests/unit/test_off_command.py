@@ -32,7 +32,7 @@ def test_off_command_in_fp(tango_context, cm, task_callback):
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Complected"),
+            "result": (ResultCode.OK, "Command Completed"),
         }
     )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
@@ -48,7 +48,7 @@ def test_off_command_in_fp(tango_context, cm, task_callback):
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Complected"),
+            "result": (ResultCode.OK, "Command Completed"),
         }
     )
 
