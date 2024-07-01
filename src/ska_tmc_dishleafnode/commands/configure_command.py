@@ -101,11 +101,11 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = ""
                 self.task_callback(
                     status=TaskStatus.COMPLETED,
-                    result=(ResultCode.OK, "Command_Completed"),
+                    result=(ResultCode.OK, "Command Completed"),
                 )
 
     def update_task_callback(
-        self, result_code: ResultCode, exception: str = ""
+        self, result_code: ResultCode, message: str = "", exception: str = ""
     ) -> None:
         """
         Method to update task callback.
@@ -120,11 +120,13 @@ class Configure(DishLNCommand):
         if exception:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=result_code,
-                exception=exception,
+                result=(result_code, message),
+                exception=message,
             )
         else:
-            self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
+            self.task_callback(
+                status=TaskStatus.COMPLETED, result=(result_code, message)
+            )
         self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument
