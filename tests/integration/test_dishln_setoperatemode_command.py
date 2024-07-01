@@ -4,8 +4,8 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 
-from tests.conftest import COMMAND_COMPLETED
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     event_remover,
