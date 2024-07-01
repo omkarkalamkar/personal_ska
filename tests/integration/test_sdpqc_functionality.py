@@ -36,10 +36,12 @@ def utc_timestamp(timestamp: str) -> float:
     return utc_timestamp
 
 
-@pytest.mark.sah1518
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_sdpqc_functionality(tango_context, group_callback):
+    # Wait added for the previous Program Track Table Thread to stop
+    time.sleep(2)
+
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)

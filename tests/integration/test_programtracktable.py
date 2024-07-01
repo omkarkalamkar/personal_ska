@@ -74,6 +74,10 @@ def check_track_table(
             (unique_id_config[0], str(int(ResultCode.OK))),
             lookahead=6,
         )
+        group_callback["pointingState"].assert_change_event(
+            (PointingState.TRACK),
+            lookahead=6,
+        )
 
         TIMEOUT = 10
         start_time = time.time()
