@@ -93,6 +93,7 @@ def test_configure_command_completed_partial_config_missing_key(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     logger.debug("Waiting for command completion")
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
         lookahead=10,
