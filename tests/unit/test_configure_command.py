@@ -7,8 +7,9 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from tests.settings import (  # simulate_result_code_event,
+from tests.settings import (
     logger,
+    simulate_result_code_event,
     wait_for_dish_mode,
 )
 
@@ -46,7 +47,7 @@ def test_configure_command_completed(
 
 
 def test_configure_command_completed_partial_config(
-    cm, task_callback, json_factory
+    tango_context, cm, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm.update_device_dish_mode(DishMode.OPERATE)
@@ -64,15 +65,15 @@ def test_configure_command_completed_partial_config(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
 
-    # simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=10,
+        lookahead=4,
     )
 
 
 def test_configure_command_completed_partial_config_missing_key(
-    cm, task_callback, json_factory
+    tango_context, cm, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm.update_device_dish_mode(DishMode.OPERATE)
