@@ -13,7 +13,7 @@ dependencies:
   version: 0.4.10
   repository: https://artefact.skao.int/repository/helm-internal
 - name: ska-tango-util
-  version: 0.4.11
+  version: 0.4.10
   repository: https://artefact.skao.int/repository/helm-internal
 - name: ska-tmc-dishleafnode
   version: 0.14.2
