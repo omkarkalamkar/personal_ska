@@ -5,6 +5,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     event_remover,
@@ -97,7 +98,7 @@ def abort_when_configured(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], str(int(ResultCode.OK))),
+        (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
     )
 
@@ -121,7 +122,7 @@ def abort_when_configured(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
