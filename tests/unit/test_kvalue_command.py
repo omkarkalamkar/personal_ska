@@ -55,7 +55,8 @@ def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
 ):
     logger.info("%s", tango_context)
     cm.get_device().update_unresponsive(True)
-    wait_for_unresponsive(cm)
+    result = wait_for_unresponsive(cm)
+    logger.info("Result is: %s", result)
     with pytest.raises(
         DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
     ):
