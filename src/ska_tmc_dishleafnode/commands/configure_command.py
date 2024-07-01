@@ -85,7 +85,7 @@ class Configure(DishLNCommand):
         if return_code == ResultCode.FAILED:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(return_code, message),
                 exception=message,
             )
             self.component_manager.command_in_progress = ""
@@ -101,7 +101,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = ""
                 self.task_callback(
                     status=TaskStatus.COMPLETED,
-                    result=ResultCode(return_code),
+                    result=(ResultCode.OK, "Command_Completed"),
                 )
 
     def update_task_callback(

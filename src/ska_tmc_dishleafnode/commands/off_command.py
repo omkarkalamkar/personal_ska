@@ -49,13 +49,13 @@ class Off(DishLNCommand):
         if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(return_code, message),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(ResultCode.OK, "Command Completed"),
             )
 
     # pylint: disable=arguments-differ
