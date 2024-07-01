@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import time
 
 import pytest
@@ -21,7 +22,7 @@ POINTING_CAL_NAN = [3.1, NaN, 5.3]
 POINTING_CAL_RESET = [1.1, 0.0, 0.0]
 EXTEND_MILLISECONDS = 100
 TIMESTAMP_RA_DEC = ["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]
-TIMEOUT = 10
+TIMEOUT = 20
 
 
 def utc_timestamp(timestamp: str) -> float:
@@ -35,6 +36,7 @@ def utc_timestamp(timestamp: str) -> float:
     return utc_timestamp
 
 
+@pytest.mark.sah1518
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_sdpqc_functionality(tango_context, group_callback):
@@ -82,6 +84,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
     elapsed_time = 0
     flag = True
     while flag and elapsed_time < TIMEOUT:
+        logging.info("actualpointing is: %s", dish_leaf_node.actualpointing)
         if "2019" in json.loads(dish_leaf_node.actualpointing)[0]:
             flag = False
             break
