@@ -13,7 +13,6 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_dish_mode
 
 
-@pytest.mark.test2
 def test_configure_command_completed(
     tango_context,
     cm,
@@ -112,6 +111,7 @@ def test_configure_command_completed_partial_config_missing_key(
     )
 
 
+@pytest.mark.test2
 def test_configure_command_adapter_none(
     task_callback, cm_without_er_lp, json_factory
 ):
@@ -128,7 +128,26 @@ def test_configure_command_adapter_none(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
+        status=TaskStatus.COMPLETED,
+        result=(
+            ResultCode.FAILED,
+            "DevFailed[\n"
+            "DevError[\n"
+            "    desc = TRANSIENT CORBA system exception:"
+            + " TRANSIENT_NoUsableProfile\n"
+            "  origin = void Tango::Connection::connect(const string&) at"
+            + " (/src/cppTango/src/client/devapi_base.cpp:609)\n"
+            "  reason = API_CorbaException\n"
+            "severity = ERR]\n\n"
+            "DevError[\n"
+            "    desc = Failed to connect to database on host tango-databaseds"
+            + " with port 10000\n"
+            "  origin = void Tango::Connection::connect(const string&) at"
+            + " (/src/cppTango/src/client/devapi_base.cpp:609)\n"
+            "  reason = API_CantConnectToDatabase\n"
+            "severity = ERR]\n"
+            "]",
+        ),
     )
 
 
