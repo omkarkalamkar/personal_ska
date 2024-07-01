@@ -111,7 +111,6 @@ def test_configure_command_completed_partial_config_missing_key(
     )
 
 
-@pytest.mark.test2
 def test_configure_command_adapter_none(
     task_callback, cm_without_er_lp, json_factory
 ):

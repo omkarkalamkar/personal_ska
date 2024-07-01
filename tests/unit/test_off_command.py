@@ -52,7 +52,7 @@ def test_off_command_in_fp(tango_context, cm, task_callback):
         }
     )
 
-@pytest.mark.test2
+
 def test_off_command_adapter_none(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
