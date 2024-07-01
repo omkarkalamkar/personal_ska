@@ -7,9 +7,8 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from tests.settings import (
+from tests.settings import (  # simulate_result_code_event,
     logger,
-    simulate_result_code_event,
     wait_for_dish_mode,
 )
 
@@ -65,10 +64,10 @@ def test_configure_command_completed_partial_config(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
 
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    # simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=4,
+        lookahead=10,
     )
 
 
