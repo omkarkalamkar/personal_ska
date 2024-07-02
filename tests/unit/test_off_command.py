@@ -17,7 +17,6 @@ def test_off_command_in_lp(tango_context, cm):
         cm.is_off_allowed()
 
 
-@pytest.mark.test1
 def test_off_command_in_fp(tango_context, cm, task_callback):
     dish_master_proxy = DevFactory().get_device(DISH_MASTER_DEVICE)
     assert wait_for_device_to_up(dish_master_proxy)

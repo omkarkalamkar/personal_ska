@@ -162,7 +162,6 @@ def endscan_command(
     )
 
 
-@pytest.mark.test3
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_endscan_command(tango_context, group_callback, json_factory):
