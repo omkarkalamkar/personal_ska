@@ -1225,6 +1225,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 # )
             else:
                 self.update_program_track_table(program_track_table)
+        self.logger.info("Program Track Table Calculation stopped.")
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
