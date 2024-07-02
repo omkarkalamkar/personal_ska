@@ -69,7 +69,10 @@ def test_configure_command_completed_partial_config(
 
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, "Command Completed"),
+        },
         lookahead=4,
     )
 
@@ -97,7 +100,10 @@ def test_configure_command_completed_partial_config_missing_key(
     logger.debug("Waiting for command completion")
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, "Command Completed"),
+        },
         lookahead=10,
     )
 
