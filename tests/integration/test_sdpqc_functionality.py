@@ -37,7 +37,6 @@ def utc_timestamp(timestamp: str) -> float:
     return utc_timestamp
 
 
-@pytest.mark.test3
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_sdpqc_functionality(tango_context, group_callback):
@@ -71,7 +70,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
         "attribute_value"
     ]
     assert "TrackLoadStaticOff" in unique_id
-    assert "completed" in message
+    assert "Command Completed" in message
     assert array_equal(
         json.loads(dish_leaf_node.lastPointingData), POINTING_CAL
     )

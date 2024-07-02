@@ -106,7 +106,7 @@ class TrackLoadStaticOff(DishLNCommand):
         else:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, "Command Complected"),
+                result=(ResultCode.OK, "Command Completed"),
             )
 
         self.component_manager.command_in_progress = ""
