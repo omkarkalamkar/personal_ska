@@ -68,7 +68,8 @@ class EndScan(DishLNCommand):
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "EndScan"
-        )
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "EndScan"
+            )
         return result_code, message

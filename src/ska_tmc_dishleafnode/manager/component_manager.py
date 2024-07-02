@@ -131,6 +131,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
+        self.tango_operation_execution_lock = threading.Lock()
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
@@ -271,6 +272,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self.converter.create_antenna_obj()
 
     @property
     def kValueValidationResult(self) -> int:
@@ -353,9 +355,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._actual_pointing[:] = value
-        self.logger.info(
-            "The updated actual pointing values are: %s", self._actual_pointing
-        )
+        # self.logger.info(
+        #     "The updated actual pointing values are: %s",
+        # self._actual_pointing
+        # )
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
 
@@ -1147,7 +1150,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("ProgramTrackTable: %s", program_track_table)
-        self.dish_adapter.programTrackTable = program_track_table
+        if not self.tango_operation_execution_lock.locked():
+            self.dish_adapter.programTrackTable = program_track_table
+        else:
+            self.logger.info("Can't update tracktable since dish is busy")
 
     def track_process(
         self,
@@ -1174,8 +1180,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        azel_converter = AzElConverter(self)
-        azel_converter.create_antenna_obj()
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
@@ -1191,7 +1195,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
         timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
-        azel_converter.point(ra_value, dec_value, timestamp)
+        self.converter.point(ra_value, dec_value, timestamp)
 
         advance_time = (
             self.track_table_entries * self.pointing_calculation_period
@@ -1200,7 +1204,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while self.get_track_process_event_status() is False:
             program_track_table = (
                 self.track_table_calculator.calculate_program_track_table(
-                    ra_value, dec_value, azel_converter
+                    ra_value, dec_value, self.converter
                 )
             )
             first_entry_timestamp = (
@@ -1220,9 +1224,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     argument=(program_track_table,),
                 )
                 self.track_table_scheduler.run()
-                # time.sleep(
-                #     scheduled_time - datetime.datetime.utcnow().timestamp()
-                # )
             else:
                 self.update_program_track_table(program_track_table)
         self.logger.info("Program Track Table Calculation stopped.")
