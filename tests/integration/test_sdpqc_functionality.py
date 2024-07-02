@@ -86,7 +86,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
             flag = False
             break
         elapsed_time = elapsed_time + 1
-        time.sleep(1)
+        time.sleep(0.01)
     assert not flag
     received_actual_pointing = json.loads(dish_leaf_node.actualpointing)
     assert TIMESTAMP_RA_DEC[0] == received_actual_pointing[0]

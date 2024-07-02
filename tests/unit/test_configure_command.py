@@ -2,15 +2,16 @@ import json
 import time
 
 import pytest
-import tango
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tango_testing.mock.placeholders import Anything
-from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_dish_mode
+from tests.settings import (
+    logger,
+    simulate_result_code_event,
+    wait_for_dish_mode,
+)
 
 
 def test_configure_command_completed(
@@ -45,19 +46,12 @@ def test_configure_command_completed(
     )
 
 
-@pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_configure_command_completed_partial_config(
-    tango_context, cm, task_callback, json_factory, group_callback
+    tango_context, cm, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm.update_device_dish_mode(DishMode.OPERATE)
-    dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
-    dish_device.subscribe_event(
-        "longRunningCommandStatus",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandStatus"],
-        stateless=True,
-    )
+
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
@@ -70,17 +64,14 @@ def test_configure_command_completed_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    group_callback["longRunningCommandStatus"].assert_change_event(
-        (Anything, "COMPLETED"),
-        lookahead=6,
-    )
+
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
         lookahead=4,
     )
 
 
-@pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_configure_command_completed_partial_config_missing_key(
     tango_context, cm, task_callback, json_factory
 ):
@@ -102,6 +93,7 @@ def test_configure_command_completed_partial_config_missing_key(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     logger.debug("Waiting for command completion")
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
         lookahead=10,
