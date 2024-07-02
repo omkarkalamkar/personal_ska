@@ -161,6 +161,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "pointingState",
         "kValueValidationResult",
         "sourceOffset",
+        "kValue",
         timeout=30,
     )
     return group_callback
@@ -216,8 +217,9 @@ def update_availablity_callback(argin):
     """An empty update_availablity callback"""
 
 
-def update_source_offset_callback():
+def update_source_offset_callback(source_offset):
     """An empty update_source_offset callback"""
+    logger.info("Source offset is: %s", source_offset)
 
 
 def update_last_pointing_data_callback(temp):

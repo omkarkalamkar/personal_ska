@@ -79,7 +79,6 @@ class SetStowMode(DishLNCommand):
                 "%s adapter not found ", self.component_manager.dish_dev_name
             )
             return result_code, message
-
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetStowMode"

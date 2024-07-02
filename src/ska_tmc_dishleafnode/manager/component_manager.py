@@ -131,7 +131,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
-        self.tango_operation_execution_lock = threading.Lock()
+        self.tango_operation_execution_lock = Lock()
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
@@ -264,15 +264,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
         self.process_lock = Lock()
-        self.converter = AzElConverter(self)
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
-
+        self.create_converter_obj_and_antenna_obj()
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self.converter.create_antenna_obj()
+
+    def create_converter_obj_and_antenna_obj(self):
+        """Create AzElConverter Object and antenna object"""
+        # Once SKB-398 is fixed from TelModel then this
+        # exception handling can be removed.
+        try:
+            self.converter = AzElConverter(self)
+            self.converter.create_antenna_obj()
+        except Exception as exp:
+            self.logger.exception("Error while creating antenna obj %s", exp)
 
     @property
     def kValueValidationResult(self) -> int:
@@ -434,7 +442,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.converter.create_antenna_obj()
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
         while self.actual_pointing_process_alive.is_set() is False:
@@ -1150,10 +1157,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("ProgramTrackTable: %s", program_track_table)
-        if not self.tango_operation_execution_lock.locked():
+        with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
-        else:
-            self.logger.info("Can't update tracktable since dish is busy")
 
     def track_process(
         self,
@@ -1261,32 +1266,43 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def update_device_long_running_command_status(
-        self, lrc_status: Tuple[List[str], List[str]]
+    def update_device_long_running_command_result(
+        self, lrc_result: Tuple[List[str], List[str]]
     ) -> None:
         """
-        Method to update task callback based on long running command status
+        Method to update task callback based on long running command result
         event data.
 
-        :param lrc_status: longRunningCommandStatus attribute event data
+        :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
         try:
-            if not lrc_status:
+            if not lrc_result:
                 return
             with self.lock:
+                if lrc_result == ("", ""):
+                    self.logger.info("Empty longRunningCommandResult event")
                 if (
-                    lrc_status[0].endswith(self.supported_commands)
+                    lrc_result[0].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
+                    command_result = lrc_result[1].strip("][)(").split(", ")
+                    self.logger.info("command_result: %s", command_result)
+
+                    # if ResultCode is a 0th element of command_result then
+                    # ignore the event
+
+                    # Exception will be raised if 0th element of
+                    # command_result is exception
+                    result_code = int(command_result[0])
                     command_object = self.command_object.get(
                         self.command_in_progress
                     )
-                    if lrc_status[1].upper() == "COMPLETED":
+                    if result_code == ResultCode.OK.value:
                         command_object.update_task_callback(ResultCode.OK)
-                    elif lrc_status[1].upper() == "FAILED":
+                    elif result_code == ResultCode.FAILED.value:
                         command_object.update_task_callback(
-                            ResultCode.FAILED, lrc_status[1]
+                            ResultCode.FAILED, command_result[1]
                         )
         except Exception as exception:
             self.logger.error(

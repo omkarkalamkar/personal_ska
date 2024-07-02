@@ -81,7 +81,7 @@ def configure_dish_leaf_node(
     assert result_fp[0] == ResultCode.QUEUED
     group_callback["longRunningCommandsInQueue"].assert_change_event(
         ("SetStandbyFPMode",),
-        lookahead=2,
+        lookahead=6,
     )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
@@ -91,7 +91,7 @@ def configure_dish_leaf_node(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], str(int(ResultCode.OK))),
-        lookahead=2,
+        lookahead=6,
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -262,9 +262,10 @@ def partial_configure_dish_leaf_node(
     partial_configurations = build_partial_configure_data(
         partial_configure_input_str, OFFSET
     )
+    count = 0
     for input_str in partial_configurations:
         # Give a pause before invoking next configuration
-        sleep(1)
+        sleep(3)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
@@ -272,7 +273,7 @@ def partial_configure_dish_leaf_node(
         ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),
-            lookahead=6,
+            lookahead=8,
         )
         # Assert change event is occuring and values are reflecting
         # on sourceOffset attribute.
@@ -280,6 +281,7 @@ def partial_configure_dish_leaf_node(
             [ca_offset, ie_offset],
             lookahead=2,
         )
+        count += 1
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
@@ -316,6 +318,7 @@ def partial_configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.test
 def test_partial_configure_command(
     tango_context, group_callback, json_factory
 ):

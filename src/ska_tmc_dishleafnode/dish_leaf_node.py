@@ -129,6 +129,7 @@ class DishLeafNode(SKABaseDevice):
         self.set_change_event("sdpQueueConnectorFqdn", True, False)
         self.set_change_event("sourceOffset", True, False)
         self.set_change_event("lastPointingData", True, True)
+        self.set_change_event("kValue", True, False)
 
     class InitCommand(SKABaseDevice.InitCommand):
         """
@@ -179,6 +180,10 @@ class DishLeafNode(SKABaseDevice):
             self._last_pointing_data_attr_quality = getattr(
                 AttrQuality, "ATTR_ALARM"
             )
+        else:
+            self._last_pointing_data_attr_quality = getattr(
+                AttrQuality, "ATTR_VALID"
+            )
         self._lastPointingData = json.dumps(last_pointing_data.tolist())
         self.push_change_event("lastPointingData", self._lastPointingData)
         self.logger.info(
@@ -216,6 +221,17 @@ class DishLeafNode(SKABaseDevice):
         self.logger.info(
             "k-value validation result: ResultCode.%s",
             ResultCode(self.component_manager.kValueValidationResult).name,
+        )
+
+    def update_kvalue_callback(self) -> None:
+        """Push an event for the kValue attribute."""
+        self.push_change_event(
+            "kValue",
+            int(self.component_manager.kValue),
+        )
+        self.logger.info(
+            "k-value : %s",
+            self.component_manager.kValue,
         )
 
     # ------------------
@@ -304,7 +320,7 @@ class DishLeafNode(SKABaseDevice):
         respective pointing_cal attribute on queue connector device.
         """
         dish_id = re.findall(
-            r"\b(?:ska|mkt)\w*", self.DishMasterFQDN, flags=re.IGNORECASE
+            "\\b(?:SKA|MKT)\\d{3}\\b", self.DishMasterFQDN, flags=re.IGNORECASE
         )[0].upper()
         self._sdpQueueConnectorFqdn = sdpqc_fqdn
         self.component_manager.process_sqpqc_attribute_fqdn(
@@ -798,6 +814,7 @@ class DishLeafNode(SKABaseDevice):
             )
             self.logger.info("k-value memorized successfully: %s", value)
             self.kvalue_validation_callback()
+            self.update_kvalue_callback()
         return [result_code], [unique_id]
 
     def create_component_manager(self):

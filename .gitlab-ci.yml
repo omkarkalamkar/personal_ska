@@ -100,8 +100,3 @@ k8s-test:
       name: test/$CI_COMMIT_REF_SLUG
       on_stop: stop-k8s-test
 
-stop-k8s-test:
-  when: always
-  needs:
-    - k8s-test
-
