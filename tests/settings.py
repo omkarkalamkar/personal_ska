@@ -76,8 +76,9 @@ def update_availablity_callback():
     """An empty update_availablity callback"""
 
 
-def update_source_offset_callback():
+def update_source_offset_callback(source_offset):
     """An empty update_source_offset callback"""
+    logger.info("Source offset is: %s", source_offset)
 
 
 def update_last_pointing_data_callback(temp):
@@ -181,13 +182,13 @@ def wait_for_unresponsive(cm: DishLNComponentManager) -> bool:
     :return: True if the device becomes unresponsive within the timeout,
         False otherwise.
     :return: boolean"""
-    start_time = time.time()
-    elapsed_time = 0
-    timeout = 50
-    while elapsed_time < timeout:
+    count = 0
+    timeout = 20
+    while count < timeout:
         if cm.get_device().unresponsive:
             return True
-        elapsed_time = time.time() - start_time
+        time.sleep(1)
+        count += 1
     return False
 
 
@@ -361,3 +362,24 @@ def dln_can_communicate_with_dish_master(
             count,
         )
     return flag
+
+
+def simulate_result_code_event(
+    cm: DishLNComponentManager,
+    command_name: str,
+    result: ResultCode,
+):
+    """Simulate LRCR event from given device for given result."""
+    command_id = f"{time.time()}_{command_name}"
+
+    command_result = (
+        command_id,
+        str(
+            [
+                result.value,
+                f"{command_name} completed",
+            ]
+        ),
+    )
+
+    cm.update_device_long_running_command_result(command_result)

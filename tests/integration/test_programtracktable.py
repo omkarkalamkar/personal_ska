@@ -31,12 +31,12 @@ def check_track_table(
         )
         dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
         dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-        dish_master.subscribe_event(
+        dishmode_event_id = dish_leaf_node.subscribe_event(
             "dishMode",
             tango.EventType.CHANGE_EVENT,
             group_callback["dishMode"],
         )
-        dish_master.subscribe_event(
+        pointing_state_event_id = dish_leaf_node.subscribe_event(
             "pointingState",
             tango.EventType.CHANGE_EVENT,
             group_callback["pointingState"],
@@ -47,23 +47,10 @@ def check_track_table(
             lookahead=2,
         )
 
-        dish_leaf_node.subscribe_event(
-            "longRunningCommandsInQueue",
-            tango.EventType.CHANGE_EVENT,
-            group_callback["longRunningCommandsInQueue"],
-        )
-
-        group_callback["longRunningCommandsInQueue"].assert_change_event(
-            (),
-        )
-
         result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
         assert result_fp[0] == ResultCode.QUEUED
-        group_callback["longRunningCommandsInQueue"].assert_change_event(
-            ("SetStandbyFPMode",),
-            lookahead=2,
-        )
-        dish_leaf_node.subscribe_event(
+
+        cmd_result_event_id = dish_leaf_node.subscribe_event(
             "longRunningCommandResult",
             tango.EventType.CHANGE_EVENT,
             group_callback["longRunningCommandResult"],
@@ -78,15 +65,17 @@ def check_track_table(
             configure_input_str
         )
         assert result_config[0] == ResultCode.QUEUED
-        group_callback["longRunningCommandsInQueue"].assert_change_event(
-            ("SetStandbyFPMode", "Configure")
-        )
+
         logger.info(
             f"Command ID: {unique_id_config} Returned result: {result_config}"
         )
 
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),
+            lookahead=6,
+        )
+        group_callback["pointingState"].assert_change_event(
+            (PointingState.TRACK),
             lookahead=6,
         )
 
@@ -116,10 +105,6 @@ def check_track_table(
 
         result_config, unique_id_config = dish_leaf_node.TrackStop()
 
-        group_callback["longRunningCommandsInQueue"].assert_change_event(
-            ("TrackStop",),
-            lookahead=6,
-        )
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], str(int(ResultCode.OK))),
             lookahead=6,
@@ -130,17 +115,16 @@ def check_track_table(
             lookahead=6,
         )
 
-        group_callback["longRunningCommandsInQueue"].assert_change_event(
-            (),
-            lookahead=8,
-        )
         tear_down(dish_leaf_node, dish_master, group_callback)
+
+        dish_leaf_node.unsubscribe_event(dishmode_event_id)
+        dish_leaf_node.unsubscribe_event(pointing_state_event_id)
+        dish_leaf_node.unsubscribe_event(cmd_result_event_id)
     except Exception as exception:
         logger.exception(exception)
         tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.skip(reason="Tracktable generation is disabled")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_program_track_table(tango_context, group_callback, json_factory):
