@@ -73,7 +73,7 @@ class AbortCommands(DishLNCommand, FastCommand):
             f"AbortCommands command invoked, Result code is {result_code}\
                 and Message is {message}"
         )
-        return result_code, message
+        return result_code, "Command Completed"
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
         """Method to invoke track stop when abortcommands command is invoked
