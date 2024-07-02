@@ -9,6 +9,7 @@ from ska_tmc_common import DevFactory
 from tests.settings import DISH_MASTER_DEVICE
 
 
+@pytest.mark.test1
 def test_trackloadstaticoff_command(
     tango_context, cm, task_callback, group_callback
 ):
@@ -27,7 +28,7 @@ def test_trackloadstaticoff_command(
     unique_id, message = group_callback[
         "longRunningCommandResult"
     ].assert_change_event(
-        (Anything, f"[{ResultCode.OK.value}, 'TrackLoadStaticOff completed']"),
+        (Anything, (ResultCode.OK, "Command Completed")),
         lookahead=10,
     )[
         "attribute_value"
