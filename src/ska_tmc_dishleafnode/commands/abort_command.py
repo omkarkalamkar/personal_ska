@@ -10,6 +10,7 @@ from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ class AbortCommands(DishLNCommand, FastCommand):
             f"AbortCommands command invoked, Result code is {result_code}\
                 and Message is {message}"
         )
-        return result_code, "Command Completed"
+        return result_code, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
         """Method to invoke track stop when abortcommands command is invoked

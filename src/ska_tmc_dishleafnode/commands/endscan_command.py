@@ -9,6 +9,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
 class EndScan(DishLNCommand):
@@ -50,7 +51,7 @@ class EndScan(DishLNCommand):
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, "Command Completed"),
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
     # pylint: disable=arguments-differ
