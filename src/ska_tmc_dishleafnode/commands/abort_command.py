@@ -60,12 +60,12 @@ class AbortCommands(DishLNCommand, FastCommand):
             )
             return result_code, message
 
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "AbortCommands"
-            )
-        if result_code[0] == ResultCode.FAILED:
-            return result_code[0], message[0]
+        # with self.component_manager.tango_operation_execution_lock:
+        #     result_code, message = self.call_adapter_method(
+        #         "Dish Master", self.dish_master_adapter, "AbortCommands"
+        #     )
+        # if result_code[0] == ResultCode.FAILED:
+        #     return result_code[0], message[0]
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
 
