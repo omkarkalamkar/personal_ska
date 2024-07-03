@@ -7,6 +7,7 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
     logger,
     simulate_result_code_event,
@@ -14,6 +15,7 @@ from tests.settings import (
 )
 
 
+@pytest.mark.test1
 def test_configure_command_completed(
     tango_context,
     cm,
@@ -43,11 +45,12 @@ def test_configure_command_completed(
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Completed"),
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
 
 
+@pytest.mark.test1
 def test_configure_command_completed_partial_config(
     tango_context, cm, task_callback, json_factory
 ):
@@ -71,12 +74,13 @@ def test_configure_command_completed_partial_config(
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Completed"),
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
         lookahead=4,
     )
 
 
+@pytest.mark.test1
 def test_configure_command_completed_partial_config_missing_key(
     tango_context, cm, task_callback, json_factory
 ):
@@ -102,7 +106,7 @@ def test_configure_command_completed_partial_config_missing_key(
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Completed"),
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
         lookahead=10,
     )
@@ -147,3 +151,37 @@ def test_configure_command_not_allowed(tango_context, cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()
+
+
+@pytest.mark.test2
+def test_configure_command_status_not_allowed(
+    tango_context,
+    cm,
+    task_callback,
+    json_factory,
+):
+    cm.update_device_dish_mode(DishMode.STANDBY_LP)
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
+
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+
+    configure_input_str = json_factory("dishleafnode_configure")
+    cm.configure(configure_input_str, task_callback=task_callback)
+    time.sleep(0.5)
+    cm.update_device_configured_band("2")
+    time.sleep(0.5)
+    cm.update_device_dish_mode(DishMode.CONFIG)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.REJECTED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.NOT_ALLOWED, "Command is not allowed"),
+        }
+    )
