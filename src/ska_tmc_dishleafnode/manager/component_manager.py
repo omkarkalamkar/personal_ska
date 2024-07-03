@@ -1294,7 +1294,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
                     if result_code == ResultCode.OK.value:
                         command_object.update_task_callback(
-                            ResultCode.OK, "Command Completed"
+                            ResultCode.OK, message="Command Completed"
                         )
                     elif result_code == ResultCode.FAILED.value:
                         command_object.update_task_callback(
