@@ -945,7 +945,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ]:
             return True
 
-        return False
+        raise CommandNotAllowed(
+            "The invocation of the Off command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
 
     def is_off_allowed(self) -> bool:
         """Checks if the given command is allowed in current operational
