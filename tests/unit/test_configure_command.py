@@ -153,35 +153,27 @@ def test_configure_command_not_allowed(tango_context, cm):
         cm.is_configure_allowed()
 
 
-@pytest.mark.test2
 def test_configure_command_status_not_allowed(
     tango_context,
     cm,
     task_callback,
     json_factory,
 ):
-    cm.update_device_dish_mode(DishMode.STANDBY_LP)
-    assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
-
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
+    assert wait_for_dish_mode(cm, DishMode.UNKNOWN)
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
     time.sleep(0.5)
     cm.update_device_configured_band("2")
     time.sleep(0.5)
-    cm.update_device_dish_mode(DishMode.CONFIG)
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.REJECTED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.NOT_ALLOWED, "Command is not allowed"),
-        }
+        status=TaskStatus.REJECTED,
+        result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
     )
