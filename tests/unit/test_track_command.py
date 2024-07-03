@@ -7,6 +7,8 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+
 
 def get_track_input_str(
     track_input_file="dishleafnode_track.json",
@@ -32,7 +34,7 @@ def test_track_command_completed(tango_context, task_callback, cm):
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Completed"),
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
 

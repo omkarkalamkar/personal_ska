@@ -1,6 +1,7 @@
 from ska_tango_base.commands import ResultCode
 
 from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import logger
 
 
@@ -9,4 +10,4 @@ def test_abort_command(tango_context, cm):
     abort_command = AbortCommands(cm, logger=logger)
     result_code, message = abort_command.do()
     assert result_code == ResultCode.OK
-    assert message == "Command Completed"
+    assert message == COMMAND_COMPLETION_MESSAGE

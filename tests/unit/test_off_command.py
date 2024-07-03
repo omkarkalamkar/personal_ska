@@ -4,6 +4,7 @@ from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
     DISH_MASTER_DEVICE,
     wait_for_device_to_up,
@@ -31,7 +32,7 @@ def test_off_command_in_fp(tango_context, cm, task_callback):
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Completed"),
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
@@ -47,7 +48,7 @@ def test_off_command_in_fp(tango_context, cm, task_callback):
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, "Command Completed"),
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
 
