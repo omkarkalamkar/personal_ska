@@ -67,14 +67,14 @@ class AbortCommands(DishLNCommand, FastCommand):
             )
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
-        # call stop_tracking_thread to stop live thread
+
         result_code, message = self.stop_dish_tracking()
 
-        self.logger.info(
-            f"AbortCommands command invoked, Result code is {result_code}\
-                and Message is {message}"
-        )
-        return result_code, COMMAND_COMPLETION_MESSAGE
+        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+            return result_code, message
+        # call stop_tracking_thread to stop live thread
+
+        return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
         """Method to invoke track stop when abortcommands command is invoked
