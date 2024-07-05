@@ -61,10 +61,10 @@ class AbortCommands(DishLNCommand, FastCommand):
             return result_code, message
 
         self.logger.info(
-            "Flag to call AbortCommands on dish master: %s",
+            "Dish Abort commands device property is: %s",
             self.component_manager.is_dish_abort_commands,
         )
-        if self.component_manager.is_dish_abort_commands is True:
+        if self.component_manager.is_dish_abort_commands:
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "AbortCommands"
