@@ -10,7 +10,7 @@ Added
 
 [0.15.0]
 ********
-* Update Dish Leaf Node to use Base class v1.0.0 and pytango v9.5.0
+* Update Dish Leaf Node to use Base class v1.0.0 and pytango v9.5.0.
 
 
 [0.14.2]
