@@ -60,19 +60,24 @@ class AbortCommands(DishLNCommand, FastCommand):
             )
             return result_code, message
 
-        # with self.component_manager.tango_operation_execution_lock:
-        #     result_code, message = self.call_adapter_method(
-        #         "Dish Master", self.dish_master_adapter, "AbortCommands"
-        #     )
-        # if result_code[0] == ResultCode.FAILED:
-        #     return result_code[0], message[0]
+        self.logger.info(
+            "Flag to call AbortCommands on dish master: %s",
+            self.component_manager.is_dish_abort_commands,
+        )
+        if self.component_manager.is_dish_abort_commands is True:
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "AbortCommands"
+                )
+            self.logger.info(
+                f"AbortCommands command invoked, Result code is {result_code}\
+                and Message is {message}"
+            )
+            if result_code[0] == ResultCode.FAILED:
+                return result_code[0], message[0]
+
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
-
-        self.logger.info(
-            f"AbortCommands command invoked, Result code is {result_code}\
-                and Message is {message}"
-        )
         return result_code, message
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
