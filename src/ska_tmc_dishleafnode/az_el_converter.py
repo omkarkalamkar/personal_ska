@@ -58,9 +58,37 @@ class AzElConverter:
                 ):
                     self.component_manager.observer = antenna
 
+    def point_to_body(self, target_name: str, timestamp: str):
+        """
+        This method calls the Katpoint API to get the Ra and Dec
+        """
+        non_sidereal_target = Target(f"{target_name}, special")
+        with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            azel = non_sidereal_target.azel(
+                timestamp, self.component_manager.observer
+            )
+
+        refraction_corrected_el = self.refraction_correction.apply(
+            azel.alt.rad,
+            self.weather_data["temperature"],
+            self.weather_data["pressure"],
+            self.weather_data["humidity"],
+        )
+        refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
+        logger.debug(
+            "The Azimuth value is %s and the Elevation is %s after "
+            "forward transform.",
+            azel.az.deg,
+            refraction_corrected_angle.deg,
+        )
+        return [
+            azel.az.deg,
+            refraction_corrected_angle.deg,
+        ]
+
     def point(
         self, right_ascension: str, declination: str, timestamp: str
-    ) -> list[float]:
+    ) -> list[str]:
         """This method converts Target RaDec coordinates
         to the AzEl coordinates.It is called continuously
         from Track command (in a thread) at interval
@@ -81,7 +109,6 @@ class AzElConverter:
         az_value: str,
         el_value: str,
         timestamp: str,
-        weather_data: dict[str, float],
     ) -> List[str]:
         """This method converts given Azimuth/Elevation to RA/Dec after
         reversing the refraction correction and performing the topocentric and
@@ -99,9 +126,9 @@ class AzElConverter:
         elevation = Angle(el_value, u.deg)
         refraction_removed_el = self.refraction_correction.reverse(
             elevation.rad,
-            weather_data["temperature"],
-            weather_data["pressure"],
-            weather_data["humidity"],
+            self.weather_data["temperature"],
+            self.weather_data["pressure"],
+            self.weather_data["humidity"],
         )
 
         elevation_angle = Angle(refraction_removed_el, u.rad)

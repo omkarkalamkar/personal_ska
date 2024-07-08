@@ -3,6 +3,7 @@
 import datetime
 from concurrent.futures import ThreadPoolExecutor
 from logging import Logger
+from typing import List, Union
 
 from astropy.time import Time
 
@@ -12,6 +13,15 @@ from ska_tmc_dishleafnode.constants import SKA_EPOCH
 
 class ProgramTrackTableCalculator:
     """Class for programTrackTableCalculator."""
+
+    right_ascension: str = ""
+    declination: str = ""
+    target_name: str = ""
+    weather_data: dict
+    azel_converter: AzElConverter
+    track_table_time_stamp: datetime.datetime
+    track_table_start_time: float
+    elevation_limit: bool
 
     def __init__(self, component_manager, logger: Logger) -> None:
         """
@@ -25,30 +35,22 @@ class ProgramTrackTableCalculator:
         """
         self.component_manager = component_manager
         self.logger = logger
-        self.right_ascension = None
-        self.declination = None
-        self.weather_data = None
-        self.azel_converter = None
-        self.track_table_time_stamp = None
-        self.track_table_start_time = None
-        self.elevation_limit = None
 
     def calculate_program_track_table(
-        self, ra_value: str, dec_value: str, azel_converter: AzElConverter
+        self, target_data: Union[str, List[str]], azel_converter: AzElConverter
     ) -> list:
         """This method calculates programTrackTable.
 
-        :param ra_value: Right Ascension of the source in hours:minutes:sec.
-        :type ra_value: str
-        :param dec_value: Declination of the source in
-            degree:arc_minutes:arc_sec.
-        :type dec_value: str
+        :param target_data: The name or RaDec for the target
+        :type target_data: Union[str, List[str]]
         :return: list in the form of [TAI1, Az1, El1, TAI2, Az2,
             El2,,,,,,TAIn, Azn, Eln].
         :rtype: list
         """
-        self.right_ascension = ra_value
-        self.declination = dec_value
+        if isinstance(target_data, str):
+            self.target_name = target_data
+        else:
+            self.right_ascension, self.declination = target_data
         self.azel_converter = azel_converter
         self.weather_data = self.azel_converter.weather_data
         program_track_table = []
@@ -73,13 +75,7 @@ class ProgramTrackTableCalculator:
                 )
 
                 if self.component_manager.get_track_process_event_status():
-                    # pylint: disable = line-too-long
-                    log_message = (
-                        "Stop the Thread as event track time is set: %s",
-                        self.component_manager.get_track_process_event_status(),
-                    )
-                    # pylint: enable = line-too-long
-                    self.logger.debug(log_message)
+                    self.logger.debug("Stopping the ProgramTrackTable Thread.")
                     break
         except Exception as exception:
             self.logger.error(exception)
@@ -134,11 +130,14 @@ class ProgramTrackTableCalculator:
             tai_time = self.convert_utc_to_tai(timestamp_sec)
             tai_timestamp_list.append(tai_time)
 
-            # pylint: disable = line-too-long
-            self.track_table_time_stamp = self.track_table_time_stamp + datetime.timedelta(
-                milliseconds=self.component_manager.pointing_calculation_period
+            self.track_table_time_stamp = (
+                self.track_table_time_stamp
+                + datetime.timedelta(
+                    milliseconds=(
+                        self.component_manager.pointing_calculation_period
+                    )
+                )
             )
-            # pylint: enable = line-too-long
         return time_stamp_list, tai_timestamp_list
 
     def point(self, timestamp: str) -> list:
@@ -153,6 +152,10 @@ class ProgramTrackTableCalculator:
         :return: Azimuth and Elevation coordinates (Az, El) of source.
         :rtype: list
         """
+        if self.target_name:
+            return self.azel_converter.point_to_body(
+                self.target_name, timestamp
+            )
         return self.azel_converter.radec_to_azel(
             self.right_ascension,
             self.declination,

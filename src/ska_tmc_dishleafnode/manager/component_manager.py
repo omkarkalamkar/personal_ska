@@ -11,7 +11,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import tango
@@ -486,7 +486,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 str(azimuth),
                 str(elevation),
                 timestamp,
-                self.converter.weather_data,
             )
             self.actual_pointing = [timestamp, right_ascension, declination]
         except (ValueError, IndexError) as exception:
@@ -1161,19 +1160,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def track_process(
         self,
-        ra_value: str,
-        dec_value: str,
+        target_data: Union[str, List[str]],
         command_obj: Configure | Track,
     ) -> None:
         """
         This method manages calculation and writing of programTrackTable
         attribute on DishMaster at the required frequency.
 
-        :param ra_value: Right Ascension of the source in hours:minutes:sec.
-        :type ra_value: str
-        :param dec_value: Declination of the source in
-            degree:arc_minutes:arc_sec.
-        :type dec_value: str
+        :param target_data: The name or RaDec for the target
+        :type target_data: Union[str, List[str]]
         :param command_obj: Command Object which is used to set
             desired_pointing.
         :type command_obj: Configure or Track.
@@ -1199,7 +1194,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
         timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
-        self.converter.point(ra_value, dec_value, timestamp)
+        if isinstance(target_data, str):
+            self.converter.point_to_body(target_data, timestamp)
+        else:
+            ra, dec = target_data
+            self.converter.point(ra, dec, timestamp)
 
         advance_time = (
             self.track_table_entries * self.pointing_calculation_period
@@ -1208,7 +1207,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while self.get_track_process_event_status() is False:
             program_track_table = (
                 self.track_table_calculator.calculate_program_track_table(
-                    ra_value, dec_value, self.converter
+                    target_data, self.converter
                 )
             )
             first_entry_timestamp = (

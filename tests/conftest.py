@@ -226,7 +226,7 @@ def update_last_pointing_data_callback(temp):
     logger.debug(temp)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
