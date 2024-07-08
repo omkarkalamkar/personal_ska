@@ -74,7 +74,7 @@ def test_configure_command_completed_partial_config(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=4,
+        lookahead=6,
     )
 
 
