@@ -12,6 +12,9 @@ Added
 ********
 * Update Dish Leaf Node to use Base class v1.0.0 and pytango v9.5.0.
 
+[0.14.3]
+********
+* Introduced IsDishAbortCommands property 
 
 [0.14.2]
 ********

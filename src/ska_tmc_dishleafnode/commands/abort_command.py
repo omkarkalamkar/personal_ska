@@ -10,7 +10,8 @@ from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+
+# from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -61,20 +62,25 @@ class AbortCommands(DishLNCommand, FastCommand):
             )
             return result_code, message
 
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "AbortCommands"
+        self.logger.info(
+            "Dish Abort commands device property is: %s",
+            self.component_manager.is_dish_abort_commands,
+        )
+        if self.component_manager.is_dish_abort_commands:
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "AbortCommands"
+                )
+            self.logger.info(
+                f"AbortCommands command invoked, Result code is {result_code}\
+                and Message is {message}"
             )
-        if result_code[0] == ResultCode.FAILED:
-            return result_code[0], message[0]
+            if result_code[0] == ResultCode.FAILED:
+                return result_code[0], message[0]
 
-        result_code, message = self.stop_dish_tracking()
-
-        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
-            return result_code, message
         # call stop_tracking_thread to stop live thread
-
-        return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
+        result_code, message = self.stop_dish_tracking()
+        return result_code, message
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
         """Method to invoke track stop when abortcommands command is invoked
