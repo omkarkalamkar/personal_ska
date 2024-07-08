@@ -105,7 +105,7 @@ def test_configure_command_completed_partial_config_missing_key(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=10,
+        lookahead=12,
     )
 
 
