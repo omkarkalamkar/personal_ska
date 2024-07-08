@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Added
 ======
 
+[0.14.3]
+********
+* Introduced IsDishAbortCommands property 
+
 [0.14.2]
 ********
 * Enabled push event mechanism for kValue , kValueValidationResult
