@@ -1,15 +1,10 @@
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-from tests.settings import (
-    DISH_MASTER_DEVICE,
-    wait_for_device_to_up,
-    wait_for_dish_mode,
-)
+from tests.settings import wait_for_dish_mode
 
 
 def test_off_command_in_lp(tango_context, cm):
@@ -18,9 +13,9 @@ def test_off_command_in_lp(tango_context, cm):
         cm.is_off_allowed()
 
 
-def test_off_command_in_fp(tango_context, cm, task_callback):
-    dish_master_proxy = DevFactory().get_device(DISH_MASTER_DEVICE)
-    assert wait_for_device_to_up(dish_master_proxy)
+def test_off_command_in_fp(tango_context, cm_without_er_lp, task_callback):
+    cm = cm_without_er_lp
+    wait_for_dish_mode(cm, DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
     cm.setstandbyfpmode(task_callback)
     task_callback.assert_against_call(
