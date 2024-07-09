@@ -71,6 +71,19 @@ include:
 - project: 'ska-telescope/templates-repository'
   file: 'gitlab-ci/includes/finaliser.gitlab-ci.yml'
 
+# retry to template job for python-test
+python-test:
+  tags:
+    - k8srunner-large
+  variables:
+    PYTHON_TEST_COUNT: 1
+  retry: 1
+  image: artefact.skao.int/ska-tango-images-pytango-builder:9.4.3
+
+python-lint:
+  image: artefact.skao.int/ska-tango-images-pytango-builder:9.4.3
+
+
 k8s-test:
   tags:
     - k8srunner-large

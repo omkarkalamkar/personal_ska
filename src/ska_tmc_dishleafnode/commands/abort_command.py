@@ -12,8 +12,6 @@ from ska_tmc_common.enum import PointingState
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
-# from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
