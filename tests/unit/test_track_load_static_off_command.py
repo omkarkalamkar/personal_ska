@@ -61,6 +61,7 @@ def test_trackloadstaticoff_command_invalid_input(
     tango_context, cm, argin, task_callback
 ):
     """Test the failure scenario while invoking TrackLoadStaticOff command."""
+    cm.get_device()._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
 
     status, message = cm.track_load_static_off(
