@@ -119,6 +119,7 @@ def actual_pointing_attr(tango_context):
         milliseconds=EXTEND_MILLISECONDS
     )
     utc_timestamp = extended_time.timestamp() * 1000
+    sleep(2)
     dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
     verify_value = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
     wait_and_validate_attribute_value_available(
