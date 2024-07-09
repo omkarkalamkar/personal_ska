@@ -21,7 +21,6 @@ def test_set_kvalue_command(tango_context, cm):
     assert result_code == ResultCode.OK
 
 
-@pytest.mark.skip(reason="Test case is failing with Segmentation fault")
 def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     assert wait_and_validate_attribute_value_available(
         dishln_device,
@@ -51,13 +50,13 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, cm):
     assert cm.kValueValidationResult == ResultCode.FAILED
 
 
-@pytest.mark.skip("unstable")
 def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
     tango_context, cm
 ):
     logger.info("%s", tango_context)
     cm.get_device().update_unresponsive(True)
-    wait_for_unresponsive(cm)
+    result = wait_for_unresponsive(cm)
+    logger.info("Result is: %s", result)
     with pytest.raises(
         DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
     ):

@@ -82,6 +82,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
+        is_dish_abort_commands: bool = False,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
@@ -141,6 +142,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
+        self.is_dish_abort_commands = is_dish_abort_commands
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
@@ -1229,6 +1231,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
             else:
                 self.update_program_track_table(program_track_table)
+        self.logger.info("Program Track Table Calculation stopped.")
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
