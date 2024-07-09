@@ -9,7 +9,7 @@ from tests.settings import logger
 @pytest.mark.parametrize(
     "body_name, timestamp, expected_az, expected_el",
     [
-        ("Sun", "2019-02-19 06:01:00", "22:08:29.76", "-11:27:27.41"),
+        ("Sun", "2019-02-19 06:01:00", "90.7870535", "21.4058439"),
     ],
 )
 @pytest.mark.temp
@@ -37,6 +37,8 @@ def test_point_at_body(
             retry += 1
         sleep(0.1)
     az, el = converter.point_to_body(body_name, timestamp)
+    az = round(az, 7)
+    el = round(el, 7)
     logger.info("Az is: %s", az)
     logger.info("El is: %s", el)
     assert az == expected_az

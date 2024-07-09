@@ -160,7 +160,6 @@ class ProgramTrackTableCalculator:
             self.right_ascension,
             self.declination,
             timestamp,
-            self.weather_data,
         )
 
     def convert_utc_to_tai(self, utc_time: float) -> float:
