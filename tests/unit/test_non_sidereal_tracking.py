@@ -12,7 +12,6 @@ from tests.settings import logger
         ("Sun", "2019-02-19 06:01:00", 90.7870535, 21.4058439),
     ],
 )
-@pytest.mark.temp
 def test_point_at_body(
     body_name: str,
     timestamp: str,

@@ -14,6 +14,7 @@ def test_trackloadstaticoff_command(
 ):
     """Test the successful completion of the TrackLoadStaticOff command."""
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
+    cm.get_device()._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
     dish_device.subscribe_event(
         "longRunningCommandResult",
