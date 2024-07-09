@@ -80,8 +80,6 @@ class Configure(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "Configure"
         return_code, message = self.do(argin)
-        logger.info(message)
-        logger.info(return_code)
 
         if return_code == ResultCode.FAILED:
             self.task_callback(
@@ -106,7 +104,7 @@ class Configure(DishLNCommand):
                 )
 
     def update_task_callback(
-        self, result_code: ResultCode, message: str = "", exception: str = ""
+        self, result_code: ResultCode, exception: str = ""
     ) -> None:
         """
         Method to update task callback.
@@ -121,13 +119,15 @@ class Configure(DishLNCommand):
         if exception:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=message,
+                result=(result_code, exception),
+                exception=exception,
             )
         else:
             self.task_callback(
-                status=TaskStatus.COMPLETED, result=(result_code, message)
+                status=TaskStatus.COMPLETED,
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
+
         self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument

@@ -1250,7 +1250,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.info("ProgramTrackTable: %s", program_track_table)
+        self.logger.debug("ProgramTrackTable: %s", program_track_table)
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
 
@@ -1364,7 +1364,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.update_availablity_callback(True)
 
     def update_device_long_running_command_result(
-        self, lrc_result: Tuple[List[str], List[str]]
+        self, lrc_result: Tuple[str, str]
     ) -> None:
         """
         Method to update task callback based on long running command result
@@ -1373,35 +1373,37 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
+        self.logger.info(
+            "Received a longRunningCommandResult event with data: %s",
+            lrc_result,
+        )
         try:
             if not lrc_result:
                 return
             with self.lock:
                 if lrc_result == ("", ""):
-                    self.logger.info("Empty longRunningCommandResult event")
+                    return
+
                 if (
                     lrc_result[0].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
-                    command_result = lrc_result[1].strip("][)(").split(", ")
-                    self.logger.info("command_result: %s", command_result)
+                    command_result, message = json.loads(lrc_result[1])
 
-                    # if ResultCode is a 0th element of command_result then
-                    # ignore the event
-
-                    # Exception will be raised if 0th element of
-                    # command_result is exception
-                    result_code = int(command_result[0])
                     command_object = self.command_object.get(
                         self.command_in_progress
                     )
-                    if result_code == ResultCode.OK.value:
+                    if command_result == ResultCode.OK:
                         command_object.update_task_callback(
-                            ResultCode.OK, message="Command Completed"
+                            ResultCode.OK, exception="Command Completed"
                         )
-                    elif result_code == ResultCode.FAILED.value:
+                    elif command_result in [
+                        ResultCode.FAILED,
+                        ResultCode.NOT_ALLOWED,
+                        ResultCode.REJECTED,
+                    ]:
                         command_object.update_task_callback(
-                            ResultCode.FAILED, message=command_result[1]
+                            ResultCode.FAILED, exception=message
                         )
         except Exception as exception:
             self.logger.error(

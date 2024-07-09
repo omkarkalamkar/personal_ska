@@ -350,15 +350,13 @@ def simulate_result_code_event(
 ):
     """Simulate LRCR event from given device for given result."""
     command_id = f"{time.time()}_{command_name}"
-
     command_result = (
         command_id,
-        str(
+        json.dumps(
             [
-                result.value,
+                result,
                 f"{command_name} completed",
             ]
         ),
     )
-
     cm.update_device_long_running_command_result(command_result)

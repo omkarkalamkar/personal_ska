@@ -60,7 +60,6 @@ def test_configure_command_completed_partial_config(
     configure_input_str = json_factory("partial_configure")
 
     cm.configure(configure_input_str, task_callback=task_callback)
-
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
