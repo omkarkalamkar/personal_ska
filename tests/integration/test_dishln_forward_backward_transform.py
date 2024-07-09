@@ -129,11 +129,6 @@ def actual_pointing_attr(tango_context):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-# @pytest.mark.skip(
-#     reason="The timestamp used by ProgramTrackTable is not accessible "
-# +"through"
-#     + " the test. This test will be refactored as a part of SKB-397"
-# )
 def test_actual_pointing_attribute(
     tango_context, json_factory, group_callback
 ):

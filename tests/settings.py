@@ -261,7 +261,7 @@ def wait_and_validate_attribute_value_available(
     device: DeviceProxy,
     attribute_name: str,
     expected_value: str,
-    timeout: int = 300,
+    timeout: int = 100,
 ) -> bool:
     """This method wait and validate if attribute value is equal to provided
     expected value
@@ -280,8 +280,6 @@ def wait_and_validate_attribute_value_available(
     attribute_value = None
     while count <= timeout:
         try:
-            count += 1
-            time.sleep(1)
             attribute_value = device.read_attribute(attribute_name).value
             if attribute_value == expected_value:
                 return True
@@ -291,6 +289,8 @@ def wait_and_validate_attribute_value_available(
                 attribute_name,
                 attribute_value,
             )
+            count += 1
+            time.sleep(1)
         except Exception as exception:
             # Device gets unavailable due to restart and the above command
             # tries to access the attribute resulting into exception
@@ -298,6 +298,8 @@ def wait_and_validate_attribute_value_available(
             # the exception log is suppressed by storing into variable
             # the error is printed later into the log in case of failure
             error = exception
+            count += 1
+            time.sleep(1)
 
     logger.exception(
         "Exception occurred while reading attribute %s and count is %s",
