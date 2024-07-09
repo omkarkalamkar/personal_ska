@@ -10,6 +10,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
 class SetOperateMode(DishLNCommand):
@@ -47,7 +48,7 @@ class SetOperateMode(DishLNCommand):
         if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(result_code, message),
                 exception=message,
             )
         else:
@@ -57,7 +58,7 @@ class SetOperateMode(DishLNCommand):
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
     # pylint: disable=arguments-differ
@@ -82,5 +83,4 @@ class SetOperateMode(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetOperateMode"
             )
-
         return result_code[0], message[0]

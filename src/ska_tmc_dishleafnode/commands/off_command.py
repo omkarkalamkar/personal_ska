@@ -10,6 +10,7 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
 class Off(DishLNCommand):
@@ -49,13 +50,13 @@ class Off(DishLNCommand):
         if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(return_code, message),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
     # pylint: disable=arguments-differ

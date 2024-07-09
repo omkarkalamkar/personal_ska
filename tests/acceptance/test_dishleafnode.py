@@ -10,7 +10,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import event_remover, wait_for_ping
+from tests.settings import COMMAND_COMPLETED, event_remover, wait_for_ping
 
 
 @given(
@@ -135,7 +135,7 @@ def check_command(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id, str(int(ResultCode.OK))), lookahead=4
+        (unique_id, COMMAND_COMPLETED), lookahead=4
     )
     # Invoke TrackStop command to terminate the Track thread executed by
     # Configure command.If thread not stopped then it is causing unstable

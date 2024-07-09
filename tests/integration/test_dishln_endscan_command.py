@@ -8,6 +8,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     event_remover,
@@ -83,7 +84,7 @@ def endscan_command(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], str(int(ResultCode.OK))),
+        (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
     )
 
@@ -111,7 +112,7 @@ def endscan_command(
         lookahead=6,
     )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
@@ -123,7 +124,7 @@ def endscan_command(
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_scan[0], str(int(ResultCode.OK))),
+        (unique_id_scan[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     result_endscan, unique_id_endscan = dish_leaf_node.EndScan()
@@ -136,7 +137,7 @@ def endscan_command(
     assert dish_master.scanID == ""
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_endscan[0], str(int(ResultCode.OK))),
+        (unique_id_endscan[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     result_config, unique_id_config = dish_leaf_node.TrackStop()
@@ -146,7 +147,7 @@ def endscan_command(
         lookahead=8,
     )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
