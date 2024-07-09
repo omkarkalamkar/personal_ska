@@ -1388,15 +1388,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     lrc_result[0].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
+                    self.logger.debug(
+                        "The command in progress is: %s for processing of "
+                        + "LRCR event",
+                        self.command_in_progress,
+                    )
                     command_result, message = json.loads(lrc_result[1])
-
                     command_object = self.command_object.get(
                         self.command_in_progress
                     )
                     if command_result == ResultCode.OK:
-                        command_object.update_task_callback(
-                            ResultCode.OK, exception="Command Completed"
-                        )
+                        command_object.update_task_callback(ResultCode.OK)
                     elif command_result in [
                         ResultCode.FAILED,
                         ResultCode.NOT_ALLOWED,

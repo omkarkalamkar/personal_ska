@@ -50,9 +50,10 @@ def test_configure_command_completed(
 
 
 def test_configure_command_completed_partial_config(
-    tango_context, cm, task_callback, json_factory
+    tango_context, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
 
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
@@ -78,9 +79,10 @@ def test_configure_command_completed_partial_config(
 
 
 def test_configure_command_completed_partial_config_missing_key(
-    tango_context, cm, task_callback, json_factory
+    tango_context, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
     wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
