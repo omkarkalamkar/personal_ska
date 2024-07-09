@@ -114,8 +114,8 @@ class DishLeafNode(SKABaseDevice):
     # ---------------
 
     def init_device(self):
-        super().init_device()
         self._isSubsystemAvailable = True
+        super().init_device()
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""

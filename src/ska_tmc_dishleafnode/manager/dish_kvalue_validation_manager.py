@@ -23,6 +23,7 @@ class DishkValueValidationManager:
         """Wait and check if dish manager is ready
         :return: bool
         """
+        exception = ""
         count = 0
         setkvalue_obj = SetKValue(self.component_manager, self.logger)
         while count < self.component_manager.dish_availability_check_timeout:
@@ -35,9 +36,11 @@ class DishkValueValidationManager:
                     )
                     return True
             except Exception as e:
-                self.logger.exception("Dish manager is unresponsive %s", e)
+                exception = str(e)
             count += 1
             time.sleep(1)
+        if exception:
+            self.logger.exception("Dish manager is unresponsive %s", exception)
         return False
 
     def get_dish_manager_kvalue(self) -> int:
