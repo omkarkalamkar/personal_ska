@@ -3,7 +3,7 @@ from time import sleep
 import pytest
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from tests.settings import WEATHER_DATA, logger
+from tests.settings import logger
 
 
 @pytest.mark.parametrize(
@@ -52,7 +52,7 @@ def test_radec_to_azel(
                 pytest.fail(f"{e}")
             retry += 1
         sleep(0.1)
-    az, el = converter.radec_to_azel(ra, dec, timestamp, WEATHER_DATA)
+    az, el = converter.radec_to_azel(ra, dec, timestamp)
     az = round(az, 7)
     el = round(el, 7)
     assert az == expected_az

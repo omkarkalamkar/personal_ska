@@ -100,9 +100,7 @@ class AzElConverter:
         return:
             az_el_coordinates (list)
         """
-        return self.radec_to_azel(
-            right_ascension, declination, timestamp, self.weather_data
-        )
+        return self.radec_to_azel(right_ascension, declination, timestamp)
 
     def azel_to_radec(
         self,
@@ -164,7 +162,6 @@ class AzElConverter:
         right_ascension: str,
         declination: str,
         timestamp: str,
-        weather_data: dict[str, float],
     ) -> List[str]:
         """This method invokes the katpoint commands to do the forward
         transform required for pointing a celestial object.
@@ -188,9 +185,9 @@ class AzElConverter:
 
         refraction_corrected_el = self.refraction_correction.apply(
             azel.alt.rad,
-            weather_data["temperature"],
-            weather_data["pressure"],
-            weather_data["humidity"],
+            self.weather_data["temperature"],
+            self.weather_data["pressure"],
+            self.weather_data["humidity"],
         )
         refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
         logger.debug(

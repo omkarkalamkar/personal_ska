@@ -2,7 +2,7 @@
 import json
 import logging
 import time
-from typing import Final, List
+from typing import List
 
 import tango
 from ska_ser_logging import configure_logging
@@ -27,12 +27,6 @@ DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
-
-WEATHER_DATA: Final = {
-    "temperature": 30.0,
-    "pressure": 900.0,
-    "humidity": 10,
-}
 
 
 def wait_for_ping(dishleafnode_cm):
