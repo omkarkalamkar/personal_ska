@@ -9,15 +9,15 @@ from tests.settings import logger
 @pytest.mark.parametrize(
     "body_name, timestamp, expected_az, expected_el",
     [
-        ("Sun", "2019-02-19 06:01:00", "90.7870535", "21.4058439"),
+        ("Sun", "2019-02-19 06:01:00", 90.7870535, 21.4058439),
     ],
 )
 @pytest.mark.temp
 def test_point_at_body(
     body_name: str,
     timestamp: str,
-    expected_az: str,
-    expected_el: str,
+    expected_az: float,
+    expected_el: float,
     tango_context,
     cm,
 ):
