@@ -247,8 +247,7 @@ class Configure(DishLNCommand):
 
             if (
                 self.component_manager.dishMode != DishMode.STOW
-                and result_code[0]
-                not in [ResultCode.FAILED, ResultCode.REJECTED]
+                and result_code[0] not in [ResultCode.FAILED]
             ):
                 result_code, message = self.ensure_dish_is_configured(
                     receiver_band
