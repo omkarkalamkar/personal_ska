@@ -192,7 +192,7 @@ class DishLNEventReceiver(EventReceiver):
         self, event_data: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
-        longRunningCommandStatus attribute.
+        longRunningCommandResult attribute.
 
         :parameter event_flag: To flag the change in event.
         :type event_flag: tango.EventType.CHANGE_EVENT

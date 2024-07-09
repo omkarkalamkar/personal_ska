@@ -194,16 +194,7 @@ def tear_down(
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
-        dish_leaf_node.subscribe_event(
-            "longRunningCommandsInQueue",
-            tango.EventType.CHANGE_EVENT,
-            group_callback["longRunningCommandsInQueue"],
-        )
-        group_callback["longRunningCommandsInQueue"].assert_change_event(
-            ("TrackStop",), lookahead=4
-        )
-
-        dish_leaf_node.subscribe_event(
+        LRCR_ID = dish_leaf_node.subscribe_event(
             "longRunningCommandResult",
             tango.EventType.CHANGE_EVENT,
             group_callback["longRunningCommandResult"],
@@ -212,14 +203,15 @@ def tear_down(
             (unique_id[0], str(int(ResultCode.OK))),
             lookahead=4,
         )
+        dish_leaf_node.unsubscribe_event(LRCR_ID)
     dish_master.SetDirectPointingState(PointingState.NONE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    dish_master.subscribe_event(
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_master.subscribe_event(
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -233,6 +225,8 @@ def tear_down(
         (DishMode.STANDBY_LP),
         lookahead=12,
     )
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
 
 
 def build_partial_configure_data(

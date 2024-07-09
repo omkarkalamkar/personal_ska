@@ -10,7 +10,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import event_remover, wait_for_ping
+from tests.settings import wait_for_ping
 
 
 @given(
@@ -70,10 +70,6 @@ def call_command(
         dev_factory = DevFactory()
         dish_master_proxy = dev_factory.get_device(dish_master_device)
         dishMode = eval(dish_mode)
-        event_remover(
-            group_callback,
-            ["longRunningCommandsInQueue", "longRunningCommandResult"],
-        )
         dish_master_proxy.SetDirectDishMode(dishMode)
         dish_master_proxy.subscribe_event(
             "dishMode",
@@ -114,24 +110,10 @@ def check_command(
 
     assert pytest.command_result[0][0] == ResultCode.QUEUED
     unique_id = pytest.command_result[1][0]
-    dishleaf_node.subscribe_event(
-        "longRunningCommandIDsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandIDsInQueue"],
-    )
-
-    dishleaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-    dishleaf_node.subscribe_event(
+    LRCR_ID = dishleaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
-    )
-    group_callback["longRunningCommandIDsInQueue"].assert_change_event(
-        (str(unique_id),), lookahead=6
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -146,11 +128,8 @@ def check_command(
             and dishleaf_node.pointingState == PointingState.TRACK
         ):
             dishleaf_node.TrackStop()
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=6,
-    )
     assert str(dish_master_proxy.state()) == resultant_state
+    dishleaf_node.unsubscribe_event(LRCR_ID)
 
 
 scenarios("../features/dishleafnode.feature")

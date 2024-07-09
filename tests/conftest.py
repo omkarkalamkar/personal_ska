@@ -153,10 +153,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
     :rtype: MockTangoEventCallbackGroup
     """
     group_callback = MockTangoEventCallbackGroup(
-        "longRunningCommandsInQueue",
         "longRunningCommandResult",
-        "longRunningCommandIDsInQueue",
-        "longRunningCommandStatus",
         "dishMode",
         "pointingState",
         "kValueValidationResult",

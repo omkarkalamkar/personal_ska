@@ -60,7 +60,13 @@ class AzElConverter:
 
     def point_to_body(self, target_name: str, timestamp: str):
         """
-        This method calls the Katpoint API to get the Ra and Dec
+        This method calls the Katpoint API to get the Azimuth and Elevation for
+        a non sidereal object and applies the refraction correction to it.
+
+        :param target_name: Name of the non-sidereal body
+        :type target_name: str
+        :param timestamp: Timestamp for observation
+        :type timestamp: str
         """
         non_sidereal_target = Target(f"{target_name}, special")
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
