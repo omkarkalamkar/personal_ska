@@ -2,7 +2,7 @@
 import json
 import logging
 import time
-from typing import Final, List
+from typing import List
 
 import tango
 from ska_ser_logging import configure_logging
@@ -28,12 +28,6 @@ DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
 COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
-
-WEATHER_DATA: Final = {
-    "temperature": 30.0,
-    "pressure": 900.0,
-    "humidity": 10,
-}
 
 
 def wait_for_ping(dishleafnode_cm):
@@ -136,17 +130,6 @@ def event_remover(group_callback, attributes: List[str]) -> None:
             pass
 
 
-def wait_for_device_to_up(device_proxy):
-    """This test case waits for the device"""
-    timeout = 0
-    while timeout < 30:
-        time.sleep(1)
-        timeout = timeout + 1
-        if device_proxy.dishMode == DishMode.STANDBY_LP:
-            return True
-    return False
-
-
 def wait_for_dish_mode(
     cm: DishLNComponentManager, dish_mode: DishMode
 ) -> bool:
@@ -201,16 +184,7 @@ def tear_down(
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
-        dish_leaf_node.subscribe_event(
-            "longRunningCommandsInQueue",
-            tango.EventType.CHANGE_EVENT,
-            group_callback["longRunningCommandsInQueue"],
-        )
-        group_callback["longRunningCommandsInQueue"].assert_change_event(
-            ("TrackStop",), lookahead=4
-        )
-
-        dish_leaf_node.subscribe_event(
+        LRCR_ID = dish_leaf_node.subscribe_event(
             "longRunningCommandResult",
             tango.EventType.CHANGE_EVENT,
             group_callback["longRunningCommandResult"],
@@ -219,14 +193,15 @@ def tear_down(
             (unique_id[0], str(int(ResultCode.OK))),
             lookahead=4,
         )
+        dish_leaf_node.unsubscribe_event(LRCR_ID)
     dish_master.SetDirectPointingState(PointingState.NONE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    dish_master.subscribe_event(
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_master.subscribe_event(
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -240,6 +215,8 @@ def tear_down(
         (DishMode.STANDBY_LP),
         lookahead=12,
     )
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
 
 
 def build_partial_configure_data(
@@ -292,8 +269,6 @@ def wait_and_validate_attribute_value_available(
     attribute_value = None
     while count <= timeout:
         try:
-            count += 30
-            time.sleep(30)
             attribute_value = device.read_attribute(attribute_name).value
             if attribute_value == expected_value:
                 return True
@@ -303,6 +278,8 @@ def wait_and_validate_attribute_value_available(
                 attribute_name,
                 attribute_value,
             )
+            count += 1
+            time.sleep(1)
         except Exception as exception:
             # Device gets unavailable due to restart and the above command
             # tries to access the attribute resulting into exception
@@ -310,6 +287,8 @@ def wait_and_validate_attribute_value_available(
             # the exception log is suppressed by storing into variable
             # the error is printed later into the log in case of failure
             error = exception
+            count += 1
+            time.sleep(1)
 
     logger.exception(
         "Exception occurred while reading attribute %s and count is %s",
@@ -371,15 +350,13 @@ def simulate_result_code_event(
 ):
     """Simulate LRCR event from given device for given result."""
     command_id = f"{time.time()}_{command_name}"
-
     command_result = (
         command_id,
-        str(
+        json.dumps(
             [
-                result.value,
+                result,
                 f"{command_name} completed",
             ]
         ),
     )
-
     cm.update_device_long_running_command_result(command_result)

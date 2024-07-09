@@ -9,7 +9,6 @@ from ska_tmc_dishleafnode.constants import TRACK_TABLE_ENTRY_SIZE
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    event_remover,
     logger,
     tear_down,
 )
@@ -25,10 +24,6 @@ def check_track_table(
         logger.info(f"{tango_context}")
         dev_factory = DevFactory()
         dish_leaf_node = dev_factory.get_device(dishln_name)
-        event_remover(
-            group_callback,
-            ["longRunningCommandsInQueue", "longRunningCommandResult"],
-        )
         dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
         dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
         dishmode_event_id = dish_leaf_node.subscribe_event(

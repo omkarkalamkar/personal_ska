@@ -9,7 +9,6 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     KVALUE,
     dln_can_communicate_with_dish_master,
-    event_remover,
     wait_and_validate_attribute_value_available,
 )
 
@@ -30,7 +29,7 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.UNKNOWN)),
     )
-    dish_leaf_node.subscribe_event(
+    KVALUE_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["kValueValidationResult"],
@@ -39,10 +38,7 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
         str(int(ResultCode.UNKNOWN)),
         lookahead=8,
     )
-    event_remover(
-        group_callback,
-        ["kValueValidationResult"],
-    )
+    dish_leaf_node.unsubscribe_event(KVALUE_ID)
 
 
 @pytest.mark.post_deployment
@@ -71,7 +67,7 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.OK)),
     )
-    dish_leaf_node.subscribe_event(
+    KVALUE_VAL_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["kValueValidationResult"],
@@ -81,7 +77,7 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
         lookahead=8,
     )
 
-    dish_leaf_node.subscribe_event(
+    KVALUE_ID = dish_leaf_node.subscribe_event(
         "kValue",
         tango.EventType.CHANGE_EVENT,
         group_callback["kValue"],
@@ -90,11 +86,8 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
         dish_leaf_node.kValue,
         lookahead=8,
     )
-
-    event_remover(
-        group_callback,
-        ["kValueValidationResult"],
-    )
+    dish_leaf_node.unsubscribe_event(KVALUE_ID)
+    dish_leaf_node.unsubscribe_event(KVALUE_VAL_ID)
 
 
 @pytest.mark.post_deployment
@@ -124,7 +117,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.FAILED)),
     )
-    dish_leaf_node.subscribe_event(
+    KVALUE_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["kValueValidationResult"],
@@ -133,10 +126,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
         str(int(ResultCode.FAILED)),
         lookahead=8,
     )
-    event_remover(
-        group_callback,
-        ["kValueValidationResult"],
-    )
+    dish_leaf_node.unsubscribe_event(KVALUE_ID)
 
 
 @pytest.mark.post_deployment
@@ -171,7 +161,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.NOT_ALLOWED)),
     )
-    dish_leaf_node.subscribe_event(
+    KVALUE_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["kValueValidationResult"],
@@ -180,10 +170,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
         str(int(ResultCode.NOT_ALLOWED)),
         lookahead=8,
     )
-    event_remover(
-        group_callback,
-        ["kValueValidationResult"],
-    )
+    dish_leaf_node.unsubscribe_event(KVALUE_ID)
     dev_info.name = DISH_MASTER_DEVICE
     dev_info.server = "mocks/01"
     dev_info._class = "HelperDishDevice"

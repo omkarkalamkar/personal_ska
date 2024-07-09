@@ -5,7 +5,7 @@ import pytest
 from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode import AzElConverter
-from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, logger
+from tests.settings import DISH_MASTER_DEVICE, logger
 
 
 @pytest.mark.parametrize(
@@ -58,7 +58,7 @@ def test_azel_to_radec(
                 pytest.fail(f"{e}")
             retry += 1
         time.sleep(0.1)
-    ra, dec = converter.azel_to_radec(az, el, timestamp, WEATHER_DATA)
+    ra, dec = converter.azel_to_radec(az, el, timestamp)
     assert expected_ra == ra
     assert expected_dec == dec
 

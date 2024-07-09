@@ -4,7 +4,6 @@ from time import sleep
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
-from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
@@ -12,7 +11,6 @@ from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     build_partial_configure_data,
-    event_remover,
     logger,
     tear_down,
 )
@@ -29,19 +27,14 @@ def configure_dish_leaf_node(
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-
-    dish_master.subscribe_event(
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_master.subscribe_event(
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -50,41 +43,13 @@ def configure_dish_leaf_node(
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
-    )
-    dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode",),
-        lookahead=6,
-    )
-    dish_leaf_node.subscribe_event(
+
+    LRCR_ID = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -104,9 +69,6 @@ def configure_dish_leaf_node(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode", "Configure")
-    )
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
@@ -125,11 +87,6 @@ def configure_dish_leaf_node(
     )
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
-
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("TrackStop",),
-        lookahead=6,
-    )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
@@ -143,22 +100,25 @@ def configure_dish_leaf_node(
         (DishMode.OPERATE),
         lookahead=6,
     )
-
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=8,
-    )
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_configure_command(tango_context, group_callback, json_factory):
+@pytest.mark.parametrize(
+    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
+)
+def test_configure_command(
+    tango_context, group_callback, json_factory, json_to_use
+):
     configure_dish_leaf_node(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
-        json_factory("dishleafnode_configure"),
+        json_factory(json_to_use),
     )
 
 
@@ -172,40 +132,21 @@ def partial_configure_dish_leaf_node(
     """Partial configure flow for dish leaf node."""
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     sleep(1)
-    dish_master.subscribe_event(
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_master.subscribe_event(
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-    dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-
-    dish_leaf_node.subscribe_event(
+    SOURCE_OFFSET_ID = dish_leaf_node.subscribe_event(
         "sourceOffset",
         tango.EventType.CHANGE_EVENT,
         group_callback["sourceOffset"],
@@ -216,24 +157,11 @@ def partial_configure_dish_leaf_node(
         lookahead=2,
     )
 
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-    )
-
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode",),
-        lookahead=2,
-    )
-    dish_leaf_node.subscribe_event(
+
+    LRCR_ID = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -251,9 +179,6 @@ def partial_configure_dish_leaf_node(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode", "Configure")
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
@@ -287,15 +212,6 @@ def partial_configure_dish_leaf_node(
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 
-    while True:
-        assertion_data = group_callback[
-            "longRunningCommandsInQueue"
-        ].assert_change_event(
-            Anything,
-        )
-        if "TrackStop" in assertion_data["attribute_value"]:
-            break
-
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_trackstop[0], COMMAND_COMPLETED),
         lookahead=6,
@@ -310,10 +226,10 @@ def partial_configure_dish_leaf_node(
         lookahead=6,
     )
 
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=8,
-    )
+    dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

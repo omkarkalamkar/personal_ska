@@ -7,6 +7,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Added
 ======
+[0.16.0]
+********
+* Dish Leaf Node supports **Non-sidereal tracking** for objects present in Katpoint
 
 [0.15.0]
 ********
@@ -14,7 +17,7 @@ Added
 
 [0.14.3]
 ********
-* Introduced IsDishAbortCommands property 
+* Introduced IsDishAbortCommands property
 
 [0.14.2]
 ********
@@ -60,6 +63,11 @@ Added
 
 Fixed
 ======
+[0.16.0]
+********
+* Fixed integration test cases taking a long time to run by removing unnecessary assertions and unsubscribing to events.
+* Fixed the **update_task_callback** method for both **Configure** and **TrackLoadStaticOff** commands
+
 [0.13.3]
 *********
 Fixed the dish id not coming as expected from real dish master fqdn.

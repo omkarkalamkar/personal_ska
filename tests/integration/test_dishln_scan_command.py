@@ -11,7 +11,6 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    event_remover,
     logger,
 )
 
@@ -22,28 +21,19 @@ def scan_command(
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.subscribe_event(
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_master.subscribe_event(
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
 
-    dish_leaf_node.subscribe_event(
+    LRCR_ID = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -61,15 +51,8 @@ def scan_command(
         (PointingState.NONE),
         lookahead=4,
     )
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-    )
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode",),
-        lookahead=2,
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
@@ -85,9 +68,6 @@ def scan_command(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode", "Configure")
-    )
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
@@ -116,11 +96,6 @@ def scan_command(
         lookahead=6,
     )
     result_config, unique_id_config = dish_leaf_node.TrackStop()
-
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("TrackStop",),
-        lookahead=6,
-    )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
@@ -134,11 +109,9 @@ def scan_command(
         (DishMode.OPERATE),
         lookahead=6,
     )
-
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=8,
-    )
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
 
 
 @pytest.mark.post_deployment

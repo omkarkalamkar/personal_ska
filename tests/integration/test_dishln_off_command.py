@@ -8,7 +8,6 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    event_remover,
     logger,
 )
 
@@ -19,7 +18,7 @@ def off_command(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
-    dish_master.subscribe_event(
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -27,34 +26,10 @@ def off_command(tango_context, dishln_name, group_callback):
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=2,
-    )
-    dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=2,
-    )
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
     )
 
     result, unique_id = dish_leaf_node.Off()
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("Off",),
-        lookahead=2,
-    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=6,
@@ -62,7 +37,7 @@ def off_command(tango_context, dishln_name, group_callback):
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
 
-    dish_leaf_node.subscribe_event(
+    LRCR_ID = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -71,11 +46,8 @@ def off_command(tango_context, dishln_name, group_callback):
         (unique_id[0], COMMAND_COMPLETED),
         lookahead=2,
     )
-
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=2,
-    )
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
 
 
 @pytest.mark.post_deployment

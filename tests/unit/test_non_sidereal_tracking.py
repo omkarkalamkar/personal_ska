@@ -7,30 +7,13 @@ from tests.settings import logger
 
 
 @pytest.mark.parametrize(
-    "ra, dec, timestamp, expected_az, expected_el",
+    "body_name, timestamp, expected_az, expected_el",
     [
-        # The below parameterized value is unstable.
-        # ("16:29:24.46", "-26:25:55.7", "2019-02-19 06:01:00",
-        # 287.2504396, 77.8694392),
-        (
-            "2:31:50.9",
-            "89:15:51.4",
-            "2019-02-19 06:01:00",
-            0.4564362,
-            -30.8330656,
-        ),
-        (
-            "10:14:56.82",
-            "-14:44:15.13",
-            "2022-03-19 09:21:50",
-            173.5146073,
-            -43.8021646,
-        ),
+        ("Sun", "2019-02-19 06:01:00", 90.7870535, 21.4058439),
     ],
 )
-def test_radec_to_azel(
-    ra: str,
-    dec: str,
+def test_point_at_body(
+    body_name: str,
     timestamp: str,
     expected_az: float,
     expected_el: float,
@@ -52,8 +35,10 @@ def test_radec_to_azel(
                 pytest.fail(f"{e}")
             retry += 1
         sleep(0.1)
-    az, el = converter.radec_to_azel(ra, dec, timestamp)
+    az, el = converter.point_to_body(body_name, timestamp)
     az = round(az, 7)
     el = round(el, 7)
+    logger.info("Az is: %s", az)
+    logger.info("El is: %s", el)
     assert az == expected_az
     assert el == expected_el

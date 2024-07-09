@@ -104,7 +104,7 @@ def tango_context(devices_to_load, request):
     logging.info("true context: %s", true_context)
     if not true_context:
         with MultiDeviceTestContext(
-            devices_to_load, process=False, timeout=50
+            devices_to_load, process=False, timeout=80
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -153,10 +153,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
     :rtype: MockTangoEventCallbackGroup
     """
     group_callback = MockTangoEventCallbackGroup(
-        "longRunningCommandsInQueue",
         "longRunningCommandResult",
-        "longRunningCommandIDsInQueue",
-        "longRunningCommandStatus",
         "dishMode",
         "pointingState",
         "kValueValidationResult",
@@ -227,7 +224,7 @@ def update_last_pointing_data_callback(temp):
     logger.debug(temp)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(

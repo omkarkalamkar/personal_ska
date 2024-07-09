@@ -78,7 +78,7 @@ endif
 
 K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
-ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT) 
+ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 

@@ -3,8 +3,8 @@
 	"transaction_id": "txn-....-00002",
 	"pointing": {
 		"target": {
-		"ca_offset_arcsec": 0.0,
-		"ie_offset_arcsec": 5.0
+			"ca_offset_arcsec": 0.0,
+			"ie_offset_arcsec": 5.0
 		}
 	},
 	"tmc": {

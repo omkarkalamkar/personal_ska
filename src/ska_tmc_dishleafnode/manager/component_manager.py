@@ -11,7 +11,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import tango
@@ -176,7 +176,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
-        if _liveliness_probe:
+        if _liveliness_probe != LivelinessProbeType.NONE:
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
@@ -566,7 +566,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 str(azimuth),
                 str(elevation),
                 timestamp,
-                self.converter.weather_data,
             )
             self.actual_pointing = [timestamp, right_ascension, declination]
         except (ValueError, IndexError) as exception:
@@ -1251,25 +1250,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.info("ProgramTrackTable: %s", program_track_table)
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
+        self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def track_process(
         self,
-        ra_value: str,
-        dec_value: str,
+        target_data: Union[str, List[str]],
         command_obj: Configure | Track,
     ) -> None:
         """
         This method manages calculation and writing of programTrackTable
         attribute on DishMaster at the required frequency.
 
-        :param ra_value: Right Ascension of the source in hours:minutes:sec.
-        :type ra_value: str
-        :param dec_value: Declination of the source in
-            degree:arc_minutes:arc_sec.
-        :type dec_value: str
+        :param target_data: The name or RaDec for the target
+        :type target_data: Union[str, List[str]]
         :param command_obj: Command Object which is used to set
             desired_pointing.
         :type command_obj: Configure or Track.
@@ -1279,6 +1274,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info(
             "The track process name is : %s",
             Process(target=current_process().name),
+        )
+        self.track_table_calculator = ProgramTrackTableCalculator(
+            self, self.logger
         )
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
@@ -1295,7 +1293,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
         timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
-        self.converter.point(ra_value, dec_value, timestamp)
+        if isinstance(target_data, str):
+            self.converter.point_to_body(target_data, timestamp)
+        else:
+            ra, dec = target_data
+            self.converter.point(ra, dec, timestamp)
 
         advance_time = (
             self.track_table_entries * self.pointing_calculation_period
@@ -1304,7 +1306,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while self.get_track_process_event_status() is False:
             program_track_table = (
                 self.track_table_calculator.calculate_program_track_table(
-                    ra_value, dec_value, self.converter
+                    target_data, self.converter
                 )
             )
             first_entry_timestamp = (
@@ -1362,7 +1364,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.update_availablity_callback(True)
 
     def update_device_long_running_command_result(
-        self, lrc_result: Tuple[List[str], List[str]]
+        self, lrc_result: Tuple[str, str]
     ) -> None:
         """
         Method to update task callback based on long running command result
@@ -1371,39 +1373,43 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
+        self.logger.info(
+            "Received a longRunningCommandResult event with data: %s",
+            lrc_result,
+        )
         try:
             if not lrc_result:
                 return
             with self.lock:
                 if lrc_result == ("", ""):
-                    self.logger.info("Empty longRunningCommandResult event")
+                    return
+
                 if (
                     lrc_result[0].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
-                    command_result = lrc_result[1].strip("][)(").split(", ")
-                    self.logger.info("command_result: %s", command_result)
-
-                    # if ResultCode is a 0th element of command_result then
-                    # ignore the event
-
-                    # Exception will be raised if 0th element of
-                    # command_result is exception
-                    result_code = int(command_result[0])
+                    self.logger.debug(
+                        "The command in progress is: %s for processing of "
+                        + "LRCR event",
+                        self.command_in_progress,
+                    )
+                    command_result, message = json.loads(lrc_result[1])
                     command_object = self.command_object.get(
                         self.command_in_progress
                     )
-                    if result_code == ResultCode.OK.value:
+                    if command_result == ResultCode.OK:
+                        command_object.update_task_callback(ResultCode.OK)
+                    elif command_result in [
+                        ResultCode.FAILED,
+                        ResultCode.NOT_ALLOWED,
+                        ResultCode.REJECTED,
+                    ]:
                         command_object.update_task_callback(
-                            ResultCode.OK, message="Command Completed"
-                        )
-                    elif result_code == ResultCode.FAILED.value:
-                        command_object.update_task_callback(
-                            ResultCode.FAILED, message=command_result[1]
+                            ResultCode.FAILED, exception=message
                         )
         except Exception as exception:
             self.logger.error(
-                "Exception while processing longRunningCommandStatus",
+                "Exception while processing longRunningCommandResult",
                 exception,
             )
 

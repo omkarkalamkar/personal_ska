@@ -23,12 +23,12 @@ def test_configure_command_completed(
 ):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
 
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
 
-    assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
     time.sleep(0.5)
@@ -50,9 +50,10 @@ def test_configure_command_completed(
 
 
 def test_configure_command_completed_partial_config(
-    tango_context, cm, task_callback, json_factory
+    tango_context, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
 
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
@@ -60,14 +61,13 @@ def test_configure_command_completed_partial_config(
     configure_input_str = json_factory("partial_configure")
 
     cm.configure(configure_input_str, task_callback=task_callback)
-
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-
+    time.sleep(1)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
@@ -79,11 +79,12 @@ def test_configure_command_completed_partial_config(
 
 
 def test_configure_command_completed_partial_config_missing_key(
-    tango_context, cm, task_callback, json_factory
+    tango_context, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
-
+    wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
     config_json = json.loads(configure_input_str)
@@ -98,7 +99,7 @@ def test_configure_command_completed_partial_config_missing_key(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    logger.debug("Waiting for command completion")
+    time.sleep(1)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
@@ -114,6 +115,7 @@ def test_configure_command_adapter_none(
 ):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
@@ -132,6 +134,7 @@ def test_configure_command_adapter_none(
 @pytest.mark.parametrize("key", ["pointing", "dish"])
 def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     config_json = json.loads(configure_input_str)

@@ -49,7 +49,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
         "pointing_cal_{dish_id}"
     )
     dish_leaf_node.sdpQueueConnectorFqdn = SDPQC_FQDN
-    dish_master.subscribe_event(
+    LRCR_ID = dish_master.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -98,7 +98,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
     with pytest.raises(AssertionError):
         sdp_queue_connector.SetPointingCalSka001(POINTING_CAL_NAN)
         unique_id, _ = group_callback[
-            "longRunningCommandStatus"
+            "longRunningCommandResult"
         ].assert_change_event(
             (Anything, "COMPLETED"),
             lookahead=6,
@@ -119,3 +119,4 @@ def test_sdpqc_functionality(tango_context, group_callback):
     ]
     # Reset pointing offsets
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL_RESET)
+    dish_master.unsubscribe_event(LRCR_ID)
