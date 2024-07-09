@@ -1181,6 +1181,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The track process name is : %s",
             Process(target=current_process().name),
         )
+        self.track_table_calculator = ProgramTrackTableCalculator(
+            self, self.logger
+        )
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 

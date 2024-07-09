@@ -180,8 +180,8 @@ class Configure(DishLNCommand):
             Elevation Angle.
 
                 Example:
-                {"pointing":{"target":{"system":"ICRS",
-                "name":"Polaris Australis",
+                {"pointing":{"target":{"refrence_frame":"ICRS",
+                "target_name":"Polaris Australis",
                 "ra":"21:08:47.92",
                 "dec":"-88:57:22.9"}},
                 "dish":{"receiver_band":"1"}}

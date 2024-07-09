@@ -279,8 +279,8 @@ def wait_and_validate_attribute_value_available(
     attribute_value = None
     while count <= timeout:
         try:
-            count += 30
-            time.sleep(30)
+            count += 1
+            time.sleep(1)
             attribute_value = device.read_attribute(attribute_name).value
             if attribute_value == expected_value:
                 return True

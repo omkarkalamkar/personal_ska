@@ -94,7 +94,7 @@ class AzElConverter:
 
     def point(
         self, right_ascension: str, declination: str, timestamp: str
-    ) -> list[str]:
+    ) -> list[float]:
         """This method converts Target RaDec coordinates
         to the AzEl coordinates.It is called continuously
         from Track command (in a thread) at interval
@@ -168,7 +168,7 @@ class AzElConverter:
         right_ascension: str,
         declination: str,
         timestamp: str,
-    ) -> List[str]:
+    ) -> List[float]:
         """This method invokes the katpoint commands to do the forward
         transform required for pointing a celestial object.
         Forward Transform ie: Geocentric conversion then topocentric and then
