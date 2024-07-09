@@ -17,6 +17,7 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ class Configure(DishLNCommand):
         if return_code == ResultCode.FAILED:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(return_code, message),
                 exception=message,
             )
             self.component_manager.command_in_progress = ""
@@ -101,11 +102,11 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = ""
                 self.task_callback(
                     status=TaskStatus.COMPLETED,
-                    result=ResultCode(return_code),
+                    result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
                 )
 
     def update_task_callback(
-        self, result_code: ResultCode, exception: str = ""
+        self, result_code: ResultCode, message: str = "", exception: str = ""
     ) -> None:
         """
         Method to update task callback.
@@ -120,11 +121,13 @@ class Configure(DishLNCommand):
         if exception:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=result_code,
-                exception=exception,
+                result=(result_code, message),
+                exception=message,
             )
         else:
-            self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
+            self.task_callback(
+                status=TaskStatus.COMPLETED, result=(result_code, message)
+            )
         self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument
@@ -244,15 +247,16 @@ class Configure(DishLNCommand):
 
             if (
                 self.component_manager.dishMode != DishMode.STOW
-                and result_code[0] != ResultCode.FAILED
+                and result_code[0]
+                not in [ResultCode.FAILED, ResultCode.REJECTED]
             ):
                 result_code, message = self.ensure_dish_is_configured(
                     receiver_band
                 )
-                if result_code[0] == ResultCode.FAILED:
+                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
                 result_code, message = self.start_dish_tracking()
-                if result_code[0] == ResultCode.FAILED:
+                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
 
         except Exception as exception:
@@ -312,11 +316,10 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]"""
         if self.component_manager.dishMode != DishMode.OPERATE:
             result_code, message = self.ensure_dish_in_right_dish_mode()
-            if result_code[0] == ResultCode.FAILED:
+            if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                 return result_code, message
 
-        result_code, message = self.invoke_track_command()
-        return result_code, message
+        return self.invoke_track_command()
 
     def ensure_dish_is_configured(
         self, receiver_band: str
@@ -355,7 +358,7 @@ class Configure(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetOperateMode"
             )
-        if result_code[0] == ResultCode.FAILED:
+        if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
@@ -382,7 +385,7 @@ class Configure(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
-        if result_code[0] == [ResultCode.FAILED]:
+        if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.logger.error(f"Track Invocation Failed {message}")
             return result_code, message
 

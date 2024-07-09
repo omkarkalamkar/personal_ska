@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Added
 ======
 
+[0.15.0]
+********
+* Update Dish Leaf Node to use Base class v1.0.0 and pytango v9.5.0.
+
 [0.14.3]
 ********
 * Introduced IsDishAbortCommands property 

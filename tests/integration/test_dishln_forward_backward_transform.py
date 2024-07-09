@@ -9,6 +9,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
@@ -53,7 +54,7 @@ def forward_backward_transform(
     assert result_config[0] == ResultCode.QUEUED
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     assert wait_for_attribute_value(dish_master, "programTrackTable")
@@ -77,7 +78,7 @@ def forward_backward_transform(
     assert result_trackstop[0] == ResultCode.QUEUED
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_trackstop[0], str(int(ResultCode.OK))),
+        (unique_id_trackstop[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
@@ -128,10 +129,11 @@ def actual_pointing_attr(tango_context):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.skip(
-    reason="The timestamp used by ProgramTrackTable is not accessible through"
-    + " the test. This test will be refactored as a part of SKB-397"
-)
+# @pytest.mark.skip(
+#     reason="The timestamp used by ProgramTrackTable is not accessible "
+# +"through"
+#     + " the test. This test will be refactored as a part of SKB-397"
+# )
 def test_actual_pointing_attribute(
     tango_context, json_factory, group_callback
 ):

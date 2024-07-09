@@ -4,7 +4,12 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE, logger
+from tests.settings import (
+    COMMAND_COMPLETED,
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    logger,
+)
 
 
 def device_unavailability(tango_context, dishln_name, group_callback):
@@ -39,7 +44,10 @@ def device_unavailability(tango_context, dishln_name, group_callback):
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], str(int(ResultCode.OK))),
+        (
+            unique_id_fp[0],
+            COMMAND_COMPLETED,
+        ),
         lookahead=2,
     )
     group_callback["dishMode"].assert_change_event(
@@ -52,7 +60,10 @@ def device_unavailability(tango_context, dishln_name, group_callback):
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_op[0], str(int(ResultCode.OK))),
+        (
+            unique_id_op[0],
+            COMMAND_COMPLETED,
+        ),
         lookahead=2,
     )
     group_callback["dishMode"].assert_change_event(

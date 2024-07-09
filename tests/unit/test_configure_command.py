@@ -7,6 +7,7 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
     logger,
     simulate_result_code_event,
@@ -22,12 +23,12 @@ def test_configure_command_completed(
 ):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
 
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
 
-    assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
     time.sleep(0.5)
@@ -41,8 +42,10 @@ def test_configure_command_completed(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=6,
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        }
     )
 
 
@@ -67,8 +70,11 @@ def test_configure_command_completed_partial_config(
 
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=4,
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=6,
     )
 
 
@@ -77,7 +83,7 @@ def test_configure_command_completed_partial_config_missing_key(
 ):
     """Test partial configure functionality"""
     cm.update_device_dish_mode(DishMode.OPERATE)
-
+    wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
     config_json = json.loads(configure_input_str)
@@ -95,8 +101,11 @@ def test_configure_command_completed_partial_config_missing_key(
     logger.debug("Waiting for command completion")
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=10,
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=12,
     )
 
 
@@ -105,6 +114,7 @@ def test_configure_command_adapter_none(
 ):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
@@ -115,14 +125,15 @@ def test_configure_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
-    )
+    result = task_callback.assert_against_call(status=TaskStatus.COMPLETED)
+    assert ResultCode.FAILED == result["result"][0]
+    assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
 @pytest.mark.parametrize("key", ["pointing", "dish"])
 def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     config_json = json.loads(configure_input_str)
@@ -139,3 +150,29 @@ def test_configure_command_not_allowed(tango_context, cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()
+
+
+def test_configure_command_status_not_allowed(
+    tango_context,
+    cm,
+    task_callback,
+    json_factory,
+):
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
+    assert wait_for_dish_mode(cm, DishMode.UNKNOWN)
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+    configure_input_str = json_factory("dishleafnode_configure")
+    cm.configure(configure_input_str, task_callback=task_callback)
+    time.sleep(0.5)
+    cm.update_device_configured_band("2")
+    time.sleep(0.5)
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        status=TaskStatus.REJECTED,
+        result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
+    )

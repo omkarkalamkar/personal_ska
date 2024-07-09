@@ -7,6 +7,8 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+
 
 def get_track_input_str(
     track_input_file="dishleafnode_track.json",
@@ -30,7 +32,10 @@ def test_track_command_completed(tango_context, task_callback, cm):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        }
     )
 
 
@@ -48,9 +53,9 @@ def test_track_command_adapter_none(task_callback, cm_without_er_lp):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
-    )
+    result = task_callback.assert_against_call(status=TaskStatus.COMPLETED)
+    assert ResultCode.FAILED == result["result"][0]
+    assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
 def test_json_validation(tango_context, task_callback, cm):

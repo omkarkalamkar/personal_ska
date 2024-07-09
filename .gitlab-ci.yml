@@ -84,7 +84,6 @@ python-lint:
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.4.3
 
 
-
 k8s-test:
   tags:
     - k8srunner-large

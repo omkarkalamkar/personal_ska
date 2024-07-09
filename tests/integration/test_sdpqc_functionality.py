@@ -5,12 +5,12 @@ import time
 import pytest
 import tango
 from numpy import NaN, array_equal, isnan
-from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 from tango import AttrQuality
 
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
@@ -62,13 +62,13 @@ def test_sdpqc_functionality(tango_context, group_callback):
     unique_id, message = group_callback[
         "longRunningCommandResult"
     ].assert_change_event(
-        (Anything, f"[{ResultCode.OK.value}, 'TrackLoadStaticOff completed']"),
+        (Anything, COMMAND_COMPLETED),
         lookahead=10,
     )[
         "attribute_value"
     ]
     assert "TrackLoadStaticOff" in unique_id
-    assert "completed" in message
+    assert "Command Completed" in message
     assert array_equal(
         json.loads(dish_leaf_node.lastPointingData), POINTING_CAL
     )

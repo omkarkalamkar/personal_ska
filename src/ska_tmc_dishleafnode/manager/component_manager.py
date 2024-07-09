@@ -77,7 +77,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_last_pointing_data_cb: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
-        max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
@@ -101,8 +100,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             when communication status of the component changed
         :param event_receiver: flag used to control whether
             EventReceiver object should be instantiated or not
-        :param max_workers: allows to specify number of threads
-            to be used by the liveliness probe;
         :param proxy_timeout: allows to specify a client side timeout
             for sub-devices in milliseconds used by the liveliness probe
         :param sleep_time: allows to specify the wait between
@@ -115,7 +112,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _liveliness_probe=_liveliness_probe,
             communication_state_callback=communication_state_callback,
             component_state_callback=component_state_callback,
-            max_workers=max_workers,
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
@@ -283,6 +279,88 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.converter.create_antenna_obj()
         except Exception as exp:
             self.logger.exception("Error while creating antenna obj %s", exp)
+
+    def is_command_allowed_callable(self, command_name: str):
+        """
+        Args:
+            command_name (str): Name for the command for which the is_allowed
+                check need to be applied.
+        """
+        self.check_device_responsive()
+
+        def check_dish_mode():
+            """Return whether the command may be called in the current state.
+
+            Returns:
+                bool: whether the command may be called in the current device
+                state
+            """
+            command_allowed_dish_mode = {
+                "SetStowMode": [
+                    DishMode.STANDBY_FP,
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_LP,
+                    DishMode.CONFIG,
+                ],
+                "SetStandbyLPMode": [
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+                "Configure": [
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.OPERATE,
+                ],
+                "Track": [DishMode.OPERATE],
+                "SetStandbyFPMode": [
+                    DishMode.STANDBY_LP,
+                    DishMode.OPERATE,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+                "TrackLoadStaticOff": [
+                    DishMode.STANDBY_FP,
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_LP,
+                    DishMode.CONFIG,
+                    DishMode.MAINTENANCE,
+                    DishMode.STARTUP,
+                    DishMode.SHUTDOWN,
+                    DishMode.UNKNOWN,
+                ],
+                "TrackStop": [DishMode.OPERATE],
+                "SetOperateMode": [DishMode.STANDBY_FP],
+                "Scan": [
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+                "EndScan": [
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+            }
+
+            allowed_dish_modes = command_allowed_dish_mode.get(
+                command_name, []
+            )
+
+            return self.dishMode in allowed_dish_modes
+
+        return check_dish_mode
+
+    def is_track_and_trackstop_command_allowed(self):
+        """checks if track command is allowed"""
+        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
+            PointingState.NONE,
+            PointingState.UNKNOWN,
+        ):
+            return True
+        return False
 
     @property
     def kValueValidationResult(self) -> int:
@@ -541,6 +619,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable(
+                "SetStandbyFPMode"
+            ),
             task_callback=task_callback,
         )
         self.logger.info("SetStandbyFPMode command queued for execution")
@@ -560,6 +641,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable(
+                "SetStandbyLPMode"
+            ),
             task_callback=task_callback,
         )
         self.logger.info("SetStandbyLPMode command queued for execution")
@@ -579,6 +663,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setstowmode_command.set_stow_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("SetStowMode"),
             task_callback=task_callback,
         )
         self.logger.info("SetStowMode command queued for execution")
@@ -600,6 +685,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.scan_command.scan,
             args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("Scan"),
             task_callback=task_callback,
         )
         self.logger.info("Scan command queued for execution")
@@ -618,6 +704,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.endscan_command.endscan,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("EndScan"),
             task_callback=task_callback,
         )
         self.logger.info("EndScan command queued for execution")
@@ -681,6 +768,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.track_command.track,
             args=[input_json, self.logger],
+            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("Track command queued for execution")
@@ -723,6 +811,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.trackstop_command.trackstop,
             args=[self.logger],
+            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("TrackStop command queued for execution")
@@ -742,6 +831,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setoperatemode_command.set_operate_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("SetOperateMode"),
             task_callback=task_callback,
         )
         self.logger.info("SetOperateMode command queued for execution")
@@ -777,6 +867,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.configure_command.invoke_configure,
             args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("Configure"),
             task_callback=task_callback,
         )
         self.logger.info("Configure command queued for execution")
@@ -816,6 +907,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.track_load_static_off_command.invoke_track_load_static_off,
             args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable(
+                "TrackLoadStaticOff"
+            ),
             task_callback=task_callback,
         )
         self.logger.info(
@@ -853,11 +947,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the Configure command on this"
-            + "device is not allowed."
-            + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
-            + "The command has NOT been executed."
+            "The invocation of the Off command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
 
@@ -1302,10 +1396,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.command_in_progress
                     )
                     if result_code == ResultCode.OK.value:
-                        command_object.update_task_callback(ResultCode.OK)
+                        command_object.update_task_callback(
+                            ResultCode.OK, message="Command Completed"
+                        )
                     elif result_code == ResultCode.FAILED.value:
                         command_object.update_task_callback(
-                            ResultCode.FAILED, command_result[1]
+                            ResultCode.FAILED, message=command_result[1]
                         )
         except Exception as exception:
             self.logger.error(

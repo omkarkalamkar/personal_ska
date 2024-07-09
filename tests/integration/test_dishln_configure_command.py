@@ -7,6 +7,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     build_partial_configure_data,
@@ -55,7 +56,7 @@ def configure_dish_leaf_node(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], str(int(ResultCode.OK))),
+        (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
@@ -73,7 +74,7 @@ def configure_dish_leaf_node(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
@@ -87,7 +88,7 @@ def configure_dish_leaf_node(
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
@@ -162,7 +163,7 @@ def partial_configure_dish_leaf_node(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], str(int(ResultCode.OK))),
+        (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
     )
     group_callback["dishMode"].assert_change_event(
@@ -175,7 +176,7 @@ def partial_configure_dish_leaf_node(
     assert result_config[0] == ResultCode.QUEUED
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
@@ -192,7 +193,7 @@ def partial_configure_dish_leaf_node(
         ca_offset = load_conf["pointing"]["target"]["ca_offset_arcsec"]
         ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
         group_callback["longRunningCommandResult"].assert_change_event(
-            (unique_id_config[0], str(int(ResultCode.OK))),
+            (unique_id_config[0], COMMAND_COMPLETED),
             lookahead=8,
         )
         # Assert change event is occuring and values are reflecting
@@ -207,7 +208,7 @@ def partial_configure_dish_leaf_node(
     assert result_trackstop[0] == ResultCode.QUEUED
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_trackstop[0], str(int(ResultCode.OK))),
+        (unique_id_trackstop[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
