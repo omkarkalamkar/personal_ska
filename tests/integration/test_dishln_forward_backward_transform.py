@@ -1,10 +1,10 @@
 """Integration test for testing forward and backward transform."""
 import ast
-import datetime
 from time import sleep
 
 import pytest
 import tango
+from astropy.time import Time
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
@@ -108,19 +108,16 @@ def forward_backward_transform(
 
 def actual_pointing_attr(tango_context):
     """Test to check actualPointing is getting updated"""
-    EXTEND_MILLISECONDS = 100
+    SKA_EPOCH = "1999-12-31T23:59:28Z"
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
-    timestamp_str = datetime.datetime.strptime(
-        "2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S"
-    )
-    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
-    extended_time = dt_utc + datetime.timedelta(
-        milliseconds=EXTEND_MILLISECONDS
-    )
-    utc_timestamp = extended_time.timestamp() * 1000
+    timestamp_str = "2019-02-19 06:01:00"
+    epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
+    timestamp_time = Time(timestamp_str, format="iso", scale="utc")
+    timestamp = (timestamp_time - epoch_time).sec
+    dish_master.programTrackTable = [timestamp, 287.2504396, 77.8694392]
     sleep(2)
-    dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
+    dish_master.programTrackTable = [timestamp, 287.2504396, 77.8694392]
     verify_value = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "actualPointing", expected_value=verify_value

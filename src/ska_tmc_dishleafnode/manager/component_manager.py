@@ -3,7 +3,6 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 import datetime
 import json
-import math
 import os
 import re
 import sched
@@ -15,6 +14,7 @@ from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import tango
+from astropy.time import Time
 from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -266,7 +266,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             5, self.update_kvalue_validation_result
         )
         self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
+        # self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
 
@@ -498,22 +498,35 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
 
-    def convert_timestamp(self, timestamp_milliseconds: float) -> str:
+    def convert_timestamp(self, timestamp_tai_ska_epoch: float) -> str | None:
         """Converts the floating point timestamp in milliseconds to a utc
-        timestamp with format -> %Y-%m-%d %H:%M:%S
+                timestamp with format -> %Y-%m-%d %H:%M:%S
+                The value 1999-12-31T23:59:28Z is the SKA_EPOCH
 
-        :param timestamp_milliseconds: Input timestamp with time in
-            milliseconds
-        :type timestamp_milliseconds: float
+                :param timestamp_tai_ska_epoch: Input timestamp with time in
+        +            TAI format with SKA epoch
+        +        :type timestamp_tai_ska_epoch: float
 
-        :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
-        :rtype: string
+                :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+                :rtype: string
         """
-        timestamp_seconds = timestamp_milliseconds / 1000
-        timestamp = datetime.datetime.fromtimestamp(
-            timestamp_seconds
-        ).strftime("%Y-%m-%d %H:%M:%S")
-        return timestamp
+        try:
+            return datetime.datetime.fromtimestamp(
+                Time(
+                    float(timestamp_tai_ska_epoch)
+                    + Time("1999-12-31T23:59:28Z", scale="utc").unix_tai,
+                    format="unix_tai",
+                    scale="tai",
+                ).unix
+            ).strftime("%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            self.logger.exception(
+                "Received invalid achieved pointing timestamp %s from dish."
+                "Exception: %s",
+                timestamp_tai_ska_epoch,
+                e,
+            )
+            return None
 
     def process_actual_pointing(self) -> None:
         """Process the achieved pointing data to calculate actual pointing.
@@ -552,27 +565,24 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            timestamp_milliseconds, azimuth, elevation = value_list
-            azimuth = azimuth - (
-                list(self.received_pointing_data)[0].pointing_data[1]
-                / math.cos(elevation)
-            )
-            elevation = (
-                elevation
-                - list(self.received_pointing_data)[0].pointing_data[2]
-            )
-            timestamp = self.convert_timestamp(timestamp_milliseconds)
-            right_ascension, declination = self.converter.azel_to_radec(
-                str(azimuth),
-                str(elevation),
-                timestamp,
-            )
-            self.actual_pointing = [timestamp, right_ascension, declination]
-        except (ValueError, IndexError) as exception:
+            timestamp_tai_ska_epoch, azimuth, elevation = value_list
+            timestamp = self.convert_timestamp(timestamp_tai_ska_epoch)
+            if timestamp:
+                right_ascension, declination = self.converter.azel_to_radec(
+                    str(azimuth),
+                    str(elevation),
+                    timestamp,
+                )
+                self.actual_pointing = [
+                    timestamp,
+                    right_ascension,
+                    declination,
+                ]
+        except Exception as e:
             self.logger.exception(
                 "No values on achievedPointing dish master attribute,"
                 "the device will continue with its normal operation.: %s",
-                exception,
+                e,
             )
 
     def stop_event_receiver(self) -> None:
