@@ -8,7 +8,7 @@ FROM $BASE_IMAGE
 # Install Poetry
 USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
-
+RUN apt-get update && apt-get install git -y
 RUN poetry config virtualenvs.create false
 WORKDIR /app
 
