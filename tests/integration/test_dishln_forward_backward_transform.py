@@ -14,7 +14,6 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     tear_down,
-    wait_and_validate_attribute_value_available,
     wait_for_attribute_value,
 )
 
@@ -115,13 +114,12 @@ def actual_pointing_attr(tango_context):
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")
     timestamp = (timestamp_time - epoch_time).sec
-    dish_master.programTrackTable = [timestamp, 287.2504396, 77.8694392]
-    sleep(2)
-    dish_master.programTrackTable = [timestamp, 287.2504396, 77.8694392]
     verify_value = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
-    wait_and_validate_attribute_value_available(
-        dish_leaf_node, "actualPointing", expected_value=verify_value
-    )
+    count = 0
+    while dish_leaf_node.actualPointing != verify_value and count < 30:
+        dish_master.programTrackTable = [timestamp, 287.2504396, 77.8694392]
+        count = count + 1
+        sleep(1)
     assert dish_leaf_node.actualPointing == verify_value
 
 
