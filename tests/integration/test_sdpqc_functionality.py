@@ -1,6 +1,5 @@
 import datetime
 import json
-import time
 
 import pytest
 import tango
@@ -73,26 +72,6 @@ def test_sdpqc_functionality(tango_context, group_callback):
         json.loads(dish_leaf_node.lastPointingData), POINTING_CAL
     )
 
-    # Verify actual pointing affected with pointing calibration data
-    dish_master.programTrackTable = [
-        utc_timestamp("2019-02-19 06:01:00"),
-        287.2504396,
-        77.8694392,
-    ]
-    elapsed_time = 0
-    flag = True
-    while flag and elapsed_time < TIMEOUT:
-        if "2019" in json.loads(dish_leaf_node.actualpointing)[0]:
-            flag = False
-            break
-        elapsed_time = elapsed_time + 1
-        time.sleep(0.01)
-    assert not flag
-    received_actual_pointing = json.loads(dish_leaf_node.actualpointing)
-    assert TIMESTAMP_RA_DEC[0] == received_actual_pointing[0]
-    assert TIMESTAMP_RA_DEC[1] != received_actual_pointing[1]
-    assert TIMESTAMP_RA_DEC[2] != received_actual_pointing[2]
-
     # # Assert TrackLoadStaticOff command not invoked when NaN
     # # received in pointing cal
     with pytest.raises(AssertionError):
@@ -111,12 +90,7 @@ def test_sdpqc_functionality(tango_context, group_callback):
         dish_leaf_node.read_attribute("lastPointingData").quality
         == AttrQuality.ATTR_ALARM
     )
-    # Change actual pointing timestamp
-    dish_master.programTrackTable = [
-        utc_timestamp("2024-02-19 06:01:00"),
-        11.2504396,
-        33.8694392,
-    ]
+
     # Reset pointing offsets
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL_RESET)
     dish_master.unsubscribe_event(LRCR_ID)

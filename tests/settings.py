@@ -28,6 +28,7 @@ DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
 COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
+SKA_EPOCH = "1999-12-31T23:59:28Z"
 
 
 def wait_for_ping(dishleafnode_cm):

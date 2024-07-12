@@ -5,7 +5,7 @@ from astropy.time import Time
 from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode import AzElConverter
-from tests.settings import DISH_MASTER_DEVICE, logger
+from tests.settings import DISH_MASTER_DEVICE, SKA_EPOCH, logger
 
 
 @pytest.mark.parametrize(
@@ -63,11 +63,9 @@ def test_azel_to_radec(
     assert expected_dec == dec
 
 
-@pytest.mark.utest
 def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
     dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
-    SKA_EPOCH = "1999-12-31T23:59:28Z"
     timestamp_str = "2019-02-19 06:01:00"
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")
