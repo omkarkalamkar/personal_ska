@@ -107,6 +107,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             each iteration of the liveliness probe and EventSubscriber
         :param timeout: Time period to wait for initialization
             of adapter
+
         """
         super().__init__(
             logger=logger,
@@ -501,15 +502,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def convert_timestamp(self, timestamp_tai_ska_epoch: float) -> str | None:
         """Converts the timestamp in TAI format to UTC
-                timestamp with format -> %Y-%m-%d %H:%M:%S
-                The value 1999-12-31T23:59:28Z is the SKA_EPOCH
+        timestamp with format -> %Y-%m-%d %H:%M:%S
+        The value 1999-12-31T23:59:28Z is the SKA_EPOCH
 
-                :param timestamp_tai_ska_epoch: Input timestamp with time in
-        +            TAI format with SKA epoch
-        +        :type timestamp_tai_ska_epoch: float
+        :param timestamp_tai_ska_epoch: Input timestamp with time in
+            TAI format with SKA epoch
+        :type timestamp_tai_ska_epoch: float
 
-                :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
-                :rtype: string
+        :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
+        :rtype: string
         """
         try:
             return datetime.datetime.fromtimestamp(
@@ -1073,7 +1074,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: boolean
         """
-
         self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
@@ -1093,16 +1093,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def is_scan_allowed(
         self,
-    ) -> bool | CommandNotAllowed | DeviceUnresponsive:
+    ) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
         :return: True if this command is allowed to be run in current
             dish mode, raises CommandNotAllowed in case is is not allowed and
             DeviceUnresponsive in case Device is not responsive.
-
         :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
         """
+
         self.check_device_responsive()
         if self.dishMode in [
             DishMode.OPERATE,
@@ -1123,7 +1123,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def is_endscan_allowed(
         self,
-    ) -> bool | CommandNotAllowed | DeviceUnresponsive:
+    ) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
