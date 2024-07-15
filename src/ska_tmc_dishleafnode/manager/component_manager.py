@@ -48,6 +48,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
+from ska_tmc_dishleafnode.constants import SKA_EPOCH
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -499,7 +500,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.kvalue_validation_callback()
 
     def convert_timestamp(self, timestamp_tai_ska_epoch: float) -> str | None:
-        """Converts the floating point timestamp in milliseconds to a utc
+        """Converts the timestamp in TAI format to UTC
                 timestamp with format -> %Y-%m-%d %H:%M:%S
                 The value 1999-12-31T23:59:28Z is the SKA_EPOCH
 
@@ -514,7 +515,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return datetime.datetime.fromtimestamp(
                 Time(
                     float(timestamp_tai_ska_epoch)
-                    + Time("1999-12-31T23:59:28Z", scale="utc").unix_tai,
+                    + Time(SKA_EPOCH, scale="utc").unix_tai,
                     format="unix_tai",
                     scale="tai",
                 ).unix
@@ -578,11 +579,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     right_ascension,
                     declination,
                 ]
-        except Exception as e:
+        except Exception as exception:
             self.logger.exception(
                 "No values on achievedPointing dish master attribute,"
                 "the device will continue with its normal operation.: %s",
-                e,
+                exception,
             )
 
     def stop_event_receiver(self) -> None:
