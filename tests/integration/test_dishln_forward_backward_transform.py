@@ -1,10 +1,10 @@
 """Integration test for testing forward and backward transform."""
 import ast
-import datetime
 from time import sleep
 
 import pytest
 import tango
+from astropy.time import Time
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
@@ -12,9 +12,9 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    SKA_EPOCH,
     logger,
     tear_down,
-    wait_and_validate_attribute_value_available,
     wait_for_attribute_value,
 )
 
@@ -108,24 +108,24 @@ def forward_backward_transform(
 
 def actual_pointing_attr(tango_context):
     """Test to check actualPointing is getting updated"""
-    EXTEND_MILLISECONDS = 100
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
-    timestamp_str = datetime.datetime.strptime(
-        "2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S"
-    )
-    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
-    extended_time = dt_utc + datetime.timedelta(
-        milliseconds=EXTEND_MILLISECONDS
-    )
-    utc_timestamp = extended_time.timestamp() * 1000
-    sleep(2)
-    dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
-    verify_value = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
-    wait_and_validate_attribute_value_available(
-        dish_leaf_node, "actualPointing", expected_value=verify_value
-    )
-    assert dish_leaf_node.actualPointing == verify_value
+    timestamp_str = "2019-02-19 06:01:00"
+    epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
+    timestamp_time = Time(timestamp_str, format="iso", scale="utc")
+    timestamp = (timestamp_time - epoch_time).sec
+    value_to_verify = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
+    count = 0
+    # Reason to add below while loop:
+    # Sometimes its observed that previous value of programTrackTable overrides
+    # the given sent values, resulting into test case failure
+    # So periodically sending the intended values to check actualPointing
+    # working as expected.
+    while dish_leaf_node.actualPointing != value_to_verify and count < 30:
+        dish_master.programTrackTable = [timestamp, 287.2504396, 77.8694392]
+        count = count + 1
+        sleep(1)
+    assert dish_leaf_node.actualPointing == value_to_verify
 
 
 @pytest.mark.post_deployment

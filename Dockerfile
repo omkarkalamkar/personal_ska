@@ -8,7 +8,6 @@ FROM $BASE_IMAGE
 # Install Poetry
 USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
-
 RUN poetry config virtualenvs.create false
 WORKDIR /app
 

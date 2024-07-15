@@ -1,11 +1,11 @@
-import datetime
 import time
 
 import pytest
+from astropy.time import Time
 from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode import AzElConverter
-from tests.settings import DISH_MASTER_DEVICE, logger
+from tests.settings import DISH_MASTER_DEVICE, SKA_EPOCH, logger
 
 
 @pytest.mark.parametrize(
@@ -65,18 +65,13 @@ def test_azel_to_radec(
 
 def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
-    EXTEND_MILLISECONDS = 100
     dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
-    timestamp_str = datetime.datetime.strptime(
-        "2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S"
-    )
-    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
-    extended_time = dt_utc + datetime.timedelta(
-        milliseconds=EXTEND_MILLISECONDS
-    )
-    utc_timestamp = extended_time.timestamp() * 1000
+    timestamp_str = "2019-02-19 06:01:00"
+    epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
+    timestamp_time = Time(timestamp_str, format="iso", scale="utc")
+    ska_epoch_tai_timestamp = (timestamp_time - epoch_time).sec
     dish_manager.programTrackTable = [
-        utc_timestamp,
+        ska_epoch_tai_timestamp,
         287.2504396,
         77.8694392,
     ]
@@ -90,11 +85,13 @@ def test_actual_pointing(tango_context, cm):
         count += 1
         time.sleep(1)
     # Test case is not stable as sometimes tango misses the events
-    # So below instructions added.
+    # Below instructions will execute the test case in pythonic way.
     if flag:
         converter = AzElConverter(component_manager=cm)
         converter.create_antenna_obj()
-        cm.perform_reverse_transform([utc_timestamp, 287.2504396, 77.8694392])
+        cm.perform_reverse_transform(
+            [ska_epoch_tai_timestamp, 287.2504396, 77.8694392]
+        )
 
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",
