@@ -79,6 +79,11 @@ class DishLeafNode(SKABaseDevice):
         doc="Time difference between two consecutive entries of "
         + "programTrackTable in milliseconds",
     )
+    TrackTableInAdvance = device_property(
+        dtype="DevShort",
+        default_value=6,
+        doc="programTrackTable in advance in seconds",
+    )
 
     # ----------
     # Attributes
@@ -847,6 +852,7 @@ class DishLeafNode(SKABaseDevice):
             _update_availablity_callback=self.update_availablity_callback,
             _update_source_offset_callback=self.update_source_offset_callback,
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
+            track_table_advance_sec=self.TrackTableInAdvance,
         )
         return cm
 

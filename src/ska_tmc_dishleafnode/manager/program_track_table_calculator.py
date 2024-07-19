@@ -1,7 +1,6 @@
 # flake8: noqa
 """Module for programTrackTable calculator."""
 import datetime
-from concurrent.futures import ThreadPoolExecutor
 from logging import Logger
 from typing import List, Union
 
@@ -55,12 +54,8 @@ class ProgramTrackTableCalculator:
         self.weather_data = self.azel_converter.weather_data
         program_track_table = []
 
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            (
-                time_stamp_list,
-                tai_timestamp_list,
-            ) = self.calculate_time_stamp_list()
-            results = executor.map(self.point, time_stamp_list)
+        time_stamp_list, tai_timestamp_list = self.calculate_time_stamp_list()
+        results = list(map(self.point, time_stamp_list))
         try:
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):
@@ -123,11 +118,9 @@ class ProgramTrackTableCalculator:
         time_stamp_list = []
         tai_timestamp_list = []
         for _ in range(self.component_manager.track_table_entries):
-            timestamp_sec = self.track_table_time_stamp.timestamp()
-            timestamp_str = self.convert_timestamp(timestamp_sec)
-            time_stamp_list.append(timestamp_str)
-
-            tai_time = self.convert_utc_to_tai(timestamp_sec)
+            timestamp_time_obj = Time(self.track_table_time_stamp, scale="utc")
+            time_stamp_list.append(timestamp_time_obj)
+            tai_time = self.convert_utc_to_tai(timestamp_time_obj)
             tai_timestamp_list.append(tai_time)
 
             self.track_table_time_stamp = (
@@ -162,7 +155,7 @@ class ProgramTrackTableCalculator:
             timestamp,
         )
 
-    def convert_utc_to_tai(self, utc_time: float) -> float:
+    def convert_utc_to_tai(self, utc_time: Time) -> float:
         """
         This method converts utc time to tai format time.
         :param: utc_time: time in utc (seconds)
@@ -172,19 +165,4 @@ class ProgramTrackTableCalculator:
         """
 
         ska_epoch_utc = Time(SKA_EPOCH, scale="utc")
-        return utc_time - ska_epoch_utc.unix_tai
-
-    def convert_timestamp(self, timestamp_seconds: float) -> str:
-        """
-        Converts the floating point timestamp in seconds to a utc
-        timestamp with format -> %Y-%m-%d %H:%M:%S
-
-        :param timestamp_seconds: Input timestamp with time in seconds
-        :type timestamp_seconds: float
-        :return: Timestamp with format "%Y-%m-%d %H:%M:%S".
-        :rtype: string
-        """
-        timestamp = datetime.datetime.utcfromtimestamp(
-            timestamp_seconds
-        ).strftime("%Y-%m-%d %H:%M:%S")
-        return timestamp
+        return utc_time.unix_tai - ska_epoch_utc.unix_tai

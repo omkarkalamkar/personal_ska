@@ -15,6 +15,7 @@ from tests.settings import (
 )
 
 
+@pytest.mark.ms
 def test_configure_command_completed(
     tango_context,
     cm,
@@ -31,10 +32,7 @@ def test_configure_command_completed(
 
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
-    time.sleep(0.5)
-    cm.update_device_configured_band("2")
-    time.sleep(0.5)
-    cm.update_device_dish_mode(DishMode.OPERATE)
+    time.sleep(1)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )

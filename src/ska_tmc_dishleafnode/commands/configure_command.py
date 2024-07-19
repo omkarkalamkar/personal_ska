@@ -240,6 +240,7 @@ class Configure(DishLNCommand):
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
+            # current_dish_mode = self.component_manager.dishMode
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, command_name, True
@@ -344,6 +345,18 @@ class Configure(DishLNCommand):
                     + " configuredBand in Configure Command."
                 ],
             )
+        # result = self.set_wait_for_dishmode(expected_dish_mode)
+        # if not result:
+        #     self.logger.error(
+        #         "Timeout occurred while waiting for dishMode: %s. "
+        #         "ConfigureBand Command failed on the dish manager.",
+        #         expected_dish_mode,
+        #     )
+        #     return (
+        #         ResultCode.FAILED,
+        #         "Timeout occurred while invoking the "
+        #         + f"ConfigureBand{receiver_band}() Command.",
+        #     )
         return [ResultCode.OK], [""]
 
     def ensure_dish_in_right_dish_mode(

@@ -5,6 +5,7 @@ instances: ["01"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $TrackTableEntries := .Values.deviceServers.dishln.TrackTableEntries }}
 {{- $PointingCalculationPeriod := .Values.deviceServers.dishln.PointingCalculationPeriod }}
+{{- $TrackTableInAdvance := .Values.deviceServers.dishln.TrackTableInAdvance }}
 server:
   name: "dish_leaf_node"
   instances:
@@ -33,6 +34,9 @@ server:
           - name: "PointingCalculationPeriod"
             values:
               - "{{ $PointingCalculationPeriod }}"
+          - name: "TrackTableInAdvance"
+            values:
+              - "{{ $TrackTableInAdvance }}"
   {{- end }}
 depends_on:
   - device: sys/database/2
