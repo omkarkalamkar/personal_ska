@@ -15,7 +15,6 @@ from tests.settings import (
 )
 
 
-@pytest.mark.ms
 def test_configure_command_completed(
     tango_context,
     cm,

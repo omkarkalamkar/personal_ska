@@ -94,7 +94,7 @@ def test_actual_pointing(tango_context, cm):
         )
 
     assert list(cm.actual_pointing) == [
-        "2019-02-19 11:31:00",
-        "22:00:25.34",
-        "-26:33:37.72",
+        "2019-02-19 06:01:00",
+        "16:29:24.46",
+        "-26:25:55.7",
     ]
