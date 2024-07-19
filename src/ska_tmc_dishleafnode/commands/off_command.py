@@ -62,10 +62,10 @@ class Off(DishLNCommand):
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
         """
-        "Invokes StandbyFP and StandbyLP mode commands on dish master device
+        Invokes StandbyFP and StandbyLP mode commands on dish master device
         after waiting for correct dish modes. First invokes and waits for
         completion of SetStandbyFPMode command, then invokes and waits for
-        completion of SetStandbyLPMode command."
+        completion of SetStandbyLPMode command.
 
         param argin:
             None

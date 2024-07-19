@@ -264,8 +264,8 @@ class Configure(DishLNCommand):
                 ResultCode.FAILED,
                 "The invocation of the Configure command is failed on"
                 + f" Dish Master Device {self.dish_master_adapter.dev_name}."
-                + "Reason: Error in calling the Configure command on"
-                + f" Dish Master: {exception}",
+                + f"Reason: {exception}. The command has NOT been executed. "
+                + "This device will continue with normal operation.",
             )
         return result_code[0], message[0]
 
@@ -369,7 +369,7 @@ class Configure(DishLNCommand):
                 [ResultCode.FAILED],
                 [
                     "Timeout occurred while invoking the SetOperateMode "
-                    + "Command."
+                    + "command."
                 ],
             )
         return [ResultCode.OK], [""]
