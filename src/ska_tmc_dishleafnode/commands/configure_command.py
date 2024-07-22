@@ -240,7 +240,7 @@ class Configure(DishLNCommand):
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
-            # current_dish_mode = self.component_manager.dishMode
+            current_dish_mode = self.component_manager.dishMode
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, command_name, True
@@ -251,7 +251,7 @@ class Configure(DishLNCommand):
                 and result_code[0] not in [ResultCode.FAILED]
             ):
                 result_code, message = self.ensure_dish_is_configured(
-                    receiver_band
+                    receiver_band, current_dish_mode
                 )
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
@@ -322,7 +322,7 @@ class Configure(DishLNCommand):
         return self.invoke_track_command()
 
     def ensure_dish_is_configured(
-        self, receiver_band: str
+        self, receiver_band: str, expected_dish_mode: DishMode
     ) -> Tuple[List[ResultCode], List[str]]:
         """This method check for the completion of configure command
 
@@ -345,18 +345,18 @@ class Configure(DishLNCommand):
                     + " configuredBand in Configure Command."
                 ],
             )
-        # result = self.set_wait_for_dishmode(expected_dish_mode)
-        # if not result:
-        #     self.logger.error(
-        #         "Timeout occurred while waiting for dishMode: %s. "
-        #         "ConfigureBand Command failed on the dish manager.",
-        #         expected_dish_mode,
-        #     )
-        #     return (
-        #         ResultCode.FAILED,
-        #         "Timeout occurred while invoking the "
-        #         + f"ConfigureBand{receiver_band}() Command.",
-        #     )
+        result = self.set_wait_for_dishmode(expected_dish_mode)
+        if not result:
+            self.logger.error(
+                "Timeout occurred while waiting for dishMode: %s. "
+                "ConfigureBand Command failed on the dish manager.",
+                expected_dish_mode,
+            )
+            message = (
+                "Timeout occurred while invoking the "
+                + f"ConfigureBand{receiver_band}() Command."
+            )
+            return (ResultCode.FAILED, message)
         return [ResultCode.OK], [""]
 
     def ensure_dish_in_right_dish_mode(
