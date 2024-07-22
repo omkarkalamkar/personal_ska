@@ -48,7 +48,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import SKA_EPOCH
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -480,8 +480,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         except Exception as exception:
-            self.logger.exception(exception)
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+            try:
+                self.logger.exception(exception)
+                self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+            except Exception:
+                self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
         self.logger.info("IERS data download completed.")
 
     def update_kvalue_validation_result(self) -> None:

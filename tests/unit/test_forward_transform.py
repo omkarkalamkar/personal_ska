@@ -9,9 +9,6 @@ from tests.settings import logger
 @pytest.mark.parametrize(
     "ra, dec, timestamp, expected_az, expected_el",
     [
-        # The below parameterized value is unstable.
-        # ("16:29:24.46", "-26:25:55.7", "2019-02-19 06:01:00",
-        # 287.2504396, 77.8694392),
         (
             "2:31:50.9",
             "89:15:51.4",
