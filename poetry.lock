@@ -975,24 +975,24 @@ reference = "PyPI-public"
 
 [[package]]
 name = "katpoint"
-version = "1.0a2"
+version = "1.0a3"
 description = "Karoo Array Telescope pointing coordinate library"
 optional = false
-python-versions = ">=3.6, <4"
+python-versions = ">=3.6.2,<4.0.0"
 files = [
-    {file = "katpoint-1.0a2-py3-none-any.whl", hash = "sha256:bb665031c7a91c2cad553fb9d6505bbdc3c1a8d978054d46ffb5337c94251090"},
-    {file = "katpoint-1.0a2.tar.gz", hash = "sha256:71aa5ff8cdfebbbfdbfb01a7acef62b82f973b91382028ea030161fa7c689cbb"},
+    {file = "katpoint-1.0a3-py3-none-any.whl", hash = "sha256:ca8207b85c9e96869e263a349a17ec7d0ce4a7de99438281c5077963965b4caa"},
+    {file = "katpoint-1.0a3.tar.gz", hash = "sha256:a49115337934abbf4c1105192e8dbd319c6d9c2cb681333fa3f983b09356aa1b"},
 ]
 
 [package.dependencies]
 astropy = ">=4.1"
-numpy = "*"
-sgp4 = ">=2.7"
+numpy = ">=1.13,<2.0"
+sgp4 = ">=2.7,<3.0"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.org/simple"
-reference = "PyPI-public"
+url = "https://artefact.skao.int/repository/pypi-internal/simple"
+reference = "ska-nexus"
 
 [[package]]
 name = "katversion"
@@ -3146,4 +3146,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "71bafe76b017e4f46e752dd3e2615b360f7c867bba2613cf60c2132193e7128c"
+content-hash = "0a1b7ad200466a030d84b749f50615dd8d5402022752d4c6efdf1152c537de59"
