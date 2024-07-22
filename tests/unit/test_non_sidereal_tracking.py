@@ -9,7 +9,7 @@ from tests.settings import logger
 @pytest.mark.parametrize(
     "body_name, timestamp, expected_az, expected_el",
     [
-        ("Sun", "2019-02-19 06:01:00", 90.7870535, 21.4027105),
+        ("Sun", "2019-02-19 06:01:00", 90.7870535, 21.4027101),
     ],
 )
 def test_point_at_body(

@@ -77,7 +77,6 @@ python-test:
     - k8srunner-large
   variables:
     PYTHON_TEST_COUNT: 1
-  retry: 1
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.4.3
 
 python-lint:
