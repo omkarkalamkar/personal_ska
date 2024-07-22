@@ -202,7 +202,11 @@ class Configure(DishLNCommand):
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
                 self.logger.error(
+<<<<<<< HEAD
                     "Adapter for device : %s is not found ",
+=======
+                    "%s adapter not found ",
+>>>>>>> 0f6bbb0 (improve loggers)
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message

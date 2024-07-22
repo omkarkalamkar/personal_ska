@@ -77,8 +77,12 @@ class SetOperateMode(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
+<<<<<<< HEAD
                 "Adapter for device : %s is not found ",
                 self.component_manager.dish_dev_name,
+=======
+                "%s adapter not found ", self.component_manager.dish_dev_name
+>>>>>>> 0f6bbb0 (improve loggers)
             )
             return result_code, message
 
