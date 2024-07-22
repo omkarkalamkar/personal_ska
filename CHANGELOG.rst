@@ -63,6 +63,11 @@ Added
 
 Fixed
 ======
+[0.16.1]
+********
+* Used latest version of KatPoint **v1.0a3** to fix the forward and reverse transform calculations.
+* Fixed the issue related to IERS_A data download by keeping a local copy of the file under **data/** folder.
+
 [0.16.0]
 ********
 * Fixed integration test cases taking a long time to run by removing unnecessary assertions and unsubscribing to events.

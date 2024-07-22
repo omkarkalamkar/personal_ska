@@ -477,14 +477,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        try:
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-        except Exception as exception:
-            try:
-                self.logger.exception(exception)
-                self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
-            except Exception:
-                self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
+        self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
+        # try:
+        #     self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        # except Exception as exception:
+        #     try:
+        #         self.logger.exception(exception)
+        #         self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+        #     except Exception:
+        #         self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
         self.logger.info("IERS data download completed.")
 
     def update_kvalue_validation_result(self) -> None:
