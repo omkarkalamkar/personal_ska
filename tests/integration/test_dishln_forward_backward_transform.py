@@ -114,7 +114,7 @@ def actual_pointing_attr(tango_context):
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")
     timestamp = (timestamp_time - epoch_time).sec
-    value_to_verify = '["2019-02-19 06:01:00", "15:31:50.9", "10:15:51.4",]'
+    value_to_verify = '["2019-02-19 06:01:00", "15:31:50.9", "10:15:51.4"]'
     count = 0
     # Reason to add below while loop:
     # Sometimes its observed that previous value of programTrackTable overrides

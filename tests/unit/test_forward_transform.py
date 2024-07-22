@@ -25,6 +25,7 @@ from tests.settings import logger
         ),
     ],
 )
+@pytest.mark.temp
 def test_radec_to_azel(
     ra: str,
     dec: str,
