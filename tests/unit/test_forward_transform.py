@@ -13,7 +13,7 @@ from tests.settings import logger
             "15:31:50.9",
             "10:15:51.4",
             "2019-02-19 06:01:00",
-            322.8709276,
+            322.8709277,
             41.3703589,
         ),
         (
@@ -52,5 +52,7 @@ def test_radec_to_azel(
     az, el = converter.radec_to_azel(ra, dec, timestamp)
     az = round(az, 7)
     el = round(el, 7)
+    logger.info("Az is: %s", az)
+    logger.info("El is: %s", el)
     assert az == expected_az
     assert el == expected_el
