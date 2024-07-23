@@ -44,6 +44,7 @@ class AzElConverter:
             "temperature": 30.0,
             "pressure": 900.0,
             "humidity": 0.10,
+            # Humidity is now a fraction instead of percentage
         }
 
     def create_antenna_obj(self) -> None:

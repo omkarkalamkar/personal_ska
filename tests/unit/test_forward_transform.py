@@ -52,7 +52,7 @@ def test_radec_to_azel(
     az, el = converter.radec_to_azel(ra, dec, timestamp)
     az = round(az, 7)
     el = round(el, 7)
-    logger.info("Az is: %s", az)
-    logger.info("El is: %s", el)
+    logger.info("Azimuth is: %s", az)
+    logger.info("Elevation is: %s", el)
     assert az == expected_az
     assert el == expected_el
