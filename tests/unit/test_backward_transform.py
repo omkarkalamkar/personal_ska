@@ -2,10 +2,9 @@ import time
 
 import pytest
 from astropy.time import Time
-from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode import AzElConverter
-from tests.settings import DISH_MASTER_DEVICE, SKA_EPOCH, logger
+from tests.settings import SKA_EPOCH, logger
 
 
 @pytest.mark.parametrize(
@@ -13,24 +12,17 @@ from tests.settings import DISH_MASTER_DEVICE, SKA_EPOCH, logger
     [
         (
             "2019-02-19 06:01:00",
-            "0.4564362",
-            "-30.8330656",
-            "2:31:50.9",
-            "89:15:51.4",
+            "322.8709276",
+            "41.3703589",
+            "15:31:50.9",
+            "10:15:51.4",
         ),
         (
-            "2019-02-19 06:01:00",
-            "287.2504396",
-            "77.8694392",
-            "16:29:24.46",
-            "-26:25:55.7",
-        ),
-        (
-            "2022-03-19 09:21:50",
-            "173.5146073",
-            "-43.8021646",
+            "2022-03-19 18:21:50",
+            "46.110779",
+            "30.6631224",
             "10:14:56.82",
-            "-14:44:15.13",
+            "14:44:15.13",
         ),
     ],
 )
@@ -65,36 +57,18 @@ def test_azel_to_radec(
 
 def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
-    dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
     timestamp_str = "2019-02-19 06:01:00"
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")
     ska_epoch_tai_timestamp = (timestamp_time - epoch_time).sec
-    dish_manager.programTrackTable = [
-        ska_epoch_tai_timestamp,
-        287.2504396,
-        77.8694392,
-    ]
-    # Sometimes loading the iers data takes more time
-    timeout = 5
-    count = 0
-    flag = True
-    while flag and count <= timeout:
-        if cm.actual_pointing and "2019" in cm.actual_pointing[0]:
-            flag = False
-        count += 1
-        time.sleep(1)
-    # Test case is not stable as sometimes tango misses the events
-    # Below instructions will execute the test case in pythonic way.
-    if flag:
-        converter = AzElConverter(component_manager=cm)
-        converter.create_antenna_obj()
-        cm.perform_reverse_transform(
-            [ska_epoch_tai_timestamp, 287.2504396, 77.8694392]
-        )
+    converter = AzElConverter(component_manager=cm)
+    converter.create_antenna_obj()
+    cm.perform_reverse_transform(
+        [ska_epoch_tai_timestamp, 322.8709276, 41.3703589]
+    )
 
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",
-        "16:29:24.46",
-        "-26:25:55.7",
+        "15:31:50.9",
+        "10:15:51.4",
     ]
