@@ -2,6 +2,9 @@
 <<<<<<< HEAD
 =======
 from __future__ import annotations
+<<<<<<< HEAD
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
+=======
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
 
 import threading
@@ -27,7 +30,11 @@ class Scan(DishLNCommand):
     # pylint: disable=unused-argument
     def scan(
 <<<<<<< HEAD
+<<<<<<< HEAD
         self,
+=======
+        self: Scan,
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
 =======
         self: Scan,
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
@@ -68,7 +75,11 @@ class Scan(DishLNCommand):
 
     # pylint: disable=signature-differs
 <<<<<<< HEAD
+<<<<<<< HEAD
     def do(self, argin: str):
+=======
+    def do(self: Scan, argin: str):
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
 =======
     def do(self: Scan, argin: str):
 >>>>>>> 9708235 (HM-505: Resolving linting issues)

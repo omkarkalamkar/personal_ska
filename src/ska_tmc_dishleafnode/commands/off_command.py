@@ -2,6 +2,9 @@
 <<<<<<< HEAD
 =======
 from __future__ import annotations
+<<<<<<< HEAD
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
+=======
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
 
 import threading
@@ -28,7 +31,11 @@ class Off(DishLNCommand):
     # pylint: disable=unused-argument
     def invoke_off(
 <<<<<<< HEAD
+<<<<<<< HEAD
         self,
+=======
+        self: Off,
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
 =======
         self: Off,
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
@@ -108,6 +115,7 @@ class Off(DishLNCommand):
 <<<<<<< HEAD
                     "Timeout occurred while invoking the SetStandbyFPMode "
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "Command.",
                 )
                 return (
@@ -132,6 +140,16 @@ class Off(DishLNCommand):
                         + "command."
                     ),
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
+=======
+                    + "Command.",
+                )
+                return (
+                    ResultCode.FAILED,
+                    (
+                        "Timeout occurred while invoking the SetStandbyFPMode "
+                        + "Command."
+                    ),
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
                 )
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
@@ -145,12 +163,19 @@ class Off(DishLNCommand):
             return (
                 ResultCode.FAILED,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "Timeout occurred while invoking the SetStandbyLPMode "
                 "Command.",
 =======
                 (
                     "Timeout occurred while invoking the SetStandbyLPMode "
                     + "command."
+                ),
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
+=======
+                (
+                    "Timeout occurred while invoking the SetStandbyLPMode "
+                    + "Command."
                 ),
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
             )
