@@ -27,7 +27,7 @@ class SetKValue(DishLNCommand, FastCommand):
     """
 
     def __init__(
-        self,
+        self: SetKValue,
         component_manager: DishLNComponentManager,
         op_state_model=None,
         logger: logging.Logger = LOGGER,
@@ -43,7 +43,7 @@ class SetKValue(DishLNCommand, FastCommand):
 
     # pylint: disable=arguments-differ
     # pylint: disable=signature-differs
-    def do(self, argin: int) -> Tuple[ResultCode, str]:
+    def do(self: SetKValue, argin: int) -> Tuple[ResultCode, str]:
         """
         Invokes SetKValue command on the DishMaster.
 

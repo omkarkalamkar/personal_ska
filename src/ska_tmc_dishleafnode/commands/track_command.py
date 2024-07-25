@@ -30,7 +30,7 @@ class Track(DishLNCommand):
     """
 
     def __init__(
-        self,
+        self: Track,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -45,7 +45,7 @@ class Track(DishLNCommand):
 
     # pylint: disable=unused-argument
     def track(
-        self,
+        self: Track,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -81,7 +81,7 @@ class Track(DishLNCommand):
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
-    def validate_json_argument(self, input_argin: dict) -> tuple:
+    def validate_json_argument(self: Track, input_argin: dict) -> tuple:
         """Validates the json argument"""
         target = input_argin.get("pointing", {}).get("target", {})
         ra_value = target.get("ra")
@@ -96,7 +96,7 @@ class Track(DishLNCommand):
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self, argin: dict) -> Tuple[ResultCode, str]:
+    def do(self: Track, argin: dict) -> Tuple[ResultCode, str]:
         """
         Method to invoke Track command on Dish Master.
 

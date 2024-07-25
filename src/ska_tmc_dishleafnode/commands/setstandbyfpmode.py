@@ -1,6 +1,8 @@
 """
 SetStandbyFPMode command class for DishLeafNode.
 """
+from __future__ import annotations
+
 import threading
 from logging import Logger
 from typing import Optional, Tuple
@@ -23,7 +25,7 @@ class SetStandbyFPMode(DishLNCommand):
 
     # pylint: disable=unused-argument
     def set_standby_fp_mode(
-        self,
+        self: SetStandbyFPMode,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -62,7 +64,7 @@ class SetStandbyFPMode(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self) -> Tuple[ResultCode, str]:
+    def do(self: SetStandbyFPMode) -> Tuple[ResultCode, str]:
         """
         Method to invoke SetStandbyFPMode command on DishMaster.
 

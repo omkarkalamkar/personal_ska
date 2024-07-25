@@ -1,6 +1,8 @@
 """
 SetOperateMode command class for DishLeafNode.
 """
+from __future__ import annotations
+
 import threading
 from logging import Logger
 from typing import Optional, Tuple
@@ -23,7 +25,7 @@ class SetOperateMode(DishLNCommand):
 
     # pylint: disable=unused-argument
     def set_operate_mode(
-        self,
+        self: SetOperateMode,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -62,7 +64,7 @@ class SetOperateMode(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self) -> Tuple[ResultCode, str]:
+    def do(self: SetOperateMode) -> Tuple[ResultCode, str]:
         """
         Method to invoke SetOperateMode command on DishMaster.
 
