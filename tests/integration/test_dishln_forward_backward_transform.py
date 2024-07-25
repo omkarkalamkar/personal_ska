@@ -114,7 +114,7 @@ def actual_pointing_attr(tango_context):
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")
     timestamp = (timestamp_time - epoch_time).sec
-    value_to_verify = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
+    value_to_verify = '["2019-02-19 06:01:00", "15:31:50.9", "10:15:51.4"]'
     count = 0
     # Reason to add below while loop:
     # Sometimes its observed that previous value of programTrackTable overrides
@@ -122,7 +122,7 @@ def actual_pointing_attr(tango_context):
     # So periodically sending the intended values to check actualPointing
     # working as expected.
     while dish_leaf_node.actualPointing != value_to_verify and count < 30:
-        dish_master.programTrackTable = [timestamp, 287.2504396, 77.8694392]
+        dish_master.programTrackTable = [timestamp, 322.8709276, 41.3703589]
         count = count + 1
         sleep(1)
     assert dish_leaf_node.actualPointing == value_to_verify

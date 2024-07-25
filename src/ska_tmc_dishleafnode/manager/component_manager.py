@@ -48,7 +48,7 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import SKA_EPOCH
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -483,9 +483,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         except Exception as exception:
-            self.logger.exception(exception)
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+            self.logger.exception(
+                "Failed to download IERS_A data: %s. Trying with a different"
+                + " source.",
+                exception,
+            )
+            self.download_iers_data_from_a_different_source()
         self.logger.info("IERS data download completed.")
+
+    def download_iers_data_from_a_different_source(self) -> None:
+        """Downloads and initialises the IERS file from the mirror or local
+        links.
+
+        :return: None
+        :rtype: None
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+        except Exception as exception:
+            self.logger.exception(
+                "Failed to download IERS_A data: %s. Will use the locally "
+                + "stored data.",
+                exception,
+            )
+            self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
     def update_kvalue_validation_result(self) -> None:
         """This method informs the k-value validation result

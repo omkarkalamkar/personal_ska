@@ -64,7 +64,7 @@ CI_PROJECT_PATH_SLUG ?= ska-tmc-dishleafnode
 CI_ENVIRONMENT_SLUG ?= ska-tmc-dishleafnode
 $(shell echo 'global:\n  annotations:\n    app.gitlab.com/app: $(CI_PROJECT_PATH_SLUG)\n    app.gitlab.com/env: $(CI_ENVIRONMENT_SLUG)' > gitlab_values.yaml)
 
-EXIT_AT_FAIL ?= true
+EXIT_AT_FAIL ?= false
 
 PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
