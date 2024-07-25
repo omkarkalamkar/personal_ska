@@ -79,7 +79,8 @@ class SetStowMode(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device :%s not found ", self.component_manager.dish_dev_name
+                "Adapter for device :%s not found ",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
         with self.component_manager.tango_operation_execution_lock:
