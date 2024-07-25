@@ -1222,7 +1222,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-            self.logger.info(f"dishMode value updated to {dish_mode}")
+            self.logger.info(f"dishMode value updated to {dish_mode.name}")
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
@@ -1244,7 +1244,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-            self.logger.info(f"PointingState value updated to {pointingState}")
+            self.logger.info(
+                f"PointingState value updated to {pointingState.name}"
+            )
             if self._update_pointingstate_callback:
                 self._update_pointingstate_callback(pointingState)
 

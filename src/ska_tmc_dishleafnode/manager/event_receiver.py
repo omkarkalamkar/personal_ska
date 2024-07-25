@@ -121,7 +121,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_dish_mode(new_value)
-        self._logger.info(f"DishMode value updated to {new_value}")
+        self._logger.info(f"DishMode value updated to {new_value.name}")
 
     def handle_pointing_state_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -144,7 +144,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_pointing_state(new_value)
-        self._logger.info(f"PointingState value updated to {new_value}")
+        self._logger.info(f"PointingState value updated to {new_value.name}")
 
     def handle_configured_band_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
