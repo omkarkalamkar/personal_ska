@@ -110,6 +110,7 @@ class Track(DishLNCommand):
             self.logger.error(
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "Adapter for device : %s is not found ",
                 self.component_manager.dish_dev_name,
 =======
@@ -118,6 +119,10 @@ class Track(DishLNCommand):
 =======
                 "Adapter for device :%s not found ", self.component_manager.dish_dev_name
 >>>>>>> 642c346 (HM-505:Resolving minor logs)
+=======
+                "Adapter for device :%s not found ",
+                self.component_manager.dish_dev_name,
+>>>>>>> 506451f (HM-505:Resolved lint issue)
             )
             return result_code, message
 
