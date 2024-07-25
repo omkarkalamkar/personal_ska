@@ -371,8 +371,12 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
             self.logger.error(
+<<<<<<< HEAD
                 "Timeout occurred while processing the"
                 + " SetOperateMode command."
+=======
+                "Timeout occurred while invoking the SetOperateMode command."
+>>>>>>> 8a552ec (HM-505:Adding annotations)
             )
             return (
                 [ResultCode.FAILED],
