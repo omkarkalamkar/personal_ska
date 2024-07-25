@@ -68,6 +68,7 @@ class TrackStop(DishLNCommand):
             self.logger.error(
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "Adapter for device : %s is not found",
                 self.component_manager.dish_dev_name,
 =======
@@ -75,6 +76,9 @@ class TrackStop(DishLNCommand):
 >>>>>>> 0f6bbb0 (improve loggers)
 =======
                 "Adapter for :%s not found",
+=======
+                "Adapter for device :%s not found",
+>>>>>>> 642c346 (HM-505:Resolving minor logs)
                 self.component_manager.dish_dev_name,
 >>>>>>> 8a552ec (HM-505:Adding annotations)
             )

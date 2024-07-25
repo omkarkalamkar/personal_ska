@@ -203,10 +203,14 @@ class Configure(DishLNCommand):
             if result_code == ResultCode.FAILED:
                 self.logger.error(
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "Adapter for device : %s is not found ",
 =======
                     "%s adapter not found ",
 >>>>>>> 0f6bbb0 (improve loggers)
+=======
+                    "Adapter for device :%s not found ",
+>>>>>>> 642c346 (HM-505:Resolving minor logs)
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message
