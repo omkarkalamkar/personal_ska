@@ -1,6 +1,8 @@
 """
 Event Receiver for Dish Leaf Node
 """
+from __future__ import annotations
+
 from logging import Logger
 from time import sleep
 from typing import Any, Callable
@@ -24,7 +26,7 @@ class DishLNEventReceiver(EventReceiver):
     """
 
     def __init__(
-        self,
+        self: DishLNEventReceiver,
         component_manager,
         logger: Logger,
         attribute_dict: dict[str, Callable[..., Any]] | None = None,
@@ -40,7 +42,7 @@ class DishLNEventReceiver(EventReceiver):
         )
         self.subscribed: bool = False
 
-    def run(self) -> None:
+    def run(self: DishLNEventReceiver) -> None:
         while not self.subscribed:
             dishDevInfo = self._component_manager.get_device()
             if dishDevInfo.dev_name:
@@ -48,7 +50,9 @@ class DishLNEventReceiver(EventReceiver):
             sleep(self._sleep_time)
 
     def subscribe_events(
-        self, dev_info: DishDeviceInfo, attribute_dictionary=None
+        self: DishLNEventReceiver,
+        dev_info: DishDeviceInfo,
+        attribute_dictionary=None,
     ) -> None:
         with tango.EnsureOmniThread():
             try:
@@ -97,7 +101,9 @@ class DishLNEventReceiver(EventReceiver):
             else:
                 self.subscribed = True
 
-    def handle_dish_mode_event(self, event_flag: tango.EventData) -> None:
+    def handle_dish_mode_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
         """Method to handle and update the latest value of dishMode attribute.
 
         :parameter event_flag: To flag the change in event for dishMode.
@@ -117,7 +123,9 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_device_dish_mode(new_value)
         self._logger.info(f"DishMode value updated to {new_value}")
 
-    def handle_pointing_state_event(self, event_flag: tango.EventData) -> None:
+    def handle_pointing_state_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
         """Method to handle and update the latest value of
         pointingState attribute.
 
@@ -139,7 +147,7 @@ class DishLNEventReceiver(EventReceiver):
         self._logger.info(f"PointingState value updated to {new_value}")
 
     def handle_configured_band_event(
-        self, event_flag: tango.EventData
+        self: DishLNEventReceiver, event_flag: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
         configuredBand attribute.
@@ -162,7 +170,7 @@ class DishLNEventReceiver(EventReceiver):
         self._logger.info(f"ConfiguredBand value updated to {new_value}")
 
     def handle_achieved_pointing_event(
-        self, event_flag: tango.EventData
+        self: DishLNEventReceiver, event_flag: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
         achievedPointing attribute.
@@ -185,7 +193,7 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.achieved_pointing_data.put(new_value)
 
     def handle_long_running_command_result(
-        self, event_data: tango.EventData
+        self: DishLNEventReceiver, event_data: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
         longRunningCommandResult attribute.
@@ -210,7 +218,9 @@ class DishLNEventReceiver(EventReceiver):
         self._logger.info(f"long running command value updated to {new_value}")
 
     def subscribe_sdpqc_attribute(
-        self, dev_info: SdpQueueConnectorDeviceInfo, attribute_name: str
+        self: DishLNEventReceiver,
+        dev_info: SdpQueueConnectorDeviceInfo,
+        attribute_name: str,
     ) -> None:
         """Subscribe to the given SDP queue connector attribute"""
         # Initialized to avoid linting issue.
@@ -239,7 +249,7 @@ class DishLNEventReceiver(EventReceiver):
                 sleep(1)
 
     def unsubscribe_sdpqc_attribute(
-        self, dev_info: SdpQueueConnectorDeviceInfo
+        self: DishLNEventReceiver, dev_info: SdpQueueConnectorDeviceInfo
     ) -> None:
         """Subscribe to the given SDP queue connector attribute"""
         try:

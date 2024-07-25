@@ -22,7 +22,7 @@ class EndScan(DishLNCommand):
 
     # pylint: disable=unused-argument
     def endscan(
-        self,
+        self: DishLNCommand,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -55,7 +55,7 @@ class EndScan(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self):
+    def do(self: DishLNCommand):
         """
         Method to set scanID attribute of Dish Master to empty string.
 
