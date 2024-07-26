@@ -74,12 +74,16 @@ class DishkValueValidationManager:
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         elif dish_manager_kvalue == dish_ln_kvalue:
-            self.logger.info("kvalues are identical on dish manager and dln.")
+            self.logger.info(
+                "kvalues are identical on dish manager and dish leaf node."
+            )
             self.component_manager.kValueValidationResult = ResultCode.OK
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         else:
-            self.logger.error("kvalue not identical on dish manager and dln.")
+            self.logger.error(
+                "kvalue not identical on dish manager and dish leaf node."
+            )
             self.component_manager.kValueValidationResult = ResultCode.FAILED
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
