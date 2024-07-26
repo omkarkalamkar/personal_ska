@@ -381,6 +381,7 @@ class Configure(DishLNCommand):
             self.logger.error(
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "Timeout occurred while processing the"
                 + " SetOperateMode command."
 =======
@@ -388,6 +389,9 @@ class Configure(DishLNCommand):
 >>>>>>> 8a552ec (HM-505:Adding annotations)
 =======
                 "Timeout occurred while invoking/processing the"
+=======
+                "Timeout occurred while processing the"
+>>>>>>> e85d945 (HM-505:Resolving review comments)
                 + " SetOperateMode command."
 >>>>>>> 7dcc7cc (HM-505:Resolving review comments)
             )
