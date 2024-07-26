@@ -1223,12 +1223,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 <<<<<<< HEAD
+<<<<<<< HEAD
             self.logger.info(
                 f"dishMode value updated to {DishMode(dish_mode).name}"
             )
 =======
             self.logger.info(f"dishMode value updated to {dish_mode.name}")
 >>>>>>> 68ffede (HM-505:Resolving minor logger issue)
+=======
+            self.logger.info(
+                f"dishMode value updated to {DishMode(dish_mode).name}"
+            )
+>>>>>>> 0c08e2e (HM-505:Resolving minor error)
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
@@ -1252,11 +1258,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.update_unresponsive(False)
             self.logger.info(
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
 =======
                 f"PointingState value updated to {pointingState.name}"
 >>>>>>> 68ffede (HM-505:Resolving minor logger issue)
+=======
+                "PointingState value updated to "
+                + f"{PointingState(pointingState).name}"
+>>>>>>> 0c08e2e (HM-505:Resolving minor error)
             )
             if self._update_pointingstate_callback:
                 self._update_pointingstate_callback(pointingState)
