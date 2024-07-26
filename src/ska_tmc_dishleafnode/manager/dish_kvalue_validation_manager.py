@@ -82,12 +82,18 @@ class DishkValueValidationManager:
                 self.component_manager.kvalue_validation_callback()
         else:
 <<<<<<< HEAD
+<<<<<<< HEAD
             self.logger.error(
                 "kvalue not identical on dish manager and dish leaf node."
             )
 =======
             self.logger.error("kvalue not identical on dish manager and dln.")
 >>>>>>> 0f6bbb0 (improve loggers)
+=======
+            self.logger.error(
+                "kvalue not identical on dish manager and dish leaf node."
+            )
+>>>>>>> 9e2f550 (HM-505:Resolving review comments)
             self.component_manager.kValueValidationResult = ResultCode.FAILED
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
