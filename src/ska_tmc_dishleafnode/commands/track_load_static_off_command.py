@@ -130,6 +130,9 @@ class TrackLoadStaticOff(DishLNCommand):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6d43fa8 (HM-505:resolving review ccomments)
                 "Adapter for device : %s is not found",
                 self.component_manager.dish_dev_name,
 =======

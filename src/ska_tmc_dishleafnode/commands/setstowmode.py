@@ -82,6 +82,7 @@ class SetStowMode(DishLNCommand):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "Adapter for device : %s is not found ",
                 self.component_manager.dish_dev_name,
 =======
@@ -92,6 +93,9 @@ class SetStowMode(DishLNCommand):
 >>>>>>> 642c346 (HM-505:Resolving minor logs)
 =======
                 "Adapter for device :%s not found ",
+=======
+                "Adapter for device : %s is not found ",
+>>>>>>> 6d43fa8 (HM-505:resolving review ccomments)
                 self.component_manager.dish_dev_name,
 >>>>>>> 506451f (HM-505:Resolved lint issue)
             )
