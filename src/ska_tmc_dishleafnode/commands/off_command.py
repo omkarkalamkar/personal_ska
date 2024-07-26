@@ -1,4 +1,8 @@
 """On command class for Dishleafnode."""
+<<<<<<< HEAD
+=======
+from __future__ import annotations
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
 
 import threading
 from logging import Logger
@@ -23,7 +27,11 @@ class Off(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_off(
+<<<<<<< HEAD
         self,
+=======
+        self: Off,
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -92,12 +100,23 @@ class Off(DishLNCommand):
             if not result:
                 self.logger.error(
                     "Timeout occurred while invoking the SetStandbyFPMode "
+<<<<<<< HEAD
                     "Command.",
                 )
                 return (
                     ResultCode.FAILED,
                     "Timeout occurred while invoking the SetStandbyFPMode "
                     "Command.",
+=======
+                    + "Command.",
+                )
+                return (
+                    ResultCode.FAILED,
+                    (
+                        "Timeout occurred while invoking the SetStandbyFPMode "
+                        + "Command."
+                    ),
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
                 )
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
@@ -109,8 +128,15 @@ class Off(DishLNCommand):
             )
             return (
                 ResultCode.FAILED,
+<<<<<<< HEAD
                 "Timeout occurred while invoking the SetStandbyLPMode "
                 "Command.",
+=======
+                (
+                    "Timeout occurred while invoking the SetStandbyLPMode "
+                    + "Command."
+                ),
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
             )
 
         return result_code[0], message[0]

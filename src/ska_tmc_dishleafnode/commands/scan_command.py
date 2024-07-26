@@ -1,4 +1,8 @@
 """Scan command class for Dishleafnode."""
+<<<<<<< HEAD
+=======
+from __future__ import annotations
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
 
 import threading
 from logging import Logger
@@ -22,7 +26,11 @@ class Scan(DishLNCommand):
 
     # pylint: disable=unused-argument
     def scan(
+<<<<<<< HEAD
         self,
+=======
+        self: Scan,
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -59,7 +67,11 @@ class Scan(DishLNCommand):
             )
 
     # pylint: disable=signature-differs
+<<<<<<< HEAD
     def do(self, argin: str):
+=======
+    def do(self: Scan, argin: str):
+>>>>>>> 9708235 (HM-505: Resolving linting issues)
         """
         Method to invoke Scan command on Dish Master.
 
