@@ -126,6 +126,7 @@ class Off(DishLNCommand):
                 self.logger.error(
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "Timeout occurred while invoking the SetStandbyFPMode "
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -155,12 +156,17 @@ class Off(DishLNCommand):
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
 =======
                     + "Command.",
+=======
+                    "Timeout occurred while invoking/processing"
+                    + " the SetStandbyFPMode "
+                    + "command.",
+>>>>>>> 7dcc7cc (HM-505:Resolving review comments)
                 )
                 return (
                     ResultCode.FAILED,
                     (
                         "Timeout occurred while invoking the SetStandbyFPMode "
-                        + "Command."
+                        + "command."
                     ),
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
                 )
@@ -170,7 +176,11 @@ class Off(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
             self.logger.error(
+<<<<<<< HEAD
                 "Timeout occurred while processing the"
+=======
+                "Timeout occurred while invoking/processing the"
+>>>>>>> 7dcc7cc (HM-505:Resolving review comments)
                 + " SetStandbyLPMode Command."
             )
             return (
@@ -188,7 +198,7 @@ class Off(DishLNCommand):
 =======
                 (
                     "Timeout occurred while invoking the SetStandbyLPMode "
-                    + "Command."
+                    + "command."
                 ),
 >>>>>>> 9708235 (HM-505: Resolving linting issues)
             )
