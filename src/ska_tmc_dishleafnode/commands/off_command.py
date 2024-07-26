@@ -101,6 +101,7 @@ class Off(DishLNCommand):
             if not result:
                 self.logger.error(
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "Timeout occurred while invoking the SetStandbyFPMode "
 <<<<<<< HEAD
                     "Command.",
@@ -113,6 +114,9 @@ class Off(DishLNCommand):
                     + "Command.",
 =======
                     "Timeout occurred while invoking/processing"
+=======
+                    "Timeout occurred while processing"
+>>>>>>> e85d945 (HM-505:Resolving review comments)
                     + " the SetStandbyFPMode "
                     + "command.",
 >>>>>>> 7dcc7cc (HM-505:Resolving review comments)
@@ -131,7 +135,7 @@ class Off(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
             self.logger.error(
-                "Timeout occurred while invoking/processing the"
+                "Timeout occurred while processing the"
                 + " SetStandbyLPMode Command."
             )
             return (

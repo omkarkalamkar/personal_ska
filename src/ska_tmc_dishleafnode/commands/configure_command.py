@@ -367,7 +367,7 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
             self.logger.error(
-                "Timeout occurred while invoking/processing the"
+                "Timeout occurred while processing the"
                 + " SetOperateMode command."
             )
             return (
