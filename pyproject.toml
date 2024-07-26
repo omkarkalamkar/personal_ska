@@ -28,7 +28,11 @@ numpy = "1.23.0"
 pytango = "9.5.0"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
 fire = "^0.5.0"
+<<<<<<< HEAD
 ska-tmc-common = "0.17.8"
+=======
+ska-tmc-common = "0.17.10"
+>>>>>>> 0f6bbb0 (improve loggers)
 ska-tango-base = "1.0.0"
 astropy = "^5.0.4"
 katpoint = "1.0a3"

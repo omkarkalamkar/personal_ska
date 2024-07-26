@@ -107,7 +107,7 @@ class Track(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
+            self.logger.error(
                 "%s adapter not found ", self.component_manager.dish_dev_name
             )
             return result_code, message

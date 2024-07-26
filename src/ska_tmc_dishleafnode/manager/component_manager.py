@@ -1440,7 +1440,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             ResultCode.FAILED, exception=message
                         )
         except Exception as exception:
-            self.logger.error(
+            self.logger.exception(
                 "Exception while processing longRunningCommandResult",
                 exception,
             )

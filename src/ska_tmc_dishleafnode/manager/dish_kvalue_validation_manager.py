@@ -75,7 +75,7 @@ class DishkValueValidationManager:
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         else:
-            self.logger.info("kvalue not identical on dish manager and dln.")
+            self.logger.error("kvalue not identical on dish manager and dln.")
             self.component_manager.kValueValidationResult = ResultCode.FAILED
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
