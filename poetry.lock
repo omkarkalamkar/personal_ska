@@ -4835,6 +4835,7 @@ files = [
 ]
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0f6bbb0 (improve loggers)
 
@@ -4883,6 +4884,11 @@ ska-tmc-common = [
     {file = "ska_tmc_common-0.17.10-py3-none-any.whl", hash = "sha256:83e5d93df779fbb9fdc9c353885ea4cc879f1eed6423cfbb2322216a53d69a4c"},
     {file = "ska_tmc_common-0.17.10.tar.gz", hash = "sha256:865de862570776a86b763d4ee72f3a27ecb97d09d063118d077f3ef00e046d67"},
 >>>>>>> 0f6bbb0 (improve loggers)
+=======
+ska-tmc-common = [
+    {file = "ska_tmc_common-0.17.12-py3-none-any.whl", hash = "sha256:dbce4e4063ea6a58aa7944098be824416ca4a3ebe61903ca1a2e3f395ca0d930"},
+    {file = "ska_tmc_common-0.17.12.tar.gz", hash = "sha256:502b2153e2b9f57a440e8454850ac2613d5ce05db36e99a0f70363685c002a7c"},
+>>>>>>> 1cf8e61 (HM-505:updating poetry lock file)
 ]
 
 [package.dependencies]
