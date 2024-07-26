@@ -75,7 +75,7 @@ class SetKValue(DishLNCommand, FastCommand):
             self.component_manager.kValue = argin
             self.component_manager.kValueValidationResult = ResultCode.OK
         self.logger.info(
-            f"SetKValue command invoked, Result code is {result_code}\
-                and Message is {message}"
+            f"SetKValue command invoked, Result code is {result_code}"
+            + f" and Message is {message}"
         )
         return result_code[0], message[0]

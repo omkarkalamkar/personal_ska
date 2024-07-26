@@ -392,7 +392,7 @@ class Configure(DishLNCommand):
                 "Dish Master", self.dish_master_adapter, "Track"
             )
         if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-            self.logger.error(f"Track Invocation Failed {message}")
+            self.logger.error(f"Track Invocation Failed , Reason: {message}")
             return result_code, message
 
         self.logger.info("Invoked Track command successfully on dish.")
