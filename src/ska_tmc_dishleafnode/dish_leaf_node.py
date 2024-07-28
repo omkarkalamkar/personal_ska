@@ -170,7 +170,6 @@ class DishLeafNode(SKABaseDevice):
         # if the init is called more than once
         # I need to stop all threads
         if hasattr(self, "component_manager"):
-            self.logger.info("Inside device destructor")
             # pylint: disable=unnecessary-dunder-call
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call

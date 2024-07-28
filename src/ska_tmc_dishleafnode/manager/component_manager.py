@@ -1609,8 +1609,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.info("Inside stop_executors_and_cleanup_memory")
-
         if self.event_receiver:
             self.stop_event_receiver()
 

@@ -16,8 +16,6 @@ from tests.settings import (
 )
 
 
-@pytest.mark.repeat(5)
-@pytest.mark.test1
 def test_configure_command_completed(
     tango_context, cm, task_callback, json_factory, dish_master_device
 ):

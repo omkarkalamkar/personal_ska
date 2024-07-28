@@ -235,7 +235,6 @@ def partial_configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 def test_partial_configure_command(
     tango_context, group_callback, json_factory
 ):
