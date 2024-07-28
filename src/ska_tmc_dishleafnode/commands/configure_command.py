@@ -169,12 +169,6 @@ class Configure(DishLNCommand):
                     + "argument.",
                 )
 
-        if "correction" not in input_argin["pointing"]:
-            return (
-                ResultCode.FAILED,
-                "correction key is not present in the input json argument.",
-            )
-
         return (ResultCode.OK, "")
 
     # pylint: disable=signature-differs
@@ -189,7 +183,7 @@ class Configure(DishLNCommand):
             Elevation Angle.
 
                 Example:
-                {"pointing":{"target":{"reference_frame":"ICRS",
+                {"pointing":{"target":{"refrence_frame":"ICRS",
                 "target_name":"Polaris Australis",
                 "ra":"21:08:47.92",
                 "dec":"-88:57:22.9"}},
@@ -218,20 +212,6 @@ class Configure(DishLNCommand):
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
 
-            correction = json_argument["pointing"]["correction"]
-
-            # Extracting and setting cross elevation offset. 
-            # Considering 0.0 if the key is omitted
-            ca_offset = json_argument["pointing"]["target"].get(
-                "ca_offset_arcsec", 0.0
-            )
-
-            # Extracting and setting elevation offset. 
-            # Considering 0.0 if the key is omitted
-            ie_offset = json_argument["pointing"]["target"].get(
-                "ie_offset_arcsec", 0.0
-            )
-
             if json_argument.get("tmc"):
                 return self.invoke_trackloadstaticoff(json_argument)
 
@@ -256,48 +236,27 @@ class Configure(DishLNCommand):
             if not self.track_table_process.is_alive():
                 self.track_table_process.start()
 
-            if correction == "UPDATE":
-                offsets_argin = [ca_offset, ie_offset]
-                return self.invoke_trackloadstaticoff(
-                    offsets_argin
+            receiver_band = json_argument["dish"]["receiver_band"]
+            command_name = f"ConfigureBand{receiver_band}"
+            # The argin accepted here is a boolean value in accordance
+            # with Dish Master
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, command_name, True
                 )
-            elif correction == "RESET":
-                offsets_argin = [0.0, 0.0]
-                return self.invoke_trackloadstaticoff(
-                    offsets_argin
-                )
-            else:
-                # For corrections other than RESET, invoke partial configuration
-                receiver_band = json_argument["dish"]["receiver_band"]
-                command_name = f"ConfigureBand{receiver_band}"
-                # The argin accepted here is a boolean value in accordance
-                # with Dish Master
-                with self.component_manager.tango_operation_execution_lock:
-                    result_code, message = self.call_adapter_method(
-                        "Dish Master",
-                        self.dish_master_adapter,
-                        command_name,
-                        True,
-                    )
 
-                if (
-                    self.component_manager.dishMode != DishMode.STOW
-                    and result_code[0] not in [ResultCode.FAILED]
-                ):
-                    result_code, message = self.ensure_dish_is_configured(
-                        receiver_band
-                    )
-                    if result_code[0] in [
-                        ResultCode.FAILED,
-                        ResultCode.REJECTED,
-                    ]:
-                        return result_code[0], message[0]
-                    result_code, message = self.start_dish_tracking()
-                    if result_code[0] in [
-                        ResultCode.FAILED,
-                        ResultCode.REJECTED,
-                    ]:
-                        return result_code[0], message[0]
+            if (
+                self.component_manager.dishMode != DishMode.STOW
+                and result_code[0] not in [ResultCode.FAILED]
+            ):
+                result_code, message = self.ensure_dish_is_configured(
+                    receiver_band
+                )
+                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+                    return result_code[0], message[0]
+                result_code, message = self.start_dish_tracking()
+                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+                    return result_code[0], message[0]
 
         except Exception as exception:
             self.logger.exception(f"Command invocation failed: {exception}")
@@ -305,31 +264,45 @@ class Configure(DishLNCommand):
                 ResultCode.FAILED,
                 "The invocation of the Configure command is failed on"
                 + f" Dish Master Device {self.dish_master_adapter.dev_name}."
-                + f" Reason: {exception}",
+                + "Reason: Error in calling the Configure command on"
+                + f" Dish Master: {exception}",
             )
-
-        return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
+        return result_code[0], message[0]
 
     def invoke_trackloadstaticoff(
-        self, offsets_argin: List[float]
+        self, input_json: dict
     ) -> Tuple[ResultCode, str]:
-        """
-        Helper method to invoke TrackLoadStaticOff command with offsets.
+        """Extracts the offsets from input json and invokes the
+        TrackLoadStaticOff command on DishMaster device.
 
-        :param offsets_argin: Offsets to be applied
-        :type offsets_argin: List[float]
-        :return: Result code and message
-        :rtype: Tuple[ResultCode, str]
+        :param input_json: Input json for Configure command
+        :type input_json: dict
+
+        :returns: Tuple[ResultCode, str]
         """
-        self.logger.info(
-            "Invoking TrackLoadStaticOff with offsets: %s", offsets_argin
+        self.component_manager.command_in_progress = (
+            "Configure_TrackLoadStaticOff"
         )
-        result_code, message = self.call_adapter_method(
-            "Dish Master",
-            self.dish_master_adapter,
-            "TrackLoadStaticOff",
-            offsets_argin,
+        # Extracting and setting cross elevation offset. Considering
+        # 0.0 if the key is omitted
+        ca_offset = (
+            input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0
         )
+
+        # Extracting and setting elevation offset. Considering 0.0 if
+        # the key is omitted
+        ie_offset = (
+            input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
+        )
+
+        offsets_argin = [ca_offset, ie_offset]
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master",
+                self.dish_master_adapter,
+                "TrackLoadStaticOff",
+                offsets_argin,
+            )
         self.component_manager.update_source_offset_callback(offsets_argin)
         return result_code[0], message[0]
 

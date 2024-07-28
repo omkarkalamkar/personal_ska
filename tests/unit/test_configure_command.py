@@ -1,5 +1,4 @@
 import json
-import logging
 import time
 
 import pytest
@@ -183,7 +182,8 @@ def test_configure_command_status_not_allowed(
 def test_configure_command_no_partial_config_on_reset(
     tango_context, cm_without_er_lp, task_callback, json_factory
 ):
-    """Test that partial configuration is not invoked when correction is RESET"""
+    """Test that partial configuration is not invoked when correction
+    is RESET"""
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
 

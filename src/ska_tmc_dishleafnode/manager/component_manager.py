@@ -88,6 +88,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
+        correction_key: str = "",
     ):
         """
         Initialise a new ComponentManager instance.
@@ -1540,7 +1541,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
     def process_pointing_calibration(
-        self, event_data: tango.EventData
+        self, correction_key: str, event_data: tango.EventData
     ) -> None:
         """Method to process pointing offsets received
         from SDP queue connector device
@@ -1570,7 +1571,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 event_data.attr_value.value[2],
                             ]
                         )
-                        self.track_load_static_off_command.do(offsets)
+                        if correction_key == "UPDATE":
+                            self.track_load_static_off_command.do(offsets)
             self.logger.info(
                 "Received SDPQC pointing calibrration: %s",
                 event_data.attr_value.value,
