@@ -66,24 +66,8 @@ class TrackStop(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6d43fa8 (HM-505:resolving review ccomments)
                 "Adapter for device : %s is not found",
                 self.component_manager.dish_dev_name,
-=======
-                "%s adapter not found ", self.component_manager.dish_dev_name
->>>>>>> 0f6bbb0 (improve loggers)
-=======
-                "Adapter for :%s not found",
-=======
-                "Adapter for device :%s not found",
->>>>>>> 642c346 (HM-505:Resolving minor logs)
-                self.component_manager.dish_dev_name,
->>>>>>> 8a552ec (HM-505:Adding annotations)
             )
             return result_code, message
         # Stop the thread which started when Track command was invoked

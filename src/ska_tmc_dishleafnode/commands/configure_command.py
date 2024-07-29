@@ -202,19 +202,7 @@ class Configure(DishLNCommand):
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
                 self.logger.error(
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                     "Adapter for device : %s is not found ",
-=======
-                    "%s adapter not found ",
->>>>>>> 0f6bbb0 (improve loggers)
-=======
-                    "Adapter for device :%s not found ",
->>>>>>> 642c346 (HM-505:Resolving minor logs)
-=======
-                    "Adapter for device : %s is not found ",
->>>>>>> 6d43fa8 (HM-505:resolving review ccomments)
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message
@@ -379,21 +367,8 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
             self.logger.error(
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 "Timeout occurred while processing the"
                 + " SetOperateMode command."
-=======
-                "Timeout occurred while invoking the SetOperateMode command."
->>>>>>> 8a552ec (HM-505:Adding annotations)
-=======
-                "Timeout occurred while invoking/processing the"
-=======
-                "Timeout occurred while processing the"
->>>>>>> e85d945 (HM-505:Resolving review comments)
-                + " SetOperateMode command."
->>>>>>> 7dcc7cc (HM-505:Resolving review comments)
             )
             return (
                 [ResultCode.FAILED],

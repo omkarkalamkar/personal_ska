@@ -1,11 +1,5 @@
 """On command class for Dishleafnode."""
-<<<<<<< HEAD
-=======
 from __future__ import annotations
-<<<<<<< HEAD
->>>>>>> 9708235 (HM-505: Resolving linting issues)
-=======
->>>>>>> 9708235 (HM-505: Resolving linting issues)
 
 import threading
 from logging import Logger
@@ -30,15 +24,7 @@ class Off(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_off(
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self,
-=======
         self: Off,
->>>>>>> 9708235 (HM-505: Resolving linting issues)
-=======
-        self: Off,
->>>>>>> 9708235 (HM-505: Resolving linting issues)
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -91,25 +77,8 @@ class Off(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 "Adapter for device : %s is not found ",
                 self.component_manager.dish_dev_name,
-=======
-                "%s adapter not found ", self.component_manager.dish_dev_name
->>>>>>> 0f6bbb0 (improve loggers)
-=======
-                "Adapter for device :%s not found ", self.component_manager.dish_dev_name
->>>>>>> 642c346 (HM-505:Resolving minor logs)
-=======
-                "Adapter for device :%s not found ",
-=======
-                "Adapter for device : %s is not found ",
->>>>>>> 6d43fa8 (HM-505:resolving review ccomments)
-                self.component_manager.dish_dev_name,
->>>>>>> 506451f (HM-505:Resolved lint issue)
             )
             return result_code, message
 
@@ -124,32 +93,9 @@ class Off(DishLNCommand):
             result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if not result:
                 self.logger.error(
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                    "Timeout occurred while invoking the SetStandbyFPMode "
-<<<<<<< HEAD
-<<<<<<< HEAD
-                    "Command.",
-                )
-                return (
-                    ResultCode.FAILED,
-                    "Timeout occurred while invoking the SetStandbyFPMode "
-                    "Command.",
-=======
-                    + "Command.",
-=======
-                    "Timeout occurred while invoking/processing"
-=======
                     "Timeout occurred while processing"
->>>>>>> e85d945 (HM-505:Resolving review comments)
-=======
-                    "Timeout occurred while processing"
->>>>>>> e85d945 (HM-505:Resolving review comments)
                     + " the SetStandbyFPMode "
                     + "command.",
->>>>>>> 7dcc7cc (HM-505:Resolving review comments)
                 )
                 return (
                     ResultCode.FAILED,
@@ -157,22 +103,6 @@ class Off(DishLNCommand):
                         "Timeout occurred while invoking the SetStandbyFPMode "
                         + "command."
                     ),
->>>>>>> 9708235 (HM-505: Resolving linting issues)
-=======
-                    + "Command.",
-=======
-                    "Timeout occurred while invoking/processing"
-                    + " the SetStandbyFPMode "
-                    + "command.",
->>>>>>> 7dcc7cc (HM-505:Resolving review comments)
-                )
-                return (
-                    ResultCode.FAILED,
-                    (
-                        "Timeout occurred while invoking the SetStandbyFPMode "
-                        + "command."
-                    ),
->>>>>>> 9708235 (HM-505: Resolving linting issues)
                 )
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
@@ -180,35 +110,15 @@ class Off(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
             self.logger.error(
-<<<<<<< HEAD
-<<<<<<< HEAD
                 "Timeout occurred while processing the"
-=======
-                "Timeout occurred while invoking/processing the"
->>>>>>> 7dcc7cc (HM-505:Resolving review comments)
-=======
-                "Timeout occurred while processing the"
->>>>>>> e85d945 (HM-505:Resolving review comments)
                 + " SetStandbyLPMode Command."
             )
             return (
                 ResultCode.FAILED,
-<<<<<<< HEAD
-<<<<<<< HEAD
-                "Timeout occurred while invoking the SetStandbyLPMode "
-                "Command.",
-=======
                 (
                     "Timeout occurred while invoking the SetStandbyLPMode "
                     + "command."
                 ),
->>>>>>> 9708235 (HM-505: Resolving linting issues)
-=======
-                (
-                    "Timeout occurred while invoking the SetStandbyLPMode "
-                    + "command."
-                ),
->>>>>>> 9708235 (HM-505: Resolving linting issues)
             )
 
         return result_code[0], message[0]

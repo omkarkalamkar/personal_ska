@@ -1,11 +1,5 @@
 """Scan command class for Dishleafnode."""
-<<<<<<< HEAD
-=======
 from __future__ import annotations
-<<<<<<< HEAD
->>>>>>> 9708235 (HM-505: Resolving linting issues)
-=======
->>>>>>> 9708235 (HM-505: Resolving linting issues)
 
 import threading
 from logging import Logger
@@ -29,15 +23,7 @@ class Scan(DishLNCommand):
 
     # pylint: disable=unused-argument
     def scan(
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self,
-=======
         self: Scan,
->>>>>>> 9708235 (HM-505: Resolving linting issues)
-=======
-        self: Scan,
->>>>>>> 9708235 (HM-505: Resolving linting issues)
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -74,15 +60,7 @@ class Scan(DishLNCommand):
             )
 
     # pylint: disable=signature-differs
-<<<<<<< HEAD
-<<<<<<< HEAD
-    def do(self, argin: str):
-=======
     def do(self: Scan, argin: str):
->>>>>>> 9708235 (HM-505: Resolving linting issues)
-=======
-    def do(self: Scan, argin: str):
->>>>>>> 9708235 (HM-505: Resolving linting issues)
         """
         Method to invoke Scan command on Dish Master.
 
@@ -95,25 +73,8 @@ class Scan(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 "Adapter for device : %s is not found ",
                 self.component_manager.dish_dev_name,
-=======
-                "%s adapter not found ", self.component_manager.dish_dev_name
->>>>>>> 0f6bbb0 (improve loggers)
-=======
-                "Adapter for device :%s not found ", self.component_manager.dish_dev_name
->>>>>>> 642c346 (HM-505:Resolving minor logs)
-=======
-                "Adapter for device :%s not found ",
-=======
-                "Adapter for device : %s is not found ",
->>>>>>> 6d43fa8 (HM-505:resolving review ccomments)
-                self.component_manager.dish_dev_name,
->>>>>>> 506451f (HM-505:Resolved lint issue)
             )
             return result_code, message
 
