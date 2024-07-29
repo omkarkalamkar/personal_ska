@@ -929,14 +929,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             input_json = json.loads(argin)
             self.correction_key = input_json["pointing"]["correction"]
-            if self.correction_key == "MAINTAIN":
-                self.logger.info(
-                    "Pointing calibration will not process as"
-                    + " correction key is MAINTAIN"
-                )
-            elif self.correction_key == "RESET":
-                offsets = json.dumps([0, 0])
-                self.track_load_static_off_command.do(offsets)
         except json.JSONDecodeError as exception:
             self.logger.exception(
                 "Exception occured while loading the input json: %s", exception

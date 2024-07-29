@@ -168,7 +168,19 @@ class Configure(DishLNCommand):
                     "receiverBand key is not present in the input json "
                     + "argument.",
                 )
-
+            self.component_manager.correction_key = input_argin["pointing"][
+                "correction"
+            ]
+            if self.component_manager.correction_key == "MAINTAIN":
+                self.logger.info(
+                    "Pointing calibration will not process as"
+                    + " correction key is MAINTAIN"
+                )
+            if self.component_manager.correction_key == "RESET":
+                offsets = json.dumps([0, 0])
+                self.component_manager.track_load_static_off_command.do(
+                    offsets
+                )
         return (ResultCode.OK, "")
 
     # pylint: disable=signature-differs
