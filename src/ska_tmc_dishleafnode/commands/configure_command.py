@@ -241,34 +241,37 @@ class Configure(DishLNCommand):
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
             current_dish_mode = self.component_manager.dishMode
-            if self.component_manager.dishConfiguredBand == receiver_band:
-                self.logger.info(
-                    "Dish has already configured with band %s. %s() command "
-                    "will not be executed on the dish",
-                    receiver_band,
+
+            # For future use
+            # if self.component_manager.dishConfiguredBand == receiver_band:
+            #     self.logger.info(
+            #         "Dish has already configured with band %s. %s() command "
+            #         "will not be executed on the dish",
+            #         receiver_band,
+            #         command_name,
+            #     )
+            # else:
+
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master",
+                    self.dish_master_adapter,
                     command_name,
+                    True,
                 )
-            else:
-                with self.component_manager.tango_operation_execution_lock:
-                    result_code, message = self.call_adapter_method(
-                        "Dish Master",
-                        self.dish_master_adapter,
-                        command_name,
-                        True,
-                    )
             if (
                 self.component_manager.dishMode != DishMode.STOW
                 and result_code[0] not in [ResultCode.FAILED]
             ):
-                if self.component_manager.dishConfiguredBand != receiver_band:
-                    result_code, message = self.ensure_dish_is_configured(
-                        receiver_band, current_dish_mode
-                    )
-                    if result_code[0] in [
-                        ResultCode.FAILED,
-                        ResultCode.REJECTED,
-                    ]:
-                        return result_code[0], message[0]
+                # For future use
+                # if self.component_manager.dishConfiguredBand !=
+                #  receiver_band:
+
+                result_code, message = self.ensure_dish_is_configured(
+                    receiver_band, current_dish_mode
+                )
+                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+                    return result_code[0], message[0]
 
                 result_code, message = self.start_dish_tracking()
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:

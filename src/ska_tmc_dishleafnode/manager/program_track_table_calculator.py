@@ -18,8 +18,6 @@ class ProgramTrackTableCalculator:
     target_name: str = ""
     weather_data: dict
     azel_converter: AzElConverter
-    track_table_time_stamp: datetime.datetime
-    track_table_start_time: float
     elevation_limit: bool
 
     def __init__(self, component_manager, logger: Logger) -> None:
@@ -34,6 +32,7 @@ class ProgramTrackTableCalculator:
         """
         self.component_manager = component_manager
         self.logger = logger
+        self.track_table_time_stamp = None
 
     def calculate_program_track_table(
         self, target_data: Union[str, List[str]], azel_converter: AzElConverter
@@ -114,7 +113,6 @@ class ProgramTrackTableCalculator:
             timestamp in TAI format.
         :rtype: tuple
         """
-        self.track_table_start_time = self.track_table_time_stamp.timestamp()
         time_stamp_list = []
         tai_timestamp_list = []
         for _ in range(self.component_manager.track_table_entries):

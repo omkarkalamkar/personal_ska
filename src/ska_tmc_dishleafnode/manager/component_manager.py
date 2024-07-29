@@ -1319,9 +1319,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        self.track_table_calculator = ProgramTrackTableCalculator(
-            self, self.logger
-        )
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
@@ -1334,7 +1331,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
         self.track_table_calculator.track_table_time_stamp = extended_time
-
         while self.get_track_process_event_status() is False:
             program_track_table = (
                 self.track_table_calculator.calculate_program_track_table(
