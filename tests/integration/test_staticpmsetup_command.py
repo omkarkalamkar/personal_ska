@@ -3,11 +3,7 @@ import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 
-from tests.settings import (
-    COMMAND_COMPLETED,
-    DISH_LEAF_NODE_DEVICE,
-    logger,
-)
+from tests.settings import COMMAND_COMPLETED, DISH_LEAF_NODE_DEVICE, logger
 
 
 def static_pm_setup(tango_context, dishln_name, group_callback, gpm_json):
@@ -36,4 +32,9 @@ def static_pm_setup(tango_context, dishln_name, group_callback, gpm_json):
 @pytest.mark.post_deployment
 @pytest.mark.ktest1
 def test_statuc_pm_setup(tango_context, group_callback, json_factory):
-    static_pm_setup(tango_context, DISH_LEAF_NODE_DEVICE, group_callback, json_factory("global_pointing_model"))
+    static_pm_setup(
+        tango_context,
+        DISH_LEAF_NODE_DEVICE,
+        group_callback,
+        json_factory("global_pointing_model"),
+    )
