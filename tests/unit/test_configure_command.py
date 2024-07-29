@@ -177,3 +177,38 @@ def test_configure_command_status_not_allowed(
         status=TaskStatus.REJECTED,
         result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
     )
+
+
+def test_configure_command_no_partial_config_on_reset(
+    tango_context, cm_without_er_lp, task_callback, json_factory
+):
+    """Test that partial configuration is not invoked when correction
+    is RESET"""
+    cm = cm_without_er_lp
+    cm.update_device_dish_mode(DishMode.OPERATE)
+
+    assert wait_for_dish_mode(cm, DishMode.OPERATE)
+    assert cm.is_configure_allowed()
+
+    configure_input_str = json_factory("partial_configure")
+    config_json = json.loads(configure_input_str)
+    config_json["pointing"]["correction"] = "RESET"
+    configure_input_str = json.dumps(config_json)
+
+    cm.configure(configure_input_str, task_callback=task_callback)
+
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    time.sleep(1)
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=6,
+    )
