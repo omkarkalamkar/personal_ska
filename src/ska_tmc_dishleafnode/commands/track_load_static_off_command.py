@@ -33,7 +33,7 @@ class TrackLoadStaticOff(DishLNCommand):
     """
 
     def __init__(
-        self,
+        self: TrackLoadStaticOff,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -46,7 +46,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_track_load_static_off(
-        self,
+        self: TrackLoadStaticOff,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -88,7 +88,7 @@ class TrackLoadStaticOff(DishLNCommand):
             )
 
     def update_task_callback(
-        self, result_code: ResultCode, exception: str = ""
+        self: TrackLoadStaticOff, result_code: ResultCode, exception: str = ""
     ) -> None:
         """
         Method to update task callback.
@@ -114,7 +114,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self, argin: str) -> Tuple[ResultCode, str]:
+    def do(self: TrackLoadStaticOff, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke TrackLoadStaticOff command on DishMaster.
 
@@ -126,8 +126,9 @@ class TrackLoadStaticOff(DishLNCommand):
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 

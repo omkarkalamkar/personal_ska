@@ -27,7 +27,7 @@ class SetKValue(DishLNCommand, FastCommand):
     """
 
     def __init__(
-        self,
+        self: SetKValue,
         component_manager: DishLNComponentManager,
         op_state_model=None,
         logger: logging.Logger = LOGGER,
@@ -43,7 +43,7 @@ class SetKValue(DishLNCommand, FastCommand):
 
     # pylint: disable=arguments-differ
     # pylint: disable=signature-differs
-    def do(self, argin: int) -> Tuple[ResultCode, str]:
+    def do(self: SetKValue, argin: int) -> Tuple[ResultCode, str]:
         """
         Invokes SetKValue command on the DishMaster.
 
@@ -62,8 +62,9 @@ class SetKValue(DishLNCommand, FastCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found ", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found ",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
@@ -74,7 +75,7 @@ class SetKValue(DishLNCommand, FastCommand):
             self.component_manager.kValue = argin
             self.component_manager.kValueValidationResult = ResultCode.OK
         self.logger.info(
-            f"SetKValue command invoked, Result code is {result_code}\
-                and Message is {message}"
+            f"SetKValue command invoked, Result code is {result_code}"
+            + f" and Message is {message}"
         )
         return result_code[0], message[0]

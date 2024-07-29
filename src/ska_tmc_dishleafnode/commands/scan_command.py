@@ -1,4 +1,5 @@
 """Scan command class for Dishleafnode."""
+from __future__ import annotations
 
 import threading
 from logging import Logger
@@ -22,7 +23,7 @@ class Scan(DishLNCommand):
 
     # pylint: disable=unused-argument
     def scan(
-        self,
+        self: Scan,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -59,7 +60,7 @@ class Scan(DishLNCommand):
             )
 
     # pylint: disable=signature-differs
-    def do(self, argin: str):
+    def do(self: Scan, argin: str):
         """
         Method to invoke Scan command on Dish Master.
 
@@ -71,8 +72,9 @@ class Scan(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found ", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found ",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
