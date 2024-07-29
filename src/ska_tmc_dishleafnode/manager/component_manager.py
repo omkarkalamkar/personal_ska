@@ -90,7 +90,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
-        correction_key: str = "",
     ):
         """
         Initialise a new ComponentManager instance.
