@@ -216,7 +216,7 @@ class Configure(DishLNCommand):
                 return self.invoke_trackloadstaticoff(json_argument)
 
             if (
-                json_argument["pointing"]["target"]["reference_frame"]
+                json_argument["pointing"]["target"]["reference_frame"].lower()
                 == "special"
             ):
                 target_data = json_argument["pointing"]["target"][
