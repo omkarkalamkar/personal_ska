@@ -274,6 +274,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self._correction_key: str = ""
+
+    @property
+    def correction_key(self: DishLNComponentManager):
+        """
+        Sets the correction key.
+
+        Args:
+            value (str): The new correction key.
+        """
+        return self._correction_key
+
+    @correction_key.setter
+    def correction_key(self: DishLNComponentManager, value: str):
+        """
+        Gets the correction key.
+
+        Returns:
+            str: The current correction key.
+        """
+        self._correction_key = value
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -908,6 +929,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             input_json = json.loads(argin)
+            self.correction_key = input_json["pointing"]["correction"]
+            if self.correction_key == "MAINTAIN":
+                self.logger.info(
+                    "Pointing calibration will not process as"
+                    + " correction key is MAINTAIN"
+                )
+            elif self.correction_key == "RESET":
+                offsets = json.dumps([0, 0])
+                self.track_load_static_off_command.do(offsets)
         except json.JSONDecodeError as exception:
             self.logger.exception(
                 "Exception occured while loading the input json: %s", exception
@@ -1605,21 +1635,24 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.last_pointing_data,
                         )
                     else:
-                        self.queue_connector_device_info.pointing_data = (
-                            event_data.attr_value.value
-                        )
-                        self.received_pointing_data[:] = [
-                            self.queue_connector_device_info
-                        ]
-                        self.last_pointing_data = event_data.attr_value.value
-                        offsets = json.dumps(
-                            [
-                                event_data.attr_value.value[1],
-                                event_data.attr_value.value[2],
+                        if self.correction_key == "UPDATE":
+                            self.queue_connector_device_info.pointing_data = (
+                                event_data.attr_value.value
+                            )
+                            self.received_pointing_data[:] = [
+                                self.queue_connector_device_info
                             ]
-                        )
-                        if correction_key == "UPDATE":
+                            self.last_pointing_data = (
+                                event_data.attr_value.value
+                            )
+                            offsets = json.dumps(
+                                [
+                                    event_data.attr_value.value[1],
+                                    event_data.attr_value.value[2],
+                                ]
+                            )
                             self.track_load_static_off_command.do(offsets)
+
             self.logger.info(
                 "Received SDPQC pointing calibrration: %s",
                 event_data.attr_value.value,
