@@ -117,5 +117,5 @@ def test_configure_command(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
-        json_factory(json_arg),
+        json_arg,
     )
