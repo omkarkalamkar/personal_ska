@@ -97,13 +97,13 @@ class StaticPmSetup(DishLNCommand):
         self, initial_params: dict
     ) -> Tuple[dict, str]:
         """Get global pointing data json from initial params
-           This method downloads the JSON, from given TelModel path
+        This method downloads the JSON, from given TelModel path
 
         :param initial_param: this param containing tm data source uri
-            and file path used to get the global pointing data.
+         and file path used to get the global pointing data.
 
-        :return: : dictionary in downloaded JSON and message
-            string if any
+        :return: dictionary in downloaded JSON and message
+         string if any
         :rtype: Tuple[dict, str]
         """
         tm_data_sources = initial_params.get("tm_data_sources", None)
@@ -135,11 +135,11 @@ class StaticPmSetup(DishLNCommand):
         self, input_json: dict
     ) -> Tuple[bool, str]:
         """The purpose of this method is to do the desired validations
-        on the provided global pointing model json
+        on the provided global pointing model json.
 
         param input_json: JSON containing GPM data
-        return:
-            boolean
+        return: Tuple[bool, str]
+
         """
 
         if (
@@ -160,8 +160,19 @@ class StaticPmSetup(DishLNCommand):
     def do(self, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke StaticPmSetup command on DishMaster.
+         Example JSON:
+            {
+            "interface":
+            "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0",
+            "tm_data_sources":
+            ["car://gitlab.com/ska-telescope/ska-tmc/
+            ska-tmc-simulators?main#tmdata"],
+            "tm_data_filepath":
+            "instrument/ska_mid1/global_pointing_model_data/
+            global_pointing_model.json"
+            }
 
-        param argin: String containing global pointing data
+        param argin: Global pointing model data JSON
 
         return:
             (ResultCode, str)
