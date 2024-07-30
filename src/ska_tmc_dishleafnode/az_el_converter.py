@@ -1,15 +1,9 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the DishLeafNode project
-#
-#
-#
-# Distributed under the terms of the BSD-3-Clause license.
-# See LICENSE.txt for more info.
 """ AzElConverter:
 This module defines the AzElConverter class,
 which is used to convert given Ra and Dec values into AzEl."""
 # Standard Python imports
+from __future__ import annotations
+
 import logging
 from typing import Any, List
 
@@ -29,7 +23,7 @@ class AzElConverter:
     """Class to convert Right ascension(Ra) and Declination(Dec)
     values into Azimuth(Az) and Elevation(El)"""
 
-    def __init__(self, component_manager) -> None:
+    def __init__(self: AzElConverter, component_manager) -> None:
         """
         Args:
             component_manager (DishLNComponent Manager): Dish LN component
@@ -47,7 +41,7 @@ class AzElConverter:
             # Humidity is now a fraction instead of percentage
         }
 
-    def create_antenna_obj(self) -> None:
+    def create_antenna_obj(self: AzElConverter) -> None:
         """This method identifies the KATPoint.
         Antenna object to be used from the Dish Number."""
         antennas = self.dish_helper.get_dish_antennas_list()
@@ -59,7 +53,9 @@ class AzElConverter:
                 ):
                     self.component_manager.observer = antenna
 
-    def apply_refraction_correction(self, azel: AltAz) -> List[float]:
+    def apply_refraction_correction(
+        self: AzElConverter, azel: AltAz
+    ) -> List[float]:
         """Apply refraction correction on given AzEl."""
         refraction_corrected_azel = self.refraction_correction.refract(
             azel,
@@ -68,7 +64,7 @@ class AzElConverter:
             self.weather_data["humidity"],
         )
         logger.debug(
-            "The Azimuth value is %s and the Elevation is %s after "
+            "The Azimuth value is: %s and the Elevation is %s : after "
             "forward transform.",
             refraction_corrected_azel.az.deg,
             refraction_corrected_azel.alt.deg,
@@ -78,7 +74,9 @@ class AzElConverter:
             refraction_corrected_azel.alt.deg,
         ]
 
-    def point_to_body(self, target_name: str, timestamp: str) -> List[float]:
+    def point_to_body(
+        self: AzElConverter, target_name: str, timestamp: str
+    ) -> List[float]:
         """
         This method calls the Katpoint API to get the Azimuth and Elevation for
         a non sidereal object and applies the refraction correction to it.
@@ -97,7 +95,10 @@ class AzElConverter:
         return self.apply_refraction_correction(azel)
 
     def point(
-        self, right_ascension: str, declination: str, timestamp: str
+        self: AzElConverter,
+        right_ascension: str,
+        declination: str,
+        timestamp: str,
     ) -> list[float]:
         """This method converts Target RaDec coordinates
         to the AzEl coordinates.It is called continuously
@@ -113,7 +114,7 @@ class AzElConverter:
         return self.radec_to_azel(right_ascension, declination, timestamp)
 
     def azel_to_radec(
-        self,
+        self: AzElConverter,
         az_value: str,
         el_value: str,
         timestamp: str,
@@ -157,7 +158,7 @@ class AzElConverter:
             ra_dec.dec, unit=u.deg, precision=2, show_unit=False
         )
         logger.debug(
-            "The Right Ascension is %s and the Declination is %s after "
+            "The Right Ascension is : %s and the Declination is : %s after "
             "backward transform",
             ra,
             dec,
@@ -165,7 +166,7 @@ class AzElConverter:
         return [ra, dec]
 
     def radec_to_azel(
-        self,
+        self: AzElConverter,
         right_ascension: str,
         declination: str,
         timestamp: str,

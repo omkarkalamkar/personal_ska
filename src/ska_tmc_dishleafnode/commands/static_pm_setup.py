@@ -37,7 +37,7 @@ class StaticPmSetup(DishLNCommand):
     """
 
     def __init__(
-        self,
+        self: StaticPmSetup,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -50,7 +50,7 @@ class StaticPmSetup(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_static_pm_setup(
-        self,
+        self: StaticPmSetup,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -96,7 +96,7 @@ class StaticPmSetup(DishLNCommand):
             )
 
     def get_global_pointing_data_json(
-        self, initial_params: dict
+        self: StaticPmSetup, initial_params: dict
     ) -> Tuple[dict, str]:
         """Get global pointing data json from initial params
         This method downloads the JSON, from given TelModel path
@@ -134,7 +134,7 @@ class StaticPmSetup(DishLNCommand):
         return {}, f"Error found in: {tm_data_sources} and {tm_data_filepath}"
 
     def validate_global_pointing_json(
-        self, input_json: dict
+        self: StaticPmSetup, input_json: dict
     ) -> Tuple[bool, str]:
         """The purpose of this method is to do the desired validations
         on the provided global pointing model json.
@@ -159,7 +159,7 @@ class StaticPmSetup(DishLNCommand):
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self, argin: str) -> Tuple[ResultCode, str]:
+    def do(self: StaticPmSetup, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke StaticPmSetup command on DishMaster.
          Example JSON:

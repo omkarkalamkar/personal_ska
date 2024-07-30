@@ -41,7 +41,7 @@ class Configure(DishLNCommand):
     """
 
     def __init__(
-        self,
+        self: Configure,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -55,7 +55,7 @@ class Configure(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_configure(
-        self,
+        self: Configure,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -104,7 +104,7 @@ class Configure(DishLNCommand):
                 )
 
     def update_task_callback(
-        self, result_code: ResultCode, exception: str = ""
+        self: Configure, result_code: ResultCode, exception: str = ""
     ) -> None:
         """
         Method to update task callback.
@@ -132,7 +132,7 @@ class Configure(DishLNCommand):
 
     # pylint: enable=unused-argument
     def validate_json_argument(
-        self, input_argin: dict
+        self: Configure, input_argin: dict
     ) -> Tuple[ResultCode, str]:
         """Validates the json argument
 
@@ -173,7 +173,7 @@ class Configure(DishLNCommand):
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self, argin: str) -> Tuple[ResultCode, str]:
+    def do(self: Configure, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke Configure command on dish.
 
@@ -201,8 +201,8 @@ class Configure(DishLNCommand):
         try:
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
-                self.logger.info(
-                    "%s adapter not found ",
+                self.logger.error(
+                    "Adapter for device : %s is not found ",
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message
@@ -259,7 +259,9 @@ class Configure(DishLNCommand):
                     return result_code[0], message[0]
 
         except Exception as exception:
-            self.logger.exception(f"Command invocation failed: {exception}")
+            self.logger.exception(
+                f"Command invocation failed with exception: {exception}"
+            )
             return (
                 ResultCode.FAILED,
                 "The invocation of the Configure command is failed on"
@@ -270,7 +272,7 @@ class Configure(DishLNCommand):
         return result_code[0], message[0]
 
     def invoke_trackloadstaticoff(
-        self, input_json: dict
+        self: Configure, input_json: dict
     ) -> Tuple[ResultCode, str]:
         """Extracts the offsets from input json and invokes the
         TrackLoadStaticOff command on DishMaster device.
@@ -306,7 +308,9 @@ class Configure(DishLNCommand):
         self.component_manager.update_source_offset_callback(offsets_argin)
         return result_code[0], message[0]
 
-    def start_dish_tracking(self) -> Tuple[List[ResultCode], List[str]]:
+    def start_dish_tracking(
+        self: Configure,
+    ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invoke Track after waiting for DishMode to Operate
 
@@ -321,7 +325,7 @@ class Configure(DishLNCommand):
         return self.invoke_track_command()
 
     def ensure_dish_is_configured(
-        self, receiver_band: str
+        self: Configure, receiver_band: str
     ) -> Tuple[List[ResultCode], List[str]]:
         """This method check for the completion of configure command
 
@@ -334,20 +338,20 @@ class Configure(DishLNCommand):
         if not result:
             self.logger.error(
                 "Timeout occurred while waiting for %s configuredBand in "
-                + "Configure Command.",
+                + "Configure command.",
                 receiver_band,
             )
             return (
                 [ResultCode.FAILED],
                 [
                     f"Timeout occurred while waiting for {receiver_band}"
-                    + " configuredBand in Configure Command."
+                    + " configuredBand in Configure command."
                 ],
             )
         return [ResultCode.OK], [""]
 
     def ensure_dish_in_right_dish_mode(
-        self,
+        self: Configure,
     ) -> Tuple[List[ResultCode], List[str]]:
         """This method set dish to Operate Mode
 
@@ -363,18 +367,21 @@ class Configure(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
             self.logger.error(
-                "Timeout occurred while invoking the SetOperateMode Command."
+                "Timeout occurred while processing the"
+                + " SetOperateMode command."
             )
             return (
                 [ResultCode.FAILED],
                 [
                     "Timeout occurred while invoking the SetOperateMode "
-                    + "Command."
+                    + "command."
                 ],
             )
         return [ResultCode.OK], [""]
 
-    def invoke_track_command(self) -> Tuple[List[ResultCode], List[str]]:
+    def invoke_track_command(
+        self: Configure,
+    ) -> Tuple[List[ResultCode], List[str]]:
         """Invoke Track command on dish
 
         :return: Resulcode and message
@@ -385,7 +392,7 @@ class Configure(DishLNCommand):
                 "Dish Master", self.dish_master_adapter, "Track"
             )
         if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-            self.logger.error(f"Track Invocation Failed {message}")
+            self.logger.error(f"Track Invocation Failed , Reason: {message}")
             return result_code, message
 
         self.logger.info("Invoked Track command successfully on dish.")

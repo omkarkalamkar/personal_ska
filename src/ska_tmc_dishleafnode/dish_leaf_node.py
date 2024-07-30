@@ -1,5 +1,6 @@
 """This is DishLeafNode TANGO device."""
 # flake8: noqa
+from __future__ import annotations
 
 import json
 from typing import List, Tuple, Union
@@ -112,7 +113,7 @@ class DishLeafNode(SKABaseDevice):
     # General methods
     # ---------------
 
-    def init_device(self):
+    def init_device(self: DishLeafNode):
         self._isSubsystemAvailable = True
         super().init_device()
         self._dishMode = DishMode.UNKNOWN
@@ -164,7 +165,6 @@ class DishLeafNode(SKABaseDevice):
         # if the init is called more than once
         # I need to stop all threads
         if hasattr(self, "component_manager"):
-            self.logger.info("Inside device destructor")
             # pylint: disable=unnecessary-dunder-call
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call
@@ -284,12 +284,12 @@ class DishLeafNode(SKABaseDevice):
         memorized=True,
         hw_memorized=True,
     )
-    def kValue(self) -> int:
+    def kValue(self: DishLeafNode) -> int:
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
 
     @kValue.write
-    def kValue(self, k_value: int) -> None:
+    def kValue(self: DishLeafNode, k_value: int) -> None:
         """Set the dish k-value."""
         self.component_manager.kValue = k_value
 
@@ -297,7 +297,7 @@ class DishLeafNode(SKABaseDevice):
         dtype="str",
         access=AttrWriteType.READ,
     )
-    def kValueValidationResult(self) -> str:
+    def kValueValidationResult(self: DishLeafNode) -> str:
         """Read method to get the k-value validation result"""
         return str(int(self.component_manager.kValueValidationResult))
 
@@ -306,7 +306,7 @@ class DishLeafNode(SKABaseDevice):
         dformat=AttrDataFormat.SCALAR,
         access=AttrWriteType.READ_WRITE,
     )
-    def sdpQueueConnectorFqdn(self) -> str:
+    def sdpQueueConnectorFqdn(self: DishLeafNode) -> str:
         """
         This attribute is used for storing the FQDN of pointing_cal
         attribute from SDP queue connector device, which is required in
@@ -316,7 +316,7 @@ class DishLeafNode(SKABaseDevice):
         return self._sdpQueueConnectorFqdn
 
     @sdpQueueConnectorFqdn.write
-    def sdpQueueConnectorFqdn(self, sdpqc_fqdn: str) -> None:
+    def sdpQueueConnectorFqdn(self: DishLeafNode, sdpqc_fqdn: str) -> None:
         """
         This Method is used to get the SDP queue connector FQDN from
         subarray node and then Dish Leaf Node have to subscribe to its
@@ -335,7 +335,7 @@ class DishLeafNode(SKABaseDevice):
         access=AttrWriteType.READ,
         max_dim_x=2,
     )
-    def sourceOffset(self) -> list[float]:
+    def sourceOffset(self: DishLeafNode) -> list[float]:
         """
         This attribute is used for storing the commanded offsets
         received as a part of delta/partial configuration.
@@ -358,7 +358,7 @@ class DishLeafNode(SKABaseDevice):
         dformat=AttrDataFormat.SCALAR,
         access=AttrWriteType.READ,
     )
-    def lastPointingData(self):
+    def lastPointingData(self: DishLeafNode):
         """
         This attribute is used to store the recent
         pointing data received in calibration scan
@@ -376,7 +376,7 @@ class DishLeafNode(SKABaseDevice):
     # Commands
     # --------
 
-    def is_SetStowMode_allowed(self) -> bool:
+    def is_SetStowMode_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -390,7 +390,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetStowMode(self) -> Tuple[List[ResultCode], List[str]]:
+    def SetStowMode(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetStowMode command on DishMaster.
 
         :rtype: Tuple"""
@@ -400,7 +400,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetStandbyLPMode_allowed(self) -> bool:
+    def is_SetStandbyLPMode_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -413,7 +413,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetStandbyLPMode(self):
+    def SetStandbyLPMode(self: DishLeafNode):
         """Invokes SetStandbyLPMode command on DishMaster (Standby-Low power)
         mode."""
         handler = self.get_command_object("SetStandbyLPMode")
@@ -421,7 +421,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetOperateMode_allowed(self) -> bool:
+    def is_SetOperateMode_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -435,7 +435,9 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetOperateMode(self) -> Tuple[List[ResultCode], List[str]]:
+    def SetOperateMode(
+        self: DishLeafNode,
+    ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetOperateMode command on DishMaster device.
 
         :rtype: Tuple"""
@@ -444,7 +446,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetStandbyFPMode_allowed(self) -> bool:
+    def is_SetStandbyFPMode_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -458,7 +460,9 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetStandbyFPMode(self) -> Tuple[List[ResultCode], List[str]]:
+    def SetStandbyFPMode(
+        self: DishLeafNode,
+    ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetStandbyFPMode command on DishMaster (Standby-Full power)
         mode."""
         handler = self.get_command_object("SetStandbyFPMode")
@@ -473,7 +477,9 @@ class DishLeafNode(SKABaseDevice):
         doc_out="(ReturnType, 'informational message')",
     )
     @DebugIt()
-    def Scan(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
+    def Scan(
+        self: DishLeafNode, argin: str
+    ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes Scan command on DishMaster
 
@@ -484,7 +490,7 @@ class DishLeafNode(SKABaseDevice):
         return [result_code], [str(unique_id)]
 
     def is_Scan_allowed(
-        self,
+        self: DishLeafNode,
     ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
@@ -499,7 +505,7 @@ class DishLeafNode(SKABaseDevice):
         return self.component_manager.is_scan_allowed()
 
     def is_EndScan_allowed(
-        self,
+        self: DishLeafNode,
     ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
@@ -519,7 +525,7 @@ class DishLeafNode(SKABaseDevice):
         doc_out="(ReturnType, 'informational message')",
     )
     @DebugIt()
-    def EndScan(self) -> Tuple[List[ResultCode], List[str]]:
+    def EndScan(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
         """
         Updates the scanID attribute of Dish Master to empty string
 
@@ -530,7 +536,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_off_allowed(self):
+    def is_off_allowed(self: DishLeafNode):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -544,7 +550,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def Off(self) -> tuple:
+    def Off(self: DishLeafNode) -> tuple:
         """
         Invokes On command on Dish Master.
         """
@@ -552,7 +558,7 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
-    def is_Configure_allowed(self) -> bool:
+    def is_Configure_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -571,7 +577,7 @@ class DishLeafNode(SKABaseDevice):
         doc_out="information-only string",
     )
     @DebugIt()
-    def Configure(self, argin) -> tuple:
+    def Configure(self: DishLeafNode, argin) -> tuple:
         """
         Invokes Configure command on Dish Master.
         """
@@ -579,7 +585,7 @@ class DishLeafNode(SKABaseDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
-    def is_StartCapture_allowed(self) -> bool:
+    def is_StartCapture_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -598,7 +604,7 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StartCapture(self):
+    def StartCapture(self: DishLeafNode):
         """Triggers the DishMaster to start data capturing on the configured
         band."""
 
@@ -607,7 +613,7 @@ class DishLeafNode(SKABaseDevice):
             ["StartCapture command will be refactored in later PI's"],
         ]
 
-    def is_StopCapture_allowed(self) -> bool:
+    def is_StopCapture_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -626,7 +632,7 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StopCapture(self):
+    def StopCapture(self: DishLeafNode):
         """Invokes StopCapture command on DishMaster on the set configured
         band."""
 
@@ -635,7 +641,7 @@ class DishLeafNode(SKABaseDevice):
             ["StopCapture command will be refactored in later PI's"],
         ]
 
-    def is_Track_allowed(self) -> bool:
+    def is_Track_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -653,7 +659,7 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def Track(self, argin) -> tuple:
+    def Track(self: DishLeafNode, argin) -> tuple:
         """Invokes Track command on the DishMaster."""
 
         handler = self.get_command_object("Track")
@@ -662,7 +668,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def TrackStop(self) -> Tuple[List[ResultCode], List[str]]:
+    def TrackStop(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes TrackStop command on DishMaster
 
@@ -673,7 +679,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_TrackStop_allowed(self) -> bool:
+    def is_TrackStop_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -693,7 +699,7 @@ class DishLeafNode(SKABaseDevice):
     )
     @DebugIt()
     def TrackLoadStaticOff(
-        self, argin: str
+        self: DishLeafNode, argin: str
     ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes TrackLoadStaticOff command on DishMaster
@@ -705,7 +711,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_TrackLoadStaticOff_allowed(self) -> bool:
+    def is_TrackLoadStaticOff_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -717,7 +723,7 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_trackloadstaticoff_allowed()
 
-    def is_AbortCommands_allowed(self) -> bool:
+    def is_AbortCommands_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -731,14 +737,14 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def AbortCommands(self):
+    def AbortCommands(self: DishLeafNode):
         """Invokes AbortCommands command on the DishMaster."""
 
         handler = self.get_command_object("AbortCommands")
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
-    def is_Restart_allowed(self) -> bool:
+    def is_Restart_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -751,7 +757,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def Restart(self):
+    def Restart(self: DishLeafNode):
         """Invokes Restart command on the DishMaster."""
 
         return [
@@ -759,7 +765,7 @@ class DishLeafNode(SKABaseDevice):
             ["Restart command will be refactored in later PI's"],
         ]
 
-    def is_ObsReset_allowed(self) -> bool:
+    def is_ObsReset_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -773,7 +779,7 @@ class DishLeafNode(SKABaseDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def ObsReset(self):
+    def ObsReset(self: DishLeafNode):
         """Invokes ObsReset command on the DishLeafNode."""
 
         return [
@@ -781,7 +787,7 @@ class DishLeafNode(SKABaseDevice):
             ["ObsReset command will be refactored in later PI's"],
         ]
 
-    def is_SetKValue_allowed(self) -> bool:
+    def is_SetKValue_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -800,7 +806,9 @@ class DishLeafNode(SKABaseDevice):
         doc_out="information-only string",
     )
     @DebugIt()
-    def SetKValue(self, k_value: int) -> Tuple[List[ResultCode], List[str]]:
+    def SetKValue(
+        self: DishLeafNode, k_value: int
+    ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetKValue command on the DishMaster."""
         handler = self.get_command_object("SetKValue")
         result_code, unique_id = handler(k_value)
@@ -822,7 +830,9 @@ class DishLeafNode(SKABaseDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StaticPmSetup(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
+    def StaticPmSetup(
+        self: DishLeafNode, argin: str
+    ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes StaticPmSetup command on DishMaster
         Its a dummy command at present.
@@ -835,7 +845,7 @@ class DishLeafNode(SKABaseDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_StaticPmSetup_allowed(self) -> bool:
+    def is_StaticPmSetup_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -847,7 +857,7 @@ class DishLeafNode(SKABaseDevice):
         """
         return self.component_manager.is_staticpmsetup_allowed()
 
-    def create_component_manager(self):
+    def create_component_manager(self: DishLeafNode):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
             logger=self.logger,
@@ -876,7 +886,7 @@ class DishLeafNode(SKABaseDevice):
         )
         return cm
 
-    def init_command_objects(self) -> None:
+    def init_command_objects(self: DishLeafNode) -> None:
         """
         Initializes the command handlers for commands supported by this device.
         """

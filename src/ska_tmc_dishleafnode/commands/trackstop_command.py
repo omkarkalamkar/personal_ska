@@ -1,4 +1,5 @@
 """TrackStop command class for Dishleafnode."""
+from __future__ import annotations
 
 import threading
 from logging import Logger
@@ -22,7 +23,7 @@ class TrackStop(DishLNCommand):
 
     # pylint: disable=unused-argument
     def trackstop(
-        self,
+        self: TrackStop,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -56,7 +57,7 @@ class TrackStop(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self) -> Tuple[ResultCode, str]:
+    def do(self: TrackStop) -> Tuple[ResultCode, str]:
         """
         Method to invoke TrackStop command on Dish Master.
         return:
@@ -64,8 +65,9 @@ class TrackStop(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found ", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
         # Stop the thread which started when Track command was invoked

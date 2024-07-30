@@ -7,6 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Added
 ======
+
 [0.16.0]
 ********
 * Dish Leaf Node supports **Non-sidereal tracking** for objects present in Katpoint
@@ -63,6 +64,10 @@ Added
 
 Fixed
 ======
+[0.16.2]
+********
+* Improved logger statements on ska-tmc-dishleafnode
+
 [0.16.1]
 ********
 * Used latest version of KatPoint **v1.0a3** to fix the forward and reverse transform calculations.
