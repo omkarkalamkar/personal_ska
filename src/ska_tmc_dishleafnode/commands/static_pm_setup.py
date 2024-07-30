@@ -162,7 +162,7 @@ class StaticPmSetup(DishLNCommand):
         ) = self.get_global_pointing_data_json(json.loads(argin))
 
         if "Error in Loading" in message or "not provided in json" in message:
-            return ResultCode.REJECTED, "Invalid TelModel path"
+            return ResultCode.REJECTED, "Error in TelModel path"
 
         self.logger.debug(
             "Global pointing data JSON: %s", global_pointing_data_json

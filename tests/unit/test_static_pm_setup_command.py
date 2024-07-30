@@ -58,7 +58,7 @@ def test_static_pm_setup_command_with_faulty_path(
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.REJECTED, "Invalid TelModel path"),
+            "result": (ResultCode.REJECTED, "Error in TelModel path"),
             "exception": mock.ANY,
         }
     )
