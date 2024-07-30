@@ -825,6 +825,8 @@ class DishLeafNode(SKABaseDevice):
     def StaticPmSetup(self, argin: str) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes StaticPmSetup command on DishMaster
+        Its a dummy command at present.
+        Will be renamed, once Dish ICD gets updated.
 
         :rtype: tuple
         """

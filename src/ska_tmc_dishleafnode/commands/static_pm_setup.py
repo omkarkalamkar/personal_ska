@@ -27,6 +27,8 @@ if TYPE_CHECKING:
 class StaticPmSetup(DishLNCommand):
     """
     A class for DishLeafNode's StaticPmSetup() command.
+    Its a dummy command at present.
+    Will be renamed, once Dish ICD gets updated.
 
     This command provides an interface to provide global pointing
     data to the dish. This command takes TelModel URI as an input,
