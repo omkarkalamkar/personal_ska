@@ -48,7 +48,6 @@ def test_trackloadstaticoff_command(
     #  lookahead=4,
     # )
 
-
 @pytest.mark.parametrize(
     "argin",
     [

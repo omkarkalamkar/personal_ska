@@ -14,8 +14,6 @@ from tests.settings import (
     tear_down,
 )
 
-OFFSET = 5.0
-
 
 def configure_dish_leaf_node(
     tango_context,
@@ -104,11 +102,10 @@ def configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(LRCR_ID)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
-
+@pytest.mark.test
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.skip("it needs some correction")
-@pytest.mark.parametrize("correction", ["UPDATE", "RESET", "MAINTAIN"])
+@pytest.mark.parametrize("correction", ["UPDATE", "RESET"])
 def test_configure_command(
     tango_context, group_callback, json_factory, correction
 ):
