@@ -73,8 +73,9 @@ class StaticPmSetup(DishLNCommand):
         """
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        result_code, message = self.do(argin)
         self.component_manager.command_in_progress = "StaticPmSetup"
+        result_code, message = self.do(argin)
+
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -83,39 +84,56 @@ class StaticPmSetup(DishLNCommand):
             )
             self.component_manager.command_in_progress = ""
         else:
-            logger.info(
-                "The StaticPmSetup command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
-            )
             task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+            )
+            logger.info(
+                "The StaticPmSetup command is invoked successfully on %s",
+                self.dish_master_adapter.dev_name,
             )
 
     def get_global_pointing_data_json(
         self, initial_params: dict
     ) -> Tuple[dict, str]:
         """Get global pointing data json from initial params
+           This method downloads the JSON, from given TelModel path
+
         :param initial_param: this param containing tm data source uri
-        and file path used to get the global pointing data.
+            and file path used to get the global pointing data.
+
+        :return: : dictionary in downloaded JSON and message
+            string if any
+        :rtype: Tuple[dict, str]
         """
-        data_sources = initial_params.get("tm_data_sources", None)
+        tm_data_sources = initial_params.get("tm_data_sources", None)
         tm_data_filepath = initial_params.get("tm_data_filepath", None)
-        if data_sources and tm_data_filepath:
+        if tm_data_sources and tm_data_filepath:
             try:
-                data = TMData(data_sources, update=True)
+                data = TMData(tm_data_sources, update=True)
                 return data[tm_data_filepath].get_dict(), ""
-            except Exception as e:
+
+            except json.JSONDecodeError as json_error:
+                self.logger.exception("JSON Error: %s", json_error)
+                return {}, f"JSON Error: {json_error}"
+
+            except Exception as exception:
                 self.logger.exception(
-                    "Error in Loading global pointing data json file %s", e
+                    "Error in Loading global pointing data json file %s",
+                    exception,
                 )
                 return (
                     {},
-                    f"Error in Loading global pointing data json file {e}",
+                    (
+                        f"Error in Loading global pointing data json"
+                        f" file {exception}"
+                    ),
                 )
-        return {}, "tm_data_sources and tm_data_filepath not provided in json"
+        return {}, f"Error found in: {tm_data_sources} and {tm_data_filepath}"
 
-    def validate_gpm_json(self, input_json) -> Tuple[bool, str]:
+    def validate_global_pointing_json(
+        self, input_json: dict
+    ) -> Tuple[bool, str]:
         """The purpose of this method is to do the desired validations
         on the provided global pointing model json
 
@@ -129,7 +147,7 @@ class StaticPmSetup(DishLNCommand):
             != self.component_manager.dish_id.lower()
         ):
             message = (
-                f"Global pointing antenna {input_json['Antenna']} is"
+                f"Global pointing antenna {input_json['Antenna']} is "
                 f"not matching with Dish ID {self.component_manager.dish_id}"
             )
             self.logger.info(message)
@@ -161,14 +179,16 @@ class StaticPmSetup(DishLNCommand):
             message,
         ) = self.get_global_pointing_data_json(json.loads(argin))
 
-        if "Error in Loading" in message or "not provided in json" in message:
-            return ResultCode.REJECTED, "Error in TelModel path"
+        if message:
+            return ResultCode.FAILED, message
 
         self.logger.debug(
             "Global pointing data JSON: %s", global_pointing_data_json
         )
 
-        result, message = self.validate_gpm_json(global_pointing_data_json)
+        result, message = self.validate_global_pointing_json(
+            global_pointing_data_json
+        )
         if result:
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
@@ -179,4 +199,4 @@ class StaticPmSetup(DishLNCommand):
                 )
                 return result_code[0], message[0]
 
-        return ResultCode.REJECTED, message
+        return ResultCode.FAILED, message

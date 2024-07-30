@@ -322,10 +322,7 @@ class DishLeafNode(SKABaseDevice):
         subarray node and then Dish Leaf Node have to subscribe to its
         respective pointing_cal attribute on queue connector device.
         """
-        # dish_id = re.findall(
-        #     "\\b(?:SKA|MKT)\\d{3}\\b", self.DishMasterFQDN,
-        # flags=re.IGNORECASE
-        # )[0].upper()
+
         self._sdpQueueConnectorFqdn = sdpqc_fqdn
         self.component_manager.process_sqpqc_attribute_fqdn(sdpqc_fqdn)
         self.push_change_event(

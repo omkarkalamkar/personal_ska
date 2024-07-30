@@ -276,7 +276,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             5, self.update_kvalue_validation_result
         )
         self.create_converter_obj_and_antenna_obj()
-        # self.download_iers_data()
+        self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
 
