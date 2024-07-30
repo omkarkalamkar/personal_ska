@@ -7,7 +7,6 @@ import json
 import logging
 import threading
 from logging import Logger
-from multiprocessing import Process
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from ska_ser_logging import configure_logging
@@ -228,29 +227,23 @@ class Configure(DishLNCommand):
                     json_argument["pointing"]["target"]["dec"],
                 ]
 
-            self.track_table_process = Process(
-                target=self.component_manager.track_process,
-                args=[target_data, self],
-            )
-
-            if not self.track_table_process.is_alive():
-                self.track_table_process.start()
+            self.component_manager.target_data = target_data
+            self.component_manager.dish_adapter = self.dish_master_adapter
+            try:
+                if not self.component_manager.track_table_process.is_alive():
+                    self.component_manager.track_table_process.start()
+            except Exception as exception:
+                self.logger.error(
+                    "Exception occurred while starting programTrackTable "
+                    "calculation: %s",
+                    exception,
+                )
 
             receiver_band = json_argument["dish"]["receiver_band"]
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
             current_dish_mode = self.component_manager.dishMode
-
-            # For future use
-            # if self.component_manager.dishConfiguredBand == receiver_band:
-            #     self.logger.info(
-            #         "Dish has already configured with band %s. %s() command "
-            #         "will not be executed on the dish",
-            #         receiver_band,
-            #         command_name,
-            #     )
-            # else:
 
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
@@ -263,10 +256,6 @@ class Configure(DishLNCommand):
                 self.component_manager.dishMode != DishMode.STOW
                 and result_code[0] not in [ResultCode.FAILED]
             ):
-                # For future use
-                # if self.component_manager.dishConfiguredBand !=
-                #  receiver_band:
-
                 result_code, message = self.ensure_dish_is_configured(
                     receiver_band, current_dish_mode
                 )

@@ -10,7 +10,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 
 import numpy as np
 import tango
@@ -184,14 +184,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.dish_adapter: DishAdapter | None = None
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
         self.track_table_advance_sec = track_table_advance_sec
         self.track_table_calculator = ProgramTrackTableCalculator(
             self, self.logger
         )
-
+        self.target_data: List | str
+        self.track_table_process = Process(target=self.track_process)
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
@@ -257,6 +257,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             __adapter_factory,
             self.logger,
+        )
+        self.dish_adapter: DishAdapter | None = (
+            self.configure_command.dish_master_adapter
         )
 
         self.actual_pointing_process = Process(
@@ -1289,11 +1292,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
-    def track_process(
-        self,
-        target_data: Union[str, List[str]],
-        command_obj: Configure | Track,
-    ) -> None:
+    def track_process(self) -> None:
         """
         This method manages calculation and writing of programTrackTable
         attribute on DishMaster at the required frequency.
@@ -1309,17 +1308,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
         timestamp = Time(datetime.datetime.utcnow(), scale="utc")
-        if isinstance(target_data, str):
-            self.converter.point_to_body(target_data, timestamp)
+        if isinstance(self.target_data, str):
+            self.converter.point_to_body(self.target_data, timestamp)
         else:
-            ra, dec = target_data
+            ra, dec = self.target_data
             self.converter.point(ra, dec, timestamp)
 
         self.logger.info(
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
         # For future timestamp few seconds are added in current time.
@@ -1334,7 +1332,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while self.get_track_process_event_status() is False:
             program_track_table = (
                 self.track_table_calculator.calculate_program_track_table(
-                    target_data, self.converter
+                    self.target_data, self.converter
                 )
             )
             first_entry_timestamp = program_track_table[0]
