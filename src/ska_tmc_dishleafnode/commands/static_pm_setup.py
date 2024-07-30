@@ -7,7 +7,7 @@ import json
 import logging
 import threading
 from logging import Logger
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -52,7 +52,7 @@ class StaticPmSetup(DishLNCommand):
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
+        task_abort_event: threading.Event,
     ) -> None:
         # pylint: enable=unused-argument
         """A method to invoke the do method of the StaticPmSetup command
