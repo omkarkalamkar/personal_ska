@@ -70,12 +70,12 @@ class DishLeafNode(SKABaseDevice):
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
     TrackTableEntries = device_property(
         dtype="DevShort",
-        default_value=25,
+        default_value=50,
         doc="Number of entries in programTrackTable",
     )
     PointingCalculationPeriod = device_property(
         dtype="DevShort",
-        default_value=100,
+        default_value=50,
         doc="Time difference between two consecutive entries of "
         + "programTrackTable in milliseconds",
     )
