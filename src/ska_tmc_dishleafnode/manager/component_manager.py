@@ -273,7 +273,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self._correction_key: str = ""
+        self._correction_key: str = "UPDATE"
 
     @property
     def correction_key(self: DishLNComponentManager):
@@ -1643,9 +1643,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 ]
                             )
                             self.track_load_static_off_command.do(offsets)
-
             self.logger.info(
-                "Received SDPQC pointing calibrration: %s",
+                "Received SDPQC pointing calibration: %s",
                 event_data.attr_value.value,
             )
         except Exception as e:
