@@ -131,20 +131,36 @@ def test_configure_command_adapter_none(
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-@pytest.mark.parametrize("key", ["pointing", "dish"])
-def test_json_validation(tango_context, task_callback, cm, json_factory, key):
+def test_json_validation(tango_context, task_callback, cm, json_factory):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     config_json = json.loads(configure_input_str)
-    del config_json[key]
+    del config_json["dish"]
     configure_input_str = json.dumps(config_json)
     result, message = cm.configure(
         configure_input_str, task_callback=task_callback
     )
     assert result == ResultCode.FAILED
-    assert f"{key} key is not present" in message
+    assert "dish key is not present" in message
+
+
+def test_json_validation_pointing_doesnot_exist(
+    tango_context, task_callback, cm, json_factory
+):
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
+    configure_input_str = json_factory("dishleafnode_configure")
+    config_json = json.loads(configure_input_str)
+    del config_json["pointing"]
+    configure_input_str = json.dumps(config_json)
+    result, message = cm.configure(
+        configure_input_str, task_callback=task_callback
+    )
+    assert result == ResultCode.FAILED
+    assert "Correction key 'pointing' does not exist" in message
 
 
 def test_configure_command_not_allowed(tango_context, cm):

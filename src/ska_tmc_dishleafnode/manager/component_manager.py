@@ -937,6 +937,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 ResultCode.FAILED,
                 f"Error while loading the input json: {exception}",
             )
+        except KeyError as exception:
+            return (
+                ResultCode.FAILED,
+                f"Correction key 'pointing' does not exist: {exception}",
+            )
 
         # validate the JSON argument
         (
