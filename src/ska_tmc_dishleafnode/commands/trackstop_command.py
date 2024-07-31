@@ -74,7 +74,6 @@ class TrackStop(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
-        with self.component_manager.tracktablelock:
-            self.component_manager.track_table_provided = False
+        self.component_manager.track_table_provided = False
 
         return result_code[0], message[0]
