@@ -199,6 +199,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.target_data: List | str
         self.track_table_provided = Value("b", False)
+        self.reset_track_table_provided()
         self.track_table_process = Process(target=self.track_process)
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
