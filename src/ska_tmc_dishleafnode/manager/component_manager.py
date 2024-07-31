@@ -1306,11 +1306,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def set_track_table_provided(self):
         """Sets tracktable flag"""
-        self.track_table_provided.value = True
+        self.track_table_provided = True
 
     def reset_track_table_provided(self):
         """Resets tracktable flag"""
-        self.track_table_provided.value = False
+        self.track_table_provided = False
 
     def get_track_table_provided(self):
         """Returns tracktable flag"""
