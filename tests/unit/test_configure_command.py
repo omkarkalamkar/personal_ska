@@ -177,3 +177,42 @@ def test_configure_command_status_not_allowed(
         status=TaskStatus.REJECTED,
         result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
     )
+
+
+@pytest.mark.parametrize("correction", ["UPDATE", "RESET", "MAINTAIN"])
+def test_configure_command_completed_with_correction_key(
+    tango_context,
+    cm,
+    task_callback,
+    json_factory,
+    correction,
+):
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
+
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+
+    configure_input_str = json_factory("dishleafnode_configure")
+    configure_input_str = json.loads(configure_input_str)
+    configure_input_str["pointing"]["correction"] = correction
+    configure_input_str = json.dumps(configure_input_str)
+    cm.configure(configure_input_str, task_callback=task_callback)
+    time.sleep(0.5)
+    cm.update_device_configured_band("2")
+    time.sleep(0.5)
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        }
+    )

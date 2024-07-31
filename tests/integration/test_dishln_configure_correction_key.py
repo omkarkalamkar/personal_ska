@@ -15,7 +15,7 @@ from tests.settings import (
 )
 
 
-def configure_dish_leaf_node(
+def configure_command_dish_leaf_node(
     tango_context,
     dishln_name,
     group_callback,
@@ -105,15 +105,15 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("correction", ["UPDATE", "RESET"])
-def test_configure_command(
+@pytest.mark.parametrize("correction", ["UPDATE", "RESET", "MAINTAIN"])
+def test_configure_command_with_correction_update_and_reset(
     tango_context, group_callback, json_factory, correction
 ):
     json_arg = json_factory("dishleafnode_configure")
     json_arg = json.loads(json_arg)
     json_arg["pointing"]["correction"] = correction
     json_arg = json.dumps(json_arg)
-    configure_dish_leaf_node(
+    configure_command_dish_leaf_node(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
