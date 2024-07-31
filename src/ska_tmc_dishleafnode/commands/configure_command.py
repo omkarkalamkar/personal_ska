@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import logging
 import threading
+import time
 from logging import Logger
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
@@ -400,6 +401,13 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
+        result = self.is_tracktable_provided()
+        if not result:
+            self.logger.error(
+                "Cannot invoke Track command on the Dish since track "
+                "table is not provided"
+            )
+
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
@@ -410,3 +418,17 @@ class Configure(DishLNCommand):
 
         self.logger.info("Invoked Track command successfully on dish.")
         return result_code, message
+
+    def is_tracktable_provided(self) -> bool:
+        """
+        Returns True if programTrackTable is provided to dish.
+        """
+        start_time = time.time()
+        elapsed_time = 0
+        while elapsed_time < self.component_manager.command_timeout:
+            track_table = self.dish_master_adapter.programTrackTable
+            if len(track_table) > 0:  # and len(track_table)%3 == 0:
+                return True
+            time.sleep(0.1)
+            elapsed_time = time.time() - start_time
+        return False
