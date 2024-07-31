@@ -1296,20 +1296,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+        self.logger.info(
+            "Initial track_table_provided value: %s",
+            str(self.get_track_table_provided()),
+        )
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
         self.set_track_table_provided()
-        self.logger.info(
-            "TrackTable flag is set to %s", self.track_table_provided
-        )
 
     def set_track_table_provided(self):
         """Sets tracktable flag"""
+        self.logger.info("Setting tracktable flag = True")
         self.track_table_provided = True
 
     def reset_track_table_provided(self):
         """Resets tracktable flag"""
+        self.logger.info("Setting tracktable flag = False")
         self.track_table_provided = False
 
     def get_track_table_provided(self):
