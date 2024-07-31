@@ -1648,6 +1648,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 ]
                             )
                             self.track_load_static_off_command.do(offsets)
+
+                        elif self.correction_key == "MAINTAIN":
+                            self.logger.info(
+                                "Pointing offsets are not applied to dish as"
+                                + " correction key is MAINTAIN"
+                            )
             self.logger.info(
                 "Received SDP Queue Connector pointing calibration: %s",
                 event_data.attr_value.value,
