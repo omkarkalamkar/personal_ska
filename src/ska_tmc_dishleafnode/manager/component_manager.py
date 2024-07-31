@@ -1292,9 +1292,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
-        if self.track_table_provided is False:
-            self.track_table_provided = True
-            self.logger.info("TrackTable flag is set to True")
+        self.track_table_provided = True
+        self.logger.info(
+            "TrackTable flag is set to %s", self.track_table_provided
+        )
 
     def track_process(self) -> None:
         """

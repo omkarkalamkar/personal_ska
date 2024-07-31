@@ -429,9 +429,11 @@ class Configure(DishLNCommand):
         Returns True if programTrackTable is provided to dish.
         """
         start_time = time.time()
+        self.logger.info("Start time: %s", start_time)
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
             if self.component_manager.track_table_provided is True:
+                self.component_manager.track_table_provided = False
                 return True
             time.sleep(0.2)
             self.logger.info(
