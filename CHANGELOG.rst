@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Added
 ======
 
+[0.17.0]
+********
+* Update Dish Leaf Node to use correction key from Config json to MAINTAIN, APPLY or RESET offsets on Dish Manager
+
 [0.16.0]
 ********
 * Dish Leaf Node supports **Non-sidereal tracking** for objects present in Katpoint
@@ -64,6 +68,8 @@ Added
 
 Fixed
 ======
+
+
 [0.16.2]
 ********
 * Improved logger statements on ska-tmc-dishleafnode
