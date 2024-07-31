@@ -1650,7 +1650,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             )
                             self.track_load_static_off_command.do(offsets)
             self.logger.info(
-                "Received SDPQC pointing calibration: %s",
+                "Received SDP Queue Connector pointing calibration: %s",
                 event_data.attr_value.value,
             )
         except Exception as e:
