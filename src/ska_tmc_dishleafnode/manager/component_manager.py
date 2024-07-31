@@ -287,7 +287,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @correction_key.setter
     def correction_key(self: DishLNComponentManager, value: str):
-        
         """
         Sets the correction key.
 
