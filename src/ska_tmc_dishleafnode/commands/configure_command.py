@@ -407,6 +407,11 @@ class Configure(DishLNCommand):
                 "Cannot invoke Track command on the Dish since track "
                 "table is not provided"
             )
+        else:
+            self.logger.info(
+                "TrackTable is provided to dish, "
+                "proceeding towards Track() command execution"
+            )
 
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
