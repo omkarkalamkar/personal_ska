@@ -10,7 +10,8 @@ from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
 from tests.settings import logger
 
 
-def test_calculate_time_stamp_array(tango_context, cm):
+def test_calculate_time_stamp_array(cm_without_er_lp):
+    cm = cm_without_er_lp
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
     (
@@ -22,11 +23,10 @@ def test_calculate_time_stamp_array(tango_context, cm):
 
 
 def test_calculate_program_track_table(cm_without_er_lp):
-    wait_for_iers_data_available(cm_without_er_lp)
-    azel_converter = AzElConverter(cm_without_er_lp)
-    track_table_calculator = ProgramTrackTableCalculator(
-        cm_without_er_lp, logger=logger
-    )
+    cm = cm_without_er_lp
+    wait_for_iers_data_available(cm)
+    azel_converter = AzElConverter(cm)
+    track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
 
     retry = 0
@@ -45,7 +45,7 @@ def test_calculate_program_track_table(cm_without_er_lp):
 
     # Given Ra and Dec are of polaris australis
     program_track_table = track_table_calculator.calculate_program_track_table(
-        "21:27:51.5", "-88:51:08.8", azel_converter
+        ["21:27:51.5", "-88:51:08.8"], azel_converter
     )
 
     TIMEOUT = 10

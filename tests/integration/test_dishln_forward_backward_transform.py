@@ -1,19 +1,20 @@
 """Integration test for testing forward and backward transform."""
 import ast
-import datetime
 from time import sleep
 
 import pytest
 import tango
+from astropy.time import Time
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    SKA_EPOCH,
     logger,
     tear_down,
-    wait_and_validate_attribute_value_available,
     wait_for_attribute_value,
 )
 
@@ -26,23 +27,13 @@ def forward_backward_transform(
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_FP)
-    dish_master.subscribe_event(
+
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    # Wait for dish leaf node CM to update dish mode
-    sleep(1)
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=4,
-    )
-    dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    dish_leaf_node.subscribe_event(
+    pointing_state_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -51,12 +42,8 @@ def forward_backward_transform(
         (DishMode.STANDBY_FP),
         lookahead=4,
     )
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-    dish_leaf_node.subscribe_event(
+
+    cmd_result_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -65,12 +52,9 @@ def forward_backward_transform(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("Configure",), lookahead=2
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     assert wait_for_attribute_value(dish_master, "programTrackTable")
@@ -92,12 +76,9 @@ def forward_backward_transform(
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("TrackStop",), lookahead=4
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_trackstop[0], str(int(ResultCode.OK))),
+        (unique_id_trackstop[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
@@ -120,29 +101,42 @@ def forward_backward_transform(
     assert len(ast.literal_eval(actual_pointing)) == 3
     tear_down(dish_leaf_node, dish_master, group_callback)
 
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointing_state_event_id)
+    dish_leaf_node.unsubscribe_event(cmd_result_event_id)
+
 
 def actual_pointing_attr(tango_context):
     """Test to check actualPointing is getting updated"""
-    EXTEND_MILLISECONDS = 100
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
-    timestamp_str = datetime.datetime.strptime(
-        "2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S"
-    )
-    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
-    extended_time = dt_utc + datetime.timedelta(
-        milliseconds=EXTEND_MILLISECONDS
-    )
-    utc_timestamp = extended_time.timestamp() * 1000
-    dish_master.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
-    verify_value = '["2019-02-19 06:01:00", "16:29:24.46", "-26:25:55.7"]'
-    wait_and_validate_attribute_value_available(
-        dish_leaf_node, "actualPointing", expected_value=verify_value
-    )
-    assert dish_leaf_node.actualPointing == verify_value
+    timestamp_str = "2019-02-19 06:01:00"
+    epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
+    timestamp_time = Time(timestamp_str, format="iso", scale="utc")
+    timestamp = (timestamp_time - epoch_time).sec
+    value_to_verify = '["2019-02-19 06:01:00", "15:31:50.9", "10:15:51.4"]'
+    count = 0
+    # Reason to add below while loop:
+    # Sometimes its observed that previous value of programTrackTable overrides
+    # the given sent values, resulting into test case failure
+    # So periodically sending the intended values to check actualPointing
+    # working as expected.
+    while dish_leaf_node.actualPointing != value_to_verify and count < 30:
+        dish_master.programTrackTable = [timestamp, 322.8709276, 41.3703589]
+        count = count + 1
+        sleep(1)
+    assert dish_leaf_node.actualPointing == value_to_verify
 
 
-@pytest.mark.skip("Will be fixed under sah-1472")
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_actual_pointing_attribute(
+    tango_context, json_factory, group_callback
+):
+    """Test forward and backward transform calculations."""
+    actual_pointing_attr(tango_context)
+
+
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_forward_backward_transform(
@@ -155,12 +149,3 @@ def test_forward_backward_transform(
         json_factory("dishleafnode_configure"),
         group_callback,
     )
-
-
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
-def test_actual_pointing_attribute(
-    tango_context, json_factory, group_callback
-):
-    """Test forward and backward transform calculations."""
-    actual_pointing_attr(tango_context)

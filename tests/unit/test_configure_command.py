@@ -1,15 +1,18 @@
 import json
+import time
 
 import pytest
-import tango
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tango_base.control_model import ObsState
-from ska_tango_testing.mock.placeholders import Anything
-from ska_tmc_common import DevFactory, FaultType
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-from tests.settings import DISH_MASTER_DEVICE, logger, wait_for_dish_mode
+from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from tests.settings import (
+    logger,
+    simulate_result_code_event,
+    wait_for_dish_mode,
+)
 
 
 def test_configure_command_completed(
@@ -18,24 +21,20 @@ def test_configure_command_completed(
     task_callback,
     json_factory,
 ):
-    cm.update_device_dish_mode(DishMode.STANDBY_LP)
-    cm.is_setstandbyfpmode_allowed()
-    cm.setstandbyfpmode(task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK}
-    )
-
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
+
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
+    time.sleep(0.5)
+    cm.update_device_configured_band("2")
+    time.sleep(0.5)
+    cm.update_device_dish_mode(DishMode.OPERATE)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -43,53 +42,49 @@ def test_configure_command_completed(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=4,
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        }
     )
 
 
-@pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_configure_command_completed_partial_config(
-    tango_context, cm, task_callback, json_factory, group_callback
+    tango_context, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
-    dish_device = DevFactory().get_device("ska001/elt/master")
-    dish_device.subscribe_event(
-        "longRunningCommandStatus",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandStatus"],
-        stateless=True,
-    )
+
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
 
     cm.configure(configure_input_str, task_callback=task_callback)
-
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    group_callback["longRunningCommandStatus"].assert_change_event(
-        (Anything, "COMPLETED"),
+    time.sleep(1)
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
         lookahead=6,
     )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=4,
-    )
 
 
-@pytest.mark.skip(reason="Test fails randomly and need investigation")
 def test_configure_command_completed_partial_config_missing_key(
-    tango_context, cm, task_callback, json_factory
+    tango_context, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
-
+    wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
     config_json = json.loads(configure_input_str)
@@ -104,18 +99,23 @@ def test_configure_command_completed_partial_config_missing_key(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    logger.debug("Waiting for command completion")
+    time.sleep(1)
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-        lookahead=10,
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=12,
     )
 
 
-@pytest.mark.skip(
-    reason="Test case runs with CORBA exception for indefinite time"
-)
-def test_configure_command_adapter_none(task_callback, cm, json_factory):
+def test_configure_command_adapter_none(
+    task_callback, cm_without_er_lp, json_factory
+):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
@@ -126,14 +126,15 @@ def test_configure_command_adapter_none(task_callback, cm, json_factory):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED, result=ResultCode.FAILED
-    )
+    result = task_callback.assert_against_call(status=TaskStatus.COMPLETED)
+    assert ResultCode.FAILED == result["result"][0]
+    assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
 @pytest.mark.parametrize("key", ["pointing", "dish"])
 def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     config_json = json.loads(configure_input_str)
@@ -152,35 +153,27 @@ def test_configure_command_not_allowed(tango_context, cm):
         cm.is_configure_allowed()
 
 
-def test_configure_timeout(tango_context, cm, task_callback, json_factory):
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+def test_configure_command_status_not_allowed(
+    tango_context,
+    cm,
+    task_callback,
+    json_factory,
+):
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
+    assert wait_for_dish_mode(cm, DishMode.UNKNOWN)
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
-
-    defect = {
-        "enabled": True,
-        "fault_type": FaultType.STUCK_IN_INTERMEDIATE_STATE,
-        "error_message": "Command stuck in processing",
-        "result": ResultCode.FAILED,
-        "intermediate_state": ObsState.RESOURCING,
-    }
-
-    dev_factory = DevFactory()
-    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-
-    assert cm.is_configure_allowed()
-
-    dish_master.SetDefective(json.dumps(defect))
     cm.configure(configure_input_str, task_callback=task_callback)
-
+    time.sleep(0.5)
+    cm.update_device_configured_band("2")
+    time.sleep(0.5)
+    cm.update_device_dish_mode(DishMode.UNKNOWN)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
     task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+        status=TaskStatus.REJECTED,
+        result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
     )
-    task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED,
-        result=ResultCode.FAILED,
-        exception="Timeout has occurred, command failed",
-    )
-    dish_master.SetDefective(json.dumps({"enabled": False}))

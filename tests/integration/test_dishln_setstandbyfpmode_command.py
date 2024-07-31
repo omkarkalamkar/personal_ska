@@ -5,9 +5,9 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    event_remover,
     logger,
     tear_down,
 )
@@ -19,7 +19,7 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    dish_master.subscribe_event(
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -27,57 +27,29 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
-    )
-    dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
     )
 
     result, unique_id = dish_leaf_node.SetStandbyFPMode()
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode",),
-        lookahead=2,
-    )
 
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
 
-    dish_leaf_node.subscribe_event(
+    LRCR_ID = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id[0], str(int(ResultCode.OK))),
+        (unique_id[0], COMMAND_COMPLETED),
         lookahead=2,
     )
 
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=2,
-    )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=5,
     )
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

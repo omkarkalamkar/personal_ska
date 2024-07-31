@@ -9,6 +9,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
 class EndScan(DishLNCommand):
@@ -21,7 +22,7 @@ class EndScan(DishLNCommand):
 
     # pylint: disable=unused-argument
     def endscan(
-        self,
+        self: DishLNCommand,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -44,17 +45,17 @@ class EndScan(DishLNCommand):
         if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(result_code, message),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
     # pylint: disable=arguments-differ
-    def do(self):
+    def do(self: DishLNCommand):
         """
         Method to set scanID attribute of Dish Master to empty string.
 
@@ -63,12 +64,13 @@ class EndScan(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
+            self.logger.error(
                 "Error while creating adapter %s",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "EndScan"
-        )
-        return result_code, message
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "EndScan"
+            )
+        return result_code[0], message[0]

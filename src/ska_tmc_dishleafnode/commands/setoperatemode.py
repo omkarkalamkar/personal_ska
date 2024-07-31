@@ -1,6 +1,8 @@
 """
 SetOperateMode command class for DishLeafNode.
 """
+from __future__ import annotations
+
 import threading
 from logging import Logger
 from typing import Optional, Tuple
@@ -10,6 +12,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
 class SetOperateMode(DishLNCommand):
@@ -22,7 +25,7 @@ class SetOperateMode(DishLNCommand):
 
     # pylint: disable=unused-argument
     def set_operate_mode(
-        self,
+        self: SetOperateMode,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -47,7 +50,7 @@ class SetOperateMode(DishLNCommand):
         if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(result_code, message),
                 exception=message,
             )
         else:
@@ -57,11 +60,11 @@ class SetOperateMode(DishLNCommand):
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
     # pylint: disable=arguments-differ
-    def do(self) -> Tuple[ResultCode, str]:
+    def do(self: SetOperateMode) -> Tuple[ResultCode, str]:
         """
         Method to invoke SetOperateMode command on DishMaster.
 
@@ -73,13 +76,14 @@ class SetOperateMode(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found ", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found ",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "SetOperateMode"
-        )
-
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "SetOperateMode"
+            )
         return result_code[0], message[0]

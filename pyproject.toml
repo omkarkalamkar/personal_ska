@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-tmc-dishleafnodes"
-version = "0.12.2"
+version = "0.16.2"
 description = """The Dish Leaf Node is a TMC component responsible to monitor and control the SKA dish."""
 authors = ["Team HIMALAYA", "Team SAHYADRI"]
 license = "BSD-3-Clause"
@@ -25,19 +25,18 @@ url = 'https://pypi.org/simple'
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 numpy = "1.23.0"
-pytango = "9.4.2"
+pytango = "9.5.0"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
-fire = "^0.4.0"
-ska-tmc-common = "0.16.2"
-ska-tango-base = "0.19.1"
+fire = "^0.5.0"
+ska-tmc-common = "0.17.12"
+ska-tango-base = "1.0.0"
 astropy = "^5.0.4"
-katpoint = "1.0a2"
+katpoint = "1.0a3"
 pytz = "2021.3"
 ska-tango-testing = "0.6.0"
 ipython = "8.5.0"
 schema = "^0.7.5"
 ska-tmc-cdm = "7.3.1"
-ska-telmodel = "1.15.1"
 mock = "^4.0.3"
 attrs = "*"
 jsonschema = "*"
@@ -76,6 +75,6 @@ sphinx-rtd-theme = "^1.2.2"
 recommonmark = "^0.7.1"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 

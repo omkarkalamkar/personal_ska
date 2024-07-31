@@ -14,18 +14,23 @@ from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common import DevFactory, LivelinessProbeType
 from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
+from ska_tmc_common.test_helpers.helper_sdp_queue_connector_device import (
+    HelperSdpQueueConnector,
+)
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
+from tests.settings import (
+    DISH_MASTER_DEVICE,
+    SDP_QUEUE_CONNECTOR_DEVICE,
+    SDP_QUEUE_CONNECTOR_DEVICE2,
+)
 
 configure_logging()
 logger = logging.getLogger(__name__)
-
-
 configure_logging(logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
-DISH_MASTER_DEVICE = "ska001/elt/master"
 
 
 def pytest_sessionstart(session):
@@ -59,7 +64,7 @@ def pytest_addoption(parser):
 @pytest.fixture
 def dish_master_device():
     """Returns dish 1 device name."""
-    return "ska001/elt/master"
+    return DISH_MASTER_DEVICE
 
 
 @pytest.fixture()
@@ -69,7 +74,7 @@ def devices_to_load():
         {
             "class": HelperDishDevice,
             "devices": [
-                {"name": "ska001/elt/master"},
+                {"name": DISH_MASTER_DEVICE},
             ],
         },
         {
@@ -77,7 +82,18 @@ def devices_to_load():
             "devices": [
                 {
                     "name": "ska_mid/tm_leaf_node/d0001",
-                    "DishMasterFQDN": "ska001/elt/master",
+                    "DishMasterFQDN": DISH_MASTER_DEVICE,
+                },
+            ],
+        },
+        {
+            "class": HelperSdpQueueConnector,
+            "devices": [
+                {
+                    "name": SDP_QUEUE_CONNECTOR_DEVICE,
+                },
+                {
+                    "name": SDP_QUEUE_CONNECTOR_DEVICE2,
                 },
             ],
         },
@@ -91,7 +107,7 @@ def tango_context(devices_to_load, request):
     logging.info("true context: %s", true_context)
     if not true_context:
         with MultiDeviceTestContext(
-            devices_to_load, process=False, timeout=50
+            devices_to_load, process=False, timeout=80
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -109,7 +125,7 @@ def dishln_device(request):
             DishLeafNode,
             device_name="ska_mid/tm_leaf_node/d0001",
             properties={
-                "DishMasterFQDN": "ska001/elt/master",
+                "DishMasterFQDN": DISH_MASTER_DEVICE,
                 "DishAvailabilityCheckTimeout": 10,
             },
             timeout=20,
@@ -140,13 +156,12 @@ def group_callback() -> MockTangoEventCallbackGroup:
     :rtype: MockTangoEventCallbackGroup
     """
     group_callback = MockTangoEventCallbackGroup(
-        "longRunningCommandsInQueue",
         "longRunningCommandResult",
-        "longRunningCommandIDsInQueue",
-        "longRunningCommandStatus",
         "dishMode",
         "pointingState",
         "kValueValidationResult",
+        "sourceOffset",
+        "kValue",
         timeout=30,
     )
     return group_callback
@@ -202,7 +217,17 @@ def update_availablity_callback(argin):
     """An empty update_availablity callback"""
 
 
-@pytest.fixture()
+def update_source_offset_callback(source_offset):
+    """An empty update_source_offset callback"""
+    logger.info("Source offset is: %s", source_offset)
+
+
+def update_last_pointing_data_callback(temp):
+    """An empty last pointing data callback"""
+    logger.debug(temp)
+
+
+@pytest.fixture(scope="session")
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
@@ -217,6 +242,8 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
@@ -255,12 +282,15 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
     )
-
     cm.actual_pointing_process_alive.set()
+    if cm.event_receiver:
+        cm.stop_event_receiver()
 
     yield cm
     # pylint: disable=unnecessary-dunder-call
@@ -284,6 +314,8 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
         _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,

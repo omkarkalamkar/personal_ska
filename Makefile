@@ -10,7 +10,6 @@ CAR_OCI_REGISTRY_HOST:=artefact.skao.int
 PROJECT = ska-tmc-dishleafnode
 PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209
 TANGO_HOST ?= tango-databaseds:10000 ## TANGO_HOST connection to the Tango DS
-
 TELESCOPE ?= SKA-mid
 MARK ?= ## What -m opt to pass to pytest
 # run one test with FILE=acceptance/test_subarray_node.py::test_check_internal_model_according_to_the_tango_ecosystem_deployed
@@ -65,7 +64,7 @@ CI_PROJECT_PATH_SLUG ?= ska-tmc-dishleafnode
 CI_ENVIRONMENT_SLUG ?= ska-tmc-dishleafnode
 $(shell echo 'global:\n  annotations:\n    app.gitlab.com/app: $(CI_PROJECT_PATH_SLUG)\n    app.gitlab.com/env: $(CI_ENVIRONMENT_SLUG)' > gitlab_values.yaml)
 
-EXIT_AT_FAIL ?= true
+EXIT_AT_FAIL ?= false
 
 PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
@@ -73,13 +72,13 @@ ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
 ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
 endif
-MARK = not post_deployment and not acceptance
+MARK = (not post_deployment and not acceptance)
 endif
 
 
 K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
-ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT) 
+ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 

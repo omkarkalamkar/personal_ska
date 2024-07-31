@@ -15,6 +15,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class TrackLoadStaticOff(DishLNCommand):
     """
 
     def __init__(
-        self,
+        self: TrackLoadStaticOff,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -45,7 +46,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_track_load_static_off(
-        self,
+        self: TrackLoadStaticOff,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -87,7 +88,7 @@ class TrackLoadStaticOff(DishLNCommand):
             )
 
     def update_task_callback(
-        self, result_code: ResultCode, exception: str = ""
+        self: TrackLoadStaticOff, result_code: ResultCode, exception: str = ""
     ) -> None:
         """
         Method to update task callback.
@@ -100,17 +101,20 @@ class TrackLoadStaticOff(DishLNCommand):
         if exception:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=result_code,
+                result=(result_code, exception),
                 exception=exception,
             )
         else:
-            self.task_callback(status=TaskStatus.COMPLETED, result=result_code)
+            self.task_callback(
+                status=TaskStatus.COMPLETED,
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+            )
 
         self.component_manager.command_in_progress = ""
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self, argin: str) -> Tuple[ResultCode, str]:
+    def do(self: TrackLoadStaticOff, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke TrackLoadStaticOff command on DishMaster.
 
@@ -122,17 +126,19 @@ class TrackLoadStaticOff(DishLNCommand):
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
         offsets = json.loads(argin)
-        result_code, message = self.call_adapter_method(
-            "Dish Master",
-            self.dish_master_adapter,
-            "TrackLoadStaticOff",
-            argin=offsets,
-        )
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master",
+                self.dish_master_adapter,
+                "TrackLoadStaticOff",
+                argin=offsets,
+            )
 
         return result_code[0], message[0]

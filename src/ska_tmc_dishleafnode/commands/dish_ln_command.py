@@ -26,7 +26,7 @@ class DishLNCommand(TmcLeafNodeCommand):
     common across all the commands."""
 
     def __init__(
-        self,
+        self: DishLNCommand,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -37,7 +37,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
 
-    def init_adapter(self):
+    def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
         dev_name = self.component_manager.dish_dev_name
         timeout = self.component_manager.adapter_timeout
@@ -51,6 +51,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                         dev_name, AdapterType.DISH
                     )
                 )
+                self.dish_master_adapter.proxy.set_timeout_millis(5000)
                 self.logger.info("Adapter created successfully")
             except ConnectionFailed as connection_failed:
                 elapsed_time = time.time() - start_time
@@ -75,7 +76,7 @@ class DishLNCommand(TmcLeafNodeCommand):
 
         return ResultCode.OK, ""
 
-    def set_wait_for_dishmode(self, dishmode: DishMode) -> bool:
+    def set_wait_for_dishmode(self: DishLNCommand, dishmode: DishMode) -> bool:
         """Waits for transition of DishMode to the correct state.
 
         :return: True if the DishMode transitions to the correct state within
@@ -94,7 +95,9 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         return False
 
-    def set_wait_for_configured_band(self, configured_band: str):
+    def set_wait_for_configured_band(
+        self: DishLNCommand, configured_band: str
+    ):
         """Waits for transition of configuredBand to the correct state.
 
         :return: True if the DishMode transitions to the correct state within
@@ -112,7 +115,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             elapsed_time = time.time() - start_time
         return False
 
-    def init_adapter_mid(self):
+    def init_adapter_mid(self: DishLNCommand):
         self.init_adapter()
 
     def set_command_id(self, command_name: str):
@@ -130,6 +133,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         self.component_manager.command_id = command_id
 
+    # pylint: disable=arguments-differ
     def check_device_state(
         self,
         state_function: Callable,

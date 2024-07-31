@@ -1,22 +1,16 @@
-# -*- coding: utf-8 -*-
-#
-# This file is part of the DishLeafNode project
-#
-#
-#
-# Distributed under the terms of the BSD-3-Clause license.
-# See LICENSE.txt for more info.
 """ AzElConverter:
 This module defines the AzElConverter class,
 which is used to convert given Ra and Dec values into AzEl."""
 # Standard Python imports
+from __future__ import annotations
+
 import logging
-from typing import List
+from typing import Any, List
 
 from astropy import units as u
-from astropy.coordinates import Angle
+from astropy.coordinates import AltAz, Angle
 from astropy.utils import iers
-from katpoint import RefractionCorrection, Target
+from katpoint import Target, TroposphericRefraction
 from katpoint.conversion import angle_to_string
 from ska_ser_logging import configure_logging
 from ska_tmc_common.dish_utils import DishHelper
@@ -29,33 +23,82 @@ class AzElConverter:
     """Class to convert Right ascension(Ra) and Declination(Dec)
     values into Azimuth(Az) and Elevation(El)"""
 
-    def __init__(self, component_manager) -> None:
+    def __init__(self: AzElConverter, component_manager) -> None:
         """
         Args:
             component_manager (DishLNComponent Manager): Dish LN component
         """
         self.component_manager = component_manager
         self.dish_helper = DishHelper()
-        self.refraction_correction = RefractionCorrection()
+        self.refraction_correction = TroposphericRefraction()
         # The values for temperature, pressure and humidity are considered
         # arbitarily, acutal data will be used when a weather station is
         # available.
         self.weather_data = {
             "temperature": 30.0,
             "pressure": 900.0,
-            "humidity": 10,
+            "humidity": 0.10,
+            # Humidity is now a fraction instead of percentage
         }
 
-    def create_antenna_obj(self) -> None:
+    def create_antenna_obj(self: AzElConverter) -> None:
         """This method identifies the KATPoint.
         Antenna object to be used from the Dish Number."""
         antennas = self.dish_helper.get_dish_antennas_list()
         for antenna in antennas:
-            if antenna.name == self.component_manager.dish_id:
-                self.component_manager.observer = antenna
+            if self.component_manager.dish_id:
+                if (
+                    antenna.name.lower()
+                    == self.component_manager.dish_id.lower()
+                ):
+                    self.component_manager.observer = antenna
+
+    def apply_refraction_correction(
+        self: AzElConverter, azel: AltAz
+    ) -> List[float]:
+        """Apply refraction correction on given AzEl."""
+        refraction_corrected_azel = self.refraction_correction.refract(
+            azel,
+            self.weather_data["pressure"] * u.hPa,
+            self.weather_data["temperature"] * u.deg_C,
+            self.weather_data["humidity"],
+        )
+        logger.debug(
+            "The Azimuth value is: %s and the Elevation is %s : after "
+            "forward transform.",
+            refraction_corrected_azel.az.deg,
+            refraction_corrected_azel.alt.deg,
+        )
+        return [
+            refraction_corrected_azel.az.deg,
+            refraction_corrected_azel.alt.deg,
+        ]
+
+    def point_to_body(
+        self: AzElConverter, target_name: str, timestamp: str
+    ) -> List[float]:
+        """
+        This method calls the Katpoint API to get the Azimuth and Elevation for
+        a non sidereal object and applies the refraction correction to it.
+
+        :param target_name: Name of the non-sidereal body
+        :type target_name: str
+        :param timestamp: Timestamp for observation
+        :type timestamp: str
+        """
+        non_sidereal_target = Target(f"{target_name}, special")
+        with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            azel = non_sidereal_target.azel(
+                timestamp, self.component_manager.observer
+            )
+
+        return self.apply_refraction_correction(azel)
 
     def point(
-        self, right_ascension: str, declination: str, timestamp: str
+        self: AzElConverter,
+        right_ascension: str,
+        declination: str,
+        timestamp: str,
     ) -> list[float]:
         """This method converts Target RaDec coordinates
         to the AzEl coordinates.It is called continuously
@@ -68,17 +111,14 @@ class AzElConverter:
         return:
             az_el_coordinates (list)
         """
-        return self.radec_to_azel(
-            right_ascension, declination, timestamp, self.weather_data
-        )
+        return self.radec_to_azel(right_ascension, declination, timestamp)
 
     def azel_to_radec(
-        self,
+        self: AzElConverter,
         az_value: str,
         el_value: str,
         timestamp: str,
-        weather_data: dict[str, float],
-    ) -> List[str]:
+    ) -> List[str | Any]:
         """This method converts given Azimuth/Elevation to RA/Dec after
         reversing the refraction correction and performing the topocentric and
         geocentric conversions.
@@ -92,20 +132,17 @@ class AzElConverter:
                  Minutes Seconds respectively.
         """
 
-        elevation = Angle(el_value, u.deg)
-        refraction_removed_el = self.refraction_correction.reverse(
-            elevation.rad,
-            weather_data["temperature"],
-            weather_data["pressure"],
-            weather_data["humidity"],
+        azel = AltAz(az=Angle(az_value, u.deg), alt=Angle(el_value, u.deg))
+        refraction_removed_azel = self.refraction_correction.unrefract(
+            azel,
+            self.weather_data["pressure"] * u.hPa,
+            self.weather_data["temperature"] * u.deg_C,
+            self.weather_data["humidity"],
         )
 
-        elevation_angle = Angle(refraction_removed_el, u.rad)
-        azimuth_angle = Angle(az_value, u.deg)
-
         target = Target.from_azel(
-            azimuth_angle,
-            elevation_angle,
+            refraction_removed_azel.az,
+            refraction_removed_azel.alt,
         )
 
         # Preloading the IERS A chart for Astrop's usage.
@@ -121,7 +158,7 @@ class AzElConverter:
             ra_dec.dec, unit=u.deg, precision=2, show_unit=False
         )
         logger.debug(
-            "The Right Ascension is %s and the Declination is %s after "
+            "The Right Ascension is : %s and the Declination is : %s after "
             "backward transform",
             ra,
             dec,
@@ -129,12 +166,11 @@ class AzElConverter:
         return [ra, dec]
 
     def radec_to_azel(
-        self,
+        self: AzElConverter,
         right_ascension: str,
         declination: str,
         timestamp: str,
-        weather_data: dict[str, float],
-    ) -> List[str]:
+    ) -> List[float]:
         """This method invokes the katpoint commands to do the forward
         transform required for pointing a celestial object.
         Forward Transform ie: Geocentric conversion then topocentric and then
@@ -155,20 +191,4 @@ class AzElConverter:
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
             azel = target.azel(timestamp, self.component_manager.observer)
 
-        refraction_corrected_el = self.refraction_correction.apply(
-            azel.alt.rad,
-            weather_data["temperature"],
-            weather_data["pressure"],
-            weather_data["humidity"],
-        )
-        refraction_corrected_angle = Angle(refraction_corrected_el, u.rad)
-        logger.debug(
-            "The Azimuth value is %s and the Elevation is %s after "
-            "forward transform.",
-            azel.az.deg,
-            refraction_corrected_angle.deg,
-        )
-        return [
-            azel.az.deg,
-            refraction_corrected_angle.deg,
-        ]
+        return self.apply_refraction_correction(azel)

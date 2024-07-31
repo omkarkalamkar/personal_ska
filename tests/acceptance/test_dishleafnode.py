@@ -9,10 +9,10 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
-from ska_tmc_common.enum import DishMode  # noqa:F401
+from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import event_remover, wait_for_ping
+from tests.settings import COMMAND_COMPLETED, wait_for_ping
 
 configure_logging(logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
@@ -76,10 +76,6 @@ def call_command(
         dev_factory = DevFactory()
         dish_master_proxy = dev_factory.get_device(dish_master_device)
         dishMode = eval(dish_mode)
-        event_remover(
-            group_callback,
-            ["longRunningCommandsInQueue", "longRunningCommandResult"],
-        )
         dish_master_proxy.SetDirectDishMode(dishMode)
         dish_master_proxy.subscribe_event(
             "dishMode",
@@ -121,39 +117,26 @@ def check_command(
 
     assert pytest.command_result[0][0] == ResultCode.QUEUED
     unique_id = pytest.command_result[1][0]
-    dishleaf_node.subscribe_event(
-        "longRunningCommandIDsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandIDsInQueue"],
-    )
-
-    dishleaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
-    dishleaf_node.subscribe_event(
+    LRCR_ID = dishleaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    group_callback["longRunningCommandIDsInQueue"].assert_change_event(
-        (str(unique_id),), lookahead=6
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id, str(int(ResultCode.OK))), lookahead=4
+        (unique_id, COMMAND_COMPLETED), lookahead=4
     )
     # Invoke TrackStop command to terminate the Track thread executed by
     # Configure command.If thread not stopped then it is causing unstable
     # device server and intermittent test failure.
     if "Configure" in unique_id:
-        dishleaf_node.TrackStop()
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-        lookahead=6,
-    )
+        if (
+            dishleaf_node.dishMode == DishMode.OPERATE
+            and dishleaf_node.pointingState == PointingState.TRACK
+        ):
+            dishleaf_node.TrackStop()
     assert str(dish_master_proxy.state()) == resultant_state
+    dishleaf_node.unsubscribe_event(LRCR_ID)
 
 
 scenarios("../features/dishleafnode.feature")

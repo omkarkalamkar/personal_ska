@@ -4,24 +4,17 @@ FROM $BUILD_IMAGE AS buildenv
 
 FROM $BASE_IMAGE
 
+
 # Install Poetry
 USER root
-
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
-
-# RUN apt-get update && apt-get install pkg-config build-essential libboost-python-dev  -y
-RUN curl -sSL https://install.python-poetry.org | python3 - && \
-    poetry config virtualenvs.create false
+RUN poetry config virtualenvs.create false
 WORKDIR /app
 
 COPY --chown=tango:tango . /app
-
 # Install runtime dependencies and the app
 RUN poetry install --only main
 RUN rm /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
-
-
-
 USER tango
 
 # create ipython profile too so that itango doesn't fail if ipython hasn't run yet

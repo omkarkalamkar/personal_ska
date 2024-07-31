@@ -1,20 +1,10 @@
-import datetime
-from time import sleep
+import time
 
 import pytest
-from ska_tmc_common import DevFactory
+from astropy.time import Time
 
 from ska_tmc_dishleafnode import AzElConverter
-from tests.settings import DISH_MASTER_DEVICE, WEATHER_DATA, logger
-
-
-def wait_for_iers_data_available(cm):
-    """Function which waits for the IERS data to be available."""
-    elapsed_time = 0
-    timeout = 45
-    while cm.iers_a is not None and elapsed_time <= timeout:
-        elapsed_time = elapsed_time + 1
-        sleep(1)
+from tests.settings import SKA_EPOCH, logger
 
 
 @pytest.mark.parametrize(
@@ -22,32 +12,30 @@ def wait_for_iers_data_available(cm):
     [
         (
             "2019-02-19 06:01:00",
-            "0.4564362",
-            "-30.8330656",
-            "2:31:50.9",
-            "89:15:51.4",
+            "322.8709276",
+            "41.3703589",
+            "15:31:50.9",
+            "10:15:51.4",
         ),
         (
-            "2019-02-19 06:01:00",
-            "287.2504396",
-            "77.8694392",
-            "16:29:24.46",
-            "-26:25:55.7",
-        ),
-        (
-            "2022-03-19 09:21:50",
-            "173.5146073",
-            "-43.8021646",
+            "2022-03-19 18:21:50",
+            "46.110779",
+            "30.6631224",
             "10:14:56.82",
-            "-14:44:15.13",
+            "14:44:15.13",
         ),
     ],
 )
 def test_azel_to_radec(
-    tango_context, timestamp, az, el, expected_ra, expected_dec, cm
+    tango_context,
+    timestamp,
+    az,
+    el,
+    expected_ra,
+    expected_dec,
+    cm,
 ):
     """Test the backward transform method from AzElConverter."""
-    wait_for_iers_data_available(cm)
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:
@@ -61,8 +49,8 @@ def test_azel_to_radec(
             if retry == 2:
                 pytest.fail(f"{e}")
             retry += 1
-        sleep(0.1)
-    ra, dec = converter.azel_to_radec(az, el, timestamp, WEATHER_DATA)
+        time.sleep(0.1)
+    ra, dec = converter.azel_to_radec(az, el, timestamp)
     assert expected_ra == ra
     assert expected_dec == dec
 
@@ -70,25 +58,18 @@ def test_azel_to_radec(
 @pytest.mark.skip("Will be solved as a part of SAH-1518")
 def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
-    EXTEND_MILLISECONDS = 100
-    dish_manager = DevFactory().get_device(DISH_MASTER_DEVICE)
-    timestamp_str = datetime.datetime.strptime(
-        "2019-02-19 06:01:00", "%Y-%m-%d %H:%M:%S"
+    timestamp_str = "2019-02-19 06:01:00"
+    epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
+    timestamp_time = Time(timestamp_str, format="iso", scale="utc")
+    ska_epoch_tai_timestamp = (timestamp_time - epoch_time).sec
+    converter = AzElConverter(component_manager=cm)
+    converter.create_antenna_obj()
+    cm.perform_reverse_transform(
+        [ska_epoch_tai_timestamp, 322.8709276, 41.3703589]
     )
-    dt_utc = timestamp_str.replace(tzinfo=datetime.timezone.utc)
-    extended_time = dt_utc + datetime.timedelta(
-        milliseconds=EXTEND_MILLISECONDS
-    )
-    utc_timestamp = extended_time.timestamp() * 1000
-    dish_manager.programTrackTable = [utc_timestamp, 287.2504396, 77.8694392]
-    # Sometimes loading the iers data takes more time
-    timeout = 60
-    count = 0
-    while len(list(cm.actual_pointing)) <= 0 and count <= timeout:
-        count += 1
-        sleep(1)
+
     assert list(cm.actual_pointing) == [
         "2019-02-19 06:01:00",
-        "16:29:24.46",
-        "-26:25:55.7",
+        "15:31:50.9",
+        "10:15:51.4",
     ]

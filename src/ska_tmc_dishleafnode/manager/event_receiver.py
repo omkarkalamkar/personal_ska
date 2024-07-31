@@ -1,13 +1,21 @@
 """
 Event Receiver for Dish Leaf Node
 """
+from __future__ import annotations
+
 from datetime import datetime
 from logging import Logger
 from time import sleep
 from typing import Any, Callable, List
 
 import tango
-from ska_tmc_common import DishDeviceInfo, EventReceiver
+from ska_tmc_common import (
+    DishDeviceInfo,
+    DishMode,
+    EventReceiver,
+    PointingState,
+    SdpQueueConnectorDeviceInfo,
+)
 
 
 class DishLNEventReceiver(EventReceiver):
@@ -21,11 +29,10 @@ class DishLNEventReceiver(EventReceiver):
     """
 
     def __init__(
-        self,
+        self: DishLNEventReceiver,
         component_manager,
         logger: Logger,
         attribute_dict: dict[str, Callable[..., Any]] | None = None,
-        max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
     ):
@@ -33,14 +40,13 @@ class DishLNEventReceiver(EventReceiver):
             component_manager=component_manager,
             logger=logger,
             attribute_dict=attribute_dict,
-            max_workers=max_workers,
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
         self.subscribed: bool = False
         self._event_enter_exit_time: List[datetime] = []
 
-    def run(self) -> None:
+    def run(self: DishLNEventReceiver) -> None:
         while not self.subscribed:
             dishDevInfo = self._component_manager.get_device()
             if dishDevInfo.dev_name:
@@ -48,7 +54,9 @@ class DishLNEventReceiver(EventReceiver):
             sleep(self._sleep_time)
 
     def subscribe_events(
-        self, dev_info: DishDeviceInfo, attribute_dictionary=None
+        self: DishLNEventReceiver,
+        dev_info: DishDeviceInfo,
+        attribute_dictionary=None,
     ) -> None:
         with tango.EnsureOmniThread():
             try:
@@ -83,9 +91,9 @@ class DishLNEventReceiver(EventReceiver):
                     stateless=True,
                 )
                 dish_dev_proxy.subscribe_event(
-                    "longRunningCommandStatus",
+                    "longRunningCommandResult",
                     tango.EventType.CHANGE_EVENT,
-                    self.handle_long_running_command_status,
+                    self.handle_long_running_command_result,
                     stateless=True,
                 )
                 dish_dev_proxy.subscribe_event(
@@ -103,7 +111,9 @@ class DishLNEventReceiver(EventReceiver):
             else:
                 self.subscribed = True
 
-    def handle_dish_mode_event(self, event_flag: tango.EventData) -> None:
+    def handle_dish_mode_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
         """Method to handle and update the latest value of dishMode attribute.
 
         :parameter event_flag: To flag the change in event for dishMode.
@@ -122,10 +132,14 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_dish_mode(new_value)
-        self._logger.info(f"DishMode value updated to {new_value}")
         self.log_event_exit("handle_dish_mode_event")
+        self._logger.info(
+            f"DishMode value updated to {DishMode(new_value).name}"
+        )
 
-    def handle_pointing_state_event(self, event_flag: tango.EventData) -> None:
+    def handle_pointing_state_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
         """Method to handle and update the latest value of
         pointingState attribute.
 
@@ -146,11 +160,13 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_pointing_state(new_value)
-        self._logger.info(f"PointingState value updated to {new_value}")
         self.log_event_exit("handle_pointing_state_event")
+        self._logger.info(
+            f"PointingState value updated to {PointingState(new_value).name}"
+        )
 
     def handle_configured_band_event(
-        self, event_flag: tango.EventData
+        self: DishLNEventReceiver, event_flag: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
         configuredBand attribute.
@@ -175,7 +191,7 @@ class DishLNEventReceiver(EventReceiver):
         self.log_event_exit("handle_configured_band_event")
 
     def handle_achieved_pointing_event(
-        self, event_flag: tango.EventData
+        self: DishLNEventReceiver, event_flag: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
         achievedPointing attribute.
@@ -198,14 +214,13 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.achieved_pointing_data.put(new_value)
-        self._logger.debug(f"achievedPointing value is updated to {new_value}")
         self.log_event_exit("handle_achieved_pointing_event")
 
-    def handle_long_running_command_status(
-        self, event_data: tango.EventData
+    def handle_long_running_command_result(
+        self: DishLNEventReceiver, event_data: tango.EventData
     ) -> None:
         """Method to handle and update the latest value of
-        longRunningCommandStatus attribute.
+        longRunningCommandResult attribute.
 
         :parameter event_flag: To flag the change in event.
         :type event_flag: tango.EventType.CHANGE_EVENT
@@ -223,42 +238,64 @@ class DishLNEventReceiver(EventReceiver):
             )
             return
         new_value = event_data.attr_value.value
-
-        self._component_manager.update_device_long_running_command_status(
-            new_value
-        )
-        self._logger.info(f"long running command value updated to {new_value}")
-        self.log_event_exit("handle_long_running_command_status")
-
-    def handle_long_running_command_result(
-        self, event_data: tango.EventData
-    ) -> None:
-        """Method to handle and update the latest value of
-        longRunningCommandResult attribute.
-
-        :parameter event_flag: To flag the change in event.
-        :type event_flag: tango.EventType.CHANGE_EVENT
-        :return: None
-        :rtype: NoneType
-        """
-
-        self.log_event_data(event_data, "handle_long_running_command_result")
-        if event_data.err:
-            error = event_data.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_data.device.dev_name()
-            )
-            return
-        new_value = event_data.attr_value.value
         self._component_manager.update_device_long_running_command_result(
             event_data.device.dev_name(), new_value
         )
-        self._logger.info(
-            f"longRunningCommandResult value updated to {new_value}"
-        )
-        self.log_event_exit("handle_long_running_command_result")
+        self._logger.info(f"long running command value updated to {new_value}")
+
+    def subscribe_sdpqc_attribute(
+        self: DishLNEventReceiver,
+        dev_info: SdpQueueConnectorDeviceInfo,
+        attribute_name: str,
+    ) -> None:
+        """Subscribe to the given SDP queue connector attribute"""
+        # Initialized to avoid linting issue.
+        TIMEOUT = 120
+        elapsed_time = 0
+        while not dev_info.subscribed_to_attribute and elapsed_time < TIMEOUT:
+            try:
+                sdp_queue_connector = self._dev_factory.get_device(
+                    dev_info.dev_name
+                )
+                if sdp_queue_connector.ping() > 0:
+                    dev_info.event_id = sdp_queue_connector.subscribe_event(
+                        attribute_name,
+                        tango.EventType.CHANGE_EVENT,
+                        self._component_manager.process_pointing_calibration,
+                        stateless=True,
+                    )
+                    dev_info.subscribed_to_attribute = True
+            except Exception as exception:
+                log_msg = (
+                    f"Unable to subscribe {attribute_name} "
+                    f"device {dev_info.dev_name}/{exception}"
+                )
+                self._logger.exception(log_msg)
+                elapsed_time = elapsed_time + 1
+                sleep(1)
+
+    def unsubscribe_sdpqc_attribute(
+        self: DishLNEventReceiver, dev_info: SdpQueueConnectorDeviceInfo
+    ) -> None:
+        """Subscribe to the given SDP queue connector attribute"""
+        try:
+            if dev_info.event_id:
+                sdp_queue_connector_proxy = self._dev_factory.get_device(
+                    dev_info.dev_name
+                )
+                sdp_queue_connector_proxy.unsubscribe_event(dev_info.event_id)
+                dev_info.event_id = 0
+                dev_info.subscribed_to_attribute = False
+                self._logger.info(
+                    "Unsubscribed %s Sdp queuue connector attribute event.",
+                    dev_info.dev_name,
+                )
+        except Exception as exception:
+            log_msg = (
+                f"Unable to unsubscribe {dev_info.attribute_name} "
+                f"device {dev_info.dev_name}/{exception}"
+            )
+            self._logger.exception(log_msg)
 
     def log_event_data(
         self, event_data: tango.EventData, callback_name: str

@@ -13,6 +13,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class Track(DishLNCommand):
     """
 
     def __init__(
-        self,
+        self: Track,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -44,7 +45,7 @@ class Track(DishLNCommand):
 
     # pylint: disable=unused-argument
     def track(
-        self,
+        self: Track,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
@@ -71,16 +72,16 @@ class Track(DishLNCommand):
         if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(return_code, message),
                 exception=message,
             )
         else:
             task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(return_code),
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
-    def validate_json_argument(self, input_argin: dict) -> tuple:
+    def validate_json_argument(self: Track, input_argin: dict) -> tuple:
         """Validates the json argument"""
         target = input_argin.get("pointing", {}).get("target", {})
         ra_value = target.get("ra")
@@ -95,7 +96,7 @@ class Track(DishLNCommand):
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self, argin: dict) -> Tuple[ResultCode, str]:
+    def do(self: Track, argin: dict) -> Tuple[ResultCode, str]:
         """
         Method to invoke Track command on Dish Master.
 
@@ -106,14 +107,16 @@ class Track(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found ", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found ",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
-        result_code, message = self.call_adapter_method(
-            "Dish Master", self.dish_master_adapter, "Track"
-        )
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "Track"
+            )
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]

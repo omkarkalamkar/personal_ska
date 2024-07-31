@@ -1,7 +1,7 @@
 name: "dishleafnode-test"
 function: telescope-monitoring
 domain: general-monitoring
-instances: ["01", "02", "03", "04"]
+instances: ["01"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $TrackTableEntries := .Values.deviceServers.dishln.TrackTableEntries }}
 {{- $PointingCalculationPeriod := .Values.deviceServers.dishln.PointingCalculationPeriod }}
@@ -17,7 +17,7 @@ server:
           properties:
           - name: "DishMasterFQDN"
             values:
-              - "ska{{ printf "%03s" . }}/elt/master"
+              - "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"
           - name: "SkaLevel"
             values:
               - "3"

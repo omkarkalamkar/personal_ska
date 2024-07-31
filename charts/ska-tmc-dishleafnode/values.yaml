@@ -19,8 +19,7 @@ global:
   - "--sleep=5"
   dish_devices:
     - "dishleafnode"
-  dishes: ["01", "02", "03", "04"]
-  instances : ["01", "02", "03", "04"]
+  dishes: ["01"]
 
 dsconfig:
   configuration_file: data/configuration.json
@@ -42,25 +41,29 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.12.2
+    tag: 0.16.2
     pullPolicy: IfNotPresent
 
 resources:
   requests:
-    cpu: 500m
+    cpu: 1000m
     memory: 500Mi
 
 deviceServers:
   mocks:
     enabled: true
-    instances: ["01", "02", "03", "04"]
+    instances: ["01"]
     file: "data/mockdevices.yaml"
   dishln:
     enabled: true
-    instances: ["01", "02", "03", "04"]
+    instances: ["01"]
     file: "data/dishleafnode.yaml"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
+  sdpqc:
+    enabled: true
+    instances: ["01"]
+    file: "data/sdpqcmockdevice.yaml"
 
 nodeSelector: {}
 

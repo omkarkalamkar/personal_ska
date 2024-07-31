@@ -1,11 +1,14 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+from __future__ import annotations
+
 import asyncio
 import copy
 import datetime
 import json
 import os
+import re
 import sched
 import threading
 import time
@@ -13,6 +16,9 @@ from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Tuple, Union
 
+import numpy as np
+import tango
+from astropy.time import Time
 from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -27,8 +33,10 @@ from ska_tmc_common import (
     DishMode,
     LivelinessProbeType,
     PointingState,
+    SdpQueueConnectorDeviceInfo,
     TmcLeafNodeComponentManager,
 )
+from ska_tmc_common.adapters import DishAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
@@ -45,8 +53,9 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
 
-from .common_utils import process_long_running_command_result
+# from .common_utils import process_long_running_command_result
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 from .program_track_table_calculator import ProgramTrackTableCalculator
@@ -59,7 +68,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     # pylint: disable=unused-argument
     def __init__(
-        self,
+        self: DishLNComponentManager,
         dish_dev_name: str,
         logger: Logger,
         track_table_entries: int,
@@ -71,13 +80,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         pointing_callback: Callable,
         kvalue_validation_callback: Callable,
         _update_availablity_callback: Callable,
+        _update_source_offset_callback: Callable,
+        _update_last_pointing_data_cb: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
-        max_workers: int = 1,
         proxy_timeout: int = 500,
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
-        command_timeout: int = 30,
+        command_timeout: int = 15,
+        is_dish_abort_commands: bool = False,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
@@ -96,21 +107,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             when communication status of the component changed
         :param event_receiver: flag used to control whether
             EventReceiver object should be instantiated or not
-        :param max_workers: allows to specify number of threads
-            to be used by the liveliness probe;
         :param proxy_timeout: allows to specify a client side timeout
             for sub-devices in milliseconds used by the liveliness probe
         :param sleep_time: allows to specify the wait between
             each iteration of the liveliness probe and EventSubscriber
         :param timeout: Time period to wait for initialization
             of adapter
+
         """
         super().__init__(
             logger=logger,
             _liveliness_probe=_liveliness_probe,
             communication_state_callback=communication_state_callback,
             component_state_callback=component_state_callback,
-            max_workers=max_workers,
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
@@ -121,16 +130,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dish_id = (
-            dish_dev_name.split("/")[-3].upper() if dish_dev_name else None
+            re.findall(
+                "\\b(?:SKA|MKT)\\d{3}\\b", dish_dev_name, flags=re.IGNORECASE
+            )[0]
+            if dish_dev_name
+            else None
         )
+        self.tango_operation_execution_lock = Lock()
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
+        self.reset_track_process_event()
         self.elevation = elevation
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
+        self.is_dish_abort_commands = is_dish_abort_commands
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
@@ -144,8 +160,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.achieved_pointing_data = self.process_manager.Queue()
         self.actual_pointing_process_alive = Event()
+        self._queue_connector_device_info: SdpQueueConnectorDeviceInfo = (
+            SdpQueueConnectorDeviceInfo()
+        )
+        self.received_pointing_data = self.process_manager.list(
+            [self._queue_connector_device_info]
+        )
+        self._last_pointing_data = np.array([0.0, 0.0, 0.0])
+        self._update_source_offset_callback = _update_source_offset_callback
+        self._update_last_pointing_data_callback = (
+            _update_last_pointing_data_cb
+        )
         self.update_availablity_callback = _update_availablity_callback
-        self.supported_commands: Tuple[str] = (
+        self.supported_commands: Tuple[str, str] = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
             "Track",
@@ -168,11 +195,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
-        if _liveliness_probe:
+        if _liveliness_probe != LivelinessProbeType.NONE:
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.dish_adapter = None
+        self.dish_adapter: DishAdapter | None = None
         self.track_table_entries = track_table_entries
         self.pointing_calculation_period = pointing_calculation_period
         self.track_table_calculator = ProgramTrackTableCalculator(
@@ -247,20 +274,119 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.actual_pointing_process = Process(
-            target=self.process_actual_pointing
+            target=self.process_actual_pointing,
         )
         self.command_object: dict = {
             "TrackLoadStaticOff": self.track_load_static_off_command,
             "Configure_TrackLoadStaticOff": self.configure_command,
         }
         self.process_lock = Lock()
-        self.converter = AzElConverter(self)
-
+        self.kvalue_validation_thread = threading.Timer(
+            5, self.update_kvalue_validation_result
+        )
         self.kvalue_validation_iers_download_thread = threading.Timer(
             5, self.start_init_operations
         )
         self.kvalue_validation_iers_download_thread.start()
+
+        self.create_converter_obj_and_antenna_obj()
+        self.download_iers_data()
+        self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+
+    def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
+        """Create AzElConverter Object and antenna object"""
+        # Once SKB-398 is fixed from TelModel then this
+        # exception handling can be removed.
+        try:
+            self.converter = AzElConverter(self)
+            self.converter.create_antenna_obj()
+        except Exception as exp:
+            self.logger.exception("Error while creating antenna obj %s", exp)
+
+    def is_command_allowed_callable(
+        self: DishLNComponentManager, command_name: str
+    ):
+        """
+        Args:
+            command_name (str): Name for the command for which the is_allowed
+                check need to be applied.
+        """
+        self.check_device_responsive()
+
+        def check_dish_mode():
+            """Return whether the command may be called in the current state.
+
+            Returns:
+                bool: whether the command may be called in the current device
+                state
+            """
+            command_allowed_dish_mode = {
+                "SetStowMode": [
+                    DishMode.STANDBY_FP,
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_LP,
+                    DishMode.CONFIG,
+                ],
+                "SetStandbyLPMode": [
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+                "Configure": [
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.OPERATE,
+                ],
+                "Track": [DishMode.OPERATE],
+                "SetStandbyFPMode": [
+                    DishMode.STANDBY_LP,
+                    DishMode.OPERATE,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+                "TrackLoadStaticOff": [
+                    DishMode.STANDBY_FP,
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_LP,
+                    DishMode.CONFIG,
+                    DishMode.MAINTENANCE,
+                    DishMode.STARTUP,
+                    DishMode.SHUTDOWN,
+                    DishMode.UNKNOWN,
+                ],
+                "TrackStop": [DishMode.OPERATE],
+                "SetOperateMode": [DishMode.STANDBY_FP],
+                "Scan": [
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+                "EndScan": [
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.MAINTENANCE,
+                ],
+            }
+
+            allowed_dish_modes = command_allowed_dish_mode.get(
+                command_name, []
+            )
+
+            return self.dishMode in allowed_dish_modes
+
+        return check_dish_mode
+
+    def is_track_and_trackstop_command_allowed(self: DishLNComponentManager):
+        """checks if track command is allowed"""
+        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
+            PointingState.NONE,
+            PointingState.UNKNOWN,
+        ):
+            return True
+        return False
 
     @property
     def kValueValidationResult(self) -> int:
@@ -273,44 +399,46 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self._kValueValidationResult
 
     @kValueValidationResult.setter
-    def kValueValidationResult(self, result_code: ResultCode) -> None:
+    def kValueValidationResult(
+        self: DishLNComponentManager, result_code: ResultCode
+    ) -> None:
         """Update the k-value validation result property."""
         if self._kValueValidationResult != result_code:
             self._kValueValidationResult = result_code
 
     @property
-    def kValue(self) -> int:
+    def kValue(self: DishLNComponentManager) -> int:
         """Returns the k-value"""
         return self._kvalue
 
     @kValue.setter
-    def kValue(self, k_value: int) -> None:
+    def kValue(self: DishLNComponentManager, k_value: int) -> None:
         """Update the k-value property."""
         if self._kvalue != k_value:
             self._kvalue = k_value
 
     @property
-    def dishMode(self) -> DishMode:
+    def dishMode(self: DishLNComponentManager) -> DishMode:
         """Returns the dishMode of dish master device"""
         return self._device.dish_mode
 
     @property
-    def pointingState(self) -> PointingState:
+    def pointingState(self: DishLNComponentManager) -> PointingState:
         """Returns the pointingState of dish master device"""
         return self._device.pointing_state
 
     @property
-    def dishConfiguredBand(self) -> str:
+    def dishConfiguredBand(self: DishLNComponentManager) -> str:
         """Returns the dishConfiguredBand of dish device"""
         return str(self._device.configured_band)
 
     @property
-    def actual_pointing(self) -> list:
+    def actual_pointing(self: DishLNComponentManager) -> list:
         """Returns the actualPointing of the dish device."""
         return list(self._actual_pointing)
 
     @property
-    def command_in_progress(self) -> str:
+    def command_in_progress(self: DishLNComponentManager) -> str:
         """Method to get value of current command in progress
 
         return: command in progress variable data
@@ -318,8 +446,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self.__command_in_progress
 
+    @property
+    def queue_connector_device_info(
+        self: DishLNComponentManager,
+    ) -> SdpQueueConnectorDeviceInfo:
+        """Get the queue connector device object"""
+        return self._queue_connector_device_info
+
     @command_in_progress.setter
-    def command_in_progress(self, cmd_in_progress: str) -> None:
+    def command_in_progress(
+        self: DishLNComponentManager, cmd_in_progress: str
+    ) -> None:
         """Method used to set command in progress value.
 
         :param cmd_in_progress (str): Name of current command in progress
@@ -329,7 +466,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.__command_in_progress = cmd_in_progress
 
     @actual_pointing.setter
-    def actual_pointing(self, value: list) -> None:
+    def actual_pointing(self: DishLNComponentManager, value: list) -> None:
         """Update the actualPointing of the dish device.
 
         :param value: The list containing timestamp, RA and Dec values.
@@ -338,11 +475,34 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._actual_pointing[:] = value
-        self.logger.debug(
+        self.logger.info(
             "The updated actual pointing values are: %s", self._actual_pointing
         )
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
+
+    @property
+    def last_pointing_data(self: DishLNComponentManager):
+        """Property for last pointing data"""
+        return self._last_pointing_data
+
+    @last_pointing_data.setter
+    def last_pointing_data(
+        self: DishLNComponentManager, last_pointing_data
+    ) -> None:
+        """Method to update the lastPointingData attribute"""
+        self._last_pointing_data = last_pointing_data
+        with self.lock:
+            if self._update_last_pointing_data_callback:
+                self._update_last_pointing_data_callback(last_pointing_data)
+
+    def update_source_offset_callback(
+        self: DishLNComponentManager, source_offset: list
+    ) -> None:
+        """Method to update the sourceOffset attribute"""
+        with self.lock:
+            if self._update_source_offset_callback:
+                self._update_source_offset_callback(source_offset)
 
     def start_init_operations(self) -> None:
         """This method assures proper execution of kvalue validation
@@ -359,7 +519,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         await self.update_kvalue_validation_result()
         await self.download_iers_data()
 
-    async def download_iers_data(self) -> None:
+    def download_iers_data(self: DishLNComponentManager) -> None:
         """Downloads and initialises the IERS file.
         Incase of error with main link, tries downloading using Mirror link.
 
@@ -370,10 +530,34 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
             self.logger.info("IERS file download completed")
         except Exception as exception:
-            self.logger.exception(exception)
-            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+            self.logger.exception(
+                "Failed to download IERS_A data: %s. Trying with a different"
+                + " source.",
+                exception,
+            )
+            self.download_iers_data_from_a_different_source()
+        self.logger.info("IERS data download completed.")
 
-    async def update_kvalue_validation_result(self) -> None:
+    def download_iers_data_from_a_different_source(
+        self: DishLNComponentManager,
+    ) -> None:
+        """Downloads and initialises the IERS file from the mirror or local
+        links.
+
+        :return: None
+        :rtype: None
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+        except Exception as exception:
+            self.logger.exception(
+                "Failed to download IERS_A data: %s. Will use the locally "
+                + "stored data.",
+                exception,
+            )
+            self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
+
+    def update_kvalue_validation_result(self: DishLNComponentManager) -> None:
         """This method informs the k-value validation result
         to central node after DLN start/restart.
 
@@ -389,30 +573,44 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
 
-    def convert_timestamp(self, timestamp_milliseconds: float) -> str:
-        """Converts the floating point timestamp in milliseconds to a utc
+    def convert_timestamp(
+        self: DishLNComponentManager, timestamp_tai_ska_epoch: float
+    ) -> str | None:
+        """Converts the timestamp in TAI format to UTC
         timestamp with format -> %Y-%m-%d %H:%M:%S
+        The value 1999-12-31T23:59:28Z is the SKA_EPOCH
 
-        :param timestamp_milliseconds: Input timestamp with time in
-            milliseconds
-        :type timestamp_milliseconds: float
+        :param timestamp_tai_ska_epoch: Input timestamp with time in
+            TAI format with SKA epoch
+        :type timestamp_tai_ska_epoch: float
 
         :return: Timestamp in string with format "%Y-%m-%d %H:%M:%S".
         :rtype: string
         """
-        timestamp_seconds = timestamp_milliseconds / 1000
-        timestamp = datetime.datetime.utcfromtimestamp(
-            timestamp_seconds
-        ).strftime("%Y-%m-%d %H:%M:%S")
-        return timestamp
+        try:
+            return datetime.datetime.utcfromtimestamp(
+                Time(
+                    float(timestamp_tai_ska_epoch)
+                    + Time(SKA_EPOCH, scale="utc").unix_tai,
+                    format="unix_tai",
+                    scale="tai",
+                ).unix
+            ).strftime("%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            self.logger.exception(
+                "Received invalid achieved pointing timestamp %s from dish."
+                "Exception: %s",
+                timestamp_tai_ska_epoch,
+                e,
+            )
+            return None
 
-    def process_actual_pointing(self) -> None:
+    def process_actual_pointing(self: DishLNComponentManager) -> None:
         """Process the achieved pointing data to calculate actual pointing.
 
         :return: None
         :rtype: None
         """
-
         self.logger.info("Main Process ID: %s", os.getppid())
         self.converter.create_antenna_obj()
         self.logger.info("Sub-Process ID: %s", os.getpid())
@@ -433,7 +631,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "Error in actual pointing process: %s", exception
                     )
 
-    def perform_reverse_transform(self, value_list):
+    def perform_reverse_transform(self: DishLNComponentManager, value_list):
         """
         Performs the reverse transform and publishes it on the actualPointing
         attribute.
@@ -446,23 +644,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            timestamp_milliseconds, azimuth, elevation = value_list
-            timestamp = self.convert_timestamp(timestamp_milliseconds)
-            right_ascension, declination = self.converter.azel_to_radec(
-                str(azimuth),
-                str(elevation),
-                timestamp,
-                self.converter.weather_data,
-            )
-            self.actual_pointing = [timestamp, right_ascension, declination]
-        except (ValueError, IndexError) as exception:
+            timestamp_tai_ska_epoch, azimuth, elevation = value_list
+            timestamp = self.convert_timestamp(timestamp_tai_ska_epoch)
+            if timestamp:
+                right_ascension, declination = self.converter.azel_to_radec(
+                    str(azimuth),
+                    str(elevation),
+                    timestamp,
+                )
+                self.actual_pointing = [
+                    timestamp,
+                    right_ascension,
+                    declination,
+                ]
+        except Exception as exception:
             self.logger.exception(
                 "No values on achievedPointing dish master attribute,"
                 "the device will continue with its normal operation.: %s",
                 exception,
             )
 
-    def stop_event_receiver(self) -> None:
+    def stop_event_receiver(self: DishLNComponentManager) -> None:
         """Stops the Event Receiver
 
         :return: None
@@ -470,7 +672,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.event_receiver_object._thread.is_alive():
             self.event_receiver_object.stop()
 
-    def get_device(self) -> DishDeviceInfo:
+    def get_device(self: DishLNComponentManager) -> DishDeviceInfo:
         """
         Return the device info of the monitoring loop with name dev_name
 
@@ -480,7 +682,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self._device
 
     # pylint: disable=signature-differs
-    def off(self, task_callback: TaskCallbackType) -> Tuple[TaskStatus, str]:
+    def off(
+        self: DishLNComponentManager, task_callback: TaskCallbackType
+    ) -> Tuple[TaskStatus, str]:
         """Submits the Off command for execution.
 
         :rtype: Tuple
@@ -494,7 +698,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     def setstandbyfpmode(
-        self, task_callback: TaskCallbackType
+        self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """
         Initializes the attributes and properties of the DishLeafNode.
@@ -506,13 +710,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setstandbyfpmode_command.set_standby_fp_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable(
+                "SetStandbyFPMode"
+            ),
             task_callback=task_callback,
         )
         self.logger.info("SetStandbyFPMode command queued for execution")
         return task_status, response
 
     def setstandbylpmode(
-        self, task_callback: TaskCallbackType
+        self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetStandbyLPMode command for execution.
 
@@ -525,13 +732,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable(
+                "SetStandbyLPMode"
+            ),
             task_callback=task_callback,
         )
         self.logger.info("SetStandbyLPMode command queued for execution")
         return task_status, response
 
     def setstowmode(
-        self, task_callback: TaskCallbackType
+        self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetStowMode command for execution.
 
@@ -544,13 +754,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setstowmode_command.set_stow_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("SetStowMode"),
             task_callback=task_callback,
         )
         self.logger.info("SetStowMode command queued for execution")
         return task_status, response
 
     def scan(
-        self, argin: str, task_callback: TaskCallbackType
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
     ) -> Tuple[TaskStatus, str]:
         """Submits the Scan command for execution.
 
@@ -565,13 +778,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.scan_command.scan,
             args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("Scan"),
             task_callback=task_callback,
         )
         self.logger.info("Scan command queued for execution")
         return task_status, response
 
     def endscan(
-        self, task_callback: TaskCallbackType
+        self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the EndScan command for execution.
 
@@ -583,12 +797,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.endscan_command.endscan,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("EndScan"),
             task_callback=task_callback,
         )
         self.logger.info("EndScan command queued for execution")
         return task_status, response
 
-    def is_track_allowed(self) -> bool:
+    def is_track_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -612,7 +827,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def track(
-        self, argin: str, task_callback: TaskCallbackType
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
     ) -> Tuple[TaskStatus, str]:
         """Submits the Track command for execution.
 
@@ -646,12 +863,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.track_command.track,
             args=[input_json, self.logger],
+            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("Track command queued for execution")
         return task_status, response
 
-    def is_trackstop_allowed(self) -> bool:
+    def is_trackstop_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -675,7 +893,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def trackstop(
-        self, task_callback: TaskCallbackType
+        self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the TrackStop command for execution.
 
@@ -688,13 +906,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.trackstop_command.trackstop,
             args=[self.logger],
+            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("TrackStop command queued for execution")
         return task_status, response
 
     def setoperatemode(
-        self, task_callback: TaskCallbackType
+        self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """Submits the SetOperateMode command for execution.
 
@@ -707,12 +926,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.setoperatemode_command.set_operate_mode,
             args=[self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("SetOperateMode"),
             task_callback=task_callback,
         )
         self.logger.info("SetOperateMode command queued for execution")
         return task_status, response
 
-    def configure(self, argin: str, task_callback: TaskCallbackType) -> tuple:
+    def configure(
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
+    ) -> tuple:
         """
         Submit the Configure command in queue.
 
@@ -742,13 +966,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.configure_command.invoke_configure,
             args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("Configure"),
             task_callback=task_callback,
         )
         self.logger.info("Configure command queued for execution")
         return task_status, response
 
     def track_load_static_off(
-        self, argin: str, task_callback: TaskCallbackType
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
     ) -> Tuple[TaskStatus, str]:
         """Submits the TrackLoadStaticOff command for execution
 
@@ -781,6 +1008,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.track_load_static_off_command.invoke_track_load_static_off,
             args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable(
+                "TrackLoadStaticOff"
+            ),
             task_callback=task_callback,
         )
         self.logger.info(
@@ -789,7 +1019,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
-    def is_trackloadstaticoff_allowed(self) -> bool:
+    def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the command TrackLoadStaticOff is allowed.
 
         :return: True if the command 'TrackLoadStaticOff' is allowed,
@@ -800,7 +1030,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def is_configure_allowed(self) -> bool:
+    def is_configure_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -818,15 +1048,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return True
 
         raise CommandNotAllowed(
-            "The invocation of the Configure command on this"
-            + "device is not allowed."
-            + "Reason: The current dish mode is"
-            + f"{self.dishMode}"
-            + "The command has NOT been executed."
+            "The invocation of the Off command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
 
-    def is_off_allowed(self) -> bool:
+    def is_off_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -852,7 +1082,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def is_setstowmode_allowed(self) -> bool:
+    def is_setstowmode_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -879,7 +1109,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def is_setoperatemode_allowed(self) -> bool:
+    def is_setoperatemode_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -903,7 +1133,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def is_setstandbyfpmode_allowed(self) -> bool:
+    def is_setstandbyfpmode_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -927,13 +1157,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def is_setstandbylpmode_allowed(self) -> bool:
+    def is_setstandbylpmode_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
         :rtype: boolean
         """
-
         self.check_device_responsive()
         if self.dishMode in [
             DishMode.STANDBY_FP,
@@ -952,17 +1181,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def is_scan_allowed(
-        self,
-    ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
+        self: DishLNComponentManager,
+    ) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
         :return: True if this command is allowed to be run in current
             dish mode, raises CommandNotAllowed in case is is not allowed and
             DeviceUnresponsive in case Device is not responsive.
-
         :rtype: Union[bool, CommandNotAllowed, DeviceUnresponsive]
         """
+
         self.check_device_responsive()
         if self.dishMode in [
             DishMode.OPERATE,
@@ -982,8 +1211,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def is_endscan_allowed(
-        self,
-    ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
+        self: DishLNComponentManager,
+    ) -> bool:
         """Checks if the given command is allowed in current operational
         state.
 
@@ -1011,12 +1240,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "This device will continue with normal operation."
         )
 
-    def check_device_responsive(self) -> None:
+    def check_device_responsive(self: DishLNComponentManager) -> None:
         """Checks if dish master device is responsive."""
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
 
-    def update_device_dish_mode(self, dish_mode: DishMode) -> None:
+    def update_device_dish_mode(
+        self: DishLNComponentManager, dish_mode: DishMode
+    ) -> None:
         """
         Update the dish mode of the given dish and call
         the relative callbacks if available.
@@ -1029,12 +1260,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-            self.logger.info(f"dishMode value updated to {dish_mode}")
+            self.logger.info(
+                f"dishMode value updated to {DishMode(dish_mode).name}"
+            )
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
     def update_device_pointing_state(
-        self, pointingState: PointingState
+        self: DishLNComponentManager, pointingState: PointingState
     ) -> None:
         """
         Update the pointing state of the given dish and call
@@ -1051,11 +1284,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-            self.logger.info(f"PointingState value updated to {pointingState}")
+            self.logger.info(
+                "PointingState value updated to "
+                + f"{PointingState(pointingState).name}"
+            )
             if self._update_pointingstate_callback:
                 self._update_pointingstate_callback(pointingState)
 
-    def update_device_configured_band(self, configured_band: Band) -> None:
+    def update_device_configured_band(
+        self: DishLNComponentManager, configured_band: Band
+    ) -> None:
         """
         Update the configured band of the given dish and call
         the relative callbacks if available.
@@ -1069,14 +1307,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-    def set_dish_id(self, dish_master_fqdn: str) -> None:
+    def set_dish_id(
+        self: DishLNComponentManager, dish_master_fqdn: str
+    ) -> None:
         """Find out dish number from DishMasterFQDN
-        property e.g. ska001/elt/master"""
-        self.dish_id = dish_master_fqdn.split("/")[
-            -3
-        ].upper()  # station names in the layout json are in capital
+        property e.g. mid-dish/dish-manager/SKA001
+        Here, SKA001 is the dish number.
+        """
+        self.dish_id = re.findall(
+            "\\b(?:SKA|MKT)\\d{3}\\b", dish_master_fqdn, flags=re.IGNORECASE
+        )[
+            0
+        ]  # station names in the layout json are in capital
 
-    def is_abortcommands_allowed(self) -> bool:
+    def is_abortcommands_allowed(self: DishLNComponentManager) -> bool:
         """
         Checks whether this command is allowed
         It checks that the device is in the right state
@@ -1093,7 +1337,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def is_set_kvalue_allowed(self) -> bool:
+    def is_set_kvalue_allowed(self: DishLNComponentManager) -> bool:
         """
         Checks whether this command is allowed
         It checks that the device is responsive
@@ -1106,7 +1350,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def update_program_track_table(self, program_track_table: List) -> None:
+    def update_program_track_table(
+        self: DishLNComponentManager, program_track_table: List
+    ) -> None:
         """
         This method writes the programTrackTable attribute on dish master
         device.
@@ -1117,21 +1363,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+        with self.tango_operation_execution_lock:
+            self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
-        self.dish_adapter.programTrackTable = program_track_table
 
     def track_process(
-        self, ra_value: str, dec_value: str, command_obj: Configure | Track
+        self: DishLNComponentManager,
+        target_data: Union[str, List[str]],
+        command_obj: Configure | Track,
     ) -> None:
         """
         This method manages calculation and writing of programTrackTable
         attribute on DishMaster at the required frequency.
 
-        :param ra_value: Right Ascension of the source in hours:minutes:sec.
-        :type ra_value: str
-        :param dec_value: Declination of the source in
-            degree:arc_minutes:arc_sec.
-        :type dec_value: str
+        :param target_data: The name or RaDec for the target
+        :type target_data: Union[str, List[str]]
         :param command_obj: Command Object which is used to set
             desired_pointing.
         :type command_obj: Configure or Track.
@@ -1142,8 +1388,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        azel_converter = AzElConverter(self)
-        azel_converter.create_antenna_obj()
+        self.track_table_calculator = ProgramTrackTableCalculator(
+            self, self.logger
+        )
         self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
@@ -1159,7 +1406,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
         timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
-        azel_converter.point(ra_value, dec_value, timestamp)
+        if isinstance(target_data, str):
+            self.converter.point_to_body(target_data, timestamp)
+        else:
+            ra, dec = target_data
+            self.converter.point(ra, dec, timestamp)
 
         advance_time = (
             self.track_table_entries * self.pointing_calculation_period
@@ -1168,7 +1419,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while self.get_track_process_event_status() is False:
             program_track_table = (
                 self.track_table_calculator.calculate_program_track_table(
-                    ra_value, dec_value, azel_converter
+                    target_data, self.converter
                 )
             )
             first_entry_timestamp = (
@@ -1190,10 +1441,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
             else:
                 self.update_program_track_table(program_track_table)
+        self.logger.info("Program Track Table Calculation stopped.")
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
-        self, device_info: DeviceInfo, exception: str
+        self: DishLNComponentManager, device_info: DeviceInfo, exception: str
     ) -> None:
         """Set a device to failed and call the relative callback if available
 
@@ -1208,7 +1460,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
 
-    def update_ping_info(self, ping: int, device_name: str) -> None:
+    def update_ping_info(
+        self: DishLNComponentManager, ping: int, device_name: str
+    ) -> None:
         """
         Update a device with the correct ping information.
 
@@ -1224,36 +1478,53 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def update_device_long_running_command_status(
-        self, lrc_status: Tuple[List[str], List[str]]
+    def update_device_long_running_command_result(
+        self: DishLNComponentManager, lrc_result: Tuple[str, str]
     ) -> None:
         """
-        Method to update task callback based on long running command status
+        Method to update task callback based on long running command result
         event data.
 
-        :param lrc_status: longRunningCommandStatus attribute event data
+        :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
+        self.logger.info(
+            "Received a longRunningCommandResult event with data: %s",
+            lrc_result,
+        )
         try:
-            if not lrc_status:
+            if not lrc_result:
                 return
             with self.lock:
+                if lrc_result == ("", ""):
+                    return
+
                 if (
-                    lrc_status[0].endswith(self.supported_commands)
+                    lrc_result[0].endswith(self.supported_commands)
                     and self.command_in_progress in self.supported_commands
                 ):
+                    self.logger.debug(
+                        "The command in progress is: %s for processing of "
+                        + "LRCR event",
+                        self.command_in_progress,
+                    )
+                    command_result, message = json.loads(lrc_result[1])
                     command_object = self.command_object.get(
                         self.command_in_progress
                     )
-                    if lrc_status[1].upper() == "COMPLETED":
+                    if command_result == ResultCode.OK:
                         command_object.update_task_callback(ResultCode.OK)
-                    elif lrc_status[1].upper() == "FAILED":
+                    elif command_result in [
+                        ResultCode.FAILED,
+                        ResultCode.NOT_ALLOWED,
+                        ResultCode.REJECTED,
+                    ]:
                         command_object.update_task_callback(
-                            ResultCode.FAILED, lrc_status[1]
+                            ResultCode.FAILED, exception=message
                         )
         except Exception as exception:
-            self.logger.error(
-                "Exception while processing longRunningCommandStatus",
+            self.logger.exception(
+                "Exception while processing longRunningCommandResult",
                 exception,
             )
 
@@ -1280,17 +1551,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         return [None]
 
-    def update_device_long_running_command_result(
-        self, device_name: str, value: str
-    ) -> None:
-        """
-        Method to update task callback based on long running command result
-        event data.
-        """
-        process_long_running_command_result(self, device_name, value)
+    # def update_device_long_running_command_result(
+    #     self, device_name: str, value: str
+    # ) -> None:
+    #     """
+    #     Method to update task callback based on long running command result
+    #     event data.
+    #     """
+    #     process_long_running_command_result(self, device_name, value)
 
     @property
-    def elevation_limit(self) -> bool:
+    def elevation_limit(self: DishLNComponentManager) -> bool:
         """Returns the True if dish is within its mechanical limit.
 
         :return: True if the dish is within its mechanical elevation limit,
@@ -1300,7 +1571,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self.el_limit
 
     @elevation_limit.setter
-    def elevation_limit(self, elevation_limit: bool) -> None:
+    def elevation_limit(
+        self: DishLNComponentManager, elevation_limit: bool
+    ) -> None:
         """
         Sets flag for elevation limit.
 
@@ -1313,7 +1586,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.el_limit != elevation_limit:
             self.el_limit = elevation_limit
 
-    def set_track_process_event(self) -> None:
+    def set_track_process_event(self: DishLNComponentManager) -> None:
         """
         Sets event for track process.
 
@@ -1322,7 +1595,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self._track_process_event.set()
 
-    def get_track_process_event_status(self) -> bool:
+    def get_track_process_event_status(self: DishLNComponentManager) -> bool:
         """
         Returns track process event status
 
@@ -1331,7 +1604,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._track_process_event.is_set()
 
-    def reset_track_process_event(self) -> None:
+    def reset_track_process_event(self: DishLNComponentManager) -> None:
         """
         Resets track process event
 
@@ -1340,18 +1613,129 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self._track_process_event.clear()
 
-    def stop_executors_and_cleanup_memory(self) -> None:
+    def process_sqpqc_attribute_fqdn(
+        self, sdpqc_fqdn: str, dish_id: str
+    ) -> None:
+        """Method to subscribe to SDP queue connector attribute.
+        :type attribute_name: str
+        :return: None
+        :rtype: None
+        """
+        dev_name = sdpqc_fqdn.rsplit("/", 1)[0]
+        # Return if same FQDN exists
+        if dev_name == self.queue_connector_device_info.dev_name:
+            return
+        # Unsubscribe the old FQDN if new FQDN comes
+        if (
+            self.queue_connector_device_info.dev_name
+            and dev_name != self.queue_connector_device_info.dev_name
+        ):
+            self.event_receiver_object.unsubscribe_sdpqc_attribute(
+                self.queue_connector_device_info
+            )
+        # Subscribe to the SDP queue connector attribute
+        self.queue_connector_device_info.dev_name = dev_name
+        attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(dish_id=dish_id)
+        self.event_receiver_object.subscribe_sdpqc_attribute(
+            self.queue_connector_device_info, attribute_name
+        )
+
+        if self.queue_connector_device_info.event_id:
+            self.queue_connector_device_info.subscribed_to_attribute = True
+            self.queue_connector_device_info.attribute_name = attribute_name
+            self.logger.info(
+                "Subscribed to %s of %s.",
+                self.queue_connector_device_info.attribute_name,
+                self.queue_connector_device_info.dev_name,
+            )
+        else:
+            self.queue_connector_device_info.dev_name = ""
+            self.logger.exception(
+                "Failed to subscribe to %s of %s.",
+                self.queue_connector_device_info.attribute_name,
+                self.queue_connector_device_info.dev_name,
+            )
+
+    def process_pointing_calibration(
+        self: DishLNComponentManager, event_data: tango.EventData
+    ) -> None:
+        """Method to process pointing offsets received
+        from SDP queue connector device
+        """
+        try:
+            if self.queue_connector_device_info.subscribed_to_attribute:
+                if self.validate_float_list(
+                    event_data.attr_value.value, number_of_values=3
+                ):
+                    if np.isnan(event_data.attr_value.value).any():
+                        self.last_pointing_data = event_data.attr_value.value
+                        self.logger.error(
+                            "NaN value found in %s receeived pointing data",
+                            self.last_pointing_data,
+                        )
+                    else:
+                        self.queue_connector_device_info.pointing_data = (
+                            event_data.attr_value.value
+                        )
+                        self.received_pointing_data[:] = [
+                            self.queue_connector_device_info
+                        ]
+                        self.last_pointing_data = event_data.attr_value.value
+                        offsets = json.dumps(
+                            [
+                                event_data.attr_value.value[1],
+                                event_data.attr_value.value[2],
+                            ]
+                        )
+                        self.track_load_static_off_command.do(offsets)
+            self.logger.info(
+                "Received SDPQC pointing calibrration: %s",
+                event_data.attr_value.value,
+            )
+        except Exception as e:
+            self.logger.exception(
+                f"Error while processing {event_data.attr_value.value}"
+                f"Exception Message is: {e}"
+            )
+
+    def validate_float_list(
+        self: DishLNComponentManager, lst: list, number_of_values: int
+    ) -> bool:
+        """Method to check the list in valid format
+
+        :type lst: list
+        :type: number_of_values: int
+        :return: bool
+        :rtype: bool
+        """
+        if len(lst) != number_of_values:
+            raise ValueError(
+                f"The data {lst}"
+                " should contain atleast {number_of_values} numbers in list."
+            )
+
+        is_all_float = all(isinstance(element, float) for element in lst)
+        if not is_all_float:
+            raise ValueError(
+                f"The data {lst}" " received is not in expected format."
+            )
+        return True
+
+    def stop_executors_and_cleanup_memory(
+        self: DishLNComponentManager,
+    ) -> None:
         """Method to clean up the code, stop running threads/sub-processes
 
         :return: None
         :rtype: None
         """
         self.logger.info("Inside stop_executors_and_cleanup_memory")
-        if self.liveliness_probe_object:
-            self.stop_liveliness_probe()
 
         if self.event_receiver:
             self.stop_event_receiver()
+
+        if self.liveliness_probe_object:
+            self.stop_liveliness_probe()
 
         # We need to terminate thread running in asyncio
         # Hence below code is needed and pylint warning needs to be
@@ -1364,12 +1748,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.join()
-        self.actual_pointing[:] = [None]
+        del self._actual_pointing
+        del self.received_pointing_data
         while not self.achieved_pointing_data.empty():
             _ = self.achieved_pointing_data.get(block=True)
-        self.achieved_pointing_data.put(None)
+        del self.achieved_pointing_data
         self.process_manager.shutdown()
-
         self.logger.info("stop_executors_and_cleanup_memory successful")
 
     def get_dish_state(
@@ -1383,7 +1767,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.get_lrcr_result(command_id)[0],
         ]
 
-    def __del__(self):
+    def __del__(self: DishLNComponentManager):
         """
         DishLN Component Manager Destructor method.
         This method is automatically called when the object is about to be
