@@ -432,13 +432,13 @@ class Configure(DishLNCommand):
         self.logger.info("Start time: %s", start_time)
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
-            if self.component_manager.track_table_provided is True:
-                self.component_manager.track_table_provided = False
+            if self.component_manager.get_track_table_provided() is True:
+                self.logger.info("Tracktable flag is True")
                 return True
             time.sleep(0.2)
             self.logger.info(
                 "Track table flag: %s",
-                self.component_manager.track_table_provided,
+                self.component_manager.get_track_table_provided(),
             )
             elapsed_time = time.time() - start_time
         self.logger.error("Time out while waiting to generate TrackTable")
