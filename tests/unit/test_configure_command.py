@@ -159,7 +159,7 @@ def test_json_validation_pointing_doesnot_exist(
     result, message = cm.configure(
         configure_input_str, task_callback=task_callback
     )
-    assert result == ResultCode.FAILED
+    assert result == ResultCode.REJECTED
     assert "Correction key 'pointing' does not exist" in message
 
 

@@ -940,7 +940,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
         except KeyError as exception:
             return (
-                ResultCode.FAILED,
+                ResultCode.REJECTED,
                 f"Correction key 'pointing' does not exist: {exception}",
             )
 
