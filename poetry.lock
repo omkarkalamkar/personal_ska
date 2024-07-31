@@ -1799,7 +1799,7 @@ ska-telmodel = "^1.19.0"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "hm-509"
-resolved_reference = "8216dbc1566a5c5b8cbd1912d020bf8a87164ce5"
+resolved_reference = "2198a4cf2e81a5c04c5868aca6d927fa78e9f082"
 
 [[package]]
 name = "smmap"
