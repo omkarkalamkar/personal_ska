@@ -55,7 +55,6 @@ def test_azel_to_radec(
     assert expected_dec == dec
 
 
-@pytest.mark.skip("Will be solved as a part of SAH-1518")
 def test_actual_pointing(tango_context, cm):
     """Test to check actual pointing is getting updated"""
     timestamp_str = "2019-02-19 06:01:00"
