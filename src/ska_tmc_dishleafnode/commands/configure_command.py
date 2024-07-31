@@ -431,22 +431,16 @@ class Configure(DishLNCommand):
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
-            # if len(track_table) > 0:  # and len(track_table)%3 == 0:
-            #     return True
-            if self.component_manager.track_table_provided:
+            with self.component_manager.tracktablelock:
+                ptt_value = self.component_manager.track_table_provided
+            if ptt_value:
                 return True
-            time.sleep(0.1)
-            self.logger.info(
-                "Track table flag: %s",
-                self.component_manager.track_table_provided,
-            )
+            time.sleep(0.5)
+            self.logger.info("Track table flag: %s", ptt_value)
             elapsed_time = time.time() - start_time
         with self.component_manager.tango_operation_execution_lock:
             track_table = self.dish_master_adapter.programTrackTable
         self.logger.error(
             "Time out while waiting to generate TrackTable: %s", track_table
-        )
-        self.logger.info(
-            "Track table flag: %s", self.component_manager.track_table_provided
         )
         return False

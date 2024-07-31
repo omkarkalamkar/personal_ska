@@ -132,6 +132,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             else None
         )
         self.tango_operation_execution_lock = Lock()
+        self.tracktablelock = Lock()
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
@@ -1292,7 +1293,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
-        self.track_table_provided = True
+        with self.tracktablelock:
+            self.track_table_provided = True
 
     def track_process(self) -> None:
         """
@@ -1358,7 +1360,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
             self.track_table_scheduler.run()
         self.logger.info("Program Track Table Calculation stopped.")
-        self.track_table_provided = False
+        with self.tracktablelock:
+            self.track_table_provided = False
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
