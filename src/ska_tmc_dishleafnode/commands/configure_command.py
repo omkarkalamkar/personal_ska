@@ -230,9 +230,16 @@ class Configure(DishLNCommand):
 
             self.component_manager.target_data = target_data
             self.component_manager.dish_adapter = self.dish_master_adapter
+
             try:
                 if not self.component_manager.track_table_process.is_alive():
+                    self.logger.info("Starting new TrackTable calculation...")
                     self.component_manager.track_table_process.start()
+                else:
+                    self.logger.info(
+                        "TrackTable calculation is already on...will not "
+                        "start again..."
+                    )
             except Exception as exception:
                 self.logger.error(
                     "Exception occurred while starting programTrackTable "
