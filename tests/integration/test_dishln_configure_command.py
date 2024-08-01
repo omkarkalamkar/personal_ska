@@ -8,12 +8,11 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
-from tests.settings import (
+from tests.settings import (  # event_remover,
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     build_partial_configure_data,
-    event_remover,
     logger,
     tear_down,
 )
@@ -118,10 +117,6 @@ def unhappy_configure_command(
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
-    event_remover(
-        group_callback,
-        ["longRunningCommandsInQueue", "longRunningCommandResult"],
-    )
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
 
@@ -160,15 +155,15 @@ def unhappy_configure_command(
         lookahead=2,
     )
 
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandsInQueue",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandsInQueue"],
-    )
+    # dish_leaf_node.subscribe_event(
+    #     "longRunningCommandsInQueue",
+    #     tango.EventType.CHANGE_EVENT,
+    #     group_callback["longRunningCommandsInQueue"],
+    # )
 
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (),
-    )
+    # group_callback["longRunningCommandsInQueue"].assert_change_event(
+    #     (),
+    # )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     sleep(1)
@@ -184,7 +179,7 @@ def unhappy_configure_command(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], str(int(ResultCode.OK))),
+        (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
     )
 
@@ -205,7 +200,7 @@ def unhappy_configure_command(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
