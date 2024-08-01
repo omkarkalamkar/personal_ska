@@ -121,8 +121,8 @@ def unhappy_configure_command(
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
 
     # This is needed since we want to exeute test case 10 times.
-    dish_master.SetDirectConfiguredBand(1)
-    sleep(1)
+    # dish_master.SetDirectConfiguredBand(1)
+    # sleep(1)
 
     # dish_master.subscribe_event(
     #     "dishMode",
