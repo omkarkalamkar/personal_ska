@@ -172,11 +172,6 @@ class Configure(DishLNCommand):
                 "correction"
             ]
 
-            if self.component_manager.correction_key == "RESET":
-                offsets = json.dumps([0, 0])
-                self.component_manager.track_load_static_off_command.do(
-                    offsets
-                )
         return (ResultCode.OK, "")
 
     # pylint: disable=signature-differs
@@ -219,6 +214,11 @@ class Configure(DishLNCommand):
             # Start programTrackTable calculation
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
+            if self.component_manager.correction_key == "RESET":
+                offsets = json.dumps([0.0, 0.0])
+                self.component_manager.track_load_static_off_command.do(
+                    offsets
+                )
 
             if json_argument.get("tmc"):
                 if json_argument["pointing"]["correction"] == "RESET":

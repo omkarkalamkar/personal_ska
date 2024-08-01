@@ -273,7 +273,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self._correction_key: str = "UPDATE"
+        self._correction_key: str = ""
 
     @property
     def correction_key(self: DishLNComponentManager):
@@ -1631,7 +1631,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.last_pointing_data,
                         )
                     else:
-                        if self.correction_key == "UPDATE":
+                        if self.correction_key in ["UPDATE", ""]:
                             self.queue_connector_device_info.pointing_data = (
                                 event_data.attr_value.value
                             )
