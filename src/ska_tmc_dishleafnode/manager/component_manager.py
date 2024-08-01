@@ -1466,6 +1466,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.info(
                 "programTrackTable: %s", self.dish_adapter.programTrackTable
             )
+        self.logger.info(
+            "Track process evt: %s", str(self.get_track_process_event_status())
+        )
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(

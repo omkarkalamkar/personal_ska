@@ -244,7 +244,7 @@ class Configure(DishLNCommand):
                 self.logger.error(
                     "Exception occurred while starting programTrackTable "
                     "calculation: %s",
-                    exception,
+                    str(exception),
                 )
 
             receiver_band = json_argument["dish"]["receiver_band"]
