@@ -76,7 +76,6 @@ python-test:
   tags:
     - k8srunner-large
   variables:
-    MARK: JS
     PYTHON_TEST_COUNT: 1
   image: artefact.skao.int/ska-tango-images-pytango-builder:9.4.3
 
@@ -89,13 +88,13 @@ k8s-test:
     - k8srunner-large
   variables:
     COUNT: 1
-    MARK: MM
     SERVICE_ACCOUNT: "ci-svc-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-on-demand-tmc-test"
-  before_script:
+  script:
     - make cred SERVICE_ACCOUNT=$SERVICE_ACCOUNT
     - '[ -f .make/k8s.mk ] || (echo "File k8s.mk not included in Makefile; exit 1")'
     - make k8s-install-chart
     - make k8s-wait
+    - make k8s-test MARK=MM
   environment:
       name: test/$CI_COMMIT_REF_SLUG
       on_stop: stop-k8s-test
