@@ -42,6 +42,7 @@ from ska_tmc_common import (
     TmcLeafNodeComponentManager,
 )
 from ska_tmc_common.adapters import DishAdapter
+from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -1396,10 +1397,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.info(
-            "Initial track_table_provided value: %s",
-            str(self.get_track_table_provided()),
-        )
+        # self.logger.info(
+        #     "Initial track_table_provided value: %s",
+        #     str(self.get_track_table_provided()),
+        # )
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
@@ -1418,6 +1419,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def get_track_table_provided(self):
         """Returns tracktable flag"""
         return bool(self.track_table_provided)
+
+    def get_dish_track_table(self):
+        """Read Dish ProgramTrackTable attribute"""
+        dish_proxy = DeviceProxy(self.dish_dev_name)
+        track_table = dish_proxy.programTrackTable
+        self.logger.info("Dish TRACK TABLE ---------: %s", track_table)
+        return track_table
 
     def track_process(
         self: DishLNComponentManager,
