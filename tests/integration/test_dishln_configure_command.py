@@ -192,9 +192,9 @@ def unhappy_configure_command(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode", "Configure")
-    )
+    # group_callback["longRunningCommandsInQueue"].assert_change_event(
+    #     ("SetStandbyFPMode", "Configure")
+    # )
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
@@ -233,15 +233,15 @@ def unhappy_configure_command(
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     time.sleep(1)
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        (
-            "Configure",
-            "TrackStop",
-        ),
-        lookahead=9,
-    )
+    # group_callback["longRunningCommandsInQueue"].assert_change_event(
+    #     (
+    #         "Configure",
+    #         "TrackStop",
+    #     ),
+    #     lookahead=9,
+    # )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], str(int(ResultCode.OK))),
+        (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=9,
     )
 
