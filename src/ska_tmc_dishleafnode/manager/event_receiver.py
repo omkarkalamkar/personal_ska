@@ -239,7 +239,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_data.attr_value.value
         self._component_manager.update_device_long_running_command_result(
-            event_data.device.dev_name(), new_value
+            new_value
         )
         self._logger.info(f"long running command value updated to {new_value}")
 
