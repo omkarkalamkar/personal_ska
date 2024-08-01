@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import re
 from typing import List, Tuple, Union
 
 from numpy import isnan
@@ -77,7 +76,7 @@ class DishLeafNode(SKABaseDevice):
     PointingCalculationPeriod = device_property(
         dtype="DevShort",
         default_value=100,
-        doc="Time difference between two consecutive entries of "
+        doc="Time difference between two consecutive entries of"
         + "programTrackTable in milliseconds",
     )
 
@@ -323,13 +322,9 @@ class DishLeafNode(SKABaseDevice):
         subarray node and then Dish Leaf Node have to subscribe to its
         respective pointing_cal attribute on queue connector device.
         """
-        dish_id = re.findall(
-            "\\b(?:SKA|MKT)\\d{3}\\b", self.DishMasterFQDN, flags=re.IGNORECASE
-        )[0].upper()
+
         self._sdpQueueConnectorFqdn = sdpqc_fqdn
-        self.component_manager.process_sqpqc_attribute_fqdn(
-            sdpqc_fqdn, dish_id
-        )
+        self.component_manager.process_sqpqc_attribute_fqdn(sdpqc_fqdn)
         self.push_change_event(
             "sdpQueueConnectorFqdn", self._sdpQueueConnectorFqdn
         )
@@ -829,6 +824,39 @@ class DishLeafNode(SKABaseDevice):
             self.update_kvalue_callback()
         return [result_code], [unique_id]
 
+    @command(
+        dtype_in="str",
+        doc_in="The JSON input string containing Global " + "pointing data",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def StaticPmSetup(
+        self: DishLeafNode, argin: str
+    ) -> Tuple[List[ResultCode], List[str]]:
+        """
+        Invokes StaticPmSetup command on DishMaster
+        Its a dummy command at present.
+        Will be renamed, once Dish ICD gets updated.
+
+        :rtype: tuple
+        """
+        handler = self.get_command_object("StaticPmSetup")
+        result_code, unique_id = handler(argin)
+
+        return [result_code], [str(unique_id)]
+
+    def is_StaticPmSetup_allowed(self: DishLeafNode) -> bool:
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+            device state.
+
+        :rtype: boolean
+        """
+        return self.component_manager.is_staticpmsetup_allowed()
+
     def create_component_manager(self: DishLeafNode):
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
@@ -876,6 +904,7 @@ class DishLeafNode(SKABaseDevice):
             ("TrackLoadStaticOff", "track_load_static_off"),
             ("Scan", "scan"),
             ("EndScan", "endscan"),
+            ("StaticPmSetup", "static_pm_setup"),
         ]:
             self.register_command_object(
                 command_name,

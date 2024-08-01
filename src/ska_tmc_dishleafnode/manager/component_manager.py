@@ -46,6 +46,7 @@ from ska_tmc_dishleafnode.commands import (
     SetStandbyFPMode,
     SetStandbyLPMode,
     SetStowMode,
+    StaticPmSetup,
     Track,
     TrackLoadStaticOff,
     TrackStop,
@@ -258,6 +259,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger,
         )
 
+        self.static_pm_setup_command = StaticPmSetup(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            self.logger,
+        )
+
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
         )
@@ -348,6 +356,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.STANDBY_FP,
                     DishMode.STOW,
                     DishMode.MAINTENANCE,
+                ],
+                "StaticPmSetup": [
+                    DishMode.STANDBY_FP,
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_LP,
+                    DishMode.CONFIG,
+                    DishMode.MAINTENANCE,
+                    DishMode.STARTUP,
+                    DishMode.SHUTDOWN,
+                    DishMode.UNKNOWN,
                 ],
             }
 
@@ -992,6 +1010,44 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
+    def static_pm_setup(
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the StaticPmSetup command for execution
+
+        :param argin: String giving TelModel URI.
+        :type: str
+        :task_callback: Callback function to handle task status.
+        :type: TaskCallbackType
+
+        :return: A tuple containing TaskStatus and a message string.
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.static_pm_setup_command.invoke_static_pm_setup,
+            args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("StaticPmSetup"),
+            task_callback=task_callback,
+        )
+        self.logger.info(
+            "StaticPmSetup command queued for execution with argin: %s",
+            argin,
+        )
+        return task_status, response
+
+    def is_staticpmsetup_allowed(self: DishLNComponentManager) -> bool:
+        """Checks if the command StaticPmSetup is allowed.
+
+        :return: True if the command 'StaticPmSetup' is allowed,
+            False otherwise.
+        :rtype: boolean
+        """
+
+        self.check_device_responsive()
+        return True
+
     def is_configure_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
@@ -1543,9 +1599,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self._track_process_event.clear()
 
-    def process_sqpqc_attribute_fqdn(
-        self, sdpqc_fqdn: str, dish_id: str
-    ) -> None:
+    def process_sqpqc_attribute_fqdn(self, sdpqc_fqdn: str) -> None:
         """Method to subscribe to SDP queue connector attribute.
         :type attribute_name: str
         :return: None
@@ -1565,7 +1619,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
         # Subscribe to the SDP queue connector attribute
         self.queue_connector_device_info.dev_name = dev_name
-        attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(dish_id=dish_id)
+        attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(
+            dish_id=self.dish_id
+        )
         self.event_receiver_object.subscribe_sdpqc_attribute(
             self.queue_connector_device_info, attribute_name
         )
