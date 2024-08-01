@@ -81,5 +81,10 @@ class TrackStop(DishLNCommand):
         if self.component_manager.track_table_process.is_alive():
             self.logger.info("Stopping Track table process...")
             self.component_manager.track_table_process.join()
+        else:
+            self.logger.info(
+                "Track table process is alive: %s",
+                str(self.component_manager.track_table_process.is_alive()),
+            )
 
         return result_code[0], message[0]

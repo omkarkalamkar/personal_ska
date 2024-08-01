@@ -232,9 +232,14 @@ class Configure(DishLNCommand):
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
 
+            self.logger.info(
+                "track process is_alive: %s",
+                str(self.component_manager.track_table_process.is_alive()),
+            )
             try:
                 if not self.component_manager.track_table_process.is_alive():
                     self.logger.info("Starting new TrackTable calculation...")
+                    self.component_manager.create_track_process()
                     self.component_manager.track_table_process.start()
                 else:
                     self.logger.info(

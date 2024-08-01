@@ -1398,6 +1398,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Dish TRACK TABLE ---------: %s", track_table)
         return track_table
 
+    def create_track_process(self):
+        """Creates new process"""
+        self.track_table_process = Process(target=self.track_process)
+
     def track_process(
         self: DishLNComponentManager,
     ) -> None:
