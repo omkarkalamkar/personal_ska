@@ -5,6 +5,7 @@ import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
+from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
@@ -16,25 +17,17 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context,
-    cm,
-    task_callback,
-    json_factory,
+    tango_context, cm, task_callback, json_factory, dish_master_device
 ):
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    DeviceProxy(dish_master_device).SetDirectDishMode(DishMode.STANDBY_FP)
+    time.sleep(0.2)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
-
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
-    time.sleep(0.5)
-    cm.update_device_configured_band("2")
-    time.sleep(0.5)
-    cm.update_device_dish_mode(DishMode.OPERATE)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )

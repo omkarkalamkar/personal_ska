@@ -60,6 +60,7 @@ deviceServers:
     file: "data/dishleafnode.yaml"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
+    TrackTableInAdvance: 8
   sdpqc:
     enabled: true
     instances: ["01"]

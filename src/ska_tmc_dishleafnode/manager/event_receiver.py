@@ -221,7 +221,9 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_device_long_running_command_result(
             new_value
         )
-        self._logger.info(f"long running command value updated to {new_value}")
+        self._logger.info(
+            f"longRunningCommandResult attribute event: {new_value}"
+        )
 
     def subscribe_sdpqc_attribute(
         self: DishLNEventReceiver,

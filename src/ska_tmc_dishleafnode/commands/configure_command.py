@@ -6,8 +6,8 @@ from __future__ import annotations
 import json
 import logging
 import threading
+import time
 from logging import Logger
-from multiprocessing import Process
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from ska_ser_logging import configure_logging
@@ -216,7 +216,7 @@ class Configure(DishLNCommand):
                 return self.invoke_trackloadstaticoff(json_argument)
 
             if (
-                json_argument["pointing"]["target"]["reference_frame"]
+                json_argument["pointing"]["target"]["reference_frame"].lower()
                 == "special"
             ):
                 target_data = json_argument["pointing"]["target"][
@@ -228,32 +228,41 @@ class Configure(DishLNCommand):
                     json_argument["pointing"]["target"]["dec"],
                 ]
 
-            self.track_table_process = Process(
-                target=self.component_manager.track_process,
-                args=[target_data, self],
-            )
-
-            if not self.track_table_process.is_alive():
-                self.track_table_process.start()
+            self.component_manager.target_data = target_data
+            self.component_manager.dish_adapter = self.dish_master_adapter
+            try:
+                if not self.component_manager.track_table_process.is_alive():
+                    self.component_manager.track_table_process.start()
+            except Exception as exception:
+                self.logger.error(
+                    "Exception occurred while starting programTrackTable "
+                    "calculation: %s",
+                    exception,
+                )
 
             receiver_band = json_argument["dish"]["receiver_band"]
             command_name = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
+            current_dish_mode = self.component_manager.dishMode
+
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, command_name, True
+                    "Dish Master",
+                    self.dish_master_adapter,
+                    command_name,
+                    True,
                 )
-
             if (
                 self.component_manager.dishMode != DishMode.STOW
                 and result_code[0] not in [ResultCode.FAILED]
             ):
                 result_code, message = self.ensure_dish_is_configured(
-                    receiver_band
+                    receiver_band, current_dish_mode
                 )
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
+
                 result_code, message = self.start_dish_tracking()
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
@@ -325,7 +334,7 @@ class Configure(DishLNCommand):
         return self.invoke_track_command()
 
     def ensure_dish_is_configured(
-        self: Configure, receiver_band: str
+        self, receiver_band: str, expected_dish_mode: DishMode
     ) -> Tuple[List[ResultCode], List[str]]:
         """This method check for the completion of configure command
 
@@ -348,6 +357,18 @@ class Configure(DishLNCommand):
                     + " configuredBand in Configure command."
                 ],
             )
+        result = self.set_wait_for_dishmode(expected_dish_mode)
+        if not result:
+            self.logger.error(
+                "Timeout occurred while waiting for dishMode: %s. "
+                "ConfigureBand Command failed on the dish manager.",
+                expected_dish_mode,
+            )
+            message = (
+                "Timeout occurred while invoking the "
+                + f"ConfigureBand{receiver_band}() Command."
+            )
+            return (ResultCode.FAILED, message)
         return [ResultCode.OK], [""]
 
     def ensure_dish_in_right_dish_mode(
@@ -387,6 +408,18 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
+        result = self.is_tracktable_provided()
+        if not result:
+            self.logger.error(
+                "Cannot invoke Track command on the Dish since track "
+                "table is not provided"
+            )
+        else:
+            self.logger.info(
+                "TrackTable is provided to dish, "
+                "proceeding towards Track() command execution"
+            )
+
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
@@ -397,3 +430,23 @@ class Configure(DishLNCommand):
 
         self.logger.info("Invoked Track command successfully on dish.")
         return result_code, message
+
+    def is_tracktable_provided(self) -> bool:
+        """
+        Returns True if programTrackTable is provided to dish.
+        """
+        start_time = time.time()
+        self.logger.info("Start time: %s", start_time)
+        elapsed_time = 0
+        while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.get_track_table_provided() is True:
+                self.logger.info("Tracktable flag is True")
+                return True
+            time.sleep(0.2)
+            self.logger.info(
+                "Track table flag: %s",
+                self.component_manager.get_track_table_provided(),
+            )
+            elapsed_time = time.time() - start_time
+        self.logger.error("Time out while waiting to generate TrackTable")
+        return False
