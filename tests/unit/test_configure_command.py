@@ -3,12 +3,15 @@ import time
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_tango_base.control_model import ObsState
+from ska_tmc_common import DevFactory, FaultType
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
+    DISH_MASTER_DEVICE,
     logger,
     simulate_result_code_event,
     wait_for_dish_mode,
@@ -177,3 +180,37 @@ def test_configure_command_status_not_allowed(
         status=TaskStatus.REJECTED,
         result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
     )
+
+
+def test_configure_timeout(tango_context, cm, task_callback, json_factory):
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    configure_input_str = json_factory("dishleafnode_configure")
+
+    defect = {
+        "enabled": True,
+        "fault_type": FaultType.STUCK_IN_INTERMEDIATE_STATE,
+        "error_message": "Command stuck in processing",
+        "result": ResultCode.FAILED,
+        "intermediate_state": ObsState.RESOURCING,
+    }
+
+    dev_factory = DevFactory()
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+
+    assert cm.is_configure_allowed()
+
+    dish_master.SetDefective(json.dumps(defect))
+    cm.configure(configure_input_str, task_callback=task_callback)
+
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED,
+        result=ResultCode.FAILED,
+        exception="Timeout has occurred, command failed",
+    )
+    dish_master.SetDefective(json.dumps({"enabled": False}))

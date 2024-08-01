@@ -9,11 +9,6 @@ from ska_tmc_common import DevFactory
 from tests.settings import DISH_MASTER_DEVICE
 
 
-@pytest.mark.skip(
-    reason="Test case is will be enabled once"
-    "TrackLoadStaticOff command is also updated to "
-    "receive LongRunning command result "
-)
 def test_trackloadstaticoff_command(
     tango_context, cm, task_callback, group_callback
 ):

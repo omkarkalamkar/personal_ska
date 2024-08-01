@@ -24,7 +24,6 @@ def test_off_command_in_fp(tango_context, cm_without_er_lp, task_callback):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-
     cm.update_device_dish_mode(DishMode.STANDBY_LP)
     task_callback.assert_against_call(
         call_kwargs={
