@@ -1404,7 +1404,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
-        self.set_track_table_provided()
+        # self.set_track_table_provided()
 
     def set_track_table_provided(self):
         """Sets tracktable flag"""
@@ -1422,8 +1422,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def get_dish_track_table(self):
         """Read Dish ProgramTrackTable attribute"""
-        dish_proxy = DeviceProxy(self.dish_dev_name)
-        track_table = dish_proxy.programTrackTable
+        with self.tango_operation_execution_lock:
+            track_table = self.dish_adapter.programTrackTable
         self.logger.info("Dish TRACK TABLE ---------: %s", track_table)
         return track_table
 
