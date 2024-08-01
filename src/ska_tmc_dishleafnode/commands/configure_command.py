@@ -7,7 +7,8 @@ import json
 import logging
 import threading
 import time
-from functools import partial
+
+# from functools import partial
 from logging import Logger
 from multiprocessing import Process
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
@@ -104,10 +105,7 @@ class Configure(DishLNCommand):
         else:
             if not self.partial_configure:
                 self.start_tracker_thread(
-                    partial(
-                        self.component_manager.get_dish_state,
-                        self.component_manager.command_id,
-                    ),
+                    "get_dish_state",
                     [DishMode.OPERATE, PointingState.TRACK, ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,
@@ -117,10 +115,7 @@ class Configure(DishLNCommand):
                 )
             else:
                 self.start_tracker_thread(
-                    partial(
-                        self.component_manager.get_lrcr_result,
-                        self.component_manager.command_id,
-                    ),
+                    "get_lrcr_result",
                     [ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,
