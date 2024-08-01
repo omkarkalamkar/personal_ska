@@ -234,6 +234,7 @@ class Configure(DishLNCommand):
 
             try:
                 if not self.component_manager.track_table_process.is_alive():
+                    self.logger.debug("Starting tracktable calculation")
                     self.component_manager.create_track_process()
                     self.component_manager.track_table_process.start()
             except Exception as exception:

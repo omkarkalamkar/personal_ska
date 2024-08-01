@@ -1392,7 +1392,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def create_track_process(self):
-        """Creates new process"""
+        """Creates new process for tracktable calculation."""
         self.track_table_process = Process(target=self.track_process)
 
     def track_process(
@@ -1405,9 +1405,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+        timestamp = Time(datetime.datetime.utcnow(), scale="utc")
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
-        timestamp = Time(datetime.datetime.utcnow(), scale="utc")
         if isinstance(self.target_data, str):
             self.converter.point_to_body(self.target_data, timestamp)
         else:
@@ -1729,6 +1729,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while not self.achieved_pointing_data.empty():
             _ = self.achieved_pointing_data.get(block=True)
         del self.achieved_pointing_data
+        if self.track_table_process.is_alive():
+            self.set_track_process_event()
+            self.track_table_process.join()
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 

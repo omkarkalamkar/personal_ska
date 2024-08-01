@@ -3,9 +3,9 @@ import time
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
-from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
@@ -19,7 +19,9 @@ from tests.settings import (
 def test_configure_command_completed(
     tango_context, cm, task_callback, json_factory, dish_master_device
 ):
-    DeviceProxy(dish_master_device).SetDirectDishMode(DishMode.STANDBY_FP)
+    dev_factory = DevFactory()
+    dish_device = dev_factory.get_device(dish_master_device)
+    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
     time.sleep(0.2)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
@@ -28,6 +30,11 @@ def test_configure_command_completed(
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
+    dish_device.programTrackTable = [
+        775853423.2247269,
+        178.758613204265,
+        31.165682681453,
+    ]
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
