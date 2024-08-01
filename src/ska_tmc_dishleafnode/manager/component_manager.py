@@ -9,14 +9,7 @@ import sched
 import threading
 import time
 from logging import Logger
-from multiprocessing import (
-    Event,
-    Lock,
-    Manager,
-    Process,
-    Value,
-    current_process,
-)
+from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Tuple
 
 import numpy as np
@@ -198,7 +191,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self, self.logger
         )
         self.target_data: List | str
-        self.track_table_provided = Value("b", False)
+        self.track_table_provided = self.process_manager.Value("b", False)
         self.reset_track_table_provided()
         self.track_table_process = Process(target=self.track_process)
         self.setstandbyfpmode_command = SetStandbyFPMode(
@@ -1308,16 +1301,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def set_track_table_provided(self):
         """Sets tracktable flag"""
+        self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Setting tracktable flag = True")
         self.track_table_provided = True
 
     def reset_track_table_provided(self):
         """Resets tracktable flag"""
         self.logger.info("Setting tracktable flag = False")
+        self.logger.info("Main Process ID: %s", os.getppid())
         self.track_table_provided = False
 
-    def get_track_table_provided(self):
+    def get_track_table_provided(self) -> bool:
         """Returns tracktable flag"""
+        self.logger.info("Main Process ID: %s", os.getppid())
+        self.logger.info(
+            "Returning tracktable flag value: %s",
+            str(bool(self.track_table_provided)),
+        )
         return bool(self.track_table_provided)
 
     def track_process(self) -> None:
