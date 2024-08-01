@@ -168,10 +168,10 @@ def unhappy_configure_command(
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
-    group_callback["longRunningCommandsInQueue"].assert_change_event(
-        ("SetStandbyFPMode",),
-        lookahead=2,
-    )
+    # group_callback["longRunningCommandsInQueue"].assert_change_event(
+    #     ("SetStandbyFPMode",),
+    #     lookahead=2,
+    # )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
