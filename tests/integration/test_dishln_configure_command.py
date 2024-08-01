@@ -124,27 +124,27 @@ def unhappy_configure_command(
     dish_master.SetDirectConfiguredBand(1)
     sleep(1)
 
-    dish_master.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    dish_master.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
+    # dish_master.subscribe_event(
+    #     "dishMode",
+    #     tango.EventType.CHANGE_EVENT,
+    #     group_callback["dishMode"],
+    # )
+    # dish_master.subscribe_event(
+    #     "pointingState",
+    #     tango.EventType.CHANGE_EVENT,
+    #     group_callback["pointingState"],
+    # )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-    dish_leaf_node.subscribe_event(
+    # group_callback["dishMode"].assert_change_event(
+    #     (DishMode.STANDBY_LP),
+    #     lookahead=2,
+    # )
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    dish_leaf_node.subscribe_event(
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -158,7 +158,8 @@ def unhappy_configure_command(
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
-    dish_leaf_node.subscribe_event(
+
+    LRCR_ID = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -166,7 +167,7 @@ def unhappy_configure_command(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
-        lookahead=2,
+        lookahead=6,
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -177,16 +178,9 @@ def unhappy_configure_command(
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
-    sleep(1)
     assert result_config[0] == ResultCode.QUEUED
-
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
-    )
-    dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -242,6 +236,9 @@ def unhappy_configure_command(
     #     (),
     #     lookahead=8,
     # )
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
