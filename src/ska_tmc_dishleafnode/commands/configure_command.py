@@ -208,9 +208,6 @@ class Configure(DishLNCommand):
                 return result_code, message
 
             json_argument = json.loads(argin)
-            # Start programTrackTable calculation
-            self.component_manager.elevation_limit = True
-            self.component_manager.reset_track_process_event()
 
             if json_argument.get("tmc"):
                 return self.invoke_trackloadstaticoff(json_argument)
@@ -230,6 +227,10 @@ class Configure(DishLNCommand):
 
             self.component_manager.target_data = target_data
             self.component_manager.dish_adapter = self.dish_master_adapter
+
+            # Start programTrackTable calculation
+            self.component_manager.elevation_limit = True
+            self.component_manager.reset_track_process_event()
 
             try:
                 if not self.component_manager.track_table_process.is_alive():
