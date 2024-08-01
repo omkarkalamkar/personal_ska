@@ -42,7 +42,6 @@ from ska_tmc_common import (
     TmcLeafNodeComponentManager,
 )
 from ska_tmc_common.adapters import DishAdapter
-from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
