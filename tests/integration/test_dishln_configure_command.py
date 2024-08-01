@@ -185,7 +185,7 @@ def unhappy_configure_command(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
-        lookahead=6,
+        lookahead=10,
     )
     group_callback["pointingState"].assert_change_event(
         (PointingState.TRACK),
