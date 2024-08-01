@@ -194,8 +194,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self, self.logger
         )
         self.target_data: List | str
-        self.track_table_provided = self.process_manager.Value("b", False)
-        self.reset_track_table_provided()
         self.track_table_process = Process(target=self.track_process)
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -1389,35 +1387,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        # self.logger.info(
-        #     "Initial track_table_provided value: %s",
-        #     str(self.get_track_table_provided()),
-        # )
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
-        # self.set_track_table_provided()
-
-    def set_track_table_provided(self):
-        """Sets tracktable flag"""
-        self.logger.info("Main Process ID: %s", os.getppid())
-        self.logger.info("Setting tracktable flag = True")
-        self.track_table_provided = True
-
-    def reset_track_table_provided(self):
-        """Resets tracktable flag"""
-        self.logger.info("Setting tracktable flag = False")
-        self.logger.info("Main Process ID: %s", os.getppid())
-        self.track_table_provided = False
-
-    def get_track_table_provided(self) -> bool:
-        """Returns tracktable flag"""
-        self.logger.info("Main Process ID: %s", os.getppid())
-        self.logger.info(
-            "Returning tracktable flag value: %s",
-            str(bool(self.track_table_provided)),
-        )
-        return bool(self.track_table_provided)
 
     def get_dish_track_table(self):
         """Read Dish ProgramTrackTable attribute"""
@@ -1487,7 +1459,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
             self.track_table_scheduler.run()
         self.logger.info("Program Track Table Calculation stopped.")
-        self.reset_track_table_provided()
+
+        self.logger.info("Clearing tracktable...")
+        with self.tango_operation_execution_lock:
+            self.dish_adapter.programTrackTable = []
+            self.logger.info(
+                "programTrackTable: %s", self.dish_adapter.programTrackTable
+            )
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(

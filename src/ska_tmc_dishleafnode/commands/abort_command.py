@@ -99,5 +99,4 @@ class AbortCommands(DishLNCommand, FastCommand):
                     "Dish Master", self.dish_master_adapter, "TrackStop"
                 )
             return result_code[0], message[0]
-        self.component_manager.reset_track_table_provided()
         return ResultCode.OK, ""

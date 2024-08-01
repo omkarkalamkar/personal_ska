@@ -76,6 +76,4 @@ class TrackStop(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
-        self.component_manager.reset_track_table_provided()
-
         return result_code[0], message[0]
