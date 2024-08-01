@@ -155,23 +155,9 @@ def unhappy_configure_command(
         lookahead=2,
     )
 
-    # dish_leaf_node.subscribe_event(
-    #     "longRunningCommandsInQueue",
-    #     tango.EventType.CHANGE_EVENT,
-    #     group_callback["longRunningCommandsInQueue"],
-    # )
-
-    # group_callback["longRunningCommandsInQueue"].assert_change_event(
-    #     (),
-    # )
-
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
-    # group_callback["longRunningCommandsInQueue"].assert_change_event(
-    #     ("SetStandbyFPMode",),
-    #     lookahead=2,
-    # )
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
@@ -191,13 +177,16 @@ def unhappy_configure_command(
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
-    assert result_config[0] == ResultCode.QUEUED
     sleep(1)
-    # group_callback["longRunningCommandsInQueue"].assert_change_event(
-    #     ("SetStandbyFPMode", "Configure")
-    # )
+    assert result_config[0] == ResultCode.QUEUED
+
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
+    dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -234,13 +223,7 @@ def unhappy_configure_command(
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     time.sleep(1)
-    # group_callback["longRunningCommandsInQueue"].assert_change_event(
-    #     (
-    #         "Configure",
-    #         "TrackStop",
-    #     ),
-    #     lookahead=9,
-    # )
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=9,
