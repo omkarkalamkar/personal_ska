@@ -221,6 +221,13 @@ class Configure(DishLNCommand):
             self.component_manager.reset_track_process_event()
 
             if json_argument.get("tmc"):
+                if json_argument["pointing"]["correction"] == "RESET":
+                    json_argument["pointing"]["target"][
+                        "ca_offset_arcsec"
+                    ] = 0.0
+                    json_argument["pointing"]["target"][
+                        "ie_offset_arcsec"
+                    ] = 0.0
                 return self.invoke_trackloadstaticoff(json_argument)
 
             if (

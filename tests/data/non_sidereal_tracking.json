@@ -3,8 +3,7 @@
         "target": {
             "reference_frame": "special",
             "target_name": "Sun"
-        },
-        "correction": "UPDATE"
+        }
     },
     
     "dish": {"receiver_band": "1"}
