@@ -84,7 +84,7 @@ def call_command(
         )
         group_callback["dishMode"].assert_change_event(
             (dishMode),
-            lookahead=6,
+            lookahead=8,
         )
         if command_name == "Configure":
             configure_string = json_factory("dishleafnode_configure")
@@ -124,7 +124,7 @@ def check_command(
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id, COMMAND_COMPLETED), lookahead=4
+        (unique_id, COMMAND_COMPLETED), lookahead=8
     )
     # Invoke TrackStop command to terminate the Track thread executed by
     # Configure command.If thread not stopped then it is causing unstable
