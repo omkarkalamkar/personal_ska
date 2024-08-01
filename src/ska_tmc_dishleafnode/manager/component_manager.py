@@ -1391,13 +1391,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.dish_adapter.programTrackTable = program_track_table
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
-    def get_dish_track_table(self):
-        """Read Dish ProgramTrackTable attribute"""
-        with self.tango_operation_execution_lock:
-            track_table = self.dish_adapter.programTrackTable
-        self.logger.info("Dish TRACK TABLE ---------: %s", track_table)
-        return track_table
-
     def create_track_process(self):
         """Creates new process"""
         self.track_table_process = Process(target=self.track_process)
@@ -1462,17 +1455,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 argument=(program_track_table,),
             )
             self.track_table_scheduler.run()
-        self.logger.info("Program Track Table Calculation stopped.")
+        self.logger.debug("Program Track Table Calculation stopped.")
 
-        self.logger.info("Clearing tracktable...")
         with self.tango_operation_execution_lock:
             self.dish_adapter.programTrackTable = []
-            self.logger.info(
-                "programTrackTable: %s", self.dish_adapter.programTrackTable
-            )
-        self.logger.info(
-            "Track process evt: %s", str(self.get_track_process_event_status())
-        )
+        self.logger.debug("Cleared programTrackTable attribute.")
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(

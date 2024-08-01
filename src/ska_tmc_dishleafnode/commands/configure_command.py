@@ -232,20 +232,10 @@ class Configure(DishLNCommand):
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
 
-            self.logger.info(
-                "track process is_alive: %s",
-                str(self.component_manager.track_table_process.is_alive()),
-            )
             try:
                 if not self.component_manager.track_table_process.is_alive():
-                    self.logger.info("Starting new TrackTable calculation...")
                     self.component_manager.create_track_process()
                     self.component_manager.track_table_process.start()
-                else:
-                    self.logger.info(
-                        "TrackTable calculation is already on...will not "
-                        "start again..."
-                    )
             except Exception as exception:
                 self.logger.error(
                     "Exception occurred while starting programTrackTable "
@@ -424,13 +414,15 @@ class Configure(DishLNCommand):
         result = self.is_tracktable_provided()
         if not result:
             self.logger.error(
-                "Cannot invoke Track command on the Dish since track "
-                "table is not provided"
+                "Timed out while waiting to generate TrackTable."
+                + "Track command will not be invoked on the Dish."
             )
-        else:
-            self.logger.info(
-                "TrackTable is provided to dish, "
-                "proceeding towards Track() command execution"
+            return (
+                [ResultCode.FAILED],
+                [
+                    "Timeout occurred while waiting to "
+                    + " generate programTrackTable."
+                ],
             )
 
         with self.component_manager.tango_operation_execution_lock:
@@ -449,16 +441,13 @@ class Configure(DishLNCommand):
         Returns True if programTrackTable is provided to dish.
         """
         start_time = time.time()
-        self.logger.info("Start time: %s", start_time)
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
-            track_table = self.component_manager.get_dish_track_table()
+            with self.component_manager.tango_operation_execution_lock:
+                track_table = self.dish_master_adapter.programTrackTable
             if len(track_table) > 0:
-                self.logger.info("Tracktable is generated... voho!!")
                 return True
-            time.sleep(0.2)
+            time.sleep(0.1)
             elapsed_time = time.time() - start_time
-            self.logger.info("TrackTable is not generated yet...wait!!!")
-            self.logger.info("elapsed time: %s", elapsed_time)
         self.logger.error("Time out while waiting to generate TrackTable")
         return False
