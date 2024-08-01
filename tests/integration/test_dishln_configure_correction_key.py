@@ -36,6 +36,11 @@ def configure_command_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
+    command_info_list=dish_leaf_node.subscribe_event(
+        "commandCallInfo",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["commandCallInfo"],
+    )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
@@ -56,6 +61,7 @@ def configure_command_dish_leaf_node(
         (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+    assert (('TrackLoadStaticOff', '[5. 0.]') in command_info_list)
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
