@@ -214,21 +214,12 @@ class Configure(DishLNCommand):
             # Start programTrackTable calculation
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
-            if self.component_manager.correction_key == "RESET":
-                offsets = json.dumps([0.0, 0.0])
-                self.component_manager.track_load_static_off_command.do(
-                    offsets
-                )
+            reset_offset = self.component_manager.correction_key == "RESET"
 
-            if json_argument.get("tmc"):
-                if json_argument["pointing"]["correction"] == "RESET":
-                    json_argument["pointing"]["target"][
-                        "ca_offset_arcsec"
-                    ] = 0.0
-                    json_argument["pointing"]["target"][
-                        "ie_offset_arcsec"
-                    ] = 0.0
-                return self.invoke_trackloadstaticoff(json_argument)
+            if json_argument.get("tmc") or reset_offset:
+                return self.invoke_trackloadstaticoff(
+                    json_argument, reset_offset=reset_offset
+                )
 
             if (
                 json_argument["pointing"]["target"]["reference_frame"]
@@ -287,7 +278,9 @@ class Configure(DishLNCommand):
         return result_code[0], message[0]
 
     def invoke_trackloadstaticoff(
-        self: Configure, input_json: dict
+        self: Configure,
+        input_json: dict,
+        reset_offset: bool = False,
     ) -> Tuple[ResultCode, str]:
         """Extracts the offsets from input json and invokes the
         TrackLoadStaticOff command on DishMaster device.
@@ -311,8 +304,11 @@ class Configure(DishLNCommand):
         ie_offset = (
             input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
         )
-
         offsets_argin = [ca_offset, ie_offset]
+
+        if reset_offset:
+            offsets_argin = [0.0, 0.0]
+
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
                 "Dish Master",

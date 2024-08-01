@@ -950,7 +950,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         ) = self.configure_command.validate_json_argument(input_json)
         if validation_result != ResultCode.OK:
             return validation_result, message
-
+        if "correction" in input_json["pointing"]:
+            self.correction_key = input_json["pointing"]["correction"]
         # submit the command to the queue
         task_status, response = self.submit_task(
             self.configure_command.invoke_configure,
