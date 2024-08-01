@@ -1,6 +1,8 @@
 """
 SetStandbyLPMode command class for DishLeafNode.
 """
+from __future__ import annotations
+
 import threading
 from logging import Logger
 from typing import Optional, Tuple
@@ -23,7 +25,7 @@ class SetStandbyLPMode(DishLNCommand):
 
     # pylint: disable=unused-argument
     def set_standby_lp_mode(
-        self,
+        self: SetStandbyLPMode,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -62,7 +64,7 @@ class SetStandbyLPMode(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self) -> Tuple[ResultCode, str]:
+    def do(self: SetStandbyLPMode) -> Tuple[ResultCode, str]:
         """
         Method to invoke SetStandbyLPMode (Low power mode) command on
         DishMaster.
@@ -75,8 +77,9 @@ class SetStandbyLPMode(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found ", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found ",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 

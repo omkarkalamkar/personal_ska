@@ -22,7 +22,7 @@ class EndScan(DishLNCommand):
 
     # pylint: disable=unused-argument
     def endscan(
-        self,
+        self: DishLNCommand,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -55,7 +55,7 @@ class EndScan(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self):
+    def do(self: DishLNCommand):
         """
         Method to set scanID attribute of Dish Master to empty string.
 
@@ -64,7 +64,7 @@ class EndScan(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
+            self.logger.error(
                 "Error while creating adapter %s",
                 self.component_manager.dish_dev_name,
             )

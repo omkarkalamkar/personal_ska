@@ -1,4 +1,5 @@
 """On command class for Dishleafnode."""
+from __future__ import annotations
 
 import threading
 from logging import Logger
@@ -23,7 +24,7 @@ class Off(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_off(
-        self,
+        self: Off,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
@@ -60,12 +61,12 @@ class Off(DishLNCommand):
             )
 
     # pylint: disable=arguments-differ
-    def do(self) -> Tuple[ResultCode, str]:
+    def do(self: Off) -> Tuple[ResultCode, str]:
         """
-        "Invokes StandbyFP and StandbyLP mode commands on dish master device
+        Invokes StandbyFP and StandbyLP mode commands on dish master device
         after waiting for correct dish modes. First invokes and waits for
         completion of SetStandbyFPMode command, then invokes and waits for
-        completion of SetStandbyLPMode command."
+        completion of SetStandbyLPMode command.
 
         param argin:
             None
@@ -75,8 +76,9 @@ class Off(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found ", self.component_manager.dish_dev_name
+            self.logger.error(
+                "Adapter for device : %s is not found ",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
@@ -91,13 +93,16 @@ class Off(DishLNCommand):
             result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if not result:
                 self.logger.error(
-                    "Timeout occurred while invoking the SetStandbyFPMode "
-                    "Command.",
+                    "Timeout occurred while processing"
+                    + " the SetStandbyFPMode "
+                    + "command.",
                 )
                 return (
                     ResultCode.FAILED,
-                    "Timeout occurred while invoking the SetStandbyFPMode "
-                    "Command.",
+                    (
+                        "Timeout occurred while invoking the SetStandbyFPMode "
+                        + "command."
+                    ),
                 )
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
@@ -105,12 +110,15 @@ class Off(DishLNCommand):
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
             self.logger.error(
-                "Timeout occurred while invoking the SetStandbyLPMode Command."
+                "Timeout occurred while processing the"
+                + " SetStandbyLPMode Command."
             )
             return (
                 ResultCode.FAILED,
-                "Timeout occurred while invoking the SetStandbyLPMode "
-                "Command.",
+                (
+                    "Timeout occurred while invoking the SetStandbyLPMode "
+                    + "command."
+                ),
             )
 
         return result_code[0], message[0]

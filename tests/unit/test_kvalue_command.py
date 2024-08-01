@@ -50,11 +50,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, cm):
     assert cm.kValueValidationResult == ResultCode.FAILED
 
 
-def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
-    tango_context, cm
-):
-    logger.info("%s", tango_context)
-    cm.get_device().update_unresponsive(True)
+def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(cm):
     result = wait_for_unresponsive(cm)
     logger.info("Result is: %s", result)
     with pytest.raises(

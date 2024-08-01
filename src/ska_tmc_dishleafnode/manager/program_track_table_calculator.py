@@ -1,5 +1,7 @@
 # flake8: noqa
 """Module for programTrackTable calculator."""
+from __future__ import annotations
+
 import datetime
 from logging import Logger
 from typing import List, Union
@@ -20,7 +22,9 @@ class ProgramTrackTableCalculator:
     azel_converter: AzElConverter
     elevation_limit: bool
 
-    def __init__(self, component_manager, logger: Logger) -> None:
+    def __init__(
+        self: ProgramTrackTableCalculator, component_manager, logger: Logger
+    ) -> None:
         """
         Init method for ProgramTrackTableCalculator class.
         :param component_manager: Dish Leaf Node component manager object
@@ -35,7 +39,9 @@ class ProgramTrackTableCalculator:
         self.track_table_time_stamp = None
 
     def calculate_program_track_table(
-        self, target_data: Union[str, List[str]], azel_converter: AzElConverter
+        self: ProgramTrackTableCalculator,
+        target_data: Union[str, List[str]],
+        azel_converter: AzElConverter,
     ) -> list:
         """This method calculates programTrackTable.
 
@@ -77,7 +83,7 @@ class ProgramTrackTableCalculator:
         return program_track_table
 
     def _is_elevation_within_mechanical_limits(
-        self,
+        self: ProgramTrackTableCalculator,
         el_value: float,
     ) -> bool:
         """Check if elevation is within mechanical limit.
@@ -102,7 +108,7 @@ class ProgramTrackTableCalculator:
         self.elevation_limit = False
         return True
 
-    def calculate_time_stamp_list(self) -> tuple:
+    def calculate_time_stamp_list(self: ProgramTrackTableCalculator) -> tuple:
         """
         This methods calculates an list of requested timestamps
         (TrackTableEntries) with a requested time difference
@@ -131,7 +137,7 @@ class ProgramTrackTableCalculator:
             )
         return time_stamp_list, tai_timestamp_list
 
-    def point(self, timestamp: str) -> list:
+    def point(self: ProgramTrackTableCalculator, timestamp: str) -> list:
         """
         This method converts Target RaDec coordinates to the AzEl
         coordinates. It is called continuously from Configure command
@@ -153,7 +159,9 @@ class ProgramTrackTableCalculator:
             timestamp,
         )
 
-    def convert_utc_to_tai(self, utc_time: Time) -> float:
+    def convert_utc_to_tai(
+        self: ProgramTrackTableCalculator, utc_time: float
+    ) -> float:
         """
         This method converts utc time to tai format time.
         :param: utc_time: time in utc (seconds)
