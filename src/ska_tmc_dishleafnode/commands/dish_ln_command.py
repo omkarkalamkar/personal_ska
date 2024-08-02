@@ -140,41 +140,42 @@ class DishLNCommand(TmcLeafNodeCommand):
         state_to_achieve: Any,
         expected_state: list,
     ) -> bool:
-        """Waits for expected state with or without
+        """
+        Waits for expected state with or without
         transitional state. On expected state occurrence,
-        it sets ResultCode to OK and stops the tracker thread
+        it sets ResultCode to OK and stops the tracker thread.
 
         :param state_function: The function to determine the state of the
-            device. Should be accessible in the component_manager.
+                        device. Should be accessible in the component_manager.
         :type state_function: str
 
-        :param state_to_achieve: A particular state to needs to be
+        :param state_to_achieve: A particular state that needs to be
                                 achieved for command completion.
 
         :param expected_state: Expected state of the device in case of
-                    successful command execution. It's a list contains
-                    transitional obsState if exists for a command.
-        :return: boolean value if state change occurred or not
+                        successful command execution. It's a list containing
+                            transitional obsState if it exists for a command.
+        :return: boolean value indicating if the state change occurred or not.
         """
         self.logger.info(
             "Target value is %s",
             state_to_achieve,
         )
 
-        current_state = state_function()
-        self.logger.info(f"Current target values are : {current_state}")
-        if state_to_achieve in current_state:
-            self.logger.info(
-                "Target State change to %s has occurred",
-                state_to_achieve,
-            )
-            if len(expected_state) > self.index + 1:
-                self.index += 1
-                state_to_achieve = expected_state[self.index]
-            else:
-                self.logger.info(
-                    "All target state changes have occurred,"
-                    "command successful"
-                )
-                return True
-        return False
+        dish_mode, pointing_state, result_code = state_function()
+        self.logger.info(
+            f"Current target values: {dish_mode, pointing_state, result_code}"
+        )
+
+        (
+            expected_dish_mode,
+            expected_pointing_states,
+            expected_result_code,
+        ) = expected_state
+
+        # Check if the results match the expected values
+        return (
+            dish_mode == expected_dish_mode
+            and pointing_state in expected_pointing_states
+            and result_code == expected_result_code
+        )

@@ -106,7 +106,11 @@ class Configure(DishLNCommand):
             if not self.partial_configure:
                 self.start_tracker_thread(
                     "get_dish_state",
-                    [DishMode.OPERATE, PointingState.TRACK, ResultCode.OK],
+                    [
+                        DishMode.OPERATE,
+                        (PointingState.TRACK, PointingState.SLEW),
+                        ResultCode.OK,
+                    ],
                     task_abort_event,
                     self.timeout_id,
                     self.timeout_callback,
