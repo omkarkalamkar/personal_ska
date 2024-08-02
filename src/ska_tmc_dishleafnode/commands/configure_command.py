@@ -451,5 +451,4 @@ class Configure(DishLNCommand):
                 return True
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
-        self.logger.error("Time out while waiting to generate TrackTable")
         return False

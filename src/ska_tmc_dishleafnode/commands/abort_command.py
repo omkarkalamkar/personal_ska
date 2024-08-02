@@ -93,7 +93,7 @@ class AbortCommands(DishLNCommand, FastCommand):
         self.component_manager.set_track_process_event()
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
-        if pointing_state == PointingState.TRACK:
+        if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "TrackStop"
