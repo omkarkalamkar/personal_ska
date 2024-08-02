@@ -47,6 +47,8 @@ def test_configure_command_completed(
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_partial_config(
@@ -76,6 +78,8 @@ def test_configure_command_completed_partial_config(
         },
         lookahead=6,
     )
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_partial_config_missing_key(
@@ -108,6 +112,8 @@ def test_configure_command_completed_partial_config_missing_key(
         },
         lookahead=12,
     )
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_configure_command_adapter_none(

@@ -77,8 +77,6 @@ class TrackStop(DishLNCommand):
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
 
-        if self.component_manager.track_table_process.is_alive():
-            self.logger.debug("Stopping Track table process")
-            self.component_manager.track_table_process.join()
+        self.component_manager.stop_track_table_process()
 
         return result_code[0], message[0]

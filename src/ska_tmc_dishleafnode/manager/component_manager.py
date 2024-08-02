@@ -194,7 +194,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self, self.logger
         )
         self.target_data: List | str
-        self.track_table_process = Process(target=self.track_process)
+        self.track_table_process: Process = Process(target=self.track_process)
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
@@ -1461,6 +1461,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def create_track_process(self) -> None:
         """Creates new process for programTrackTable calculation."""
+        self.logger.debug("Creating new process for tracktable calculation")
         self.track_table_process = Process(target=self.track_process)
 
     def set_target_data(self, target_data: list | str) -> None:
@@ -1470,6 +1471,31 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def set_dish_adapter(self, dish_adapter: DishAdapter) -> None:
         """Sets dish adapter, used to write programTrackTable on the dish."""
         self.dish_adapter = dish_adapter
+
+    def create_process_and_start_track_table_calculation(self) -> None:
+        """This method create and start process for programTrackTable
+        calculation."""
+        try:
+            if not self.track_table_process.is_alive():
+                self.create_track_process()
+                self.logger.debug("Starting programTrackTable calculation")
+                self.track_table_process.start()
+            else:
+                self.logger.debug(
+                    "New process will not be hosted for tracktable calculation"
+                )
+        except Exception as exception:
+            self.logger.error(
+                "Exception occurred while starting programTrackTable "
+                "calculation: %s",
+                str(exception),
+            )
+
+    def stop_track_table_process(self):
+        """Stops track process"""
+        if self.track_table_process.is_alive():
+            self.logger.debug("Stopping Track table process")
+            self.track_table_process.join()
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
