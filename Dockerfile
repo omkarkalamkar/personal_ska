@@ -13,9 +13,10 @@ WORKDIR /app
 
 COPY --chown=tango:tango . /app
 # Install runtime dependencies and the app
+RUN apt-get update && apt-get install git -y
 RUN poetry install --only main
 RUN rm /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
-USER tango
+USER tango 
 
 # create ipython profile too so that itango doesn't fail if ipython hasn't run yet
 RUN ipython profile create
