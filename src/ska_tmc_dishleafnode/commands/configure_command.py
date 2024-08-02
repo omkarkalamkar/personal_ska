@@ -213,11 +213,22 @@ class Configure(DishLNCommand):
             self.component_manager.reset_track_process_event()
             reset_offset = self.component_manager.correction_key == "RESET"
 
-            if json_argument.get("tmc") or reset_offset:
+            if reset_offset and "tmc" not in json_argument:
+                result_code, message = self.invoke_trackloadstaticoff(
+                    json_argument, reset_offset=True
+                )
+                self.component_manager.command_in_progress = "Configure"
+                if result_code in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.NOT_ALLOWED,
+                ]:
+                    return result_code, message
+
+            if json_argument.get("tmc"):
                 return self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=reset_offset
                 )
-
             if (
                 json_argument["pointing"]["target"]["reference_frame"]
                 == "special"
@@ -287,24 +298,25 @@ class Configure(DishLNCommand):
 
         :returns: Tuple[ResultCode, str]
         """
+        offsets_argin = []
         self.component_manager.command_in_progress = (
             "Configure_TrackLoadStaticOff"
         )
         # Extracting and setting cross elevation offset. Considering
         # 0.0 if the key is omitted
-        ca_offset = (
-            input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0
-        )
-
-        # Extracting and setting elevation offset. Considering 0.0 if
-        # the key is omitted
-        ie_offset = (
-            input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
-        )
-        offsets_argin = [ca_offset, ie_offset]
 
         if reset_offset:
             offsets_argin = [0.0, 0.0]
+        else:
+            offsets_argin.append(
+                input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0
+            )
+
+            # Extracting and setting elevation offset. Considering 0.0 if
+            # the key is omitted
+            offsets_argin.append(
+                input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
+            )
 
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
