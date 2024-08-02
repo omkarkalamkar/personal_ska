@@ -1482,7 +1482,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_process.start()
             else:
                 self.logger.debug(
-                    "New process will not be hosted for tracktable calculation"
+                    "programTrackTable calculation is already going on."
+                    + " New process will not be hosted."
                 )
         except Exception as exception:
             self.logger.error(

@@ -235,19 +235,6 @@ class Configure(DishLNCommand):
             self.component_manager.create_process_and_start_track_table_calculation()  # noqa: E501
             # pylint: enable=line-too-long
 
-            # try:
-            #     if not self.component_manager.track_table_process.is_alive():
-            #         self.logger.debug("Starting programTrackTable
-            #  calculation")
-            #         self.component_manager.create_track_process()
-            #         self.component_manager.track_table_process.start()
-            # except Exception as exception:
-            #     self.logger.error(
-            #         "Exception occurred while starting programTrackTable "
-            #         "calculation: %s",
-            #         str(exception),
-            #     )
-
             receiver_band: str = json_argument["dish"]["receiver_band"]
             command_name: str = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance

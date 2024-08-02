@@ -64,9 +64,12 @@ Added
 
 Fixed
 ======
+[0.16.4]
+* Fix for SKB-419 and SKB-469
+
 [0.16.3]
 ********
-* Patch release from branch SAH-1566 with SKB-467 fix
+* Patch release from branch SAH-1566 with SKB-419 fix
 
 [0.16.2]
 ********
