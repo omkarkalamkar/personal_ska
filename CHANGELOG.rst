@@ -66,6 +66,7 @@ Fixed
 ======
 [0.16.4]
 * Fix for SKB-419 and SKB-469
+* Set and push archive events for all the attributes
 
 [0.16.3]
 ********

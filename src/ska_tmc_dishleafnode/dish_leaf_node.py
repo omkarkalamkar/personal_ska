@@ -16,6 +16,7 @@ from ska_tmc_common import (
     LivelinessProbeType,
     PointingState,
 )
+from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import (
     ArgType,
     AttrDataFormat,
@@ -34,7 +35,7 @@ from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
 # pylint: disable = attribute-defined-outside-init
-class DishLeafNode(SKABaseDevice):
+class DishLeafNode(TMCBaseLeafDevice):
     """
     A Leaf control node for DishMaster.
 
@@ -129,16 +130,20 @@ class DishLeafNode(SKABaseDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
-        self.set_change_event("healthState", True, False)
-        self.set_change_event("isSubsystemAvailable", True, False)
-        self.set_change_event("actualPointing", True, False)
-        self.set_change_event("kValueValidationResult", True, False)
-        self.set_change_event("dishMode", True, False)
-        self.set_change_event("pointingState", True, False)
-        self.set_change_event("sdpQueueConnectorFqdn", True, False)
-        self.set_change_event("sourceOffset", True, False)
-        self.set_change_event("lastPointingData", True, True)
-        self.set_change_event("kValue", True, False)
+        for attribute_name in [
+            "healthState",
+            "isSubsystemAvailable",
+            "actualPointing",
+            "dishMode",
+            "kValueValidationResult",
+            "pointingState",
+            "sdpQueueConnectorFqdn",
+            "sourceOffset",
+            "lastPointingData",
+            "kValue",
+        ]:
+            self.set_change_event(attribute_name, True, False)
+            self.set_archive_event(attribute_name, True)
 
     class InitCommand(SKABaseDevice.InitCommand):
         """
@@ -177,7 +182,7 @@ class DishLeafNode(SKABaseDevice):
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
         self._sourceOffset = source_offset
-        self.push_change_event("sourceOffset", self._sourceOffset)
+        self.push_change_archive_events("sourceOffset", self._sourceOffset)
         self.logger.info(
             "sourceOffset updated to value: %s", self._sourceOffset
         )
@@ -193,7 +198,9 @@ class DishLeafNode(SKABaseDevice):
                 AttrQuality, "ATTR_VALID"
             )
         self._lastPointingData = json.dumps(last_pointing_data.tolist())
-        self.push_change_event("lastPointingData", self._lastPointingData)
+        self.push_change_archive_events(
+            "lastPointingData", self._lastPointingData
+        )
         self.logger.info(
             "lastPointingData updated to value: %s", last_pointing_data
         )
@@ -202,27 +209,31 @@ class DishLeafNode(SKABaseDevice):
         """Change event callback for isSubsystemAvailable"""
         if self._isSubsystemAvailable != availability:
             self._isSubsystemAvailable = availability
-            self.push_change_event("isSubsystemAvailable", availability)
+            self.push_change_archive_events(
+                "isSubsystemAvailable", availability
+            )
 
     def pointing_callback(self, actual_pointing: list) -> None:
         """Push an event for the actualPointing attribute."""
-        self.push_change_event("actualPointing", json.dumps(actual_pointing))
+        self.push_change_archive_events(
+            "actualPointing", json.dumps(actual_pointing)
+        )
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
         self._dishMode = dish_mode
-        self.push_change_event("dishMode", self._dishMode)
+        self.push_change_archive_events("dishMode", self._dishMode)
 
     def update_pointingstate_callback(
         self, pointing_state: PointingState
     ) -> None:
         """Push an event for change of pointingState attribute."""
         self._pointingState = pointing_state
-        self.push_change_event("pointingState", self._pointingState)
+        self.push_change_archive_events("pointingState", self._pointingState)
 
     def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""
-        self.push_change_event(
+        self.push_change_archive_events(
             "kValueValidationResult",
             str(int(self.component_manager.kValueValidationResult)),
         )
@@ -233,7 +244,7 @@ class DishLeafNode(SKABaseDevice):
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
-        self.push_change_event(
+        self.push_change_archive_events(
             "kValue",
             int(self.component_manager.kValue),
         )
@@ -330,7 +341,7 @@ class DishLeafNode(SKABaseDevice):
 
         self._sdpQueueConnectorFqdn = sdpqc_fqdn
         self.component_manager.process_sqpqc_attribute_fqdn(sdpqc_fqdn)
-        self.push_change_event(
+        self.push_change_archive_events(
             "sdpQueueConnectorFqdn", self._sdpQueueConnectorFqdn
         )
 

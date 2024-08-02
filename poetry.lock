@@ -375,10 +375,13 @@ reference = "PyPI-public"
 [[package]]
 name = "execnet"
 version = "2.1.1"
-description = ""
+description = "execnet: rapid multi-Python deployment"
 category = "dev"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.extras]
+testing = ["hatch", "pre-commit", "pytest", "tox"]
 
 [package.source]
 type = "legacy"
@@ -557,7 +560,7 @@ notebook = ["ipywidgets", "notebook"]
 parallel = ["ipyparallel"]
 qtconsole = ["qtconsole"]
 test = ["pytest (<7.1)", "pytest-asyncio", "testpath"]
-test_extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pytest (<7.1)", "pytest-asyncio", "testpath", "trio"]
+test-extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pytest (<7.1)", "pytest-asyncio", "testpath", "trio"]
 
 [package.source]
 type = "legacy"
@@ -623,10 +626,20 @@ reference = "PyPI-public"
 [[package]]
 name = "jsonschema"
 version = "4.23.0"
-description = ""
+description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.dependencies]
+attrs = ">=22.2.0"
+jsonschema-specifications = ">=2023.03.6"
+referencing = ">=0.28.4"
+rpds-py = ">=0.7.1"
+
+[package.extras]
+format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3987", "uri-template", "webcolors (>=1.11)"]
+format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=24.6.0)"]
 
 [package.source]
 type = "legacy"
@@ -1012,10 +1025,15 @@ reference = "PyPI-public"
 [[package]]
 name = "platformdirs"
 version = "4.2.2"
-description = ""
+description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.extras]
+docs = ["furo (>=2023.9.10)", "proselint (>=0.13)", "sphinx (>=7.2.6)", "sphinx-autodoc-typehints (>=1.25.2)"]
+test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.4.3)", "pytest-cov (>=4.1)", "pytest-mock (>=3.12)"]
+type = ["mypy (>=1.8)"]
 
 [package.source]
 type = "legacy"
@@ -1162,10 +1180,13 @@ reference = "PyPI-public"
 [[package]]
 name = "pygments"
 version = "2.18.0"
-description = ""
+description = "Pygments is a syntax highlighting package written in Python."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.extras]
+windows-terminal = ["colorama (>=0.4.6)"]
 
 [package.source]
 type = "legacy"
@@ -1463,10 +1484,14 @@ reference = "PyPI-public"
 [[package]]
 name = "referencing"
 version = "0.35.1"
-description = ""
+description = "JSON Referencing + Python"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.dependencies]
+attrs = ">=22.2.0"
+rpds-py = ">=0.7.0"
 
 [package.source]
 type = "legacy"
@@ -1489,7 +1514,7 @@ urllib3 = ">=1.21.1,<3"
 
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
-use_chardet_on_py3 = ["chardet (>=3.0.2,<6)"]
+use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [package.source]
 type = "legacy"
@@ -1515,10 +1540,10 @@ reference = "PyPI-public"
 [[package]]
 name = "rpds-py"
 version = "0.19.1"
-description = ""
+description = "Python bindings to Rust's persistent data structures (rpds)"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 
 [package.source]
 type = "legacy"
@@ -1749,7 +1774,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.19.0"
+version = "0.19.3"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 category = "main"
 optional = false
@@ -2114,10 +2139,14 @@ reference = "PyPI-public"
 [[package]]
 name = "traitlets"
 version = "5.14.3"
-description = ""
+description = "Traitlets Python configuration system"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.extras]
+docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
+test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,<8.2)", "pytest-mock", "pytest-mypy-testing"]
 
 [package.source]
 type = "legacy"
@@ -2178,10 +2207,16 @@ reference = "PyPI-public"
 [[package]]
 name = "urllib3"
 version = "2.2.2"
-description = ""
+description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.extras]
+brotli = ["brotli (>=1.0.9)", "brotlicffi (>=0.8.0)"]
+h2 = ["h2 (>=4,<5)"]
+socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
+zstd = ["zstandard (>=0.18.0)"]
 
 [package.source]
 type = "legacy"
@@ -2225,7 +2260,7 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "48964fa5ed5d58dbda289034f84904d84283db64dd7aabef40fd77a0aa7200fd"
+content-hash = "453106c988ce30b0bd8253ed5c1093b23ec2d663e848d0ae22b02de00c4229a8"
 
 [metadata.files]
 alabaster = [
@@ -3169,8 +3204,8 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-7.3.1.tar.gz", hash = "sha256:3129cd4ec33b207f80669f521ba80fd221a42041c841f6c2f44eb8225ed8c363"},
 ]
 ska-tmc-common = [
-    {file = "ska_tmc_common-0.19.0-py3-none-any.whl", hash = "sha256:10d26b39ced0b8a604b83f07e162e5d6d619975fcb58fe26bcd3bea9d32eb60f"},
-    {file = "ska_tmc_common-0.19.0.tar.gz", hash = "sha256:6a3230dec16aea786faa2f96f74f3498514246a5798ae11c583bb07e453b8b28"},
+    {file = "ska_tmc_common-0.19.3-py3-none-any.whl", hash = "sha256:836771fba11f747bf8af86fa467f6874a12282e97c69ac6f394e2b375eb6e12a"},
+    {file = "ska_tmc_common-0.19.3.tar.gz", hash = "sha256:9691850ada0dc033a1aa969cf52bc5497e9ff2d552268a751c28982f4d10835f"},
 ]
 smmap = [
     {file = "smmap-5.0.1-py3-none-any.whl", hash = "sha256:e6d8668fa5f93e706934a62d7b4db19c8d9eb8cf2adbb75ef1b675aa332b69da"},
