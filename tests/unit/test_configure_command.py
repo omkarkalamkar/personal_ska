@@ -210,8 +210,10 @@ def test_configure_timeout(tango_context, cm, task_callback, json_factory):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     task_callback.assert_against_call(
-        status=TaskStatus.COMPLETED,
-        result=ResultCode.FAILED,
-        exception="Timeout has occurred, command failed",
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": ResultCode.FAILED,
+            "exception": "Timeout has occurred, command failed",
+        }
     )
     dish_master.SetDefective(json.dumps({"enabled": False}))
