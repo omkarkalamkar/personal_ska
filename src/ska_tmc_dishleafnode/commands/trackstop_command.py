@@ -77,4 +77,6 @@ class TrackStop(DishLNCommand):
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
 
+        self.component_manager.stop_track_table_process()
+
         return result_code[0], message[0]

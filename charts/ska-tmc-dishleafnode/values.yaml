@@ -41,7 +41,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.16.2
+    tag: 0.16.4
     pullPolicy: IfNotPresent
 
 resources:
@@ -60,6 +60,7 @@ deviceServers:
     file: "data/dishleafnode.yaml"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
+    TrackTableInAdvance: 7
   sdpqc:
     enabled: true
     instances: ["01"]
