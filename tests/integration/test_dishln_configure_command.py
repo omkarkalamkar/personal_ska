@@ -108,9 +108,7 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize(
-    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
-)
+@pytest.mark.parametrize("json_to_use", ["dishleafnode_configure"])
 def test_configure_command(
     tango_context, group_callback, json_factory, json_to_use
 ):

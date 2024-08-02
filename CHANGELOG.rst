@@ -64,6 +64,10 @@ Added
 
 Fixed
 ======
+[0.16.3]
+********
+* Patch release from branch SAH-1566 with SKB-467 fix
+
 [0.16.2]
 ********
 * Improved logger statements on ska-tmc-dishleafnode
