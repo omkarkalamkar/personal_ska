@@ -72,7 +72,7 @@ ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
 ifeq ($(EXIT_AT_FAIL),true)
 ADD_ARGS += -x
 endif
-MARK = (not post_deployment and not acceptance)
+MARK = (not post_deployment and not acceptance and JS)
 endif
 
 
