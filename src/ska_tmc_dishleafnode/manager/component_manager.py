@@ -1704,7 +1704,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 message,
                             ) = self.track_load_static_off_command.do(offsets)
                             self.logger.debug(
-                                f"ResultCode code : {result_code}"
+                                f"result code : {result_code}"
                                 + f"message : {message}"
                             )
 
