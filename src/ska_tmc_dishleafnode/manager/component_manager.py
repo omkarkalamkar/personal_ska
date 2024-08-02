@@ -946,7 +946,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             input_json = json.loads(argin)
-            self.correction_key = input_json["pointing"]["correction"]
+
         except json.JSONDecodeError as exception:
             self.logger.exception(
                 "Exception occured while loading the input json: %s", exception
@@ -954,11 +954,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return (
                 ResultCode.FAILED,
                 f"Error while loading the input json: {exception}",
-            )
-        except KeyError as exception:
-            return (
-                ResultCode.REJECTED,
-                f"Correction key 'pointing' does not exist: {exception}",
             )
 
         # validate the JSON argument

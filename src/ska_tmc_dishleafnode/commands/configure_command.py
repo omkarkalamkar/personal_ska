@@ -168,9 +168,6 @@ class Configure(DishLNCommand):
                     "receiverBand key is not present in the input json "
                     + "argument.",
                 )
-            self.component_manager.correction_key = input_argin["pointing"][
-                "correction"
-            ]
 
         return (ResultCode.OK, "")
 
