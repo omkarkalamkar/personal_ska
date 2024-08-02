@@ -20,7 +20,10 @@ POINTING_CAL_RESET = [1.1, 0.0, 0.0]
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_pointing_correction_key(tango_context, json_factory, group_callback):
+@pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])
+def test_pointing_correction_key(
+    tango_context, json_factory, group_callback, correction_key
+):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
@@ -70,7 +73,13 @@ def test_pointing_correction_key(tango_context, json_factory, group_callback):
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
+
     configure_input_str = json_factory("dishleafnode_configure")
+    if correction_key == "RESET":
+        load_conf = json.loads(configure_input_str)
+        load_conf["pointing"]["correction"] = "RESET"
+        configure_input_str = json.dumps(load_conf)
+
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
@@ -82,28 +91,31 @@ def test_pointing_correction_key(tango_context, json_factory, group_callback):
     )
 
     dish_leaf_node.sdpQueueConnectorFqdn = SDPQC_FQDN
-    sdp_queue_connector.SetPointingCalSka001(POINTING_CAL)
+    if correction_key == "UPDATE":
+        sdp_queue_connector.SetPointingCalSka001(POINTING_CAL)
 
     command_info_data = dish_master.commandCallInfo
 
-    assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
+    if correction_key == "RESET":
+        assert ("TrackLoadStaticOff", "[0. 0.]") in command_info_data
+    else:
+        assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
+        result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
+        assert result_trackstop[0] == ResultCode.QUEUED
 
-    result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
-    assert result_trackstop[0] == ResultCode.QUEUED
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id_trackstop[0], COMMAND_COMPLETED),
+            lookahead=6,
+        )
 
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_trackstop[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
+        group_callback["pointingState"].assert_change_event(
+            (PointingState.READY),
+            lookahead=6,
+        )
+        group_callback["dishMode"].assert_change_event(
+            (DishMode.OPERATE),
+            lookahead=6,
+        )
 
     dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
