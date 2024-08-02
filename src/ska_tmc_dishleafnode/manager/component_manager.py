@@ -1704,7 +1704,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                     event_data.attr_value.value[2],
                                 ]
                             )
-                            self.track_load_static_off_command.do(offsets)
+                            (
+                                result_code,
+                                message,
+                            ) = self.track_load_static_off_command.do(offsets)
+                            self.logger.debug(
+                                f"ResultCode code : {result_code}"
+                                + f"message : {message}"
+                            )
 
                         elif self.correction_key == "MAINTAIN":
                             self.logger.info(
