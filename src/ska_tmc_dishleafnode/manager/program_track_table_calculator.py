@@ -36,7 +36,7 @@ class ProgramTrackTableCalculator:
         """
         self.component_manager = component_manager
         self.logger = logger
-        self.track_table_time_stamp = None
+        self.track_table_time_stamp: datetime.datetime | None = None
 
     def calculate_program_track_table(
         self: ProgramTrackTableCalculator,
@@ -60,7 +60,7 @@ class ProgramTrackTableCalculator:
         program_track_table = []
 
         time_stamp_list, tai_timestamp_list = self.calculate_time_stamp_list()
-        results = list(map(self.point, time_stamp_list))
+        results: list = list(map(self.point, time_stamp_list))
         try:
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):

@@ -225,16 +225,17 @@ class Configure(DishLNCommand):
                     json_argument["pointing"]["target"]["dec"],
                 ]
 
-            self.component_manager.target_data = target_data
-            self.component_manager.dish_adapter = self.dish_master_adapter
+            self.component_manager.set_target_data(target_data)
 
             # Start programTrackTable calculation
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
 
+            # create_process_and_start_track_table_calculation()
+
             try:
                 if not self.component_manager.track_table_process.is_alive():
-                    self.logger.debug("Starting tracktable calculation")
+                    self.logger.debug("Starting programTrackTable calculation")
                     self.component_manager.create_track_process()
                     self.component_manager.track_table_process.start()
             except Exception as exception:
@@ -244,11 +245,11 @@ class Configure(DishLNCommand):
                     str(exception),
                 )
 
-            receiver_band = json_argument["dish"]["receiver_band"]
-            command_name = f"ConfigureBand{receiver_band}"
+            receiver_band: str = json_argument["dish"]["receiver_band"]
+            command_name: str = f"ConfigureBand{receiver_band}"
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
-            current_dish_mode = self.component_manager.dishMode
+            current_dish_mode: DishMode = self.component_manager.dishMode
 
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
@@ -347,7 +348,7 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]
         """
         # Set wait for dish band to be configured
-        result = self.set_wait_for_configured_band(receiver_band)
+        result: bool = self.set_wait_for_configured_band(receiver_band)
         if not result:
             self.logger.error(
                 "Timeout occurred while waiting for %s configuredBand in "
@@ -357,11 +358,12 @@ class Configure(DishLNCommand):
             return (
                 [ResultCode.FAILED],
                 [
-                    f"Timeout occurred while waiting for {receiver_band}"
-                    + " configuredBand in Configure command."
+                    "Timeout occurred while waiting for %s"
+                    + " configuredBand in Configure command.",
+                    receiver_band,
                 ],
             )
-        result = self.set_wait_for_dishmode(expected_dish_mode)
+        result: bool = self.set_wait_for_dishmode(expected_dish_mode)
         if not result:
             self.logger.error(
                 "Timeout occurred while waiting for dishMode: %s. "
@@ -369,8 +371,7 @@ class Configure(DishLNCommand):
                 expected_dish_mode,
             )
             message = (
-                "Timeout occurred while invoking the "
-                + f"ConfigureBand{receiver_band}() Command."
+                "Timeout occurred while invoking the ConfigureBand() Command."
             )
             return (ResultCode.FAILED, message)
         return [ResultCode.OK], [""]
@@ -389,7 +390,7 @@ class Configure(DishLNCommand):
         if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
-        result = self.set_wait_for_dishmode(DishMode.OPERATE)
+        result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
             self.logger.error(
                 "Timeout occurred while processing the"
@@ -412,7 +413,7 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
-        result = self.is_tracktable_provided()
+        result: bool = self.is_tracktable_provided()
         if not result:
             self.logger.error(
                 "Timed out while waiting to generate TrackTable."
