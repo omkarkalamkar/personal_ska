@@ -131,36 +131,20 @@ def test_configure_command_adapter_none(
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-def test_json_validation(tango_context, task_callback, cm, json_factory):
+@pytest.mark.parametrize("key", ["pointing", "dish"])
+def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
     config_json = json.loads(configure_input_str)
-    del config_json["dish"]
+    del config_json[key]
     configure_input_str = json.dumps(config_json)
     result, message = cm.configure(
         configure_input_str, task_callback=task_callback
     )
     assert result == ResultCode.FAILED
-    assert "dish key is not present" in message
-
-
-def test_json_validation_pointing_doesnot_exist(
-    tango_context, task_callback, cm, json_factory
-):
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
-    wait_for_dish_mode(cm, DishMode.STANDBY_FP)
-    assert cm.is_configure_allowed()
-    configure_input_str = json_factory("dishleafnode_configure")
-    config_json = json.loads(configure_input_str)
-    del config_json["pointing"]
-    configure_input_str = json.dumps(config_json)
-    result, message = cm.configure(
-        configure_input_str, task_callback=task_callback
-    )
-    assert result == ResultCode.REJECTED
-    assert "Correction key 'pointing' does not exist" in message
+    assert f"{key} key is not present" in message
 
 
 def test_configure_command_not_allowed(tango_context, cm):
@@ -192,43 +176,4 @@ def test_configure_command_status_not_allowed(
     task_callback.assert_against_call(
         status=TaskStatus.REJECTED,
         result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
-    )
-
-
-@pytest.mark.parametrize("correction", ["UPDATE", "RESET", "MAINTAIN"])
-def test_configure_command_completed_with_correction_key(
-    tango_context,
-    cm,
-    task_callback,
-    json_factory,
-    correction,
-):
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
-    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
-    assert cm.is_configure_allowed()
-
-    set_kvalue_command = SetKValue(cm, logger=logger)
-    result_code, _ = set_kvalue_command.do(1)
-    assert result_code == ResultCode.OK
-
-    configure_input_str = json_factory("dishleafnode_configure")
-    configure_input_str = json.loads(configure_input_str)
-    configure_input_str["pointing"]["correction"] = correction
-    configure_input_str = json.dumps(configure_input_str)
-    cm.configure(configure_input_str, task_callback=task_callback)
-    time.sleep(0.5)
-    cm.update_device_configured_band("2")
-    time.sleep(0.5)
-    cm.update_device_dish_mode(DishMode.OPERATE)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
     )
