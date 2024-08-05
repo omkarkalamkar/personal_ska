@@ -102,7 +102,7 @@ def test_configure_command_completed_with_correction_key_reset(
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     dish_device.subscribe_event(
@@ -116,6 +116,11 @@ def test_configure_command_completed_with_correction_key_reset(
     configure_input_str["pointing"]["correction"] = "RESET"
     configure_input_str = json.dumps(configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
+    dish_device.programTrackTable = [
+        775853423.2247269,
+        178.758613204265,
+        31.165682681453,
+    ]
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -174,6 +179,11 @@ def test_configure_command_completed_with_correction_key_update(
     configure_input_str["pointing"]["correction"] = "UPDATE"
     configure_input_str = json.dumps(configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
+    dish_device.programTrackTable = [
+        775853423.2247269,
+        178.758613204265,
+        31.165682681453,
+    ]
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
