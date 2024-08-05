@@ -99,7 +99,7 @@ def test_pointing_correction_key(
     if correction_key == "RESET":
         assert ("TrackLoadStaticOff", "[0. 0.]") in command_info_data
     else:
-        assert ('TrackLoadStaticOff', '[1.1 1.2]') in command_info_data
+        assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
