@@ -128,7 +128,7 @@ def test_pointing_correction_key(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_partial_configure_dish_leaf_node_correction_key(
+def test_partial_configure_dish_leaf_node_reset_correction_key(
     tango_context,
     group_callback,
     json_factory,
