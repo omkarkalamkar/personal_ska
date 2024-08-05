@@ -96,12 +96,6 @@ class DishLNEventReceiver(EventReceiver):
                     self.handle_long_running_command_result,
                     stateless=True,
                 )
-                dish_dev_proxy.subscribe_event(
-                    "longRunningCommandResult",
-                    tango.EventType.CHANGE_EVENT,
-                    self.handle_long_running_command_result,
-                    stateless=True,
-                )
             except Exception as exception:
                 log_msg = (
                     "Event not working for "

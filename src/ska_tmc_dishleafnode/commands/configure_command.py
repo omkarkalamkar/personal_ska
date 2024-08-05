@@ -136,13 +136,11 @@ class Configure(DishLNCommand):
         try:
             result = kwargs.get("result")
             status = kwargs.get("status", TaskStatus.COMPLETED)
-            # message = kwargs.get("message")
+            message = kwargs.get("exception")
 
-            if result == ResultCode.OK:
+            if result[0] == ResultCode.OK:
                 self.component_manager.command_in_progress = None
-                self.task_callback(
-                    ResultCode.OK, COMMAND_COMPLETION_MESSAGE, status=status
-                )
+                self.task_callback(result=result, status=status)
             elif status == TaskStatus.ABORTED:
                 self.task_callback(status=status)
                 return
@@ -150,6 +148,7 @@ class Configure(DishLNCommand):
                 self.task_callback(
                     status=TaskStatus.COMPLETED,
                     result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+                    exception=message,
                 )
                 self.component_manager.command_in_progress = None
             self.component_manager.command_id = ""

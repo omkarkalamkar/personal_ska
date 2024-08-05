@@ -3,7 +3,7 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 from __future__ import annotations
 
-import asyncio
+# import asyncio
 import copy
 import datetime
 import json
@@ -299,10 +299,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
-        self.kvalue_validation_iers_download_thread = threading.Timer(
-            5, self.start_init_operations
-        )
-        self.kvalue_validation_iers_download_thread.start()
+        # self.kvalue_validation_iers_download_thread = threading.Timer(
+        #     5, self.start_init_operations
+        # )
+        # self.kvalue_validation_iers_download_thread.start()
 
         self.create_converter_obj_and_antenna_obj()
         self.download_iers_data()
@@ -529,20 +529,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self._update_source_offset_callback:
                 self._update_source_offset_callback(source_offset)
 
-    def start_init_operations(self) -> None:
-        """This method assures proper execution of kvalue validation
-        and iers data download.
-        """
+    # def start_init_operations(self) -> None:
+    #     """This method assures proper execution of kvalue validation
+    #     and iers data download.
+    #     """
 
-        try:
-            asyncio.run(self.run_init_threads())
-        except asyncio.CancelledError:
-            self.logger.exception("Initialization stopped.")
+    #     try:
+    #         asyncio.run(self.run_init_threads())
+    #     except asyncio.CancelledError:
+    #         self.logger.exception("Initialization stopped.")
 
-    async def run_init_threads(self) -> None:
-        """Await for the completion of beolw tasks"""
-        await self.update_kvalue_validation_result()
-        await self.download_iers_data()
+    # async def run_init_threads(self) -> None:
+    #     """Await for the completion of beolw tasks"""
+    #     await self.update_kvalue_validation_result()
+    #     await self.download_iers_data()
 
     def download_iers_data(self: DishLNComponentManager) -> None:
         """Downloads and initialises the IERS file.
@@ -637,9 +637,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("Main Process ID: %s", os.getppid())
-        self.converter.create_antenna_obj()
+        # self.converter.create_antenna_obj()
         self.logger.info("Sub-Process ID: %s", os.getpid())
-
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
@@ -1833,9 +1832,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # Hence below code is needed and pylint warning needs to be
         # supressed
         # pylint: disable=pointless-exception-statement
-        if self.kvalue_validation_iers_download_thread.is_alive():
-            asyncio.CancelledError()
-            self.kvalue_validation_iers_download_thread.join()
+        # if self.kvalue_validation_iers_download_thread.is_alive():
+        #     asyncio.CancelledError()
+        #     self.kvalue_validation_iers_download_thread.join()
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()

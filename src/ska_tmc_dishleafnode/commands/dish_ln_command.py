@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
@@ -14,6 +14,9 @@ from ska_tmc_common import (
     TmcLeafNodeCommand,
 )
 from tango import ConnectionFailed, DevFailed
+
+# Any, Callable
+
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -137,48 +140,49 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.component_manager.command_id = command_id
 
     # pylint: disable=arguments-differ
-    def check_device_state(
-        self,
-        state_function: Callable,
-        state_to_achieve: Any,
-        expected_state: list,
-    ) -> bool:
-        """
-        Waits for expected state with or without
-        transitional state. On expected state occurrence,
-        it sets ResultCode to OK and stops the tracker thread.
+    # def check_device_state(
+    #     self,
+    #     state_function: Callable,
+    #     state_to_achieve: Any,
+    #     expected_state: list,
+    # ) -> bool:
+    #     """
+    #     Waits for expected state with or without
+    #     transitional state. On expected state occurrence,
+    #     it sets ResultCode to OK and stops the tracker thread.
 
-        :param state_function: The function to determine the state of the
-                        device. Should be accessible in the component_manager.
-        :type state_function: str
+    #     :param state_function: The function to determine the state of the
+    #                     device. Should be accessible in the component_manager
+    #     :type state_function: str
 
-        :param state_to_achieve: A particular state that needs to be
-                                achieved for command completion.
+    #     :param state_to_achieve: A particular state that needs to be
+    #                             achieved for command completion.
 
-        :param expected_state: Expected state of the device in case of
-                        successful command execution. It's a list containing
-                            transitional obsState if it exists for a command.
-        :return: boolean value indicating if the state change occurred or not.
-        """
-        self.logger.info(
-            "Target value is %s",
-            state_to_achieve,
-        )
+    #     :param expected_state: Expected state of the device in case of
+    #                     successful command execution. It's a list containing
+    #                         transitional obsState if it exists for a command.
+    #     :return: boolean value indicating if the state change occurred or not
+    #     """
+    #     self.logger.info(
+    #         "Target value is %s",
+    #         state_to_achieve,
+    #     )
 
-        dish_mode, pointing_state, result_code = state_function()
-        self.logger.info(
-            f"Current target values: {dish_mode, pointing_state, result_code}"
-        )
+    #     dish_mode, pointing_state, result_code = state_function()
+    #     self.logger.info(
+    #         f"Current target values: {dish_mode, pointing_state,
+    # result_code}"
+    #     )
 
-        (
-            expected_dish_mode,
-            expected_pointing_states,
-            expected_result_code,
-        ) = expected_state
+    #     (
+    #         expected_dish_mode,
+    #         expected_pointing_states,
+    #         expected_result_code,
+    #     ) = expected_state
 
-        # Check if the results match the expected values
-        return (
-            dish_mode == expected_dish_mode
-            and pointing_state in expected_pointing_states
-            and result_code == expected_result_code
-        )
+    #     # Check if the results match the expected values
+    #     return (
+    #         dish_mode == expected_dish_mode
+    #         and pointing_state in expected_pointing_states
+    #         and result_code == expected_result_code
+    #     )

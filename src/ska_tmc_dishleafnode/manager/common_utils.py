@@ -49,50 +49,50 @@ def update_lrcr_result(
     )
 
 
-def process_long_running_command_result(
-    component_manager, device_name: str, value: str
-) -> None:
-    """
-    Method to update task callback based on long running command result
-    event data.
+# def process_long_running_command_result(
+#     component_manager, device_name: str, value: str
+# ) -> None:
+#     """
+#     Method to update task callback based on long running command result
+#     event data.
 
-    :param lrc_status: longRunningCommandResult attribute event data
-    :type: (Tuple[List[str], List[str]])
-    """
-    component_manager.logger.info(
-        "Received longRunningCommandResult event for device: %s, "
-        "with value: %s",
-        device_name,
-        value,
-    )
+#     :param lrc_status: longRunningCommandResult attribute event data
+#     :type: (Tuple[List[str], List[str]])
+#     """
+#     component_manager.logger.info(
+#         "Received longRunningCommandResult event for device: %s, "
+#         "with value: %s",
+#         device_name,
+#         value,
+#     )
 
-    if component_manager.command_in_progress:
-        try:
-            if not value[1]:
-                pass
+#     if component_manager.command_in_progress:
+#         try:
+#             if not value[1]:
+#                 pass
 
-            if value[0].endswith(component_manager.supported_commands):
-                if int(value[1]) == ResultCode.OK:
-                    update_lrcr_result(component_manager, value[0], value[1])
+#             if value[0].endswith(component_manager.supported_commands):
+#                 if int(value[1]) == ResultCode.OK:
+#                     update_lrcr_result(component_manager, value[0], value[1])
 
-        except ValueError:
-            component_manager.logger.info(
-                f"""Updating LRCRCallback with value: {value} for
-                                      device: {device_name}"""
-            )
+#         except ValueError:
+#             component_manager.logger.info(
+#                 f"""Updating LRCRCallback with value: {value} for
+#                                       device: {device_name}"""
+#             )
 
-            exception_message = (
-                f"Exception occurred on the following devices:"
-                f"for command - {component_manager.command_in_progress} "
-                f"{device_name}: {value[1]}\n"
-            )
+#             exception_message = (
+#                 f"Exception occurred on the following devices:"
+#                 f"for command - {component_manager.command_in_progress} "
+#                 f"{device_name}: {value[1]}\n"
+#             )
 
-            component_manager.logger.debug(
-                f"Exception:  :: {exception_message}"
-            )
+#             component_manager.logger.debug(
+#                 f"Exception:  :: {exception_message}"
+#             )
 
-            component_manager.long_running_result_callback(
-                component_manager.command_id,
-                ResultCode.FAILED,
-                exception_message=exception_message,
-            )
+#             component_manager.long_running_result_callback(
+#                 component_manager.command_id,
+#                 ResultCode.FAILED,
+#                 exception_message=exception_message,
+#             )
