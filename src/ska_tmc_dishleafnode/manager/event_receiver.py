@@ -134,7 +134,7 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_device_dish_mode(new_value)
         self.log_event_exit("handle_dish_mode_event")
         self._logger.info(
-            f"DishMode value updated to {DishMode(new_value).name}"
+            "DishMode value updated to %s", DishMode(new_value).name
         )
 
     def handle_pointing_state_event(
@@ -162,7 +162,7 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_device_pointing_state(new_value)
         self.log_event_exit("handle_pointing_state_event")
         self._logger.info(
-            f"PointingState value updated to {PointingState(new_value).name}"
+            "PointingState value updated to %s", PointingState(new_value).name
         )
 
     def handle_configured_band_event(
@@ -187,8 +187,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_configured_band(new_value)
-        self._logger.info(f"ConfiguredBand value updated to {new_value}")
-        self.log_event_exit("handle_configured_band_event")
+        self._logger.info("ConfiguredBand value updated to %s", new_value)
 
     def handle_achieved_pointing_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -241,7 +240,9 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_device_long_running_command_result(
             new_value
         )
-        self._logger.info(f"long running command value updated to {new_value}")
+        self._logger.info(
+            "longRunningCommandResult attribute event: %s", new_value
+        )
 
     def subscribe_sdpqc_attribute(
         self: DishLNEventReceiver,

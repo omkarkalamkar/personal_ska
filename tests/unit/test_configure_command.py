@@ -4,7 +4,7 @@ import time
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tango_base.control_model import ObsState
-from ska_tmc_common import DevFactory, FaultType
+from ska_tmc_common.dev_factory import DevFactory, FaultType
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
@@ -19,25 +19,24 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context,
-    cm,
-    task_callback,
-    json_factory,
+    tango_context, cm, task_callback, json_factory, dish_master_device
 ):
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    dev_factory = DevFactory()
+    dish_device = dev_factory.get_device(dish_master_device)
+    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
+    time.sleep(0.2)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
-
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
-    time.sleep(0.5)
-    cm.update_device_configured_band("2")
-    time.sleep(0.5)
-    cm.update_device_dish_mode(DishMode.OPERATE)
+    dish_device.programTrackTable = [
+        775853423.2247269,
+        178.758613204265,
+        31.165682681453,
+    ]
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -50,6 +49,8 @@ def test_configure_command_completed(
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_partial_config(
@@ -79,6 +80,8 @@ def test_configure_command_completed_partial_config(
         },
         lookahead=6,
     )
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_partial_config_missing_key(
@@ -111,6 +114,8 @@ def test_configure_command_completed_partial_config_missing_key(
         },
         lookahead=12,
     )
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_configure_command_adapter_none(

@@ -1498,12 +1498,16 @@ url = "https://pypi.org/simple"
 reference = "PyPI-public"
 
 [[package]]
-name = "recommonmark"
-version = "0.7.1"
-description = "A docutils-compatibility bridge to CommonMark, enabling you to write CommonMark inside of Docutils & Sphinx projects."
-category = "dev"
+name = "referencing"
+version = "0.35.1"
+description = "JSON Referencing + Python"
+category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
+
+[package.dependencies]
+attrs = ">=22.2.0"
+rpds-py = ">=0.7.0"
 
 [package.dependencies]
 commonmark = ">=0.8.1"
@@ -2296,7 +2300,7 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "e73ec294e45c9f11ba1e58d81f6f834e2135321cab443ce9073b8d20b735e02d"
+content-hash = "453106c988ce30b0bd8253ed5c1093b23ec2d663e848d0ae22b02de00c4229a8"
 
 [metadata.files]
 alabaster = [
@@ -3247,7 +3251,10 @@ ska-tmc-cdm = [
     {file = "ska_tmc_cdm-7.3.1-py3-none-any.whl", hash = "sha256:6096dfd4d7c0211dad2ac58cfe0c3cc88b3d5448f20405c5cb7864ec44f28757"},
     {file = "ska_tmc_cdm-7.3.1.tar.gz", hash = "sha256:3129cd4ec33b207f80669f521ba80fd221a42041c841f6c2f44eb8225ed8c363"},
 ]
-ska-tmc-common = []
+ska-tmc-common = [
+    {file = "ska_tmc_common-0.19.3-py3-none-any.whl", hash = "sha256:836771fba11f747bf8af86fa467f6874a12282e97c69ac6f394e2b375eb6e12a"},
+    {file = "ska_tmc_common-0.19.3.tar.gz", hash = "sha256:9691850ada0dc033a1aa969cf52bc5497e9ff2d552268a751c28982f4d10835f"},
+]
 smmap = [
     {file = "smmap-5.0.1-py3-none-any.whl", hash = "sha256:e6d8668fa5f93e706934a62d7b4db19c8d9eb8cf2adbb75ef1b675aa332b69da"},
     {file = "smmap-5.0.1.tar.gz", hash = "sha256:dceeb6c0028fdb6734471eb07c0cd2aae706ccaecab45965ee83f11c8d3b1f62"},

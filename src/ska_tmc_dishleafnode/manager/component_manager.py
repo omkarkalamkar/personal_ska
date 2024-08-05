@@ -14,7 +14,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple
 
 import numpy as np
 import tango
@@ -62,6 +62,7 @@ from .event_receiver import DishLNEventReceiver
 from .program_track_table_calculator import ProgramTrackTableCalculator
 
 
+# pylint: disable = too-many-public-methods
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
@@ -95,6 +96,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         azimuth: float = 0.0,
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
+        track_table_advance_sec: int = 6,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -173,7 +175,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_last_pointing_data_cb
         )
         self.update_availablity_callback = _update_availablity_callback
-        self.supported_commands: Tuple[str, str] = (
+        self.supported_commands: Tuple = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
             "Track",
@@ -184,6 +186,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "ConfigureBand4",
             "ConfigureBand5a",
             "ConfigureBand5b",
+            "Configure",
         )
         self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
@@ -200,13 +203,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.dish_adapter: DishAdapter | None = None
-        self.track_table_entries = track_table_entries
-        self.pointing_calculation_period = pointing_calculation_period
+        self.track_table_entries: int = track_table_entries
+        self.pointing_calculation_period: int = pointing_calculation_period
+        self.track_table_advance_sec: float = track_table_advance_sec
         self.track_table_calculator = ProgramTrackTableCalculator(
             self, self.logger
         )
-
+        self.target_data: List | str
+        self.track_table_process: Process = Process(target=self.track_process)
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
@@ -272,6 +276,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             __adapter_factory,
             self.logger,
+        )
+        self.dish_adapter: DishAdapter | None = (
+            self.configure_command.dish_master_adapter
         )
 
         self.static_pm_setup_command = StaticPmSetup(
@@ -1425,79 +1432,110 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def track_process(
         self: DishLNComponentManager,
-        target_data: Union[str, List[str]],
-        command_obj: Configure | Track,
     ) -> None:
         """
         This method manages calculation and writing of programTrackTable
         attribute on DishMaster at the required frequency.
 
-        :param target_data: The name or RaDec for the target
-        :type target_data: Union[str, List[str]]
-        :param command_obj: Command Object which is used to set
-            desired_pointing.
-        :type command_obj: Configure or Track.
         :return: None
         :rtype: None
         """
+        timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+        # This is dummy calculation because first time calculation takes
+        # time due to IERS file downloads
+        if isinstance(self.target_data, str):
+            self.converter.point_to_body(self.target_data, timestamp)
+        else:
+            ra, dec = self.target_data
+            self.converter.point(ra, dec, timestamp)
+
         self.logger.info(
             "The track process name is : %s",
             Process(target=current_process().name),
         )
-        self.track_table_calculator = ProgramTrackTableCalculator(
-            self, self.logger
-        )
-        self.dish_adapter = command_obj.dish_master_adapter
         utc_now = datetime.datetime.utcnow()
 
         # For future timestamp few seconds are added in current time.
         # Divided by 1000 to convert ms to sec conversion.
-        time_to_add = (
-            2 * self.track_table_entries * self.pointing_calculation_period
-        ) / 1000
+        time_to_add: float = (
+            (self.track_table_entries * self.pointing_calculation_period)
+            / 1000
+        ) + self.track_table_advance_sec
 
-        extended_time = utc_now + datetime.timedelta(seconds=time_to_add)
+        extended_time: datetime.datetime = utc_now + datetime.timedelta(
+            seconds=time_to_add
+        )
         self.track_table_calculator.track_table_time_stamp = extended_time
-
-        # This is dummy calculation because first time calculation takes
-        # time due to IERS file downloads
-        timestamp = self.convert_timestamp(extended_time.timestamp() * 1000)
-        if isinstance(target_data, str):
-            self.converter.point_to_body(target_data, timestamp)
-        else:
-            ra, dec = target_data
-            self.converter.point(ra, dec, timestamp)
-
-        advance_time = (
-            self.track_table_entries * self.pointing_calculation_period
-        ) / 1000
-
         while self.get_track_process_event_status() is False:
-            program_track_table = (
+            program_track_table: list = (
                 self.track_table_calculator.calculate_program_track_table(
-                    target_data, self.converter
+                    self.target_data, self.converter
                 )
             )
-            first_entry_timestamp = (
-                self.track_table_calculator.track_table_start_time
-            )
+            first_entry_timestamp: float = program_track_table[0]
 
             # advance_time is subtracted to provide programTrackTable few
             # seconds in advance
-            scheduled_time = first_entry_timestamp - advance_time
+            actual_time = first_entry_timestamp - self.track_table_advance_sec
 
-            if scheduled_time > datetime.datetime.utcnow().timestamp():
-                event_priority = 1
-                self.track_table_scheduler.enterabs(
-                    scheduled_time,
-                    event_priority,
-                    self.update_program_track_table,
-                    argument=(program_track_table,),
-                )
-                self.track_table_scheduler.run()
+            scheduled_time = Time(
+                float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
+                format="unix_tai",
+                scale="tai",
+            ).unix
+
+            event_priority: int = 1
+            self.track_table_scheduler.enterabs(
+                scheduled_time,
+                event_priority,
+                self.update_program_track_table,
+                argument=(program_track_table,),
+            )
+            self.track_table_scheduler.run()
+        self.logger.debug("Program Track Table Calculation stopped.")
+
+        with self.tango_operation_execution_lock:
+            self.dish_adapter.programTrackTable = []
+        self.logger.debug("Cleared programTrackTable attribute.")
+
+    def create_track_process(self) -> None:
+        """Creates new process for programTrackTable calculation."""
+        self.logger.debug("Creating new process for tracktable calculation")
+        self.track_table_process = Process(target=self.track_process)
+
+    def set_target_data(self, target_data: list | str) -> None:
+        """Sets target data to for programTrackTable generation."""
+        self.target_data = target_data
+
+    def set_dish_adapter(self, dish_adapter: DishAdapter) -> None:
+        """Sets dish adapter, used to write programTrackTable on the dish."""
+        self.dish_adapter = dish_adapter
+
+    def create_process_and_start_track_table_calculation(self) -> None:
+        """This method create and start process for programTrackTable
+        calculation."""
+        try:
+            if not self.track_table_process.is_alive():
+                self.create_track_process()
+                self.logger.debug("Starting programTrackTable calculation")
+                self.track_table_process.start()
             else:
-                self.update_program_track_table(program_track_table)
-        self.logger.info("Program Track Table Calculation stopped.")
+                self.logger.debug(
+                    "programTrackTable calculation is already going on."
+                    + " New process will not be hosted."
+                )
+        except Exception as exception:
+            self.logger.error(
+                "Exception occurred while starting programTrackTable "
+                "calculation: %s",
+                str(exception),
+            )
+
+    def stop_track_table_process(self):
+        """Stops track process"""
+        if self.track_table_process.is_alive():
+            self.logger.debug("Stopping Track table process")
+            self.track_table_process.join()
 
     # pylint: disable=arguments-differ
     def update_device_ping_failure(
@@ -1785,8 +1823,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.info("Inside stop_executors_and_cleanup_memory")
-
         if self.event_receiver:
             self.stop_event_receiver()
 
@@ -1809,6 +1845,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         while not self.achieved_pointing_data.empty():
             _ = self.achieved_pointing_data.get(block=True)
         del self.achieved_pointing_data
+        if self.track_table_process.is_alive():
+            self.set_track_process_event()
+            self.track_table_process.join()
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 
