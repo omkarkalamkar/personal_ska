@@ -11,11 +11,7 @@
 """Release information for Python Package"""
 
 name = """ska_tmc_dishleafnode"""
-<<<<<<< HEAD
-version = "0.16.4"
-=======
 version = "0.17.0"
->>>>>>> 773fb3ce30810aad5292c365a405c1351b17c23f
 version_info = version.split(".")
 description = """ The primary responsibility of the Dish
                   Leaf node is to monitor the Dish Master
