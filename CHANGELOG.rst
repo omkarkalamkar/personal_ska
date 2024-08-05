@@ -5,12 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-Added
-======
-
-[0.17.0]
+[0.16.0]
 ********
-* Update Dish Leaf Node to use correction key from Config json to MAINTAIN, APPLY or RESET offsets on Dish Manager
+* Accomodate changes for the correction key in dish Leaf Node
+
 
 [0.16.0]
 ********
@@ -68,6 +66,13 @@ Added
 
 Fixed
 ======
+[0.16.4]
+* Fix for SKB-419 and SKB-469
+* Set and push archive events for all the attributes
+
+[0.16.3]
+********
+* Patch release from branch SAH-1566 with SKB-419 fix
 
 [0.16.2]
 ********
