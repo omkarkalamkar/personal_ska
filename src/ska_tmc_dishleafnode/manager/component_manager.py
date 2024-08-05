@@ -51,7 +51,12 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
+from ska_tmc_dishleafnode.constants import (
+    CORRECTION_KEY_MAINTAIN,
+    CORRECTION_KEY_UPDATE,
+    IERS_DATA_STORAGE_PATH,
+    SKA_EPOCH,
+)
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -1700,7 +1705,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.last_pointing_data,
                         )
                     else:
-                        if self.correction_key in ["UPDATE", ""]:
+                        if self.correction_key in [CORRECTION_KEY_UPDATE, ""]:
                             self.queue_connector_device_info.pointing_data = (
                                 event_data.attr_value.value
                             )
@@ -1725,8 +1730,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 + f"message : {message}"
                             )
 
-                        elif self.correction_key == "MAINTAIN":
-                            self.logger.info(
+                            self.logger.debug(
+                                "Pointing offsets are Updated to {}",
+                                offsets,
+                            )
+
+                        elif self.correction_key == CORRECTION_KEY_MAINTAIN:
+                            self.logger.debug(
                                 "Pointing offsets are not applied to dish as"
                                 + " correction key is MAINTAIN"
                             )

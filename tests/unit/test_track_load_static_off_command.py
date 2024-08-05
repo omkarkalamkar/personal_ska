@@ -9,7 +9,10 @@ from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.constants import (
+    COMMAND_COMPLETION_MESSAGE,
+    CORRECTION_KEY_MAINTAIN,
+)
 from tests.settings import (
     DISH_MASTER_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
@@ -346,7 +349,7 @@ def test_correction_key_maintain_partial_config(
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
     configure_input_str = json.loads(configure_input_str)
-    configure_input_str["pointing"]["correction"] = "MAINTAIN"
+    configure_input_str["pointing"]["correction"] = CORRECTION_KEY_MAINTAIN
     configure_input_str = json.dumps(configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(
