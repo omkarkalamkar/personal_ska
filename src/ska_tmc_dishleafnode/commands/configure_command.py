@@ -17,7 +17,11 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.constants import (
+    COMMAND_COMPLETION_MESSAGE,
+    CORRECTION_KEY_RESET,
+    RESET_OFFSETS,
+)
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -208,10 +212,28 @@ class Configure(DishLNCommand):
                 return result_code, message
 
             json_argument = json.loads(argin)
+            # Start programTrackTable calculation
+            self.component_manager.elevation_limit = True
+            self.component_manager.reset_track_process_event()
+            reset_offset = (
+                self.component_manager.correction_key == CORRECTION_KEY_RESET
+            )
+            if reset_offset and "tmc" not in json_argument:
+                result_code, message = self.invoke_trackloadstaticoff(
+                    json_argument, reset_offset=True
+                )
+                self.component_manager.command_in_progress = "Configure"
+                if result_code in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.NOT_ALLOWED,
+                ]:
+                    return result_code, message
 
             if json_argument.get("tmc"):
-                return self.invoke_trackloadstaticoff(json_argument)
-
+                return self.invoke_trackloadstaticoff(
+                    json_argument, reset_offset=reset_offset
+                )
             if (
                 json_argument["pointing"]["target"]["reference_frame"].lower()
                 == "special"
@@ -276,7 +298,9 @@ class Configure(DishLNCommand):
         return result_code[0], message[0]
 
     def invoke_trackloadstaticoff(
-        self: Configure, input_json: dict
+        self: Configure,
+        input_json: dict,
+        reset_offset: bool = False,
     ) -> Tuple[ResultCode, str]:
         """Extracts the offsets from input json and invokes the
         TrackLoadStaticOff command on DishMaster device.
@@ -286,28 +310,36 @@ class Configure(DishLNCommand):
 
         :returns: Tuple[ResultCode, str]
         """
+        offsets_argin = []
         self.component_manager.command_in_progress = (
             "Configure_TrackLoadStaticOff"
         )
         # Extracting and setting cross elevation offset. Considering
         # 0.0 if the key is omitted
-        ca_offset = (
-            input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0
-        )
 
-        # Extracting and setting elevation offset. Considering 0.0 if
-        # the key is omitted
-        ie_offset = (
-            input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
-        )
+        if reset_offset:
+            offsets_argin = RESET_OFFSETS
+        else:
+            offsets_argin.append(
+                input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0
+            )
 
-        offsets_argin = [ca_offset, ie_offset]
+            # Extracting and setting elevation offset. Considering 0.0 if
+            # the key is omitted
+            offsets_argin.append(
+                input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
+            )
+
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
                 "Dish Master",
                 self.dish_master_adapter,
                 "TrackLoadStaticOff",
                 offsets_argin,
+            )
+        if reset_offset:
+            self.logger.debug(
+                "Pointing offsets are Resetted to{}", CORRECTION_KEY_RESET
             )
         self.component_manager.update_source_offset_callback(offsets_argin)
         return result_code[0], message[0]
@@ -363,7 +395,7 @@ class Configure(DishLNCommand):
             message = (
                 "Timeout occurred while invoking the ConfigureBand() Command."
             )
-            return (ResultCode.FAILED, message)
+            return ([ResultCode.FAILED], [message])
         return [ResultCode.OK], [""]
 
     def ensure_dish_in_right_dish_mode(
