@@ -124,21 +124,6 @@ def unhappy_configure_command(
     dish_master.SetDirectConfiguredBand(1)
     sleep(1)
 
-    # dish_master.subscribe_event(
-    #     "dishMode",
-    #     tango.EventType.CHANGE_EVENT,
-    #     group_callback["dishMode"],
-    # )
-    # dish_master.subscribe_event(
-    #     "pointingState",
-    #     tango.EventType.CHANGE_EVENT,
-    #     group_callback["pointingState"],
-    # )
-
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.STANDBY_LP),
-    #     lookahead=2,
-    # )
     DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -379,7 +364,6 @@ def test_configure_command(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.MM
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_unhappy_configure_command(
