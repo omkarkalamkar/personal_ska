@@ -8,6 +8,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Added
 ======
 
+[0.17.0]
+********
+* Update Dish Leaf Node to use correction key from Config json to MAINTAIN, APPLY or RESET offsets on Dish Manager
+
 [0.16.0]
 ********
 * Dish Leaf Node supports **Non-sidereal tracking** for objects present in Katpoint
@@ -64,13 +68,6 @@ Added
 
 Fixed
 ======
-[0.16.4]
-* Fix for SKB-419 and SKB-469
-* Set and push archive events for all the attributes
-
-[0.16.3]
-********
-* Patch release from branch SAH-1566 with SKB-419 fix
 
 [0.16.2]
 ********
