@@ -172,9 +172,7 @@ class Configure(DishLNCommand):
         :return: None
         :rtype: NoneType.
         """
-        self.logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         if exception:
-            self.logger.info(".....................")
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, exception),
