@@ -1602,8 +1602,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.command_in_progress,
                     )
                     command_result, message = json.loads(lrc_result[1])
+                    self.logger.info(
+                        "self.command_object -------: %s", self.command_object
+                    )
+                    self.logger.info(
+                        "self.command_in_progress -------: %s",
+                        self.command_in_progress,
+                    )
                     command_object = self.command_object.get(
                         self.command_in_progress
+                    )
+                    self.logger.info(
+                        "command_object -------: %s", command_object
                     )
                     if command_result == ResultCode.OK:
                         command_object.update_task_callback(ResultCode.OK)

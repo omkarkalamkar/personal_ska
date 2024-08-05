@@ -129,6 +129,11 @@ class Configure(DishLNCommand):
                 "The Configure command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
+            if (
+                self.component_manager.command_in_progress
+                != "Configure_TrackLoadStaticOff"
+            ):
+                self.component_manager.command_in_progress = ""
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -254,6 +259,7 @@ class Configure(DishLNCommand):
 
         """
         try:
+            self.logger.info("Configure command started.")
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
                 self.logger.error(
