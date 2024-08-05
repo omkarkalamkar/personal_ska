@@ -395,7 +395,7 @@ class Configure(DishLNCommand):
             message = (
                 "Timeout occurred while invoking the ConfigureBand() Command."
             )
-            return (ResultCode.FAILED, message)
+            return ([ResultCode.FAILED], [message])
         return [ResultCode.OK], [""]
 
     def ensure_dish_in_right_dish_mode(

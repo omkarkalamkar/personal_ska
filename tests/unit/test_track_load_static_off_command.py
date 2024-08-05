@@ -165,7 +165,8 @@ def test_configure_command_completed_with_correction_key_update(
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
+    time.sleep(0.2)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     dish_device.subscribe_event(
