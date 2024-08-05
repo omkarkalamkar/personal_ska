@@ -6,6 +6,7 @@ import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
+from ska_tmc_dishleafnode.constants import RESET_OFFSETS
 from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
@@ -207,7 +208,7 @@ def test_partial_configure_dish_leaf_node_reset_correction_key(
     # Assert change event is occuring and values are reflecting
     # on sourceOffset attribute.
     group_callback["sourceOffset"].assert_change_event(
-        [0.0, 0.0],
+        RESET_OFFSETS,
         lookahead=2,
     )
 

@@ -17,7 +17,10 @@ from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.constants import (
+    COMMAND_COMPLETION_MESSAGE,
+    RESET_OFFSETS,
+)
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -212,7 +215,6 @@ class Configure(DishLNCommand):
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
             reset_offset = self.component_manager.correction_key == "RESET"
-
             if reset_offset and "tmc" not in json_argument:
                 result_code, message = self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=True
@@ -313,7 +315,7 @@ class Configure(DishLNCommand):
         # 0.0 if the key is omitted
 
         if reset_offset:
-            offsets_argin = [0.0, 0.0]
+            offsets_argin = RESET_OFFSETS
         else:
             offsets_argin.append(
                 input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0

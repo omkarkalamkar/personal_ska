@@ -287,27 +287,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self._correction_key: str = ""
-
-    @property
-    def correction_key(self: DishLNComponentManager):
-        """
-        Sets the correction key.
-
-        Returns:
-            str: The current correction key.
-        """
-        return self._correction_key
-
-    @correction_key.setter
-    def correction_key(self: DishLNComponentManager, value: str):
-        """
-        Sets the correction key.
-
-        Args:
-            value (str): The new correction key.
-        """
-        self._correction_key = value
+        self.correction_key: str = ""
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
