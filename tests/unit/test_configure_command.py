@@ -4,9 +4,10 @@ import time
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tango_base.control_model import ObsState
-from ska_tmc_common.dev_factory import DevFactory, FaultType
+from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
+from ska_tmc_common import FaultType
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
