@@ -104,6 +104,19 @@ class Configure(DishLNCommand):
             )
             self.component_manager.command_in_progress = ""
         else:
+            logger.info(
+                "self.component_manager.command_in_progress: %s",
+                self.component_manager.command_in_progress,
+            )
+            if (
+                self.component_manager.command_in_progress
+                != "Configure_TrackLoadStaticOff"
+            ):
+                self.component_manager.command_in_progress = ""
+                logger.info(
+                    "self.component_manager.command_in_progress: %s",
+                    self.component_manager.command_in_progress,
+                )
             if not self.partial_configure:
                 self.start_tracker_thread(
                     "get_dish_state",
@@ -133,19 +146,6 @@ class Configure(DishLNCommand):
                 "The Configure command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-            logger.info(
-                "self.component_manager.command_in_progress: %s",
-                self.component_manager.command_in_progress,
-            )
-            if (
-                self.component_manager.command_in_progress
-                != "Configure_TrackLoadStaticOff"
-            ):
-                self.component_manager.command_in_progress = ""
-                logger.info(
-                    "self.component_manager.command_in_progress: %s",
-                    self.component_manager.command_in_progress,
-                )
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
