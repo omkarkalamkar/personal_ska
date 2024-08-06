@@ -1,12 +1,10 @@
 # pylint: disable=line-too-long,unused-import
 
-import logging
 import time
 
 import pytest
 import tango
 from pytest_bdd import given, parsers, scenarios, then, when
-from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
@@ -14,20 +12,17 @@ from tango import Database, DeviceProxy
 
 from tests.settings import COMMAND_COMPLETED, wait_for_ping
 
-configure_logging(logging.DEBUG)
-LOGGER = logging.getLogger(__name__)
-
 
 @given(
     parsers.parse("DishLeafNode and DishMaster devices are running"),
     target_fixture="dishleafnode_cm",
 )
-def dishleafnode_cm(tango_context, cm_new):
+def dishleafnode_cm(tango_context, cm):
     database = Database()
     instance_list = database.get_device_exported_for_class("DishLeafNode")
     for instance in instance_list.value_string:
         assert "ska_mid/tm_leaf_node/d" in DeviceProxy(instance).dev_name()
-    return cm_new
+    return cm
 
 
 @when(parsers.parse("DishLeafNode pings the DishMaster device"))
@@ -36,8 +31,7 @@ def ping_started(dishleafnode_cm):
     while not dishleafnode_cm.liveliness_probe_object._thread.is_alive():
         time.sleep(0.5)
         if time.time() - start_time > 30:
-            LOGGER.info("Liveliness thread is not alive")
-            break
+            assert False
 
     assert dishleafnode_cm.liveliness_probe_object._thread.is_alive()
 
@@ -100,8 +94,7 @@ def call_command(
 
 @then(
     parsers.parse(
-        "the {command_name} command is executed successfully "
-        "and DishMaster transitions to {resultant_state}"
+        "the {command_name} command is executed successfully and DishMaster transitions to {resultant_state}"  # noqa:E501
     )
 )
 def check_command(

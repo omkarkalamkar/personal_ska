@@ -221,7 +221,7 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        self.log_event_data(event_data, "handle_long_running_command_status")
+        self.log_event_data(event_data, "handle_long_running_command_result")
         if event_data.err:
             error = event_data.errors[0]
             error_msg = f"{error.reason},{error.desc}"

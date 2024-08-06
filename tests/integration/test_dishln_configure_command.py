@@ -1,14 +1,12 @@
 import json
-import time
 from time import sleep
 
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
-from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
-from tests.settings import (  # event_remover,
+from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -108,123 +106,20 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-def unhappy_configure_command(
-    tango_context,
-    dishln_name,
-    group_callback,
-    configure_input_str,
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+@pytest.mark.parametrize(
+    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
+)
+def test_configure_command(
+    tango_context, group_callback, json_factory, json_to_use
 ):
-    logger.info(f"{tango_context}")
-    dev_factory = DevFactory()
-    dish_leaf_node = dev_factory.get_device(dishln_name)
-    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-
-    # This is needed since we want to exeute test case 10 times.
-    dish_master.SetDirectConfiguredBand(1)
-    sleep(1)
-
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
+    configure_dish_leaf_node(
+        tango_context,
+        DISH_LEAF_NODE_DEVICE,
+        group_callback,
+        json_factory(json_to_use),
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-
-    result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    sleep(1)
-    assert result_fp[0] == ResultCode.QUEUED
-
-    LRCR_ID = dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=6,
-    )
-
-    result_config, unique_id_config = dish_leaf_node.Configure(
-        configure_input_str
-    )
-    assert result_config[0] == ResultCode.QUEUED
-    logger.info(
-        f"Command ID: {unique_id_config} Returned result: {result_config}"
-    )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_COMPLETED),
-        lookahead=10,
-    )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
-        lookahead=6,
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
-
-    # Send second configure command
-
-    result_config, unique_id_config = dish_leaf_node.Configure(
-        configure_input_str
-    )
-
-    logger.info(
-        f"Command ID: {unique_id_config} Returned result: {result_config}"
-    )
-
-    pytest.command_result = group_callback[
-        "longRunningCommandResult"
-    ].assert_change_event(
-        (unique_id_config[0], Anything),
-        lookahead=6,
-    )
-
-    assert "Already in band" in pytest.command_result["attribute_value"][1]
-    result_config, unique_id_config = dish_leaf_node.TrackStop()
-
-    time.sleep(1)
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_COMPLETED),
-        lookahead=9,
-    )
-
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
-
-    # group_callback["longRunningCommandsInQueue"].assert_change_event(
-    #     (),
-    #     lookahead=8,
-    # )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
-    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 def partial_configure_dish_leaf_node(
@@ -350,30 +245,4 @@ def test_partial_configure_command(
         group_callback,
         json_factory("dishleafnode_configure"),
         json_factory("partial_configure"),
-    )
-
-
-@pytest.mark.MM
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
-def test_configure_command(tango_context, group_callback, json_factory):
-    configure_dish_leaf_node(
-        tango_context,
-        DISH_LEAF_NODE_DEVICE,
-        group_callback,
-        json_factory("dishleafnode_configure"),
-    )
-
-
-@pytest.mark.skip()
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
-def test_unhappy_configure_command(
-    tango_context, group_callback, json_factory
-):
-    unhappy_configure_command(
-        tango_context,
-        DISH_LEAF_NODE_DEVICE,
-        group_callback,
-        json_factory("dishleafnode_configure_band2"),
     )
