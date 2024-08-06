@@ -1884,8 +1884,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def get_dish_state(
         self, command_id
     ) -> Tuple[DishMode, PointingState, ResultCode]:
-        """Returns aggregated subarray ObsState"""
+        """
+        Returns the current state of the dish including its mode,
+        pointing state,and the result code of a specified command.
 
+        Args:
+            command_id: The identifier for the command whose result is required
+
+        Returns:
+            A tuple containing:
+                - DishMode: The current operational mode of the dish.
+                - PointingState: The current pointing state of the dish.
+                - ResultCode: The result code of the command identified by
+                    command_id.
+        """
         return [
             self.dishMode,
             self.pointingState,
