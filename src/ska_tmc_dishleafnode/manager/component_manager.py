@@ -183,14 +183,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.supported_commands: Tuple = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
-            "Track",
-            "SetOperateMode",
-            "ConfigureBand1",
-            "ConfigureBand2",
-            "ConfigureBand3",
-            "ConfigureBand4",
-            "ConfigureBand5a",
-            "ConfigureBand5b",
             "Configure",
         )
         self.long_running_result_callback = LRCRCallback(self.logger)
