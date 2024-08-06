@@ -5,8 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-Added
-======
+[0.16.0]
+********
+* Accomodate changes for the correction key in dish Leaf Node
+
 
 [0.16.0]
 ********
