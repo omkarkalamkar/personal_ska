@@ -164,7 +164,7 @@ class Configure(DishLNCommand):
             else:
                 self.task_callback(
                     status=TaskStatus.COMPLETED,
-                    result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+                    result=result,
                     exception=message,
                 )
                 self.component_manager.command_in_progress = None
