@@ -4,6 +4,7 @@ from time import sleep
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
+from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from ska_tmc_dishleafnode.constants import RESET_OFFSETS
@@ -129,17 +130,27 @@ def test_pointing_correction_key(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])
 def test_partial_configure_dish_leaf_node_reset_correction_key(
     tango_context,
     group_callback,
     json_factory,
+    correction_key,
 ):
     """Partial configure flow for dish leaf node."""
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    sdp_queue_connector = dev_factory.get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    sleep(1)
+    device_host = tango.Database().get_db_host()
+    device_port = tango.Database().get_db_port()
+    SDPQC_FQDN = (
+        f"{device_host}:{device_port}/"
+        f"{SDP_QUEUE_CONNECTOR_DEVICE}/"
+        "pointing_cal_{dish_id}"
+    )
+    dish_leaf_node.sdpQueueConnectorFqdn = SDPQC_FQDN
     DISHMODE_ID = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -193,7 +204,7 @@ def test_partial_configure_dish_leaf_node_reset_correction_key(
     )
     partial_configure_input_str = json_factory("partial_configure")
     load_conf = json.loads(partial_configure_input_str)
-    load_conf["pointing"]["correction"] = "RESET"
+    load_conf["pointing"]["correction"] = correction_key
     partial_configure_input_str = json.dumps(load_conf)
 
     result_config, unique_id_config = dish_leaf_node.Configure(
@@ -205,13 +216,49 @@ def test_partial_configure_dish_leaf_node_reset_correction_key(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=8,
     )
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
     # Assert change event is occuring and values are reflecting
     # on sourceOffset attribute.
-    group_callback["sourceOffset"].assert_change_event(
-        RESET_OFFSETS,
-        lookahead=2,
-    )
 
+    if correction_key == "RESET":
+        command_info_data = dish_master.commandCallInfo
+        assert ("TrackLoadStaticOff", "[0. 0.]") in command_info_data
+        group_callback["sourceOffset"].assert_change_event(
+            RESET_OFFSETS,
+            lookahead=2,
+        )
+
+    else:
+        LRCR_ID = dish_master.subscribe_event(
+            "longRunningCommandResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandResult"],
+        )
+        count = 0
+        timeout = 20
+        unique_id = ""
+        sdp_queue_connector.SetPointingCalSka001(POINTING_CAL)
+        while "TrackLoadStaticOff" not in unique_id and count < timeout:
+            unique_id, message = group_callback[
+                "longRunningCommandResult"
+            ].assert_change_event(
+                (Anything, COMMAND_COMPLETED),
+                lookahead=10,
+            )[
+                "attribute_value"
+            ]
+            count = count + 1
+            sleep(1)
+        assert "Command Completed" in message
+        command_info_data = dish_master.commandCallInfo
+        assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
+        dish_master.unsubscribe_event(LRCR_ID)
+
+    LRCR_ID = dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 

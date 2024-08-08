@@ -9,11 +9,9 @@ from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from ska_tmc_dishleafnode.constants import (
-    COMMAND_COMPLETION_MESSAGE,
-    CORRECTION_KEY_MAINTAIN,
-)
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_MASTER_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     logger,
@@ -340,12 +338,14 @@ def test_correction_key_update_partial_config(
     assert "Command Completed" in message
 
 
+@pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
 def test_correction_key_maintain_partial_config(
     tango_context,
     cm,
     group_callback,
     task_callback,
     json_factory,
+    correction_key,
 ):
     """Test correction MAINTAIN key functionality for partial config"""
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
@@ -360,7 +360,7 @@ def test_correction_key_maintain_partial_config(
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
     configure_input_str = json.loads(configure_input_str)
-    configure_input_str["pointing"]["correction"] = CORRECTION_KEY_MAINTAIN
+    configure_input_str["pointing"]["correction"] = correction_key
     configure_input_str = json.dumps(configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(
@@ -393,9 +393,80 @@ def test_correction_key_maintain_partial_config(
         unique_id, _ = group_callback[
             "longRunningCommandResult"
         ].assert_change_event(
-            (Anything, "COMPLETED"),
+            (Anything, COMMAND_COMPLETED),
             lookahead=10,
         )[
             "attribute_value"
         ]
-        assert "TrackLoadStaticOff" not in unique_id
+        assert "TrackLoadStaticOff" in unique_id
+
+
+@pytest.mark.utest
+@pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
+def test_correction_key_maintain_main_config(
+    tango_context,
+    cm,
+    group_callback,
+    task_callback,
+    json_factory,
+    correction_key,
+):
+    """Test correction MAINTAIN key functionality for main config"""
+    dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
+    time.sleep(0.2)
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
+    dish_device.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+        stateless=True,
+    )
+    configure_input_str = json_factory("dishleafnode_configure")
+    configure_input_str = json.loads(configure_input_str)
+    configure_input_str["pointing"]["correction"] = correction_key
+    configure_input_str = json.dumps(configure_input_str)
+    cm.configure(configure_input_str, task_callback=task_callback)
+    dish_device.programTrackTable = [
+        775853423.2247269,
+        178.758613204265,
+        31.165682681453,
+    ]
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=12,
+    )
+
+    # Code to check new pointing offsets are not applied when key
+    # is MAINTAIN and configure is partial config
+    SDP_QUEUE_CONNECTOR_FQDN = (
+        f"{SDP_QUEUE_CONNECTOR_DEVICE}/" "pointing_cal_{dish_id}"
+    )
+    sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+    cm.dish_id = "SKA001"
+    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
+
+    with pytest.raises(AssertionError):
+        sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
+        unique_id, _ = group_callback[
+            "longRunningCommandResult"
+        ].assert_change_event(
+            (Anything, COMMAND_COMPLETED),
+            lookahead=10,
+        )[
+            "attribute_value"
+        ]
+        assert "TrackLoadStaticOff" in unique_id
