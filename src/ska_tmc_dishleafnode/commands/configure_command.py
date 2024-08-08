@@ -110,7 +110,7 @@ class Configure(DishLNCommand):
             )
             if (
                 self.component_manager.command_in_progress
-                != "Configure_TrackLoadStaticOff"
+                not in self.component_manager.supported_commands
             ):
                 self.component_manager.command_in_progress = ""
                 logger.info(
@@ -169,6 +169,7 @@ class Configure(DishLNCommand):
                 )
                 self.component_manager.command_in_progress = None
             self.component_manager.command_id = ""
+            self.partial_configure = False
 
         except Exception as e:
             self.logger.exception(
@@ -288,6 +289,7 @@ class Configure(DishLNCommand):
                 self.component_manager.correction_key == CORRECTION_KEY_RESET
             )
             if reset_offset and "tmc" not in json_argument:
+                self.partial_configure = True
                 result_code, message = self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=True
                 )
@@ -300,6 +302,8 @@ class Configure(DishLNCommand):
                     return result_code, message
 
             if json_argument.get("tmc"):
+                self.partial_configure = True
+                # why the result code returned from here in case of success?
                 return self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=reset_offset
                 )
@@ -519,6 +523,7 @@ class Configure(DishLNCommand):
             )
 
         with self.component_manager.tango_operation_execution_lock:
+            self.component_manager.command_in_progress = "Track"
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )

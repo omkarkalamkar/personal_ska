@@ -61,7 +61,7 @@ from ska_tmc_dishleafnode.constants import (
     SKA_EPOCH,
 )
 
-# from .common_utils import process_long_running_command_result
+from .common_utils import process_long_running_command_result
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 from .program_track_table_calculator import ProgramTrackTableCalculator
@@ -183,6 +183,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.supported_commands: Tuple = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
+            "Track",
             "Configure",
         )
         self.long_running_result_callback = LRCRCallback(self.logger)
@@ -1571,65 +1572,65 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def update_device_long_running_command_result(
-        self: DishLNComponentManager, lrc_result: Tuple[str, str]
-    ) -> None:
-        """
-        Method to update task callback based on long running command result
-        event data.
+    # def update_device_long_running_command_result(
+    #     self: DishLNComponentManager, lrc_result: Tuple[str, str]
+    # ) -> None:
+    #     """
+    #     Method to update task callback based on long running command result
+    #     event data.
 
-        :param lrc_result: longRunningCommandResult attribute event data
-        :type: (Tuple[List[str], List[str]])
-        """
-        self.logger.info(
-            "Received a longRunningCommandResult event with data: %s",
-            lrc_result,
-        )
-        try:
-            if not lrc_result:
-                return
-            with self.lock:
-                if lrc_result == ("", ""):
-                    return
+    #     :param lrc_result: longRunningCommandResult attribute event data
+    #     :type: (Tuple[List[str], List[str]])
+    #     """
+    #     self.logger.info(
+    #         "Received a longRunningCommandResult event with data: %s",
+    #         lrc_result,
+    #     )
+    #     try:
+    #         if not lrc_result:
+    #             return
+    #         with self.lock:
+    #             if lrc_result == ("", ""):
+    #                 return
 
-                if (
-                    lrc_result[0].endswith(self.supported_commands)
-                    and self.command_in_progress in self.supported_commands
-                ):
-                    self.logger.debug(
-                        "The command in progress is: %s for processing of "
-                        + "LRCR event",
-                        self.command_in_progress,
-                    )
-                    command_result, message = json.loads(lrc_result[1])
-                    self.logger.info(
-                        "self.command_object -------: %s", self.command_object
-                    )
-                    self.logger.info(
-                        "self.command_in_progress -------: %s",
-                        self.command_in_progress,
-                    )
-                    command_object = self.command_object.get(
-                        self.command_in_progress
-                    )
-                    self.logger.info(
-                        "command_object -------: %s", command_object
-                    )
-                    if command_result == ResultCode.OK:
-                        command_object.update_task_callback(ResultCode.OK)
-                    elif command_result in [
-                        ResultCode.FAILED,
-                        ResultCode.NOT_ALLOWED,
-                        ResultCode.REJECTED,
-                    ]:
-                        command_object.update_task_callback(
-                            ResultCode.FAILED, exception=message
-                        )
-        except Exception as exception:
-            self.logger.exception(
-                "Exception while processing longRunningCommandResult",
-                exception,
-            )
+    #             if (
+    #                 lrc_result[0].endswith(self.supported_commands)
+    #                 and self.command_in_progress in self.supported_commands
+    #             ):
+    #                 self.logger.debug(
+    #                     "The command in progress is: %s for processing of "
+    #                     + "LRCR event",
+    #                     self.command_in_progress,
+    #                 )
+    #                 command_result, message = json.loads(lrc_result[1])
+    #                 self.logger.info(
+    #                     "self.command_object ---: %s", self.command_object
+    #                 )
+    #                 self.logger.info(
+    #                     "self.command_in_progress -------: %s",
+    #                     self.command_in_progress,
+    #                 )
+    #                 command_object = self.command_object.get(
+    #                     self.command_in_progress
+    #                 )
+    #                 self.logger.info(
+    #                     "command_object -------: %s", command_object
+    #                 )
+    #                 if command_result == ResultCode.OK:
+    #                     command_object.update_task_callback(ResultCode.OK)
+    #                 elif command_result in [
+    #                     ResultCode.FAILED,
+    #                     ResultCode.NOT_ALLOWED,
+    #                     ResultCode.REJECTED,
+    #                 ]:
+    #                     command_object.update_task_callback(
+    #                         ResultCode.FAILED, exception=message
+    #                     )
+    #     except Exception as exception:
+    #         self.logger.exception(
+    #             "Exception while processing longRunningCommandResult",
+    #             exception,
+    #         )
 
     def get_lrcr_result(self, command_id: str) -> List[str]:
         """Returns long running command result for command
@@ -1654,14 +1655,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         return [None]
 
-    # def update_device_long_running_command_result(
-    #     self, device_name: str, value: str
-    # ) -> None:
-    #     """
-    #     Method to update task callback based on long running command result
-    #     event data.
-    #     """
-    #     process_long_running_command_result(self, device_name, value)
+    def update_device_long_running_command_result(
+        self: DishLNComponentManager, lrc_result: Tuple[str, str]
+    ) -> None:
+        """
+        Method to update task callback based on long running command result
+        event data.
+
+        :param lrc_result: longRunningCommandResult attribute event data
+        :type: (Tuple[List[str], List[str]])
+        """
+        process_long_running_command_result(self, lrc_result)
 
     @property
     def elevation_limit(self: DishLNComponentManager) -> bool:

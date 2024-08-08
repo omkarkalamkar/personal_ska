@@ -1,5 +1,7 @@
 """This module provides common utilities for dish leaf node"""
 import copy
+import json
+from typing import Tuple
 
 from ska_tango_base.commands import ResultCode
 
@@ -49,50 +51,65 @@ def update_lrcr_result(
     )
 
 
-# def process_long_running_command_result(
-#     component_manager, device_name: str, value: str
-# ) -> None:
-#     """
-#     Method to update task callback based on long running command result
-#     event data.
+def process_long_running_command_result(
+    component_manager, lrc_result: Tuple[str, str]
+) -> None:
+    """
+    Method to update task callback based on long running command result
+    event data.
 
-#     :param lrc_status: longRunningCommandResult attribute event data
-#     :type: (Tuple[List[str], List[str]])
-#     """
-#     component_manager.logger.info(
-#         "Received longRunningCommandResult event for device: %s, "
-#         "with value: %s",
-#         device_name,
-#         value,
-#     )
+    :param lrc_result: longRunningCommandResult attribute event data
+    :type: (Tuple[List[str], List[str]])
+    """
+    component_manager.logger.info(
+        "Received longRunningCommandResult event for device: %s, "
+        "with value: %s",
+        lrc_result,
+    )
 
-#     if component_manager.command_in_progress:
-#         try:
-#             if not value[1]:
-#                 pass
+    try:
+        if not lrc_result:
+            # Added return. Won't work in case of intermediate commands
+            return
+        with component_manager.lock:
+            if lrc_result == ("", ""):
+                return
 
-#             if value[0].endswith(component_manager.supported_commands):
-#                 if int(value[1]) == ResultCode.OK:
-#                     update_lrcr_result(component_manager, value[0], value[1])
+        if lrc_result[0].endswith(component_manager.supported_commands) and (
+            component_manager.command_in_progress
+            in component_manager.supported_commands
+        ):
+            component_manager.logger.debug(
+                "The command in progress is: %s for processing of "
+                + "LRCR event",
+                component_manager.command_in_progress,
+            )
+            command_result, message = json.loads(lrc_result[1])
+            component_manager.logger.debug(
+                "The command results: %s and message: %s ",
+                command_result,
+                message,
+            )
+            if command_result == ResultCode.OK:
+                update_lrcr_result(
+                    component_manager, lrc_result[0], command_result
+                )
 
-#         except ValueError:
-#             component_manager.logger.info(
-#                 f"""Updating LRCRCallback with value: {value} for
-#                                       device: {device_name}"""
-#             )
+    except ValueError:
+        component_manager.logger.info(
+            f"""Updating LRCRCallback with value: {lrc_result[1]} for
+                                    command: {lrc_result[0]}"""
+        )
 
-#             exception_message = (
-#                 f"Exception occurred on the following devices:"
-#                 f"for command - {component_manager.command_in_progress} "
-#                 f"{device_name}: {value[1]}\n"
-#             )
+        exception_message = (
+            f"Exception occurred for command: {lrc_result[0]}"
+            f"{lrc_result[1]}\n"
+        )
 
-#             component_manager.logger.debug(
-#                 f"Exception:  :: {exception_message}"
-#             )
+        component_manager.logger.debug(f"Exception:  :: {exception_message}")
 
-#             component_manager.long_running_result_callback(
-#                 component_manager.command_id,
-#                 ResultCode.FAILED,
-#                 exception_message=exception_message,
-#             )
+        component_manager.long_running_result_callback(
+            component_manager.command_id,
+            ResultCode.FAILED,
+            exception_message=exception_message,
+        )
