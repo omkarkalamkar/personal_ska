@@ -303,7 +303,6 @@ class Configure(DishLNCommand):
 
             if json_argument.get("tmc"):
                 self.partial_configure = True
-                # why the result code returned from here in case of success?
                 return self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=reset_offset
                 )
@@ -368,6 +367,8 @@ class Configure(DishLNCommand):
                 + "Reason: Error in calling the Configure command on"
                 + f" Dish Master: {exception}",
             )
+        self.logger.info("Result code: %s", result_code[0])
+        self.logger.info("message: %s", message[0])
         return result_code[0], message[0]
 
     def invoke_trackloadstaticoff(
@@ -410,6 +411,18 @@ class Configure(DishLNCommand):
                 "TrackLoadStaticOff",
                 offsets_argin,
             )
+            # message[0] should be command_id and result[0] should
+            # be ResultCode
+            if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
+                self.component_manager.command_mapping.setdefault(
+                    self.component_manager.command_id, {}
+                )["message_or_unique_id"] = message[0]
+                self.logger.info(f"message[0]: {message[0]}")
+                self.logger.info(
+                    f"component_manager.command_mapping -"
+                    f"{self.component_manager.command_mapping}"
+                )
+
         if reset_offset:
             self.logger.debug(
                 "Pointing offsets are Resetted to{}", CORRECTION_KEY_RESET
@@ -527,6 +540,18 @@ class Configure(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
+            # message[0] should be command_id and result[0] should be
+            # ResultCode
+            if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
+                self.component_manager.command_mapping.setdefault(
+                    self.component_manager.command_id, {}
+                )["message_or_unique_id"] = message[0]
+                self.logger.info(f"message[0]: {message[0]}")
+                self.logger.info(
+                    f"component_manager.command_mapping -"
+                    f"{self.component_manager.command_mapping}"
+                )
+
         if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.logger.error(f"Track Invocation Failed , Reason: {message}")
             return result_code, message

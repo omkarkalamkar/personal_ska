@@ -36,6 +36,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
+        self.partial_configure = False
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
@@ -165,10 +166,18 @@ class DishLNCommand(TmcLeafNodeCommand):
             "Target value is %s",
             state_to_achieve,
         )
+        if self.partial_configure:
+            result_code = state_function(command_id)
+            self.logger.info(f"Current target value: {result_code}")
+
+            (expected_result_code,) = expected_state
+
+            # Check if the result match the expected value
+            return result_code == expected_result_code
 
         dish_mode, pointing_state, result_code = state_function(command_id)
         self.logger.info(
-            f"Current target values: {dish_mode, pointing_state, result_code}"
+            f"Current values: {dish_mode, pointing_state,result_code}"
         )
 
         (
