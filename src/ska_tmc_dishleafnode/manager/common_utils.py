@@ -62,8 +62,7 @@ def process_long_running_command_result(
     :type: (Tuple[List[str], List[str]])
     """
     component_manager.logger.info(
-        "Received longRunningCommandResult event for device: %s, "
-        "with value: %s",
+        "Received longRunningCommandResult event for device: %s, ",
         lrc_result,
     )
 
