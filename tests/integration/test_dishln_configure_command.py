@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from time import sleep
 
 import pytest
@@ -16,6 +17,34 @@ from tests.settings import (
 )
 
 OFFSET = 5.0
+
+
+def get_non_sidereal_json_for_now(non_side_real_json) -> str:
+    """Return the json for Configure command with visible non-sidereal object
+    according to current time.
+    """
+    current_time = int(datetime.utcnow().strftime("%H"))
+    configure_input_json = json.loads(non_side_real_json)
+    # The data below is losely based on information found from the web, and has
+    # loose limits such that elevation is >= 17.5 for the source at
+    # "lat": -30.71329, "lon": 21.449412 and "h": 1098.074 for dish SKA001
+    # based on TelModel-data
+    if 8 <= current_time <= 14:
+        configure_input_json["pointing"]["target"]["target_name"] = "Sun"
+        return json.dumps(configure_input_json)
+    if 3 <= current_time <= 8:
+        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
+        return json.dumps(configure_input_json)
+    if current_time <= 3 or current_time >= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
+        return json.dumps(configure_input_json)
+    if 17 <= current_time <= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+        return json.dumps(configure_input_json)
+    if 14 <= current_time <= 15:
+        configure_input_json["pointing"]["target"]["target_name"] = "Venus"
+        return json.dumps(configure_input_json)
+    return ""
 
 
 def configure_dish_leaf_node(
@@ -108,18 +137,28 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.ktest
 @pytest.mark.parametrize(
     "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
 )
 def test_configure_command(
     tango_context, group_callback, json_factory, json_to_use
 ):
-    configure_dish_leaf_node(
-        tango_context,
-        DISH_LEAF_NODE_DEVICE,
-        group_callback,
-        json_factory(json_to_use),
-    )
+    if json_to_use == "non_sidereal_tracking":
+        json_to_use = get_non_sidereal_json_for_now(json_factory(json_to_use))
+        configure_dish_leaf_node(
+            tango_context,
+            DISH_LEAF_NODE_DEVICE,
+            group_callback,
+            json_to_use,
+        )
+    else:
+        configure_dish_leaf_node(
+            tango_context,
+            DISH_LEAF_NODE_DEVICE,
+            group_callback,
+            json_factory(json_to_use),
+        )
 
 
 def partial_configure_dish_leaf_node(
