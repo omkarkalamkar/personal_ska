@@ -306,7 +306,7 @@ def test_correction_key_update_partial_config(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=6,
+        lookahead=10,
     )
 
     # Code to check new pointing offsets are applied when key is UPDATE
@@ -334,75 +334,11 @@ def test_correction_key_update_partial_config(
         ]
         count = count + 1
         time.sleep(1)
-
     assert "Command Completed" in message
 
 
 @pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
-def test_correction_key_maintain_partial_config(
-    tango_context,
-    cm,
-    group_callback,
-    task_callback,
-    json_factory,
-    correction_key,
-):
-    """Test correction MAINTAIN key functionality for partial config"""
-    dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
-    dish_device.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-        stateless=True,
-    )
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
-    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
-    assert cm.is_configure_allowed()
-    configure_input_str = json_factory("partial_configure")
-    configure_input_str = json.loads(configure_input_str)
-    configure_input_str["pointing"]["correction"] = correction_key
-    configure_input_str = json.dumps(configure_input_str)
-    cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    time.sleep(1)
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        },
-        lookahead=6,
-    )
-
-    # Code to check new pointing offsets are not applied when key
-    # is MAINTAIN and configure is partial config
-    SDP_QUEUE_CONNECTOR_FQDN = (
-        f"{SDP_QUEUE_CONNECTOR_DEVICE}/" "pointing_cal_{dish_id}"
-    )
-    sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
-    cm.dish_id = "SKA001"
-    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
-
-    with pytest.raises(AssertionError):
-        sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
-        unique_id, _ = group_callback[
-            "longRunningCommandResult"
-        ].assert_change_event(
-            (Anything, COMMAND_COMPLETED),
-            lookahead=10,
-        )[
-            "attribute_value"
-        ]
-        assert "TrackLoadStaticOff" in unique_id
-
-
-@pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
-def test_correction_key_maintain_main_config(
+def test_correction_key_maintain_empty_partial_main_config(
     tango_context,
     cm,
     group_callback,

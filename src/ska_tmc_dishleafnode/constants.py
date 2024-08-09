@@ -1,5 +1,4 @@
 """Constants module for DishLeafNode"""
-from enum import Enum
 from os.path import dirname, join
 
 PROGRAM_TRACK_TABLE_SIZE = 150
@@ -11,15 +10,3 @@ IERS_DATA_STORAGE_PATH = join(
     dirname(__file__), "..", "..", "data", "iers_file.all"
 )
 RESET_OFFSETS = [0.0, 0.0]
-
-
-class CORRECTION_KEY(Enum):
-    """This class provides enumeration values which is
-    is checked against correction key provided in
-    Dish leaf node Configure JSON.
-    """
-
-    RESET = "RESET"
-    UPDATE = "UPDATE"
-    MAINTAIN = "MAINTAIN"
-    NOT_SET = ""

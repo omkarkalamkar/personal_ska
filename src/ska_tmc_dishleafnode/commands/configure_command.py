@@ -19,9 +19,9 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import (
     COMMAND_COMPLETION_MESSAGE,
-    CORRECTION_KEY,
     RESET_OFFSETS,
 )
+from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -340,8 +340,8 @@ class Configure(DishLNCommand):
             )
         if reset_offset:
             self.logger.debug(
-                "Pointing offsets are resetted [0.0, 0.0] and correction key"
-                " set to %s",
+                "Pointing offsets have been reset to [0.0, 0.0] "
+                "and correction key set to %s",
                 CORRECTION_KEY.RESET.value,
             )
         self.component_manager.update_source_offset_callback(offsets_argin)

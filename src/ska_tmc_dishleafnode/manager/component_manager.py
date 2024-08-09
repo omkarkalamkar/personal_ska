@@ -51,11 +51,8 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import (
-    CORRECTION_KEY,
-    IERS_DATA_STORAGE_PATH,
-    SKA_EPOCH,
-)
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
+from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -1571,9 +1568,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.command_in_progress,
                     )
                     command_result, message = json.loads(lrc_result[1])
-                    command_object = self.command_object.get(
-                        self.command_in_progress
-                    )
+                    if (
+                        self.correction_key == CORRECTION_KEY.RESET.value
+                        and lrc_result[0].endswith("TrackLoadStaticOff")
+                        and self.command_in_progress == "Configure"
+                    ):
+                        command_object = self.command_object.get(
+                            "Configure_TrackLoadStaticOff"
+                        )
+                    else:
+                        command_object = self.command_object.get(
+                            self.command_in_progress
+                        )
                     if command_result == ResultCode.OK:
                         command_object.update_task_callback(ResultCode.OK)
                     elif command_result in [
