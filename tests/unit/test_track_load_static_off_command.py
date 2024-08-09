@@ -401,7 +401,6 @@ def test_correction_key_maintain_partial_config(
         assert "TrackLoadStaticOff" in unique_id
 
 
-@pytest.mark.utest1
 @pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
 def test_correction_key_maintain_main_config(
     tango_context,
