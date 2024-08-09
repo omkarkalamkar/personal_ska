@@ -22,3 +22,4 @@ class CORRECTION_KEY(Enum):
     RESET = "RESET"
     UPDATE = "UPDATE"
     MAINTAIN = "MAINTAIN"
+    NOT_SET = ""

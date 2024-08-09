@@ -287,11 +287,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
+        self.correction_key: str = CORRECTION_KEY.NOT_SET.value
         self.create_converter_obj_and_antenna_obj()
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self.correction_key: str = ""
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -1744,7 +1744,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     " correction key is %s",
                     CORRECTION_KEY.MAINTAIN.value
                     if self.correction_key == CORRECTION_KEY.MAINTAIN.value
-                    else "Not Set",
+                    else CORRECTION_KEY.NOT_SET.value,
                 )
             self.logger.info(
                 "Received SDP Queue Connector pointing calibration: %s",
