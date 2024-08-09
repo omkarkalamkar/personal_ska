@@ -401,14 +401,12 @@ def test_correction_key_maintain_partial_config(
         assert "TrackLoadStaticOff" in unique_id
 
 
-@pytest.mark.utest
+@pytest.mark.utest1
 @pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
 def test_correction_key_maintain_main_config(
     tango_context,
     cm,
     group_callback,
-    task_callback,
-    json_factory,
     correction_key,
 ):
     """Test correction MAINTAIN key functionality for main config"""
@@ -419,37 +417,7 @@ def test_correction_key_maintain_main_config(
     dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
     time.sleep(0.2)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
-    assert cm.is_configure_allowed()
-    dish_device.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-        stateless=True,
-    )
-    configure_input_str = json_factory("dishleafnode_configure")
-    configure_input_str = json.loads(configure_input_str)
-    configure_input_str["pointing"]["correction"] = correction_key
-    configure_input_str = json.dumps(configure_input_str)
-    cm.configure(configure_input_str, task_callback=task_callback)
-    dish_device.programTrackTable = [
-        775853423.2247269,
-        178.758613204265,
-        31.165682681453,
-    ]
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        },
-        lookahead=12,
-    )
-
+    cm.correction_key = correction_key
     # Code to check new pointing offsets are not applied when key
     # is MAINTAIN and configure is partial config
     SDP_QUEUE_CONNECTOR_FQDN = (

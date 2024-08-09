@@ -38,6 +38,7 @@ def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.dish_id = DISH_ID
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
+    cm.correction_key = "UPDATE"
     sleep(1)
     assert dev_name == cm.queue_connector_device_info.dev_name
     assert ATTRIBUTE_NAME == cm.queue_connector_device_info.attribute_name
@@ -60,6 +61,7 @@ def test_with_updated_sdpqc_fqdn(tango_context, cm):
     sdp_queue_connector2 = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE2)
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.dish_id = DISH_ID
+    cm.correction_key = "UPDATE"
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sleep(1)
     assert dev_name == cm.queue_connector_device_info.dev_name
@@ -87,6 +89,7 @@ def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     """This test case verifies the dish leaf node gets the
     SDP pointing calibration data from SDP Queue connector device."""
     cm.dish_id = DISH_ID
+    cm.correction_key = "UPDATE"
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sleep(1)
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
