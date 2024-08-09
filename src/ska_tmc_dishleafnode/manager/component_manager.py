@@ -1737,14 +1737,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             )
             elif self.correction_key in [
                 CORRECTION_KEY.MAINTAIN.value,
-                "",
+                CORRECTION_KEY.NOT_SET.value,
             ]:
                 self.logger.debug(
                     "Pointing offsets are not applied to dish as"
                     " correction key is %s",
                     CORRECTION_KEY.MAINTAIN.value
                     if self.correction_key == CORRECTION_KEY.MAINTAIN.value
-                    else CORRECTION_KEY.NOT_SET.value,
+                    else "Not Set",
                 )
             self.logger.info(
                 "Received SDP Queue Connector pointing calibration: %s",
