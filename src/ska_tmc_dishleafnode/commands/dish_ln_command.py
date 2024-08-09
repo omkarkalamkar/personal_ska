@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Callable
+from operator import methodcaller
+from typing import TYPE_CHECKING, Any
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
@@ -140,7 +141,7 @@ class DishLNCommand(TmcLeafNodeCommand):
     # pylint: disable=arguments-differ
     def check_device_state(
         self,
-        state_function: Callable,
+        state_function: str,
         state_to_achieve: Any,
         expected_state: list,
         command_id,
@@ -167,7 +168,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             state_to_achieve,
         )
         if self.partial_configure:
-            result_code = state_function(command_id)
+            result_code = methodcaller(state_function)(self.component_manager)
             self.logger.info(f"Current target value: {result_code}")
 
             (expected_result_code,) = expected_state
@@ -175,7 +176,9 @@ class DishLNCommand(TmcLeafNodeCommand):
             # Check if the result match the expected value
             return result_code == expected_result_code
 
-        dish_mode, pointing_state, result_code = state_function(command_id)
+        dish_mode, pointing_state, result_code = methodcaller(state_function)(
+            self.component_manager
+        )
         self.logger.info(
             f"Current values: {dish_mode, pointing_state,result_code}"
         )

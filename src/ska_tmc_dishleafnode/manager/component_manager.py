@@ -1632,16 +1632,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     #             exception,
     #         )
 
-    def get_lrcr_result(self, command_id: str) -> List[str]:
+    def get_lrcr_result(self) -> List[str]:
         """Returns long running command result for command
         with given command ID"""
 
-        self.logger.info(f"Check ResultCode for command_id : {command_id}")
+        self.logger.info(
+            f"Check ResultCode for command_id : {self.command_id}"
+        )
         command_dict_ref = {}
         command_dict_ref = copy.deepcopy(self.command_mapping)
 
         for key, command_dict in command_dict_ref.items():
-            if key == command_id:
+            if key == self.command_id:
                 # Iterate through the  dictionary for each command Id
                 for inner_key, value in command_dict.items():
                     if inner_key == "ResultCode":
@@ -1653,7 +1655,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         )
                         return [value]
 
-        return [None]
+        return [""]
 
     def update_device_long_running_command_result(
         self: DishLNComponentManager, lrc_result: Tuple[str, str]
@@ -1885,9 +1887,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 
-    def get_dish_state(
-        self, command_id
-    ) -> Tuple[DishMode, PointingState, ResultCode]:
+    def get_dish_state(self) -> Tuple[DishMode, PointingState, ResultCode]:
         """
         Returns the current state of the dish including its mode,
         pointing state,and the result code of a specified command.
@@ -1905,7 +1905,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return [
             self.dishMode,
             self.pointingState,
-            self.get_lrcr_result(command_id)[0],
+            self.get_lrcr_result()[0],
         ]
 
     def __del__(self: DishLNComponentManager):
