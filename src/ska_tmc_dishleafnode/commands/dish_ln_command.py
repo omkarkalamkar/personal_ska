@@ -167,31 +167,33 @@ class DishLNCommand(TmcLeafNodeCommand):
             "Target value is %s",
             state_to_achieve,
         )
-        if self.partial_configure:
+        self.logger.info(self.partial_configure)
+
+        try:
+            dish_mode, pointing_state, result_code = methodcaller(
+                state_function
+            )(self.component_manager)
+            self.logger.info(
+                f"Current values: {dish_mode, pointing_state,result_code}"
+            )
+
+            (
+                expected_dish_mode,
+                expected_pointing_states,
+                expected_result_code,
+            ) = expected_state
+
+            # Check if the results match the expected values
+            return (
+                dish_mode == expected_dish_mode
+                and pointing_state in expected_pointing_states
+                and result_code == expected_result_code
+            )
+        except Exception:
             result_code = methodcaller(state_function)(self.component_manager)
             self.logger.info(f"Current target value: {result_code}")
 
-            (expected_result_code,) = expected_state
+            expected_result_code = expected_state
 
             # Check if the result match the expected value
             return result_code == expected_result_code
-
-        dish_mode, pointing_state, result_code = methodcaller(state_function)(
-            self.component_manager
-        )
-        self.logger.info(
-            f"Current values: {dish_mode, pointing_state,result_code}"
-        )
-
-        (
-            expected_dish_mode,
-            expected_pointing_states,
-            expected_result_code,
-        ) = expected_state
-
-        # Check if the results match the expected values
-        return (
-            dish_mode == expected_dish_mode
-            and pointing_state in expected_pointing_states
-            and result_code == expected_result_code
-        )
