@@ -368,7 +368,6 @@ def partial_configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.test1
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_partial_configure_command(
