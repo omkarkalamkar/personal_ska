@@ -19,9 +19,9 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import (
     COMMAND_COMPLETION_MESSAGE,
-    CORRECTION_KEY_RESET,
     RESET_OFFSETS,
 )
+from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -216,7 +216,8 @@ class Configure(DishLNCommand):
             self.component_manager.elevation_limit = True
             self.component_manager.reset_track_process_event()
             reset_offset = (
-                self.component_manager.correction_key == CORRECTION_KEY_RESET
+                self.component_manager.correction_key
+                == CORRECTION_KEY.RESET.value
             )
             if reset_offset and "tmc" not in json_argument:
                 result_code, message = self.invoke_trackloadstaticoff(
@@ -339,7 +340,9 @@ class Configure(DishLNCommand):
             )
         if reset_offset:
             self.logger.debug(
-                "Pointing offsets are Resetted to{}", CORRECTION_KEY_RESET
+                "Pointing offsets have been reset to [0.0, 0.0] "
+                "and correction key set to %s",
+                CORRECTION_KEY.RESET.value,
             )
         self.component_manager.update_source_offset_callback(offsets_argin)
         return result_code[0], message[0]

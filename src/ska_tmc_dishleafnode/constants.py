@@ -10,6 +10,3 @@ IERS_DATA_STORAGE_PATH = join(
     dirname(__file__), "..", "..", "data", "iers_file.all"
 )
 RESET_OFFSETS = [0.0, 0.0]
-CORRECTION_KEY_MAINTAIN = "MAINTAIN"
-CORRECTION_KEY_RESET = "RESET"
-CORRECTION_KEY_UPDATE = "UPDATE"

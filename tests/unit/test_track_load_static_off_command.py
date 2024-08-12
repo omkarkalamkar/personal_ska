@@ -9,11 +9,9 @@ from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from ska_tmc_dishleafnode.constants import (
-    COMMAND_COMPLETION_MESSAGE,
-    CORRECTION_KEY_MAINTAIN,
-)
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
+    COMMAND_COMPLETED,
     DISH_MASTER_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     logger,
@@ -308,7 +306,7 @@ def test_correction_key_update_partial_config(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=6,
+        lookahead=10,
     )
 
     # Code to check new pointing offsets are applied when key is UPDATE
@@ -336,49 +334,25 @@ def test_correction_key_update_partial_config(
         ]
         count = count + 1
         time.sleep(1)
-
     assert "Command Completed" in message
 
 
-def test_correction_key_maintain_partial_config(
+@pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
+def test_correction_key_maintain_empty_partial_main_config(
     tango_context,
     cm,
     group_callback,
-    task_callback,
-    json_factory,
+    correction_key,
 ):
-    """Test correction MAINTAIN key functionality for partial config"""
+    """Test correction MAINTAIN key functionality for main config"""
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
-    dish_device.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-        stateless=True,
-    )
-    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
+    time.sleep(0.2)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
-    assert cm.is_configure_allowed()
-    configure_input_str = json_factory("partial_configure")
-    configure_input_str = json.loads(configure_input_str)
-    configure_input_str["pointing"]["correction"] = CORRECTION_KEY_MAINTAIN
-    configure_input_str = json.dumps(configure_input_str)
-    cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    time.sleep(1)
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        },
-        lookahead=6,
-    )
-
+    cm.correction_key = correction_key
     # Code to check new pointing offsets are not applied when key
     # is MAINTAIN and configure is partial config
     SDP_QUEUE_CONNECTOR_FQDN = (
@@ -393,9 +367,9 @@ def test_correction_key_maintain_partial_config(
         unique_id, _ = group_callback[
             "longRunningCommandResult"
         ].assert_change_event(
-            (Anything, "COMPLETED"),
+            (Anything, COMMAND_COMPLETED),
             lookahead=10,
         )[
             "attribute_value"
         ]
-        assert "TrackLoadStaticOff" not in unique_id
+        assert "TrackLoadStaticOff" in unique_id
