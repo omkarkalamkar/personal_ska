@@ -1833,7 +1833,7 @@ ska-telmodel = "^1.19.0"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "sah-1530"
-resolved_reference = "ea35c24b174a0faf89a262ab17fdf49fcba2792e"
+resolved_reference = "b5e22fb60c9baa9fb37c019f3a294ceb9bd64a62"
 
 [[package]]
 name = "smmap"
