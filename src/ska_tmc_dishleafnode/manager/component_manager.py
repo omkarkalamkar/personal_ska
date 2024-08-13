@@ -1667,6 +1667,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
+        self.logger.info(
+            "update_device_long_running_command_result %s", lrc_result
+        )
         process_long_running_command_result(self, lrc_result)
 
     @property

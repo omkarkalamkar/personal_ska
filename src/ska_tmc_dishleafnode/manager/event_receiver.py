@@ -220,7 +220,7 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-
+        self._logger.info("in lrcr event reciever call back %s", event_data)
         self.log_event_data(event_data, "handle_long_running_command_result")
         if event_data.err:
             error = event_data.errors[0]

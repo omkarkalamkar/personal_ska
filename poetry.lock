@@ -1764,7 +1764,7 @@ reference = 'ska-nexus'
 
 [[package]]
 name = "ska-telmodel"
-version = "1.19.1"
+version = "1.19.2"
 description = "SKA telescope model library"
 category = "main"
 optional = false
@@ -1833,7 +1833,7 @@ ska-telmodel = "^1.19.0"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "sah-1530"
-resolved_reference = "3c850faa311208956eec6add251f48b10f6d1987"
+resolved_reference = "ed2a7f17836b291c64a5f2d83422eb044db1f2db"
 
 [[package]]
 name = "smmap"
@@ -3242,8 +3242,8 @@ ska-tango-testing = [
     {file = "ska_tango_testing-0.6.0.tar.gz", hash = "sha256:fdc1d807dc1cad2ddc1d754cb5ee9debe846db667de12e412474388c3fff97d6"},
 ]
 ska-telmodel = [
-    {file = "ska_telmodel-1.19.1-py3-none-any.whl", hash = "sha256:7223bc8f39598c16e89b449448cde1056f11134d4d3055897784dc886874bf55"},
-    {file = "ska_telmodel-1.19.1.tar.gz", hash = "sha256:2f91ba7ab2f4579c4b8d15fef331fa3ad956768ed219655e2a6bbafeb2c4cc7a"},
+    {file = "ska_telmodel-1.19.2-py3-none-any.whl", hash = "sha256:89f6605f4e0107a710e36ae35facd55ea25529216a8d82f7d01941acd62d4139"},
+    {file = "ska_telmodel-1.19.2.tar.gz", hash = "sha256:99a8725a9cce91965a820c5a2e0fb99502d76a9030bb4aef46e55748f61fed15"},
 ]
 ska-tmc-cdm = [
     {file = "ska_tmc_cdm-7.3.1-py3-none-any.whl", hash = "sha256:6096dfd4d7c0211dad2ac58cfe0c3cc88b3d5448f20405c5cb7864ec44f28757"},

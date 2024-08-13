@@ -542,6 +542,9 @@ class Configure(DishLNCommand):
             )
             # message[0] should be command_id and result[0] should be
             # ResultCode
+            self.component_manager.logger.info(
+                "result code in %s", result_code[0]
+            )
             if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
                 self.component_manager.command_mapping.setdefault(
                     self.component_manager.command_id, {}

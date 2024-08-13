@@ -18,13 +18,20 @@ def update_lrcr_result(
         f"Working on data event_command_id:{event_command_id}"
         f" event_command_result : {event_command_result}"
     )
+    component_manager.logger.info(
+        "command mapping is %s", component_manager.command_mapping
+    )
     command_dict_ref = {}
     command_dict_ref = copy.deepcopy(component_manager.command_mapping)
+    component_manager.logger.info("command_dict_ref is %s", command_dict_ref)
     for key, command_dict in command_dict_ref.items():
         # Iterate through the  dictionary for each command Id
         # And add ResultCode , if command has returned ResultCode.OK
 
         for inner_key, value in command_dict.items():
+            component_manager.logger.info(
+                "inner_key, value  is %s %s", inner_key, value
+            )
             if inner_key == "message_or_unique_id":
                 if value == event_command_id:
                     component_manager.logger.info(
@@ -32,6 +39,9 @@ def update_lrcr_result(
                         f"in the dictionary under key '{key}' "
                     )
                     if int(event_command_result) == ResultCode.OK:
+                        component_manager.logger.info(
+                            "in RESULT CODE OK condition"
+                        )
                         component_manager.command_mapping.setdefault(key, {})[
                             "ResultCode"
                         ] = ResultCode.OK
@@ -39,6 +49,14 @@ def update_lrcr_result(
                     else:
                         component_manager.logger.info(
                             "ResultCode value is %s", event_command_result
+                        )
+                        component_manager.command_mapping.setdefault(key, {})[
+                            "ResultCode"
+                        ] = event_command_result
+
+                        component_manager.logger.info(
+                            "command mapping at end %s",
+                            component_manager.command_mapping,
                         )
 
             else:
@@ -74,6 +92,10 @@ def process_long_running_command_result(
             if lrc_result == ("", ""):
                 return
 
+        component_manager.logger.info(
+            "supported commands are %s", component_manager.supported_commands
+        )
+
         if lrc_result[0].endswith(component_manager.supported_commands) and (
             component_manager.command_in_progress
             in component_manager.supported_commands
@@ -84,6 +106,9 @@ def process_long_running_command_result(
                 component_manager.command_in_progress,
             )
             command_result, message = json.loads(lrc_result[1])
+            component_manager.logger.info(
+                "lrcr is %s ", json.loads(lrc_result[1])
+            )
             component_manager.logger.debug(
                 "The command results: %s and message: %s ",
                 command_result,
