@@ -54,7 +54,6 @@ def test_configure_command_completed(
     cm.stop_track_table_process()
 
 
-@pytest.mark.test1
 def test_configure_command_completed_partial_config(
     tango_context, cm_without_er_lp, task_callback, json_factory
 ):
