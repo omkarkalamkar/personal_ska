@@ -121,12 +121,12 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     def init_device(self: DishLeafNode):
         self._isSubsystemAvailable = True
-        super().init_device()
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
+        super().init_device()
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
