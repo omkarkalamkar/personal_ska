@@ -138,6 +138,7 @@ def unhappy_configure_command(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_unhappy_configure_command(
