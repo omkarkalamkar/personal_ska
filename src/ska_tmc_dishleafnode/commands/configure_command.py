@@ -545,15 +545,15 @@ class Configure(DishLNCommand):
             self.component_manager.logger.info(
                 "result code in %s", result_code[0]
             )
-            if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
-                self.component_manager.command_mapping.setdefault(
-                    self.component_manager.command_id, {}
-                )["message_or_unique_id"] = message[0]
-                self.logger.info(f"message[0]: {message[0]}")
-                self.logger.info(
-                    f"component_manager.command_mapping -"
-                    f"{self.component_manager.command_mapping}"
-                )
+            # if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
+            self.component_manager.command_mapping.setdefault(
+                self.component_manager.command_id, {}
+            )["message_or_unique_id"] = message[0]
+            self.logger.info(f"message[0]: {message[0]}")
+            self.logger.info(
+                f"component_manager.command_mapping -"
+                f"{self.component_manager.command_mapping}"
+            )
 
         if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.logger.error(f"Track Invocation Failed , Reason: {message}")

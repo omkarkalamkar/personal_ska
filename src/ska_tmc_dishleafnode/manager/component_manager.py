@@ -1641,11 +1641,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         command_dict_ref = {}
         command_dict_ref = copy.deepcopy(self.command_mapping)
-
+        self.logger.info(
+            f"command_mapping in getlrcr is : {self.command_mapping}"
+        )
+        self.logger.info(f"Check command_dict_ref : {command_dict_ref}")
         for key, command_dict in command_dict_ref.items():
+            self.logger.info("in getlrcr command dict is %s ", command_dict)
+            self.logger.info("in getlrcr key is %s ", key)
             if key == self.command_id:
                 # Iterate through the  dictionary for each command Id
                 for inner_key, value in command_dict.items():
+                    self.logger.info(
+                        "in getlrcr inner_key, value is %s %s ",
+                        inner_key,
+                        value,
+                    )
                     if inner_key == "ResultCode":
                         self.logger.info(
                             "command mapping has required command ID"

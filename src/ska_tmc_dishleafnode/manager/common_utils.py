@@ -13,7 +13,7 @@ def update_lrcr_result(
     This function will update result of longrunningcommandresult attribute
     against a command Id
     """
-
+    component_manager.logger.debug("in update_lrcr_result method")
     component_manager.logger.debug(
         f"Working on data event_command_id:{event_command_id}"
         f" event_command_result : {event_command_result}"
@@ -114,11 +114,16 @@ def process_long_running_command_result(
                 command_result,
                 message,
             )
-            if command_result == ResultCode.OK:
-                update_lrcr_result(
-                    component_manager, lrc_result[0], command_result
-                )
+            # need to add condition for FAILED , REJECTED ResultCodes
+            # if command_result == ResultCode.OK:
+            component_manager.logger.debug(
+                "going to update_lrcr_result method"
+            )
+            update_lrcr_result(
+                component_manager, lrc_result[0], command_result
+            )
 
+    # when ValueError occurs ??
     except ValueError:
         component_manager.logger.info(
             f"""Updating LRCRCallback with value: {lrc_result[1]} for
