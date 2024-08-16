@@ -1392,7 +1392,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         with self.tango_operation_execution_lock:
-            self.dish_adapter.programTrackTable = program_track_table
+            try:
+                self.dish_adapter.programTrackTable = program_track_table
+            except Exception as exception:
+                self.logger.error(exception)
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def track_process(
