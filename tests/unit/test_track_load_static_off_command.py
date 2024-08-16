@@ -258,7 +258,7 @@ def test_correction_key_reset_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(1)
+    time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
@@ -301,7 +301,7 @@ def test_correction_key_update_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(1)
+    time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={

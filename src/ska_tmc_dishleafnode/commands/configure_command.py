@@ -84,6 +84,7 @@ class Configure(DishLNCommand):
         :rtype: None
         """
         # Indicate that the task has started
+        self.logger.info("Invoke Configure command -----")
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.set_command_id(__class__.__name__)
@@ -95,7 +96,8 @@ class Configure(DishLNCommand):
         )
         return_code, message = self.do(argin)
         lrcr_callback = self.component_manager.long_running_result_callback
-
+        logger.info("Return Code: %s", return_code)
+        logger.info("message: %s", message)
         if return_code == ResultCode.FAILED:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -162,6 +164,9 @@ class Configure(DishLNCommand):
                 self.task_callback(status=status)
                 return
             else:
+                self.logger.info(
+                    "TIMEOUT occurred: %s, %s, %s", result, status, message
+                )
                 self.task_callback(
                     status=TaskStatus.COMPLETED,
                     result=result,
@@ -384,9 +389,14 @@ class Configure(DishLNCommand):
 
         :returns: Tuple[ResultCode, str]
         """
+        self.logger.info("invoke trackstaticoff method ------")
         offsets_argin = []
         self.component_manager.command_in_progress = (
             "Configure_TrackLoadStaticOff"
+        )
+        self.logger.info(
+            "self.component_manager.command_in_progress: %s",
+            self.component_manager.command_in_progress,
         )
         # Extracting and setting cross elevation offset. Considering
         # 0.0 if the key is omitted
@@ -413,6 +423,11 @@ class Configure(DishLNCommand):
             )
             # message[0] should be command_id and result[0] should
             # be ResultCode
+            self.logger.info(
+                "result_code[0]: %s, result_code[0]: %s",
+                result_code,
+                result_code[0],
+            )
             if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
                 self.component_manager.command_mapping.setdefault(
                     self.component_manager.command_id, {}
@@ -466,9 +481,8 @@ class Configure(DishLNCommand):
             return (
                 [ResultCode.FAILED],
                 [
-                    "Timeout occurred while waiting for %s"
-                    + " configuredBand in Configure command.",
-                    receiver_band,
+                    f"Timeout occurred while waiting for {receiver_band}"
+                    + " configuredBand in Configure command."
                 ],
             )
         result: bool = self.set_wait_for_dishmode(expected_dish_mode)

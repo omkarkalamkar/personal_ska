@@ -1,4 +1,5 @@
 """This module provides settings for the test cases."""
+import copy
 import json
 import logging
 import time
@@ -353,7 +354,21 @@ def simulate_result_code_event(
     result: ResultCode,
 ):
     """Simulate LRCR event from given device for given result."""
-    command_id = f"{time.time()}_{command_name}"
+    command_id = ""
+    logging.info("Command mapping: %s", cm.command_mapping)
+    test_command_dict_ref = copy.deepcopy(cm.command_mapping)
+    logging.info("command_dict_ref is %s", test_command_dict_ref)
+    for _, command_dict in test_command_dict_ref.items():
+        for inner_key, value in command_dict.items():
+            logging.info("inner_key, value  is %s %s", inner_key, value)
+            if inner_key == "message_or_unique_id":
+                logging.info("value  is: %s", value)
+                if "-" + command_name in value:
+                    command_id = value
+
+            else:
+                command_id = f"{time.time()}_{command_name}"
+    logging.info("command_id  is: %s", command_id)
     command_result = (
         command_id,
         json.dumps(

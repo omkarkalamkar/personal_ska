@@ -13,8 +13,8 @@ def update_lrcr_result(
     This function will update result of longrunningcommandresult attribute
     against a command Id
     """
-    component_manager.logger.debug("in update_lrcr_result method")
-    component_manager.logger.debug(
+    component_manager.logger.info("in update_lrcr_result method")
+    component_manager.logger.info(
         f"Working on data event_command_id:{event_command_id}"
         f" event_command_result : {event_command_result}"
     )
@@ -33,6 +33,10 @@ def update_lrcr_result(
                 "inner_key, value  is %s %s", inner_key, value
             )
             if inner_key == "message_or_unique_id":
+                component_manager.logger.info("value  is: %s", value)
+                component_manager.logger.info(
+                    f"Working on data event_command_id:{event_command_id}"
+                )
                 if value == event_command_id:
                     component_manager.logger.info(
                         f"The value {event_command_id} exists "
@@ -135,7 +139,7 @@ def process_long_running_command_result(
             f"{lrc_result[1]}\n"
         )
 
-        component_manager.logger.debug(f"Exception:  :: {exception_message}")
+        component_manager.logger.info(f"Exception:  :: {exception_message}")
 
         component_manager.long_running_result_callback(
             component_manager.command_id,

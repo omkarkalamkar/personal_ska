@@ -3,8 +3,7 @@ import time
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tango_base.control_model import ObsState
-from ska_tmc_common import FaultType
+from ska_tmc_common import FaultType, PointingState
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
@@ -72,7 +71,7 @@ def test_configure_command_completed_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(2)
+    time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
@@ -106,7 +105,7 @@ def test_configure_command_completed_partial_config_missing_key(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(1)
+    time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
@@ -197,7 +196,7 @@ def test_configure_timeout(tango_context, cm, task_callback, json_factory):
         "fault_type": FaultType.STUCK_IN_INTERMEDIATE_STATE,
         "error_message": "Command stuck in processing",
         "result": ResultCode.FAILED,
-        "intermediate_state": ObsState.RESOURCING,
+        "intermediate_state": PointingState.READY,
     }
 
     dev_factory = DevFactory()
@@ -214,11 +213,15 @@ def test_configure_timeout(tango_context, cm, task_callback, json_factory):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    message = (
+        "Timeout occurred while waiting for 2 configuredBand in "
+        + "Configure command."
+    )
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": ResultCode.FAILED,
-            "exception": "Timeout has occurred, command failed",
+            "result": (ResultCode.FAILED, message),
+            "exception": message,
         }
     )
     dish_master.SetDefective(json.dumps({"enabled": False}))
