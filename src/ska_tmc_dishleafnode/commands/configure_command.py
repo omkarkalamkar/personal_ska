@@ -96,9 +96,14 @@ class Configure(DishLNCommand):
         )
         return_code, message = self.do(argin)
         lrcr_callback = self.component_manager.long_running_result_callback
+        logger.info("Return lrcr_callback: %s", lrcr_callback)
         logger.info("Return Code: %s", return_code)
         logger.info("message: %s", message)
         if return_code == ResultCode.FAILED:
+            logger.info(
+                "Setting taskcallback to FAILED with message: %s",
+                lrcr_callback,
+            )
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(return_code, message),

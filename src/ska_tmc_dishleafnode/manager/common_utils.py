@@ -7,7 +7,10 @@ from ska_tango_base.commands import ResultCode
 
 
 def update_lrcr_result(
-    component_manager, event_command_id, event_command_result
+    component_manager,
+    event_command_id,
+    event_command_result,
+    event_command_message,
 ) -> None:
     """
     This function will update result of longrunningcommandresult attribute
@@ -61,6 +64,17 @@ def update_lrcr_result(
                         component_manager.logger.info(
                             "command mapping at end %s",
                             component_manager.command_mapping,
+                        )
+                        component_manager.logger.info(
+                            "setting LRCR callback ----- %s, %s, %s",
+                            component_manager.command_id,
+                            event_command_result,
+                            event_command_message,
+                        )
+                        component_manager.long_running_result_callback(
+                            component_manager.command_id,
+                            event_command_result,
+                            exception_message=event_command_message,
                         )
 
             else:
@@ -124,7 +138,7 @@ def process_long_running_command_result(
                 "going to update_lrcr_result method"
             )
             update_lrcr_result(
-                component_manager, lrc_result[0], command_result
+                component_manager, lrc_result[0], command_result, message
             )
 
     # when ValueError occurs ??
@@ -140,7 +154,7 @@ def process_long_running_command_result(
         )
 
         component_manager.logger.info(f"Exception:  :: {exception_message}")
-
+        component_manager.logger.info("Setting the task callback to FAILED")
         component_manager.long_running_result_callback(
             component_manager.command_id,
             ResultCode.FAILED,
