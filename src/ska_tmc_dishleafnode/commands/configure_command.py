@@ -445,7 +445,7 @@ class Configure(DishLNCommand):
 
         if reset_offset:
             self.logger.debug(
-                "Pointing offsets are Resetted to{}", CORRECTION_KEY_RESET
+                "Pointing offsets are Resetted to %s", CORRECTION_KEY_RESET
             )
         self.component_manager.update_source_offset_callback(offsets_argin)
         return result_code[0], message[0]
