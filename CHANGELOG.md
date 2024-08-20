@@ -5,9 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-[0.16.0]
+[0.17.0]
 ********
-* Accomodate changes for the correction key in dish Leaf Node
+* Accomodate changes for the correction key in dish Leaf Node.
+* Added StaticPmSetup command to process global pointing json
 
 
 [0.16.0]
@@ -66,6 +67,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.17.1]
+* Updated the correction key behaviour when correction key is empty. 
+  
 [0.16.4]
 * Fix for SKB-419 and SKB-469
 * Set and push archive events for all the attributes

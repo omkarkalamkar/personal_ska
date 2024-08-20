@@ -54,12 +54,8 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import (
-    CORRECTION_KEY_MAINTAIN,
-    CORRECTION_KEY_UPDATE,
-    IERS_DATA_STORAGE_PATH,
-    SKA_EPOCH,
-)
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
+from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 from .common_utils import process_long_running_command_result
 from .dish_kvalue_validation_manager import DishkValueValidationManager
@@ -297,16 +293,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
-        # self.kvalue_validation_iers_download_thread = threading.Timer(
-        #     5, self.start_init_operations
-        # )
-        # self.kvalue_validation_iers_download_thread.start()
-
+        self.correction_key: str = CORRECTION_KEY.NOT_SET.value
         self.create_converter_obj_and_antenna_obj()
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self.correction_key: str = ""
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -1785,18 +1776,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         from SDP queue connector device
         """
         try:
-            if self.queue_connector_device_info.subscribed_to_attribute:
-                if self.validate_float_list(
-                    event_data.attr_value.value, number_of_values=3
-                ):
-                    if np.isnan(event_data.attr_value.value).any():
-                        self.last_pointing_data = event_data.attr_value.value
-                        self.logger.error(
-                            "NaN value found in %s receeived pointing data",
-                            self.last_pointing_data,
-                        )
-                    else:
-                        if self.correction_key in [CORRECTION_KEY_UPDATE, ""]:
+            if self.correction_key == CORRECTION_KEY.UPDATE.value:
+                if self.queue_connector_device_info.subscribed_to_attribute:
+                    if self.validate_float_list(
+                        event_data.attr_value.value, number_of_values=3
+                    ):
+                        if np.isnan(event_data.attr_value.value).any():
+                            self.last_pointing_data = (
+                                event_data.attr_value.value
+                            )
+                            self.logger.error(
+                                "NaN value found in %s received pointing data",
+                                self.last_pointing_data,
+                            )
+                        else:
                             self.queue_connector_device_info.pointing_data = (
                                 event_data.attr_value.value
                             )
@@ -1822,15 +1815,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             )
 
                             self.logger.debug(
-                                "Pointing offsets are Updated to {}",
+                                "Pointing offsets are Updated to %s",
                                 offsets,
                             )
-
-                        elif self.correction_key == CORRECTION_KEY_MAINTAIN:
-                            self.logger.debug(
-                                "Pointing offsets are not applied to dish as"
-                                + " correction key is MAINTAIN"
-                            )
+            elif self.correction_key in [
+                CORRECTION_KEY.MAINTAIN.value,
+                CORRECTION_KEY.NOT_SET.value,
+            ]:
+                self.logger.debug(
+                    "Pointing offsets are not applied to dish as"
+                    " correction key is %s",
+                    CORRECTION_KEY.MAINTAIN.value
+                    if self.correction_key == CORRECTION_KEY.MAINTAIN.value
+                    else "Not Set",
+                )
             self.logger.info(
                 "Received SDP Queue Connector pointing calibration: %s",
                 event_data.attr_value.value,
