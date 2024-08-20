@@ -195,7 +195,7 @@ def tear_down(
             group_callback["longRunningCommandResult"],
         )
         group_callback["longRunningCommandResult"].assert_change_event(
-            (unique_id[0], str(int(ResultCode.OK))),
+            (unique_id[0], COMMAND_COMPLETED),
             lookahead=4,
         )
         dish_leaf_node.unsubscribe_event(LRCR_ID)

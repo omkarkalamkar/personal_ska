@@ -300,7 +300,7 @@ class Configure(DishLNCommand):
                 == CORRECTION_KEY.RESET.value
             )
             if reset_offset and "tmc" not in json_argument:
-                self.partial_configure = True
+                # self.partial_configure = True
                 result_code, message = self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=True
                 )
