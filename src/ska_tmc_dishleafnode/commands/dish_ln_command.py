@@ -172,6 +172,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             expected_state,
         )
         if self.partial_configure:
+            self.logger.info("IN PARTIAL CONFIGURE --------")
             result_code = methodcaller(state_function)(self.component_manager)
             self.logger.info(
                 f"Current target value for partial config: {result_code}"
