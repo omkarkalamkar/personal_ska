@@ -5,8 +5,6 @@ from time import sleep
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
-
-# from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, FaultType
 
 from tests.settings import (
@@ -75,15 +73,6 @@ def partial_configure_dish_leaf_node(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
-    # result_config, unique_id_config = dish_leaf_node.Configure(
-    #     configure_input_str
-    # )
-    # assert result_config[0] == ResultCode.QUEUED
-
-    # group_callback["longRunningCommandResult"].assert_change_event(
-    #     (unique_id_config[0], COMMAND_COMPLETED),
-    #     lookahead=6,
-    # )
 
     partial_configurations = build_partial_configure_data(
         partial_configure_input_str, OFFSET
@@ -121,22 +110,6 @@ def partial_configure_dish_leaf_node(
         lookahead=2,
     )
 
-    # result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
-    # assert result_trackstop[0] == ResultCode.QUEUED
-
-    # group_callback["longRunningCommandResult"].assert_change_event(
-    #     (unique_id_trackstop[0], COMMAND_COMPLETED),
-    #     lookahead=6,
-    # )
-
-    # group_callback["pointingState"].assert_change_event(
-    #     (PointingState.READY),
-    #     lookahead=6,
-    # )
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=6,
-    # )
     RESET_DEFECT = json.dumps(
         {
             "enabled": False,
@@ -153,7 +126,6 @@ def partial_configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1530
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_partial_configure_error_propogation(

@@ -84,7 +84,6 @@ class Configure(DishLNCommand):
         :rtype: None
         """
         # Indicate that the task has started
-        self.logger.info("Invoke Configure command -----")
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.set_command_id(__class__.__name__)
@@ -96,9 +95,6 @@ class Configure(DishLNCommand):
         )
         return_code, message = self.do(argin)
         lrcr_callback = self.component_manager.long_running_result_callback
-        logger.info("Return lrcr_callback: %s", lrcr_callback)
-        logger.info("Return Code: %s", return_code)
-        logger.info("message: %s", message)
         if return_code == ResultCode.FAILED:
             logger.info(
                 "Setting taskcallback to FAILED with message: %s",
@@ -111,19 +107,11 @@ class Configure(DishLNCommand):
             )
             self.component_manager.command_in_progress = ""
         else:
-            logger.info(
-                "self.component_manager.command_in_progress: %s",
-                self.component_manager.command_in_progress,
-            )
             if (
                 self.component_manager.command_in_progress
                 not in self.component_manager.supported_commands
             ):
                 self.component_manager.command_in_progress = ""
-                logger.info(
-                    "self.component_manager.command_in_progress: %s",
-                    self.component_manager.command_in_progress,
-                )
             if not self.partial_configure:
                 self.start_tracker_thread(
                     "get_dish_state",
@@ -161,9 +149,10 @@ class Configure(DishLNCommand):
             result = kwargs.get("result")
             status = kwargs.get("status", TaskStatus.COMPLETED)
             message = kwargs.get("exception") or kwargs.get("message")
-            self.logger.info("TIMEOUT occurred 1: %s", result)
-            self.logger.info("TIMEOUT occurred 2: %s", status)
-            self.logger.info("TIMEOUT occurred 3: %s", message)
+            self.logger.info(
+                "result: %s status: %s message: %s", result, status, message
+            )
+
             if status == TaskStatus.ABORTED:
                 self.task_callback(status=status)
                 return
@@ -171,9 +160,6 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = None
                 self.task_callback(result=result, status=status)
             else:
-                self.logger.info(
-                    "TIMEOUT occurred: %s, %s, %s", result, status, message
-                )
                 self.task_callback(
                     status=status,
                     result=result,
@@ -284,7 +270,6 @@ class Configure(DishLNCommand):
 
         """
         try:
-            self.logger.info("Configure command started.")
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
                 self.logger.error(
@@ -302,7 +287,6 @@ class Configure(DishLNCommand):
                 == CORRECTION_KEY.RESET.value
             )
             if reset_offset and "tmc" not in json_argument:
-                # self.partial_configure = True
                 result_code, message = self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=True
                 )
@@ -380,8 +364,6 @@ class Configure(DishLNCommand):
                 + "Reason: Error in calling the Configure command on"
                 + f" Dish Master: {exception}",
             )
-        self.logger.info("Result code: %s", result_code[0])
-        self.logger.info("message: %s", message[0])
         return result_code[0], message[0]
 
     def invoke_trackloadstaticoff(
@@ -397,14 +379,9 @@ class Configure(DishLNCommand):
 
         :returns: Tuple[ResultCode, str]
         """
-        self.logger.info("invoke trackstaticoff method ------")
         offsets_argin = []
         self.component_manager.command_in_progress = (
             "Configure_TrackLoadStaticOff"
-        )
-        self.logger.info(
-            "self.component_manager.command_in_progress: %s",
-            self.component_manager.command_in_progress,
         )
         # Extracting and setting cross elevation offset. Considering
         # 0.0 if the key is omitted
@@ -431,18 +408,14 @@ class Configure(DishLNCommand):
             )
             # message[0] should be command_id and result[0] should
             # be ResultCode
-            self.logger.info(
-                "result_code[0]: %s, result_code[0]: %s",
-                result_code,
-                result_code[0],
-            )
+
             if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
                 self.component_manager.command_mapping.setdefault(
                     self.component_manager.command_id, {}
                 )["message_or_unique_id"] = message[0]
                 self.logger.info(f"message[0]: {message[0]}")
-                self.logger.info(
-                    f"component_manager.command_mapping -"
+                self.logger.debug(
+                    f"command mapping dictionary is: "
                     f"{self.component_manager.command_mapping}"
                 )
 
@@ -564,20 +537,10 @@ class Configure(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
-            # message[0] should be command_id and result[0] should be
-            # ResultCode
-            self.component_manager.logger.info(
-                "result code in %s", result_code[0]
-            )
-            # if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
+
             self.component_manager.command_mapping.setdefault(
                 self.component_manager.command_id, {}
             )["message_or_unique_id"] = message[0]
-            self.logger.info(f"message[0]: {message[0]}")
-            self.logger.info(
-                f"component_manager.command_mapping -"
-                f"{self.component_manager.command_mapping}"
-            )
 
         if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.logger.error(f"Track Invocation Failed , Reason: {message}")

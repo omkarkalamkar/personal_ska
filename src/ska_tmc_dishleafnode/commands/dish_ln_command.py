@@ -163,31 +163,14 @@ class DishLNCommand(TmcLeafNodeCommand):
                             transitional obsState if it exists for a command.
         :return: boolean value indicating if the state change occurred or not
         """
-        self.logger.info(
-            "Target value is %s",
-            state_to_achieve,
-        )
-        self.logger.info(
-            "expected_state is %s",
-            expected_state,
-        )
         if self.partial_configure:
-            self.logger.info("IN PARTIAL CONFIGURE --------")
             result_code = methodcaller(state_function)(self.component_manager)
-            self.logger.info(
-                f"Current target value for partial config: {result_code}"
-            )
-
-            # (expected_result_code,) = expected_state
 
             # Check if the result match the expected value
             return result_code[0] == state_to_achieve
 
         dish_mode, pointing_state, result_code = methodcaller(state_function)(
             self.component_manager
-        )
-        self.logger.info(
-            f"Current values: {dish_mode, pointing_state,result_code}"
         )
 
         (

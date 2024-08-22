@@ -5,8 +5,6 @@ from time import sleep
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
-
-# from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
@@ -102,10 +100,6 @@ def configure_dish_leaf_node(
     assert result_config[0] == ResultCode.QUEUED
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
-    )
-    logger.info(
-        "LONG RUNNING COMMAND RESULT is: %s",
-        dish_leaf_node.longRunningCommandResult,
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(

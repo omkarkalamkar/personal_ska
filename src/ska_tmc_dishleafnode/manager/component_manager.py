@@ -3,7 +3,6 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 from __future__ import annotations
 
-# import asyncio
 import copy
 import datetime
 import json
@@ -519,21 +518,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self._update_source_offset_callback:
                 self._update_source_offset_callback(source_offset)
 
-    # def start_init_operations(self) -> None:
-    #     """This method assures proper execution of kvalue validation
-    #     and iers data download.
-    #     """
-
-    #     try:
-    #         asyncio.run(self.run_init_threads())
-    #     except asyncio.CancelledError:
-    #         self.logger.exception("Initialization stopped.")
-
-    # async def run_init_threads(self) -> None:
-    #     """Await for the completion of beolw tasks"""
-    #     await self.update_kvalue_validation_result()
-    #     await self.download_iers_data()
-
     def download_iers_data(self: DishLNComponentManager) -> None:
         """Downloads and initialises the IERS file.
         Incase of error with main link, tries downloading using Mirror link.
@@ -543,7 +527,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
-            self.logger.info("IERS file download completed")
         except Exception as exception:
             self.logger.exception(
                 "Failed to download IERS_A data: %s. Trying with a different"
@@ -627,7 +610,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self.logger.info("Main Process ID: %s", os.getppid())
-        # self.converter.create_antenna_obj()
         self.logger.info("Sub-Process ID: %s", os.getpid())
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
@@ -1563,90 +1545,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    # def update_device_long_running_command_result(
-    #     self: DishLNComponentManager, lrc_result: Tuple[str, str]
-    # ) -> None:
-    #     """
-    #     Method to update task callback based on long running command result
-    #     event data.
-
-    #     :param lrc_result: longRunningCommandResult attribute event data
-    #     :type: (Tuple[List[str], List[str]])
-    #     """
-    #     self.logger.info(
-    #         "Received a longRunningCommandResult event with data: %s",
-    #         lrc_result,
-    #     )
-    #     try:
-    #         if not lrc_result:
-    #             return
-    #         with self.lock:
-    #             if lrc_result == ("", ""):
-    #                 return
-
-    #             if (
-    #                 lrc_result[0].endswith(self.supported_commands)
-    #                 and self.command_in_progress in self.supported_commands
-    #             ):
-    #                 self.logger.debug(
-    #                     "The command in progress is: %s for processing of "
-    #                     + "LRCR event",
-    #                     self.command_in_progress,
-    #                 )
-    #                 command_result, message = json.loads(lrc_result[1])
-    #                 self.logger.info(
-    #                     "self.command_object ---: %s", self.command_object
-    #                 )
-    #                 self.logger.info(
-    #                     "self.command_in_progress -------: %s",
-    #                     self.command_in_progress,
-    #                 )
-    #                 command_object = self.command_object.get(
-    #                     self.command_in_progress
-    #                 )
-    #                 self.logger.info(
-    #                     "command_object -------: %s", command_object
-    #                 )
-    #                 if command_result == ResultCode.OK:
-    #                     command_object.update_task_callback(ResultCode.OK)
-    #                 elif command_result in [
-    #                     ResultCode.FAILED,
-    #                     ResultCode.NOT_ALLOWED,
-    #                     ResultCode.REJECTED,
-    #                 ]:
-    #                     command_object.update_task_callback(
-    #                         ResultCode.FAILED, exception=message
-    #                     )
-    #     except Exception as exception:
-    #         self.logger.exception(
-    #             "Exception while processing longRunningCommandResult",
-    #             exception,
-    #         )
-
     def get_lrcr_result(self) -> List[str]:
         """Returns long running command result for command
         with given command ID"""
 
-        self.logger.info(
-            f"Check ResultCode for command_id : {self.command_id}"
-        )
         command_dict_ref = {}
         command_dict_ref = copy.deepcopy(self.command_mapping)
-        self.logger.info(
-            f"command_mapping in getlrcr is : {self.command_mapping}"
-        )
-        self.logger.info(f"Check command_dict_ref : {command_dict_ref}")
+
         for key, command_dict in command_dict_ref.items():
-            self.logger.info("in getlrcr command dict is %s ", command_dict)
-            self.logger.info("in getlrcr key is %s ", key)
             if key == self.command_id:
                 # Iterate through the  dictionary for each command Id
                 for inner_key, value in command_dict.items():
-                    self.logger.info(
-                        "in getlrcr inner_key, value is %s %s ",
-                        inner_key,
-                        value,
-                    )
                     if inner_key == "ResultCode":
                         self.logger.info(
                             "command mapping has required command ID"
@@ -1655,7 +1564,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.command_mapping,
                         )
                         return [value]
-
         return [""]
 
     def update_device_long_running_command_result(
@@ -1668,9 +1576,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
-        self.logger.info(
-            "update_device_long_running_command_result %s", lrc_result
-        )
         process_long_running_command_result(self, lrc_result)
 
     @property
@@ -1875,14 +1780,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.liveliness_probe_object:
             self.stop_liveliness_probe()
-
-        # We need to terminate thread running in asyncio
-        # Hence below code is needed and pylint warning needs to be
-        # supressed
-        # pylint: disable=pointless-exception-statement
-        # if self.kvalue_validation_iers_download_thread.is_alive():
-        #     asyncio.CancelledError()
-        #     self.kvalue_validation_iers_download_thread.join()
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()

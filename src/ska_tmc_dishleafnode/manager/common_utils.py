@@ -16,27 +16,21 @@ def update_lrcr_result(
     This function will update result of longrunningcommandresult attribute
     against a command Id
     """
-    component_manager.logger.info("in update_lrcr_result method")
     component_manager.logger.info(
         f"Working on data event_command_id:{event_command_id}"
         f" event_command_result : {event_command_result}"
     )
-    component_manager.logger.info(
+    component_manager.logger.debug(
         "command mapping is %s", component_manager.command_mapping
     )
     command_dict_ref = {}
     command_dict_ref = copy.deepcopy(component_manager.command_mapping)
-    component_manager.logger.info("command_dict_ref is %s", command_dict_ref)
     for key, command_dict in command_dict_ref.items():
         # Iterate through the  dictionary for each command Id
         # And add ResultCode , if command has returned ResultCode.OK
 
         for inner_key, value in command_dict.items():
-            component_manager.logger.info(
-                "inner_key, value  is %s %s", inner_key, value
-            )
             if inner_key == "message_or_unique_id":
-                component_manager.logger.info("value  is: %s", value)
                 component_manager.logger.info(
                     f"Working on data event_command_id:{event_command_id}"
                 )
@@ -46,27 +40,21 @@ def update_lrcr_result(
                         f"in the dictionary under key '{key}' "
                     )
                     if int(event_command_result) == ResultCode.OK:
-                        component_manager.logger.info(
-                            "in RESULT CODE OK condition"
-                        )
                         component_manager.command_mapping.setdefault(key, {})[
                             "ResultCode"
                         ] = ResultCode.OK
 
                     else:
-                        component_manager.logger.info(
-                            "ResultCode value is %s", event_command_result
-                        )
                         component_manager.command_mapping.setdefault(key, {})[
                             "ResultCode"
                         ] = event_command_result
 
-                        component_manager.logger.info(
-                            "command mapping at end %s",
+                        component_manager.logger.debug(
+                            "command mapping is %s",
                             component_manager.command_mapping,
                         )
                         component_manager.logger.info(
-                            "setting LRCR callback ----- %s, %s, %s",
+                            "setting LRCR callback %s, %s, %s",
                             component_manager.command_id,
                             event_command_result,
                             event_command_message,
@@ -81,10 +69,6 @@ def update_lrcr_result(
                 component_manager.logger.info(
                     "Message ID does not exists in command mapping"
                 )
-
-    component_manager.logger.info(
-        "Current command mapping :: %s", component_manager.command_mapping
-    )
 
 
 def process_long_running_command_result(
@@ -104,15 +88,10 @@ def process_long_running_command_result(
 
     try:
         if not lrc_result:
-            # Added return. Won't work in case of intermediate commands
             return
         with component_manager.lock:
             if lrc_result == ("", ""):
                 return
-
-        component_manager.logger.info(
-            "supported commands are %s", component_manager.supported_commands
-        )
 
         if lrc_result[0].endswith(component_manager.supported_commands) and (
             component_manager.command_in_progress
@@ -124,24 +103,17 @@ def process_long_running_command_result(
                 component_manager.command_in_progress,
             )
             command_result, message = json.loads(lrc_result[1])
-            component_manager.logger.info(
-                "lrcr is %s ", json.loads(lrc_result[1])
-            )
+
             component_manager.logger.debug(
                 "The command results: %s and message: %s ",
                 command_result,
                 message,
             )
-            # need to add condition for FAILED , REJECTED ResultCodes
-            # if command_result == ResultCode.OK:
-            component_manager.logger.debug(
-                "going to update_lrcr_result method"
-            )
+
             update_lrcr_result(
                 component_manager, lrc_result[0], command_result, message
             )
 
-    # when ValueError occurs ??
     except ValueError:
         component_manager.logger.info(
             f"""Updating LRCRCallback with value: {lrc_result[1]} for
@@ -152,9 +124,6 @@ def process_long_running_command_result(
             f"Exception occurred for command: {lrc_result[0]}"
             f"{lrc_result[1]}\n"
         )
-
-        component_manager.logger.info(f"Exception:  :: {exception_message}")
-        component_manager.logger.info("Setting the task callback to FAILED")
         component_manager.long_running_result_callback(
             component_manager.command_id,
             ResultCode.FAILED,
