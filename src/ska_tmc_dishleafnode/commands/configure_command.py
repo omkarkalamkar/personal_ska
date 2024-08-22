@@ -159,17 +159,17 @@ class Configure(DishLNCommand):
         if any."""
         try:
             result = kwargs.get("result")
-            status = kwargs.get("status", TaskStatus.COMPLETED)
-            message = kwargs.get("exception")
+            status = kwargs.get("status")
+            message = kwargs.get("exception") or kwargs.get("message")
             self.logger.info("TIMEOUT occurred 1: %s", result)
             self.logger.info("TIMEOUT occurred 2: %s", status)
             self.logger.info("TIMEOUT occurred 3: %s", message)
+            if status == TaskStatus.ABORTED:
+                self.task_callback(status=status)
+                return
             if result[0] == ResultCode.OK:
                 self.component_manager.command_in_progress = None
                 self.task_callback(result=result, status=status)
-            elif status == TaskStatus.ABORTED:
-                self.task_callback(status=status)
-                return
             else:
                 self.logger.info(
                     "TIMEOUT occurred: %s, %s, %s", result, status, message
@@ -177,7 +177,7 @@ class Configure(DishLNCommand):
                 self.task_callback(
                     status=status,
                     result=result,
-                    exception=message,
+                    exception=Exception(message),
                 )
                 self.component_manager.command_in_progress = None
             self.component_manager.command_id = ""
