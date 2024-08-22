@@ -11,9 +11,11 @@ from ska_tmc_common import DevFactory, DishMode, FaultType
 
 from tests.settings import (
     COMMAND_COMPLETED,
+    COMMAND_FAILED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     build_partial_configure_data,
+    tear_down,
 )
 
 OFFSET = 5.0
@@ -109,7 +111,7 @@ def partial_configure_dish_leaf_node(
     ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_COMPLETED),
+        (unique_id_config[0], COMMAND_FAILED),
         lookahead=8,
     )
     # Assert change event is occuring and values are reflecting
@@ -135,12 +137,20 @@ def partial_configure_dish_leaf_node(
     #     (DishMode.OPERATE),
     #     lookahead=6,
     # )
-
-    # dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
-    # dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    # dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    # dish_leaf_node.unsubscribe_event(LRCR_ID)
-    # tear_down(dish_leaf_node, dish_master, group_callback)
+    RESET_DEFECT = json.dumps(
+        {
+            "enabled": False,
+            "fault_type": FaultType.FAILED_RESULT,
+            "error_message": "Default exception.",
+            "result": ResultCode.FAILED,
+        }
+    )
+    dish_master.SetDefective(RESET_DEFECT)
+    dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.sah1530
