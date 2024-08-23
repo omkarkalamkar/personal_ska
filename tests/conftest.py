@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument,redefined-outer-name
 import json
 import logging
+import time
 from os.path import dirname, join
 from time import sleep
 from typing import Generator
@@ -28,6 +29,8 @@ from tests.settings import (
 
 configure_logging()
 logger = logging.getLogger(__name__)
+configure_logging(logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
 
 
 def pytest_sessionstart(session):
@@ -246,6 +249,14 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
     )
+
+    start_time = time.time()
+    while not cm.actual_pointing_process.is_alive():
+        time.sleep(0.5)
+        if time.time() - start_time > 30:
+            LOGGER.info("actual_pointing_process thread is not alive")
+            break
+
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
@@ -287,3 +298,46 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
     cm.__del__()
     sleep(1)  # Give some time to pytest cleanup
     # pylint: enable=unnecessary-dunder-call
+
+
+@pytest.fixture()
+def cm_new() -> Generator[DishLNComponentManager, None, None]:
+    """Creates component manager for Dish Leaf Node."""
+    cm = DishLNComponentManager(
+        DISH_MASTER_DEVICE,
+        logger=logger,
+        track_table_entries=25,
+        pointing_calculation_period=100,
+        _update_dishmode_callback=dish_mode_callback,
+        _update_pointingstate_callback=pointing_state_callback,
+        communication_state_callback=communication_state_callback,
+        component_state_callback=communication_state_callback,
+        pointing_callback=pointing_callback,
+        kvalue_validation_callback=kvalue_validation_callback,
+        _update_availablity_callback=update_availablity_callback,
+        _update_source_offset_callback=update_source_offset_callback,
+        _update_last_pointing_data_cb=update_last_pointing_data_callback,
+        dish_availability_check_timeout=5,
+        elevation_max_limit=90.0,
+        elevation_min_limit=17.5,
+    )
+
+    elapsed_time = 0
+    timeout = 120
+
+    while cm.iers_a is not None and elapsed_time <= timeout:
+        elapsed_time = elapsed_time + 1
+        sleep(1)
+
+    start_time = time.time()
+    while not cm.actual_pointing:
+        time.sleep(0.5)
+
+        if time.time() - start_time > 120:
+            LOGGER.info("actual_pointing values are not populated")
+            break
+
+    yield cm
+    # pylint: disable=unnecessary-dunder-call
+    cm.__del__()
+    sleep(1)  # Give some time to pytest cleanup

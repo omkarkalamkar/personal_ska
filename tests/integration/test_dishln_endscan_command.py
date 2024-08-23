@@ -12,6 +12,7 @@ from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
+    tear_down,
 )
 
 
@@ -121,6 +122,8 @@ def endscan_command(
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
     dish_leaf_node.unsubscribe_event(LRCR_ID)
+
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment

@@ -1,4 +1,5 @@
 """This module provides settings for the test cases."""
+import copy
 import json
 import logging
 import time
@@ -28,6 +29,9 @@ DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
 COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
+COMMAND_FAILED = json.dumps(
+    [ResultCode.FAILED, "Exception occured, command failed."]
+)
 SKA_EPOCH = "1999-12-31T23:59:28Z"
 COMMAND_COMPLETION_MESSAGE = "Command Completed"
 
@@ -181,6 +185,8 @@ def tear_down(
     dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback
 ):
     """Teardown for the Dish Leaf Node device."""
+
+    logger.info("Invoked tear_down")
     current_pointing_state = dish_master.pointingState
     if current_pointing_state == PointingState.TRACK:
         result, unique_id = dish_leaf_node.TrackStop()
@@ -192,7 +198,7 @@ def tear_down(
             group_callback["longRunningCommandResult"],
         )
         group_callback["longRunningCommandResult"].assert_change_event(
-            (unique_id[0], str(int(ResultCode.OK))),
+            (unique_id[0], COMMAND_COMPLETED),
             lookahead=4,
         )
         dish_leaf_node.unsubscribe_event(LRCR_ID)
@@ -351,7 +357,21 @@ def simulate_result_code_event(
     result: ResultCode,
 ):
     """Simulate LRCR event from given device for given result."""
-    command_id = f"{time.time()}_{command_name}"
+    command_id = ""
+    logging.info("Command mapping: %s", cm.command_mapping)
+    test_command_dict_ref = copy.deepcopy(cm.command_mapping)
+    logging.info("command_dict_ref is %s", test_command_dict_ref)
+    for _, command_dict in test_command_dict_ref.items():
+        for inner_key, value in command_dict.items():
+            logging.info("inner_key, value  is %s %s", inner_key, value)
+            if inner_key == "message_or_unique_id":
+                logging.info("value  is: %s", value)
+                if "-" + command_name in value:
+                    command_id = value
+
+            else:
+                command_id = f"{time.time()}_{command_name}"
+    logging.info("command_id  is: %s", command_id)
     command_result = (
         command_id,
         json.dumps(
