@@ -4,10 +4,9 @@ from os.path import dirname, join
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
-
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
 def get_track_input_str(
@@ -19,24 +18,36 @@ def get_track_input_str(
     return config_str
 
 
-def test_track_command_completed(tango_context, task_callback, cm):
+def test_track_command_completed(
+    tango_context, task_callback, cm, group_callback
+):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_track_allowed()
     track_input_str = get_track_input_str()
     cm.track(track_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
-    )
+    unique_id, message = group_callback[
+        "longRunningCommandResult"
+    ].assert_change_event(
+        (Anything, '[0, "Command Completed"]'),
+        lookahead=10,
+    )[
+        "attribute_value"
+    ]
+    assert "Track" in unique_id
+    assert "Command Completed" in message
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    # )
+    # task_callback.assert_against_call(
+    #     call_kwargs={
+    #         "status": TaskStatus.COMPLETED,
+    #         "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+    #     }
+    # )
 
 
 def test_track_command_adapter_none(task_callback, cm_without_er_lp):
