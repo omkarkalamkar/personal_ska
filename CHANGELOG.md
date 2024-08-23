@@ -5,6 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.17.2]
+********
+* Implemented error propagation and timeout for configure command
+
 [0.17.0]
 ********
 * Accomodate changes for the correction key in dish Leaf Node.
