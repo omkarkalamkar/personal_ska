@@ -413,7 +413,6 @@ class Configure(DishLNCommand):
                 self.component_manager.command_mapping.setdefault(
                     self.component_manager.command_id, {}
                 )["message_or_unique_id"] = message[0]
-                self.logger.info(f"message[0]: {message[0]}")
                 self.logger.debug(
                     f"command mapping dictionary is: "
                     f"{self.component_manager.command_mapping}"
