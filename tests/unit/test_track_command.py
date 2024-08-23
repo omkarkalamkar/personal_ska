@@ -19,7 +19,7 @@ def get_track_input_str(
     return config_str
 
 
-@pytest.mark.skip("Passes locally but not on pipeline.")
+@pytest.mark.skip(reason="Passes locally but not on pipeline.")
 def test_track_command_completed(
     tango_context, task_callback, cm, group_callback
 ):
