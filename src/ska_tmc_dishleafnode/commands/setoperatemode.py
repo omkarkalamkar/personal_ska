@@ -3,16 +3,23 @@ SetOperateMode command class for DishLeafNode.
 """
 from __future__ import annotations
 
+import logging
 import threading
 from logging import Logger
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
+from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from ..manager.component_manager import DishLNComponentManager
 
 
 class SetOperateMode(DishLNCommand):
@@ -22,6 +29,18 @@ class SetOperateMode(DishLNCommand):
     SetOperateMode invokes SetOperateMode command on Dish Master device.
 
     """
+
+    def __init__(
+        self: SetOperateMode,
+        component_manager: DishLNComponentManager,
+        op_state_model,
+        adapter_factory=None,
+        logger: logging.Logger = LOGGER,
+    ):
+        super().__init__(
+            component_manager, op_state_model, adapter_factory, logger
+        )
+        self.task_callback = None
 
     # pylint: disable=unused-argument
     def set_operate_mode(
@@ -42,13 +61,14 @@ class SetOperateMode(DishLNCommand):
         :return: : None
         :rtype: None
         """
-
-        task_callback(status=TaskStatus.IN_PROGRESS)
+        self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
 
         result_code, message = self.do()
         logger.info(message)
         if result_code == ResultCode.FAILED:
-            task_callback(
+            logger.warning("Command failed with exception: %s", message)
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, message),
                 exception=message,
@@ -58,7 +78,7 @@ class SetOperateMode(DishLNCommand):
                 "The SetOperateMode command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-            task_callback(
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
@@ -77,7 +97,7 @@ class SetOperateMode(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device : %s is not found ",
+                "Adapter for device : %s is not found",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message

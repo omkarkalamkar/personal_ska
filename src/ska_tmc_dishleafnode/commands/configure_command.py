@@ -14,8 +14,14 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import AdapterFactory
 from ska_tmc_common.enum import DishMode
 
+from ska_tmc_dishleafnode.commands import (
+    SetOperateMode,
+    Track,
+    TrackLoadStaticOff,
+)
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import (
     COMMAND_COMPLETION_MESSAGE,
@@ -56,6 +62,25 @@ class Configure(DishLNCommand):
         )
         self.task_callback = None
         self.track_table_process = None
+        __adapter_factory = AdapterFactory()
+        self.setoperatemode_command = SetOperateMode(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.track_command = Track(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.track_load_static_off_command = TrackLoadStaticOff(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            self.logger,
+        )
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -276,12 +301,13 @@ class Configure(DishLNCommand):
                 and result_code[0] not in [ResultCode.FAILED]
             ):
                 result_code, message = self.ensure_dish_is_configured(
-                    receiver_band, current_dish_mode
+                    receiver_band,
+                    current_dish_mode,
                 )
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
 
-                result_code, message = self.start_dish_tracking()
+                result_code, message = self.start_dish_tracking(json_argument)
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
 
@@ -348,7 +374,7 @@ class Configure(DishLNCommand):
         return result_code[0], message[0]
 
     def start_dish_tracking(
-        self: Configure,
+        self: Configure, json_argument
     ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invoke Track after waiting for DishMode to Operate
@@ -361,7 +387,7 @@ class Configure(DishLNCommand):
             if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                 return result_code, message
 
-        return self.invoke_track_command()
+        return self.invoke_track_command(json_argument)
 
     def ensure_dish_is_configured(
         self, receiver_band: str, expected_dish_mode: DishMode
@@ -408,12 +434,35 @@ class Configure(DishLNCommand):
 
         return: Tuple[ResultCode, str]
         """
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "SetOperateMode"
-            )
-        if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-            return result_code, message
+        self.logger.info("Invoking SetOperateMode command")
+
+        def _invoke_setoperatemode_callback(
+            status=None,
+            progress=None,
+            result=None,
+            exception=None,
+        ):
+            """
+            Method for invoking abort callback
+            """
+            if status == TaskStatus.FAILED:
+                self.task_callback(
+                    status=status, exception=exception, result=result
+                )
+            elif status == TaskStatus.COMPLETED:
+                self.logger.info(
+                    f"SetOperateMode command completed: {result}, {progress}"
+                )
+
+        self.setoperatemode_command.set_operate_mode(
+            logger=self.logger, task_callback=_invoke_setoperatemode_callback
+        )
+        # with self.component_manager.tango_operation_execution_lock:
+        #     result_code, message = self.call_adapter_method(
+        #         "Dish Master", self.dish_master_adapter, "SetOperateMode"
+        #     )
+        # if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+        #     return result_code, message
 
         result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
@@ -431,7 +480,7 @@ class Configure(DishLNCommand):
         return [ResultCode.OK], [""]
 
     def invoke_track_command(
-        self: Configure,
+        self: Configure, json_argument
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invoke Track command on dish
 
@@ -452,16 +501,38 @@ class Configure(DishLNCommand):
                 ],
             )
 
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "Track"
-            )
-        if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-            self.logger.error(f"Track Invocation Failed , Reason: {message}")
-            return result_code, message
+        # with self.component_manager.tango_operation_execution_lock:
+        #     result_code, message = self.call_adapter_method(
+        #         "Dish Master", self.dish_master_adapter, "Track"
+        #     )
+        # if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+        #     self.logger.error(f"Track Invocation Failed , Reason: {message}")
+        #     return result_code, message
+        def _invoke_track_callback(
+            status=None,
+            progress=None,
+            result=None,
+            exception=None,
+        ):
+            """
+            Method for invoking abort callback
+            """
+            if status == TaskStatus.FAILED:
+                self.task_callback(
+                    status=status, exception=exception, result=result
+                )
+            elif status == TaskStatus.COMPLETED:
+                self.logger.info(
+                    f"Track command completed: {result}, {progress}"
+                )
 
+        self.track_command.track(
+            argin=json_argument,
+            logger=self.logger,
+            task_callback=_invoke_track_callback,
+        )
         self.logger.info("Invoked Track command successfully on dish.")
-        return result_code, message
+        return [ResultCode.OK], [""]
 
     def is_tracktable_provided(self) -> bool:
         """

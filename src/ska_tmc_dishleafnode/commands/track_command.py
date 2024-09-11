@@ -39,6 +39,7 @@ class Track(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.task_callback = None
         self.ra_value = ""
         self.dec_value = ""
         self.tracking_thread = None
@@ -59,24 +60,25 @@ class Track(DishLNCommand):
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType, optional
+        :type task_callback: TaskCallbackType
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         :return: : None
         :rtype: None
         """
         # Indicate that the task has started
-        task_callback(status=TaskStatus.IN_PROGRESS)
+        self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         logger.info(message)
         if return_code == ResultCode.FAILED:
-            task_callback(
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(return_code, message),
                 exception=message,
             )
         else:
-            task_callback(
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
@@ -108,7 +110,7 @@ class Track(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device : %s is not found ",
+                "Adapter for device : %s is not found",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message

@@ -77,7 +77,7 @@ class TrackLoadStaticOff(DishLNCommand):
             logger.warning("Command failed with exception: %s", message)
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=ResultCode(result_code, message),
                 exception=message,
             )
             self.component_manager.command_in_progress = ""
