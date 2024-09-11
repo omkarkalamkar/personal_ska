@@ -18,7 +18,6 @@ from tests.settings import (
 )
 
 
-@pytest.mark.aki
 def test_configure_command_completed(
     tango_context, cm, task_callback, json_factory, dish_master_device
 ):
