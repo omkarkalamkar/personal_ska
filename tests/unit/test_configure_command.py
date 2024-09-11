@@ -19,7 +19,11 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context, cm, task_callback, json_factory, dish_master_device
+    tango_context_process_true,
+    cm,
+    task_callback,
+    json_factory,
+    dish_master_device,
 ):
     dev_factory = DevFactory()
     dish_device = dev_factory.get_device(dish_master_device)
@@ -54,7 +58,7 @@ def test_configure_command_completed(
 
 
 def test_configure_command_completed_partial_config(
-    tango_context, cm_without_er_lp, task_callback, json_factory
+    tango_context_process_true, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm = cm_without_er_lp
@@ -85,7 +89,7 @@ def test_configure_command_completed_partial_config(
 
 
 def test_configure_command_completed_partial_config_missing_key(
-    tango_context, cm_without_er_lp, task_callback, json_factory
+    tango_context_process_true, cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm = cm_without_er_lp
@@ -140,7 +144,9 @@ def test_configure_command_adapter_none(
 
 
 @pytest.mark.parametrize("key", ["pointing", "dish"])
-def test_json_validation(tango_context, task_callback, cm, json_factory, key):
+def test_json_validation(
+    tango_context_process_true, task_callback, cm, json_factory, key
+):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
@@ -155,14 +161,14 @@ def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     assert f"{key} key is not present" in message
 
 
-def test_configure_command_not_allowed(tango_context, cm):
+def test_configure_command_not_allowed(tango_context_process_true, cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()
 
 
 def test_configure_command_status_not_allowed(
-    tango_context,
+    tango_context_process_true,
     cm,
     task_callback,
     json_factory,
@@ -187,7 +193,9 @@ def test_configure_command_status_not_allowed(
     )
 
 
-def test_configure_timeout(tango_context, cm, task_callback, json_factory):
+def test_configure_timeout(
+    tango_context_process_true, cm, task_callback, json_factory
+):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     configure_input_str = json_factory("dishleafnode_configure")
 

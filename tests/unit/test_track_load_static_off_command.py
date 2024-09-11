@@ -89,7 +89,7 @@ def test_trackloadstaticoff_command_invalid_input(
 
 
 def test_configure_command_completed_with_correction_key_reset(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,
@@ -151,7 +151,7 @@ def test_configure_command_completed_with_correction_key_reset(
 
 
 def test_configure_command_completed_with_correction_key_update(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,
@@ -225,7 +225,7 @@ def test_configure_command_completed_with_correction_key_update(
 
 
 def test_correction_key_reset_partial_config(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,
@@ -268,7 +268,7 @@ def test_correction_key_reset_partial_config(
 
 
 def test_correction_key_update_partial_config(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,
@@ -339,7 +339,7 @@ def test_correction_key_update_partial_config(
 
 @pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
 def test_correction_key_maintain_empty_partial_main_config(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     correction_key,
