@@ -126,10 +126,10 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
-        super().init_device()
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
+        super().init_device()
         for attribute_name in [
             "healthState",
             "isSubsystemAvailable",
