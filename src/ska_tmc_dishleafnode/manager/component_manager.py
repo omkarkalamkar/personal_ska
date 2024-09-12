@@ -1457,8 +1457,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.track_table_calculator.track_table_time_stamp = extended_time
         while self.get_track_process_event_status() is False:
-            if self.abort_event.is_set() is True:
-                self.logger.info("Abort is invoked.. stopping tracktable")
             program_track_table: list = (
                 self.track_table_calculator.calculate_program_track_table(
                     self.target_data, self.converter

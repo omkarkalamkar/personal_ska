@@ -6,7 +6,7 @@ import logging
 from typing import Tuple
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.commands import ArgumentValidator, ResultCode
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
@@ -34,11 +34,10 @@ class AbortCommands(DishLNCommand):
             adapter_factory=None,
             logger=logger,
         )
-        self._validator = ArgumentValidator()
         self._name = "AbortCommands"
 
     def invoke_abort(self):
-        """This method calls do for Abort command"""
+        """This method calls do for DishLeafNode Abort command"""
         result_code, message = self.do()
         return result_code, message
 
@@ -59,7 +58,6 @@ class AbortCommands(DishLNCommand):
             (ResultCode, str)
 
         """
-        self.logger.info("Abort command is invoked...")
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -68,11 +66,6 @@ class AbortCommands(DishLNCommand):
             )
             return result_code, message
 
-        # self.logger.info(
-        #     "Dish Abort commands device property is: %s",
-        #     self.component_manager.is_dish_abort_commands,
-        # )
-        # if self.component_manager.is_dish_abort_commands:
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "AbortCommands"
@@ -89,9 +82,12 @@ class AbortCommands(DishLNCommand):
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
-        self.logger.info("Abort command executed on the DishLeafNode...")
+        self.logger.debug(
+            "AbortCommands command executed successfully on"
+            + " the DishLeafNode."
+        )
         self.component_manager.abort_event.clear()
-        self.logger.info("Abort event is cleared")
+        self.logger.debug("Abort event is cleared")
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:

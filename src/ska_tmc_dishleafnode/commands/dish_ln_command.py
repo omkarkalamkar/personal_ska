@@ -93,7 +93,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         while elapsed_time < self.component_manager.command_timeout:
             if self.component_manager.abort_event.is_set():
                 self.logger.info(
-                    "Abort() command is invoked while configuring dish"
+                    "Invoked AbortCommands() command while configuring dish."
                 )
                 break
             if self.component_manager.dishMode == dishmode:
@@ -119,7 +119,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         while elapsed_time < self.component_manager.command_timeout:
             if self.component_manager.abort_event.is_set():
                 self.logger.info(
-                    "Abort() command is invoked while configuring dish"
+                    "Invoked AbortCommands() command while configuring dish."
                 )
                 break
             if self.component_manager.dishConfiguredBand == configured_band:
