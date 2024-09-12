@@ -20,7 +20,7 @@ def abort_on_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     result_fp, _ = dish_leaf_node.AbortCommands()
-    assert result_fp[0] == ResultCode.OK
+    assert result_fp[0] == ResultCode.STARTED
 
 
 def abort_when_configured(
@@ -94,7 +94,7 @@ def abort_when_configured(
         f"Command ID: {unique_id_abort} Returned result: {result_abort}"
     )
 
-    assert result_abort == ResultCode.OK
+    assert result_abort == ResultCode.STARTED
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),

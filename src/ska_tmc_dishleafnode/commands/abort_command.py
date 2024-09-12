@@ -59,6 +59,7 @@ class AbortCommands(DishLNCommand):
             (ResultCode, str)
 
         """
+        self.logger.info("Abort command is invoked...")
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -67,26 +68,30 @@ class AbortCommands(DishLNCommand):
             )
             return result_code, message
 
-        self.logger.info(
-            "Dish Abort commands device property is: %s",
-            self.component_manager.is_dish_abort_commands,
-        )
-        if self.component_manager.is_dish_abort_commands:
-            with self.component_manager.tango_operation_execution_lock:
-                result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "AbortCommands"
-                )
-            self.logger.info(
-                f"AbortCommands command invoked, Result code is {result_code}\
-                and Message is {message}"
+        # self.logger.info(
+        #     "Dish Abort commands device property is: %s",
+        #     self.component_manager.is_dish_abort_commands,
+        # )
+        # if self.component_manager.is_dish_abort_commands:
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "AbortCommands"
             )
-            if result_code[0] == ResultCode.FAILED:
-                return result_code[0], message[0]
+        self.logger.info(
+            f"AbortCommands command invoked, Result code is {result_code}\
+            and Message is {message}"
+        )
+        if result_code[0] == ResultCode.FAILED:
+            return result_code[0], message[0]
 
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
+
+        self.logger.info("Abort command executed on the DishLeafNode...")
+        self.component_manager.abort_event.clear()
+        self.logger.info("Abort event is cleared")
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:

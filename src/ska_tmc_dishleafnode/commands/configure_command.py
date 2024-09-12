@@ -517,10 +517,10 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
-        is_track_command_allowed: bool = (
-            self.component_manager.is_track_command_allowed()
-        )
-        if not is_track_command_allowed:
+        if self.component_manager.pointingState in [
+            PointingState.TRACK,
+            PointingState.SLEW,
+        ]:
             self.logger.info(
                 "Dish is already tracking/slewing. Track() command "
                 + "will not be invoked."

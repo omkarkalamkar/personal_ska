@@ -395,26 +395,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         return check_dish_mode
 
-    def is_track_command_allowed(self: DishLNComponentManager) -> bool:
-        """
-        checks if Track() command is allowed in current dishMode and
-        pointingState.
-        """
-        if (
-            self.dishMode == DishMode.OPERATE
-            and self.pointingState is PointingState.READY
-        ):
-            return True
-        return False
-
-    def is_trackstop_command_allowed(self: DishLNComponentManager) -> bool:
-        """
-        checks if TrackStop() command is allowed in current dishMode and
-        pointingState.
-        """
-        if self.dishMode == DishMode.OPERATE and self.pointingState in (
-            PointingState.TRACK,
-            PointingState.SLEW,
+    def is_track_and_trackstop_command_allowed(self: DishLNComponentManager):
+        """checks if track command is allowed"""
+        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
+            PointingState.NONE,
+            PointingState.UNKNOWN,
         ):
             return True
         return False
@@ -876,7 +861,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.track_command.track,
             args=[input_json, self.logger],
-            is_cmd_allowed=self.is_track_command_allowed,
+            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("Track command queued for execution")
@@ -919,7 +904,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.trackstop_command.trackstop,
             args=[self.logger],
-            is_cmd_allowed=self.is_trackstop_command_allowed,
+            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("TrackStop command queued for execution")
@@ -1034,10 +1019,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
-    def abort_tasks(
-        self: DishLNComponentManager,
-        task_callback: TaskCallbackType,
-    ) -> Tuple[TaskStatus, str]:
+    # pylint: disable=arguments-differ
+    def abort_commands(self) -> Tuple[TaskStatus, str]:
         """
         Invokes Abort command on Dish manager.
         """
@@ -1048,8 +1031,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.abort_event.set()
         self.logger.info("Abort event is set")
         result_code, message = abort_command.invoke_abort()
-        self.abort_event.clear()
-        self.logger.info("Abort event is cleared")
 
         return result_code, message
 
@@ -1476,6 +1457,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.track_table_calculator.track_table_time_stamp = extended_time
         while self.get_track_process_event_status() is False:
+            if self.abort_event.is_set() is True:
+                self.logger.info("Abort is invoked.. stopping tracktable")
             program_track_table: list = (
                 self.track_table_calculator.calculate_program_track_table(
                     self.target_data, self.converter
