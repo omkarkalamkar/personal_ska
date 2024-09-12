@@ -6,7 +6,7 @@ import logging
 from typing import Tuple
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
+from ska_tango_base.commands import ArgumentValidator, ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
@@ -16,7 +16,7 @@ configure_logging()
 LOGGER = logging.getLogger(__name__)
 
 
-class AbortCommands(DishLNCommand, FastCommand):
+class AbortCommands(DishLNCommand):
     """
     A class for DishLeafNode's AbortCommands() command.
     Command to abort the Dish Master and bring it to its ABORTED state.
@@ -36,6 +36,11 @@ class AbortCommands(DishLNCommand, FastCommand):
         )
         self._validator = ArgumentValidator()
         self._name = "AbortCommands"
+
+    def invoke_abort(self):
+        """This method calls do for Abort command"""
+        result_code, message = self.do()
+        return result_code, message
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:

@@ -517,10 +517,26 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
+        is_track_command_allowed: bool = (
+            self.component_manager.is_track_command_allowed()
+        )
+        if not is_track_command_allowed:
+            self.logger.info(
+                "Dish is already tracking/slewing. Track() command "
+                + "will not be invoked."
+            )
+            return (
+                [ResultCode.OK],
+                [
+                    "Dish is already in pointingState.TRACK. Track() "
+                    + "command will not be invoked."
+                ],
+            )
+
         result: bool = self.is_tracktable_provided()
         if not result:
             self.logger.error(
-                "Timed out while waiting to generate TrackTable."
+                "Dish manager did not receive TrackTable."
                 + "Track command will not be invoked on the Dish."
             )
             return (
@@ -555,6 +571,11 @@ class Configure(DishLNCommand):
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.abort_event.is_set():
+                self.logger.info(
+                    "Abort() command is invoked while configuring dish"
+                )
+                break
             with self.component_manager.tango_operation_execution_lock:
                 track_table = self.dish_master_adapter.programTrackTable
             if len(track_table) > 0:

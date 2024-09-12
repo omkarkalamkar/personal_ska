@@ -40,6 +40,7 @@ from ska_tmc_common.lrcr_callback import LRCRCallback
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
+    AbortCommands,
     Configure,
     EndScan,
     Off,
@@ -195,6 +196,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if _liveliness_probe != LivelinessProbeType.NONE:
             self.start_liveliness_probe(_liveliness_probe)
 
+        self.abort_event = threading.Event()
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.track_table_entries: int = track_table_entries
         self.pointing_calculation_period: int = pointing_calculation_period
@@ -393,11 +395,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         return check_dish_mode
 
-    def is_track_and_trackstop_command_allowed(self: DishLNComponentManager):
-        """checks if track command is allowed"""
-        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
-            PointingState.NONE,
-            PointingState.UNKNOWN,
+    def is_track_command_allowed(self: DishLNComponentManager) -> bool:
+        """
+        checks if Track() command is allowed in current dishMode and
+        pointingState.
+        """
+        if (
+            self.dishMode == DishMode.OPERATE
+            and self.pointingState is PointingState.READY
+        ):
+            return True
+        return False
+
+    def is_trackstop_command_allowed(self: DishLNComponentManager) -> bool:
+        """
+        checks if TrackStop() command is allowed in current dishMode and
+        pointingState.
+        """
+        if self.dishMode == DishMode.OPERATE and self.pointingState in (
+            PointingState.TRACK,
+            PointingState.SLEW,
         ):
             return True
         return False
@@ -859,7 +876,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.track_command.track,
             args=[input_json, self.logger],
-            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
+            is_cmd_allowed=self.is_track_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("Track command queued for execution")
@@ -902,7 +919,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             self.trackstop_command.trackstop,
             args=[self.logger],
-            is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
+            is_cmd_allowed=self.is_trackstop_command_allowed,
             task_callback=task_callback,
         )
         self.logger.info("TrackStop command queued for execution")
@@ -1016,6 +1033,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             argin,
         )
         return task_status, response
+
+    def abort_tasks(
+        self: DishLNComponentManager,
+        task_callback: TaskCallbackType,
+    ) -> Tuple[TaskStatus, str]:
+        """
+        Invokes Abort command on Dish manager.
+        """
+        abort_command = AbortCommands(
+            self,
+            logger=self.logger,
+        )
+        self.abort_event.set()
+        self.logger.info("Abort event is set")
+        result_code, message = abort_command.invoke_abort()
+        self.abort_event.clear()
+        self.logger.info("Abort event is cleared")
+
+        return result_code, message
 
     def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the command TrackLoadStaticOff is allowed.
