@@ -1402,8 +1402,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.tango_operation_execution_lock:
             try:
                 self.dish_adapter.programTrackTable = program_track_table
-            except Exception as exception:
-                self.logger.error(exception)
+            except (tango.DevFailed, Exception) as exception:
+                self.logger.exception(exception)
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def track_process(
