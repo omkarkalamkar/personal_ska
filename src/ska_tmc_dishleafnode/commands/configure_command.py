@@ -445,14 +445,30 @@ class Configure(DishLNCommand):
             """
             Method for invoking abort callback
             """
-            if status == TaskStatus.FAILED:
-                self.task_callback(
-                    status=status, exception=exception, result=result
-                )
-            elif status == TaskStatus.COMPLETED:
+            if result[0] == ResultCode.FAILED:
+                # self.task_callback(
+                #     status=status, exception=exception, result=result
+                # )
                 self.logger.info(
-                    f"SetOperateMode command completed: {result}, {progress}"
+                    f"SetOperateMode failed: {result}, {exception}, "
+                    + f"{status}, {progress}"
                 )
+                return [result[0]], [exception]
+
+            result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
+            if not result:
+                self.logger.error(
+                    "Timeout occurred while processing the"
+                    + " SetOperateMode command."
+                )
+                return (
+                    [ResultCode.FAILED],
+                    [
+                        "Timeout occurred while invoking the "
+                        + "SetOperateMode command."
+                    ],
+                )
+            return [ResultCode.OK], [""]
 
         self.setoperatemode_command.set_operate_mode(
             logger=self.logger, task_callback=_invoke_setoperatemode_callback
@@ -464,19 +480,19 @@ class Configure(DishLNCommand):
         # if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
         #     return result_code, message
 
-        result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
-        if not result:
-            self.logger.error(
-                "Timeout occurred while processing the"
-                + " SetOperateMode command."
-            )
-            return (
-                [ResultCode.FAILED],
-                [
-                    "Timeout occurred while invoking the SetOperateMode "
-                    + "command."
-                ],
-            )
+        # result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
+        # if not result:
+        #     self.logger.error(
+        #         "Timeout occurred while processing the"
+        #         + " SetOperateMode command."
+        #     )
+        #     return (
+        #         [ResultCode.FAILED],
+        #         [
+        #             "Timeout occurred while invoking the SetOperateMode "
+        #             + "command."
+        #         ],
+        #     )
         return [ResultCode.OK], [""]
 
     def invoke_track_command(
@@ -517,21 +533,24 @@ class Configure(DishLNCommand):
             """
             Method for invoking abort callback
             """
-            if status == TaskStatus.FAILED:
-                self.task_callback(
-                    status=status, exception=exception, result=result
-                )
-            elif status == TaskStatus.COMPLETED:
+            if result[0] == TaskStatus.FAILED:
+                # self.task_callback(
+                #     status=status, exception=exception, result=result
+                # )
                 self.logger.info(
-                    f"Track command completed: {result}, {progress}"
+                    f"Track command failed: {result}, {exception}, "
+                    + f"{status}, {progress}"
                 )
+                return [result[0]], [exception]
+
+            self.logger.info("Invoked Track command successfully on dish.")
+            return [ResultCode.OK], [""]
 
         self.track_command.track(
             argin=json_argument,
             logger=self.logger,
             task_callback=_invoke_track_callback,
         )
-        self.logger.info("Invoked Track command successfully on dish.")
         return [ResultCode.OK], [""]
 
     def is_tracktable_provided(self) -> bool:
