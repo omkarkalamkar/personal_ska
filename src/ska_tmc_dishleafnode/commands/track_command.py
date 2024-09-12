@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from logging import Logger
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -17,8 +17,8 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-if TYPE_CHECKING:
-    from ..manager.component_manager import DishLNComponentManager
+# if TYPE_CHECKING:
+#     from ..manager.component_manager import DishLNComponentManager
 
 
 class Track(DishLNCommand):
@@ -31,7 +31,7 @@ class Track(DishLNCommand):
 
     def __init__(
         self: Track,
-        component_manager: DishLNComponentManager,
+        component_manager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,

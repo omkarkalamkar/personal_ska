@@ -8,20 +8,21 @@ import logging
 import threading
 import time
 from logging import Logger
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import AdapterFactory
+
+# from ska_tmc_common import AdapterFactory
 from ska_tmc_common.enum import DishMode
 
-from ska_tmc_dishleafnode.commands import (
-    SetOperateMode,
-    Track,
-    TrackLoadStaticOff,
-)
+# from ska_tmc_dishleafnode.commands import (
+#     SetOperateMode,
+#     Track,
+#     TrackLoadStaticOff,
+# )
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import (
     COMMAND_COMPLETION_MESSAGE,
@@ -32,8 +33,8 @@ from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    from ..manager.component_manager import DishLNComponentManager
+# if TYPE_CHECKING:
+#     from ..manager.component_manager import DishLNComponentManager
 
 
 class Configure(DishLNCommand):
@@ -52,7 +53,7 @@ class Configure(DishLNCommand):
 
     def __init__(
         self: Configure,
-        component_manager: DishLNComponentManager,
+        component_manager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
@@ -62,25 +63,25 @@ class Configure(DishLNCommand):
         )
         self.task_callback = None
         self.track_table_process = None
-        __adapter_factory = AdapterFactory()
-        self.setoperatemode_command = SetOperateMode(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.track_command = Track(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.track_load_static_off_command = TrackLoadStaticOff(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            self.logger,
-        )
+        # __adapter_factory = AdapterFactory()
+        # self.setoperatemode_command = SetOperateMode(
+        #     self,
+        #     self.op_state_model,
+        #     __adapter_factory,
+        #     logger=self.logger,
+        # )
+        # self.track_command = Track(
+        #     self,
+        #     self.op_state_model,
+        #     __adapter_factory,
+        #     logger=self.logger,
+        # )
+        # self.track_load_static_off_command = TrackLoadStaticOff(
+        #     self,
+        #     self.op_state_model,
+        #     __adapter_factory,
+        #     self.logger,
+        # )
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -470,7 +471,7 @@ class Configure(DishLNCommand):
                 )
             return [ResultCode.OK], [""]
 
-        self.setoperatemode_command.set_operate_mode(
+        self.component_manager.setoperatemode_command.set_operate_mode(
             logger=self.logger, task_callback=_invoke_setoperatemode_callback
         )
         # with self.component_manager.tango_operation_execution_lock:
@@ -546,7 +547,7 @@ class Configure(DishLNCommand):
             self.logger.info("Invoked Track command successfully on dish.")
             return [ResultCode.OK], [""]
 
-        self.track_command.track(
+        self.component_manager.track_command.track(
             argin=json_argument,
             logger=self.logger,
             task_callback=_invoke_track_callback,

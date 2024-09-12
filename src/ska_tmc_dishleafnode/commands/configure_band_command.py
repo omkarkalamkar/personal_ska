@@ -1,9 +1,7 @@
-"""
-TrackLoadStaticOff command class for DishLeafNode.
-"""
+"""ConfigureBand command class for Dishleafnode."""
+
 from __future__ import annotations
 
-import json
 import logging
 import threading
 from logging import Logger
@@ -23,17 +21,17 @@ LOGGER = logging.getLogger(__name__)
 #     from ..manager.component_manager import DishLNComponentManager
 
 
-class TrackLoadStaticOff(DishLNCommand):
+class ConfigureBand(DishLNCommand):
     """
-    A class for DishLeafNode's TrackLoadStaticOff() command.
+    A class for Dishleafnode's ConfigureBand command. ConfigureBand command is
+    inherited from DishLNCommand.
 
-    This command is invoked as a part of the Configure sequence of a 5 point
-    calibration scan. It is used to set the cross elevation and elevation
-    offsets provided in the partial configurations on the Dish Master Device.
+    This command takes band as an input argument and invokes respective
+    ConfigureBand{band} command on Dish Master
     """
 
     def __init__(
-        self: TrackLoadStaticOff,
+        self: ConfigureBand,
         component_manager,
         op_state_model,
         adapter_factory=None,
@@ -45,20 +43,17 @@ class TrackLoadStaticOff(DishLNCommand):
         self.task_callback = None
 
     # pylint: disable=unused-argument
-    def invoke_track_load_static_off(
-        self: TrackLoadStaticOff,
+    def configure_band(
+        self: ConfigureBand,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-        # pylint: enable=unused-argument
-        """A method to invoke the do method of the TrackLoadStaticOff command
-        class. This method also updates the task callback according to command
-        status.
+        """This is a long running method for ConfigureBand command, it
+        executes the do hook, invoking ConfigureBand command on Dish Master
 
-        :param argin: Input argument containing the cross elevation and
-            elevation offsets.
+        :param argin: string containing band to be configured
         :type argin: str
         :param logger: logger
         :type logger: logging.Logger
@@ -69,40 +64,16 @@ class TrackLoadStaticOff(DishLNCommand):
         :return: : None
         :rtype: None
         """
+        # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        result_code, message = self.do(argin)
-        self.component_manager.command_in_progress = "TrackLoadStaticOff"
-        if result_code == ResultCode.FAILED:
-            logger.warning("Command failed with exception: %s", message)
+        return_code, message = self.do(argin)
+        logger.info(message)
+        if return_code == ResultCode.FAILED:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code, message),
+                result=(return_code, message),
                 exception=message,
-            )
-            self.component_manager.command_in_progress = ""
-        else:
-            logger.info(
-                "The TrackLoadStaticOff command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
-            )
-
-    def update_task_callback(
-        self: TrackLoadStaticOff, result_code: ResultCode, exception: str = ""
-    ) -> None:
-        """
-        Method to update task callback.
-
-        Args:
-            result_code (ResultCode): result code
-            exception (str, optional): Exception occurred during command
-            execution. Defaults to "".
-        """
-        if exception:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, exception),
-                exception=exception,
             )
         else:
             self.task_callback(
@@ -110,20 +81,17 @@ class TrackLoadStaticOff(DishLNCommand):
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
 
-        self.component_manager.command_in_progress = ""
-
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self: TrackLoadStaticOff, argin: str) -> Tuple[ResultCode, str]:
+    def do(self: ConfigureBand, argin: str) -> Tuple[ResultCode, str]:
         """
-        Method to invoke TrackLoadStaticOff command on DishMaster.
+        Method to invoke ConfigureBand command on Dish Master.
 
-        param argin: String containing cross elevation and elevation offsets
+        param argin: str
 
         return:
             (ResultCode, str)
         """
-
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -132,13 +100,13 @@ class TrackLoadStaticOff(DishLNCommand):
             )
             return result_code, message
 
-        offsets = json.loads(argin)
+        command_name: str = f"ConfigureBand{argin}"
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
-                "Dish Master",
-                self.dish_master_adapter,
-                "TrackLoadStaticOff",
-                argin=offsets,
+                "Dish Master", self.dish_master_adapter, command_name
             )
+
+        if result_code[0] == ResultCode.FAILED:
+            return result_code[0], message[0]
 
         return result_code[0], message[0]
