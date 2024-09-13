@@ -525,6 +525,11 @@ class Configure(DishLNCommand):
                 "Dish is already tracking/slewing. Track() command "
                 + "will not be invoked."
             )
+
+            self.component_manager.command_mapping.setdefault(
+                self.component_manager.command_id, {}
+            )["ResultCode"] = ResultCode.OK
+
             return (
                 [ResultCode.OK],
                 [
