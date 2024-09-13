@@ -166,6 +166,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             """
             super().do()
             device = self._device
+            device.healthState = HealthState.OK
             device._build_state = f"""{release.name},{release.version},
             {release.description}"""
             device._version_id = release.version
