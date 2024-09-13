@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 
 from numpy import isnan
 from numpy import nan as NaN
+from ska_control_model import HealthState
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common import (
@@ -122,6 +123,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     def init_device(self: DishLeafNode):
         self._isSubsystemAvailable = True
         self._dishMode = DishMode.UNKNOWN
+        self._health_state = HealthState.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
