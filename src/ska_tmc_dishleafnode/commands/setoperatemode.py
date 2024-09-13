@@ -61,13 +61,14 @@ class SetOperateMode(DishLNCommand):
         :return: : None
         :rtype: None
         """
+        logger.info("Invoking SetOperateMode command ------")
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
 
         result_code, message = self.do()
-        logger.info(message)
+        logger.info("Result Message: %s, %s", result_code, message)
         if result_code == ResultCode.FAILED:
-            logger.warning("Command failed with exception: %s", message)
+            logger.info("Command failed with exception: %s", message)
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, message),
@@ -106,4 +107,5 @@ class SetOperateMode(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetOperateMode"
             )
+        LOGGER.info("Do method completed.")
         return result_code[0], message[0]

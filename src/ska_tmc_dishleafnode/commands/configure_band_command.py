@@ -101,9 +101,13 @@ class ConfigureBand(DishLNCommand):
             return result_code, message
 
         command_name: str = f"ConfigureBand{argin}"
+        self.logger.info("command_name: %s", command_name)
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, command_name
+                "Dish Master",
+                self.dish_master_adapter,
+                command_name,
+                True,
             )
 
         if result_code[0] == ResultCode.FAILED:

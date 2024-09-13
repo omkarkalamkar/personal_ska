@@ -39,6 +39,7 @@ from ska_tmc_common.adapters import DishAdapter
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     Configure,
+    ConfigureBand,
     EndScan,
     Off,
     Scan,
@@ -239,6 +240,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.track_command = Track(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
+        self.configure_band_command = ConfigureBand(
             self,
             self.op_state_model,
             __adapter_factory,
