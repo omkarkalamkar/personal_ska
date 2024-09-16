@@ -86,31 +86,39 @@ class TrackLoadStaticOff(DishLNCommand):
                 "The TrackLoadStaticOff command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-
-    def update_task_callback(
-        self: TrackLoadStaticOff, result_code: ResultCode, exception: str = ""
-    ) -> None:
-        """
-        Method to update task callback.
-
-        Args:
-            result_code (ResultCode): result code
-            exception (str, optional): Exception occurred during command
-            execution. Defaults to "".
-        """
-        if exception:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=(result_code, exception),
-                exception=exception,
-            )
-        else:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+                result=(
+                    ResultCode.OK,
+                    message + " " + COMMAND_COMPLETION_MESSAGE,
+                ),
             )
 
-        self.component_manager.command_in_progress = ""
+    # def update_task_callback(
+    #     self: TrackLoadStaticOff, result_code: ResultCode, exception:
+    # str = ""
+    # ) -> None:
+    #     """
+    #     Method to update task callback.
+
+    #     Args:
+    #         result_code (ResultCode): result code
+    #         exception (str, optional): Exception occurred during command
+    #         execution. Defaults to "".
+    #     """
+    #     if exception:
+    #         self.task_callback(
+    #             status=TaskStatus.COMPLETED,
+    #             result=(result_code, exception),
+    #             exception=exception,
+    #         )
+    #     else:
+    #         self.task_callback(
+    #             status=TaskStatus.COMPLETED,
+    #             result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+    #         )
+
+    #     self.component_manager.command_in_progress = ""
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ

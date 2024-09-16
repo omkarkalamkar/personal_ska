@@ -3,9 +3,10 @@ Event Receiver for Dish Leaf Node
 """
 from __future__ import annotations
 
+from datetime import datetime
 from logging import Logger
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, List
 
 import tango
 from ska_tmc_common import (
@@ -43,6 +44,7 @@ class DishLNEventReceiver(EventReceiver):
             sleep_time=sleep_time,
         )
         self.subscribed: bool = False
+        self._event_enter_exit_time: List[datetime] = []
 
     def run(self: DishLNEventReceiver) -> None:
         while not self.subscribed:
@@ -113,6 +115,7 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
+        self.log_event_data(event_flag, "handle_dish_mode_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -123,6 +126,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_dish_mode(new_value)
+        self.log_event_exit("handle_dish_mode_event")
         self._logger.info(
             "DishMode value updated to %s", DishMode(new_value).name
         )
@@ -138,6 +142,8 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
+
+        self.log_event_data(event_flag, "handle_pointing_state_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -148,6 +154,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_device_pointing_state(new_value)
+        self.log_event_exit("handle_pointing_state_event")
         self._logger.info(
             "PointingState value updated to %s", PointingState(new_value).name
         )
@@ -163,6 +170,7 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
+        self.log_event_data(event_flag, "handle_configured_band_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -187,6 +195,8 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
+
+        self.log_event_data(event_flag, "handle_achieved_pointing_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -197,6 +207,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.achieved_pointing_data.put(new_value)
+        self.log_event_exit("handle_achieved_pointing_event")
 
     def handle_long_running_command_result(
         self: DishLNEventReceiver, event_data: tango.EventData
@@ -209,6 +220,7 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
+        self.log_event_data(event_data, "handle_long_running_command_result")
         if event_data.err:
             error = event_data.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -278,3 +290,40 @@ class DishLNEventReceiver(EventReceiver):
                 f"device {dev_info.dev_name}/{exception}"
             )
             self._logger.exception(log_msg)
+
+    def log_event_data(
+        self, event_data: tango.EventData, callback_name: str
+    ) -> None:
+        """Log the event data for later use."""
+        if event_data.attr_value:
+            attribute_name = event_data.attr_value.name
+            attribute_value = event_data.attr_value.value
+            reception_time: datetime = event_data.attr_value.time.todatetime()
+            current_time = datetime.utcnow()
+            self._event_enter_exit_time.append(current_time)
+            current_time = current_time.strftime("%d/%m/%Y %H:%M:%S:%f")
+            self._logger.info(
+                "Enter time for the callback: %s is %s. Event data is - "
+                + "Attribute: %s, Value: %s, Reception time: %s",
+                callback_name,
+                current_time,
+                attribute_name,
+                attribute_value,
+                reception_time.strftime("%d/%m/%Y %H:%M:%S:%f"),
+            )
+
+    def log_event_exit(self, callback_name: str) -> None:
+        """Log the time of exiting the event."""
+        self._event_enter_exit_time.append(datetime.utcnow())
+        if len(self._event_enter_exit_time) == 2:
+            time_diff = (
+                self._event_enter_exit_time[1] - self._event_enter_exit_time[0]
+            ).total_seconds()
+        else:
+            time_diff = datetime.utcnow().strftime("%d/%m/%Y %H:%M:%S:%f")
+        self._event_enter_exit_time.clear()
+        self._logger.info(
+            "Exit time for the callback: %s is %s",
+            callback_name,
+            time_diff,
+        )

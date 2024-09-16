@@ -84,4 +84,8 @@ k8s-test:
     - '[ -f .make/k8s.mk ] || (echo "File k8s.mk not included in Makefile; exit 1")'
     - make k8s-install-chart
     - make k8s-wait
+    - make k8s-test
 
+docs-build-rtd:
+  rules:
+    - when: never

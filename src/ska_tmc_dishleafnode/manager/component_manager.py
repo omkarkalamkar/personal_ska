@@ -3,6 +3,7 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 from __future__ import annotations
 
+import copy
 import datetime
 import json
 import os
@@ -35,6 +36,7 @@ from ska_tmc_common import (
     TmcLeafNodeComponentManager,
 )
 from ska_tmc_common.adapters import DishAdapter
+from ska_tmc_common.lrcr_callback import LRCRCallback
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -55,11 +57,13 @@ from ska_tmc_dishleafnode.commands import (
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
+from .common_utils import process_long_running_command_result
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 from .program_track_table_calculator import ProgramTrackTableCalculator
 
 
+# pylint: disable = too-many-public-methods
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
@@ -175,10 +179,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.supported_commands: Tuple = (
             "Configure_TrackLoadStaticOff",
             "TrackLoadStaticOff",
+            "Track",
             "Configure",
         )
+        self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
+        self.command_mapping = {}
+        self.event_receiver = _event_receiver
 
         # Event Receiver
         if _event_receiver:
@@ -1544,6 +1552,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
+    def get_lrcr_result(self) -> List[str]:
+        """Returns long running command result for command
+        with given command ID"""
+
+        command_dict_ref = {}
+        command_dict_ref = copy.deepcopy(self.command_mapping)
+        self.logger.info("self.command_id -----------: %s", self.command_id)
+        self.logger.info("self.command_mapping ----: %s", self.command_mapping)
+
+        for key, command_dict in command_dict_ref.items():
+            if key == self.command_id:
+                # Iterate through the  dictionary for each command Id
+                for inner_key, value in command_dict.items():
+                    if inner_key == "ResultCode":
+                        self.logger.info(
+                            "command mapping has required command ID"
+                            " and ResultCode  as here \n"
+                            " %s",
+                            self.command_mapping,
+                        )
+                        return [value]
+        return [""]
+
     def update_device_long_running_command_result(
         self: DishLNComponentManager, lrc_result: Tuple[str, str]
     ) -> None:
@@ -1554,54 +1585,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
-        self.logger.info(
-            "Received a longRunningCommandResult event with data: %s",
-            lrc_result,
-        )
-        try:
-            if not lrc_result:
-                return
-            with self.lock:
-                if lrc_result == ("", ""):
-                    return
-
-                if (
-                    lrc_result[0].endswith(self.supported_commands)
-                    and self.command_in_progress in self.supported_commands
-                ):
-                    self.logger.debug(
-                        "The command in progress is: %s for processing of "
-                        + "LRCR event",
-                        self.command_in_progress,
-                    )
-                    command_result, message = json.loads(lrc_result[1])
-                    if (
-                        self.correction_key == CORRECTION_KEY.RESET.value
-                        and lrc_result[0].endswith("TrackLoadStaticOff")
-                        and self.command_in_progress == "Configure"
-                    ):
-                        command_object = self.command_object.get(
-                            "Configure_TrackLoadStaticOff"
-                        )
-                    else:
-                        command_object = self.command_object.get(
-                            self.command_in_progress
-                        )
-                    if command_result == ResultCode.OK:
-                        command_object.update_task_callback(ResultCode.OK)
-                    elif command_result in [
-                        ResultCode.FAILED,
-                        ResultCode.NOT_ALLOWED,
-                        ResultCode.REJECTED,
-                    ]:
-                        command_object.update_task_callback(
-                            ResultCode.FAILED, exception=message
-                        )
-        except Exception as exception:
-            self.logger.exception(
-                "Exception while processing longRunningCommandResult",
-                exception,
-            )
+        self.logger.info("Processing events --------")
+        process_long_running_command_result(self, lrc_result)
 
     @property
     def elevation_limit(self: DishLNComponentManager) -> bool:
@@ -1819,6 +1804,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.track_table_process.join()
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
+
+    def get_dish_state(self) -> Tuple[DishMode, PointingState, ResultCode]:
+        """
+        Returns the current state of the dish including its mode,
+        pointing state,and the result code of a specified command.
+
+        Args:
+            command_id: The identifier for the command whose result is required
+
+        Returns:
+            A tuple containing:
+                - DishMode: The current operational mode of the dish.
+                - PointingState: The current pointing state of the dish.
+                - ResultCode: The result code of the command identified by
+                    command_id.
+        """
+        return [
+            self.dishMode,
+            self.pointingState,
+            self.get_lrcr_result()[0],
+        ]
 
     def __del__(self: DishLNComponentManager):
         """

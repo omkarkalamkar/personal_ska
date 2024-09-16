@@ -81,7 +81,10 @@ class SetOperateMode(DishLNCommand):
             )
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+                result=(
+                    ResultCode.OK,
+                    message + " " + COMMAND_COMPLETION_MESSAGE,
+                ),
             )
 
     # pylint: disable=arguments-differ
