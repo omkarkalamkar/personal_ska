@@ -38,8 +38,7 @@ class AbortCommands(DishLNCommand):
 
     def invoke_abort(self):
         """This method calls do for DishLeafNode Abort command"""
-        result_code, message = self.do()
-        return result_code, message
+        return self.do()
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
@@ -86,8 +85,8 @@ class AbortCommands(DishLNCommand):
             "AbortCommands command executed successfully on"
             + " the DishLeafNode."
         )
-        self.component_manager.abort_event.clear()
-        self.logger.debug("Abort event is cleared")
+        # self.component_manager.abort_event.clear()
+        # self.logger.debug("Abort event is cleared")
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:

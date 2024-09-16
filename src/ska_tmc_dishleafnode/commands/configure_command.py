@@ -83,6 +83,8 @@ class Configure(DishLNCommand):
         :return: : None
         :rtype: None
         """
+        self.component_manager.abort_event = task_abort_event
+        self.component_manager.abort_event.clear()
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
@@ -94,6 +96,8 @@ class Configure(DishLNCommand):
             self.timeout_callback,
         )
         return_code, message = self.do(argin)
+        self.logger.info("Return code: %s", return_code)
+        self.logger.info("message: %s", message)
         lrcr_callback = self.component_manager.long_running_result_callback
         if return_code == ResultCode.FAILED:
             logger.info(
@@ -137,10 +141,10 @@ class Configure(DishLNCommand):
                     lrcr_callback=lrcr_callback,
                 )
 
-            logger.info(
-                "The Configure command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
-            )
+            # logger.info(
+            #     "The Configure command is invoked successfully on %s",
+            #     self.dish_master_adapter.dev_name,
+            # )
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -538,17 +542,23 @@ class Configure(DishLNCommand):
                 ],
             )
 
-        result: bool = self.is_tracktable_provided()
-        if not result:
+        result: str = self.is_tracktable_provided()
+        if result == "ABORTED":
+            self.logger.info(
+                "Configure command has been aborted."
+                + " Track command will not be invoked."
+            )
+            return ([ResultCode.ABORTED], ["Command has been aborted"])
+        if result == "FALSE":
             self.logger.error(
                 "Dish manager did not receive TrackTable."
-                + "Track command will not be invoked on the Dish."
+                + "Track() command will not be invoked on the Dish."
             )
             return (
                 [ResultCode.FAILED],
                 [
-                    "Timeout occurred while waiting to "
-                    + " generate programTrackTable."
+                    "Dish manager did not receive TrackTable. "
+                    + "Track() command will not be invoked on the Dish."
                 ],
             )
 
@@ -569,10 +579,11 @@ class Configure(DishLNCommand):
         self.logger.info("Invoked Track command successfully on dish.")
         return result_code, message
 
-    def is_tracktable_provided(self) -> bool:
+    def is_tracktable_provided(self) -> str:
         """
         Returns True if programTrackTable is provided to dish.
         """
+        flag = "FALSE"
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
@@ -581,11 +592,13 @@ class Configure(DishLNCommand):
                     "AbortCommands() command is invoked while"
                     + " configuring dish."
                 )
-                break
+                flag = "ABORTED"
+                return flag
             with self.component_manager.tango_operation_execution_lock:
                 track_table = self.dish_master_adapter.programTrackTable
             if len(track_table) > 0:
-                return True
+                flag = "TRUE"
+                return flag
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
-        return False
+        return flag
