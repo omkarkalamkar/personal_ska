@@ -23,52 +23,53 @@ def update_lrcr_result(
     component_manager.logger.debug(
         "command mapping is %s", component_manager.command_mapping
     )
-    command_dict_ref = {}
-    command_dict_ref = copy.deepcopy(component_manager.command_mapping)
-    for key, command_dict in command_dict_ref.items():
-        # Iterate through the  dictionary for each command Id
-        # And add ResultCode , if command has returned ResultCode.OK
+    with component_manager.tango_operation_execution_lock:
+        command_dict_ref = {}
+        command_dict_ref = copy.deepcopy(component_manager.command_mapping)
+        for key, command_dict in command_dict_ref.items():
+            # Iterate through the  dictionary for each command Id
+            # And add ResultCode , if command has returned ResultCode.OK
 
-        for inner_key, value in command_dict.items():
-            if inner_key == "message_or_unique_id":
-                component_manager.logger.info(
-                    f"Working on data event_command_id:{event_command_id}"
-                )
-                if value == event_command_id:
+            for inner_key, value in command_dict.items():
+                if inner_key == "message_or_unique_id":
                     component_manager.logger.info(
-                        f"The value {event_command_id} exists "
-                        f"in the dictionary under key '{key}' "
+                        f"Working on data event_command_id:{event_command_id}"
                     )
-                    if int(event_command_result) == ResultCode.OK:
-                        component_manager.command_mapping.setdefault(key, {})[
-                            "ResultCode"
-                        ] = ResultCode.OK
-
-                    else:
-                        component_manager.command_mapping.setdefault(key, {})[
-                            "ResultCode"
-                        ] = event_command_result
-
-                        component_manager.logger.debug(
-                            "command mapping is %s",
-                            component_manager.command_mapping,
-                        )
+                    if value == event_command_id:
                         component_manager.logger.info(
-                            "setting LRCR callback %s, %s, %s",
-                            component_manager.command_id,
-                            event_command_result,
-                            event_command_message,
+                            f"The value {event_command_id} exists "
+                            f"in the dictionary under key '{key}' "
                         )
-                        component_manager.long_running_result_callback(
-                            component_manager.command_id,
-                            event_command_result,
-                            exception_message=event_command_message,
-                        )
+                        if int(event_command_result) == ResultCode.OK:
+                            component_manager.command_mapping.setdefault(
+                                key, {}
+                            )["ResultCode"] = ResultCode.OK
 
-            else:
-                component_manager.logger.info(
-                    "Message ID does not exists in command mapping"
-                )
+                        else:
+                            component_manager.command_mapping.setdefault(
+                                key, {}
+                            )["ResultCode"] = event_command_result
+
+                            component_manager.logger.debug(
+                                "command mapping is %s",
+                                component_manager.command_mapping,
+                            )
+                            component_manager.logger.info(
+                                "setting LRCR callback %s, %s, %s",
+                                component_manager.command_id,
+                                event_command_result,
+                                event_command_message,
+                            )
+                            component_manager.long_running_result_callback(
+                                component_manager.command_id,
+                                event_command_result,
+                                exception_message=event_command_message,
+                            )
+
+                else:
+                    component_manager.logger.info(
+                        "Message ID does not exists in command mapping"
+                    )
 
 
 def process_long_running_command_result(
