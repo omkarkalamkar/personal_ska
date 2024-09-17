@@ -16,11 +16,6 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import DishMode, PointingState, TimeoutCallback
 
-# from ska_tmc_dishleafnode.commands import (
-#     SetOperateMode,
-#     Track,
-#     TrackLoadStaticOff,
-# )
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import (
     COMMAND_COMPLETION_MESSAGE,
@@ -28,15 +23,8 @@ from ska_tmc_dishleafnode.constants import (
 )
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
-# from ska_tmc_common import AdapterFactory
-# from ska_tmc_common.enum import DishMode
-
-
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-
-# if TYPE_CHECKING:
-#     from ..manager.component_manager import DishLNComponentManager
 
 
 class Configure(DishLNCommand):
@@ -89,25 +77,7 @@ class Configure(DishLNCommand):
             "exception": None,
             "status": None,
         }
-        # __adapter_factory = AdapterFactory()
-        # self.setoperatemode_command = SetOperateMode(
-        #     self,
-        #     self.op_state_model,
-        #     __adapter_factory,
-        #     logger=self.logger,
-        # )
-        # self.track_command = Track(
-        #     self,
-        #     self.op_state_model,
-        #     __adapter_factory
-        #     logger=self.logger,
-        # )
-        # self.track_load_static_off_command = TrackLoadStaticOff(
-        #     self,
-        #     self.op_state_model,
-        #     __adapter_factory,
-        #     self.logger,
-        # )
+
         self.timeout_id = f"{time.time()}_{__class__.__name__}"
         self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         self.task_callback: Callable
@@ -407,7 +377,6 @@ class Configure(DishLNCommand):
             # pylint: enable=line-too-long
 
             receiver_band: str = json_argument["dish"]["receiver_band"]
-            # command_name: str = f"ConfigureBand{receiver_band}"
 
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
@@ -424,20 +393,12 @@ class Configure(DishLNCommand):
                 """
                 Method for invoking ConfigureBand callback
                 """
-                self.logger.info(
-                    f"ConfigureBand: {result}, {exception}, "
-                    + f"{status}, {progress}"
-                )
                 if result is None:
                     self.logger.info(
                         f"ConfigureBand status: {result}, {exception}, "
                         + f"{status}, {progress}"
                     )
                 else:
-                    self.logger.info(
-                        f"ConfigureBand failed: {result}, {exception}, "
-                        + f"{status}, {progress}"
-                    )
                     self.configure_band_result["result_code"] = result[0]
                     self.configure_band_result["message"] = result[1]
                     self.configure_band_result["exception"] = exception
@@ -448,19 +409,13 @@ class Configure(DishLNCommand):
                 logger=self.logger,
                 task_callback=_invoke_configure_band_callback,
             )
-            self.logger.info("ConfigureBand Done ---")
+
             if self.configure_band_result["result_code"] == ResultCode.FAILED:
                 return (
                     self.configure_band_result["result_code"],
                     self.configure_band_result["exception"],
                 )
-            # with self.component_manager.tango_operation_execution_lock:
-            #     result_code, message = self.call_adapter_method(
-            #         "Dish Master",
-            #         self.dish_master_adapter,
-            #         command_name,
-            #         True,
-            #     )
+
             if self.component_manager.dishMode != DishMode.STOW:
                 result_code, message = self.ensure_dish_is_configured(
                     receiver_band,
@@ -470,9 +425,7 @@ class Configure(DishLNCommand):
                     return result_code[0], message[0]
 
                 result_code, message = self.start_dish_tracking(json_argument)
-                self.logger.info(
-                    "Result and Message: %s, %s", result_code, message
-                )
+
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
                     return result_code[0], message[0]
 
@@ -531,20 +484,12 @@ class Configure(DishLNCommand):
             """
             Method for invoking TrackStaticLoadOff callback
             """
-            self.logger.info(
-                f"TrackStaticLoadOff: {result}, {exception}, "
-                + f"{status}, {progress}"
-            )
             if result is None:
                 self.logger.info(
                     f"TrackStaticLoadOff status: {result}, {exception}, "
                     + f"{status}, {progress}"
                 )
             else:
-                self.logger.info(
-                    f"TrackStaticLoadOff status: {result}, {exception}, "
-                    + f"{status}, {progress}"
-                )
                 self.track_static_load_off_result["result_code"] = result[0]
                 self.track_static_load_off_result["message"] = result[1]
                 self.track_static_load_off_result["exception"] = exception
@@ -576,16 +521,6 @@ class Configure(DishLNCommand):
             f"command mapping dictionary is: "
             f"{self.component_manager.command_mapping}"
         )
-
-        # with self.component_manager.tango_operation_execution_lock:
-        #     result_code, message = self.call_adapter_method(
-        #         "Dish Master",
-        #         self.dish_master_adapter,
-        #         "TrackLoadStaticOff",
-        #         offsets_argin,
-        #     )
-        # message[0] should be command_id and result[0] should
-        # be ResultCode
 
         if reset_offset:
             self.logger.debug(
@@ -667,20 +602,12 @@ class Configure(DishLNCommand):
             """
             Method for invoking abort callback
             """
-            self.logger.info(
-                f"SetOperateMode: {result}, {exception}, "
-                + f"{status}, {progress}"
-            )
             if result is None:
                 self.logger.info(
                     f"SetOperateMode status: {result}, {exception}, "
                     + f"{status}, {progress}"
                 )
             else:
-                self.logger.info(
-                    f"SetOperateMode failed: {result}, {exception}, "
-                    + f"{status}, {progress}"
-                )
                 self.set_operate_mode_result["result_code"] = result[0]
                 self.set_operate_mode_result["message"] = result[1]
                 self.set_operate_mode_result["exception"] = exception
@@ -689,18 +616,12 @@ class Configure(DishLNCommand):
         self.component_manager.setoperatemode_command.set_operate_mode(
             logger=self.logger, task_callback=_invoke_setoperatemode_callback
         )
-        self.logger.info("SetOperateMode Done ---")
+
         if self.set_operate_mode_result["result_code"] == ResultCode.FAILED:
             return (
                 [self.set_operate_mode_result["result_code"]],
                 [self.set_operate_mode_result["exception"]],
             )
-        # with self.component_manager.tango_operation_execution_lock:
-        #     result_code, message = self.call_adapter_method(
-        #         "Dish Master", self.dish_master_adapter, "SetOperateMode"
-        #     )
-        # if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-        #     return result_code, message
 
         result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
         if not result:
@@ -739,13 +660,6 @@ class Configure(DishLNCommand):
                 ],
             )
 
-        # with self.component_manager.tango_operation_execution_lock:
-        #     result_code, message = self.call_adapter_method(
-        #         "Dish Master", self.dish_master_adapter, "Track"
-        #     )
-        # if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-        #     self.logger.error(f"Track Invocation Failed , Reason: {message}")
-        #     return result_code, message
         def _invoke_track_callback(
             status=None,
             progress=None,
@@ -753,21 +667,14 @@ class Configure(DishLNCommand):
             exception=None,
         ):
             """
-            Method for invoking abort callback
+            Method for invoking Track callback
             """
-            self.logger.info(
-                f"Track: {result}, {exception}, " + f"{status}, {progress}"
-            )
             if result is None:
                 self.logger.info(
                     f"Track status: {result}, {exception}, "
                     + f"{status}, {progress}"
                 )
             else:
-                self.logger.info(
-                    f"Track failed: {result}, {exception}, "
-                    + f"{status}, {progress}"
-                )
                 self.track_result["result_code"] = result[0]
                 self.track_result["message"] = result[1]
                 self.track_result["exception"] = exception
@@ -790,7 +697,7 @@ class Configure(DishLNCommand):
         self.component_manager.command_mapping.setdefault(
             self.component_manager.command_id, {}
         )["message_or_unique_id"] = self.component_manager.track_in_progress_id
-        self.logger.info(
+        self.logger.debug(
             "self.component_manager.command_mapping: %s",
             self.component_manager.command_mapping,
         )

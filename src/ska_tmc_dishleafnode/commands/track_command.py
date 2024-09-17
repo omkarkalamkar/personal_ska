@@ -17,8 +17,6 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-# if TYPE_CHECKING:
-#     from ..manager.component_manager import DishLNComponentManager
 
 
 class Track(DishLNCommand):
@@ -123,9 +121,6 @@ class Track(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
-        self.logger.info(
-            "result_code, message ---------: %s, %s", result_code, message
-        )
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]

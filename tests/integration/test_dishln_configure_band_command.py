@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -57,7 +55,6 @@ def configureband_command(tango_context, dishln_name, group_callback):
         (unique_id_op[0], COMMAND_COMPLETED),
         lookahead=2,
     )
-    logging.info("BAND: ------- %s", dish_master.configuredBand)
     assert dish_master.configuredBand == Band.B1
 
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
@@ -66,7 +63,6 @@ def configureband_command(tango_context, dishln_name, group_callback):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1584
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configureband_command(tango_context, group_callback):

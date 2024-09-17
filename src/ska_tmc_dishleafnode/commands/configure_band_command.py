@@ -17,8 +17,6 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-# if TYPE_CHECKING:
-#     from ..manager.component_manager import DishLNComponentManager
 
 
 class ConfigureBand(DishLNCommand):
@@ -70,7 +68,7 @@ class ConfigureBand(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         self.component_manager.configure_band_in_progress_id = message
-        logger.info("Result Message is: %s, %s", return_code, message)
+        logger.info("Result and Message is: %s, %s", return_code, message)
         if return_code == ResultCode.FAILED:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -97,9 +95,7 @@ class ConfigureBand(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        self.logger.info("Argin is: %s", argin)
         result_code, message = self.init_adapter()
-        self.logger.info("Adapter created")
         if result_code == ResultCode.FAILED:
             self.logger.error(
                 "Adapter for device : %s is not found",

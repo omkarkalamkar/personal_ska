@@ -135,11 +135,12 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah1584
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.ktest
-@pytest.mark.parametrize("json_to_use", ["dishleafnode_configure"])
+@pytest.mark.parametrize(
+    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
+)
 def test_configure_command(
     tango_context, group_callback, json_factory, json_to_use
 ):
@@ -271,7 +272,6 @@ def partial_configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah1584
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_partial_configure_command(

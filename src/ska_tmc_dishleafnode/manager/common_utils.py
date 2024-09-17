@@ -64,10 +64,6 @@ def update_lrcr_result(
                             event_command_result,
                             exception_message=event_command_message,
                         )
-                component_manager.logger.info(
-                    "command mapping is ----------- %s",
-                    component_manager.command_mapping,
-                )
 
             else:
                 component_manager.logger.info(

@@ -18,8 +18,6 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-# if TYPE_CHECKING:
-#     from ..manager.component_manager import DishLNComponentManager
 
 
 class SetOperateMode(DishLNCommand):
@@ -61,15 +59,12 @@ class SetOperateMode(DishLNCommand):
         :return: : None
         :rtype: None
         """
-        logger.info("Invoking SetOperateMode command ------")
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
 
         result_code, message = self.do()
         self.component_manager.setoperatemode_in_progress_id = message
-        logger.info("Result Message: %s, %s", result_code, message)
         if result_code == ResultCode.FAILED:
-            logger.info("Command failed with exception: %s", message)
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, message),
@@ -111,5 +106,4 @@ class SetOperateMode(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetOperateMode"
             )
-        LOGGER.info("Do method completed.")
         return result_code[0], message[0]

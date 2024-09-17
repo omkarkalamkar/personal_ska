@@ -931,7 +931,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> Tuple[TaskStatus, str]:
         """Submits the ConfigureBand command for execution.
 
-        :param argin: JSON string containing offsets in the form of param.
+        :param argin: String containing receiver band.
         :type: str
         :param task_callback: Callback function to handle task status.
         :type: TaskCallbackType
@@ -946,9 +946,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("ConfigureBand command queued for execution")
-        self.logger.info(
-            "task_status, response: %s, %s", task_status, response
-        )
         return task_status, response
 
     def setoperatemode(
@@ -1220,14 +1217,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             state, False otherwise.
         :rtype: boolean
         """
-        self.logger.info("ConfigureBand is allowed -----")
         self.check_device_responsive()
 
-        self.logger.info("self.dishMode: %s", self.dishMode)
         if self.dishMode in [
             DishMode.STANDBY_FP,
         ]:
-            self.logger.info("self.dishMode: %s", self.dishMode)
             return True
 
         raise CommandNotAllowed(
@@ -1348,9 +1342,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def check_device_responsive(self: DishLNComponentManager) -> None:
         """Checks if dish master device is responsive."""
-        self.logger.info(
-            "Device: %s, %s", self._device, self._device.unresponsive
-        )
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
 
@@ -1624,8 +1615,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         command_dict_ref = {}
         command_dict_ref = copy.deepcopy(self.command_mapping)
-        self.logger.info("self.command_id -----------: %s", self.command_id)
-        self.logger.info("self.command_mapping ----: %s", self.command_mapping)
 
         for key, command_dict in command_dict_ref.items():
             if key == self.command_id:
@@ -1651,7 +1640,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
-        self.logger.info("Processing events --------")
         process_long_running_command_result(self, lrc_result)
 
     @property
