@@ -915,6 +915,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("TrackStop command queued for execution")
         return task_status, response
 
+    def configureband(
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the ConfigureBand command for execution.
+
+        :param argin: JSON string containing offsets in the form of param.
+        :type: str
+        :param task_callback: Callback function to handle task status.
+        :type: TaskCallbackType
+
+        :return: A tuple containing TaskStatus and a message string.
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.configure_band_command.configure_band,
+            args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("ConfigureBand"),
+            task_callback=task_callback,
+        )
+        self.logger.info("ConfigureBand command queued for execution")
+        return task_status, response
+
     def setoperatemode(
         self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
@@ -1169,6 +1193,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         raise CommandNotAllowed(
             "The invocation of the SetOperateMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_configureband_allowed(self: DishLNComponentManager) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
+        :rtype: boolean
+        """
+
+        self.check_device_responsive()
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the ConfigureBand command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "
