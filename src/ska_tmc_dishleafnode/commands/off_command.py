@@ -82,6 +82,9 @@ class Off(DishLNCommand):
             )
             return result_code, message
 
+        self.logger.debug(
+            "Current Dishmode is %s", self.component_manager.dishMode
+        )
         if self.component_manager.dishMode in [
             DishMode.OPERATE,
             DishMode.STOW,
@@ -89,6 +92,11 @@ class Off(DishLNCommand):
         ]:
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetStandbyFPMode"
+            )
+            self.logger.debug(
+                "After SetStandbyFPMode - result_code - %s, message - %s",
+                result_code,
+                message,
             )
             result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if not result:
@@ -106,6 +114,11 @@ class Off(DishLNCommand):
                 )
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
+        )
+        self.logger.debug(
+            "After SetStandbyLPMode - result_code - %s, message - %s",
+            result_code,
+            message,
         )
         result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
         if not result:
