@@ -46,6 +46,7 @@ class Off(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
+        self.logger.debug("Off Command invoked")
         return_code, message = self.do()
         logger.info(message)
         if return_code == ResultCode.FAILED:
@@ -74,6 +75,9 @@ class Off(DishLNCommand):
         return:
             (ResultCode, str)
         """
+        self.logger.debug(
+            "Current Dishmode is %s", self.component_manager.dishMode
+        )
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -82,9 +86,6 @@ class Off(DishLNCommand):
             )
             return result_code, message
 
-        self.logger.debug(
-            "Current Dishmode is %s", self.component_manager.dishMode
-        )
         if self.component_manager.dishMode in [
             DishMode.OPERATE,
             DishMode.STOW,

@@ -187,6 +187,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.__command_in_progress: str = ""
         self.command_mapping = {}
         self.event_receiver = _event_receiver
+        self.tracker_thread = None
 
         # Event Receiver
         if _event_receiver:
@@ -693,6 +694,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("Off command queued for execution")
+
         return task_status, response
 
     def setstandbyfpmode(
@@ -1032,6 +1034,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.debug("Abort event is set.")
         result_code, message = abort_command.invoke_abort()
         # self.abort_event.clear()
+
+        if (
+            hasattr(self, "tracker_thread")
+            and not self.tracker_thread.is_alive()
+        ):
+            self.abort_event.clear()
+            self.logger.info("abort_event Cleared")
 
         return result_code, message
 
