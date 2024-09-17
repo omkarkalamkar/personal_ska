@@ -65,10 +65,12 @@ class ConfigureBand(DishLNCommand):
         :rtype: None
         """
         # Indicate that the task has started
+        logger.info("ConfigureBand started: %s", argin)
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
-        logger.info(message)
+        self.component_manager.configure_band_in_progress_id = message
+        logger.info("Result Message is: %s, %s", return_code, message)
         if return_code == ResultCode.FAILED:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -80,7 +82,7 @@ class ConfigureBand(DishLNCommand):
                 status=TaskStatus.COMPLETED,
                 result=(
                     ResultCode.OK,
-                    message + " " + COMMAND_COMPLETION_MESSAGE,
+                    COMMAND_COMPLETION_MESSAGE,
                 ),
             )
 
@@ -95,7 +97,9 @@ class ConfigureBand(DishLNCommand):
         return:
             (ResultCode, str)
         """
+        self.logger.info("Argin is: %s", argin)
         result_code, message = self.init_adapter()
+        self.logger.info("Adapter created")
         if result_code == ResultCode.FAILED:
             self.logger.error(
                 "Adapter for device : %s is not found",

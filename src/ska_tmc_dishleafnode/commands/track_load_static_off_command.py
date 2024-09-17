@@ -15,7 +15,6 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -73,6 +72,7 @@ class TrackLoadStaticOff(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         result_code, message = self.do(argin)
         self.component_manager.command_in_progress = "TrackLoadStaticOff"
+        self.component_manager.trackloadstaticoff_in_progress_id = message
         if result_code == ResultCode.FAILED:
             logger.warning("Command failed with exception: %s", message)
             self.task_callback(
@@ -85,13 +85,6 @@ class TrackLoadStaticOff(DishLNCommand):
             logger.info(
                 "The TrackLoadStaticOff command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
-            )
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(
-                    ResultCode.OK,
-                    message + " " + COMMAND_COMPLETION_MESSAGE,
-                ),
             )
 
     # def update_task_callback(

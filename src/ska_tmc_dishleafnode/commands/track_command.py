@@ -70,7 +70,8 @@ class Track(DishLNCommand):
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
-        logger.info(message)
+        self.component_manager.track_in_progress_id = message
+        logger.info("Message is: %s", message)
         if return_code == ResultCode.FAILED:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -82,7 +83,7 @@ class Track(DishLNCommand):
                 status=TaskStatus.COMPLETED,
                 result=(
                     ResultCode.OK,
-                    message + " " + COMMAND_COMPLETION_MESSAGE,
+                    COMMAND_COMPLETION_MESSAGE,
                 ),
             )
 

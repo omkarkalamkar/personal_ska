@@ -219,7 +219,11 @@ class Configure(DishLNCommand):
                 )
                 self.component_manager.command_in_progress = None
             self.component_manager.command_id = ""
-            self.partial_configure = False
+            self.component_manager.partial_configure = False
+            self.component_manager.configure_band_in_progress_id = None
+            self.component_manager.setoperatemode_in_progress_id = None
+            self.component_manager.track_in_progress_id = None
+            self.component_manager.trackloadstaticoff_in_progress_id = None
             self.set_operate_mode_result = {
                 "result_code": None,
                 "message": None,
@@ -554,22 +558,6 @@ class Configure(DishLNCommand):
             task_callback=_invoke_trackstaticloadoff_callback,
         )
 
-        trackstaticloadoff_msg_list = self.track_static_load_off_result[
-            "message"
-        ].split()
-        self.logger.info(
-            "trackstaticloadoff_msg_list: %s",
-            trackstaticloadoff_msg_list,
-        )
-        trackstaticloadoff_id = [
-            id
-            for id in trackstaticloadoff_msg_list
-            if "TrackLoadStaticOff" in id
-        ]
-        self.logger.info(
-            "trackstaticloadoff_id: %s",
-            trackstaticloadoff_id,
-        )
         if (
             self.track_static_load_off_result["result_code"]
             == ResultCode.FAILED
@@ -581,7 +569,9 @@ class Configure(DishLNCommand):
 
         self.component_manager.command_mapping.setdefault(
             self.component_manager.command_id, {}
-        )["message_or_unique_id"] = trackstaticloadoff_id[0]
+        )[
+            "message_or_unique_id"
+        ] = self.component_manager.trackloadstaticoff_in_progress_id
         self.logger.debug(
             f"command mapping dictionary is: "
             f"{self.component_manager.command_mapping}"
@@ -796,23 +786,10 @@ class Configure(DishLNCommand):
             )
 
         self.component_manager.command_in_progress = "Track"
-        self.logger.info(
-            "self.component_manager.command_id: %s",
-            self.component_manager.command_id,
-        )
-        track_msg_list = self.track_result["message"].split()
-        self.logger.info(
-            "track_msg_list: %s",
-            track_msg_list,
-        )
-        track_id = [id for id in track_msg_list if "Track" in id]
-        self.logger.info(
-            "track_id: %s",
-            track_id,
-        )
+
         self.component_manager.command_mapping.setdefault(
             self.component_manager.command_id, {}
-        )["message_or_unique_id"] = track_id[0]
+        )["message_or_unique_id"] = self.component_manager.track_in_progress_id
         self.logger.info(
             "self.component_manager.command_mapping: %s",
             self.component_manager.command_mapping,

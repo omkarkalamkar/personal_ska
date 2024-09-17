@@ -692,6 +692,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         :rtype: boolean
         """
+        self.logger.info("Checking if ConfigureBand is allowed")
         return self.component_manager.is_configureband_allowed()
 
     @command(
@@ -939,6 +940,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
+            ("ConfigureBand", "configureband"),
             ("Track", "track"),
             ("TrackStop", "trackstop"),
             ("Off", "off"),

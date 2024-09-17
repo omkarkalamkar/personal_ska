@@ -4,11 +4,10 @@
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
-# from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 # def get_track_input_str(
 #     track_input_file="dishleafnode_track.json",
@@ -37,7 +36,7 @@ def test_configure_band_command_completed(
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.OK, Anything),
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
 

@@ -154,6 +154,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
+        self.configure_band_in_progress_id = None
+        self.setoperatemode_in_progress_id = None
+        self.track_in_progress_id = None
+        self.trackloadstaticoff_in_progress_id = None
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
@@ -345,6 +349,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.MAINTENANCE,
                 ],
                 "Configure": [
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.OPERATE,
+                ],
+                "ConfigureBand": [
                     DishMode.STANDBY_FP,
                     DishMode.STOW,
                     DishMode.OPERATE,
@@ -937,6 +946,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("ConfigureBand command queued for execution")
+        self.logger.info(
+            "task_status, response: %s, %s", task_status, response
+        )
         return task_status, response
 
     def setoperatemode(
@@ -1208,11 +1220,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             state, False otherwise.
         :rtype: boolean
         """
-
+        self.logger.info("ConfigureBand is allowed -----")
         self.check_device_responsive()
+
+        self.logger.info("self.dishMode: %s", self.dishMode)
         if self.dishMode in [
             DishMode.STANDBY_FP,
         ]:
+            self.logger.info("self.dishMode: %s", self.dishMode)
             return True
 
         raise CommandNotAllowed(
@@ -1333,6 +1348,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def check_device_responsive(self: DishLNComponentManager) -> None:
         """Checks if dish master device is responsive."""
+        self.logger.info(
+            "Device: %s, %s", self._device, self._device.unresponsive
+        )
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
 
