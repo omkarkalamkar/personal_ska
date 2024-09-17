@@ -125,16 +125,16 @@ class Track(DishLNCommand):
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
 
-        self.ra_value = argin["pointing"]["target"]["ra"]
-        self.dec_value = argin["pointing"]["target"]["dec"]
+        # self.ra_value = argin["pointing"]["target"]["ra"]
+        # self.dec_value = argin["pointing"]["target"]["dec"]
         self.component_manager.el_limit = True
         self.component_manager.reset_track_process_event()
 
-        radec_value = f"{self.ra_value}, {self.dec_value}"
-        self.logger.info(
-            "Track command ignores RA dec coordinates passed in: %s. "
-            "Uses coordinates from Configure command instead.",
-            radec_value,
-        )
+        # radec_value = f"{self.ra_value}, {self.dec_value}"
+        # self.logger.info(
+        #     "Track command ignores RA dec coordinates passed in: %s. "
+        #     "Uses coordinates from Configure command instead.",
+        #     radec_value,
+        # )
 
         return result_code[0], message[0]
