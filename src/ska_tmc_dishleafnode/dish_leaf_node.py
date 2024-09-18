@@ -682,6 +682,32 @@ class DishLeafNode(TMCBaseLeafDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
+    def is_ConfigureBand_allowed(self: DishLeafNode) -> bool:
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+            device state.
+
+        :rtype: boolean
+        """
+        self.logger.info("Checking if ConfigureBand is allowed")
+        return self.component_manager.is_configureband_allowed()
+
+    @command(
+        dtype_in="str",
+        doc_in="The input string contains dish receiver band.",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def ConfigureBand(self: DishLeafNode, argin) -> tuple:
+        """Invokes ConfigureBand command on the DishMaster."""
+
+        handler = self.get_command_object("ConfigureBand")
+        result_code, unique_id = handler(argin)
+        return [result_code], [unique_id]
+
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def TrackStop(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
@@ -914,6 +940,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
+            ("ConfigureBand", "configureband"),
             ("Track", "track"),
             ("TrackStop", "trackstop"),
             ("Off", "off"),

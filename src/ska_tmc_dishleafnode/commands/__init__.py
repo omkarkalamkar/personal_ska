@@ -1,5 +1,6 @@
 """This is init module for DishLeafNode commands."""
 from .abort_command import AbortCommands
+from .configure_band_command import ConfigureBand
 from .configure_command import Configure
 from .dish_ln_command import DishLNCommand
 from .endscan_command import EndScan
@@ -24,6 +25,7 @@ __all__ = [
     "EndScan",
     "Off",
     "Configure",
+    "ConfigureBand",
     "Track",
     "TrackStop",
     "AbortCommands",

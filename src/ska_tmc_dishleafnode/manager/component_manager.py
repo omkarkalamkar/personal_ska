@@ -41,6 +41,7 @@ from ska_tmc_common.lrcr_callback import LRCRCallback
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     Configure,
+    ConfigureBand,
     EndScan,
     Off,
     Scan,
@@ -153,6 +154,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
+        self.reset_configure_command_ids()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
@@ -252,6 +254,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.configure_band_command = ConfigureBand(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
         self.trackstop_command = TrackStop(
             self,
             self.op_state_model,
@@ -298,6 +306,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
 
+    def reset_configure_command_ids(self: DishLNComponentManager):
+        """Method to reset the command ids for the commands ConfigureBand,
+        SetoeprateMode, Track and TrackLoadStaticOff"""
+        self.configure_band_in_progress_id = None
+        self.setoperatemode_in_progress_id = None
+        self.track_in_progress_id = None
+        self.trackloadstaticoff_in_progress_id = None
+
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
         # Once SKB-398 is fixed from TelModel then this
@@ -338,6 +354,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.MAINTENANCE,
                 ],
                 "Configure": [
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.OPERATE,
+                ],
+                "ConfigureBand": [
                     DishMode.STANDBY_FP,
                     DishMode.STOW,
                     DishMode.OPERATE,
@@ -908,6 +929,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("TrackStop command queued for execution")
         return task_status, response
 
+    def configureband(
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the ConfigureBand command for execution.
+
+        :param argin: String containing receiver band.
+        :type: str
+        :param task_callback: Callback function to handle task status.
+        :type: TaskCallbackType
+
+        :return: A tuple containing TaskStatus and a message string.
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.configure_band_command.configure_band,
+            args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("ConfigureBand"),
+            task_callback=task_callback,
+        )
+        self.logger.info("ConfigureBand command queued for execution")
+        return task_status, response
+
     def setoperatemode(
         self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
@@ -1162,6 +1207,31 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         raise CommandNotAllowed(
             "The invocation of the SetOperateMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_configureband_allowed(self: DishLNComponentManager) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
+        :rtype: boolean
+        """
+        self.check_device_responsive()
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.OPERATE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the ConfigureBand command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "
