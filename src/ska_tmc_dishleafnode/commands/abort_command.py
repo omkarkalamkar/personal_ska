@@ -70,10 +70,16 @@ class AbortCommands(DishLNCommand):
                 "Dish Master", self.dish_master_adapter, "AbortCommands"
             )
         self.logger.info(
-            f"AbortCommands command invoked, Result code is {result_code}\
-            and Message is {message}"
+            "AbortCommands() command has been invoked, the result code is %s"
+            + " and the message is %s",
+            result_code,
+            message,
         )
-        if result_code[0] == ResultCode.FAILED:
+        if result_code[0] in [
+            ResultCode.REJECTED,
+            ResultCode.NOT_ALLOWED,
+            ResultCode.ABORTED,
+        ]:
             return result_code[0], message[0]
 
         # call stop_tracking_thread to stop live thread
@@ -85,8 +91,6 @@ class AbortCommands(DishLNCommand):
             "AbortCommands command executed successfully on"
             + " the DishLeafNode."
         )
-        # self.component_manager.abort_event.clear()
-        # self.logger.debug("Abort event is cleared")
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
