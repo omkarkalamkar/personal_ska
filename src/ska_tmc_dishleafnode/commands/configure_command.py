@@ -53,35 +53,11 @@ class Configure(DishLNCommand):
         )
 
         self.track_table_process = None
-        self.set_operate_mode_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.track_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.configure_band_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.track_static_load_off_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-
         self.timeout_id = f"{time.time()}_{__class__.__name__}"
         self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         self.task_callback: Callable
         self.partial_configure = False
+        self.reset_configure_command_result_values()
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -190,34 +166,8 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = None
             self.component_manager.command_id = ""
             self.component_manager.partial_configure = False
-            self.component_manager.configure_band_in_progress_id = None
-            self.component_manager.setoperatemode_in_progress_id = None
-            self.component_manager.track_in_progress_id = None
-            self.component_manager.trackloadstaticoff_in_progress_id = None
-            self.set_operate_mode_result = {
-                "result_code": None,
-                "message": None,
-                "exception": None,
-                "status": None,
-            }
-            self.track_result = {
-                "result_code": None,
-                "message": None,
-                "exception": None,
-                "status": None,
-            }
-            self.configure_band_result = {
-                "result_code": None,
-                "message": None,
-                "exception": None,
-                "status": None,
-            }
-            self.track_static_load_off_result = {
-                "result_code": None,
-                "message": None,
-                "exception": None,
-                "status": None,
-            }
+            self.component_manager.reset_configure_command_ids()
+            self.reset_configure_command_result_values()
 
         except Exception as e:
             self.logger.exception(
@@ -250,6 +200,34 @@ class Configure(DishLNCommand):
             )
 
         self.component_manager.command_in_progress = ""
+
+    def reset_configure_command_result_values(self: Configure):
+        """Method to reset the command result dictionaries for the commands
+        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
+        self.set_operate_mode_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.track_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.configure_band_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.track_load_static_off_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
 
     # pylint: enable=unused-argument
     def validate_json_argument(
@@ -490,10 +468,10 @@ class Configure(DishLNCommand):
                     + f"{status}, {progress}"
                 )
             else:
-                self.track_static_load_off_result["result_code"] = result[0]
-                self.track_static_load_off_result["message"] = result[1]
-                self.track_static_load_off_result["exception"] = exception
-                self.track_static_load_off_result["status"] = status
+                self.track_load_static_off_result["result_code"] = result[0]
+                self.track_load_static_off_result["message"] = result[1]
+                self.track_load_static_off_result["exception"] = exception
+                self.track_load_static_off_result["status"] = status
 
         # Call the TrackStaticLoadOff command
         command_obj = self.component_manager.track_load_static_off_command
@@ -504,12 +482,12 @@ class Configure(DishLNCommand):
         )
 
         if (
-            self.track_static_load_off_result["result_code"]
+            self.track_load_static_off_result["result_code"]
             == ResultCode.FAILED
         ):
             return (
-                self.track_static_load_off_result["result_code"],
-                self.track_static_load_off_result["exception"],
+                self.track_load_static_off_result["result_code"],
+                self.track_load_static_off_result["exception"],
             )
 
         self.component_manager.command_mapping.setdefault(

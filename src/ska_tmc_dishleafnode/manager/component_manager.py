@@ -154,10 +154,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
-        self.configure_band_in_progress_id = None
-        self.setoperatemode_in_progress_id = None
-        self.track_in_progress_id = None
-        self.trackloadstaticoff_in_progress_id = None
+        self.reset_configure_command_ids()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
@@ -308,6 +305,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+
+    def reset_configure_command_ids(self: DishLNComponentManager):
+        """Method to reset the command ids for the commands ConfigureBand,
+        SetoeprateMode, Track and TrackLoadStaticOff"""
+        self.configure_band_in_progress_id = None
+        self.setoperatemode_in_progress_id = None
+        self.track_in_progress_id = None
+        self.trackloadstaticoff_in_progress_id = None
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -1221,6 +1226,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.dishMode in [
             DishMode.STANDBY_FP,
+            DishMode.OPERATE,
         ]:
             return True
 
