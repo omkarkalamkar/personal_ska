@@ -63,13 +63,12 @@ class ConfigureBand(DishLNCommand):
         :rtype: None
         """
         # Indicate that the task has started
-        logger.info("ConfigureBand started: %s", argin)
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
         self.component_manager.configure_band_in_progress_id = message
         logger.info("Result and Message is: %s, %s", return_code, message)
-        if return_code == ResultCode.FAILED:
+        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(return_code, message),

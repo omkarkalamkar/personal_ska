@@ -93,7 +93,7 @@ class Configure(DishLNCommand):
         )
         return_code, message = self.do(argin)
         lrcr_callback = self.component_manager.long_running_result_callback
-        if return_code == ResultCode.FAILED:
+        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             logger.info(
                 "Setting taskcallback to FAILED with message: %s",
                 lrcr_callback,
@@ -307,9 +307,7 @@ class Configure(DishLNCommand):
                 return result_code, message
 
             json_argument = json.loads(argin)
-            # Start programTrackTable calculation
-            self.component_manager.elevation_limit = True
-            self.component_manager.reset_track_process_event()
+
             reset_offset = (
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value

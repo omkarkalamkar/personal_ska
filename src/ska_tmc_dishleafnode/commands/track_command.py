@@ -70,7 +70,7 @@ class Track(DishLNCommand):
         return_code, message = self.do(argin)
         self.component_manager.track_in_progress_id = message
         logger.info("Message is: %s", message)
-        if return_code == ResultCode.FAILED:
+        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(return_code, message),
@@ -124,17 +124,5 @@ class Track(DishLNCommand):
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
-
-        # self.ra_value = argin["pointing"]["target"]["ra"]
-        # self.dec_value = argin["pointing"]["target"]["dec"]
-        self.component_manager.el_limit = True
-        self.component_manager.reset_track_process_event()
-
-        # radec_value = f"{self.ra_value}, {self.dec_value}"
-        # self.logger.info(
-        #     "Track command ignores RA dec coordinates passed in: %s. "
-        #     "Uses coordinates from Configure command instead.",
-        #     radec_value,
-        # )
 
         return result_code[0], message[0]

@@ -64,7 +64,7 @@ class SetOperateMode(DishLNCommand):
 
         result_code, message = self.do()
         self.component_manager.setoperatemode_in_progress_id = message
-        if result_code == ResultCode.FAILED:
+        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, message),
