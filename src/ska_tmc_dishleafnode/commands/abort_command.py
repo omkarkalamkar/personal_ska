@@ -57,6 +57,10 @@ class AbortCommands(DishLNCommand):
             (ResultCode, str)
 
         """
+        if self.component_manager.command_in_progress == "":
+            self.component_manager.abort_event.clear()
+            self.logger.info("Abort event is cleared")
+
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(

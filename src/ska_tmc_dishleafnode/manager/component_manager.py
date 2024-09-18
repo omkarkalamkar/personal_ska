@@ -1036,12 +1036,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.debug("Abort event is set.")
         result_code, message = abort_command.invoke_abort()
 
-        if (
-            hasattr(self, "tracker_thread")
-            and not self.tracker_thread.is_alive()
-        ):
-            self.abort_event.clear()
-            self.logger.info("abort_event Cleared")
+        # if (
+        #     hasattr(self, "tracker_thread")
+        #     and not self.tracker_thread.is_alive()
+        # ):
+        #     self.abort_event.clear()
+        #     self.logger.info("abort_event Cleared")
 
         return result_code, message
 
