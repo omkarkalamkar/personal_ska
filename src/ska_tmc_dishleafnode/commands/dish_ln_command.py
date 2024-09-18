@@ -92,8 +92,8 @@ class DishLNCommand(TmcLeafNodeCommand):
         elapsed_time = 0
         flag = "NOT_ACHIEVED"
         while elapsed_time < self.component_manager.command_timeout:
-            if self.component_manager.abort_event.is_set():
-                # self.component_manager.abort_event.clear()
+            if self.component_manager.abort_flag.is_set():
+                self.component_manager.abort_flag.clear()
                 flag = "ABORTED"
                 return flag
             if self.component_manager.dishMode == dishmode:
@@ -119,8 +119,8 @@ class DishLNCommand(TmcLeafNodeCommand):
         elapsed_time = 0
         flag = "NOT_ACHIEVED"
         while elapsed_time < self.component_manager.command_timeout:
-            if self.component_manager.abort_event.is_set():
-                # self.component_manager.abort_event.clear()
+            if self.component_manager.abort_flag.is_set():
+                self.component_manager.abort_flag.clear()
                 flag = "ABORTED"
                 return flag
             if self.component_manager.dishConfiguredBand == configured_band:

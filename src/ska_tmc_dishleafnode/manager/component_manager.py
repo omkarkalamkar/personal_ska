@@ -198,7 +198,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
-        # self.abort_flag = threading.Event()
+        self.abort_flag = threading.Event()
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.track_table_entries: int = track_table_entries
         self.pointing_calculation_period: int = pointing_calculation_period
@@ -1032,17 +1032,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.abort_event.set()
-        # self.abort_flag.set()
+        self.abort_flag.set()
         self.logger.debug("Abort event is set.")
         result_code, message = abort_command.invoke_abort()
-        # self.abort_event.clear()
 
-        # if (
-        #     hasattr(self, "tracker_thread")
-        #     and not self.tracker_thread.is_alive()
-        # ):
-        #     self.abort_event.clear()
-        #     self.logger.info("abort_event Cleared")
+        if (
+            hasattr(self, "tracker_thread")
+            and not self.tracker_thread.is_alive()
+        ):
+            self.abort_event.clear()
+            self.logger.info("abort_event Cleared")
 
         return result_code, message
 

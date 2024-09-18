@@ -612,8 +612,8 @@ class Configure(DishLNCommand):
         start_time = time.time()
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
-            if self.component_manager.abort_event.is_set():
-                # self.component_manager.abort_event.clear()
+            if self.component_manager.abort_flag.is_set():
+                self.component_manager.abort_flag.clear()
                 self.logger.info(
                     "AbortCommands() command is invoked while"
                     + " configuring dish."
