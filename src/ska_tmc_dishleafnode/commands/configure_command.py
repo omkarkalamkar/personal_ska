@@ -84,7 +84,6 @@ class Configure(DishLNCommand):
         :rtype: None
         """
         self.component_manager.abort_event = task_abort_event
-        self.component_manager.abort_event.clear()
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
@@ -457,8 +456,16 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]
         """
         # Set wait for dish band to be configured
-        result: bool = self.set_wait_for_configured_band(receiver_band)
-        if not result:
+        result: str = self.set_wait_for_configured_band(receiver_band)
+        if result == "ABORTED":
+            self.logger.info(
+                "AbortCommands() command is invoked on the DishLeafNode."
+            )
+            return (
+                [ResultCode.ABORTED],
+                ["AbortCommands() command is invoked on the DishLeafNode."],
+            )
+        if result == "NOT_ACHIEVED":
             self.logger.error(
                 "Timeout occurred while waiting for %s configuredBand in "
                 + "Configure command.",
@@ -471,8 +478,18 @@ class Configure(DishLNCommand):
                     + " configuredBand in Configure command."
                 ],
             )
-        result: bool = self.set_wait_for_dishmode(expected_dish_mode)
-        if not result:
+
+        result: str = self.set_wait_for_dishmode(expected_dish_mode)
+        if result == "ABORTED":
+            self.logger.info(
+                "AbortCommands() command is invoked on the DishLeafNode."
+            )
+            return (
+                [ResultCode.ABORTED],
+                ["AbortCommands() command is invoked on the DishLeafNode."],
+            )
+
+        if result == "NOT_ACHIEVED":
             self.logger.error(
                 "Timeout occurred while waiting for dishMode: %s. "
                 "ConfigureBand Command failed on the dish manager.",
@@ -498,8 +515,16 @@ class Configure(DishLNCommand):
         if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
-        result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
-        if not result:
+        result: str = self.set_wait_for_dishmode(DishMode.OPERATE)
+        if result == "ABORTED":
+            self.logger.info(
+                "AbortCommands() command is invoked on the DishLeafNode."
+            )
+            return (
+                [ResultCode.ABORTED],
+                ["AbortCommands() command is invoked on the DishLeafNode."],
+            )
+        if result == "NOT_ACHIEVED":
             self.logger.error(
                 "Timeout occurred while processing the"
                 + " SetOperateMode command."
@@ -527,7 +552,7 @@ class Configure(DishLNCommand):
         ]:
             self.logger.info(
                 "Dish is already tracking/slewing. Track() command "
-                + "will not be invoked."
+                + "is not invoked."
             )
 
             self.component_manager.command_mapping.setdefault(
@@ -538,7 +563,7 @@ class Configure(DishLNCommand):
                 [ResultCode.OK],
                 [
                     "Dish is already in pointingState.TRACK. Track() "
-                    + "command will not be invoked."
+                    + "command is not invoked."
                 ],
             )
 
@@ -546,19 +571,19 @@ class Configure(DishLNCommand):
         if result == "ABORTED":
             self.logger.info(
                 "Configure command has been aborted."
-                + " Track command will not be invoked."
+                + " Track command is not invoked."
             )
             return ([ResultCode.ABORTED], ["Command has been aborted"])
         if result == "FALSE":
             self.logger.error(
                 "Dish manager did not receive TrackTable."
-                + "Track() command will not be invoked on the Dish."
+                + "Track() command is not invoked on the Dish."
             )
             return (
                 [ResultCode.FAILED],
                 [
                     "Dish manager did not receive TrackTable. "
-                    + "Track() command will not be invoked on the Dish."
+                    + "Track() command is not invoked on the Dish."
                 ],
             )
 
@@ -588,6 +613,7 @@ class Configure(DishLNCommand):
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
             if self.component_manager.abort_event.is_set():
+                self.component_manager.abort_event.clear()
                 self.logger.info(
                     "AbortCommands() command is invoked while"
                     + " configuring dish."
