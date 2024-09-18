@@ -110,11 +110,11 @@ class Configure(DishLNCommand):
             )
             self.component_manager.command_in_progress = ""
         else:
-            if (
-                self.component_manager.command_in_progress
-                not in self.component_manager.supported_commands
-            ):
-                self.component_manager.command_in_progress = ""
+            # if (
+            #     self.component_manager.command_in_progress
+            #     not in self.component_manager.supported_commands
+            # ):
+            self.component_manager.command_in_progress = ""
             if not self.partial_configure:
                 self.start_tracker_thread(
                     "get_dish_state",
