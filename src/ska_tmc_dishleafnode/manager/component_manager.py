@@ -1034,6 +1034,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.abort_event.set()
         self.logger.debug("Abort event is set.")
         result_code, message = abort_command.invoke_abort()
+        self.logger.info("ResultCode: %s", result_code)
+        self.logger.info("message: %s", message)
 
         # if (
         #     hasattr(self, "tracker_thread")
@@ -1427,7 +1429,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         with self.tango_operation_execution_lock:
-            self.dish_adapter.programTrackTable = program_track_table
+            try:
+                self.dish_adapter.programTrackTable = program_track_table
+            except (tango.DevFailed, Exception) as exception:
+                self.logger.exception(
+                    "Exception while writing tracktable: %s", str(exception)
+                )
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def track_process(
