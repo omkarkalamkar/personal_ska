@@ -56,8 +56,8 @@ class Configure(DishLNCommand):
         )
 
         self.track_table_process = None
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
+        self.timeout_id = None
+        self.timeout_callback = None
         self.task_callback: Callable
         self.partial_configure = False
 
@@ -83,6 +83,9 @@ class Configure(DishLNCommand):
         :return: : None
         :rtype: None
         """
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
+
         self.component_manager.abort_event = task_abort_event
         # Indicate that the task has started
         self.task_callback = task_callback
@@ -353,11 +356,19 @@ class Configure(DishLNCommand):
                 result_code, message = self.ensure_dish_is_configured(
                     receiver_band, current_dish_mode
                 )
-                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+                if result_code[0] in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.ABORTED,
+                ]:
                     return result_code[0], message[0]
 
                 result_code, message = self.start_dish_tracking()
-                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+                if result_code[0] in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.ABORTED,
+                ]:
                     return result_code[0], message[0]
 
         except Exception as exception:
@@ -445,7 +456,11 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]"""
         if self.component_manager.dishMode != DishMode.OPERATE:
             result_code, message = self.ensure_dish_in_right_dish_mode()
-            if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+            if result_code[0] in [
+                ResultCode.FAILED,
+                ResultCode.REJECTED,
+                ResultCode.ABORTED,
+            ]:
                 return result_code, message
 
         return self.invoke_track_command()

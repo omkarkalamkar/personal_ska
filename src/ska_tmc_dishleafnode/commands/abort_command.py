@@ -80,8 +80,8 @@ class AbortCommands(DishLNCommand):
         self.logger.info(
             "AbortCommands() command has been invoked, the result code is %s"
             + " and the message is %s",
-            result_code,
-            message,
+            result_code[0],
+            message[0],
         )
         if result_code[0] in [
             ResultCode.REJECTED,
