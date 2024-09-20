@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import List, Tuple, Union
 
 from numpy import isnan
@@ -123,7 +124,6 @@ class DishLeafNode(TMCBaseLeafDevice):
     def init_device(self: DishLeafNode):
         self._isSubsystemAvailable = True
         self._dishMode = DishMode.UNKNOWN
-        self._health_state = HealthState.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
@@ -170,10 +170,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             {release.description}"""
             device._version_id = release.version
             device._dishln_name = device.get_name()
-            device._health_state = HealthState.OK
-            for attribute_name in ["healthState"]:
-                device.set_change_event(attribute_name, True, False)
-                device.set_archive_event(attribute_name, True)
+            device._update_health_state(HealthState.OK)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
