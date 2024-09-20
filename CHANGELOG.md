@@ -71,6 +71,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.17.4]
+* Updated AbortCommands() command as slow command.
+* Updated Configure() command to stop the execution when AbortCommands() command is invoked while configuring the dish.
+* Made IsDishAbortCommands property configurable at deployment time.
+
 [0.17.1]
 * Updated the correction key behaviour when correction key is empty. 
   
