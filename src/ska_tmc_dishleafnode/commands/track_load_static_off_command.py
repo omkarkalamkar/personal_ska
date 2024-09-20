@@ -7,7 +7,7 @@ import json
 import logging
 import threading
 from logging import Logger
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -15,12 +15,9 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-if TYPE_CHECKING:
-    from ..manager.component_manager import DishLNComponentManager
 
 
 class TrackLoadStaticOff(DishLNCommand):
@@ -34,7 +31,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
     def __init__(
         self: TrackLoadStaticOff,
-        component_manager: DishLNComponentManager,
+        component_manager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
@@ -73,11 +70,12 @@ class TrackLoadStaticOff(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         result_code, message = self.do(argin)
         self.component_manager.command_in_progress = "TrackLoadStaticOff"
-        if result_code == ResultCode.FAILED:
+        self.component_manager.trackloadstaticoff_in_progress_id = message
+        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             logger.warning("Command failed with exception: %s", message)
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=ResultCode(result_code),
+                result=(result_code, message),
                 exception=message,
             )
             self.component_manager.command_in_progress = ""
@@ -86,31 +84,6 @@ class TrackLoadStaticOff(DishLNCommand):
                 "The TrackLoadStaticOff command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-
-    def update_task_callback(
-        self: TrackLoadStaticOff, result_code: ResultCode, exception: str = ""
-    ) -> None:
-        """
-        Method to update task callback.
-
-        Args:
-            result_code (ResultCode): result code
-            exception (str, optional): Exception occurred during command
-            execution. Defaults to "".
-        """
-        if exception:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, exception),
-                exception=exception,
-            )
-        else:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-            )
-
-        self.component_manager.command_in_progress = ""
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
