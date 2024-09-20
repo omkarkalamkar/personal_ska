@@ -24,7 +24,11 @@ url = 'https://pypi.org/simple'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-numpy = "1.23.0"
+numpy = [
+    { version = ">=1.21.6", python = "3.10" },
+    { version = ">=1.23.2", python = "3.11" },
+    { version = ">=1.26.0", python = ">=3.12" },
+]
 pytango = "9.5.0"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
 fire = "^0.5.0"
@@ -48,11 +52,11 @@ rpds-py = "*"
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"
 isort = "^5.10.1"
-flake8 = "^5.0.4"
+flake8 = "^7.0.0"
 pylint = "^3.1.0"
-pytest = "^7.3.1"
+pytest = "^8.1.1"
 pytest-bdd = "^5.0.0"
-pytest-cov = "^4.0.0"
+pytest-cov = "^5.0.0"
 pylint-junit = "^0.3.2"
 coverage = "^6.2"
 pytest-json-report = "^1.4.1"
@@ -66,9 +70,9 @@ datetime = "4.3"
 
 [tool.poetry.group.docs.dependencies]
 docutils = "^0.18.1"
-Sphinx = "^5.1.1"
-ska-ser-sphinx-theme = "^0.1.1"
-sphinx-autodoc-typehints = "^1.19.3"
+Sphinx = "^7.2.6"
+ska-ser-sphinx-theme = "^0.1.2"
+sphinx-autodoc-typehints = "2.0.0"
 sphinxcontrib-plantuml = "^0.22"
 typing_extensions  = "^4.3.0"
 sphinx-rtd-theme = "^1.2.2"
