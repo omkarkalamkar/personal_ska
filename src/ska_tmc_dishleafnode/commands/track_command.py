@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from logging import Logger
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -17,8 +17,6 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-if TYPE_CHECKING:
-    from ..manager.component_manager import DishLNComponentManager
 
 
 class Track(DishLNCommand):
@@ -31,7 +29,7 @@ class Track(DishLNCommand):
 
     def __init__(
         self: Track,
-        component_manager: DishLNComponentManager,
+        component_manager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
@@ -39,6 +37,7 @@ class Track(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.task_callback = None
         self.ra_value = ""
         self.dec_value = ""
         self.tracking_thread = None
@@ -59,26 +58,31 @@ class Track(DishLNCommand):
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType, optional
+        :type task_callback: TaskCallbackType
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         :return: : None
         :rtype: None
         """
         # Indicate that the task has started
-        task_callback(status=TaskStatus.IN_PROGRESS)
+        self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
-        logger.info(message)
-        if return_code == ResultCode.FAILED:
-            task_callback(
+        self.component_manager.track_in_progress_id = message
+        logger.info("Message is: %s", message)
+        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(return_code, message),
                 exception=message,
             )
         else:
-            task_callback(
+            self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+                result=(
+                    ResultCode.OK,
+                    COMMAND_COMPLETION_MESSAGE,
+                ),
             )
 
     def validate_json_argument(self: Track, input_argin: dict) -> tuple:
@@ -108,7 +112,7 @@ class Track(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device : %s is not found ",
+                "Adapter for device : %s is not found",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
@@ -120,17 +124,5 @@ class Track(DishLNCommand):
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
-
-        self.ra_value = argin["pointing"]["target"]["ra"]
-        self.dec_value = argin["pointing"]["target"]["dec"]
-        self.component_manager.el_limit = True
-        self.component_manager.reset_track_process_event()
-
-        radec_value = f"{self.ra_value}, {self.dec_value}"
-        self.logger.info(
-            "Track command ignores RA dec coordinates passed in: %s. "
-            "Uses coordinates from Configure command instead.",
-            radec_value,
-        )
 
         return result_code[0], message[0]

@@ -1,6 +1,5 @@
-"""
-SetOperateMode command class for DishLeafNode.
-"""
+"""ConfigureBand command class for Dishleafnode."""
+
 from __future__ import annotations
 
 import logging
@@ -20,16 +19,17 @@ configure_logging()
 LOGGER = logging.getLogger(__name__)
 
 
-class SetOperateMode(DishLNCommand):
+class ConfigureBand(DishLNCommand):
     """
-    A class for DishLeafNode's SetOperateMode() command.
+    A class for Dishleafnode's ConfigureBand command. ConfigureBand command is
+    inherited from DishLNCommand.
 
-    SetOperateMode invokes SetOperateMode command on Dish Master device.
-
+    This command takes band as an input argument and invokes respective
+    ConfigureBand{band} command on Dish Master
     """
 
     def __init__(
-        self: SetOperateMode,
+        self: ConfigureBand,
         component_manager,
         op_state_model,
         adapter_factory=None,
@@ -41,40 +41,40 @@ class SetOperateMode(DishLNCommand):
         self.task_callback = None
 
     # pylint: disable=unused-argument
-    def set_operate_mode(
-        self: SetOperateMode,
+    def configure_band(
+        self: ConfigureBand,
+        argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-        """A method to invoke the SetOperateMode command.
-        It sets the task_callback status according to command progress.
+        """This is a long running method for ConfigureBand command, it
+        executes the do hook, invoking ConfigureBand command on Dish Master
 
+        :param argin: string containing band to be configured
+        :type argin: str
         :param logger: logger
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType, optional
+        :type task_callback: TaskCallbackType
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         :return: : None
         :rtype: None
         """
+        # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-
-        result_code, message = self.do()
-        self.component_manager.setoperatemode_in_progress_id = message
-        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        return_code, message = self.do(argin)
+        self.component_manager.configure_band_in_progress_id = message
+        logger.info("Result and Message is: %s, %s", return_code, message)
+        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
-                result=(result_code, message),
+                result=(return_code, message),
                 exception=message,
             )
         else:
-            logger.info(
-                "The SetOperateMode command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
-            )
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(
@@ -83,13 +83,13 @@ class SetOperateMode(DishLNCommand):
                 ),
             )
 
+    # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self: SetOperateMode) -> Tuple[ResultCode, str]:
+    def do(self: ConfigureBand, argin: str) -> Tuple[ResultCode, str]:
         """
-        Method to invoke SetOperateMode command on DishMaster.
+        Method to invoke ConfigureBand command on Dish Master.
 
-        param argin:
-            None
+        param argin: str
 
         return:
             (ResultCode, str)
@@ -102,8 +102,17 @@ class SetOperateMode(DishLNCommand):
             )
             return result_code, message
 
+        command_name: str = f"ConfigureBand{argin}"
+        self.logger.info("command_name: %s", command_name)
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "SetOperateMode"
+                "Dish Master",
+                self.dish_master_adapter,
+                command_name,
+                True,
             )
+
+        if result_code[0] == ResultCode.FAILED:
+            return result_code[0], message[0]
+
         return result_code[0], message[0]
