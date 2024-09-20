@@ -144,11 +144,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         :type command_name: str
         """
         command_id = f"{time.time()}-{command_name}"
-        self.logger.info(
-            "Setting command id as %s for command: %s",
-            command_id,
-            command_name,
-        )
         self.component_manager.command_id = command_id
 
     # pylint: disable=arguments-differ

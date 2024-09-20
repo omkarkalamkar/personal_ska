@@ -189,7 +189,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.__command_in_progress: str = ""
         self.command_mapping = {}
         self.event_receiver = _event_receiver
-        self.tracker_thread = None
 
         # Event Receiver
         if _event_receiver:
@@ -200,7 +199,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
-        # self.abort_flag = threading.Event()
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.track_table_entries: int = track_table_entries
         self.pointing_calculation_period: int = pointing_calculation_period
@@ -716,7 +714,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info("Off command queued for execution")
-
         return task_status, response
 
     def setstandbyfpmode(
@@ -1079,16 +1076,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.abort_event.set()
         self.logger.debug("Abort event is set.")
         result_code, message = abort_command.invoke_abort()
-        self.logger.info("ResultCode: %s", result_code)
-        self.logger.info("message: %s", message)
-
-        # if (
-        #     hasattr(self, "tracker_thread")
-        #     and not self.tracker_thread.is_alive()
-        # ):
-        #     self.abort_event.clear()
-        #     self.logger.info("abort_event Cleared")
-
         return result_code, message
 
     def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:

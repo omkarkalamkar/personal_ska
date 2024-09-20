@@ -96,13 +96,11 @@ class Configure(DishLNCommand):
             self.timeout_callback,
         )
         return_code, message = self.do(argin)
-        self.logger.info("Return code: %s", return_code)
-        self.logger.info("message: %s", message)
         lrcr_callback = self.component_manager.long_running_result_callback
         if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             logger.info(
                 "Setting taskcallback to FAILED with message: %s",
-                lrcr_callback,
+                message,
             )
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -145,11 +143,6 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress,
             )
 
-            # logger.info(
-            #     "The Configure command is invoked successfully on %s",
-            #     self.dish_master_adapter.dev_name,
-            # )
-
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
         if any."""
@@ -168,6 +161,10 @@ class Configure(DishLNCommand):
             if result[0] == ResultCode.OK:
                 self.component_manager.command_in_progress = None
                 self.task_callback(result=result, status=status)
+                self.logger.info(
+                    "Executed the Configure command successfully on %s",
+                    self.dish_master_adapter.dev_name,
+                )
             else:
                 self.task_callback(
                     status=status,
@@ -182,7 +179,7 @@ class Configure(DishLNCommand):
 
         except Exception as e:
             self.logger.exception(
-                "Exception occured while updating task status %s", e
+                "Exception occurred while updating task status %s", e
             )
 
     def update_task_callback(

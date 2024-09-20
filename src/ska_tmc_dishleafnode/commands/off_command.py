@@ -46,7 +46,6 @@ class Off(DishLNCommand):
         """
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
-        self.logger.debug("Off Command invoked")
         return_code, message = self.do()
         logger.info(message)
         if return_code == ResultCode.FAILED:
@@ -75,9 +74,6 @@ class Off(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        self.logger.debug(
-            "Current Dishmode is %s", self.component_manager.dishMode
-        )
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -94,13 +90,8 @@ class Off(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetStandbyFPMode"
             )
-            self.logger.debug(
-                "After SetStandbyFPMode - result_code - %s, message - %s",
-                result_code,
-                message,
-            )
-            result = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
-            if not result:
+            result: str = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
+            if result == "NOT_ACHIEVED":
                 self.logger.error(
                     "Timeout occurred while processing"
                     + " the SetStandbyFPMode "
@@ -116,13 +107,8 @@ class Off(DishLNCommand):
         result_code, message = self.call_adapter_method(
             "Dish Master", self.dish_master_adapter, "SetStandbyLPMode"
         )
-        self.logger.debug(
-            "After SetStandbyLPMode - result_code - %s, message - %s",
-            result_code,
-            message,
-        )
-        result = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
-        if not result:
+        result: str = self.set_wait_for_dishmode(DishMode.STANDBY_LP)
+        if result == "NOT_ACHIEVED":
             self.logger.error(
                 "Timeout occurred while processing the"
                 + " SetStandbyLPMode Command."
