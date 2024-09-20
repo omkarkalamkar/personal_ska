@@ -728,6 +728,7 @@ class Configure(DishLNCommand):
                 self.track_result["exception"] = exception
                 self.track_result["status"] = status
 
+        self.component_manager.command_in_progress = "Track"
         self.component_manager.track_command.track(
             argin=json_argument,
             logger=self.logger,
@@ -739,16 +740,6 @@ class Configure(DishLNCommand):
                 [self.track_result["result_code"]],
                 [self.track_result["exception"]],
             )
-
-        self.component_manager.command_in_progress = "Track"
-
-        self.component_manager.command_mapping.setdefault(
-            self.component_manager.command_id, {}
-        )["message_or_unique_id"] = self.component_manager.track_in_progress_id
-        self.logger.debug(
-            "self.component_manager.command_mapping: %s",
-            self.component_manager.command_mapping,
-        )
 
         return [ResultCode.OK], [""]
 

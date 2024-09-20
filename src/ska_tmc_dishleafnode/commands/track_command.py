@@ -121,6 +121,15 @@ class Track(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
+            self.component_manager.command_mapping.setdefault(
+                self.component_manager.command_id, {}
+            )[
+                "message_or_unique_id"
+            ] = self.component_manager.track_in_progress_id
+            self.logger.debug(
+                "self.component_manager.command_mapping: %s",
+                self.component_manager.command_mapping,
+            )
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
