@@ -786,6 +786,21 @@ url = "https://pypi.org/simple"
 reference = "PyPI-public"
 
 [[package]]
+name = "glob2"
+version = "0.7"
+description = "Version of the glob module that can capture patterns and supports recursive wildcards"
+optional = false
+python-versions = "*"
+files = [
+    {file = "glob2-0.7.tar.gz", hash = "sha256:85c3dbd07c8aa26d63d7aacee34fa86e9a91a3873bc30bf62ec46e531f92ab8c"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "PyPI-public"
+
+[[package]]
 name = "idna"
 version = "3.10"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -1852,22 +1867,22 @@ reference = "PyPI-public"
 
 [[package]]
 name = "pytest-bdd"
-version = "7.2.0"
+version = "5.0.0"
 description = "BDD for pytest"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.6"
 files = [
-    {file = "pytest_bdd-7.2.0-py3-none-any.whl", hash = "sha256:c89996dc18b72033c471c40ef1281a0f77f5a7419bc53720c52e70c68c886e64"},
-    {file = "pytest_bdd-7.2.0.tar.gz", hash = "sha256:96e9dc5437100fe627596e366dbe60e02f105974134e9aee8fe83ed67c2404d6"},
+    {file = "pytest-bdd-5.0.0.tar.gz", hash = "sha256:fab7093ed3d5e51ee0c68de093c90e4f40de345bd9a54a188b2991ce2a2a39cf"},
+    {file = "pytest_bdd-5.0.0-py3-none-any.whl", hash = "sha256:c7cf12209606421f61f36b5dc63beccd0c82d29446c0592cf68af2dad0a9761d"},
 ]
 
 [package.dependencies]
+glob2 = "*"
 Mako = "*"
-packaging = "*"
 parse = "*"
 parse-type = "*"
-pytest = ">=6.2.0"
-typing-extensions = "*"
+py = "*"
+pytest = ">=4.3"
 
 [package.source]
 type = "legacy"
@@ -3244,4 +3259,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "c1d379c35d741484b03a44bba11f5f9b395e594b3b1b51e341acaebf0fa1014a"
+content-hash = "c804e64de535cb0c89bf7e18eba5479328426d3d6309b3916d87269de670ebde"
