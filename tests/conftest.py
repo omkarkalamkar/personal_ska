@@ -82,7 +82,9 @@ def devices_to_load():
             "devices": [
                 {
                     "name": "ska_mid/tm_leaf_node/d0001",
-                    "DishMasterFQDN": DISH_MASTER_DEVICE,
+                    "properties": {
+                        "DishMasterFQDN": DISH_MASTER_DEVICE,
+                    },
                 },
             ],
         },
@@ -108,6 +110,22 @@ def tango_context(devices_to_load, request):
     if not true_context:
         with MultiDeviceTestContext(
             devices_to_load, process=False, timeout=80
+        ) as context:
+            DevFactory._test_context = context
+            logging.info("test context set")
+            yield context
+    else:
+        yield None
+
+
+@pytest.fixture
+def tango_context_process_true(devices_to_load, request):
+    """Provides context to run devices without database."""
+    true_context = request.config.getoption("--true-context")
+    logging.info("true context: %s", true_context)
+    if not true_context:
+        with MultiDeviceTestContext(
+            devices_to_load, process=True, timeout=80
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")

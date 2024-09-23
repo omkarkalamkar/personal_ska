@@ -89,7 +89,7 @@ def test_trackloadstaticoff_command_invalid_input(
 
 
 def test_configure_command_completed_with_correction_key_reset(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,
@@ -151,7 +151,7 @@ def test_configure_command_completed_with_correction_key_reset(
 
 
 def test_configure_command_completed_with_correction_key_update(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,

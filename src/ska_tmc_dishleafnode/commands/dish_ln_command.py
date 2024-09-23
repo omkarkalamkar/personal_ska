@@ -152,15 +152,15 @@ class DishLNCommand(TmcLeafNodeCommand):
         it sets ResultCode to OK and stops the tracker thread.
 
         :param state_function: The function to determine the state of the
-                        device. Should be accessible in the component_manager
+            device. Should be accessible in the component_manager
         :type state_function: str
 
         :param state_to_achieve: A particular state that needs to be
-                                achieved for command completion.
+            achieved for command completion.
 
         :param expected_state: Expected state of the device in case of
-                        successful command execution. It's a list containing
-                            transitional obsState if it exists for a command.
+            successful command execution. It's a list containing
+            transitional obsState if it exists for a command.
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:

@@ -4,6 +4,10 @@ Change Log
 
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
+[0.17.3]
+********
+* Fix bug SKB-502, to update the attributes at initialization, so that it can 
+show states of attributes at initialization on dashboards
 
 [0.17.2]
 ********
@@ -100,7 +104,6 @@ Fixed
 *********
 Fixed the dish id not coming as expected from real dish master fqdn.
 
-======
 [0.13.4]
 *********
 Program Track Table Process disabled .

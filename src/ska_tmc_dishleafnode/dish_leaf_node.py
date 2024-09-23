@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 
 from numpy import isnan
 from numpy import nan as NaN
+from ska_control_model import HealthState
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common import (
@@ -121,7 +122,6 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     def init_device(self: DishLeafNode):
         self._isSubsystemAvailable = True
-        super().init_device()
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""
@@ -130,6 +130,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
+        super().init_device()
         for attribute_name in [
             "healthState",
             "isSubsystemAvailable",
@@ -168,6 +169,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             {release.description}"""
             device._version_id = release.version
             device._dishln_name = device.get_name()
+            device._update_health_state(HealthState.OK)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
