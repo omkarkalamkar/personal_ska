@@ -82,7 +82,9 @@ def devices_to_load():
             "devices": [
                 {
                     "name": "ska_mid/tm_leaf_node/d0001",
-                    "DishMasterFQDN": DISH_MASTER_DEVICE,
+                    "properties": {
+                        "DishMasterFQDN": DISH_MASTER_DEVICE,
+                    },
                 },
             ],
         },
