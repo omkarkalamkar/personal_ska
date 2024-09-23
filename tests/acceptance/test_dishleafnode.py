@@ -1,6 +1,5 @@
 # pylint: disable=line-too-long,unused-import
 
-import time
 
 import pytest
 import tango
@@ -10,7 +9,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import COMMAND_COMPLETED, wait_for_ping
+from tests.settings import COMMAND_COMPLETED
 
 
 @given(
