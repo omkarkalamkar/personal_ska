@@ -128,6 +128,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
+        self.rlock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         __adapter_factory = AdapterFactory()
@@ -290,7 +291,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
-        self.rlock = threading.RLock()
 
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
