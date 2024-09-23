@@ -10,7 +10,6 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     wait_and_validate_attribute_value_available,
-    wait_for_unresponsive,
 )
 
 
@@ -52,8 +51,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, cm):
 
 
 def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(cm):
-    result = wait_for_unresponsive(cm)
-    logger.info("Result is: %s", result)
+    cm.get_device().update_unresponsive(True, "Not available")
     with pytest.raises(
         DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
     ):
