@@ -290,6 +290,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             self.logger,
         )
+        self.rlock = threading.RLock()
 
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
@@ -1602,7 +1603,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.track_table_process.join()
 
     # pylint: disable=arguments-differ
-    def update_device_ping_failure(
+    def update_exception_for_unresponsiveness(
         self: DishLNComponentManager, device_info: DeviceInfo, exception: str
     ) -> None:
         """Set a device to failed and call the relative callback if available
@@ -1613,28 +1614,40 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type: Exception
         :rtype: None
         """
-        device_info.update_unresponsive(True, exception)
-        with self.lock:
+        with self.rlock:
+            device_info.update_unresponsive(True, exception)
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
 
-    def update_ping_info(
-        self: DishLNComponentManager, ping: int, device_name: str
-    ) -> None:
+    def update_responsiveness_info(self, device_name: str) -> None:
         """
-        Update a device with the correct ping information.
+        Update a device with the correct availability information.
 
         :param dev_name: name of the device
         :type dev_name: str
-        :param ping: device response time
-        :type ping: int
-        :rtype: None
         """
-        with self.lock:
-            self._device.ping = ping
-            self._device.update_unresponsive(False)
+        with self.rlock:
+            self.get_device().update_unresponsive(False, "")
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
+
+    # def update_ping_info(
+    #     self: DishLNComponentManager, ping: int, device_name: str
+    # ) -> None:
+    #     """
+    #     Update a device with the correct ping information.
+
+    #     :param dev_name: name of the device
+    #     :type dev_name: str
+    #     :param ping: device response time
+    #     :type ping: int
+    #     :rtype: None
+    #     """
+    #     with self.lock:
+    #         self._device.ping = ping
+    #         self._device.update_unresponsive(False)
+    #         if self.update_availablity_callback is not None:
+    #             self.update_availablity_callback(True)
 
     def get_lrcr_result(self) -> List[str]:
         """Returns long running command result for command
