@@ -157,8 +157,7 @@ class Configure(DishLNCommand):
             if status == TaskStatus.ABORTED:
                 self.task_callback(status=status)
                 self.component_manager.command_in_progress = None
-                return
-            if result[0] == ResultCode.OK:
+            elif result[0] == ResultCode.OK:
                 self.component_manager.command_in_progress = None
                 self.task_callback(result=result, status=status)
                 self.logger.info(
