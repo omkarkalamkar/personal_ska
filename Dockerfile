@@ -4,7 +4,6 @@ FROM $BUILD_IMAGE AS buildenv
 
 FROM $BASE_IMAGE
 
-RUN apt-get update && apt-get install git -y
 # Install Poetry
 USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
@@ -12,6 +11,7 @@ RUN poetry config virtualenvs.create false
 WORKDIR /app
 
 COPY --chown=tango:tango . /app
+RUN apt-get update && apt-get install git -y
 # Install runtime dependencies and the app
 RUN poetry install --only main
 RUN rm /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
