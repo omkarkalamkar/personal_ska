@@ -30,6 +30,7 @@ def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
 
 
 def test_dm_available_after_dln_init_or_restart(tango_context, cm):
+    cm.get_device().update_unresponsive(False, "")
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
     assert kvalue_validation_obj.is_dish_manager_ready()
 

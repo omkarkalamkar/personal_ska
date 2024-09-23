@@ -248,6 +248,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
+        _liveliness_probe=LivelinessProbeType.NONE,
     )
 
     start_time = time.time()
