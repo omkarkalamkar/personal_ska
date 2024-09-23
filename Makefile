@@ -8,7 +8,7 @@
 # artefact.skao.int/ska-tmc-dishleafnode
 CAR_OCI_REGISTRY_HOST:=artefact.skao.int
 PROJECT = ska-tmc-dishleafnode
-PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209
+PYTHON_SWITCHES_FOR_PYLINT ?= --disable=C0209,R0917
 TANGO_HOST ?= tango-databaseds:10000 ## TANGO_HOST connection to the Tango DS
 TELESCOPE ?= SKA-mid
 MARK ?= ## What -m opt to pass to pytest
@@ -69,12 +69,8 @@ EXIT_AT_FAIL ?= false
 PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
-ifeq ($(EXIT_AT_FAIL),true)
-ADD_ARGS += -x
-endif
 MARK = (not post_deployment and not acceptance)
 endif
-
 
 K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)

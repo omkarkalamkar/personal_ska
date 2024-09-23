@@ -42,6 +42,7 @@ from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     AbortCommands,
     Configure,
+    ConfigureBand,
     EndScan,
     Off,
     Scan,
@@ -127,6 +128,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
+        self.rlock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         __adapter_factory = AdapterFactory()
@@ -154,6 +156,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
+        self.reset_configure_command_ids()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
@@ -254,6 +257,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             __adapter_factory,
             logger=self.logger,
         )
+        self.configure_band_command = ConfigureBand(
+            self,
+            self.op_state_model,
+            __adapter_factory,
+            logger=self.logger,
+        )
         self.trackstop_command = TrackStop(
             self,
             self.op_state_model,
@@ -300,6 +309,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
 
+    def reset_configure_command_ids(self: DishLNComponentManager):
+        """Method to reset the command ids for the commands ConfigureBand,
+        SetoeprateMode, Track and TrackLoadStaticOff"""
+        self.configure_band_in_progress_id = None
+        self.setoperatemode_in_progress_id = None
+        self.track_in_progress_id = None
+        self.trackloadstaticoff_in_progress_id = None
+
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
         # Once SKB-398 is fixed from TelModel then this
@@ -340,6 +357,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.MAINTENANCE,
                 ],
                 "Configure": [
+                    DishMode.STANDBY_FP,
+                    DishMode.STOW,
+                    DishMode.OPERATE,
+                ],
+                "ConfigureBand": [
                     DishMode.STANDBY_FP,
                     DishMode.STOW,
                     DishMode.OPERATE,
@@ -910,6 +932,30 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("TrackStop command queued for execution")
         return task_status, response
 
+    def configureband(
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the ConfigureBand command for execution.
+
+        :param argin: String containing receiver band.
+        :type: str
+        :param task_callback: Callback function to handle task status.
+        :type: TaskCallbackType
+
+        :return: A tuple containing TaskStatus and a message string.
+        :rtype: Tuple
+        """
+        task_status, response = self.submit_task(
+            self.configure_band_command.configure_band,
+            args=[argin, self.logger],
+            is_cmd_allowed=self.is_command_allowed_callable("ConfigureBand"),
+            task_callback=task_callback,
+        )
+        self.logger.info("ConfigureBand command queued for execution")
+        return task_status, response
+
     def setoperatemode(
         self: DishLNComponentManager, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
@@ -1031,8 +1077,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.abort_event.set()
         self.logger.debug("Abort event is set.")
         result_code, message = abort_command.invoke_abort()
-        # self.abort_event.clear()
-
         return result_code, message
 
     def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:
@@ -1180,6 +1224,31 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         raise CommandNotAllowed(
             "The invocation of the SetOperateMode command on this "
+            + "device is not allowed. "
+            + "Reason: The current dish mode is "
+            + f"{self.dishMode}. "
+            + "The command has NOT been executed. "
+            + "This device will continue with normal operation."
+        )
+
+    def is_configureband_allowed(self: DishLNComponentManager) -> bool:
+        """Checks if the given command is allowed in current operational
+        state.
+
+        :return: True if the command is allowed in the current operational
+            state, False otherwise.
+        :rtype: boolean
+        """
+        self.check_device_responsive()
+
+        if self.dishMode in [
+            DishMode.STANDBY_FP,
+            DishMode.OPERATE,
+        ]:
+            return True
+
+        raise CommandNotAllowed(
+            "The invocation of the ConfigureBand command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "
@@ -1418,7 +1487,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         with self.tango_operation_execution_lock:
-            self.dish_adapter.programTrackTable = program_track_table
+            try:
+                self.dish_adapter.programTrackTable = program_track_table
+            except (tango.DevFailed, Exception) as exception:
+                self.logger.exception(
+                    "Exception while writing tracktable: %s", str(exception)
+                )
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def track_process(
@@ -1529,7 +1603,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.track_table_process.join()
 
     # pylint: disable=arguments-differ
-    def update_device_ping_failure(
+    def update_exception_for_unresponsiveness(
         self: DishLNComponentManager, device_info: DeviceInfo, exception: str
     ) -> None:
         """Set a device to failed and call the relative callback if available
@@ -1540,28 +1614,40 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type: Exception
         :rtype: None
         """
-        device_info.update_unresponsive(True, exception)
-        with self.lock:
+        with self.rlock:
+            device_info.update_unresponsive(True, exception)
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
 
-    def update_ping_info(
-        self: DishLNComponentManager, ping: int, device_name: str
-    ) -> None:
+    def update_responsiveness_info(self, device_name: str) -> None:
         """
-        Update a device with the correct ping information.
+        Update a device with the correct availability information.
 
         :param dev_name: name of the device
         :type dev_name: str
-        :param ping: device response time
-        :type ping: int
-        :rtype: None
         """
-        with self.lock:
-            self._device.ping = ping
-            self._device.update_unresponsive(False)
+        with self.rlock:
+            self.get_device().update_unresponsive(False, "")
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
+
+    # def update_ping_info(
+    #     self: DishLNComponentManager, ping: int, device_name: str
+    # ) -> None:
+    #     """
+    #     Update a device with the correct ping information.
+
+    #     :param dev_name: name of the device
+    #     :type dev_name: str
+    #     :param ping: device response time
+    #     :type ping: int
+    #     :rtype: None
+    #     """
+    #     with self.lock:
+    #         self._device.ping = ping
+    #         self._device.update_unresponsive(False)
+    #         if self.update_availablity_callback is not None:
+    #             self.update_availablity_callback(True)
 
     def get_lrcr_result(self) -> List[str]:
         """Returns long running command result for command

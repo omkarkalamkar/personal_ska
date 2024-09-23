@@ -1,4 +1,4 @@
-"""Track command class for Dishleafnode."""
+"""ConfigureBand command class for Dishleafnode."""
 
 from __future__ import annotations
 
@@ -19,16 +19,17 @@ configure_logging()
 LOGGER = logging.getLogger(__name__)
 
 
-class Track(DishLNCommand):
+class ConfigureBand(DishLNCommand):
     """
-    A class for Dishleafnode's Track command. Track command is
+    A class for Dishleafnode's ConfigureBand command. ConfigureBand command is
     inherited from DishLNCommand.
 
-    This command invokes Track command on Dish Master
+    This command takes band as an input argument and invokes respective
+    ConfigureBand{band} command on Dish Master
     """
 
     def __init__(
-        self: Track,
+        self: ConfigureBand,
         component_manager,
         op_state_model,
         adapter_factory=None,
@@ -38,22 +39,19 @@ class Track(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.task_callback = None
-        self.ra_value = ""
-        self.dec_value = ""
-        self.tracking_thread = None
 
     # pylint: disable=unused-argument
-    def track(
-        self: Track,
+    def configure_band(
+        self: ConfigureBand,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-        """This is a long running method for Track command, it
-        executes the do hook, invoking Track command on Dish Master
+        """This is a long running method for ConfigureBand command, it
+        executes the do hook, invoking ConfigureBand command on Dish Master
 
-        :param argin: Input JSON string
+        :param argin: string containing band to be configured
         :type argin: str
         :param logger: logger
         :type logger: logging.Logger
@@ -68,8 +66,8 @@ class Track(DishLNCommand):
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do(argin)
-        self.component_manager.track_in_progress_id = message
-        logger.info("Message is: %s", message)
+        self.component_manager.configure_band_in_progress_id = message
+        logger.info("Result and Message is: %s, %s", return_code, message)
         if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -85,26 +83,13 @@ class Track(DishLNCommand):
                 ),
             )
 
-    def validate_json_argument(self: Track, input_argin: dict) -> tuple:
-        """Validates the json argument"""
-        target = input_argin.get("pointing", {}).get("target", {})
-        ra_value = target.get("ra")
-        dec_value = target.get("dec")
-        if not ra_value or not dec_value:
-            return (
-                ResultCode.FAILED,
-                "ra or dec value key is not present in the input json.",
-            )
-
-        return (ResultCode.OK, "")
-
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self: Track, argin: dict) -> Tuple[ResultCode, str]:
+    def do(self: ConfigureBand, argin: str) -> Tuple[ResultCode, str]:
         """
-        Method to invoke Track command on Dish Master.
+        Method to invoke ConfigureBand command on Dish Master.
 
-        param argin: dict
+        param argin: str
 
         return:
             (ResultCode, str)
@@ -117,16 +102,14 @@ class Track(DishLNCommand):
             )
             return result_code, message
 
+        command_name: str = f"ConfigureBand{argin}"
+        self.logger.info("command_name: %s", command_name)
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "Track"
-            )
-            self.component_manager.command_mapping.setdefault(
-                self.component_manager.command_id, {}
-            )["message_or_unique_id"] = message[0]
-            self.logger.debug(
-                "self.component_manager.command_mapping: %s",
-                self.component_manager.command_mapping,
+                "Dish Master",
+                self.dish_master_adapter,
+                command_name,
+                True,
             )
 
         if result_code[0] == ResultCode.FAILED:

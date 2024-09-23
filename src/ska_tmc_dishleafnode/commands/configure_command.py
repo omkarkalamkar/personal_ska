@@ -8,7 +8,7 @@ import logging
 import threading
 import time
 from logging import Logger
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -25,9 +25,6 @@ from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from ..manager.component_manager import DishLNComponentManager
 
 
 class Configure(DishLNCommand):
@@ -46,7 +43,7 @@ class Configure(DishLNCommand):
 
     def __init__(
         self: Configure,
-        component_manager: DishLNComponentManager,
+        component_manager,
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
@@ -56,10 +53,11 @@ class Configure(DishLNCommand):
         )
 
         self.track_table_process = None
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
+        self.timeout_id = None
+        self.timeout_callback = None
         self.task_callback: Callable
         self.partial_configure = False
+        self.reset_configure_command_result_values()
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -83,8 +81,10 @@ class Configure(DishLNCommand):
         :return: : None
         :rtype: None
         """
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
+
         self.component_manager.abort_event = task_abort_event
-        self.component_manager.abort_event.clear()
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
@@ -96,13 +96,11 @@ class Configure(DishLNCommand):
             self.timeout_callback,
         )
         return_code, message = self.do(argin)
-        self.logger.info("Return code: %s", return_code)
-        self.logger.info("message: %s", message)
         lrcr_callback = self.component_manager.long_running_result_callback
-        if return_code == ResultCode.FAILED:
+        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             logger.info(
                 "Setting taskcallback to FAILED with message: %s",
-                lrcr_callback,
+                message,
             )
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -140,11 +138,10 @@ class Configure(DishLNCommand):
                     command_id=self.component_manager.command_id,
                     lrcr_callback=lrcr_callback,
                 )
-
-            # logger.info(
-            #     "The Configure command is invoked successfully on %s",
-            #     self.dish_master_adapter.dev_name,
-            # )
+            self.logger.info(
+                "Command in progress: %s",
+                self.component_manager.command_in_progress,
+            )
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -159,10 +156,14 @@ class Configure(DishLNCommand):
 
             if status == TaskStatus.ABORTED:
                 self.task_callback(status=status)
-                return
-            if result[0] == ResultCode.OK:
+                self.component_manager.command_in_progress = None
+            elif result[0] == ResultCode.OK:
                 self.component_manager.command_in_progress = None
                 self.task_callback(result=result, status=status)
+                self.logger.info(
+                    "Executed the Configure command successfully on %s",
+                    self.dish_master_adapter.dev_name,
+                )
             else:
                 self.task_callback(
                     status=status,
@@ -171,11 +172,13 @@ class Configure(DishLNCommand):
                 )
                 self.component_manager.command_in_progress = None
             self.component_manager.command_id = ""
-            self.partial_configure = False
+            self.component_manager.partial_configure = False
+            self.component_manager.reset_configure_command_ids()
+            self.reset_configure_command_result_values()
 
         except Exception as e:
             self.logger.exception(
-                "Exception occured while updating task status %s", e
+                "Exception occurred while updating task status %s", e
             )
 
     def update_task_callback(
@@ -204,6 +207,34 @@ class Configure(DishLNCommand):
             )
 
         self.component_manager.command_in_progress = ""
+
+    def reset_configure_command_result_values(self: Configure):
+        """Method to reset the command result dictionaries for the commands
+        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
+        self.set_operate_mode_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.track_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.configure_band_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.track_load_static_off_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
 
     # pylint: enable=unused-argument
     def validate_json_argument(
@@ -283,9 +314,7 @@ class Configure(DishLNCommand):
                 return result_code, message
 
             json_argument = json.loads(argin)
-            # Start programTrackTable calculation
-            self.component_manager.elevation_limit = True
-            self.component_manager.reset_track_process_event()
+
             reset_offset = (
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value
@@ -331,30 +360,63 @@ class Configure(DishLNCommand):
             # pylint: enable=line-too-long
 
             receiver_band: str = json_argument["dish"]["receiver_band"]
-            command_name: str = f"ConfigureBand{receiver_band}"
+
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
             current_dish_mode: DishMode = self.component_manager.dishMode
 
-            with self.component_manager.tango_operation_execution_lock:
-                result_code, message = self.call_adapter_method(
-                    "Dish Master",
-                    self.dish_master_adapter,
-                    command_name,
-                    True,
-                )
-            if (
-                self.component_manager.dishMode != DishMode.STOW
-                and result_code[0] not in [ResultCode.FAILED]
+            self.logger.info("Invoking ConfigureBand command")
+
+            def _invoke_configure_band_callback(
+                status=None,
+                progress=None,
+                result=None,
+                exception=None,
             ):
-                result_code, message = self.ensure_dish_is_configured(
-                    receiver_band, current_dish_mode
+                """
+                Method for invoking ConfigureBand callback
+                """
+                if result is None:
+                    self.logger.info(
+                        f"ConfigureBand status: {result}, {exception}, "
+                        + f"{status}, {progress}"
+                    )
+                else:
+                    self.configure_band_result["result_code"] = result[0]
+                    self.configure_band_result["message"] = result[1]
+                    self.configure_band_result["exception"] = exception
+                    self.configure_band_result["status"] = status
+
+            self.component_manager.configure_band_command.configure_band(
+                argin=receiver_band,
+                logger=self.logger,
+                task_callback=_invoke_configure_band_callback,
+            )
+
+            if self.configure_band_result["result_code"] == ResultCode.FAILED:
+                return (
+                    self.configure_band_result["result_code"],
+                    self.configure_band_result["exception"],
                 )
-                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+
+            if self.component_manager.dishMode != DishMode.STOW:
+                result_code, message = self.ensure_dish_is_configured(
+                    receiver_band,
+                    current_dish_mode,
+                )
+                if result_code[0] in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.ABORTED,
+                ]:
                     return result_code[0], message[0]
 
-                result_code, message = self.start_dish_tracking()
-                if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+                result_code, message = self.start_dish_tracking(json_argument)
+                if result_code[0] in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.ABORTED,
+                ]:
                     return result_code[0], message[0]
 
         except Exception as exception:
@@ -403,24 +465,52 @@ class Configure(DishLNCommand):
                 input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
             )
 
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master",
-                self.dish_master_adapter,
-                "TrackLoadStaticOff",
-                offsets_argin,
-            )
-            # message[0] should be command_id and result[0] should
-            # be ResultCode
-
-            if result_code[0] in [ResultCode.QUEUED, ResultCode.OK]:
-                self.component_manager.command_mapping.setdefault(
-                    self.component_manager.command_id, {}
-                )["message_or_unique_id"] = message[0]
-                self.logger.debug(
-                    f"command mapping dictionary is: "
-                    f"{self.component_manager.command_mapping}"
+        def _invoke_trackstaticloadoff_callback(
+            status=None,
+            progress=None,
+            result=None,
+            exception=None,
+        ):
+            """
+            Method for invoking TrackStaticLoadOff callback
+            """
+            if result is None:
+                self.logger.info(
+                    f"TrackStaticLoadOff status: {result}, {exception}, "
+                    + f"{status}, {progress}"
                 )
+            else:
+                self.track_load_static_off_result["result_code"] = result[0]
+                self.track_load_static_off_result["message"] = result[1]
+                self.track_load_static_off_result["exception"] = exception
+                self.track_load_static_off_result["status"] = status
+
+        # Call the TrackStaticLoadOff command
+        command_obj = self.component_manager.track_load_static_off_command
+        command_obj.invoke_track_load_static_off(
+            argin=json.dumps(offsets_argin),
+            logger=self.logger,
+            task_callback=_invoke_trackstaticloadoff_callback,
+        )
+
+        if (
+            self.track_load_static_off_result["result_code"]
+            == ResultCode.FAILED
+        ):
+            return (
+                self.track_load_static_off_result["result_code"],
+                self.track_load_static_off_result["exception"],
+            )
+
+        self.component_manager.command_mapping.setdefault(
+            self.component_manager.command_id, {}
+        )[
+            "message_or_unique_id"
+        ] = self.component_manager.trackloadstaticoff_in_progress_id
+        self.logger.debug(
+            f"command mapping dictionary is: "
+            f"{self.component_manager.command_mapping}"
+        )
 
         if reset_offset:
             self.logger.debug(
@@ -429,10 +519,10 @@ class Configure(DishLNCommand):
                 CORRECTION_KEY.RESET.value,
             )
         self.component_manager.update_source_offset_callback(offsets_argin)
-        return result_code[0], message[0]
+        return ResultCode.OK, ""
 
     def start_dish_tracking(
-        self: Configure,
+        self: Configure, json_argument
     ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invoke Track after waiting for DishMode to Operate
@@ -442,10 +532,14 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]"""
         if self.component_manager.dishMode != DishMode.OPERATE:
             result_code, message = self.ensure_dish_in_right_dish_mode()
-            if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
+            if result_code[0] in [
+                ResultCode.FAILED,
+                ResultCode.REJECTED,
+                ResultCode.ABORTED,
+            ]:
                 return result_code, message
 
-        return self.invoke_track_command()
+        return self.invoke_track_command(json_argument)
 
     def ensure_dish_is_configured(
         self, receiver_band: str, expected_dish_mode: DishMode
@@ -457,8 +551,16 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]
         """
         # Set wait for dish band to be configured
-        result: bool = self.set_wait_for_configured_band(receiver_band)
-        if not result:
+        result: str = self.set_wait_for_configured_band(receiver_band)
+        if result == "ABORTED":
+            self.logger.info(
+                "AbortCommands() command is invoked on the DishLeafNode."
+            )
+            return (
+                [ResultCode.ABORTED],
+                ["AbortCommands() command is invoked on the DishLeafNode."],
+            )
+        if result == "NOT_ACHIEVED":
             self.logger.error(
                 "Timeout occurred while waiting for %s configuredBand in "
                 + "Configure command.",
@@ -471,8 +573,18 @@ class Configure(DishLNCommand):
                     + " configuredBand in Configure command."
                 ],
             )
-        result: bool = self.set_wait_for_dishmode(expected_dish_mode)
-        if not result:
+
+        result: str = self.set_wait_for_dishmode(expected_dish_mode)
+        if result == "ABORTED":
+            self.logger.info(
+                "AbortCommands() command is invoked on the DishLeafNode."
+            )
+            return (
+                [ResultCode.ABORTED],
+                ["AbortCommands() command is invoked on the DishLeafNode."],
+            )
+
+        if result == "NOT_ACHIEVED":
             self.logger.error(
                 "Timeout occurred while waiting for dishMode: %s. "
                 "ConfigureBand Command failed on the dish manager.",
@@ -491,15 +603,48 @@ class Configure(DishLNCommand):
 
         return: Tuple[ResultCode, str]
         """
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "SetOperateMode"
-            )
-        if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-            return result_code, message
+        self.logger.info("Invoking SetOperateMode command")
 
-        result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
-        if not result:
+        def _invoke_setoperatemode_callback(
+            status=None,
+            progress=None,
+            result=None,
+            exception=None,
+        ):
+            """
+            Method for invoking abort callback
+            """
+            if result is None:
+                self.logger.info(
+                    f"SetOperateMode status: {result}, {exception}, "
+                    + f"{status}, {progress}"
+                )
+            else:
+                self.set_operate_mode_result["result_code"] = result[0]
+                self.set_operate_mode_result["message"] = result[1]
+                self.set_operate_mode_result["exception"] = exception
+                self.set_operate_mode_result["status"] = status
+
+        self.component_manager.setoperatemode_command.set_operate_mode(
+            logger=self.logger, task_callback=_invoke_setoperatemode_callback
+        )
+
+        if self.set_operate_mode_result["result_code"] == ResultCode.FAILED:
+            return (
+                [self.set_operate_mode_result["result_code"]],
+                [self.set_operate_mode_result["exception"]],
+            )
+
+        result: str = self.set_wait_for_dishmode(DishMode.OPERATE)
+        if result == "ABORTED":
+            self.logger.info(
+                "AbortCommands() command is invoked on the DishLeafNode."
+            )
+            return (
+                [ResultCode.ABORTED],
+                ["AbortCommands() command is invoked on the DishLeafNode."],
+            )
+        if result == "NOT_ACHIEVED":
             self.logger.error(
                 "Timeout occurred while processing the"
                 + " SetOperateMode command."
@@ -514,7 +659,7 @@ class Configure(DishLNCommand):
         return [ResultCode.OK], [""]
 
     def invoke_track_command(
-        self: Configure,
+        self: Configure, json_argument
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invoke Track command on dish
 
@@ -527,7 +672,7 @@ class Configure(DishLNCommand):
         ]:
             self.logger.info(
                 "Dish is already tracking/slewing. Track() command "
-                + "will not be invoked."
+                + "is not invoked."
             )
 
             self.component_manager.command_mapping.setdefault(
@@ -538,7 +683,7 @@ class Configure(DishLNCommand):
                 [ResultCode.OK],
                 [
                     "Dish is already in pointingState.TRACK. Track() "
-                    + "command will not be invoked."
+                    + "command is not invoked."
                 ],
             )
 
@@ -546,38 +691,56 @@ class Configure(DishLNCommand):
         if result == "ABORTED":
             self.logger.info(
                 "Configure command has been aborted."
-                + " Track command will not be invoked."
+                + " Track command is not invoked."
             )
             return ([ResultCode.ABORTED], ["Command has been aborted"])
         if result == "FALSE":
             self.logger.error(
                 "Dish manager did not receive TrackTable."
-                + "Track() command will not be invoked on the Dish."
+                + "Track() command is not invoked on the Dish."
             )
             return (
                 [ResultCode.FAILED],
                 [
                     "Dish manager did not receive TrackTable. "
-                    + "Track() command will not be invoked on the Dish."
+                    + "Track() command is not invoked on the Dish."
                 ],
             )
 
-        with self.component_manager.tango_operation_execution_lock:
-            self.component_manager.command_in_progress = "Track"
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "Track"
+        def _invoke_track_callback(
+            status=None,
+            progress=None,
+            result=None,
+            exception=None,
+        ):
+            """
+            Method for invoking Track callback
+            """
+            if result is None:
+                self.logger.info(
+                    f"Track status: {result}, {exception}, "
+                    + f"{status}, {progress}"
+                )
+            else:
+                self.track_result["result_code"] = result[0]
+                self.track_result["message"] = result[1]
+                self.track_result["exception"] = exception
+                self.track_result["status"] = status
+
+        self.component_manager.command_in_progress = "Track"
+        self.component_manager.track_command.track(
+            argin=json_argument,
+            logger=self.logger,
+            task_callback=_invoke_track_callback,
+        )
+
+        if self.track_result["result_code"] == ResultCode.FAILED:
+            return (
+                [self.track_result["result_code"]],
+                [self.track_result["exception"]],
             )
 
-            self.component_manager.command_mapping.setdefault(
-                self.component_manager.command_id, {}
-            )["message_or_unique_id"] = message[0]
-
-        if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
-            self.logger.error(f"Track Invocation Failed , Reason: {message}")
-            return result_code, message
-
-        self.logger.info("Invoked Track command successfully on dish.")
-        return result_code, message
+        return [ResultCode.OK], [""]
 
     def is_tracktable_provided(self) -> str:
         """
@@ -588,6 +751,8 @@ class Configure(DishLNCommand):
         elapsed_time = 0
         while elapsed_time < self.component_manager.command_timeout:
             if self.component_manager.abort_event.is_set():
+                # self.component_manager.abort_event.clear()
+                # self.logger.info("Abort event is cleared")
                 self.logger.info(
                     "AbortCommands() command is invoked while"
                     + " configuring dish."

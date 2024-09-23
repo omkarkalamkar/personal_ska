@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 
 from numpy import isnan
 from numpy import nan as NaN
+from ska_control_model import HealthState
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common import (
@@ -120,7 +121,6 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     def init_device(self: DishLeafNode):
         self._isSubsystemAvailable = True
-        super().init_device()
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""
@@ -129,6 +129,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
+        super().init_device()
         for attribute_name in [
             "healthState",
             "isSubsystemAvailable",
@@ -167,6 +168,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             {release.description}"""
             device._version_id = release.version
             device._dishln_name = device.get_name()
+            device._update_health_state(HealthState.OK)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -681,6 +683,32 @@ class DishLeafNode(TMCBaseLeafDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
+    def is_ConfigureBand_allowed(self: DishLeafNode) -> bool:
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+            device state.
+
+        :rtype: boolean
+        """
+        self.logger.info("Checking if ConfigureBand is allowed")
+        return self.component_manager.is_configureband_allowed()
+
+    @command(
+        dtype_in="str",
+        doc_in="The input string contains dish receiver band.",
+        dtype_out="DevVarLongStringArray",
+    )
+    @DebugIt()
+    def ConfigureBand(self: DishLeafNode, argin) -> tuple:
+        """Invokes ConfigureBand command on the DishMaster."""
+
+        handler = self.get_command_object("ConfigureBand")
+        result_code, unique_id = handler(argin)
+        return [result_code], [unique_id]
+
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def TrackStop(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
@@ -913,6 +941,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
+            ("ConfigureBand", "configureband"),
             ("Track", "track"),
             ("TrackStop", "trackstop"),
             ("Off", "off"),

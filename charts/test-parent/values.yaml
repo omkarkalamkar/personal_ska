@@ -36,6 +36,7 @@ tmc-dishleafnode:
       TrackTableEntries: 50
       PointingCalculationPeriod: 50
       TrackTableInAdvance: 7
+      IsDishAbortCommands: False
 
 ska-taranta:
   enabled: false

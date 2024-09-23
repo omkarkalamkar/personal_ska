@@ -57,6 +57,14 @@ class AbortCommands(DishLNCommand):
             (ResultCode, str)
 
         """
+        self.logger.debug(
+            "Command in progress: %s",
+            self.component_manager.command_in_progress,
+        )
+        if not self.component_manager.command_in_progress:
+            self.component_manager.abort_event.clear()
+            self.logger.info("Abort event is cleared")
+
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -65,16 +73,23 @@ class AbortCommands(DishLNCommand):
             )
             return result_code, message
 
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "AbortCommands"
+        if self.component_manager.is_dish_abort_commands:
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "AbortCommands"
+                )
+            self.logger.info(
+                "AbortCommands() command has been invoked, the result code"
+                + " is %s and the message is %s",
+                result_code[0],
+                message[0],
             )
-        self.logger.info(
-            f"AbortCommands command invoked, Result code is {result_code}\
-            and Message is {message}"
-        )
-        if result_code[0] == ResultCode.FAILED:
-            return result_code[0], message[0]
+            if result_code[0] in [
+                ResultCode.REJECTED,
+                ResultCode.NOT_ALLOWED,
+                ResultCode.ABORTED,
+            ]:
+                return result_code[0], message[0]
 
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
@@ -85,8 +100,6 @@ class AbortCommands(DishLNCommand):
             "AbortCommands command executed successfully on"
             + " the DishLeafNode."
         )
-        # self.component_manager.abort_event.clear()
-        # self.logger.debug("Abort event is cleared")
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
