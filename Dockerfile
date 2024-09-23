@@ -4,7 +4,7 @@ FROM $BUILD_IMAGE AS buildenv
 
 FROM $BASE_IMAGE
 
-
+RUN apt-get update && apt-get install git -y
 # Install Poetry
 USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib

@@ -123,9 +123,7 @@ class Track(DishLNCommand):
             )
             self.component_manager.command_mapping.setdefault(
                 self.component_manager.command_id, {}
-            )[
-                "message_or_unique_id"
-            ] = self.component_manager.track_in_progress_id
+            )["message_or_unique_id"] = message[0]
             self.logger.debug(
                 "self.component_manager.command_mapping: %s",
                 self.component_manager.command_mapping,
