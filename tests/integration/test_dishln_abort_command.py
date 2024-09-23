@@ -183,7 +183,7 @@ def abort_while_configuring(
     )
 
     assert (
-        dish_leaf_node.read_attribute("pointingState").val
+        dish_leaf_node.read_attribute("pointingState").value
         == PointingState.READY
     )
 
@@ -203,7 +203,7 @@ def test_abort_command(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_abort_when_configure(tango_context, group_callback, json_factory):
+def test_abort_after_configure(tango_context, group_callback, json_factory):
     abort_when_configured(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
