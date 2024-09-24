@@ -1,3 +1,5 @@
+import time
+
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -9,7 +11,6 @@ from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
-    tear_down,
 )
 
 
@@ -191,7 +192,8 @@ def abort_while_configuring(
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
     dish_leaf_node.unsubscribe_event(LRCR_ID)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    # This sleep is added to allow tracker thread to complete
+    time.sleep(2)
 
 
 @pytest.mark.post_deployment
