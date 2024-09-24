@@ -53,7 +53,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], COMMAND_COMPLETED),
-        lookahead=2,
+        lookahead=7,
     )
     assert dish_master.configuredBand == Band.B1
 

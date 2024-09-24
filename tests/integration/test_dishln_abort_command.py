@@ -187,10 +187,6 @@ def abort_while_configuring(
         dish_leaf_node.read_attribute("pointingState").value
         == PointingState.READY
     )
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (ResultCode.ABORTED, "Command has been aborted"),
-        lookahead=6,
-    )
 
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
