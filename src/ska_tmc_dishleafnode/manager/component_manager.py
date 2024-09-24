@@ -897,10 +897,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             state, False otherwise.
         :rtype: boolean
         """
-        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
-            PointingState.NONE,
-            PointingState.UNKNOWN,
-        ):
+        if self.pointingState in (PointingState.TRACK, PointingState.SLEW):
             return True
 
         raise CommandNotAllowed(
