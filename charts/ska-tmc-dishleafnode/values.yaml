@@ -61,7 +61,7 @@ deviceServers:
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
     TrackTableInAdvance: 7
-    IsDishAbortCommands: False
+    IsDishAbortCommandsEnabled: False
   sdpqc:
     enabled: true
     instances: ["01"]

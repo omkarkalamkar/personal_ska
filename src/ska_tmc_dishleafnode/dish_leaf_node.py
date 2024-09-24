@@ -60,7 +60,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
-    IsDishAbortCommands = device_property(
+    IsDishAbortCommandsEnabled = device_property(
         dtype="DevBoolean", default_value=False
     )
 
@@ -918,7 +918,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,
             command_timeout=self.CommandTimeOut,
-            is_dish_abort_commands=self.IsDishAbortCommands,
+            is_dish_abort_commands_enabled=self.IsDishAbortCommandsEnabled,
             elevation=self.Elevation,
             azimuth=self.Azimuth,
             elevation_max_limit=self.ElevationMaxLimit,

@@ -92,7 +92,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
-        is_dish_abort_commands: bool = False,
+        is_dish_abort_commands_enabled: bool = False,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
@@ -152,7 +152,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
-        self.is_dish_abort_commands = is_dish_abort_commands
+        self.is_dish_abort_commands_enabled = is_dish_abort_commands_enabled
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
@@ -1630,24 +1630,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.get_device().update_unresponsive(False, "")
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
-
-    # def update_ping_info(
-    #     self: DishLNComponentManager, ping: int, device_name: str
-    # ) -> None:
-    #     """
-    #     Update a device with the correct ping information.
-
-    #     :param dev_name: name of the device
-    #     :type dev_name: str
-    #     :param ping: device response time
-    #     :type ping: int
-    #     :rtype: None
-    #     """
-    #     with self.lock:
-    #         self._device.ping = ping
-    #         self._device.update_unresponsive(False)
-    #         if self.update_availablity_callback is not None:
-    #             self.update_availablity_callback(True)
 
     def get_lrcr_result(self) -> List[str]:
         """Returns long running command result for command

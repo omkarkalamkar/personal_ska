@@ -73,7 +73,7 @@ class AbortCommands(DishLNCommand):
             )
             return result_code, message
 
-        if self.component_manager.is_dish_abort_commands:
+        if self.component_manager.is_dish_abort_commands_enabled:
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "AbortCommands"
