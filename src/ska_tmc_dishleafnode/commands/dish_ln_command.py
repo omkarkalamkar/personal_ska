@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import logging
 import time
-from operator import methodcaller
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Dict, Tuple, Union
 
 from ska_ser_logging import configure_logging
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
+from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     AdapterFactory,
     AdapterType,
@@ -34,6 +35,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         logger: logging.Logger = LOGGER,
     ):
         super().__init__(component_manager, logger)
+        self.task_callback: TaskCallbackType
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
@@ -138,50 +140,28 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         self.component_manager.command_id = command_id
 
-    # pylint: disable=arguments-differ
-    def check_device_state(
+    def update_task_status(
         self,
-        state_function: str,
-        state_to_achieve: Any,
-        expected_state: list,
-        command_id,
-    ) -> bool:
+        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+    ) -> None:
         """
-        Waits for expected state with or without
-        transitional state. On expected state occurrence,
-        it sets ResultCode to OK and stops the tracker thread.
+        Update the status of a task.
 
-        :param state_function: The function to determine the state of the
-                        device. Should be accessible in the component_manager
-        :type state_function: str
-
-        :param state_to_achieve: A particular state that needs to be
-                                achieved for command completion.
-
-        :param expected_state: Expected state of the device in case of
-                        successful command execution. It's a list containing
-                            transitional obsState if it exists for a command.
-        :return: boolean value indicating if the state change occurred or not
+        Args:
+            **kwargs: Keyword arguments for task status update.
         """
-        if self.partial_configure:
-            result_code = methodcaller(state_function)(self.component_manager)
-
-            # Check if the result match the expected value
-            return result_code[0] == state_to_achieve
-
-        dish_mode, pointing_state, result_code = methodcaller(state_function)(
-            self.component_manager
-        )
-
-        (
-            expected_dish_mode,
-            expected_pointing_states,
-            expected_result_code,
-        ) = expected_state
-
-        # Check if the results match the expected values
-        return (
-            dish_mode == expected_dish_mode
-            and pointing_state in expected_pointing_states
-            and result_code == expected_result_code
-        )
+        result = kwargs.get("result")
+        status = kwargs.get("status", TaskStatus.COMPLETED)
+        message = kwargs.get("exception")
+        if status == TaskStatus.ABORTED:
+            self.task_callback(status=status)
+        if result:
+            if result[0] == ResultCode.FAILED:
+                self.task_callback(
+                    status=status, result=result, exception=message
+                )
+            else:
+                self.logger.info("Result is: %s", result)
+                self.task_callback(status=status, result=result)
+        self.component_manager.command_in_progress = ""
+        self.component_manager.reset_configure_command_result_values()

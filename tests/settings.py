@@ -359,6 +359,7 @@ def simulate_result_code_event(
 ):
     """Simulate LRCR event from given device for given result."""
     command_id = ""
+    device_name = "mid-dish/dish-manager/SKA001"
     logging.info("Command mapping: %s", cm.command_mapping)
     test_command_dict_ref = copy.deepcopy(cm.command_mapping)
     logging.info("command_dict_ref is %s", test_command_dict_ref)
@@ -382,4 +383,4 @@ def simulate_result_code_event(
             ]
         ),
     )
-    cm.update_device_long_running_command_result(command_result)
+    cm.update_device_long_running_command_result(device_name, command_result)

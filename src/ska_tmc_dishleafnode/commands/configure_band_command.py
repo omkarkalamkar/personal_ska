@@ -4,16 +4,19 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from logging import Logger
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import TimeoutCallback, TimeoutState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+
+# from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -38,7 +41,14 @@ class ConfigureBand(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.task_callback = None
+        # self.task_callback = None
+        # self.timekeeper = TimeKeeper(
+        #     self.component_manager.command_timeout, logger
+        # )
+        self.timeout_id: str = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     def configure_band(
@@ -65,23 +75,89 @@ class ConfigureBand(DishLNCommand):
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
+        if self.component_manager.is_configure_command is False:
+            logger.info(
+                "Configure flag: %s",
+                self.component_manager.is_configure_command,
+            )
+            self.set_command_id(__class__.__name__)
+            self.component_manager.start_timer(
+                self.timeout_id,
+                self.component_manager.command_timeout,
+                self.timeout_callback,
+            )
+        else:
+            logger.info(
+                " ConfigureBand is invoked as part of Configure"
+                + " command. The configure timer is utilised."
+            )
         return_code, message = self.do(argin)
         self.component_manager.configure_band_in_progress_id = message
         logger.info("Result and Message is: %s, %s", return_code, message)
         if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(return_code, message),
-                exception=message,
+            self.update_task_status(
+                result=(ResultCode.FAILED, message), exception=message
             )
+
+            # self.task_callback(
+            #     status=TaskStatus.COMPLETED,
+            #     result=(return_code, message),
+            #     exception=message,
+            # )
         else:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(
-                    ResultCode.OK,
-                    COMMAND_COMPLETION_MESSAGE,
-                ),
-            )
+            if self.component_manager.is_configure_command is False:
+                logger.info(
+                    "Configure flag: %s",
+                    self.component_manager.is_configure_command,
+                )
+                self.start_tracker_thread(
+                    "get_dish_configured_band",
+                    [argin],
+                    task_abort_event,
+                    self.timeout_id,
+                    self.timeout_callback,
+                    self.component_manager.command_id,
+                    self.component_manager.long_running_result_callback,
+                )
+            else:
+                logger.info(
+                    " ConfigureBand is invoked as part of Configure"
+                    + " command. The command status is monitored in "
+                    + "Configure command tracker thread."
+                )
+
+        # self.task_callback(
+        #     status=TaskStatus.COMPLETED,
+        #     result=(
+        #         ResultCode.OK,
+        #         COMMAND_COMPLETION_MESSAGE,
+        #     ),
+        # )
+
+    # def update_task_status(
+    #     self,
+    #     **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+    # ) -> None:
+    #     """
+    #     Update the status of a task.
+
+    #     Args:
+    #         **kwargs: Keyword arguments for task status update.
+    #     """
+    #     result = kwargs.get("result")
+    #     status = kwargs.get("status", TaskStatus.COMPLETED)
+    #     message = kwargs.get("exception")
+    #     if status == TaskStatus.ABORTED:
+    #         self.task_callback(status=status)
+    #     if result:
+    #         if result[0] == ResultCode.FAILED:
+    #             self.task_callback(
+    #                 status=status, result=result, exception=message
+    #             )
+    #         else:
+    #             self.logger.info("Result is: %s", result)
+    #             self.task_callback(status=status, result=result)
+    #     self.component_manager.command_in_progress = ""
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ

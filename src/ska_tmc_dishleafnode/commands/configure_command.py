@@ -8,7 +8,8 @@ import logging
 import threading
 import time
 from logging import Logger
-from typing import Callable, List, Optional, Tuple
+from operator import methodcaller
+from typing import Any, Callable, List, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -57,7 +58,8 @@ class Configure(DishLNCommand):
         self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         self.task_callback: Callable
         self.partial_configure = False
-        self.reset_configure_command_result_values()
+        self.receiver_band: str = ""
+        # self.reset_configure_command_result_values()
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -84,6 +86,7 @@ class Configure(DishLNCommand):
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
+        self.component_manager.is_configure_command = True
         self.set_command_id(__class__.__name__)
         self.component_manager.command_in_progress = "Configure"
         self.component_manager.start_timer(
@@ -91,6 +94,7 @@ class Configure(DishLNCommand):
             self.component_manager.command_timeout,
             self.timeout_callback,
         )
+
         return_code, message = self.do(argin)
         lrcr_callback = self.component_manager.long_running_result_callback
         if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
@@ -165,9 +169,11 @@ class Configure(DishLNCommand):
                 )
                 self.component_manager.command_in_progress = None
             self.component_manager.command_id = ""
+            self.receiver_band = ""
             self.component_manager.partial_configure = False
             self.component_manager.reset_configure_command_ids()
-            self.reset_configure_command_result_values()
+            self.component_manager.reset_configure_command_result_values()
+            self.component_manager.is_configure_command = False
 
         except Exception as e:
             self.logger.exception(
@@ -201,33 +207,33 @@ class Configure(DishLNCommand):
 
         self.component_manager.command_in_progress = ""
 
-    def reset_configure_command_result_values(self: Configure):
-        """Method to reset the command result dictionaries for the commands
-        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
-        self.set_operate_mode_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.track_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.configure_band_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.track_load_static_off_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
+    # def reset_configure_command_result_values(self: Configure):
+    #     """Method to reset the command result dictionaries for the commands
+    #     ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
+    #     self.set_operate_mode_result = {
+    #         "result_code": None,
+    #         "message": None,
+    #         "exception": None,
+    #         "status": None,
+    #     }
+    #     self.track_result = {
+    #         "result_code": None,
+    #         "message": None,
+    #         "exception": None,
+    #         "status": None,
+    #     }
+    #     self.configure_band_result = {
+    #         "result_code": None,
+    #         "message": None,
+    #         "exception": None,
+    #         "status": None,
+    #     }
+    #     self.track_load_static_off_result = {
+    #         "result_code": None,
+    #         "message": None,
+    #         "exception": None,
+    #         "status": None,
+    #     }
 
     # pylint: enable=unused-argument
     def validate_json_argument(
@@ -352,11 +358,10 @@ class Configure(DishLNCommand):
             self.component_manager.create_process_and_start_track_table_calculation()  # noqa: E501
             # pylint: enable=line-too-long
 
-            receiver_band: str = json_argument["dish"]["receiver_band"]
-
             # The argin accepted here is a boolean value in accordance
             # with Dish Master
             current_dish_mode: DishMode = self.component_manager.dishMode
+            self.receiver_band = json_argument["dish"]["receiver_band"]
 
             self.logger.info("Invoking ConfigureBand command")
 
@@ -375,26 +380,39 @@ class Configure(DishLNCommand):
                         + f"{status}, {progress}"
                     )
                 else:
-                    self.configure_band_result["result_code"] = result[0]
-                    self.configure_band_result["message"] = result[1]
-                    self.configure_band_result["exception"] = exception
-                    self.configure_band_result["status"] = status
+                    self.component_manager.configure_band_result[
+                        "result_code"
+                    ] = result[0]
+                    self.component_manager.configure_band_result[
+                        "message"
+                    ] = result[1]
+                    self.component_manager.configure_band_result[
+                        "exception"
+                    ] = exception
+                    self.component_manager.configure_band_result[
+                        "status"
+                    ] = status
 
             self.component_manager.configure_band_command.configure_band(
-                argin=receiver_band,
+                argin=self.receiver_band,
                 logger=self.logger,
                 task_callback=_invoke_configure_band_callback,
             )
 
-            if self.configure_band_result["result_code"] == ResultCode.FAILED:
+            if (
+                self.component_manager.configure_band_result["result_code"]
+                == ResultCode.FAILED
+            ):
                 return (
-                    self.configure_band_result["result_code"],
-                    self.configure_band_result["exception"],
+                    self.component_manager.configure_band_result[
+                        "result_code"
+                    ],
+                    self.component_manager.configure_band_result["exception"],
                 )
 
             if self.component_manager.dishMode != DishMode.STOW:
                 result_code, message = self.ensure_dish_is_configured(
-                    receiver_band,
+                    self.receiver_band,
                     current_dish_mode,
                 )
                 if result_code[0] in [ResultCode.FAILED, ResultCode.REJECTED]:
@@ -466,10 +484,18 @@ class Configure(DishLNCommand):
                     + f"{status}, {progress}"
                 )
             else:
-                self.track_load_static_off_result["result_code"] = result[0]
-                self.track_load_static_off_result["message"] = result[1]
-                self.track_load_static_off_result["exception"] = exception
-                self.track_load_static_off_result["status"] = status
+                self.component_manager.track_load_static_off_result[
+                    "result_code"
+                ] = result[0]
+                self.component_manager.track_load_static_off_result[
+                    "message"
+                ] = result[1]
+                self.component_manager.track_load_static_off_result[
+                    "exception"
+                ] = exception
+                self.component_manager.track_load_static_off_result[
+                    "status"
+                ] = status
 
         # Call the TrackStaticLoadOff command
         command_obj = self.component_manager.track_load_static_off_command
@@ -480,12 +506,16 @@ class Configure(DishLNCommand):
         )
 
         if (
-            self.track_load_static_off_result["result_code"]
+            self.component_manager.track_load_static_off_result["result_code"]
             == ResultCode.FAILED
         ):
             return (
-                self.track_load_static_off_result["result_code"],
-                self.track_load_static_off_result["exception"],
+                self.component_manager.track_load_static_off_result[
+                    "result_code"
+                ],
+                self.component_manager.track_load_static_off_result[
+                    "exception"
+                ],
             )
 
         self.component_manager.command_mapping.setdefault(
@@ -584,19 +614,34 @@ class Configure(DishLNCommand):
                     + f"{status}, {progress}"
                 )
             else:
-                self.set_operate_mode_result["result_code"] = result[0]
-                self.set_operate_mode_result["message"] = result[1]
-                self.set_operate_mode_result["exception"] = exception
-                self.set_operate_mode_result["status"] = status
+                self.component_manager.set_operate_mode_result[
+                    "result_code"
+                ] = result[0]
+                self.component_manager.set_operate_mode_result[
+                    "message"
+                ] = result[1]
+                self.component_manager.set_operate_mode_result[
+                    "exception"
+                ] = exception
+                self.component_manager.set_operate_mode_result[
+                    "status"
+                ] = status
 
         self.component_manager.setoperatemode_command.set_operate_mode(
             logger=self.logger, task_callback=_invoke_setoperatemode_callback
         )
 
-        if self.set_operate_mode_result["result_code"] == ResultCode.FAILED:
+        if (
+            self.component_manager.set_operate_mode_result["result_code"]
+            == ResultCode.FAILED
+        ):
             return (
-                [self.set_operate_mode_result["result_code"]],
-                [self.set_operate_mode_result["exception"]],
+                [
+                    self.component_manager.set_operate_mode_result[
+                        "result_code"
+                    ]
+                ],
+                [self.component_manager.set_operate_mode_result["exception"]],
             )
 
         result: bool = self.set_wait_for_dishmode(DishMode.OPERATE)
@@ -651,10 +696,10 @@ class Configure(DishLNCommand):
                     + f"{status}, {progress}"
                 )
             else:
-                self.track_result["result_code"] = result[0]
-                self.track_result["message"] = result[1]
-                self.track_result["exception"] = exception
-                self.track_result["status"] = status
+                self.component_manager.track_result["result_code"] = result[0]
+                self.component_manager.track_result["message"] = result[1]
+                self.component_manager.track_result["exception"] = exception
+                self.component_manager.track_result["status"] = status
 
         self.component_manager.track_command.track(
             argin=json_argument,
@@ -662,10 +707,13 @@ class Configure(DishLNCommand):
             task_callback=_invoke_track_callback,
         )
 
-        if self.track_result["result_code"] == ResultCode.FAILED:
+        if (
+            self.component_manager.track_result["result_code"]
+            == ResultCode.FAILED
+        ):
             return (
-                [self.track_result["result_code"]],
-                [self.track_result["exception"]],
+                [self.component_manager.track_result["result_code"]],
+                [self.component_manager.track_result["exception"]],
             )
 
         self.component_manager.command_in_progress = "Track"
@@ -694,3 +742,59 @@ class Configure(DishLNCommand):
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
         return False
+
+    # pylint: disable=arguments-differ
+    def check_device_state(
+        self,
+        state_function: str,
+        state_to_achieve: Any,
+        expected_state: list,
+        command_id,
+    ) -> bool:
+        """
+        Waits for expected state with or without
+        transitional state. On expected state occurrence,
+        it sets ResultCode to OK and stops the tracker thread.
+
+        :param state_function: The function to determine the state of the
+                        device. Should be accessible in the component_manager
+        :type state_function: str
+
+        :param state_to_achieve: A particular state that needs to be
+                                achieved for command completion.
+
+        :param expected_state: Expected state of the device in case of
+                        successful command execution. It's a list containing
+                            transitional obsState if it exists for a command.
+        :return: boolean value indicating if the state change occurred or not
+        """
+        self.logger.info("Check device state -----")
+        self.logger.info("self.partial_configure: %s", self.partial_configure)
+        if self.partial_configure:
+            result_code = methodcaller(state_function)(self.component_manager)
+
+            # Check if the result match the expected value
+            return result_code[0] == state_to_achieve
+
+        dish_mode, pointing_state, result_code = methodcaller(state_function)(
+            self.component_manager
+        )
+        self.logger.info(
+            "dish_mode, pointing_state, result_code: %s, %s, %s",
+            dish_mode,
+            pointing_state,
+            result_code,
+        )
+
+        (
+            expected_dish_mode,
+            expected_pointing_states,
+            expected_result_code,
+        ) = expected_state
+
+        # Check if the results match the expected values
+        return (
+            dish_mode == expected_dish_mode
+            and pointing_state in expected_pointing_states
+            and result_code == expected_result_code
+        )
