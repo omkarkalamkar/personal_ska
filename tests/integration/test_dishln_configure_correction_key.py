@@ -145,22 +145,6 @@ def test_main_config_with_correction_key_update_reset(
             tango.EventType.CHANGE_EVENT,
             group_callback["longRunningCommandResult"],
         )
-    # result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
-    # assert result_trackstop[0] == ResultCode.QUEUED
-
-    # group_callback["longRunningCommandResult"].assert_change_event(
-    #     (unique_id_trackstop[0], COMMAND_COMPLETED),
-    #     lookahead=6,
-    # )
-
-    # group_callback["pointingState"].assert_change_event(
-    #     (PointingState.READY),
-    #     lookahead=6,
-    # )
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=6,
-    # )
 
     dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
