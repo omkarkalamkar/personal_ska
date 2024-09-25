@@ -11,6 +11,7 @@ from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
+    tear_down,
 )
 
 
@@ -194,6 +195,7 @@ def abort_while_configuring(
     dish_leaf_node.unsubscribe_event(LRCR_ID)
     # This sleep is added to allow tracker thread to complete
     time.sleep(2)
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment
