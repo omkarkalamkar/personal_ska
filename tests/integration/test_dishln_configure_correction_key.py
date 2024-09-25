@@ -140,11 +140,11 @@ def test_main_config_with_correction_key_update_reset(
         validate_trackloadstaticoff_invoked(dish_master, group_callback)
         command_info_data = dish_master.commandCallInfo
         assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
-        # LRCR_ID = dish_leaf_node.subscribe_event(
-        #     "longRunningCommandResult",
-        #     tango.EventType.CHANGE_EVENT,
-        #     group_callback["longRunningCommandResult"],
-        # )
+        LRCR_ID = dish_leaf_node.subscribe_event(
+            "longRunningCommandResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandResult"],
+        )
     # result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     # assert result_trackstop[0] == ResultCode.QUEUED
 
