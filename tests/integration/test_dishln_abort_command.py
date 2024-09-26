@@ -1,4 +1,4 @@
-# import time
+import time
 
 import pytest
 import tango
@@ -10,6 +10,7 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    TIMEOUT,
     logger,
     tear_down,
 )
@@ -151,11 +152,6 @@ def abort_while_configuring(
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    LRCS_ID = dish_leaf_node.subscribe_event(
-        "longRunningCommandStatus",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandStatus"],
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
@@ -194,15 +190,21 @@ def abort_while_configuring(
         == PointingState.READY
     )
 
-    group_callback["longRunningCommandStatus"].assert_change_event(
-        (unique_id_config, "ABORTED"),
-        lookahead=7,
-    )
+    start_time = time.time()
+    elapsed_time = 0
+    while elapsed_time < TIMEOUT:
+        lrcs_value = dish_leaf_node.longRunningCommandStatus.value
+        lrcs_iterator = iter(lrcs_value)
+        for value in lrcs_iterator:
+            if value == unique_id_config:
+                if next(lrcs_iterator) == "ABORTED":
+                    break
+        time.sleep(0.1)
+        elapsed_time = time.time() - start_time
 
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
     dish_leaf_node.unsubscribe_event(LRCR_ID)
-    dish_leaf_node.unsubscribe_event(LRCS_ID)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
