@@ -73,6 +73,11 @@ class AbortCommands(DishLNCommand):
             )
             return result_code, message
 
+        self.logger.info(
+            "Dish Abort commands device property is: %s",
+            self.component_manager.is_dish_abort_commands_enabled,
+        )
+
         if self.component_manager.is_dish_abort_commands_enabled:
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(

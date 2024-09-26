@@ -157,6 +157,7 @@ class Configure(DishLNCommand):
             if status == TaskStatus.ABORTED:
                 self.task_callback(status=status)
                 self.component_manager.command_in_progress = None
+                self.logger.info("Configure command execution is aborted.")
             elif result[0] == ResultCode.OK:
                 self.component_manager.command_in_progress = None
                 self.task_callback(result=result, status=status)
@@ -666,27 +667,6 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
-        if self.component_manager.pointingState in [
-            PointingState.TRACK,
-            PointingState.SLEW,
-        ]:
-            self.logger.info(
-                "Dish is already tracking/slewing. Track() command "
-                + "is not invoked."
-            )
-
-            self.component_manager.command_mapping.setdefault(
-                self.component_manager.command_id, {}
-            )["ResultCode"] = ResultCode.OK
-
-            return (
-                [ResultCode.OK],
-                [
-                    "Dish is already in pointingState.TRACK. Track() "
-                    + "command is not invoked."
-                ],
-            )
-
         result: str = self.is_tracktable_provided()
         if result == "ABORTED":
             self.logger.info(

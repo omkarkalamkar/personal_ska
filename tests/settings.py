@@ -189,9 +189,7 @@ def tear_down(
 
     logger.info("Invoked tear_down")
     current_pointing_state = dish_master.pointingState
-    logger.info("CurrentPointingState: %s", current_pointing_state)
     if current_pointing_state == PointingState.TRACK:
-        logger.info("CurrentPointingState: %s", current_pointing_state)
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
