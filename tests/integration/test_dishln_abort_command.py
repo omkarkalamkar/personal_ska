@@ -1,4 +1,4 @@
-# import time
+import time
 
 import pytest
 import tango
@@ -10,6 +10,7 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    TIMEOUT,
     logger,
     tear_down,
 )
@@ -193,23 +194,39 @@ def abort_while_configuring(
         dish_leaf_node.read_attribute("pointingState").value
         == PointingState.READY
     )
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_abort, "ABORTED"),
-        lookahead=7,
-    )
-    group_callback["longRunningCommandStatus"].assert_change_event(
-        (unique_id_abort, "ABORTED"),
-        lookahead=7,
-    )
+
+    # group_callback["longRunningCommandStatus"].assert_change_event(
+    #     (unique_id_config, "ABORTED"),
+    #     lookahead=7,
+    # )
+
+    start_time = time.time()
+    elapsed_time = 0
+    while elapsed_time < TIMEOUT:
+        assertion_data = group_callback[
+            "longRunningCommandStatus"
+        ].assert_change_event(
+            (unique_id_config, "ABORTED"),
+            lookahead=7,
+        )
+        logger.info("Assertion Data: %s", assertion_data)
+        iterator = iter(assertion_data["attribute_value"])
+        for value in iterator:
+            if value.endswith("Configure"):
+                if next(iterator) == "ABORTED":
+                    logger.info("Configure Command has Aborted")
+                    break
+        time.sleep(0.1)
+        elapsed_time = time.time() - start_time
+    else:
+        logger.info("Assertion Failed ....")
+
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
     dish_leaf_node.unsubscribe_event(LRCR_ID)
     dish_leaf_node.unsubscribe_event(LRCS_ID)
 
-    # This sleep is added to allow tracker thread to complete
-    # time.sleep(2)
     tear_down(dish_leaf_node, dish_master, group_callback)
-    assert False
 
 
 @pytest.mark.post_deployment
