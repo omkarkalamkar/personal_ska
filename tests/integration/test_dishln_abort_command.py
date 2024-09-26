@@ -193,7 +193,8 @@ def abort_while_configuring(
     start_time = time.time()
     elapsed_time = 0
     while elapsed_time < TIMEOUT:
-        lrcs_value = dish_leaf_node.longRunningCommandStatus.value
+        lrcs_value = dish_leaf_node.longRunningCommandStatus
+        logger.info("LRCS: %s", lrcs_value)
         lrcs_iterator = iter(lrcs_value)
         for value in lrcs_iterator:
             if value == unique_id_config:
