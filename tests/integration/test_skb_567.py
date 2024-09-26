@@ -139,6 +139,7 @@ def configure_dish_leaf_node(
     )
 
     logger.info("Sending Configure Command again")
+    dish_master.ClearCommandCallInfo()
 
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
