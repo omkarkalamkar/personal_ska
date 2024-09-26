@@ -190,7 +190,7 @@ def abort_while_configuring(
         == PointingState.READY
     )
 
-    assert is_configure_aborted(dish_leaf_node, unique_id_config)
+    assert is_configure_aborted(dish_leaf_node, unique_id_config[0])
 
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
