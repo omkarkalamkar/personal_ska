@@ -621,6 +621,28 @@ class Configure(DishLNCommand):
         :return: Resulcode and message
         :rtype: tuple
         """
+
+        if self.component_manager.pointingState in [
+            PointingState.TRACK,
+            PointingState.SLEW,
+        ]:
+            self.logger.info(
+                "Dish is already tracking/slewing. Track() command "
+                + "is not invoked."
+            )
+
+            self.component_manager.command_mapping.setdefault(
+                self.component_manager.command_id, {}
+            )["ResultCode"] = ResultCode.OK
+
+            return (
+                [ResultCode.OK],
+                [
+                    "Dish is already in pointingState.TRACK. Track() "
+                    + "command is not invoked."
+                ],
+            )
+
         result: bool = self.is_tracktable_provided()
         if not result:
             self.logger.error(
