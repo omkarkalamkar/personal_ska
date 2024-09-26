@@ -151,6 +151,11 @@ def abort_while_configuring(
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
+    LRCS_ID = dish_leaf_node.subscribe_event(
+        "longRunningCommandStatus",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
@@ -193,9 +198,12 @@ def abort_while_configuring(
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
     dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(LRCS_ID)
+    
     # This sleep is added to allow tracker thread to complete
-    time.sleep(2)
+    # time.sleep(2)
     tear_down(dish_leaf_node, dish_master, group_callback)
+    assert False
 
 
 @pytest.mark.post_deployment
