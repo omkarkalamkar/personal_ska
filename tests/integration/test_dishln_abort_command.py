@@ -1,4 +1,4 @@
-import time
+# import time
 
 import pytest
 import tango
@@ -199,7 +199,7 @@ def abort_while_configuring(
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
     dish_leaf_node.unsubscribe_event(LRCR_ID)
     dish_leaf_node.unsubscribe_event(LRCS_ID)
-    
+
     # This sleep is added to allow tracker thread to complete
     # time.sleep(2)
     tear_down(dish_leaf_node, dish_master, group_callback)
