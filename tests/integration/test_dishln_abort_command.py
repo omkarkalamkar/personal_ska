@@ -190,18 +190,7 @@ def abort_while_configuring(
         == PointingState.READY
     )
 
-    start_time = time.time()
-    elapsed_time = 0
-    while elapsed_time < TIMEOUT:
-        lrcs_value = dish_leaf_node.longRunningCommandStatus
-        logger.info("LRCS: %s", lrcs_value)
-        lrcs_iterator = iter(lrcs_value)
-        for value in lrcs_iterator:
-            if value == unique_id_config:
-                if next(lrcs_iterator) == "ABORTED":
-                    break
-        time.sleep(0.1)
-        elapsed_time = time.time() - start_time
+    assert is_configure_aborted(dish_leaf_node, unique_id_config)
 
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
     dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
@@ -239,3 +228,21 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
         group_callback,
         json_factory("dishleafnode_configure"),
     )
+
+
+def is_configure_aborted(dish_leaf_node, unique_id_config) -> bool:
+    """
+    This method checks if Configure command is Aborted for given command id.
+    """
+    start_time = time.time()
+    elapsed_time = 0
+    while elapsed_time < TIMEOUT:
+        lrcs_value = dish_leaf_node.longRunningCommandStatus
+        lrcs_iterator = iter(lrcs_value)
+        for value in lrcs_iterator:
+            if value == unique_id_config:
+                if next(lrcs_iterator) == "ABORTED":
+                    return True
+        time.sleep(0.1)
+        elapsed_time = time.time() - start_time
+    return False
