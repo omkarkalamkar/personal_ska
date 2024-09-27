@@ -28,18 +28,10 @@ def get_command_call_info(device: DeviceProxy, command_name: str):
     """
     command_call_info = device.read_attribute("commandCallInfo").value
     logger.info("Command info %s", command_call_info)
-    command_info = [
-        command_info
-        for command_info in command_call_info
-        if command_info[0] == command_name
-    ]
-
-    received_command_call_data = (
-        command_call_info[0][0],
-        command_info[0][1],
+    command_info = tuple(
+        item for sublist in command_call_info for item in sublist
     )
-
-    return received_command_call_data
+    return "Track" in command_info
 
 
 def get_non_sidereal_json_for_now(non_side_real_json) -> str:
@@ -154,9 +146,12 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
-    result = get_command_call_info(dish_master, command_name="Track")
-    logger.info("result - %s", result)
-    assert result is None
+    command_call_info = dish_master.read_attribute("commandCallInfo").value
+    command_info = tuple(
+        item for sublist in command_call_info for item in sublist
+    )
+    logger.info("command_info - %s", command_info)
+    assert "Track" not in command_info, "Track is unexpectedly found in result"
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
