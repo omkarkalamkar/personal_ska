@@ -159,6 +159,7 @@ def test_configure_command_completed_with_correction_key_update(
 ):
     """Test configure command with correction key as UPDATE"""
 
+    cm.get_device().update_unresponsive(False, "")
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
