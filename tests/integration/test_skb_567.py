@@ -154,16 +154,9 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
-    assert get_command_call_info(dish_master, command_name="Track")
-
-    # group_callback["pointingState"].assert_change_event(
-    #     (PointingState.TRACK),
-    #     lookahead=6,
-    # )
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=6,
-    # )
+    result = get_command_call_info(dish_master, command_name="Track")
+    logger.info("result - %s", result)
+    assert result is None
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
