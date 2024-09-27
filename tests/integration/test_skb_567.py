@@ -6,7 +6,6 @@ import pytest
 import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
-from tango import DeviceProxy
 
 from tests.settings import (
     COMMAND_COMPLETED,
@@ -17,21 +16,6 @@ from tests.settings import (
 )
 
 OFFSET = 5.0
-
-
-def get_command_call_info(device: DeviceProxy, command_name: str):
-    """
-    Returns recorded information from commandCallInfo attribute.
-    This function is used when expected information is of type boolean.
-    device: Tango Device Proxy Object
-
-    """
-    command_call_info = device.read_attribute("commandCallInfo").value
-    logger.info("Command info %s", command_call_info)
-    command_info = tuple(
-        item for sublist in command_call_info for item in sublist
-    )
-    return "Track" in command_info
 
 
 def get_non_sidereal_json_for_now(non_side_real_json) -> str:

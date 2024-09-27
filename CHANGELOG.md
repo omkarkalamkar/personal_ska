@@ -4,6 +4,11 @@ Change Log
 
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
+
+[0.17.4]
+********
+* Fix bug SKB-467 - Track command will not be invoked if pointingState is TRACK/SLEW
+
 [0.17.3]
 ********
 * Fix bug SKB-502, to update the attributes at initialization, so that it can 

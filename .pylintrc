@@ -34,7 +34,7 @@ load-plugins=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=invalid-name,protected-access, abstract-method ,too-many-positional-arguments
+disable=invalid-name,protected-access, abstract-method
 
 
 [REPORTS]
@@ -242,6 +242,10 @@ min-public-methods=1
 
 # Maximum number of public methods for a class (see R0904).
 max-public-methods=75
+
+
+# Maximum number of positional argument for function / method
+max-positional-arguments=25
 
 
 [EXCEPTIONS]
