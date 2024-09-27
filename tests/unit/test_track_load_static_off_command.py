@@ -190,6 +190,7 @@ def test_configure_command_completed_with_correction_key_update(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    time.sleep(0.5)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -223,6 +224,9 @@ def test_configure_command_completed_with_correction_key_update(
         time.sleep(1)
 
     assert "Command Completed" in message
+    time.sleep(0.5)
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_correction_key_reset_partial_config(
