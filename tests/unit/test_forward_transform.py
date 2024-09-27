@@ -35,6 +35,7 @@ def test_radec_to_azel(
     cm,
 ):
     """Function to test AzEl conversion"""
+    cm.get_device().update_unresponsive(False, "")
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:
