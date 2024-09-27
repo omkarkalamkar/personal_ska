@@ -39,7 +39,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
-        self.partial_configure = False
+        # self.partial_configure = False
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
@@ -102,24 +102,62 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         return False
 
-    def set_wait_for_configured_band(
-        self: DishLNCommand, configured_band: str
-    ):
-        """Waits for transition of configuredBand to the correct state.
+    def set_wait_for_setoperatemode_completed(self: DishLNCommand):
+        """Waits for the SetOperateMode command to be completed.
 
-        :return: True if the DishMode transitions to the correct state within
+        :return: True if is_setOpreateMode_completed event is set.
+        :rtype: boolean
+        """
+        self.logger.info("Waiting for SetOperateMode to be completed")
+
+        if self.component_manager.is_setoperatemode_completed_event.wait(
+            timeout=10
+        ):
+            self.logger.info(
+                "SetOperateMode flag ------: %s",
+                self.component_manager.is_setoperatemode_completed_event.is_set(),
+            )
+            self.logger.info("Returning True --------")
+            return True
+        self.logger.info(
+            "SetOperateMode flag ------: %s",
+            self.component_manager.is_setoperatemode_completed_event.is_set(),
+        )
+        self.logger.info("Returning False --------")
+        return False
+
+    def set_wait_for_configured_band(self: DishLNCommand):
+        """Waits for configureBand command to be completed.
+
+        :return: True if is_configureBand_completed event is set
             the timeout period,False otherwise.
         :rtype: boolean
         """
-        start_time = time.time()
-        elapsed_time = 0
-        while elapsed_time < self.component_manager.command_timeout:
-            if self.component_manager.dishConfiguredBand == configured_band:
-                self.logger.info(
-                    "Dish band %s is configured.", configured_band
-                )
-                return True
-            elapsed_time = time.time() - start_time
+        self.logger.info("Waiting for ConfigureBand to be completed")
+
+        if self.component_manager.is_configureband_completed_event.wait(
+            timeout=10
+        ):
+            self.logger.info(
+                "ConfigureBand flag ------: %s",
+                self.component_manager.is_configureband_completed_event.is_set(),
+            )
+            self.logger.info("Returning True --------")
+            return True
+        self.logger.info(
+            "ConfigureBand flag ------: %s",
+            self.component_manager.is_configureband_completed_event.is_set(),
+        )
+        self.logger.info("Returning False --------")
+        # start_time = time.time()
+        # elapsed_time = 0
+        # while elapsed_time < self.component_manager.command_timeout:
+        #     if self.component_manager.dishConfiguredBand == configured_band:
+        #         self.logger.info(
+        #             "Dish band %s is configured.", configured_band
+        #         )
+        #         return True
+        #     elapsed_time = time.time() - start_time
         return False
 
     def init_adapter_mid(self: DishLNCommand):
@@ -165,3 +203,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 self.task_callback(status=status, result=result)
         self.component_manager.command_in_progress = ""
         self.component_manager.reset_configure_command_result_values()
+        self.component_manager.is_configureband_completed_event.clear()
+        self.component_manager.is_setoperatemode_completed_event.clear()
+        self.component_manager.is_track_completed_event.clear()
+        self.component_manager.is_trackloadstaticoff_completed_event.clear()

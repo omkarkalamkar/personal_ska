@@ -123,7 +123,7 @@ class TrackLoadStaticOff(DishLNCommand):
                 )
             else:
                 logger.info(
-                    " Track is invoked as part of Configure"
+                    " TrackLoadStaticOff is invoked as part of Configure"
                     + " command. The command status is monitored in "
                     + "Configure command tracker thread."
                 )
