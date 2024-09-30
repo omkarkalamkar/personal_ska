@@ -40,11 +40,15 @@ class DishkValueValidationManager:
                     )
                     return True
             except Exception as e:
+                print("There is exception: %s", str(e))
+                self.logger.exception(str(e))
                 exception = str(e)
             count += 1
             time.sleep(1)
         if exception:
-            self.logger.exception("Dish manager is unresponsive %s", exception)
+            pass
+            # self.logger.exception("Dish manager is unresponsive %s",
+            #  exception)
         return False
 
     def get_dish_manager_kvalue(self: DishkValueValidationManager) -> int:
