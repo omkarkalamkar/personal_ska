@@ -137,7 +137,6 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.ktest
 @pytest.mark.parametrize(
     "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
 )

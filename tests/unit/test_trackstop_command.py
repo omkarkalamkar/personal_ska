@@ -10,7 +10,7 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 def test_trackstop_command_completed(tango_context, task_callback, cm):
     cm.update_device_dish_mode(DishMode.OPERATE)
-    cm.update_device_pointing_state(PointingState.READY)
+    cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()
     cm.trackstop(task_callback=task_callback)
     task_callback.assert_against_call(
@@ -30,7 +30,7 @@ def test_trackstop_command_completed(tango_context, task_callback, cm):
 def test_trackstop_command_adapter_none(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
-    cm.update_device_pointing_state(PointingState.READY)
+    cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()
     cm.trackstop(task_callback=task_callback)
 

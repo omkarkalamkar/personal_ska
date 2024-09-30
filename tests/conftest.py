@@ -29,8 +29,6 @@ from tests.settings import (
 
 configure_logging()
 logger = logging.getLogger(__name__)
-configure_logging(logging.DEBUG)
-LOGGER = logging.getLogger(__name__)
 
 
 def pytest_sessionstart(session):
@@ -266,13 +264,14 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
+        _liveliness_probe=LivelinessProbeType.NONE,
     )
 
     start_time = time.time()
     while not cm.actual_pointing_process.is_alive():
         time.sleep(0.5)
         if time.time() - start_time > 30:
-            LOGGER.info("actual_pointing_process thread is not alive")
+            logger.info("actual_pointing_process thread is not alive")
             break
 
     yield cm
@@ -352,7 +351,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         time.sleep(0.5)
 
         if time.time() - start_time > 120:
-            LOGGER.info("actual_pointing values are not populated")
+            logger.info("actual_pointing values are not populated")
             break
 
     yield cm

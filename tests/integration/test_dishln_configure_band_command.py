@@ -27,7 +27,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
-        lookahead=2,
+        lookahead=7,
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
@@ -40,11 +40,11 @@ def configureband_command(tango_context, dishln_name, group_callback):
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
-        lookahead=2,
+        lookahead=7,
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
-        lookahead=2,
+        lookahead=7,
     )
 
     result_op, unique_id_op = dish_leaf_node.ConfigureBand("1")
@@ -53,7 +53,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], COMMAND_COMPLETED),
-        lookahead=2,
+        lookahead=7,
     )
     assert dish_master.configuredBand == Band.B1
 

@@ -40,6 +40,7 @@ from ska_tmc_common.lrcr_callback import LRCRCallback
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
+    AbortCommands,
     Configure,
     ConfigureBand,
     EndScan,
@@ -91,7 +92,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
-        is_dish_abort_commands: bool = False,
+        is_dish_abort_commands_enabled: bool = False,
         adapter_timeout: int = 2,
         elevation: float = 0.0,
         azimuth: float = 0.0,
@@ -127,6 +128,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
+        self.rlock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         __adapter_factory = AdapterFactory()
@@ -150,7 +152,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = False
-        self.is_dish_abort_commands = is_dish_abort_commands
+        self.is_dish_abort_commands_enabled = is_dish_abort_commands_enabled
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
@@ -197,6 +199,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if _liveliness_probe != LivelinessProbeType.NONE:
             self.start_liveliness_probe(_liveliness_probe)
 
+        self.abort_event = threading.Event()
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.track_table_entries: int = track_table_entries
         self.pointing_calculation_period: int = pointing_calculation_period
@@ -894,10 +897,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             state, False otherwise.
         :rtype: boolean
         """
-        if self.dishMode == DishMode.OPERATE and self.pointingState not in (
-            PointingState.NONE,
-            PointingState.UNKNOWN,
-        ):
+        if self.pointingState in (PointingState.TRACK, PointingState.SLEW):
             return True
 
         raise CommandNotAllowed(
@@ -1061,6 +1061,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             argin,
         )
         return task_status, response
+
+    # pylint: disable=arguments-differ
+    def abort_commands(self) -> Tuple[TaskStatus, str]:
+        """
+        Invokes Abort command on Dish manager.
+        """
+        abort_command = AbortCommands(
+            self,
+            logger=self.logger,
+        )
+        self.abort_event.set()
+        self.logger.debug("Abort event is set.")
+        result_code, message = abort_command.invoke_abort()
+        return result_code, message
 
     def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the command TrackLoadStaticOff is allowed.
@@ -1473,7 +1487,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             try:
                 self.dish_adapter.programTrackTable = program_track_table
             except (tango.DevFailed, Exception) as exception:
-                self.logger.exception(exception)
+                self.logger.exception(
+                    "Exception while writing tracktable: %s", str(exception)
+                )
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def track_process(
@@ -1584,7 +1600,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.track_table_process.join()
 
     # pylint: disable=arguments-differ
-    def update_device_ping_failure(
+    def update_exception_for_unresponsiveness(
         self: DishLNComponentManager, device_info: DeviceInfo, exception: str
     ) -> None:
         """Set a device to failed and call the relative callback if available
@@ -1595,26 +1611,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type: Exception
         :rtype: None
         """
-        device_info.update_unresponsive(True, exception)
-        with self.lock:
+        with self.rlock:
+            device_info.update_unresponsive(True, exception)
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(False)
 
-    def update_ping_info(
-        self: DishLNComponentManager, ping: int, device_name: str
-    ) -> None:
+    def update_responsiveness_info(self, device_name: str) -> None:
         """
-        Update a device with the correct ping information.
+        Update a device with the correct availability information.
 
         :param dev_name: name of the device
         :type dev_name: str
-        :param ping: device response time
-        :type ping: int
-        :rtype: None
         """
-        with self.lock:
-            self._device.ping = ping
-            self._device.update_unresponsive(False)
+        with self.rlock:
+            self.get_device().update_unresponsive(False, "")
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
