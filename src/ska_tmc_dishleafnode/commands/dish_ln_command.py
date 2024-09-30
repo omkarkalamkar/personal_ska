@@ -113,10 +113,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         if self.component_manager.is_setoperatemode_completed_event.wait(
             timeout=10
         ):
-            self.logger.info(
-                "SetOperateMode flag ------: %s",
-                self.component_manager.is_setoperatemode_completed_event.is_set(),
-            )
             self.logger.info("Returning True --------")
             return True
         self.logger.info(
@@ -138,10 +134,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         if self.component_manager.is_configureband_completed_event.wait(
             timeout=10
         ):
-            self.logger.info(
-                "ConfigureBand flag ------: %s",
-                self.component_manager.is_configureband_completed_event.is_set(),
-            )
             self.logger.info("Returning True --------")
             return True
         self.logger.info(

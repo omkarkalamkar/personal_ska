@@ -235,7 +235,8 @@ class Configure(DishLNCommand):
             self.component_manager.is_configureband_completed_event.clear()
             self.component_manager.is_setoperatemode_completed_event.clear()
             self.component_manager.is_track_completed_event.clear()
-            self.component_manager.is_trackloadstaticoff_completed_event.clear()
+            evt = self.component_manager.is_trackloadstaticoff_completed_event
+            evt.clear()
 
         except Exception as e:
             self.logger.exception(
@@ -646,10 +647,6 @@ class Configure(DishLNCommand):
                         ],
                     ],
                 )
-            else:
-                self.logger.info(
-                    "DishLeafNode is ready to take SetOperate command"
-                )
 
         else:
             self.logger.error(
@@ -672,7 +669,7 @@ class Configure(DishLNCommand):
         #         expected_dish_mode,
         #     )
         #     message = (
-        #         "Timeout occurred while invoking the ConfigureBand() Command."
+        #         "Timeout occurred while invoking ConfigureBand() Command."
         #     )
         #     return ([ResultCode.FAILED], [message])
         return [ResultCode.OK], [""]
@@ -750,8 +747,6 @@ class Configure(DishLNCommand):
                         ],
                     ],
                 )
-            else:
-                self.logger.info("DishLeafNode is ready to take Track command")
 
         else:
             self.logger.error(
@@ -841,7 +836,8 @@ class Configure(DishLNCommand):
 
         # self.component_manager.command_mapping.setdefault(
         #     self.component_manager.command_id, {}
-        # )["message_or_unique_id"] = self.component_manager.track_in_progress_id
+        # )["message_or_unique_id"] =
+        # self.component_manager.track_in_progress_id
         # self.logger.debug(
         #     "self.component_manager.command_mapping: %s",
         #     self.component_manager.command_mapping,
@@ -911,25 +907,25 @@ class Configure(DishLNCommand):
         (
             expected_dish_mode,
             expected_pointing_states,
-            expected_rceiver_band,
+            expected_receiver_band,
         ) = expected_state
 
         self.logger.info(
-            "expected_dish_mode, expected_pointing_states, expected_rceiver_band: %s, %s, %s",
+            "expected dishMode, pointingStates, receiverBand: %s, %s, %s",
             expected_dish_mode,
             expected_pointing_states,
-            expected_rceiver_band,
+            expected_receiver_band,
         )
         self.logger.info(
             "CHECK: %s",
             dish_mode == expected_dish_mode
             and pointing_state in expected_pointing_states
-            and receiver_band == expected_rceiver_band,
+            and receiver_band == expected_receiver_band,
         )
 
         # Check if the results match the expected values
         return (
             dish_mode == expected_dish_mode
             and pointing_state in expected_pointing_states
-            and receiver_band == expected_rceiver_band
+            and receiver_band == expected_receiver_band
         )

@@ -117,7 +117,7 @@ ignore-long-lines=^\s*(# )?<?https?://\S+>?$
 single-line-if-stmt=no
 
 # Maximum number of lines in a module
-max-module-lines=2050
+max-module-lines=3000
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
