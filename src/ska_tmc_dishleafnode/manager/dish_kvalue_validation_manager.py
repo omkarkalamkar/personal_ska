@@ -41,7 +41,7 @@ class DishkValueValidationManager:
                     return True
             except Exception as e:
                 print("There is exception: %s", str(e))
-                self.logger.exception(str(e))
+                self.logger.error(str(e))
                 exception = str(e)
             count += 1
             time.sleep(1)
