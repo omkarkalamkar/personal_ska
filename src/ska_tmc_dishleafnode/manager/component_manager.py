@@ -1477,6 +1477,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
+        self.logger.info("Configure Band event occurred ------")
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
@@ -1791,8 +1792,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ]:
                 if (
                     self.is_configure_command
-                    and ("ConfigureBand" in self.command_id)
-                    or ("SetOperateMode" in self.command_id)
+                    and ("ConfigureBand" in unique_id)
+                    or ("SetOperateMode" in unique_id)
+                    or ("TrackLoadStaticOff" in unique_id)
                 ):
                     self.logger.info(
                         "LRCRCallback is: %s",

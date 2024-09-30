@@ -122,6 +122,22 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.logger.info("Returning False --------")
         return False
 
+    def set_wait_for_trackloadstaticoff_completed(self: DishLNCommand):
+        """Waits for the TrackLoadStaticOff command to be completed.
+
+        :return: True if is_trackloadstaticoff_completed event is set.
+        :rtype: boolean
+        """
+        self.logger.info("Waiting for TrackLoadStaticOff to be completed")
+
+        if self.component_manager.is_trackloadstaticoff_completed_event.wait(
+            timeout=10
+        ):
+            self.logger.info("Returning True --------")
+            return True
+        self.logger.info("Returning False --------")
+        return False
+
     def set_wait_for_configured_band(self: DishLNCommand):
         """Waits for configureBand command to be completed.
 

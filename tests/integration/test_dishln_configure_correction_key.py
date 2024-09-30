@@ -171,7 +171,7 @@ def test_main_config_with_correction_key_update_reset(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.skip()
+@pytest.mark.sah1595
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])

@@ -582,6 +582,45 @@ class Configure(DishLNCommand):
             "track_load_static_off_result is: %s",
             self.component_manager.track_load_static_off_result,
         )
+        if reset_offset:
+            self.logger.debug(
+                "Pointing offsets have been reset to [0.0, 0.0] "
+                "and correction key set to %s",
+                CORRECTION_KEY.RESET.value,
+            )
+        self.component_manager.update_source_offset_callback(offsets_argin)
+
+        result: bool = self.set_wait_for_trackloadstaticoff_completed()
+        if result:
+            if (
+                self.component_manager.track_load_static_off_result[
+                    "result_code"
+                ]
+                == ResultCode.FAILED
+            ):
+                self.logger.error(
+                    "TrackStaticLoadOff command failed with reason: %s",
+                    self.component_manager.track_load_static_off_result[
+                        "message"
+                    ],
+                )
+                return (
+                    ResultCode.FAILED,
+                    self.component_manager.track_load_static_off_result[
+                        "message"
+                    ],
+                )
+
+        else:
+            self.logger.error(
+                "Timeout occurred while waiting for TrackStaticLoadOff "
+                + "command to be completed in Configure command."
+            )
+            return (
+                ResultCode.FAILED,
+                "Timeout occurred while waiting for TrackStaticLoadOff command"
+                + " to be completed in Configure command.",
+            )
 
         # self.component_manager.command_mapping.setdefault(
         #     self.component_manager.command_id, {}
@@ -593,13 +632,6 @@ class Configure(DishLNCommand):
         #     f"{self.component_manager.command_mapping}"
         # )
 
-        if reset_offset:
-            self.logger.debug(
-                "Pointing offsets have been reset to [0.0, 0.0] "
-                "and correction key set to %s",
-                CORRECTION_KEY.RESET.value,
-            )
-        self.component_manager.update_source_offset_callback(offsets_argin)
         return ResultCode.OK, ""
 
     def start_dish_tracking(
@@ -641,7 +673,6 @@ class Configure(DishLNCommand):
                 return (
                     [ResultCode.FAILED],
                     [
-                        "ConfigureBand command failed with reason: %s",
                         self.component_manager.configure_band_result[
                             "message"
                         ],
@@ -741,7 +772,6 @@ class Configure(DishLNCommand):
                 return (
                     [ResultCode.FAILED],
                     [
-                        "SetOperateMode command failed with reason: %s",
                         self.component_manager.set_operate_mode_result[
                             "message"
                         ],
