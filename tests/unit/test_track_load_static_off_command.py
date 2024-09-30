@@ -125,7 +125,6 @@ def test_configure_command_completed_with_correction_key_reset(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(0.5)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -192,7 +191,6 @@ def test_configure_command_completed_with_correction_key_update(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(0.5)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

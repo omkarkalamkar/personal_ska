@@ -29,8 +29,6 @@ from tests.settings import (
 
 configure_logging()
 logger = logging.getLogger(__name__)
-# configure_logging(logging.DEBUG)
-# LOGGER = logging.getLogger(__name__)
 
 
 def pytest_sessionstart(session):

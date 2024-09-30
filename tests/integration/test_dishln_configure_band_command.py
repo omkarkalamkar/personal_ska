@@ -40,7 +40,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
-        lookahead=10,
+        lookahead=7,
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),

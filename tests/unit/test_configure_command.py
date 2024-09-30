@@ -48,14 +48,12 @@ def test_configure_command_completed(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(0.5)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
-    time.sleep(0.5)
     cm.set_track_process_event()
     cm.stop_track_table_process()
 
