@@ -196,7 +196,7 @@ def test_configure_command_completed_with_correction_key_update(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=10,
+        lookahead=6,
     )
     # Code to check new pointing offsets are applied when key is UPDATE
     # and configure is partial config
@@ -224,7 +224,7 @@ def test_configure_command_completed_with_correction_key_update(
         time.sleep(1)
 
     assert "Command Completed" in message
-    time.sleep(0.5)
+    time.sleep(0.2)
     cm.set_track_process_event()
     cm.stop_track_table_process()
 
