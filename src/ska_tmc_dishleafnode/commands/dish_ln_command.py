@@ -43,10 +43,13 @@ class DishLNCommand(TmcLeafNodeCommand):
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
+        self.logger.info("Creating adapter")
         dev_name = self.component_manager.dish_dev_name
         timeout = self.component_manager.adapter_timeout
         elapsed_time = 0
         start_time = time.time()
+
+        self.logger.info("Creating adapter: %s, %s", dev_name, timeout)
 
         while self.dish_master_adapter is None and elapsed_time <= timeout:
             try:
@@ -61,6 +64,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                     self.dish_master_adapter
                 )
             except ConnectionFailed as connection_failed:
+                self.logger.info("Connection failed: %s", connection_failed)
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
@@ -68,6 +72,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                         str(connection_failed),
                     )
             except DevFailed as device_failed:
+                self.logger.info("device failed: %s", device_failed)
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
@@ -76,6 +81,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                     )
 
             except (AttributeError, ValueError, TypeError) as exception:
+                self.logger.info("exception: %s", exception)
                 return (
                     ResultCode.FAILED,
                     str(exception),

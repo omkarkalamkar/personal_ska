@@ -361,18 +361,18 @@ def simulate_result_code_event(
     command_id = ""
     device_name = "mid-dish/dish-manager/SKA001"
     logging.info("Command mapping: %s", cm.command_mapping)
-    test_command_dict_ref = copy.deepcopy(cm.command_mapping)
-    logging.info("command_dict_ref is %s", test_command_dict_ref)
-    for _, command_dict in test_command_dict_ref.items():
-        for inner_key, value in command_dict.items():
-            logging.info("inner_key, value  is %s %s", inner_key, value)
-            if inner_key == "message_or_unique_id":
-                logging.info("value  is: %s", value)
-                if "-" + command_name in value:
-                    command_id = value
+    # test_command_dict_ref = copy.deepcopy(cm.command_mapping)
+    # logging.info("command_dict_ref is %s", test_command_dict_ref)
+    # for _, command_dict in test_command_dict_ref.items():
+    #     for inner_key, value in command_dict.items():
+    #         logging.info("inner_key, value  is %s %s", inner_key, value)
+    #         if inner_key == "message_or_unique_id":
+    #             logging.info("value  is: %s", value)
+    #             if "-" + command_name in value:
+    #                 command_id = value
 
-            else:
-                command_id = f"{time.time()}_{command_name}"
+    #         else:
+    command_id = f"{time.time()}_{command_name}"
     logging.info("command_id  is: %s", command_id)
     command_result = (
         command_id,
@@ -384,3 +384,28 @@ def simulate_result_code_event(
         ),
     )
     cm.update_device_long_running_command_result(device_name, command_result)
+
+
+def simulate_configured_band_event(
+    cm: DishLNComponentManager,
+    command_name: str,
+):
+    """Simulate ConfiguredBand event from given device for given result."""
+    command_id = ""
+    # device_name = "mid-dish/dish-manager/SKA001"
+    logging.info("Command mapping: %s", cm.command_mapping)
+    test_command_dict_ref = copy.deepcopy(cm.command_mapping)
+    logging.info("command_dict_ref is %s", test_command_dict_ref)
+    # for _, command_dict in test_command_dict_ref.items():
+    #     for inner_key, value in command_dict.items():
+    #         logging.info("inner_key, value  is %s %s", inner_key, value)
+    #         if inner_key == "message_or_unique_id":
+    #             logging.info("value  is: %s", value)
+    #             if "-" + command_name in value:
+    #                 command_id = value
+
+    #         else:
+    command_id = f"{time.time()}_{command_name}"
+    logging.info("command_id  is: %s", command_id)
+
+    cm.update_device_configured_band(2)

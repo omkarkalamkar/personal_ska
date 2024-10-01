@@ -132,11 +132,11 @@ class Configure(DishLNCommand):
                 command_id=self.component_manager.command_id,
                 lrcr_callback=lrcr_callback,
             )
-
+        self.logger.info("Starting the do method")
         return_code, message = self.do(argin)
         self.logger.info("Result -----: %s, %s", return_code, message)
         if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
-            logger.info(
+            self.logger.info(
                 "Setting taskcallback to FAILED with message: %s",
                 lrcr_callback,
             )
@@ -145,58 +145,62 @@ class Configure(DishLNCommand):
                 ResultCode.FAILED,
                 exception_msg=message,
             )
-            # self.task_callback(
-            #     status=TaskStatus.COMPLETED,
-            #     result=(return_code, message),
-            #     exception=message,
-            # )
-            # if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
-            #     logger.info(
-            #         "Setting taskcallback to FAILED with message: %s",
-            #         lrcr_callback,
-            #     )
-            #     self.task_callback(
-            #         status=TaskStatus.COMPLETED,
-            #         result=(return_code, message),
-            #         exception=message,
-            #     )
-            #     self.component_manager.command_in_progress = ""
-            # else:
-            # if (
-            #     self.component_manager.command_in_progress
-            #     not in self.component_manager.supported_commands
-            # ):
-            #     self.component_manager.command_in_progress = ""
-            # if not self.partial_configure:
-            #     self.start_tracker_thread(
-            #         "get_dish_state",
-            #         [
-            #             DishMode.OPERATE,
-            #             (PointingState.TRACK, PointingState.SLEW),
-            #             self.receiver_band,
-            #         ],
-            #         task_abort_event,
-            #         self.timeout_id,
-            #         self.timeout_callback,
-            #         command_id=self.component_manager.command_id,
-            #         lrcr_callback=lrcr_callback,
-            #     )
-            # else:
-            #     self.logger.info("Starting partial configure tracker thread")
-            #     self.start_tracker_thread(
-            #         "get_track_load_static_off_result",
-            #         [ResultCode.OK],
-            #         task_abort_event,
-            #         self.timeout_id,
-            #         self.timeout_callback,
-            #         command_id=self.component_manager.command_id,
-            #         lrcr_callback=lrcr_callback,
-            #     )
+        self.logger.info(
+            "Setting taskcallback to FAILED with message: %s",
+            lrcr_callback.command_data,
+        )
+        # self.task_callback(
+        #     status=TaskStatus.COMPLETED,
+        #     result=(return_code, message),
+        #     exception=message,
+        # )
+        # if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        #     logger.info(
+        #         "Setting taskcallback to FAILED with message: %s",
+        #         lrcr_callback,
+        #     )
+        #     self.task_callback(
+        #         status=TaskStatus.COMPLETED,
+        #         result=(return_code, message),
+        #         exception=message,
+        #     )
+        #     self.component_manager.command_in_progress = ""
+        # else:
+        # if (
+        #     self.component_manager.command_in_progress
+        #     not in self.component_manager.supported_commands
+        # ):
+        #     self.component_manager.command_in_progress = ""
+        # if not self.partial_configure:
+        #     self.start_tracker_thread(
+        #         "get_dish_state",
+        #         [
+        #             DishMode.OPERATE,
+        #             (PointingState.TRACK, PointingState.SLEW),
+        #             self.receiver_band,
+        #         ],
+        #         task_abort_event,
+        #         self.timeout_id,
+        #         self.timeout_callback,
+        #         command_id=self.component_manager.command_id,
+        #         lrcr_callback=lrcr_callback,
+        #     )
+        # else:
+        #     self.logger.info("Starting partial configure tracker thread")
+        #     self.start_tracker_thread(
+        #         "get_track_load_static_off_result",
+        #         [ResultCode.OK],
+        #         task_abort_event,
+        #         self.timeout_id,
+        #         self.timeout_callback,
+        #         command_id=self.component_manager.command_id,
+        #         lrcr_callback=lrcr_callback,
+        #     )
 
-            logger.info(
-                "The Configure command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
-            )
+        self.logger.info(
+            "The Configure command is invoked successfully on %s",
+            self.dish_master_adapter.dev_name,
+        )
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -367,8 +371,11 @@ class Configure(DishLNCommand):
 
         """
         try:
+            self.logger.info("Execute do method")
             result_code, message = self.init_adapter()
+            self.logger.info("Execute do method: %s, %s", result_code, message)
             if result_code == ResultCode.FAILED:
+                self.logger.info("Adapter creation failed")
                 self.logger.error(
                     "Adapter for device : %s is not found ",
                     self.component_manager.dish_dev_name,
