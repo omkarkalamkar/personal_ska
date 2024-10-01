@@ -1,5 +1,6 @@
 import json
-import logging
+
+# import logging
 import time
 
 import pytest
@@ -144,14 +145,15 @@ def test_configure_command_adapter_none(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    # result = task_callback.assert_against_call(status=TaskStatus.COMPLETED)
-    command_data = cm.long_running_result_callback.command_data
-    logging.info("command_data: %s", command_data)
-    assert ResultCode.FAILED == command_data[cm.command_id]["result_code"]
-    exc_msg = "'NoneType' object has no attribute 'dev_name'"
-    assert exc_msg == command_data[cm.command_id]["exception_message"]
-    # assert ResultCode.FAILED == result["result"][0]
-    # assert "TRANSIENT_NoUsableProfile" in result["result"][1]
+    time.sleep(5)
+    result = task_callback.assert_against_call(status=TaskStatus.COMPLETED)
+    # command_data = cm.long_running_result_callback.command_data
+    # logging.info("command_data: %s", command_data)
+    # assert ResultCode.FAILED == command_data[cm.command_id]["result_code"]
+    # exc_msg = "'NoneType' object has no attribute 'dev_name'"
+    # assert exc_msg == command_data[cm.command_id]["exception_message"]
+    assert ResultCode.FAILED == result["result"][0]
+    assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
 @pytest.mark.parametrize("key", ["pointing", "dish"])
@@ -229,9 +231,10 @@ def test_configure_timeout(tango_context, cm, task_callback, json_factory):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     message = (
-        "Timeout occurred while waiting for 2 configuredBand in "
-        + "Configure command."
+        "Timeout occurred while waiting for configuredBand command to "
+        + "be completed in Configure command."
     )
+    time.sleep(5)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

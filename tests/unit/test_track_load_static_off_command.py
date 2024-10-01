@@ -125,6 +125,15 @@ def test_configure_command_completed_with_correction_key_reset(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    time.sleep(4)
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    time.sleep(2)
+    cm.update_device_configured_band("2")
+    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
+
+    time.sleep(2)
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
 
     task_callback.assert_against_call(
         call_kwargs={
@@ -189,6 +198,17 @@ def test_configure_command_completed_with_correction_key_update(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+
+    time.sleep(4)
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    time.sleep(2)
+    cm.update_device_configured_band("2")
+    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
+
+    time.sleep(2)
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
+
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
