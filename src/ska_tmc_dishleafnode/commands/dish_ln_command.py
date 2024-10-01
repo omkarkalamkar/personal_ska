@@ -81,7 +81,7 @@ class DishLNCommand(TmcLeafNodeCommand):
 
         return ResultCode.OK, ""
 
-    def set_wait_for_dishmode(self: DishLNCommand, dishmode: DishMode) -> bool:
+    def set_wait_for_dishmode(self: DishLNCommand, dishmode: DishMode) -> str:
         """Waits for transition of DishMode to the correct state.
 
         :return: True if the DishMode transitions to the correct state within
@@ -90,19 +90,24 @@ class DishLNCommand(TmcLeafNodeCommand):
         """
         start_time = time.time()
         elapsed_time = 0
+        flag = "NOT_ACHIEVED"
         while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.abort_event.is_set():
+                flag = "ABORTED"
+                return flag
             if self.component_manager.dishMode == dishmode:
-                return True
+                flag = "ACHIEVED"
+                return flag
             elapsed_time = time.time() - start_time
 
         self.logger.info(
             "Current Dishmode is %s", self.component_manager.dishMode
         )
-        return False
+        return flag
 
     def set_wait_for_configured_band(
         self: DishLNCommand, configured_band: str
-    ):
+    ) -> str:
         """Waits for transition of configuredBand to the correct state.
 
         :return: True if the DishMode transitions to the correct state within
@@ -111,14 +116,18 @@ class DishLNCommand(TmcLeafNodeCommand):
         """
         start_time = time.time()
         elapsed_time = 0
+        flag = "NOT_ACHIEVED"
         while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.abort_event.is_set():
+                flag = "ABORTED"
+                return flag
             if self.component_manager.dishConfiguredBand == configured_band:
                 self.logger.info(
                     "Dish band %s is configured.", configured_band
                 )
-                return True
+                return "ACHIEVED"
             elapsed_time = time.time() - start_time
-        return False
+        return "NOT_ACHIEVED"
 
     def init_adapter_mid(self: DishLNCommand):
         self.init_adapter()
@@ -131,11 +140,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         :type command_name: str
         """
         command_id = f"{time.time()}-{command_name}"
-        self.logger.info(
-            "Setting command id as %s for command: %s",
-            command_id,
-            command_name,
-        )
         self.component_manager.command_id = command_id
 
     # pylint: disable=arguments-differ

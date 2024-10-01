@@ -30,7 +30,6 @@ from tango import (
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
-from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
@@ -61,7 +60,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
-    IsDishAbortCommands = device_property(
+    IsDishAbortCommandsEnabled = device_property(
         dtype="DevBoolean", default_value=False
     )
 
@@ -919,7 +918,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,
             command_timeout=self.CommandTimeOut,
-            is_dish_abort_commands=self.IsDishAbortCommands,
+            is_dish_abort_commands_enabled=self.IsDishAbortCommandsEnabled,
             elevation=self.Elevation,
             azimuth=self.Azimuth,
             elevation_max_limit=self.ElevationMaxLimit,
@@ -965,7 +964,9 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         self.register_command_object(
             "AbortCommands",
-            AbortCommands(self.component_manager, logger=self.logger),
+            self.AbortCommandsCommand(
+                self.component_manager, logger=self.logger
+            ),
         )
         self.register_command_object(
             "SetKValue",

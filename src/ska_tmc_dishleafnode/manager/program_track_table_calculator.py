@@ -75,7 +75,9 @@ class ProgramTrackTableCalculator:
                 )
 
                 if self.component_manager.get_track_process_event_status():
-                    self.logger.debug("Stopping the ProgramTrackTable Thread.")
+                    self.logger.debug(
+                        "Stopping the ProgramTrackTable calculation."
+                    )
                     break
         except Exception as exception:
             self.logger.error(exception)

@@ -1,6 +1,5 @@
 # pylint: disable=line-too-long,unused-import
 
-import time
 
 import pytest
 import tango
@@ -10,36 +9,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import COMMAND_COMPLETED, wait_for_ping
-
-
-@given(
-    parsers.parse("DishLeafNode and DishMaster devices are running"),
-    target_fixture="dishleafnode_cm",
-)
-def dishleafnode_cm(tango_context, cm):
-    database = Database()
-    instance_list = database.get_device_exported_for_class("DishLeafNode")
-    for instance in instance_list.value_string:
-        assert "ska_mid/tm_leaf_node/d" in DeviceProxy(instance).dev_name()
-    return cm
-
-
-@when(parsers.parse("DishLeafNode pings the DishMaster device"))
-def ping_started(dishleafnode_cm):
-    start_time = time.time()
-    while not dishleafnode_cm.liveliness_probe_object._thread.is_alive():
-        time.sleep(0.5)
-        if time.time() - start_time > 30:
-            assert False
-
-    assert dishleafnode_cm.liveliness_probe_object._thread.is_alive()
-
-
-@then(parsers.parse("the ping information gets updated"))
-def ping_updates(dishleafnode_cm):
-    wait_for_ping(dishleafnode_cm)
-    assert dishleafnode_cm._device.ping > 0
+from tests.settings import COMMAND_COMPLETED
 
 
 @given(

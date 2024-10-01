@@ -6,7 +6,7 @@ import logging
 from typing import Tuple
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.commands import ArgumentValidator, FastCommand, ResultCode
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
@@ -16,7 +16,7 @@ configure_logging()
 LOGGER = logging.getLogger(__name__)
 
 
-class AbortCommands(DishLNCommand, FastCommand):
+class AbortCommands(DishLNCommand):
     """
     A class for DishLeafNode's AbortCommands() command.
     Command to abort the Dish Master and bring it to its ABORTED state.
@@ -34,8 +34,11 @@ class AbortCommands(DishLNCommand, FastCommand):
             adapter_factory=None,
             logger=logger,
         )
-        self._validator = ArgumentValidator()
         self._name = "AbortCommands"
+
+    def invoke_abort(self):
+        """This method calls do for DishLeafNode Abort command"""
+        return self.do()
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
@@ -54,6 +57,14 @@ class AbortCommands(DishLNCommand, FastCommand):
             (ResultCode, str)
 
         """
+        self.logger.debug(
+            "Command in progress: %s",
+            self.component_manager.command_in_progress,
+        )
+        if not self.component_manager.command_in_progress:
+            self.component_manager.abort_event.clear()
+            self.logger.info("Abort event is cleared")
+
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -64,24 +75,36 @@ class AbortCommands(DishLNCommand, FastCommand):
 
         self.logger.info(
             "Dish Abort commands device property is: %s",
-            self.component_manager.is_dish_abort_commands,
+            self.component_manager.is_dish_abort_commands_enabled,
         )
-        if self.component_manager.is_dish_abort_commands:
+
+        if self.component_manager.is_dish_abort_commands_enabled:
             with self.component_manager.tango_operation_execution_lock:
                 result_code, message = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "AbortCommands"
                 )
             self.logger.info(
-                f"AbortCommands command invoked, Result code is {result_code}\
-                and Message is {message}"
+                "AbortCommands() command has been invoked, the result code"
+                + " is %s and the message is %s",
+                result_code[0],
+                message[0],
             )
-            if result_code[0] == ResultCode.FAILED:
+            if result_code[0] in [
+                ResultCode.REJECTED,
+                ResultCode.NOT_ALLOWED,
+                ResultCode.ABORTED,
+            ]:
                 return result_code[0], message[0]
 
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_dish_tracking()
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
+
+        self.logger.debug(
+            "AbortCommands command executed successfully on"
+            + " the DishLeafNode."
+        )
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:

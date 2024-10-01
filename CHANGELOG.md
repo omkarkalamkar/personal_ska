@@ -5,9 +5,7 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-[0.17.4]
-********
-* Fix bug SKB-467 - Track command will not be invoked if pointingState is TRACK/SLEW
+
 
 [0.17.3]
 ********
@@ -80,6 +78,18 @@ show states of attributes at initialization on dashboards
 
 Fixed
 ======
+
+[0.17.5]
+********
+* Fix bug SKB-467 - Track command will not be invoked if pointingState is TRACK/SLEW
+
+
+[0.17.4]
+********
+* Updated AbortCommands() command as slow command.
+* Updated Configure() command to stop the execution when AbortCommands() command is invoked while configuring the dish.
+* Made IsDishAbortCommands property configurable at deployment time.
+
 [0.17.1]
 * Updated the correction key behaviour when correction key is empty. 
   

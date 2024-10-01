@@ -4,7 +4,6 @@ FROM $BUILD_IMAGE AS buildenv
 
 FROM $BASE_IMAGE
 
-
 # Install Poetry
 USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
