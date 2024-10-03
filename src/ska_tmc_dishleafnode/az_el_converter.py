@@ -15,6 +15,8 @@ from katpoint.conversion import angle_to_string
 from ska_ser_logging import configure_logging
 from ska_tmc_common.dish_utils import DishHelper
 
+from src.ska_tmc_dishleafnode.commands.configure_band_command import LOGGER
+
 configure_logging()
 logger = logging.getLogger(__name__)
 
@@ -87,6 +89,7 @@ class AzElConverter:
         :type timestamp: str
         """
         non_sidereal_target = Target(f"{target_name}, special")
+        LOGGER.debug("non_sidereal_target - %s", non_sidereal_target)
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
             azel = non_sidereal_target.azel(
                 timestamp, self.component_manager.observer
@@ -111,6 +114,9 @@ class AzElConverter:
         return:
             az_el_coordinates (list)
         """
+        LOGGER.debug(
+            "Converting Target RaDec coordinates to the AzEl coordinates"
+        )
         return self.radec_to_azel(right_ascension, declination, timestamp)
 
     def azel_to_radec(

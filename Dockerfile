@@ -18,3 +18,4 @@ USER tango
 
 # create ipython profile too so that itango doesn't fail if ipython hasn't run yet
 RUN ipython profile create
+RUN apt-get update && apt-get install git -y
