@@ -9,7 +9,7 @@ USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 RUN poetry config virtualenvs.create false
 WORKDIR /app
-
+RUN apt-get update && apt-get install git -y
 COPY --chown=tango:tango . /app
 # Install runtime dependencies and the app
 RUN poetry install --only main
@@ -18,4 +18,3 @@ USER tango
 
 # create ipython profile too so that itango doesn't fail if ipython hasn't run yet
 RUN ipython profile create
-RUN apt-get update && apt-get install git -y
