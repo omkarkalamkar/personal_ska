@@ -1790,17 +1790,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 ResultCode.NOT_ALLOWED,
                 ResultCode.REJECTED,
             ]:
-                if (
-                    self.is_configure_command
-                    and ("ConfigureBand" in unique_id)
-                    or ("SetOperateMode" in unique_id)
-                    or ("TrackLoadStaticOff" in unique_id)
-                ):
-                    self.logger.info(
-                        "LRCRCallback is: %s",
-                        self.long_running_result_callback,
-                    )
-                    # if unique_id.endswith(self.supported_commands):
+                if self.is_configure_command:
+                    if (
+                        ("ConfigureBand" in unique_id)
+                        or ("SetOperateMode" in unique_id)
+                        or ("TrackLoadStaticOff" in unique_id)
+                    ):
+                        self.logger.info(
+                            "LRCRCallback is: %s",
+                            self.long_running_result_callback,
+                        )
+                        # if unique_id.endswith(self.supported_commands):
                 else:
                     self.logger.info(
                         "Updating LRCRCallback with value: %s for %s"

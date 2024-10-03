@@ -33,6 +33,16 @@ COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
 COMMAND_FAILED = json.dumps(
     [ResultCode.FAILED, "Exception occured, command failed."]
 )
+COMMAND_TIMEOUT = json.dumps(
+    [ResultCode.FAILED, "Timeout has occurred, command failed"]
+)
+COMMAND_CONFIGURE_BAND_TIMEOUT = json.dumps(
+    [
+        ResultCode.FAILED,
+        "Timeout occurred while waiting for "
+        + "configuredBand command to be completed in Configure command.",
+    ]
+)
 SKA_EPOCH = "1999-12-31T23:59:28Z"
 COMMAND_COMPLETION_MESSAGE = "Command Completed"
 

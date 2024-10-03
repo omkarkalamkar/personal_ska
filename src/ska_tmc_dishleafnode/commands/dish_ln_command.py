@@ -202,16 +202,25 @@ class DishLNCommand(TmcLeafNodeCommand):
         Args:
             **kwargs: Keyword arguments for task status update.
         """
+        self.logger.info("Calling update_task_status method ------")
         result = kwargs.get("result")
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
+        self.logger.info(
+            "Result, status, message ------: %s, %s, %s",
+            result,
+            status,
+            message,
+        )
         if status == TaskStatus.ABORTED:
             self.task_callback(status=status)
         if result:
             if result[0] == ResultCode.FAILED:
+                self.logger.info("ResultCode FAILED")
                 self.task_callback(
                     status=status, result=result, exception=message
                 )
+                self.logger.info("TaskCallback is set: %s", self.task_callback)
             else:
                 self.logger.info("Result is: %s", result)
                 self.task_callback(status=status, result=result)
