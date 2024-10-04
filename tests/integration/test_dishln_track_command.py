@@ -12,11 +12,104 @@ from ska_tmc_common.enum import DishMode, FaultType, PointingState
 from tests.settings import (
     COMMAND_COMPLETED,
     COMMAND_FAILED,
+    COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
     tear_down,
 )
+
+
+def track_timeout_dish_leaf_node(
+    tango_context,
+    dishln_name,
+    group_callback,
+    track_input_str,
+):
+    logger.info(f"{tango_context}")
+    dev_factory = DevFactory()
+    dish_leaf_node = dev_factory.get_device(dishln_name)
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dish_master.SetDirectDishMode(DishMode.OPERATE)
+    dish_master.SetDirectPointingState(PointingState.READY)
+    DISHMODE_ID = dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=2,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=2,
+    )
+    LRCR_ID = dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
+
+    TIMEOUT_DEFECT = json.dumps(
+        {
+            "enabled": True,
+            "fault_type": FaultType.STUCK_IN_INTERMEDIATE_STATE,
+            "error_message": "Device stuck in intermediate state",
+            "result": ResultCode.FAILED,
+            "intermediate_state": PointingState.READY,
+        }
+    )
+
+    # Set defect on DishMaster
+    dish_master.SetDefective(TIMEOUT_DEFECT)
+
+    result_config, unique_id_config = dish_leaf_node.Track(track_input_str)
+    assert result_config[0] == ResultCode.QUEUED
+    logger.info(
+        f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
+
+    # Wait for the command timeout to be occurred. The command timeout is set
+    # to 15 sec.
+    time.sleep(18)
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_config[0], COMMAND_TIMEOUT),
+        lookahead=8,
+    )
+
+    RESET_DEFECT = json.dumps(
+        {
+            "enabled": False,
+            "fault_type": FaultType.STUCK_IN_INTERMEDIATE_STATE,
+            "error_message": "Device stuck in intermediate state",
+            "result": ResultCode.FAILED,
+            "intermediate_state": PointingState.READY,
+        }
+    )
+    dish_master.SetDefective(RESET_DEFECT)
+
+    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    tear_down(dish_leaf_node, dish_master, group_callback)
+
+
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_track_command_timeout(tango_context, group_callback, json_factory):
+    track_timeout_dish_leaf_node(
+        tango_context,
+        DISH_LEAF_NODE_DEVICE,
+        group_callback,
+        json_factory("dishleafnode_track"),
+    )
 
 
 def track_error_propagation_dish_leaf_node(
