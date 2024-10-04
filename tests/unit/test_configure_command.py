@@ -19,8 +19,13 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context, cm, task_callback, json_factory, dish_master_device
+    tango_context_process_true,
+    cm,
+    task_callback,
+    json_factory,
+    dish_master_device,
 ):
+    cm.get_device().update_unresponsive(False, "")
     dev_factory = DevFactory()
     dish_device = dev_factory.get_device(dish_master_device)
     dish_device.SetDirectDishMode(DishMode.STANDBY_FP)

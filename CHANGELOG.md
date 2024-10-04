@@ -5,6 +5,11 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.17.3]
+********
+* Fix bug SKB-502, to update the attributes at initialization, so that it can 
+show states of attributes at initialization on dashboards
+
 [0.17.2]
 ********
 * Implemented error propagation and timeout for configure command
@@ -71,6 +76,14 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.17.5]
+* Updated common v0.20.2 with liveliness probe bug related to full trl fixed.
+ 
+[0.17.4]
+* Updated AbortCommands() command as slow command.
+* Updated Configure() command to stop the execution when AbortCommands() command is invoked while configuring the dish.
+* Made IsDishAbortCommands property configurable at deployment time.
+
 [0.17.1]
 * Updated the correction key behaviour when correction key is empty. 
   
@@ -100,7 +113,6 @@ Fixed
 *********
 Fixed the dish id not coming as expected from real dish master fqdn.
 
-======
 [0.13.4]
 *********
 Program Track Table Process disabled .

@@ -11,7 +11,7 @@ def test_static_pm_setup_command(
 ):
     """Test to check the global pointing model command
     functionality"""
-
+    cm.get_device().update_unresponsive(False, "")
     cm.is_staticpmsetup_allowed()
     global_pointing_tm_data_path = json_factory("global_pointing_model")
     cm.static_pm_setup(
@@ -40,6 +40,7 @@ def test_static_pm_setup_command_with_faulty_path(
     This test verifies the command gets rejected when faulty TmData path
     gets detected.
     """
+    cm.get_device().update_unresponsive(False, "")
     cm.is_staticpmsetup_allowed()
     global_pointing_tm_model_path = json_factory("global_pointing_model")
     global_pointing_tm_model_path = json.loads(global_pointing_tm_model_path)
@@ -78,6 +79,7 @@ def test_static_pm_setup_command_with_faulty_json(
     This test verifies the command gets rejected when faulty TmData path
     gets detected.
     """
+    cm.get_device().update_unresponsive(False, "")
     cm.is_staticpmsetup_allowed()
     global_pointing_tm_model_path = json_factory(
         "global_pointing_model_faulty"
@@ -112,6 +114,7 @@ def test_static_pm_setup_command_with_wrong_dish_id(
     This test verifies the command gets rejected when faulty TmData path
     gets detected.
     """
+    cm.get_device().update_unresponsive(False, "")
     cm.is_staticpmsetup_allowed()
     global_pointing_tm_model_path = json_factory(
         "global_pointing_model_ska002"

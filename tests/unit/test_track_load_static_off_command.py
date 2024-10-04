@@ -89,7 +89,7 @@ def test_trackloadstaticoff_command_invalid_input(
 
 
 def test_configure_command_completed_with_correction_key_reset(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,
@@ -157,10 +157,12 @@ def test_configure_command_completed_with_correction_key_reset(
         time.sleep(1)
 
     assert "Command Completed" in message
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_with_correction_key_update(
-    tango_context,
+    tango_context_process_true,
     cm,
     group_callback,
     task_callback,
@@ -168,6 +170,7 @@ def test_configure_command_completed_with_correction_key_update(
 ):
     """Test configure command with correction key as UPDATE"""
 
+    cm.get_device().update_unresponsive(False, "")
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
@@ -242,6 +245,9 @@ def test_configure_command_completed_with_correction_key_update(
         time.sleep(1)
 
     assert "Command Completed" in message
+    time.sleep(0.2)
+    cm.set_track_process_event()
+    cm.stop_track_table_process()
 
 
 def test_correction_key_reset_partial_config(

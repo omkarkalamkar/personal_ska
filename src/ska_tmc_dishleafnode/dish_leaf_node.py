@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 
 from numpy import isnan
 from numpy import nan as NaN
+from ska_control_model import HealthState
 from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tmc_common import (
@@ -29,7 +30,6 @@ from tango import (
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
-from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
@@ -60,7 +60,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
-    IsDishAbortCommands = device_property(
+    IsDishAbortCommandsEnabled = device_property(
         dtype="DevBoolean", default_value=False
     )
 
@@ -121,7 +121,6 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     def init_device(self: DishLeafNode):
         self._isSubsystemAvailable = True
-        super().init_device()
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""
@@ -130,6 +129,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
+        super().init_device()
         for attribute_name in [
             "healthState",
             "isSubsystemAvailable",
@@ -168,6 +168,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             {release.description}"""
             device._version_id = release.version
             device._dishln_name = device.get_name()
+            device._update_health_state(HealthState.OK)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -917,7 +918,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,
             command_timeout=self.CommandTimeOut,
-            is_dish_abort_commands=self.IsDishAbortCommands,
+            is_dish_abort_commands_enabled=self.IsDishAbortCommandsEnabled,
             elevation=self.Elevation,
             azimuth=self.Azimuth,
             elevation_max_limit=self.ElevationMaxLimit,
@@ -963,7 +964,9 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         self.register_command_object(
             "AbortCommands",
-            AbortCommands(self.component_manager, logger=self.logger),
+            self.AbortCommandsCommand(
+                self.component_manager, logger=self.logger
+            ),
         )
         self.register_command_object(
             "SetKValue",

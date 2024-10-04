@@ -86,7 +86,7 @@ class DishLNCommand(TmcLeafNodeCommand):
 
         return ResultCode.OK, ""
 
-    def set_wait_for_dishmode(self: DishLNCommand, dishmode: DishMode) -> bool:
+    def set_wait_for_dishmode(self: DishLNCommand, dishmode: DishMode) -> str:
         """Waits for transition of DishMode to the correct state.
 
         :return: True if the DishMode transitions to the correct state within
@@ -95,17 +95,22 @@ class DishLNCommand(TmcLeafNodeCommand):
         """
         start_time = time.time()
         elapsed_time = 0
+        flag = "NOT_ACHIEVED"
         while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.abort_event.is_set():
+                flag = "ABORTED"
+                return flag
             if self.component_manager.dishMode == dishmode:
-                return True
+                flag = "ACHIEVED"
+                return flag
             elapsed_time = time.time() - start_time
 
         self.logger.info(
             "Current Dishmode is %s", self.component_manager.dishMode
         )
-        return False
+        return flag
 
-    def set_wait_for_setoperatemode_completed(self: DishLNCommand):
+    def set_wait_for_setoperatemode_completed(self: DishLNCommand) -> str:
         """Waits for the SetOperateMode command to be completed.
 
         :return: True if is_setOpreateMode_completed event is set.
@@ -113,19 +118,27 @@ class DishLNCommand(TmcLeafNodeCommand):
         """
         self.logger.info("Waiting for SetOperateMode to be completed")
 
-        if self.component_manager.is_setoperatemode_completed_event.wait(
-            timeout=10
-        ):
-            self.logger.info("Returning True")
-            return True
+        start_time = time.time()
+        elapsed_time = 0
+        flag = "NOT_ACHIEVED"
+        while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.abort_event.is_set():
+                flag = "ABORTED"
+                return flag
+            evt = self.component_manager.is_setoperatemode_completed_event
+            if evt.is_set():
+                flag = "ACHIEVED"
+                self.logger.info("Returning Flag to be %s", flag)
+                return flag
+            elapsed_time = time.time() - start_time
         self.logger.info(
             "SetOperateMode flag is: %s",
             self.component_manager.is_setoperatemode_completed_event.is_set(),
         )
-        self.logger.info("Returning False")
-        return False
+        self.logger.info("Returning Flag to be %s", flag)
+        return flag
 
-    def set_wait_for_trackloadstaticoff_completed(self: DishLNCommand):
+    def set_wait_for_trackloadstaticoff_completed(self: DishLNCommand) -> str:
         """Waits for the TrackLoadStaticOff command to be completed.
 
         :return: True if is_trackloadstaticoff_completed event is set.
@@ -133,15 +146,24 @@ class DishLNCommand(TmcLeafNodeCommand):
         """
         self.logger.info("Waiting for TrackLoadStaticOff to be completed")
 
-        if self.component_manager.is_trackloadstaticoff_completed_event.wait(
-            timeout=10
-        ):
-            self.logger.info("Returning True")
-            return True
-        self.logger.info("Returning False")
-        return False
+        start_time = time.time()
+        elapsed_time = 0
+        flag = "NOT_ACHIEVED"
+        while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.abort_event.is_set():
+                flag = "ABORTED"
+                return flag
+            evt = self.component_manager.is_trackloadstaticoff_completed_event
+            if evt.is_set():
+                flag = "ACHIEVED"
+                self.logger.info("Returning Flag to be %s", flag)
+                return flag
+            elapsed_time = time.time() - start_time
 
-    def set_wait_for_configured_band(self: DishLNCommand):
+        self.logger.info("Returning Flag to be %s", flag)
+        return flag
+
+    def set_wait_for_configured_band(self: DishLNCommand) -> str:
         """Waits for configureBand command to be completed.
 
         :return: True if is_configureBand_completed event is set
@@ -149,18 +171,25 @@ class DishLNCommand(TmcLeafNodeCommand):
         :rtype: boolean
         """
         self.logger.info("Waiting for ConfigureBand to be completed")
-
-        if self.component_manager.is_configureband_completed_event.wait(
-            timeout=10
-        ):
-            self.logger.info("Returning True")
-            return True
+        start_time = time.time()
+        elapsed_time = 0
+        flag = "NOT_ACHIEVED"
+        while elapsed_time < self.component_manager.command_timeout:
+            if self.component_manager.abort_event.is_set():
+                flag = "ABORTED"
+                return flag
+            evt = self.component_manager.is_configureband_completed_event
+            if evt.is_set():
+                flag = "ACHIEVED"
+                self.logger.info("Returning Flag to be %s", flag)
+                return flag
+            elapsed_time = time.time() - start_time
         self.logger.info(
             "ConfigureBand flag is: %s",
             self.component_manager.is_configureband_completed_event.is_set(),
         )
-        self.logger.info("Returning False")
-        return False
+        self.logger.info("Returning Flag to be %s", flag)
+        return flag
 
     def init_adapter_mid(self: DishLNCommand):
         self.init_adapter()
@@ -173,11 +202,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         :type command_name: str
         """
         command_id = f"{time.time()}-{command_name}"
-        self.logger.info(
-            "Setting command id as %s for command: %s",
-            command_id,
-            command_name,
-        )
         self.component_manager.command_id = command_id
 
     def update_task_status(

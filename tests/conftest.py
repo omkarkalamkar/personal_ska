@@ -29,8 +29,6 @@ from tests.settings import (
 
 configure_logging()
 logger = logging.getLogger(__name__)
-configure_logging(logging.DEBUG)
-LOGGER = logging.getLogger(__name__)
 
 
 def pytest_sessionstart(session):
@@ -82,7 +80,9 @@ def devices_to_load():
             "devices": [
                 {
                     "name": "ska_mid/tm_leaf_node/d0001",
-                    "DishMasterFQDN": DISH_MASTER_DEVICE,
+                    "properties": {
+                        "DishMasterFQDN": DISH_MASTER_DEVICE,
+                    },
                 },
             ],
         },
@@ -108,6 +108,22 @@ def tango_context(devices_to_load, request):
     if not true_context:
         with MultiDeviceTestContext(
             devices_to_load, process=False, timeout=80
+        ) as context:
+            DevFactory._test_context = context
+            logging.info("test context set")
+            yield context
+    else:
+        yield None
+
+
+@pytest.fixture
+def tango_context_process_true(devices_to_load, request):
+    """Provides context to run devices without database."""
+    true_context = request.config.getoption("--true-context")
+    logging.info("true context: %s", true_context)
+    if not true_context:
+        with MultiDeviceTestContext(
+            devices_to_load, process=True, timeout=80
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -248,13 +264,14 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
+        _liveliness_probe=LivelinessProbeType.NONE,
     )
 
     start_time = time.time()
     while not cm.actual_pointing_process.is_alive():
         time.sleep(0.5)
         if time.time() - start_time > 30:
-            LOGGER.info("actual_pointing_process thread is not alive")
+            logger.info("actual_pointing_process thread is not alive")
             break
 
     yield cm
@@ -334,7 +351,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         time.sleep(0.5)
 
         if time.time() - start_time > 120:
-            LOGGER.info("actual_pointing values are not populated")
+            logger.info("actual_pointing values are not populated")
             break
 
     yield cm
