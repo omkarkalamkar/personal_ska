@@ -52,7 +52,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
         lookahead=2,
     )
 
-    result_op, unique_id_op = dish_leaf_node.ConfigureBand("2")
+    result_op, unique_id_op = dish_leaf_node.ConfigureBand("1")
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
 
@@ -148,7 +148,7 @@ def configureband_command_error_propogation(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah15891
+@pytest.mark.sah1589
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configureband_command_error_propogation(
@@ -233,7 +233,7 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah15891
+# @pytest.mark.sah1589
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configureband_command_timeout(tango_context, group_callback):

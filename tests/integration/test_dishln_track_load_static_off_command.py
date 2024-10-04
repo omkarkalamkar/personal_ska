@@ -22,63 +22,6 @@ from tests.settings import (
 argin = json.dumps([0.1, 0.2])
 
 
-def track_load_static_off_dish_leaf_node(
-    tango_context,
-    dishln_name,
-    group_callback,
-    input_str,
-):
-    logger.info(f"{tango_context}")
-    dev_factory = DevFactory()
-    dish_leaf_node = dev_factory.get_device(dishln_name)
-    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.SetDirectPointingState(PointingState.READY)
-
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=2,
-    )
-    LRCR_ID = dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
-
-    result_config, unique_id_config = dish_leaf_node.TrackLoadStaticOff(argin)
-    assert result_config[0] == ResultCode.QUEUED
-    logger.info(
-        f"Command ID: {unique_id_config} Returned result: {result_config}"
-    )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
-
-
-# @pytest.mark.sah1589
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
-def test_track_load_static_off_command(
-    tango_context, group_callback, json_factory
-):
-    track_load_static_off_dish_leaf_node(
-        tango_context,
-        DISH_LEAF_NODE_DEVICE,
-        group_callback,
-        argin,
-    )
-
-
 def track_load_static_off_dish_leaf_node_error_propagation(
     tango_context,
     dishln_name,
@@ -151,6 +94,63 @@ def test_track_load_static_off_command_error_propagation(
     tango_context, group_callback, json_factory
 ):
     track_load_static_off_dish_leaf_node_error_propagation(
+        tango_context,
+        DISH_LEAF_NODE_DEVICE,
+        group_callback,
+        argin,
+    )
+
+
+def track_load_static_off_dish_leaf_node(
+    tango_context,
+    dishln_name,
+    group_callback,
+    input_str,
+):
+    logger.info(f"{tango_context}")
+    dev_factory = DevFactory()
+    dish_leaf_node = dev_factory.get_device(dishln_name)
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dish_master.SetDirectPointingState(PointingState.READY)
+
+    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=2,
+    )
+    LRCR_ID = dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
+
+    result_config, unique_id_config = dish_leaf_node.TrackLoadStaticOff(argin)
+    assert result_config[0] == ResultCode.QUEUED
+    logger.info(
+        f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_config[0], COMMAND_COMPLETED),
+        lookahead=6,
+    )
+
+    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(LRCR_ID)
+
+
+# @pytest.mark.sah1589
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_track_load_static_off_command(
+    tango_context, group_callback, json_factory
+):
+    track_load_static_off_dish_leaf_node(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
