@@ -16,8 +16,6 @@ from ska_tmc_common import PointingState, TimeoutCallback, TimeoutState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
-# from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
@@ -103,7 +101,7 @@ class Track(DishLNCommand):
         else:
             if self.component_manager.is_configure_command is False:
                 logger.info(
-                    "Configure flag: %s",
+                    "Configure flag is: %s",
                     self.component_manager.is_configure_command,
                 )
                 self.start_tracker_thread(
@@ -121,13 +119,6 @@ class Track(DishLNCommand):
                     + " command. The command status is monitored in "
                     + "Configure command tracker thread."
                 )
-            # self.task_callback(
-            #     status=TaskStatus.COMPLETED,
-            #     result=(
-            #         ResultCode.OK,
-            #         COMMAND_COMPLETION_MESSAGE,
-            #     ),
-            # )
 
     def validate_json_argument(self: Track, input_argin: dict) -> tuple:
         """Validates the json argument"""

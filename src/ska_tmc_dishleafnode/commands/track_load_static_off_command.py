@@ -77,7 +77,7 @@ class TrackLoadStaticOff(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.component_manager.is_configure_command is False:
             logger.info(
-                "Configure flag: %s",
+                "Configure flag is: %s",
                 self.component_manager.is_configure_command,
             )
             self.set_command_id(__class__.__name__)
@@ -109,7 +109,7 @@ class TrackLoadStaticOff(DishLNCommand):
             )
             if self.component_manager.is_configure_command is False:
                 logger.info(
-                    "Configure flag: %s",
+                    "Configure flag is: %s",
                     self.component_manager.is_configure_command,
                 )
                 self.start_tracker_thread(

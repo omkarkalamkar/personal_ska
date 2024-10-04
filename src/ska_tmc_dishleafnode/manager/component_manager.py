@@ -3,7 +3,6 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 from __future__ import annotations
 
-import copy
 import datetime
 import json
 import os
@@ -57,7 +56,6 @@ from ska_tmc_dishleafnode.commands import (
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
-# from .common_utils import process_long_running_command_result
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 from .program_track_table_calculator import ProgramTrackTableCalculator
@@ -193,7 +191,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
-        self.command_mapping = {}
         self.event_receiver = _event_receiver
 
         # Event Receiver
@@ -1477,7 +1474,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-        self.logger.info("Configure Band event occurred ------")
+        self.logger.info("Configure Band event occurred")
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
@@ -1681,27 +1678,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def get_lrcr_result(self) -> List[str]:
-        """Returns long running command result for command
-        with given command ID"""
-
-        command_dict_ref = {}
-        command_dict_ref = copy.deepcopy(self.command_mapping)
-
-        for key, command_dict in command_dict_ref.items():
-            if key == self.command_id:
-                # Iterate through the  dictionary for each command Id
-                for inner_key, value in command_dict.items():
-                    if inner_key == "ResultCode":
-                        self.logger.info(
-                            "command mapping has required command ID"
-                            " and ResultCode  as here \n"
-                            " %s",
-                            self.command_mapping,
-                        )
-                        return [value]
-        return [""]
-
     def update_device_long_running_command_result(
         self: DishLNComponentManager,
         device_name: str,
@@ -1715,21 +1691,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type: (Tuple[List[str], List[str]])
         """
         self.logger.info("LRC Result is:  %s", lrc_result)
-        if self.is_configure_command is False and (
-            "ConfigureBand" in lrc_result[0]
-            or "SetOperateMode" in lrc_result[0]
-            or "Track" in lrc_result[0]
-        ):
-            self.logger.info(
-                "%s invoked as a separate TANGO command", lrc_result[0]
-            )
-            self.update_command_result(device_name, lrc_result)
-        else:
-            self.logger.info(
-                "%s invoked as part of Configure command", lrc_result[0]
-            )
-            self.update_command_result(device_name, lrc_result)
-            # process_long_running_command_result(self, lrc_result)
+        self.update_command_result(device_name, lrc_result)
 
     def update_command_result(self, device_name: str, value) -> None:
         """Updates the long running command result callback"""
@@ -1760,7 +1722,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.configure_band_result["result_code"] = result_code
                 self.configure_band_result["message"] = message
                 self.logger.info(
-                    "ConfigureBand flag ------: %s",
+                    "ConfigureBand flag is: %s",
                     self.is_configureband_completed_event.is_set(),
                 )
                 self.logger.info(
@@ -1800,7 +1762,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "LRCRCallback is: %s",
                             self.long_running_result_callback,
                         )
-                        # if unique_id.endswith(self.supported_commands):
                 else:
                     self.logger.info(
                         "Updating LRCRCallback with value: %s for %s"

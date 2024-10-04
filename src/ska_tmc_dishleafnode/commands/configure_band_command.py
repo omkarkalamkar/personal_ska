@@ -16,8 +16,6 @@ from ska_tmc_common import TimeoutCallback, TimeoutState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
-# from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
@@ -41,10 +39,6 @@ class ConfigureBand(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        # self.task_callback = None
-        # self.timekeeper = TimeKeeper(
-        #     self.component_manager.command_timeout, logger
-        # )
         self.timeout_id: str = f"{time.time()}_{__class__.__name__}"
         self.timeout_callback: Callable[
             [str, TimeoutState], Optional[ValueError]
@@ -77,7 +71,7 @@ class ConfigureBand(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.component_manager.is_configure_command is False:
             logger.info(
-                "Configure flag: %s",
+                "Configure flag is: %s",
                 self.component_manager.is_configure_command,
             )
             self.set_command_id(__class__.__name__)
@@ -98,16 +92,10 @@ class ConfigureBand(DishLNCommand):
             self.update_task_status(
                 result=(ResultCode.FAILED, message), exception=message
             )
-
-            # self.task_callback(
-            #     status=TaskStatus.COMPLETED,
-            #     result=(return_code, message),
-            #     exception=message,
-            # )
         else:
             if self.component_manager.is_configure_command is False:
                 logger.info(
-                    "Configure flag: %s",
+                    "Configure flag is: %s",
                     self.component_manager.is_configure_command,
                 )
                 self.start_tracker_thread(
@@ -125,39 +113,6 @@ class ConfigureBand(DishLNCommand):
                     + " command. The command status is monitored in "
                     + "Configure command tracker thread."
                 )
-
-        # self.task_callback(
-        #     status=TaskStatus.COMPLETED,
-        #     result=(
-        #         ResultCode.OK,
-        #         COMMAND_COMPLETION_MESSAGE,
-        #     ),
-        # )
-
-    # def update_task_status(
-    #     self,
-    #     **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
-    # ) -> None:
-    #     """
-    #     Update the status of a task.
-
-    #     Args:
-    #         **kwargs: Keyword arguments for task status update.
-    #     """
-    #     result = kwargs.get("result")
-    #     status = kwargs.get("status", TaskStatus.COMPLETED)
-    #     message = kwargs.get("exception")
-    #     if status == TaskStatus.ABORTED:
-    #         self.task_callback(status=status)
-    #     if result:
-    #         if result[0] == ResultCode.FAILED:
-    #             self.task_callback(
-    #                 status=status, result=result, exception=message
-    #             )
-    #         else:
-    #             self.logger.info("Result is: %s", result)
-    #             self.task_callback(status=status, result=result)
-    #     self.component_manager.command_in_progress = ""
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ

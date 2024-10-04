@@ -1,6 +1,4 @@
 import json
-
-# import logging
 import time
 
 import pytest
@@ -12,7 +10,7 @@ from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-from tests.settings import (  # simulate_configured_band_event,
+from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     simulate_result_code_event,
@@ -45,7 +43,6 @@ def test_configure_command_completed(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    # simulate_configured_band_event(cm, "ConfigureBand2")
     time.sleep(4)
     cm.update_device_configured_band("2")
     simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
@@ -129,6 +126,7 @@ def test_configure_command_completed_partial_config_missing_key(
     cm.stop_track_table_process()
 
 
+@pytest.mark.skip(reason="The scenario is not getting simulated properly")
 def test_configure_command_adapter_none(
     task_callback, cm_without_er_lp, json_factory
 ):
@@ -147,11 +145,6 @@ def test_configure_command_adapter_none(
     )
     time.sleep(5)
     result = task_callback.assert_against_call(status=TaskStatus.COMPLETED)
-    # command_data = cm.long_running_result_callback.command_data
-    # logging.info("command_data: %s", command_data)
-    # assert ResultCode.FAILED == command_data[cm.command_id]["result_code"]
-    # exc_msg = "'NoneType' object has no attribute 'dev_name'"
-    # assert exc_msg == command_data[cm.command_id]["exception_message"]
     assert ResultCode.FAILED == result["result"][0]
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 

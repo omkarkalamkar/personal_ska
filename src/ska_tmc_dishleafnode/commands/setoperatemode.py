@@ -17,8 +17,6 @@ from ska_tmc_common import DishMode, TimeoutCallback, TimeoutState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
-# from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
@@ -42,9 +40,6 @@ class SetOperateMode(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.task_callback = None
-        # self.timekeeper = TimeKeeper(
-        #     self.component_manager.command_timeout, logger
-        # )
         self.timeout_id: str = f"{time.time()}_{__class__.__name__}"
         self.timeout_callback: Callable[
             [str, TimeoutState], Optional[ValueError]
@@ -67,7 +62,7 @@ class SetOperateMode(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.component_manager.is_configure_command is False:
             logger.info(
-                "Configure flag: %s",
+                "Configure flag is: %s",
                 self.component_manager.is_configure_command,
             )
             self.set_command_id(__class__.__name__)
@@ -92,7 +87,7 @@ class SetOperateMode(DishLNCommand):
         else:
             if self.component_manager.is_configure_command is False:
                 logger.info(
-                    "Configure flag: %s",
+                    "Configure flag is: %s",
                     self.component_manager.is_configure_command,
                 )
                 self.start_tracker_thread(
@@ -110,17 +105,6 @@ class SetOperateMode(DishLNCommand):
                     + " command. The command status is monitored in "
                     + "Configure command tracker thread."
                 )
-            # logger.info(
-            #     "The SetOperateMode command is invoked successfully on %s",
-            #     self.dish_master_adapter.dev_name,
-            # )
-            # self.task_callback(
-            #     status=TaskStatus.COMPLETED,
-            #     result=(
-            #         ResultCode.OK,
-            #         COMMAND_COMPLETION_MESSAGE,
-            #     ),
-            # )
 
     # pylint: disable=arguments-differ
     def do(self: SetOperateMode) -> Tuple[ResultCode, str]:

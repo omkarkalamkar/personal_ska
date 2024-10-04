@@ -64,9 +64,9 @@ def track_load_static_off_dish_leaf_node_error_propagation(
 
     result_config, unique_id_config = dish_leaf_node.TrackLoadStaticOff(argin)
     assert result_config[0] == ResultCode.QUEUED
-    # logger.info(
-    #     f"Command ID: {unique_id_config} Returned result: {result_config}"
-    # )
+    logger.info(
+        f"Command ID: {unique_id_config} Returned result: {result_config}"
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_FAILED),

@@ -20,7 +20,7 @@ from tests.settings import (
 OFFSET = 5.0
 
 
-def partial_configure_dish_leaf_node(
+def partial_configure_dish_leaf_node_error_propagation(
     tango_context,
     dishln_name,
     group_callback,
@@ -134,7 +134,7 @@ def test_partial_configure_error_propogation(
     tango_context, group_callback, json_factory
 ):
     """Test partial configure functionality on Dish Leaf Node."""
-    partial_configure_dish_leaf_node(
+    partial_configure_dish_leaf_node_error_propagation(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
@@ -143,7 +143,7 @@ def test_partial_configure_error_propogation(
     )
 
 
-def configure_dish_leaf_node(
+def configure_dish_leaf_node_error_propagation(
     tango_context,
     dishln_name,
     group_callback,
@@ -238,11 +238,11 @@ def configure_dish_leaf_node(
 @pytest.mark.sah1595
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_configure_error_propogation(
+def test_configure_error_propagation(
     tango_context, group_callback, json_factory
 ):
     """Test configure error propogation functionality on Dish Leaf Node."""
-    configure_dish_leaf_node(
+    configure_dish_leaf_node_error_propagation(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
@@ -321,6 +321,8 @@ def configure_dish_leaf_node_timeout(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
+    # Wait for the command timeout to be occurred. The command timeout is set
+    # to 15 sec.
     sleep(18)
 
     group_callback["longRunningCommandResult"].assert_change_event(
