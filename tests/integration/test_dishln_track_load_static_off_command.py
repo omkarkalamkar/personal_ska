@@ -16,9 +16,6 @@ from tests.settings import (
     logger,
 )
 
-# import time
-
-
 argin = json.dumps([0.1, 0.2])
 
 
@@ -87,7 +84,6 @@ def track_load_static_off_dish_leaf_node_error_propagation(
     dish_leaf_node.unsubscribe_event(LRCR_ID)
 
 
-@pytest.mark.sah15892
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_load_static_off_command_error_propagation(
@@ -144,7 +140,6 @@ def track_load_static_off_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(LRCR_ID)
 
 
-# @pytest.mark.sah1589
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_load_static_off_command(

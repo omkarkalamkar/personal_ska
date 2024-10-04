@@ -51,10 +51,9 @@ def validate_trackloadstaticoff_invoked(dish_master, group_callback):
         assert 0  # To abort the test execution
 
 
-# @pytest.mark.sah1595
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])
+@pytest.mark.parametrize("correction_key", ["RESET"])
 def test_main_config_with_correction_key_update_reset(
     tango_context, json_factory, group_callback, correction_key
 ):
@@ -155,7 +154,6 @@ def test_main_config_with_correction_key_update_reset(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1595
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])

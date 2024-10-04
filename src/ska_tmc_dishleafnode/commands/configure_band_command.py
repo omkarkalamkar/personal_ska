@@ -70,10 +70,6 @@ class ConfigureBand(DishLNCommand):
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.component_manager.is_configure_command is False:
-            logger.info(
-                "Configure flag is: %s",
-                self.component_manager.is_configure_command,
-            )
             self.set_command_id(__class__.__name__)
             self.component_manager.start_timer(
                 self.timeout_id,
@@ -94,10 +90,6 @@ class ConfigureBand(DishLNCommand):
             )
         else:
             if self.component_manager.is_configure_command is False:
-                logger.info(
-                    "Configure flag is: %s",
-                    self.component_manager.is_configure_command,
-                )
                 self.start_tracker_thread(
                     "get_dish_configured_band",
                     [argin],

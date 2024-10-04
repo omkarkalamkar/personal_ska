@@ -1488,7 +1488,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-        self.logger.info("Configure Band event occurred")
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
@@ -1720,13 +1719,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             unique_id, result_code_message = value
             result_code, message = json.loads(result_code_message)
 
-            self.logger.info("unique_id: %s", unique_id)
-            self.logger.info("command id: %s", self.command_id)
-
             if "TrackLoadStaticOff" in unique_id:
                 self.track_load_static_off_result["result_code"] = result_code
                 self.track_load_static_off_result["message"] = message
-                self.logger.info(
+                self.logger.debug(
                     "TrackLoadStaticOff result: %s",
                     self.track_load_static_off_result,
                 )
@@ -1734,11 +1730,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if "ConfigureBand" in unique_id:
                 self.configure_band_result["result_code"] = result_code
                 self.configure_band_result["message"] = message
-                self.logger.info(
-                    "ConfigureBand flag is: %s",
-                    self.is_configureband_completed_event.is_set(),
-                )
-                self.logger.info(
+                self.logger.debug(
                     "ConfigureBand result: %s",
                     self.configure_band_result,
                 )
@@ -1746,7 +1738,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if "SetOperateMode" in unique_id:
                 self.set_operate_mode_result["result_code"] = result_code
                 self.set_operate_mode_result["message"] = message
-                self.logger.info(
+                self.logger.debug(
                     "SetOperateMode result: %s",
                     self.set_operate_mode_result,
                 )
@@ -1754,7 +1746,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if "Track" in unique_id and "TrackLoadStaticOff" not in unique_id:
                 self.track_result["result_code"] = result_code
                 self.track_result["message"] = message
-                self.logger.info(
+                self.logger.debug(
                     "Track result: %s",
                     self.track_result,
                 )
@@ -2040,10 +2032,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: track_load_static_off_result
         :rtype: dict
         """
-        self.logger.info(
-            "TrackLoadStaticOff Result: %s",
-            self.track_load_static_off_result["result_code"],
-        )
         return self.track_load_static_off_result["result_code"]
 
     def __del__(self: DishLNComponentManager):

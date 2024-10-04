@@ -68,7 +68,6 @@ def configureband_command(tango_context, dishln_name, group_callback):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah1589
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configureband_command(tango_context, group_callback):
@@ -148,7 +147,6 @@ def configureband_command_error_propogation(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah1589
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configureband_command_error_propogation(
@@ -234,7 +232,6 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah1589
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configureband_command_timeout(tango_context, group_callback):

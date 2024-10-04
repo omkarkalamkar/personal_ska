@@ -88,7 +88,6 @@ def setoperatemode_command_error_propagation(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah15891
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_setoperatemode_command_error_propagation(
@@ -151,7 +150,6 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah1589
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_setoperatemode_command(tango_context, group_callback):

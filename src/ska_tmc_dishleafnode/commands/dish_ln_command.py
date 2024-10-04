@@ -46,7 +46,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         timeout = self.component_manager.adapter_timeout
         elapsed_time = 0
         start_time = time.time()
-        self.logger.info("Creating adapter: %s, %s", dev_name, timeout)
 
         while self.dish_master_adapter is None and elapsed_time <= timeout:
             try:
@@ -61,7 +60,6 @@ class DishLNCommand(TmcLeafNodeCommand):
                     self.dish_master_adapter
                 )
             except ConnectionFailed as connection_failed:
-                self.logger.info("Connection failed: %s", connection_failed)
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
@@ -69,7 +67,6 @@ class DishLNCommand(TmcLeafNodeCommand):
                         str(connection_failed),
                     )
             except DevFailed as device_failed:
-                self.logger.info("device failed: %s", device_failed)
                 elapsed_time = time.time() - start_time
                 if elapsed_time > timeout:
                     return (
@@ -78,7 +75,6 @@ class DishLNCommand(TmcLeafNodeCommand):
                     )
 
             except (AttributeError, ValueError, TypeError) as exception:
-                self.logger.info("exception: %s", exception)
                 return (
                     ResultCode.FAILED,
                     str(exception),
@@ -116,12 +112,10 @@ class DishLNCommand(TmcLeafNodeCommand):
         :return: True if is_setOpreateMode_completed event is set.
         :rtype: boolean
         """
-        self.logger.info("Waiting for SetOperateMode to be completed")
-
         start_time = time.time()
         elapsed_time = 0
         flag = "NOT_ACHIEVED"
-        while elapsed_time < self.component_manager.command_timeout:
+        while elapsed_time < 10:
             if self.component_manager.abort_event.is_set():
                 flag = "ABORTED"
                 return flag
@@ -144,12 +138,10 @@ class DishLNCommand(TmcLeafNodeCommand):
         :return: True if is_trackloadstaticoff_completed event is set.
         :rtype: boolean
         """
-        self.logger.info("Waiting for TrackLoadStaticOff to be completed")
-
         start_time = time.time()
         elapsed_time = 0
         flag = "NOT_ACHIEVED"
-        while elapsed_time < self.component_manager.command_timeout:
+        while elapsed_time < 10:
             if self.component_manager.abort_event.is_set():
                 flag = "ABORTED"
                 return flag
@@ -163,18 +155,17 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.logger.info("Returning Flag to be %s", flag)
         return flag
 
-    def set_wait_for_configured_band(self: DishLNCommand) -> str:
+    def set_wait_for_configured_band_completed(self: DishLNCommand) -> str:
         """Waits for configureBand command to be completed.
 
         :return: True if is_configureBand_completed event is set
             the timeout period,False otherwise.
         :rtype: boolean
         """
-        self.logger.info("Waiting for ConfigureBand to be completed")
         start_time = time.time()
         elapsed_time = 0
         flag = "NOT_ACHIEVED"
-        while elapsed_time < self.component_manager.command_timeout:
+        while elapsed_time < 10:
             if self.component_manager.abort_event.is_set():
                 flag = "ABORTED"
                 return flag
@@ -184,10 +175,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 self.logger.info("Returning Flag to be %s", flag)
                 return flag
             elapsed_time = time.time() - start_time
-        self.logger.info(
-            "ConfigureBand flag is: %s",
-            self.component_manager.is_configureband_completed_event.is_set(),
-        )
+
         self.logger.info("Returning Flag to be %s", flag)
         return flag
 
@@ -214,7 +202,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         Args:
             **kwargs: Keyword arguments for task status update.
         """
-        self.logger.info("Calling update_task_status method")
         result = kwargs.get("result")
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
@@ -228,13 +215,10 @@ class DishLNCommand(TmcLeafNodeCommand):
             self.task_callback(status=status)
         if result:
             if result[0] == ResultCode.FAILED:
-                self.logger.info("ResultCode FAILED")
                 self.task_callback(
                     status=status, result=result, exception=message
                 )
-                self.logger.info("TaskCallback is set: %s", self.task_callback)
             else:
-                self.logger.info("Result is: %s", result)
                 self.task_callback(status=status, result=result)
         self.component_manager.command_in_progress = ""
         self.component_manager.reset_configure_command_result_values()
