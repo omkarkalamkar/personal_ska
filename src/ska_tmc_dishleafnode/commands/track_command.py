@@ -86,7 +86,7 @@ class Track(DishLNCommand):
                 + " command. The configure timer is utilised."
             )
         return_code, message = self.do(argin)
-        self.component_manager.track_in_progress_id = message
+        self.component_manager.command_in_progress = "Track"
         logger.info("Message is: %s", message)
         if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(

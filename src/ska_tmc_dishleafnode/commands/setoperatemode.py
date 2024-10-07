@@ -73,7 +73,7 @@ class SetOperateMode(DishLNCommand):
                 + " command. The configure timer is utilised."
             )
         result_code, message = self.do()
-        self.component_manager.setoperatemode_in_progress_id = message
+        self.component_manager.command_in_progress = "SetOperateMode"
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,

@@ -158,10 +158,10 @@ class Configure(DishLNCommand):
 
             if status == TaskStatus.ABORTED:
                 self.task_callback(status=status)
-                self.component_manager.command_in_progress = None
+                self.component_manager.command_in_progress = ""
                 self.logger.info("Configure command execution is aborted.")
             elif result[0] == ResultCode.OK:
-                self.component_manager.command_in_progress = None
+                self.component_manager.command_in_progress = ""
                 self.task_callback(result=result, status=status)
                 self.logger.info(
                     "Executed the Configure command successfully on %s",
@@ -173,12 +173,11 @@ class Configure(DishLNCommand):
                     result=result,
                     exception=message,
                 )
-                self.component_manager.command_in_progress = None
+                self.component_manager.command_in_progress = ""
                 self.component_manager.set_track_process_event()
             self.component_manager.command_id = ""
             self.receiver_band = ""
             self.partial_configure = False
-            self.component_manager.reset_configure_command_ids()
             self.component_manager.reset_configure_command_result_values()
             self.component_manager.is_configure_command = False
             self.component_manager.is_configureband_completed_event.clear()
@@ -432,9 +431,7 @@ class Configure(DishLNCommand):
         :returns: Tuple[ResultCode, str]
         """
         offsets_argin = []
-        self.component_manager.command_in_progress = (
-            "Configure_TrackLoadStaticOff"
-        )
+
         # Extracting and setting cross elevation offset. Considering
         # 0.0 if the key is omitted
 

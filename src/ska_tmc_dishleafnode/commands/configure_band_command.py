@@ -82,7 +82,7 @@ class ConfigureBand(DishLNCommand):
                 + " command. The configure timer is utilised."
             )
         return_code, message = self.do(argin)
-        self.component_manager.configure_band_in_progress_id = message
+        self.component_manager.command_in_progress = "ConfigureBand"
         logger.info("Result and Message is: %s, %s", return_code, message)
         if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.update_task_status(

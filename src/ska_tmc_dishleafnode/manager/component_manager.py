@@ -160,7 +160,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
-        self.reset_configure_command_ids()
         self.reset_configure_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
@@ -184,12 +183,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_last_pointing_data_cb
         )
         self.update_availablity_callback = _update_availablity_callback
-        self.supported_commands: Tuple = (
-            "Configure_TrackLoadStaticOff",
-            "TrackLoadStaticOff",
-            "Track",
-            "Configure",
-        )
         self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
@@ -299,10 +292,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
         )
-        self.command_object: dict = {
-            "TrackLoadStaticOff": self.track_load_static_off_command,
-            "Configure_TrackLoadStaticOff": self.configure_command,
-        }
         self.process_lock = Lock()
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
@@ -312,14 +301,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-
-    def reset_configure_command_ids(self: DishLNComponentManager):
-        """Method to reset the command ids for the commands ConfigureBand,
-        SetoeprateMode, Track and TrackLoadStaticOff"""
-        self.configure_band_in_progress_id = None
-        self.setoperatemode_in_progress_id = None
-        self.track_in_progress_id = None
-        self.trackloadstaticoff_in_progress_id = None
 
     def reset_configure_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
@@ -2022,7 +2003,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return [
             self.dishMode,
             self.pointingState,
-            self.get_dish_configured_band(),
+            self.dishConfiguredBand,
         ]
 
     def get_track_load_static_off_result(self: DishLNComponentManager):
