@@ -22,7 +22,7 @@ from ska_tmc_dishleafnode.constants import (
     COMMAND_COMPLETION_MESSAGE,
     RESET_OFFSETS,
 )
-from ska_tmc_dishleafnode.enums import CORRECTION_KEY
+from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CommandResult
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -129,7 +129,11 @@ class Configure(DishLNCommand):
 
         return_code, message = self.do(argin)
         self.logger.info("Result is: %s, %s", return_code, message)
-        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        if return_code in [
+            ResultCode.FAILED,
+            ResultCode.REJECTED,
+            ResultCode.NOT_ALLOWED,
+        ]:
             self.logger.info(
                 "Setting taskcallback to FAILED with message: %s",
                 message,
@@ -505,9 +509,9 @@ class Configure(DishLNCommand):
             )
         self.component_manager.update_source_offset_callback(offsets_argin)
 
-        result: str = self.set_wait_for_trackloadstaticoff_completed()
+        result = self.set_wait_for_trackloadstaticoff_completed()
 
-        if result == "ABORTED":
+        if result == CommandResult.ABORTED:
             self.logger.info(
                 "AbortCommands() command is invoked on the DishLeafNode."
             )
@@ -515,7 +519,7 @@ class Configure(DishLNCommand):
                 ResultCode.ABORTED,
                 "AbortCommands() command is invoked on the DishLeafNode.",
             )
-        if result == "ACHIEVED":
+        if result == CommandResult.ACHIEVED:
             if (
                 self.component_manager.track_load_static_off_result[
                     "result_code"
@@ -577,8 +581,8 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]
         """
         # Set wait for dish band to be configured
-        result: str = self.set_wait_for_configured_band_completed()
-        if result == "ABORTED":
+        result = self.set_wait_for_configured_band_completed()
+        if result == CommandResult.ABORTED:
             self.logger.info(
                 "AbortCommands() command is invoked on the DishLeafNode."
             )
@@ -587,7 +591,7 @@ class Configure(DishLNCommand):
                 ["AbortCommands() command is invoked on the DishLeafNode."],
             )
 
-        if result == "ACHIEVED":
+        if result == CommandResult.ACHIEVED:
             if (
                 self.component_manager.configure_band_result["result_code"]
                 == ResultCode.FAILED
@@ -673,8 +677,8 @@ class Configure(DishLNCommand):
                 [self.component_manager.set_operate_mode_result["exception"]],
             )
 
-        result: str = self.set_wait_for_setoperatemode_completed()
-        if result == "ABORTED":
+        result = self.set_wait_for_setoperatemode_completed()
+        if result == CommandResult.ABORTED:
             self.logger.info(
                 "AbortCommands() command is invoked on the DishLeafNode."
             )
@@ -682,7 +686,7 @@ class Configure(DishLNCommand):
                 [ResultCode.ABORTED],
                 ["AbortCommands() command is invoked on the DishLeafNode."],
             )
-        if result == "ACHIEVED":
+        if result == CommandResult.ACHIEVED:
             if (
                 self.component_manager.set_operate_mode_result["result_code"]
                 == ResultCode.FAILED
@@ -744,14 +748,14 @@ class Configure(DishLNCommand):
                 ],
             )
 
-        result: str = self.is_tracktable_provided()
-        if result == "ABORTED":
+        result = self.is_tracktable_provided()
+        if result == CommandResult.ABORTED:
             self.logger.info(
                 "Configure command has been aborted."
                 + " Track command is not invoked."
             )
             return ([ResultCode.ABORTED], ["Command has been aborted"])
-        if result == "FALSE":
+        if result == CommandResult.NOT_ACHIEVED:
             self.logger.error(
                 "Dish manager did not receive TrackTable."
                 + "Track() command is not invoked on the Dish."
@@ -800,11 +804,11 @@ class Configure(DishLNCommand):
             )
         return [ResultCode.OK], [""]
 
-    def is_tracktable_provided(self) -> str:
+    def is_tracktable_provided(self):
         """
-        Returns True if programTrackTable is provided to dish.
+        Returns enum ACHIEVED if programTrackTable is provided to dish.
         """
-        flag = "FALSE"
+        track_table_status = CommandResult.NOT_ACHIEVED
 
         start_time = time.time()
         elapsed_time = 0
@@ -816,16 +820,16 @@ class Configure(DishLNCommand):
                     "AbortCommands() command is invoked while"
                     + " configuring dish."
                 )
-                flag = "ABORTED"
-                return flag
+                track_table_status = CommandResult.ABORTED
+                return track_table_status
             with self.component_manager.tango_operation_execution_lock:
                 track_table = self.dish_master_adapter.programTrackTable
             if len(track_table) > 0:
-                flag = "TRUE"
-                return flag
+                track_table_status = CommandResult.ACHIEVED
+                return track_table_status
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
-        return flag
+        return track_table_status
 
     # pylint: disable=arguments-differ
     def check_device_state(

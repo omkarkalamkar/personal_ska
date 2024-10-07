@@ -6,13 +6,13 @@ import logging
 import threading
 import time
 from logging import Logger
-from typing import Callable, Optional, Tuple
+from typing import Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeoutCallback, TimeoutState
+from ska_tmc_common import TimeoutCallback
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
@@ -39,10 +39,8 @@ class ConfigureBand(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.timeout_id: str = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback: Callable[
-            [str, TimeoutState], Optional[ValueError]
-        ] = TimeoutCallback(self.timeout_id, self.logger)
+        self.timeout_id = None
+        self.timeout_callback = None
 
     # pylint: disable=unused-argument
     def configure_band(
@@ -66,6 +64,8 @@ class ConfigureBand(DishLNCommand):
         :return: : None
         :rtype: None
         """
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
@@ -84,7 +84,11 @@ class ConfigureBand(DishLNCommand):
         return_code, message = self.do(argin)
         self.component_manager.command_in_progress = "ConfigureBand"
         logger.info("Result and Message is: %s, %s", return_code, message)
-        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        if return_code in [
+            ResultCode.FAILED,
+            ResultCode.REJECTED,
+            ResultCode.NOT_ALLOWED,
+        ]:
             self.update_task_status(
                 result=(ResultCode.FAILED, message), exception=message
             )

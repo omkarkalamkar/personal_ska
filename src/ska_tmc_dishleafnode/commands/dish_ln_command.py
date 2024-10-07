@@ -17,6 +17,8 @@ from ska_tmc_common import (
 )
 from tango import ConnectionFailed, DevFailed
 
+from ska_tmc_dishleafnode.enums import CommandResult
+
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 if TYPE_CHECKING:
@@ -106,78 +108,80 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         return flag
 
-    def set_wait_for_setoperatemode_completed(self: DishLNCommand) -> str:
+    def set_wait_for_setoperatemode_completed(self: DishLNCommand):
         """Waits for the SetOperateMode command to be completed.
 
-        :return: True if is_setOpreateMode_completed event is set.
-        :rtype: boolean
+        :return: ACHIEVED if is_setoperatemode_completed event is set.
+            ABORTED if the abort event occurss. NOT_ACHIEVED otherwise.
+        :rtype: enum
         """
         start_time = time.time()
         elapsed_time = 0
-        flag = "NOT_ACHIEVED"
+        command_result = CommandResult.NOT_ACHIEVED
         while elapsed_time < 10:
             if self.component_manager.abort_event.is_set():
-                flag = "ABORTED"
-                return flag
+                command_result = CommandResult.ABORTED
+                return command_result
             evt = self.component_manager.is_setoperatemode_completed_event
             if evt.is_set():
-                flag = "ACHIEVED"
-                self.logger.info("Returning Flag to be %s", flag)
-                return flag
+                command_result = CommandResult.ACHIEVED
+                self.logger.info("Returning Flag to be %s", command_result)
+                return command_result
             elapsed_time = time.time() - start_time
         self.logger.info(
             "SetOperateMode flag is: %s",
             self.component_manager.is_setoperatemode_completed_event.is_set(),
         )
-        self.logger.info("Returning Flag to be %s", flag)
-        return flag
+        self.logger.info("Returning Flag to be %s", command_result)
+        return command_result
 
-    def set_wait_for_trackloadstaticoff_completed(self: DishLNCommand) -> str:
+    def set_wait_for_trackloadstaticoff_completed(self: DishLNCommand):
         """Waits for the TrackLoadStaticOff command to be completed.
 
-        :return: True if is_trackloadstaticoff_completed event is set.
-        :rtype: boolean
+        :return: ACHIEVED if is_trackloadstaticoff_completed event is set.
+            ABORTED if the abort event occurss. NOT_ACHIEVED otherwise.
+        :rtype: enum
         """
         start_time = time.time()
         elapsed_time = 0
-        flag = "NOT_ACHIEVED"
+        command_result = CommandResult.NOT_ACHIEVED
         while elapsed_time < 10:
             if self.component_manager.abort_event.is_set():
-                flag = "ABORTED"
-                return flag
+                command_result = CommandResult.ABORTED
+                return command_result
             evt = self.component_manager.is_trackloadstaticoff_completed_event
             if evt.is_set():
-                flag = "ACHIEVED"
-                self.logger.info("Returning Flag to be %s", flag)
-                return flag
+                command_result = CommandResult.ACHIEVED
+                self.logger.info("Returning Flag to be %s", command_result)
+                return command_result
             elapsed_time = time.time() - start_time
 
-        self.logger.info("Returning Flag to be %s", flag)
-        return flag
+        self.logger.info("Returning Flag to be %s", command_result)
+        return command_result
 
-    def set_wait_for_configured_band_completed(self: DishLNCommand) -> str:
+    def set_wait_for_configured_band_completed(self: DishLNCommand):
         """Waits for configureBand command to be completed.
 
-        :return: True if is_configureBand_completed event is set
-            the timeout period,False otherwise.
-        :rtype: boolean
+        :return: ACHIEVED if is_configureband_completed event is set.
+            ABORTED if the abort event occurss. NOT_ACHIEVED otherwise.
+        :rtype: enum
         """
         start_time = time.time()
         elapsed_time = 0
-        flag = "NOT_ACHIEVED"
+        command_result = CommandResult.NOT_ACHIEVED
         while elapsed_time < 10:
             if self.component_manager.abort_event.is_set():
-                flag = "ABORTED"
-                return flag
+                command_result = CommandResult.ABORTED
+                return command_result
             evt = self.component_manager.is_configureband_completed_event
             if evt.is_set():
-                flag = "ACHIEVED"
-                self.logger.info("Returning Flag to be %s", flag)
-                return flag
+                command_result = CommandResult.ACHIEVED
+                self.logger.info("Returning result to be %s", command_result)
+                return command_result
             elapsed_time = time.time() - start_time
 
-        self.logger.info("Returning Flag to be %s", flag)
-        return flag
+        self.logger.info("Returning result to be %s", command_result)
+        return command_result
 
     def init_adapter_mid(self: DishLNCommand):
         self.init_adapter()

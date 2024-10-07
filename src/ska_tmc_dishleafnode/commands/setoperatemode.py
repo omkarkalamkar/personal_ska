@@ -74,7 +74,11 @@ class SetOperateMode(DishLNCommand):
             )
         result_code, message = self.do()
         self.component_manager.command_in_progress = "SetOperateMode"
-        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        if result_code in [
+            ResultCode.FAILED,
+            ResultCode.REJECTED,
+            ResultCode.NOT_ALLOWED,
+        ]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, message),
