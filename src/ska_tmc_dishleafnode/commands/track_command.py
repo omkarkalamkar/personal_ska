@@ -88,7 +88,11 @@ class Track(DishLNCommand):
         return_code, message = self.do(argin)
         self.component_manager.command_in_progress = "Track"
         logger.info("Message is: %s", message)
-        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        if return_code in [
+            ResultCode.FAILED,
+            ResultCode.REJECTED,
+            ResultCode.NOT_ALLOWED,
+        ]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(return_code, message),
