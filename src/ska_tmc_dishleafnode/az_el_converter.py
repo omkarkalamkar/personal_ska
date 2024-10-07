@@ -87,6 +87,7 @@ class AzElConverter:
         :type timestamp: str
         """
         non_sidereal_target = Target(f"{target_name}, special")
+        logger.debug("non_sidereal_target - %s", non_sidereal_target)
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
             azel = non_sidereal_target.azel(
                 timestamp, self.component_manager.observer
@@ -111,6 +112,9 @@ class AzElConverter:
         return:
             az_el_coordinates (list)
         """
+        logger.debug(
+            "Converting Target RaDec coordinates to the AzEl coordinates"
+        )
         return self.radec_to_azel(right_ascension, declination, timestamp)
 
     def azel_to_radec(

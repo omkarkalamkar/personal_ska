@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+from datetime import datetime
 from typing import List
 
 import tango
@@ -381,3 +382,31 @@ def simulate_result_code_event(
         ),
     )
     cm.update_device_long_running_command_result(device_name, command_result)
+
+
+def get_non_sidereal_json_for_now(non_side_real_json) -> str:
+    """Return the json for Configure command with visible non-sidereal object
+    according to current time.
+    """
+    current_time = int(datetime.utcnow().strftime("%H"))
+    configure_input_json = json.loads(non_side_real_json)
+    # The data below is losely based on information found from the web, and has
+    # loose limits such that elevation is >= 17.5 for the source at
+    # "lat": -30.71329, "lon": 21.449412 and "h": 1098.074 for dish SKA001
+    # based on TelModel-data
+    if 8 <= current_time <= 14:
+        configure_input_json["pointing"]["target"]["target_name"] = "Sun"
+        return json.dumps(configure_input_json)
+    if 3 <= current_time <= 8:
+        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
+        return json.dumps(configure_input_json)
+    if current_time <= 3 or current_time >= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
+        return json.dumps(configure_input_json)
+    if 17 <= current_time <= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+        return json.dumps(configure_input_json)
+    if 14 <= current_time <= 15:
+        configure_input_json["pointing"]["target"]["target_name"] = "Venus"
+        return json.dumps(configure_input_json)
+    return ""

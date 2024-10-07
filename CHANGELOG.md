@@ -76,10 +76,17 @@ show states of attributes at initialization on dashboards
 
 Fixed
 ======
+
+
+[0.17.6]
+********
+* Fix bug SKB-467 - Track command will not be invoked if pointingState is TRACK/SLEW
+
 [0.17.5]
 * Updated common v0.20.2 with liveliness probe bug related to full trl fixed.
- 
+
 [0.17.4]
+********
 * Updated AbortCommands() command as slow command.
 * Updated Configure() command to stop the execution when AbortCommands() command is invoked while configuring the dish.
 * Made IsDishAbortCommands property configurable at deployment time.

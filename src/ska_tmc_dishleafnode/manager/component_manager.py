@@ -337,6 +337,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             self.converter = AzElConverter(self)
             self.converter.create_antenna_obj()
+            self.logger.debug("Antenna object created")
         except Exception as exp:
             self.logger.exception("Error while creating antenna obj %s", exp)
 
@@ -1545,6 +1546,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+
+        self.logger.info(
+            "The track process name is : %s",
+            Process(target=current_process().name),
+        )
+
         timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
         # This is dummy calculation because first time calculation takes
         # time due to IERS file downloads
@@ -1554,10 +1561,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ra, dec = self.target_data
             self.converter.point(ra, dec, timestamp)
 
-        self.logger.info(
-            "The track process name is : %s",
-            Process(target=current_process().name),
-        )
+        self.logger.debug("Converter Object Updated")
+
         utc_now = datetime.datetime.utcnow()
 
         # For future timestamp few seconds are added in current time.
@@ -1588,6 +1593,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 format="unix_tai",
                 scale="tai",
             ).unix
+
+            # Convert to human-readable format
+            actual_time_readable = datetime.datetime.utcfromtimestamp(
+                actual_time
+            ).strftime("%Y-%m-%d %H:%M:%S")
+            scheduled_time_readable = datetime.datetime.utcfromtimestamp(
+                scheduled_time
+            ).strftime("%Y-%m-%d %H:%M:%S")
+
+            self.logger.debug("actual_time_human %s", actual_time_readable)
+            self.logger.debug(
+                "scheduled_time_human  %s", scheduled_time_readable
+            )
 
             event_priority: int = 1
             self.track_table_scheduler.enterabs(

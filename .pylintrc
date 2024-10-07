@@ -247,6 +247,7 @@ max-public-methods=75
 max-positional-arguments=25
 
 
+
 [EXCEPTIONS]
 
 # Exceptions that will emit a warning when being caught. Defaults to
