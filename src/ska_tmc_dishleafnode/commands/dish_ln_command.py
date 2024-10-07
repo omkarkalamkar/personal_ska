@@ -118,7 +118,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         start_time = time.time()
         elapsed_time = 0
         command_result = CommandResult.NOT_ACHIEVED
-        while elapsed_time < 10:
+        while elapsed_time < (self.component_manager.command_timeout - 5):
             if self.component_manager.abort_event.is_set():
                 command_result = CommandResult.ABORTED
                 return command_result
@@ -145,7 +145,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         start_time = time.time()
         elapsed_time = 0
         command_result = CommandResult.NOT_ACHIEVED
-        while elapsed_time < 10:
+        while elapsed_time < (self.component_manager.command_timeout - 5):
             if self.component_manager.abort_event.is_set():
                 command_result = CommandResult.ABORTED
                 return command_result
@@ -169,7 +169,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         start_time = time.time()
         elapsed_time = 0
         command_result = CommandResult.NOT_ACHIEVED
-        while elapsed_time < 10:
+        while elapsed_time < (self.component_manager.command_timeout - 5):
             if self.component_manager.abort_event.is_set():
                 command_result = CommandResult.ABORTED
                 return command_result

@@ -182,13 +182,7 @@ class Configure(DishLNCommand):
             self.component_manager.command_id = ""
             self.receiver_band = ""
             self.partial_configure = False
-            self.component_manager.reset_configure_command_result_values()
-            self.component_manager.is_configure_command = False
-            self.component_manager.is_configureband_completed_event.clear()
-            self.component_manager.is_setoperatemode_completed_event.clear()
-            self.component_manager.is_track_completed_event.clear()
-            evt = self.component_manager.is_trackloadstaticoff_completed_event
-            evt.clear()
+            self.component_manager.clear_configure_command_events_flags()
 
         except Exception as e:
             self.logger.exception(
@@ -735,10 +729,6 @@ class Configure(DishLNCommand):
                 "Dish is already tracking/slewing. Track() command "
                 + "is not invoked."
             )
-
-            self.component_manager.command_mapping.setdefault(
-                self.component_manager.command_id, {}
-            )["ResultCode"] = ResultCode.OK
 
             return (
                 [ResultCode.OK],

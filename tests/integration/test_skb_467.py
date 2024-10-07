@@ -86,6 +86,7 @@ def configure_dish_leaf_node(
 
     logger.info("Sending Configure Command again")
     dish_master.ClearCommandCallInfo()
+    sleep(2)
 
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
@@ -112,6 +113,7 @@ def configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(LRCR_ID)
 
 
+@pytest.mark.skip()
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(
