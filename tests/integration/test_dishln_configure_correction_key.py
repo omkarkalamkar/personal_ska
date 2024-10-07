@@ -23,7 +23,7 @@ POINTING_CAL_RESET = [1.1, 0.0, 0.0]
 
 def validate_trackloadstaticoff_invoked(dish_master, group_callback):
     """Method to check TrackLoadStaticOff invoked"""
-    LRCR_ID = dish_master.subscribe_event(
+    LRCR_ID_DISH_MASTER = dish_master.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -45,7 +45,7 @@ def validate_trackloadstaticoff_invoked(dish_master, group_callback):
         sleep(1)
     try:
         assert "Command Completed" in message
-        dish_master.unsubscribe_event(LRCR_ID)
+        dish_master.unsubscribe_event(LRCR_ID_DISH_MASTER)
     except Exception as e:
         logger.exception("Exception occurred: %s", e)
         assert 0  # To abort the test execution
@@ -53,7 +53,7 @@ def validate_trackloadstaticoff_invoked(dish_master, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("correction_key", ["RESET"])
+@pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])
 def test_main_config_with_correction_key_update_reset(
     tango_context, json_factory, group_callback, correction_key
 ):
@@ -119,32 +119,23 @@ def test_main_config_with_correction_key_update_reset(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
-    if correction_key == "RESET":
-        validate_trackloadstaticoff_invoked(dish_master, group_callback)
-        command_info_data = dish_master.commandCallInfo
-        assert ("TrackLoadStaticOff", "[0. 0.]") in command_info_data
-    LRCR_ID = dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
 
+    if correction_key == "RESET":
+        group_callback["sourceOffset"].assert_change_event(
+            ([0.0, 0.0]),
+            lookahead=6,
+        )
+
     if correction_key == "UPDATE":
-        dish_leaf_node.unsubscribe_event(LRCR_ID)
         sdp_queue_connector.SetPointingCalSka001(POINTING_CAL)
         validate_trackloadstaticoff_invoked(dish_master, group_callback)
         command_info_data = dish_master.commandCallInfo
         assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
-        LRCR_ID = dish_leaf_node.subscribe_event(
-            "longRunningCommandResult",
-            tango.EventType.CHANGE_EVENT,
-            group_callback["longRunningCommandResult"],
-        )
 
     dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
     dish_leaf_node.unsubscribe_event(DISHMODE_ID)
