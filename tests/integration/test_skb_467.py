@@ -113,7 +113,7 @@ def configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(LRCR_ID)
 
 
-@pytest.mark.skip()
+@pytest.mark.skip(reason="Need to work on a reconfigure scenario")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(

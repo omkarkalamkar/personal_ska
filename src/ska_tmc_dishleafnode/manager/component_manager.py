@@ -339,8 +339,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.is_setoperatemode_completed_event.clear()
         self.is_track_completed_event.clear()
         self.is_trackloadstaticoff_completed_event.clear()
-        # self.reset_dishmode()
-        # self.reset_dish_configured_band()
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -737,15 +735,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Dish Mode: %s", self._device.dish_mode)
         return self._device.dish_mode
 
-    def reset_dishmode(self: DishLNComponentManager) -> DishMode:
-        """
-        Reset the dishMode of the device
-        """
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.dish_mode = DishMode.UNKNOWN
-        self.logger.info("DishMode is %s", self._device.dish_mode)
-
     def get_pointingstate(self: DishLNComponentManager) -> PointingState:
         """
         Return the pointingState of the device
@@ -765,15 +754,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.logger.info("Dish Band: %s", self.dishConfiguredBand)
         return self.dishConfiguredBand
-
-    def reset_dish_configured_band(self: DishLNComponentManager):
-        """
-        Reset the configuredBand of the device
-        """
-        with self.lock:
-            dev_info = self.get_device()
-            dev_info.configured_band = Band.NONE
-        self.logger.info("Dish Band: %s", self.dishConfiguredBand)
 
     # pylint: disable=signature-differs
     def off(
@@ -1786,6 +1766,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 ResultCode.NOT_ALLOWED,
                 ResultCode.REJECTED,
             ]:
+                # If the Configure command is executed, below LRCR callback
+                # for the commands ConfigureBand, SetOperateMode and
+                # TrackLoadStaticOff is set via is invoke_configure method.
                 if self.is_configure_command:
                     if (
                         ("ConfigureBand" in unique_id)
