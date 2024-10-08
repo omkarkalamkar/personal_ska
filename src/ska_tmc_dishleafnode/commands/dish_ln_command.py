@@ -3,10 +3,9 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Dict, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, Tuple, Union
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
@@ -37,7 +36,9 @@ class DishLNCommand(TmcLeafNodeCommand):
         logger: logging.Logger = LOGGER,
     ):
         super().__init__(component_manager, logger)
-        self.task_callback: TaskCallbackType
+        self.timeout_id = None
+        self.timeout_callback = None
+        self.task_callback: Callable
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
@@ -225,8 +226,4 @@ class DishLNCommand(TmcLeafNodeCommand):
             else:
                 self.task_callback(status=status, result=result)
         self.component_manager.command_in_progress = ""
-        self.component_manager.reset_configure_command_result_values()
-        self.component_manager.is_configureband_completed_event.clear()
-        self.component_manager.is_setoperatemode_completed_event.clear()
-        self.component_manager.is_track_completed_event.clear()
-        self.component_manager.is_trackloadstaticoff_completed_event.clear()
+        self.component_manager.clear_configure_command_events_flags()

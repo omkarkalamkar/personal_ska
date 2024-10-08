@@ -42,9 +42,6 @@ class Track(DishLNCommand):
         self.ra_value = ""
         self.dec_value = ""
         self.tracking_thread = None
-        self.timeout_id = None
-        self.timeout_callback = None
-        self.task_callback: TaskCallbackType
 
     # pylint: disable=unused-argument
     def track(
@@ -80,11 +77,7 @@ class Track(DishLNCommand):
                 self.component_manager.command_timeout,
                 self.timeout_callback,
             )
-        else:
-            logger.info(
-                " Track is invoked as part of Configure"
-                + " command. The configure timer is utilised."
-            )
+
         return_code, message = self.do(argin)
         self.component_manager.command_in_progress = "Track"
         logger.info("Message is: %s", message)
@@ -108,12 +101,6 @@ class Track(DishLNCommand):
                     self.timeout_callback,
                     self.component_manager.command_id,
                     self.component_manager.long_running_result_callback,
-                )
-            else:
-                logger.info(
-                    " Track is invoked as part of Configure"
-                    + " command. The command status is monitored in "
-                    + "Configure command tracker thread."
                 )
 
     def validate_json_argument(self: Track, input_argin: dict) -> tuple:

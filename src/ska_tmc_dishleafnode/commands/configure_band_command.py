@@ -39,8 +39,6 @@ class ConfigureBand(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.timeout_id = None
-        self.timeout_callback = None
 
     # pylint: disable=unused-argument
     def configure_band(
@@ -76,11 +74,7 @@ class ConfigureBand(DishLNCommand):
                 self.component_manager.command_timeout,
                 self.timeout_callback,
             )
-        else:
-            logger.info(
-                " ConfigureBand is invoked as part of Configure"
-                + " command. The configure timer is utilised."
-            )
+
         return_code, message = self.do(argin)
         self.component_manager.command_in_progress = "ConfigureBand"
         logger.info("Result and Message is: %s, %s", return_code, message)
@@ -102,12 +96,6 @@ class ConfigureBand(DishLNCommand):
                     self.timeout_callback,
                     self.component_manager.command_id,
                     self.component_manager.long_running_result_callback,
-                )
-            else:
-                logger.info(
-                    " ConfigureBand is invoked as part of Configure"
-                    + " command. The command status is monitored in "
-                    + "Configure command tracker thread."
                 )
 
     # pylint: disable=signature-differs

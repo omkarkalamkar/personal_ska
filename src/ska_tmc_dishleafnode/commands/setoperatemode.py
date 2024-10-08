@@ -39,10 +39,6 @@ class SetOperateMode(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.task_callback = None
-        self.timeout_id = None
-        self.timeout_callback = None
-        self.task_callback: TaskCallbackType
 
     # pylint: disable=unused-argument
     def set_operate_mode(
@@ -67,11 +63,7 @@ class SetOperateMode(DishLNCommand):
                 self.component_manager.command_timeout,
                 self.timeout_callback,
             )
-        else:
-            logger.info(
-                " SetOperateMode is invoked as part of Configure"
-                + " command. The configure timer is utilised."
-            )
+
         result_code, message = self.do()
         self.component_manager.command_in_progress = "SetOperateMode"
         if result_code in [
@@ -94,12 +86,6 @@ class SetOperateMode(DishLNCommand):
                     self.timeout_callback,
                     self.component_manager.command_id,
                     self.component_manager.long_running_result_callback,
-                )
-            else:
-                logger.info(
-                    " SetOperateMode is invoked as part of Configure"
-                    + " command. The command status is monitored in "
-                    + "Configure command tracker thread."
                 )
 
     # pylint: disable=arguments-differ

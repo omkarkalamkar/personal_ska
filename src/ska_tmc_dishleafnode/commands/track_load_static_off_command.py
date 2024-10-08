@@ -41,10 +41,6 @@ class TrackLoadStaticOff(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.task_callback = None
-        self.timeout_id = None
-        self.timeout_callback = None
-        self.task_callback: TaskCallbackType
 
     # pylint: disable=unused-argument
     def invoke_track_load_static_off(
@@ -82,11 +78,7 @@ class TrackLoadStaticOff(DishLNCommand):
                 self.component_manager.command_timeout,
                 self.timeout_callback,
             )
-        else:
-            logger.info(
-                " TrackLoadStaticOff is invoked as part of Configure"
-                + " command. The configure timer is utilised."
-            )
+
         result_code, message = self.do(argin)
         self.component_manager.command_in_progress = "TrackLoadStaticOff"
         if result_code in [
@@ -119,12 +111,6 @@ class TrackLoadStaticOff(DishLNCommand):
                     self.timeout_callback,
                     self.component_manager.command_id,
                     self.component_manager.long_running_result_callback,
-                )
-            else:
-                logger.info(
-                    " TrackLoadStaticOff is invoked as part of Configure"
-                    + " command. The command status is monitored in "
-                    + "Configure command tracker thread."
                 )
 
     # pylint: disable=signature-differs

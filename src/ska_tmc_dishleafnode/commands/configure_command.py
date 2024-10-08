@@ -9,7 +9,7 @@ import threading
 import time
 from logging import Logger
 from operator import methodcaller
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -54,9 +54,6 @@ class Configure(DishLNCommand):
         )
 
         self.track_table_process = None
-        self.timeout_id = None
-        self.timeout_callback = None
-        self.task_callback: Callable
         self.partial_configure = False
         self.receiver_band: str = ""
 
@@ -339,6 +336,7 @@ class Configure(DishLNCommand):
             # pylint: enable=line-too-long
             self.logger.info("Invoking ConfigureBand command")
 
+            # pylint: disable=unused-argument
             def _invoke_configure_band_callback(
                 status=None,
                 progress=None,
@@ -349,10 +347,7 @@ class Configure(DishLNCommand):
                 Method for invoking ConfigureBand callback
                 """
                 if result is None:
-                    self.logger.info(
-                        f"ConfigureBand status: {result}, {exception}, "
-                        + f"{status}, {progress}"
-                    )
+                    pass
                 else:
                     self.component_manager.configure_band_result[
                         "result_code"
@@ -366,6 +361,8 @@ class Configure(DishLNCommand):
                     self.component_manager.configure_band_result[
                         "status"
                     ] = status
+
+            # pylint: enable=unused-argument
 
             self.component_manager.configure_band_command.configure_band(
                 argin=self.receiver_band,
@@ -435,6 +432,11 @@ class Configure(DishLNCommand):
 
         if reset_offset:
             offsets_argin = RESET_OFFSETS
+            self.logger.debug(
+                "Pointing offsets have been reset to [0.0, 0.0] "
+                "and correction key set to %s",
+                CORRECTION_KEY.RESET.value,
+            )
         else:
             offsets_argin.append(
                 input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0
@@ -446,6 +448,7 @@ class Configure(DishLNCommand):
                 input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
             )
 
+        # pylint: disable=unused-argument
         def _invoke_trackstaticloadoff_callback(
             status=None,
             progress=None,
@@ -456,10 +459,7 @@ class Configure(DishLNCommand):
             Method for invoking TrackStaticLoadOff callback
             """
             if result is None:
-                self.logger.info(
-                    f"TrackStaticLoadOff status: {result}, {exception}, "
-                    + f"{status}, {progress}"
-                )
+                pass
             else:
                 self.component_manager.track_load_static_off_result[
                     "result_code"
@@ -474,6 +474,7 @@ class Configure(DishLNCommand):
                     "status"
                 ] = status
 
+        # pylint: enable=unused-argument
         # Call the TrackStaticLoadOff command
         command_obj = self.component_manager.track_load_static_off_command
         command_obj.invoke_track_load_static_off(
@@ -493,13 +494,6 @@ class Configure(DishLNCommand):
                 self.component_manager.track_load_static_off_result[
                     "exception"
                 ],
-            )
-
-        if reset_offset:
-            self.logger.debug(
-                "Pointing offsets have been reset to [0.0, 0.0] "
-                "and correction key set to %s",
-                CORRECTION_KEY.RESET.value,
             )
         self.component_manager.update_source_offset_callback(offsets_argin)
 
@@ -626,6 +620,7 @@ class Configure(DishLNCommand):
         """
         self.logger.info("Invoking SetOperateMode command")
 
+        # pylint: disable=unused-argument
         def _invoke_setoperatemode_callback(
             status=None,
             progress=None,
@@ -633,13 +628,10 @@ class Configure(DishLNCommand):
             exception=None,
         ):
             """
-            Method for invoking abort callback
+            Method for invoking setoperatemode callback
             """
             if result is None:
-                self.logger.info(
-                    f"SetOperateMode status: {result}, {exception}, "
-                    + f"{status}, {progress}"
-                )
+                pass
             else:
                 self.component_manager.set_operate_mode_result[
                     "result_code"
@@ -654,6 +646,7 @@ class Configure(DishLNCommand):
                     "status"
                 ] = status
 
+        # pylint: enable=unused-argument
         self.component_manager.setoperatemode_command.set_operate_mode(
             logger=self.logger, task_callback=_invoke_setoperatemode_callback
         )
@@ -758,6 +751,7 @@ class Configure(DishLNCommand):
                 ],
             )
 
+        # pylint: disable=unused-argument
         def _invoke_track_callback(
             status=None,
             progress=None,
@@ -768,16 +762,14 @@ class Configure(DishLNCommand):
             Method for invoking Track callback
             """
             if result is None:
-                self.logger.info(
-                    f"Track status: {result}, {exception}, "
-                    + f"{status}, {progress}"
-                )
+                pass
             else:
                 self.component_manager.track_result["result_code"] = result[0]
                 self.component_manager.track_result["message"] = result[1]
                 self.component_manager.track_result["exception"] = exception
                 self.component_manager.track_result["status"] = status
 
+        # pylint: enable=unused-argument
         self.component_manager.track_command.track(
             argin=json_argument,
             logger=self.logger,
