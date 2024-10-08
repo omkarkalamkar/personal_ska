@@ -339,8 +339,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.is_setoperatemode_completed_event.clear()
         self.is_track_completed_event.clear()
         self.is_trackloadstaticoff_completed_event.clear()
-        self.reset_dishmode()
-        self.reset_dish_configured_band()
+        # self.reset_dishmode()
+        # self.reset_dish_configured_band()
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -741,7 +741,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Reset the dishMode of the device
         """
-        self._device.dish_mode = DishMode.UNKNOWN
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.dish_mode = DishMode.UNKNOWN
+        self.logger.info("DishMode is %s", self._device.dish_mode)
 
     def get_pointingstate(self: DishLNComponentManager) -> PointingState:
         """
@@ -750,7 +753,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: pointing_state
         :rtype: PointingState
         """
-        self.logger.info("Dish Mode: %s", self._device.pointing_state)
+        self.logger.info("PointingState is %s", self._device.pointing_state)
         return self._device.pointing_state
 
     def get_dish_configured_band(self: DishLNComponentManager) -> str:
@@ -767,7 +770,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Reset the configuredBand of the device
         """
-        self._device.configured_band = Band.NONE
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.configured_band = Band.NONE
         self.logger.info("Dish Band: %s", self.dishConfiguredBand)
 
     # pylint: disable=signature-differs
