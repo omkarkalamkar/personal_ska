@@ -7,7 +7,6 @@ import json
 import logging
 import threading
 import time
-from logging import Logger
 from typing import Optional, Tuple
 
 from ska_ser_logging import configure_logging
@@ -46,7 +45,7 @@ class TrackLoadStaticOff(DishLNCommand):
     def invoke_track_load_static_off(
         self: TrackLoadStaticOff,
         argin: str,
-        logger: Logger,
+        logger: logging.Logger,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:

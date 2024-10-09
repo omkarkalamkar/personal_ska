@@ -160,7 +160,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
-        self.reset_configure_command_result_values()
+        self.reset_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
@@ -302,7 +302,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
 
-    def reset_configure_command_result_values(self: DishLNComponentManager):
+    def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
         ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
         self.set_operate_mode_result = {
@@ -329,11 +329,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "exception": None,
             "status": None,
         }
+        self.track_stop_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.scan_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.end_scan_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
         """Method to reset the command result dictionaries, events and flgas
         utilised in Configure command"""
-        self.reset_configure_command_result_values()
+        self.reset_command_result_values()
         self.is_configure_command = False
         self.is_configureband_completed_event.clear()
         self.is_setoperatemode_completed_event.clear()
@@ -1760,6 +1778,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.track_result,
                 )
                 self.is_track_completed_event.set()
+            if "TrackStop" in unique_id:
+                self.track_stop_result["result_code"] = result_code
+                self.track_stop_result["message"] = message
+                self.logger.debug(
+                    "TrackStop result: %s",
+                    self.track_stop_result,
+                )
+            if "Scan" in unique_id:
+                self.scan_result["result_code"] = result_code
+                self.scan_result["message"] = message
+                self.logger.debug(
+                    "Scan result: %s",
+                    self.scan_result,
+                )
+            if "EndScan" in unique_id:
+                self.end_scan_result["result_code"] = result_code
+                self.end_scan_result["message"] = message
+                self.logger.debug(
+                    "EndScan result: %s",
+                    self.end_scan_result,
+                )
 
             if result_code in [
                 ResultCode.FAILED,
@@ -2045,6 +2084,33 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: dict
         """
         return self.track_load_static_off_result["result_code"]
+
+    def get_end_scan_result(self: DishLNComponentManager):
+        """
+        Return the result of the EndScan command execution
+
+        :return: ResultCode from end_scan_result
+        :rtype: ResultCode
+        """
+        return self.end_scan_result["result_code"]
+
+    def get_scan_result(self: DishLNComponentManager):
+        """
+        Return the result of the Scan command execution
+
+        :return: ResultCode from scan_result
+        :rtype: ResultCode
+        """
+        return self.scan_result["result_code"]
+
+    def get_track_stop_result(self: DishLNComponentManager):
+        """
+        Return the result of the TrackStop command execution
+
+        :return: ResultCode from track_stop_result
+        :rtype: ResultCode
+        """
+        return self.track_stop_result["result_code"]
 
     def __del__(self: DishLNComponentManager):
         """
