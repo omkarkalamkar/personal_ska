@@ -154,7 +154,6 @@ def endscan_command_timeout(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1595
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_endscan_command_timeout(tango_context, group_callback, json_factory):
@@ -295,7 +294,6 @@ def endscan_command_error_propogation(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1595
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_endscan_command_error_propogation(
