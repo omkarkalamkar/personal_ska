@@ -16,6 +16,7 @@ from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Tuple
 
 import numpy as np
+import psutil
 import tango
 from astropy.time import Time
 from astropy.utils import iers
@@ -1504,84 +1505,139 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
 
-        self.logger.info(
-            "The track process name is : %s",
-            Process(target=current_process().name),
-        )
+        try:
+            self.logger.info(
+                "The track process name is : %s",
+                Process(target=current_process().name),
+            )
 
-        timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
-        # This is dummy calculation because first time calculation takes
-        # time due to IERS file downloads
-        if isinstance(self.target_data, str):
-            self.converter.point_to_body(self.target_data, timestamp)
-        else:
-            ra, dec = self.target_data
-            self.converter.point(ra, dec, timestamp)
+            timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+            # This is dummy calculation because first time calculation takes
+            # time due to IERS file downloads
+            if isinstance(self.target_data, str):
+                self.converter.point_to_body(self.target_data, timestamp)
+            else:
+                ra, dec = self.target_data
+                self.converter.point(ra, dec, timestamp)
 
-        self.logger.debug("Converter Object Updated")
+            self.logger.debug("Converter Object Updated")
 
-        utc_now = datetime.datetime.utcnow()
+            utc_now = datetime.datetime.utcnow()
 
-        # For future timestamp few seconds are added in current time.
-        # Divided by 1000 to convert ms to sec conversion.
-        time_to_add: float = (
-            (self.track_table_entries * self.pointing_calculation_period)
-            / 1000
-        ) + self.track_table_advance_sec
+            # For future timestamp few seconds are added in current time.
+            # Divided by 1000 to convert ms to sec conversion.
+            time_to_add: float = (
+                (self.track_table_entries * self.pointing_calculation_period)
+                / 1000
+            ) + self.track_table_advance_sec
 
-        extended_time: datetime.datetime = utc_now + datetime.timedelta(
-            seconds=time_to_add
-        )
-        self.track_table_calculator.track_table_time_stamp = extended_time
-        while self.get_track_process_event_status() is False:
-            program_track_table: list = (
-                self.track_table_calculator.calculate_program_track_table(
-                    self.target_data, self.converter
+            extended_time: datetime.datetime = utc_now + datetime.timedelta(
+                seconds=time_to_add
+            )
+            self.track_table_calculator.track_table_time_stamp = extended_time
+            while self.get_track_process_event_status() is False:
+                program_track_table: list = (
+                    self.track_table_calculator.calculate_program_track_table(
+                        self.target_data, self.converter
+                    )
                 )
+                first_entry_timestamp: float = program_track_table[0]
+
+                # advance_time is subtracted to provide programTrackTable few
+                # seconds in advance
+                actual_time = (
+                    first_entry_timestamp - self.track_table_advance_sec
+                )
+
+                scheduled_time = Time(
+                    float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
+                    format="unix_tai",
+                    scale="tai",
+                ).unix
+
+                # Convert to human-readable format
+                actual_time_readable = datetime.datetime.utcfromtimestamp(
+                    actual_time
+                ).strftime("%Y-%m-%d %H:%M:%S")
+                scheduled_time_readable = datetime.datetime.utcfromtimestamp(
+                    scheduled_time
+                ).strftime("%Y-%m-%d %H:%M:%S")
+
+                self.logger.debug("actual_time_human %s", actual_time_readable)
+                self.logger.debug(
+                    "scheduled_time_human  %s", scheduled_time_readable
+                )
+
+                event_priority: int = 1
+                self.track_table_scheduler.enterabs(
+                    scheduled_time,
+                    event_priority,
+                    self.update_program_track_table,
+                    argument=(program_track_table,),
+                )
+                self.track_table_scheduler.run()
+            self.logger.debug("Program Track Table Calculation stopped.")
+
+            with self.tango_operation_execution_lock:
+                self.dish_adapter.programTrackTable = []
+            self.logger.debug("Cleared programTrackTable attribute.")
+
+        except Exception as exception:
+            self.logger.error(
+                "Exception occurred during track_process :%s",
+                str(exception),
             )
-            first_entry_timestamp: float = program_track_table[0]
-
-            # advance_time is subtracted to provide programTrackTable few
-            # seconds in advance
-            actual_time = first_entry_timestamp - self.track_table_advance_sec
-
-            scheduled_time = Time(
-                float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
-                format="unix_tai",
-                scale="tai",
-            ).unix
-
-            # Convert to human-readable format
-            actual_time_readable = datetime.datetime.utcfromtimestamp(
-                actual_time
-            ).strftime("%Y-%m-%d %H:%M:%S")
-            scheduled_time_readable = datetime.datetime.utcfromtimestamp(
-                scheduled_time
-            ).strftime("%Y-%m-%d %H:%M:%S")
-
-            self.logger.debug("actual_time_human %s", actual_time_readable)
-            self.logger.debug(
-                "scheduled_time_human  %s", scheduled_time_readable
-            )
-
-            event_priority: int = 1
-            self.track_table_scheduler.enterabs(
-                scheduled_time,
-                event_priority,
-                self.update_program_track_table,
-                argument=(program_track_table,),
-            )
-            self.track_table_scheduler.run()
-        self.logger.debug("Program Track Table Calculation stopped.")
-
-        with self.tango_operation_execution_lock:
-            self.dish_adapter.programTrackTable = []
-        self.logger.debug("Cleared programTrackTable attribute.")
 
     def create_track_process(self) -> None:
         """Creates new process for programTrackTable calculation."""
         self.logger.debug("Creating new process for tracktable calculation")
         self.track_table_process = Process(target=self.track_process)
+
+    def check_resources(self) -> None:
+        # Set a threshold (example: 350MB)
+        threshold_memory = 350  # in MB
+
+        # Check available memory
+        memory_info = psutil.virtual_memory()
+        available_memory = memory_info.available / (
+            1024 * 1024
+        )  # Convert bytes to MB
+
+        if available_memory < threshold_memory:
+            self.logger.warning("Not enough memory to start the process.")
+        else:
+            self.logger.debug(
+                "Sufficient memory available to start the process."
+            )
+
+        # Set a threshold (example: 1000MB)
+        threshold_disk_space = 1000  # in MB
+
+        # Check available disk space
+        disk_usage = psutil.disk_usage("/")
+        available_disk_space = disk_usage.free / (
+            1024 * 1024
+        )  # Convert bytes to MB
+
+        if available_disk_space < threshold_disk_space:
+            self.logger.warning("Not enough disk space to start the process.")
+        else:
+            self.logger.debug(
+                "Sufficient disk space available to start the process."
+            )
+
+        # Set a threshold (example: 75% CPU usage)
+        threshold_cpu_usage = 80  # in %
+
+        # Check current CPU usage
+        cpu_usage = psutil.cpu_percent(interval=1)
+
+        if cpu_usage > threshold_cpu_usage:
+            self.logger.warning("CPU usage is too high to start the process.")
+        else:
+            self.logger.debug(
+                "CPU usage is within acceptable limits to start the process."
+            )
 
     def set_target_data(self, target_data: list | str) -> None:
         """Sets target data to for programTrackTable generation."""
@@ -1596,9 +1652,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         calculation."""
         try:
             if not self.track_table_process.is_alive():
+                self.check_resources()
                 self.create_track_process()
+
                 self.logger.debug("Starting programTrackTable calculation")
                 self.track_table_process.start()
+                self.logger.debug("Started programTrackTable calculation")
+                self.logger.debug(
+                    f"Is track_table_process alive:"
+                    f" {self.track_table_process.is_alive()}"
+                )
+
             else:
                 self.logger.debug(
                     "programTrackTable calculation is already going on."
