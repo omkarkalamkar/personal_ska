@@ -1594,6 +1594,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.track_table_process = Process(target=self.track_process)
 
     def check_resources(self) -> None:
+        """
+        Function to check resource utiliztion at the time of creating process.
+        """
+
+        # List all processes
+        processes = psutil.pids()
+
+        self.logger.debug(f"Number of processes running: {len(processes)}")
+
+        # Optionally, print details of each process
+        for pid in processes:
+            try:
+                p = psutil.Process(pid)
+                self.logger.debug(
+                    f"PID: {pid}, Name: {p.name()}, Status: {p.status()}"
+                )
+            except psutil.NoSuchProcess:
+                pass
+
         # Set a threshold (example: 350MB)
         threshold_memory = 350  # in MB
 
