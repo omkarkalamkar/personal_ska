@@ -6,6 +6,7 @@ from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from tests.settings import simulate_result_code_event
 
 
 def test_trackstop_command_completed(tango_context, task_callback, cm):
@@ -19,6 +20,7 @@ def test_trackstop_command_completed(tango_context, task_callback, cm):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    simulate_result_code_event(cm, "TrackStop", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
