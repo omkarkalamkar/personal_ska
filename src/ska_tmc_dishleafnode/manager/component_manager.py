@@ -1622,6 +1622,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             1024 * 1024
         )  # Convert bytes to MB
 
+        self.logger.debug(f"available_memory - {available_memory}")
+
         if available_memory < threshold_memory:
             self.logger.warning("Not enough memory to start the process.")
         else:
@@ -1638,6 +1640,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             1024 * 1024
         )  # Convert bytes to MB
 
+        self.logger.debug(f"available_disk_space - {available_disk_space}")
         if available_disk_space < threshold_disk_space:
             self.logger.warning("Not enough disk space to start the process.")
         else:
@@ -1650,6 +1653,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # Check current CPU usage
         cpu_usage = psutil.cpu_percent(interval=1)
+        self.logger.debug(f"cpu_usage - {cpu_usage}")
 
         if cpu_usage > threshold_cpu_usage:
             self.logger.warning("CPU usage is too high to start the process.")
