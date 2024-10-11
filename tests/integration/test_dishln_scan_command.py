@@ -104,9 +104,6 @@ def scan_command_timeout(
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
-    # Wait for the command timeout to be occurred. The command timeout is set
-    # to 15 sec.
-    time.sleep(18)
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_scan[0], COMMAND_TIMEOUT),

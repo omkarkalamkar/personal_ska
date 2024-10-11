@@ -117,9 +117,6 @@ def endscan_command_timeout(
     logger.info(
         f"Command ID: {unique_id_endscan} Returned result: {result_endscan}"
     )
-    # Wait for the command timeout to be occurred. The command timeout is set
-    # to 15 sec.
-    time.sleep(18)
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_endscan[0], COMMAND_TIMEOUT),
