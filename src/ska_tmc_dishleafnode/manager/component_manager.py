@@ -347,6 +347,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "exception": None,
             "status": None,
         }
+        self.logger.info("Cleared the command reult dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
         """Method to reset the command result dictionaries, events and flgas
@@ -869,7 +870,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         task_status, response = self.submit_task(
             self.scan_command.scan,
-            args=[argin, self.logger],
+            kwargs={"argin": argin},
             is_cmd_allowed=self.is_command_allowed_callable("Scan"),
             task_callback=task_callback,
         )
@@ -888,7 +889,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         task_status, response = self.submit_task(
             self.endscan_command.endscan,
-            args=[self.logger],
             is_cmd_allowed=self.is_command_allowed_callable("EndScan"),
             task_callback=task_callback,
         )
@@ -994,7 +994,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         task_status, response = self.submit_task(
             self.trackstop_command.trackstop,
-            args=[self.logger],
             is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
@@ -1770,13 +1769,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.set_operate_mode_result,
                 )
                 self.is_setoperatemode_completed_event.set()
-            if "Track" in unique_id and "TrackLoadStaticOff" not in unique_id:
-                self.track_result["result_code"] = result_code
-                self.track_result["message"] = message
-                self.logger.debug(
-                    "Track result: %s",
-                    self.track_result,
-                )
+            if "Track" in unique_id:
+                if (
+                    "TrackLoadStaticOff" not in unique_id
+                    and "TrackStop" not in unique_id
+                ):
+                    self.track_result["result_code"] = result_code
+                    self.track_result["message"] = message
+                    self.logger.debug(
+                        "Track result: %s",
+                        self.track_result,
+                    )
                 self.is_track_completed_event.set()
             if "TrackStop" in unique_id:
                 self.track_stop_result["result_code"] = result_code

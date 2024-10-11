@@ -2,15 +2,15 @@
 from __future__ import annotations
 
 import logging
-import threading
-import time
-from typing import Optional
+from typing import Tuple
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeoutCallback
+from ska_tmc_common import (
+    TimeKeeper,
+    error_propagation_decorator,
+    timeout_decorator,
+)
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
@@ -36,15 +36,17 @@ class Scan(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.timekeeper = TimeKeeper(
+            self.component_manager.command_timeout, logger
+        )
 
     # pylint: disable=unused-argument
+    @timeout_decorator
+    @error_propagation_decorator("get_scan_result", [ResultCode.OK])
     def scan(
         self: Scan,
         argin: str,
-        logger: logging.Logger,
-        task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
-    ) -> None:
+    ) -> Tuple[ResultCode, str]:
         """This is a long running method for Scan command, it
         executes the do hook, invoking Scan command on Dish Master
 
@@ -59,49 +61,7 @@ class Scan(DishLNCommand):
         :return: : None
         :rtype: None
         """
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
-        self.task_callback = task_callback
-        # Indicate that the task has started
-        task_callback(status=TaskStatus.IN_PROGRESS)
-
-        self.set_command_id(__class__.__name__)
-        self.component_manager.start_timer(
-            self.timeout_id,
-            self.component_manager.command_timeout,
-            self.timeout_callback,
-        )
-
-        result_code, message = self.do(argin)
-        self.component_manager.command_in_progress = "Scan"
-        logger.info(message)
-        if result_code in [
-            ResultCode.FAILED,
-            ResultCode.REJECTED,
-            ResultCode.NOT_ALLOWED,
-        ]:
-            logger.warning("Command failed with exception: %s", message)
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=message,
-            )
-            self.component_manager.command_in_progress = ""
-        else:
-            logger.info(
-                "The Scan command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
-            )
-
-            self.start_tracker_thread(
-                "get_scan_result",
-                [ResultCode.OK],
-                task_abort_event,
-                self.timeout_id,
-                self.timeout_callback,
-                self.component_manager.command_id,
-                self.component_manager.long_running_result_callback,
-            )
+        return self.do(argin)
 
     # pylint: disable=signature-differs
     def do(self: Scan, argin: str):
