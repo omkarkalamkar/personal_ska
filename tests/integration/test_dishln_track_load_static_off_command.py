@@ -1,7 +1,6 @@
 """Integration test for Track and TrackStop command
 """
 import json
-import time
 
 import pytest
 import tango
@@ -67,10 +66,6 @@ def track_load_static_off_dish_leaf_node_timeout(
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
-
-    # Wait for the command timeout to be occurred. The command timeout is set
-    # to 15 sec.
-    time.sleep(18)
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_TIMEOUT),

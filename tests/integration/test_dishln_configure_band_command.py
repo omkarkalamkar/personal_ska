@@ -1,5 +1,4 @@
 import json
-import time
 
 import pytest
 import tango
@@ -206,9 +205,6 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
     result_op, unique_id_op = dish_leaf_node.ConfigureBand("2")
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
-    # Wait for the command timeout to be occurred. The command timeout is set
-    # to 15 sec.
-    time.sleep(18)
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], COMMAND_TIMEOUT),

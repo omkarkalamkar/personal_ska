@@ -179,7 +179,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "sourceOffset",
         "kValue",
         "commandCallInfo",
-        timeout=30,
+        timeout=50,
     )
     return group_callback
 
