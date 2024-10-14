@@ -213,7 +213,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.adapter_factory,
             logger=self.logger,
         )
-        
+
         self.dish_adapter: DishAdapter | None = (
             self.configure_command.dish_master_adapter
         )
