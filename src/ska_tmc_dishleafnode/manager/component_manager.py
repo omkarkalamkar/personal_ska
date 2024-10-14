@@ -1745,14 +1745,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             unique_id, result_code_message = value
             result_code, message = json.loads(result_code_message)
 
-            if "TrackLoadStaticOff" in unique_id:
-                self.track_load_static_off_result["result_code"] = result_code
-                self.track_load_static_off_result["message"] = message
-                self.logger.debug(
-                    "TrackLoadStaticOff result: %s",
-                    self.track_load_static_off_result,
-                )
-                self.is_trackloadstaticoff_completed_event.set()
             if "ConfigureBand" in unique_id:
                 self.configure_band_result["result_code"] = result_code
                 self.configure_band_result["message"] = message
@@ -1761,7 +1753,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.configure_band_result,
                 )
                 self.is_configureband_completed_event.set()
-            if "SetOperateMode" in unique_id:
+            elif "SetOperateMode" in unique_id:
                 self.set_operate_mode_result["result_code"] = result_code
                 self.set_operate_mode_result["message"] = message
                 self.logger.debug(
@@ -1769,39 +1761,44 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.set_operate_mode_result,
                 )
                 self.is_setoperatemode_completed_event.set()
-            if "Track" in unique_id:
-                if (
-                    "TrackLoadStaticOff" not in unique_id
-                    and "TrackStop" not in unique_id
-                ):
-                    self.track_result["result_code"] = result_code
-                    self.track_result["message"] = message
-                    self.logger.debug(
-                        "Track result: %s",
-                        self.track_result,
-                    )
-                self.is_track_completed_event.set()
-            if "TrackStop" in unique_id:
-                self.track_stop_result["result_code"] = result_code
-                self.track_stop_result["message"] = message
-                self.logger.debug(
-                    "TrackStop result: %s",
-                    self.track_stop_result,
-                )
-            if "Scan" in unique_id:
-                self.scan_result["result_code"] = result_code
-                self.scan_result["message"] = message
-                self.logger.debug(
-                    "Scan result: %s",
-                    self.scan_result,
-                )
-            if "EndScan" in unique_id:
+            elif "EndScan" in unique_id:
                 self.end_scan_result["result_code"] = result_code
                 self.end_scan_result["message"] = message
                 self.logger.debug(
                     "EndScan result: %s",
                     self.end_scan_result,
                 )
+            elif "Scan" in unique_id:
+                self.scan_result["result_code"] = result_code
+                self.scan_result["message"] = message
+                self.logger.debug(
+                    "Scan result: %s",
+                    self.scan_result,
+                )
+            elif "TrackLoadStaticOff" in unique_id:
+                self.track_load_static_off_result["result_code"] = result_code
+                self.track_load_static_off_result["message"] = message
+                self.logger.debug(
+                    "TrackLoadStaticOff result: %s",
+                    self.track_load_static_off_result,
+                )
+                self.is_trackloadstaticoff_completed_event.set()
+            elif "TrackStop" in unique_id:
+                self.track_stop_result["result_code"] = result_code
+                self.track_stop_result["message"] = message
+                self.logger.debug(
+                    "TrackStop result: %s",
+                    self.track_stop_result,
+                )
+
+            elif "Track" in unique_id:
+                self.track_result["result_code"] = result_code
+                self.track_result["message"] = message
+                self.logger.debug(
+                    "Track result: %s",
+                    self.track_result,
+                )
+                self.is_track_completed_event.set()
 
             if result_code in [
                 ResultCode.FAILED,

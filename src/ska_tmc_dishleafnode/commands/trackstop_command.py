@@ -49,14 +49,8 @@ class TrackStop(DishLNCommand):
         """This is a long running method for TrackStop command, it
         executes the do hook, invoking TrackStop command on Dish Master
 
-        :param logger: logger
-        :type logger: logging.Logger
-        :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
-        :return: : None
-        :rtype: None
+        :return: A tuple containing the result code and a message.
+        :rtype: Tuple[ResultCode, str]
         """
         return self.do()
 

@@ -50,12 +50,8 @@ class EndScan(DishLNCommand):
         executes the do hook, to set scanID attribute of Dish Master to empty
         string.
 
-        :param logger: logger
-        :type logger: logging.Logger
-        :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
+        :return: A tuple containing the result code and a message.
+        :rtype: Tuple[ResultCode, str]
         """
         return self.do()
 
