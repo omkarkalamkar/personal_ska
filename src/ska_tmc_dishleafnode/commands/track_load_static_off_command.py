@@ -40,6 +40,8 @@ class TrackLoadStaticOff(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     def invoke_track_load_static_off(
@@ -66,8 +68,6 @@ class TrackLoadStaticOff(DishLNCommand):
         :return: : None
         :rtype: None
         """
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.component_manager.is_configure_command is False:

@@ -17,7 +17,13 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import DishMode, PointingState, TimeoutCallback
 
+from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
+from ska_tmc_dishleafnode.commands.track_command import Track
+from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
+    TrackLoadStaticOff,
+)
 from ska_tmc_dishleafnode.constants import (
     COMMAND_COMPLETION_MESSAGE,
     RESET_OFFSETS,
@@ -363,8 +369,13 @@ class Configure(DishLNCommand):
                     ] = status
 
             # pylint: enable=unused-argument
-
-            self.component_manager.configure_band_command.configure_band(
+            configure_band_command = ConfigureBand(
+                self.component_manager,
+                self.op_state_model,
+                self.adapter_factory,
+                logger=self.logger,
+            )
+            configure_band_command.configure_band(
                 argin=self.receiver_band,
                 logger=self.logger,
                 task_callback=_invoke_configure_band_callback,
@@ -476,8 +487,13 @@ class Configure(DishLNCommand):
 
         # pylint: enable=unused-argument
         # Call the TrackStaticLoadOff command
-        command_obj = self.component_manager.track_load_static_off_command
-        command_obj.invoke_track_load_static_off(
+        track_load_static_off_command = TrackLoadStaticOff(
+            self.component_manager,
+            self.op_state_model,
+            self.adapter_factory,
+            self.logger,
+        )
+        track_load_static_off_command.invoke_track_load_static_off(
             argin=json.dumps(offsets_argin),
             logger=self.logger,
             task_callback=_invoke_trackstaticloadoff_callback,
@@ -647,7 +663,13 @@ class Configure(DishLNCommand):
                 ] = status
 
         # pylint: enable=unused-argument
-        self.component_manager.setoperatemode_command.set_operate_mode(
+        setoperatemode_command = SetOperateMode(
+            self.component_manager,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
+        setoperatemode_command.set_operate_mode(
             logger=self.logger, task_callback=_invoke_setoperatemode_callback
         )
 
@@ -770,7 +792,13 @@ class Configure(DishLNCommand):
                 self.component_manager.track_result["status"] = status
 
         # pylint: enable=unused-argument
-        self.component_manager.track_command.track(
+        track_command = Track(
+            self.component_manager,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
+        track_command.track(
             argin=json_argument,
             logger=self.logger,
             task_callback=_invoke_track_callback,

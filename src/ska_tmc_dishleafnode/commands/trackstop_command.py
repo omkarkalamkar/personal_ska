@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+import time
+from typing import Callable, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import (
     TimeKeeper,
+    TimeoutCallback,
+    TimeoutState,
     error_propagation_decorator,
     timeout_decorator,
 )
@@ -39,6 +42,10 @@ class TrackStop(DishLNCommand):
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     @timeout_decorator

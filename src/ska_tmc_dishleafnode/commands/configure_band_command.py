@@ -39,6 +39,8 @@ class ConfigureBand(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     def configure_band(
@@ -62,8 +64,6 @@ class ConfigureBand(DishLNCommand):
         :return: : None
         :rtype: None
         """
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)

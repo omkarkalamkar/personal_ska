@@ -42,6 +42,8 @@ class Track(DishLNCommand):
         self.ra_value = ""
         self.dec_value = ""
         self.tracking_thread = None
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     def track(
@@ -65,8 +67,6 @@ class Track(DishLNCommand):
         :return: : None
         :rtype: None
         """
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)

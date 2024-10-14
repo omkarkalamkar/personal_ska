@@ -1,5 +1,4 @@
 """This module provides settings for the test cases."""
-# pylint: disable=cyclic-import
 import json
 import logging
 import time
