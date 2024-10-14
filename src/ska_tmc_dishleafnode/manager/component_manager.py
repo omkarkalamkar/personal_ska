@@ -1751,6 +1751,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             " %s",
                             self.command_mapping,
                         )
+                        self.logger.info("ResultCode-%s", value)
                         return [value]
         return [""]
 
