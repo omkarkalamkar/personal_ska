@@ -118,6 +118,7 @@ class Track(DishLNCommand):
             return result_code, message
 
         with self.component_manager.tango_operation_execution_lock:
+            self.logger.debug("Grabbed tango lock")
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
@@ -128,6 +129,8 @@ class Track(DishLNCommand):
                 "self.component_manager.command_mapping: %s",
                 self.component_manager.command_mapping,
             )
+
+        self.logger.debug("Released tango lock")
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]

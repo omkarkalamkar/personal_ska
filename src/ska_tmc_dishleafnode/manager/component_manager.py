@@ -1485,9 +1485,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+
+        self.logger.debug(
+            "ProgramTrackTable will be updated, will grab tango lock"
+        )
         with self.tango_operation_execution_lock:
             try:
+                self.logger.debug("Grabbed tango lock")
                 self.dish_adapter.programTrackTable = program_track_table
+                self.logger.debug("ProgramTrackTable Updated")
             except (tango.DevFailed, Exception) as exception:
                 self.logger.exception(
                     "Exception while writing tracktable: %s", str(exception)
@@ -1541,6 +1547,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.target_data, self.converter
                     )
                 )
+
                 first_entry_timestamp: float = program_track_table[0]
 
                 # advance_time is subtracted to provide programTrackTable few
@@ -1575,11 +1582,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.update_program_track_table,
                     argument=(program_track_table,),
                 )
+
+                self.logger.debug(
+                    "update_program_track_table - Added in scheduler"
+                )
                 self.track_table_scheduler.run()
+                self.logger.debug("Execution done")
+
             self.logger.debug("Program Track Table Calculation stopped.")
 
             with self.tango_operation_execution_lock:
+                self.logger.debug("Grabbed tango operation lock")
                 self.dish_adapter.programTrackTable = []
+
             self.logger.debug("Cleared programTrackTable attribute.")
 
         except Exception as exception:
