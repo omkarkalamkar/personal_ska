@@ -140,6 +140,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
+        self.track_result_lock = Lock()
+        self.set_operate_mode_result_lock = Lock()
         self.tango_operation_execution_lock = Lock()
         self.observer = None
         self.dish_number = None
@@ -673,35 +675,35 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._device
 
-    def get_dishmode(self: DishLNComponentManager) -> DishMode:
-        """
-        Return the dishMode of the device
+    # def get_dishmode(self: DishLNComponentManager) -> DishMode:
+    #     """
+    #     Return the dishMode of the device
 
-        :return: dish_mode
-        :rtype: DishMode
-        """
-        self.logger.info("Dish Mode: %s", self._device.dish_mode)
-        return self._device.dish_mode
+    #     :return: dish_mode
+    #     :rtype: DishMode
+    #     """
+    #     self.logger.info("Dish Mode: %s", self._device.dish_mode)
+    #     return self._device.dish_mode
 
-    def get_pointingstate(self: DishLNComponentManager) -> PointingState:
-        """
-        Return the pointingState of the device
+    # def get_pointingstate(self: DishLNComponentManager) -> PointingState:
+    #     """
+    #     Return the pointingState of the device
 
-        :return: pointing_state
-        :rtype: PointingState
-        """
-        self.logger.info("PointingState is %s", self._device.pointing_state)
-        return self._device.pointing_state
+    #     :return: pointing_state
+    #     :rtype: PointingState
+    #     """
+    #     self.logger.info("PointingState is %s", self._device.pointing_state)
+    #     return self._device.pointing_state
 
-    def get_dish_configured_band(self: DishLNComponentManager) -> str:
-        """
-        Return the configuredBand of the device
+    # def get_dish_configured_band(self: DishLNComponentManager) -> str:
+    #     """
+    #     Return the configuredBand of the device
 
-        :return: dish band
-        :rtype: str
-        """
-        self.logger.info("Dish Band: %s", self.dishConfiguredBand)
-        return self.dishConfiguredBand
+    #     :return: dish band
+    #     :rtype: str
+    #     """
+    #     self.logger.info("Dish Band: %s", self.dishConfiguredBand)
+    #     return self.dishConfiguredBand
 
     # pylint: disable=signature-differs
     def off(
@@ -2064,25 +2066,31 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 
-    def get_dish_state(self) -> Tuple[DishMode, PointingState, ResultCode]:
+    def get_dish_state(
+        self,
+    ) -> Tuple[
+        DishMode, PointingState, Band, ResultCode, ResultCode, ResultCode
+    ]:
         """
         Returns the current state of the dish including its mode,
-        pointing state,and the result code of a specified command.
-
-        Args:
-            command_id: The identifier for the command whose result is required
+        pointing state, band and the result code of the specified commands.
 
         Returns:
             A tuple containing:
                 - DishMode: The current operational mode of the dish.
                 - PointingState: The current pointing state of the dish.
-                - ResultCode: The result code of the command identified by
-                    command_id.
+                - Band: The dish configured band
+                - ResultCode: ConfigureBand command result code
+                - ResultCode: SetOperateMode command result code
+                - ResultCode: Track command result code
         """
         return [
             self.dishMode,
             self.pointingState,
             self.dishConfiguredBand,
+            self.configure_band_result["result_code"],
+            self.set_operate_mode_result["result_code"],
+            self.track_result["result_code"],
         ]
 
     def get_track_load_static_off_result(self: DishLNComponentManager):
@@ -2093,6 +2101,58 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: dict
         """
         return self.track_load_static_off_result["result_code"]
+
+    def get_configure_band_result(self: DishLNComponentManager):
+        """
+        Return the result of the ConfigureBand command execution
+
+        :return: ResultCode from th configure_band_result
+        :rtype: ResultCode
+        """
+        return self.configure_band_result["result_code"]
+
+    def get_set_operate_mode_result(self: DishLNComponentManager):
+        """
+        Return the result of the SetOperateMode command execution
+
+        :return: ResultCode from the set_operate_mode_result
+        :rtype: ResultCode
+        """
+        return self.set_operate_mode_result["result_code"]
+
+    def get_track_result(self: DishLNComponentManager):
+        """
+        Return the result of the Track command execution
+
+        :return: ResultCode from the track_result
+        :rtype: ResultCode
+        """
+        return self.track_result["result_code"]
+
+    def update_set_operate_mode_result(
+        self: DishLNComponentManager, result_code, message
+    ):
+        """
+        Set the result of the SetOperateMode command in dictionary
+        set_operate_mode_result
+        :param result_code: ResultCode to be set in set_operate_mode_result
+        :type result_code: ResultCode
+        :param: message to be set in set_operate_mode_result
+        :type: str
+        """
+        self.set_operate_mode_result["result_code"] = result_code
+        self.set_operate_mode_result["message"] = message
+
+    def set_track_result(self: DishLNComponentManager, result_code, message):
+        """
+        Set the result of the Track command in dictionary track_result
+        :param result_code: ResultCode to be set in track_result
+        :type result_code: ResultCode
+        :param: message to be set in track_result
+        :type: str
+        """
+        self.track_result["result_code"] = result_code
+        self.track_result["message"] = message
 
     def get_end_scan_result(self: DishLNComponentManager):
         """

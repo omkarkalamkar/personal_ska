@@ -89,8 +89,8 @@ class ConfigureBand(DishLNCommand):
         else:
             if self.component_manager.is_configure_command is False:
                 self.start_tracker_thread(
-                    "get_dish_configured_band",
-                    [argin],
+                    "get_configure_band_result",
+                    [ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,
                     self.timeout_callback,

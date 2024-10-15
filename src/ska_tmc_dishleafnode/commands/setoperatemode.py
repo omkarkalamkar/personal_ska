@@ -13,7 +13,7 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import DishMode, TimeoutCallback
+from ska_tmc_common import TimeoutCallback
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
@@ -79,8 +79,8 @@ class SetOperateMode(DishLNCommand):
         else:
             if self.component_manager.is_configure_command is False:
                 self.start_tracker_thread(
-                    "get_dishmode",
-                    [DishMode.OPERATE],
+                    "get_set_operate_mode_result",
+                    [ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,
                     self.timeout_callback,

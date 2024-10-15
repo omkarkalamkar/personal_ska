@@ -112,6 +112,7 @@ class Configure(DishLNCommand):
                     DishMode.OPERATE,
                     (PointingState.TRACK, PointingState.SLEW),
                     self.receiver_band,
+                    ResultCode.OK,
                 ],
                 task_abort_event,
                 self.timeout_id,
@@ -186,6 +187,7 @@ class Configure(DishLNCommand):
             self.receiver_band = ""
             self.partial_configure = False
             self.component_manager.clear_configure_command_events_flags()
+            self.logger.info("Configure command cleanup completed.")
 
         except Exception as e:
             self.logger.exception(
@@ -572,6 +574,17 @@ class Configure(DishLNCommand):
                 ResultCode.ABORTED,
             ]:
                 return result_code, message
+        else:
+            self.component_manager.set_operate_mode_result[
+                "result_code"
+            ] = ResultCode.OK
+            self.component_manager.set_operate_mode_result[
+                "message"
+            ] = "Dish is already in DishMode OPERATE."
+            self.logger.debug(
+                "set_operate_mode_result result: %s",
+                self.component_manager.set_operate_mode_result,
+            )
 
         return self.invoke_track_command(json_argument)
 
@@ -674,15 +687,11 @@ class Configure(DishLNCommand):
         )
 
         if (
-            self.component_manager.set_operate_mode_result["result_code"]
+            self.component_manager.get_set_operate_mode_result()
             == ResultCode.FAILED
         ):
             return (
-                [
-                    self.component_manager.set_operate_mode_result[
-                        "result_code"
-                    ]
-                ],
+                [self.component_manager.get_set_operate_mode_result()],
                 [self.component_manager.set_operate_mode_result["exception"]],
             )
 
@@ -697,7 +706,7 @@ class Configure(DishLNCommand):
             )
         if result == CommandResult.ACHIEVED:
             if (
-                self.component_manager.set_operate_mode_result["result_code"]
+                self.component_manager.get_set_operate_mode_result()
                 == ResultCode.FAILED
             ):
                 self.logger.error(
@@ -744,7 +753,14 @@ class Configure(DishLNCommand):
                 "Dish is already tracking/slewing. Track() command "
                 + "is not invoked."
             )
-
+            self.component_manager.track_result["result_code"] = ResultCode.OK
+            self.component_manager.track_result[
+                "message"
+            ] = "Dish is already tracking/slewing."
+            self.logger.debug(
+                "Track result: %s",
+                self.component_manager.track_result,
+            )
             return (
                 [ResultCode.OK],
                 [
@@ -871,18 +887,27 @@ class Configure(DishLNCommand):
             # Check if the result match the expected value
             return result_code == state_to_achieve
 
-        dish_mode, pointing_state, receiver_band = methodcaller(
-            state_function
-        )(self.component_manager)
+        (
+            dish_mode,
+            pointing_state,
+            receiver_band,
+            configure_band_result,
+            setoperatemode_result,
+            track_result,
+        ) = methodcaller(state_function)(self.component_manager)
 
         (
             expected_dish_mode,
             expected_pointing_states,
             expected_receiver_band,
+            expected_result_code,
         ) = expected_state
         # Check if the results match the expected values
         return (
             dish_mode == expected_dish_mode
             and pointing_state in expected_pointing_states
             and receiver_band == expected_receiver_band
+            and configure_band_result == expected_result_code
+            and setoperatemode_result == expected_result_code
+            and track_result == expected_result_code
         )
