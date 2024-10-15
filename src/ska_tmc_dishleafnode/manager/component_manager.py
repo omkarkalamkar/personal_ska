@@ -206,17 +206,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.target_data: List | str
         self.track_table_process: Process = Process(target=self.track_process)
-
-        self.configure_command = Configure(
-            self,
-            self.op_state_model,
-            self.adapter_factory,
-            logger=self.logger,
-        )
-
-        self.dish_adapter: DishAdapter | None = (
-            self.configure_command.dish_master_adapter
-        )
+        self.dish_adapter = None
 
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
@@ -1056,18 +1046,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"Error while loading the input json: {exception}",
             )
 
+        configure_command = Configure(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
+
+        self.dish_adapter = configure_command.dish_master_adapter
+
         # validate the JSON argument
         (
             validation_result,
             message,
-        ) = self.configure_command.validate_json_argument(input_json)
+        ) = configure_command.validate_json_argument(input_json)
         if validation_result != ResultCode.OK:
             return validation_result, message
         if "correction" in input_json["pointing"]:
             self.correction_key = input_json["pointing"]["correction"]
         # submit the command to the queue
         task_status, response = self.submit_task(
-            self.configure_command.invoke_configure,
+            configure_command.invoke_configure,
             args=[argin, self.logger],
             is_cmd_allowed=self.is_command_allowed_callable("Configure"),
             task_callback=task_callback,

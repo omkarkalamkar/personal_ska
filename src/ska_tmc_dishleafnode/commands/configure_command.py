@@ -62,6 +62,8 @@ class Configure(DishLNCommand):
         self.track_table_process = None
         self.partial_configure = False
         self.receiver_band: str = ""
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     def invoke_configure(
@@ -85,8 +87,6 @@ class Configure(DishLNCommand):
         :return: : None
         :rtype: None
         """
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
         self.component_manager.abort_event = task_abort_event
         # Indicate that the task has started
         self.task_callback = task_callback
