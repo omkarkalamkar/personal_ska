@@ -1494,7 +1494,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug("Grabbed tango lock")
                 self.dish_adapter.programTrackTable = program_track_table
                 self.logger.debug("ProgramTrackTable Updated")
-            except (tango.DevFailed, Exception) as exception:
+            except BaseException as exception:
                 self.logger.exception(
                     "Exception while writing tracktable: %s", str(exception)
                 )
@@ -1589,6 +1589,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
                 self.logger.debug("Execution done")
 
+            self.stop_track_table_process()
             self.logger.debug("Program Track Table Calculation stopped.")
 
             with self.tango_operation_execution_lock:
@@ -1597,7 +1598,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             self.logger.debug("Cleared programTrackTable attribute.")
 
-        except Exception as exception:
+        except BaseException as exception:
             self.logger.error(
                 "Exception occurred during track_process :%s",
                 str(exception),
@@ -1706,7 +1707,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     "programTrackTable calculation is already going on."
                     + " New process will not be hosted."
                 )
-        except Exception as exception:
+        except BaseException as exception:
             self.logger.error(
                 "Exception occurred while starting programTrackTable "
                 "calculation: %s",
@@ -1716,8 +1717,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def stop_track_table_process(self):
         """Stops track process"""
         if self.track_table_process.is_alive():
+            self.logger.info(
+                "The track process name is : %s", self.track_table_process.name
+            )
+
             self.logger.debug("Stopping Track table process")
             self.track_table_process.join()
+            self.logger.debug("Stopped Track table process")
+            self.logger.debug(
+                f"Is track_table_process alive:"
+                f" {self.track_table_process.is_alive()}"
+            )
 
     # pylint: disable=arguments-differ
     def update_exception_for_unresponsiveness(
