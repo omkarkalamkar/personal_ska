@@ -31,7 +31,7 @@ def test_radec_to_azel(
     timestamp: str,
     expected_az: float,
     expected_el: float,
-    tango_context,
+    tango_context_process_true,
     cm,
 ):
     """Function to test AzEl conversion"""
