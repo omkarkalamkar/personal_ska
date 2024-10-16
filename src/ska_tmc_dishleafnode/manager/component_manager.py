@@ -210,6 +210,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.target_data: List | str
         self.track_table_process: Process = Process(target=self.track_process)
+        self.logger.info(
+            "track_table_process id - %s", self.track_table_process.pid
+        )
         self.setstandbyfpmode_command = SetStandbyFPMode(
             self,
             self.op_state_model,
@@ -1517,6 +1520,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 Process(target=current_process().name),
             )
 
+            self.logger.info(
+                "The track process id - %s", current_process().pid
+            )
+
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             # This is dummy calculation because first time calculation takes
             # time due to IERS file downloads
@@ -1589,7 +1596,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
                 self.logger.debug("Execution done")
 
-            self.stop_track_table_process()
+            # self.stop_track_table_process()
             self.logger.debug("Program Track Table Calculation stopped.")
 
             with self.tango_operation_execution_lock:
@@ -1608,6 +1615,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Creates new process for programTrackTable calculation."""
         self.logger.debug("Creating new process for tracktable calculation")
         self.track_table_process = Process(target=self.track_process)
+        self.logger.info(
+            "track_table_process id - %s", self.track_table_process.pid
+        )
 
     def check_resources(self) -> None:
         """
@@ -1690,7 +1700,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """This method create and start process for programTrackTable
         calculation."""
         try:
+            self.logger.info(
+                "track_table_process id - %s", self.track_table_process.pid
+            )
             if not self.track_table_process.is_alive():
+                self.logger.info(
+                    "track_table_process id - %s", self.track_table_process.pid
+                )
                 self.check_resources()
                 self.create_track_process()
 
@@ -1703,6 +1719,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
 
             else:
+                self.logger.info(
+                    "track_table_process id - %s", self.track_table_process.pid
+                )
                 self.logger.debug(
                     "programTrackTable calculation is already going on."
                     + " New process will not be hosted."
@@ -1718,8 +1737,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Stops track process"""
         if self.track_table_process.is_alive():
             self.logger.info(
+                "The track process id is  : %s", self.track_table_process.pid
+            )
+            self.logger.info(
                 "The track process name is : %s", self.track_table_process.name
             )
+            self.set_track_process_event()
 
             self.logger.debug("Stopping Track table process")
             self.track_table_process.join()
