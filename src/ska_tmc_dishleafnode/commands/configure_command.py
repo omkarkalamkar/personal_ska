@@ -15,7 +15,7 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import DishMode, PointingState, TimeoutCallback
+from ska_tmc_common import DishMode, PointingState
 
 from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
@@ -62,8 +62,6 @@ class Configure(DishLNCommand):
         self.track_table_process = None
         self.partial_configure = False
         self.receiver_band: str = ""
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     def invoke_configure(
