@@ -1,6 +1,5 @@
 """Test to verify EndScan command on dishleafnode"""
 import json
-import time
 
 import pytest
 import tango
@@ -16,6 +15,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     tear_down,
+    wait_for_attribute_value,
 )
 
 
@@ -28,12 +28,12 @@ def endscan_command_timeout(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
 
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -50,7 +50,7 @@ def endscan_command_timeout(
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -90,8 +90,8 @@ def endscan_command_timeout(
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
-    # It takes time to get scanID attribute updated.
-    time.sleep(0.1)
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -144,9 +144,9 @@ def endscan_command_timeout(
         (PointingState.READY),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -171,12 +171,12 @@ def endscan_command_error_propogation(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
 
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -193,7 +193,7 @@ def endscan_command_error_propogation(
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -233,8 +233,8 @@ def endscan_command_error_propogation(
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
-    # It takes time to get scanID attribute updated.
-    time.sleep(0.1)
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -284,9 +284,9 @@ def endscan_command_error_propogation(
         (PointingState.READY),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -313,12 +313,12 @@ def endscan_command(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
 
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -335,7 +335,7 @@ def endscan_command(
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -375,8 +375,8 @@ def endscan_command(
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
-    # It takes time to get scanID attribute updated.
-    time.sleep(0.1)
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -388,8 +388,8 @@ def endscan_command(
     logger.info(
         f"Command ID: {unique_id_endscan} Returned result: {result_endscan}"
     )
-    # It takes time to get scanID attribute updated.
-    time.sleep(0.1)
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
     assert dish_master.scanID == ""
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -407,9 +407,9 @@ def endscan_command(
         (PointingState.READY),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 

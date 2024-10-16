@@ -19,7 +19,7 @@ def off_command(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -38,7 +38,7 @@ def off_command(tango_context, dishln_name, group_callback):
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
     assert result[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -47,8 +47,8 @@ def off_command(tango_context, dishln_name, group_callback):
         (unique_id[0], COMMAND_COMPLETED),
         lookahead=2,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

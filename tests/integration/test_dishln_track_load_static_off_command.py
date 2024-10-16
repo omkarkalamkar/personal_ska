@@ -32,7 +32,7 @@ def track_load_static_off_dish_leaf_node_timeout(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectPointingState(PointingState.READY)
 
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -42,7 +42,7 @@ def track_load_static_off_dish_leaf_node_timeout(
         (PointingState.READY),
         lookahead=2,
     )
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -83,8 +83,8 @@ def track_load_static_off_dish_leaf_node_timeout(
     )
     dish_master.SetDefective(RESET_DEFECT)
 
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
 
 @pytest.mark.post_deployment
@@ -112,7 +112,7 @@ def track_load_static_off_dish_leaf_node_error_propagation(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectPointingState(PointingState.READY)
 
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -122,7 +122,7 @@ def track_load_static_off_dish_leaf_node_error_propagation(
         (PointingState.READY),
         lookahead=2,
     )
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -161,8 +161,8 @@ def track_load_static_off_dish_leaf_node_error_propagation(
     )
     dish_master.SetDefective(RESET_DEFECT)
 
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
 
 @pytest.mark.post_deployment
@@ -190,7 +190,7 @@ def track_load_static_off_dish_leaf_node(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectPointingState(PointingState.READY)
 
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -200,7 +200,7 @@ def track_load_static_off_dish_leaf_node(
         (PointingState.READY),
         lookahead=2,
     )
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -217,8 +217,8 @@ def track_load_static_off_dish_leaf_node(
         lookahead=6,
     )
 
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
 
 @pytest.mark.post_deployment
