@@ -75,7 +75,7 @@ class SetOperateMode(DishLNCommand):
         else:
             if self.component_manager.is_configure_command is False:
                 self.start_tracker_thread(
-                    "get_set_operate_mode_result",
+                    "get_set_operate_mode_result_code",
                     [ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,

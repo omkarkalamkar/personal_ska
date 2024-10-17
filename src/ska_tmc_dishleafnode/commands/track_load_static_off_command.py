@@ -99,7 +99,7 @@ class TrackLoadStaticOff(DishLNCommand):
                     self.component_manager.is_configure_command,
                 )
                 self.start_tracker_thread(
-                    "get_track_load_static_off_result",
+                    "get_track_load_static_off_result_code",
                     [ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,

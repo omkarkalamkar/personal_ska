@@ -120,7 +120,7 @@ class Configure(DishLNCommand):
             )
         else:
             self.start_tracker_thread(
-                "get_track_load_static_off_result",
+                "get_track_load_static_off_result_code",
                 [ResultCode.OK],
                 task_abort_event,
                 self.timeout_id,
@@ -355,18 +355,22 @@ class Configure(DishLNCommand):
                 if result is None:
                     pass
                 else:
-                    self.component_manager.configure_band_result[
-                        "result_code"
-                    ] = result[0]
-                    self.component_manager.configure_band_result[
-                        "message"
-                    ] = result[1]
-                    self.component_manager.configure_band_result[
-                        "exception"
-                    ] = exception
-                    self.component_manager.configure_band_result[
-                        "status"
-                    ] = status
+                    # with self.component_manager.command_result_update_lock:
+                    # self.component_manager.configure_band_result[
+                    #     "result_code"
+                    # ] = result[0]
+                    # self.component_manager.configure_band_result[
+                    #     "message"
+                    # ] = result[1]
+                    # self.component_manager.configure_band_result[
+                    #     "exception"
+                    # ] = exception
+                    # self.component_manager.configure_band_result[
+                    #     "status"
+                    # ] = status
+                    self.component_manager.set_configure_band_result_dict(
+                        result[0], result[1], exception, status
+                    )
 
             # pylint: enable=unused-argument
             configure_band_command = ConfigureBand(
@@ -382,14 +386,14 @@ class Configure(DishLNCommand):
             )
 
             if (
-                self.component_manager.configure_band_result["result_code"]
+                self.component_manager.get_configure_band_result_code()
                 == ResultCode.FAILED
             ):
                 return (
-                    self.component_manager.configure_band_result[
-                        "result_code"
+                    self.component_manager.get_configure_band_result_code(),
+                    self.component_manager.get_configure_band_result_dict()[
+                        "exception"
                     ],
-                    self.component_manager.configure_band_result["exception"],
                 )
 
             if self.component_manager.dishMode != DishMode.STOW:
@@ -472,18 +476,22 @@ class Configure(DishLNCommand):
             if result is None:
                 pass
             else:
-                self.component_manager.track_load_static_off_result[
-                    "result_code"
-                ] = result[0]
-                self.component_manager.track_load_static_off_result[
-                    "message"
-                ] = result[1]
-                self.component_manager.track_load_static_off_result[
-                    "exception"
-                ] = exception
-                self.component_manager.track_load_static_off_result[
-                    "status"
-                ] = status
+                self.component_manager.set_track_load_static_off_result_dict(
+                    result[0], result[1], exception, status
+                )
+                # with self.component_manager.command_result_update_lock:
+                #     self.component_manager.track_load_static_off_result[
+                #         "result_code"
+                #     ] = result[0]
+                #     self.component_manager.track_load_static_off_result[
+                #         "message"
+                #     ] = result[1]
+                #     self.component_manager.track_load_static_off_result[
+                #         "exception"
+                #     ] = exception
+                #     self.component_manager.track_load_static_off_result[
+                #         "status"
+                #     ] = status
 
         # pylint: enable=unused-argument
         # Call the TrackStaticLoadOff command
@@ -500,14 +508,12 @@ class Configure(DishLNCommand):
         )
 
         if (
-            self.component_manager.track_load_static_off_result["result_code"]
+            self.component_manager.get_track_load_static_off_result_code()
             == ResultCode.FAILED
         ):
             return (
-                self.component_manager.track_load_static_off_result[
-                    "result_code"
-                ],
-                self.component_manager.track_load_static_off_result[
+                self.component_manager.get_track_load_static_off_result_code(),
+                self.component_manager.get_track_load_static_off_result_dict()[
                     "exception"
                 ],
             )
@@ -524,24 +530,24 @@ class Configure(DishLNCommand):
                 "AbortCommands() command is invoked on the DishLeafNode.",
             )
         if result == CommandResult.ACHIEVED:
+            # pylint: disable=line-too-long
             if (
-                self.component_manager.track_load_static_off_result[
-                    "result_code"
-                ]
+                self.component_manager.get_track_load_static_off_result_code()
                 == ResultCode.FAILED
             ):
                 self.logger.error(
                     "TrackStaticLoadOff command failed with reason: %s",
-                    self.component_manager.track_load_static_off_result[
+                    self.component_manager.get_track_load_static_off_result_dict()[  # noqa: E501
                         "message"
                     ],
                 )
                 return (
                     ResultCode.FAILED,
-                    self.component_manager.track_load_static_off_result[
+                    self.component_manager.get_track_load_static_off_result_dict()[  # noqa: E501
                         "message"
                     ],
                 )
+            # pylint: enable=line-too-long
 
         else:
             self.logger.error(
@@ -573,12 +579,17 @@ class Configure(DishLNCommand):
             ]:
                 return result_code, message
         else:
-            self.component_manager.set_operate_mode_result[
-                "result_code"
-            ] = ResultCode.OK
-            self.component_manager.set_operate_mode_result[
-                "message"
-            ] = "Dish is already in DishMode OPERATE."
+            # with self.component_manager.command_result_update_lock:
+            #     self.component_manager.set_operate_mode_result[
+            #         "result_code"
+            #     ] = ResultCode.OK
+            #     self.component_manager.set_operate_mode_result[
+            #         "message"
+            #     ] = "Dish is already in DishMode OPERATE."
+            message = "Dish is already in DishMode OPERATE."
+            self.component_manager.update_set_operate_mode_result_dict(
+                ResultCode.OK, message
+            )
             self.logger.debug(
                 "set_operate_mode_result result: %s",
                 self.component_manager.set_operate_mode_result,
@@ -608,21 +619,25 @@ class Configure(DishLNCommand):
 
         if result == CommandResult.ACHIEVED:
             if (
-                self.component_manager.configure_band_result["result_code"]
+                self.component_manager.get_configure_band_result_code()
                 == ResultCode.FAILED
             ):
                 self.logger.error(
                     "ConfigureBand command failed with reason: %s",
-                    self.component_manager.configure_band_result["message"],
+                    self.component_manager.get_configure_band_result_dict()[
+                        "message"
+                    ],
                 )
+                # pylint: disable=line-too-long
                 return (
                     [ResultCode.FAILED],
                     [
-                        self.component_manager.configure_band_result[
+                        self.component_manager.get_configure_band_result_dict()[  # noqa: E501
                             "message"
                         ],
                     ],
                 )
+                # pylint: enable=line-too-long
 
         else:
             self.logger.error(
@@ -660,18 +675,22 @@ class Configure(DishLNCommand):
             if result is None:
                 pass
             else:
-                self.component_manager.set_operate_mode_result[
-                    "result_code"
-                ] = result[0]
-                self.component_manager.set_operate_mode_result[
-                    "message"
-                ] = result[1]
-                self.component_manager.set_operate_mode_result[
-                    "exception"
-                ] = exception
-                self.component_manager.set_operate_mode_result[
-                    "status"
-                ] = status
+                self.component_manager.update_set_operate_mode_result_dict(
+                    result[0], result[1], exception, status
+                )
+                # with self.component_manager.command_result_update_lock:
+                #     self.component_manager.set_operate_mode_result[
+                #         "result_code"
+                #     ] = result[0]
+                #     self.component_manager.set_operate_mode_result[
+                #         "message"
+                #     ] = result[1]
+                #     self.component_manager.set_operate_mode_result[
+                #         "exception"
+                #     ] = exception
+                #     self.component_manager.set_operate_mode_result[
+                #         "status"
+                #     ] = status
 
         # pylint: enable=unused-argument
         setoperatemode_command = SetOperateMode(
@@ -685,12 +704,16 @@ class Configure(DishLNCommand):
         )
 
         if (
-            self.component_manager.get_set_operate_mode_result()
+            self.component_manager.get_set_operate_mode_result_code()
             == ResultCode.FAILED
         ):
             return (
-                [self.component_manager.get_set_operate_mode_result()],
-                [self.component_manager.set_operate_mode_result["exception"]],
+                [self.component_manager.get_set_operate_mode_result_code()],
+                [
+                    self.component_manager.get_set_operate_mode_result_dict()[
+                        "exception"
+                    ]
+                ],
             )
 
         result = self.set_wait_for_setoperatemode_completed()
@@ -704,21 +727,25 @@ class Configure(DishLNCommand):
             )
         if result == CommandResult.ACHIEVED:
             if (
-                self.component_manager.get_set_operate_mode_result()
+                self.component_manager.get_set_operate_mode_result_code()
                 == ResultCode.FAILED
             ):
                 self.logger.error(
                     "SetOperateMode command failed with reason: %s",
-                    self.component_manager.set_operate_mode_result["message"],
+                    self.component_manager.get_set_operate_mode_result_dict()[
+                        "message"
+                    ],
                 )
+                # pylint: disable=line-too-long
                 return (
                     [ResultCode.FAILED],
                     [
-                        self.component_manager.set_operate_mode_result[
+                        self.component_manager.get_set_operate_mode_result_dict()[  # noqa: E501
                             "message"
                         ],
                     ],
                 )
+                # pylint: enable=line-too-long
 
         else:
             self.logger.error(
@@ -751,10 +778,16 @@ class Configure(DishLNCommand):
                 "Dish is already tracking/slewing. Track() command "
                 + "is not invoked."
             )
-            self.component_manager.track_result["result_code"] = ResultCode.OK
-            self.component_manager.track_result[
-                "message"
-            ] = "Dish is already tracking/slewing."
+            # with self.component_manager.command_result_update_lock:
+            #     self.component_manager.track_result["result_code"] =
+            # ResultCode.OK
+            #     self.component_manager.track_result[
+            #         "message"
+            #     ] = "Dish is already tracking/slewing."
+            message = "Dish is already tracking/slewing."
+            self.component_manager.set_track_result_dict(
+                ResultCode.OK, message
+            )
             self.logger.debug(
                 "Track result: %s",
                 self.component_manager.track_result,
@@ -800,10 +833,17 @@ class Configure(DishLNCommand):
             if result is None:
                 pass
             else:
-                self.component_manager.track_result["result_code"] = result[0]
-                self.component_manager.track_result["message"] = result[1]
-                self.component_manager.track_result["exception"] = exception
-                self.component_manager.track_result["status"] = status
+                self.component_manager.set_track_result_dict(
+                    result[0], result[1], exception, status
+                )
+                # with self.component_manager.command_result_update_lock:
+                #     self.component_manager.track_result["result_code"] =
+                # result[0]
+                #     self.component_manager.track_result["message"] =
+                # result[1]
+                #     self.component_manager.track_result["exception"] =
+                # exception
+                #     self.component_manager.track_result["status"] = status
 
         # pylint: enable=unused-argument
         track_command = Track(
@@ -818,13 +858,10 @@ class Configure(DishLNCommand):
             task_callback=_invoke_track_callback,
         )
 
-        if (
-            self.component_manager.track_result["result_code"]
-            == ResultCode.FAILED
-        ):
+        if self.component_manager.get_track_result_code() == ResultCode.FAILED:
             return (
-                [self.component_manager.track_result["result_code"]],
-                [self.component_manager.track_result["exception"]],
+                [self.component_manager.get_track_result_code()],
+                [self.component_manager.get_track_result_dict()["exception"]],
             )
         return [ResultCode.OK], [""]
 
