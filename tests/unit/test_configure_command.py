@@ -55,6 +55,11 @@ def test_configure_command_completed(
     time.sleep(2)
     cm.update_device_dish_mode(DishMode.OPERATE)
     simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
+
+    time.sleep(2)
+    cm.update_device_pointing_state(PointingState.TRACK)
+    simulate_result_code_event(cm, "TRACK", ResultCode.OK)
+
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
