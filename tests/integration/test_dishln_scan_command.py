@@ -1,6 +1,5 @@
 """Test to verify Scan command on dishleafnode"""
 import json
-import time
 
 import pytest
 import tango
@@ -16,6 +15,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     tear_down,
+    wait_for_attribute_value,
 )
 
 
@@ -26,18 +26,18 @@ def scan_command_timeout(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -135,9 +135,9 @@ def scan_command_timeout(
         (DishMode.OPERATE),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -160,18 +160,18 @@ def scan_command_error_propagation(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -266,9 +266,9 @@ def scan_command_error_propagation(
         (DishMode.OPERATE),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -293,18 +293,18 @@ def scan_command(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -358,8 +358,8 @@ def scan_command(
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
-    # It takes time to get scanID attribute updated.
-    time.sleep(0.1)
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
     assert dish_master.scanID == "1"
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -380,9 +380,9 @@ def scan_command(
         (DishMode.OPERATE),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 

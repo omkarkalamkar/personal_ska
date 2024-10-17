@@ -33,24 +33,24 @@ def partial_configure_dish_leaf_node_error_propagation(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     sleep(1)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    logging.info("DISHMODE_ID: %s", DISHMODE_ID)
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    logging.info("dishmode_event_id: %s", dishmode_event_id)
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
-    logging.info("POINTINGSTATE_ID: %s", POINTINGSTATE_ID)
-    SOURCE_OFFSET_ID = dish_leaf_node.subscribe_event(
+    logging.info("pointingstate_event_id: %s", pointingstate_event_id)
+    source_offset_event_id = dish_leaf_node.subscribe_event(
         "sourceOffset",
         tango.EventType.CHANGE_EVENT,
         group_callback["sourceOffset"],
     )
-    logging.info("SOURCE_OFFSET_ID: %s", SOURCE_OFFSET_ID)
+    logging.info("source_offset_event_id: %s", source_offset_event_id)
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -60,12 +60,12 @@ def partial_configure_dish_leaf_node_error_propagation(
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    logging.info("LRCR_ID: %s", LRCR_ID)
+    logging.info("lrcr_event_id: %s", lrcr_event_id)
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
@@ -120,10 +120,10 @@ def partial_configure_dish_leaf_node_error_propagation(
         }
     )
     dish_master.SetDefective(RESET_DEFECT)
-    dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(source_offset_event_id)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -154,24 +154,24 @@ def configure_dish_leaf_node_error_propagation(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     sleep(1)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    logging.info("DISHMODE_ID: %s", DISHMODE_ID)
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    logging.info("dishmode_event_id: %s", dishmode_event_id)
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
-    logging.info("POINTINGSTATE_ID: %s", POINTINGSTATE_ID)
-    SOURCE_OFFSET_ID = dish_leaf_node.subscribe_event(
+    logging.info("pointingstate_event_id: %s", pointingstate_event_id)
+    source_offset_event_id = dish_leaf_node.subscribe_event(
         "sourceOffset",
         tango.EventType.CHANGE_EVENT,
         group_callback["sourceOffset"],
     )
-    logging.info("SOURCE_OFFSET_ID: %s", SOURCE_OFFSET_ID)
+    logging.info("source_offset_event_id: %s", source_offset_event_id)
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -181,12 +181,12 @@ def configure_dish_leaf_node_error_propagation(
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    logging.info("LRCR_ID: %s", LRCR_ID)
+    logging.info("lrcr_event_id: %s", lrcr_event_id)
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
@@ -227,10 +227,10 @@ def configure_dish_leaf_node_error_propagation(
         }
     )
     dish_master.SetDefective(RESET_DEFECT)
-    dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(source_offset_event_id)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -260,24 +260,24 @@ def configure_dish_leaf_node_timeout(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     sleep(1)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    logging.info("DISHMODE_ID: %s", DISHMODE_ID)
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    logging.info("dishmode_event_id: %s", dishmode_event_id)
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
-    logging.info("POINTINGSTATE_ID: %s", POINTINGSTATE_ID)
-    SOURCE_OFFSET_ID = dish_leaf_node.subscribe_event(
+    logging.info("pointingstate_event_id: %s", pointingstate_event_id)
+    source_offset_event_id = dish_leaf_node.subscribe_event(
         "sourceOffset",
         tango.EventType.CHANGE_EVENT,
         group_callback["sourceOffset"],
     )
-    logging.info("SOURCE_OFFSET_ID: %s", SOURCE_OFFSET_ID)
+    logging.info("source_offset_event_id: %s", source_offset_event_id)
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -287,12 +287,12 @@ def configure_dish_leaf_node_timeout(
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    logging.info("LRCR_ID: %s", LRCR_ID)
+    logging.info("lrcr_event_id: %s", lrcr_event_id)
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
@@ -338,10 +338,10 @@ def configure_dish_leaf_node_timeout(
         }
     )
     dish_master.SetDefective(RESET_DEFECT)
-    dish_leaf_node.unsubscribe_event(SOURCE_OFFSET_ID)
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(source_offset_event_id)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

@@ -30,21 +30,33 @@ class DishkValueValidationManager:
         exception = ""
         count = 0
         setkvalue_obj = SetKValue(self.component_manager, self.logger)
+        self.logger.info("K Value object: %s", setkvalue_obj)
+        self.logger.info(
+            "dish availability Timeout: %s",
+            self.component_manager.dish_availability_check_timeout,
+        )
         while count < self.component_manager.dish_availability_check_timeout:
+            self.logger.info("count: %s", count)
             try:
                 self.component_manager.check_device_responsive()
+                self.logger.info("Calling init adapter")
                 result_code, _ = setkvalue_obj.init_adapter()
+                self.logger.info("Init adapter completed")
                 if result_code == ResultCode.OK:
                     self.dish_manager_kvalue = (
                         setkvalue_obj.dish_master_adapter.kValue
                     )
+                    self.logger.info("Returning True")
                     return True
             except Exception as e:
                 exception = str(e)
+                self.logger.info("Exception is: %s", exception)
             count += 1
             time.sleep(1)
         if exception:
+            self.logger.info("Exception occurred: %s", exception)
             self.logger.error("Dish manager is unresponsive %s", exception)
+        self.logger.info("Returning False")
         return False
 
     def get_dish_manager_kvalue(self: DishkValueValidationManager) -> int:

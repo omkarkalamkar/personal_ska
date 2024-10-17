@@ -23,7 +23,7 @@ def setoperatemode_command_timeout(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -37,7 +37,7 @@ def setoperatemode_command_timeout(tango_context, dishln_name, group_callback):
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -83,8 +83,8 @@ def setoperatemode_command_timeout(tango_context, dishln_name, group_callback):
         }
     )
     dish_master.SetDefective(RESET_DEFECT)
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -105,7 +105,7 @@ def setoperatemode_command_error_propagation(
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -119,7 +119,7 @@ def setoperatemode_command_error_propagation(
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -163,8 +163,8 @@ def setoperatemode_command_error_propagation(
         }
     )
     dish_master.SetDefective(RESET_DEFECT)
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -185,7 +185,7 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -199,7 +199,7 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -225,8 +225,8 @@ def setoperatemode_command(tango_context, dishln_name, group_callback):
         (DishMode.OPERATE),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 

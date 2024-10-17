@@ -27,12 +27,12 @@ def configure_dish_leaf_node(
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -47,7 +47,7 @@ def configure_dish_leaf_node(
     sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -108,9 +108,9 @@ def configure_dish_leaf_node(
     logger.info("command_info - %s", command_info)
     assert "Track" not in command_info, "Track is unexpectedly found in result"
 
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
 
 @pytest.mark.sah1608

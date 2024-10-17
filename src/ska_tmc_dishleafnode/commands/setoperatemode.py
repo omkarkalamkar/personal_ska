@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import logging
 import threading
-import time
 from logging import Logger
 from typing import Optional, Tuple
 
@@ -13,7 +12,6 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeoutCallback
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
@@ -39,8 +37,6 @@ class SetOperateMode(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.timeout_id = f"{time.time()}_{__class__.__name__}"
-        self.timeout_callback = TimeoutCallback(self.timeout_id, self.logger)
 
     # pylint: disable=unused-argument
     def set_operate_mode(

@@ -80,7 +80,7 @@ def check_command(
 
     assert pytest.command_result[0][0] == ResultCode.QUEUED
     unique_id = pytest.command_result[1][0]
-    LRCR_ID = dishleaf_node.subscribe_event(
+    lrcr_event_id = dishleaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -99,7 +99,7 @@ def check_command(
         ):
             dishleaf_node.TrackStop()
     assert str(dish_master_proxy.state()) == resultant_state
-    dishleaf_node.unsubscribe_event(LRCR_ID)
+    dishleaf_node.unsubscribe_event(lrcr_event_id)
 
 
 scenarios("../features/dishleafnode.feature")
