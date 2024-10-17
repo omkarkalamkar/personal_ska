@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Callable, Dict, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Union
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
@@ -12,6 +12,8 @@ from ska_tmc_common import (
     AdapterFactory,
     AdapterType,
     DishMode,
+    TimeoutCallback,
+    TimeoutState,
     TmcLeafNodeCommand,
 )
 from tango import ConnectionFailed, DevFailed
@@ -36,8 +38,10 @@ class DishLNCommand(TmcLeafNodeCommand):
         logger: logging.Logger = LOGGER,
     ):
         super().__init__(component_manager, logger)
-        self.timeout_id = None
-        self.timeout_callback = None
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
         self.task_callback: Callable
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()

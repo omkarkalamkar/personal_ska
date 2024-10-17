@@ -24,7 +24,7 @@ def device_unavailability(tango_context, dishln_name, group_callback):
     assert availablity_value
 
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -38,7 +38,7 @@ def device_unavailability(tango_context, dishln_name, group_callback):
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -70,8 +70,8 @@ def device_unavailability(tango_context, dishln_name, group_callback):
         (DishMode.OPERATE),
         lookahead=6,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
 
 @pytest.mark.post_deployment

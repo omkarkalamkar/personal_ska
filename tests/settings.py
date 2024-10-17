@@ -1,5 +1,4 @@
 """This module provides settings for the test cases."""
-# pylint: disable=cyclic-import
 import json
 import logging
 import time
@@ -203,7 +202,7 @@ def tear_down(
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
-        LRCR_ID = dish_leaf_node.subscribe_event(
+        lrcr_event_id = dish_leaf_node.subscribe_event(
             "longRunningCommandResult",
             tango.EventType.CHANGE_EVENT,
             group_callback["longRunningCommandResult"],
@@ -212,15 +211,15 @@ def tear_down(
             (unique_id[0], COMMAND_COMPLETED),
             lookahead=4,
         )
-        dish_leaf_node.unsubscribe_event(LRCR_ID)
+        dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dish_master.SetDirectPointingState(PointingState.NONE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -234,8 +233,8 @@ def tear_down(
         (DishMode.STANDBY_LP),
         lookahead=12,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
 
 
 def build_partial_configure_data(

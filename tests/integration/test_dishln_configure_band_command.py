@@ -1,5 +1,4 @@
 import json
-import time
 
 import pytest
 import tango
@@ -24,7 +23,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -38,7 +37,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -62,8 +61,8 @@ def configureband_command(tango_context, dishln_name, group_callback):
     )
     assert dish_master.configuredBand == Band.B1
 
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -82,7 +81,7 @@ def configureband_command_error_propogation(
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -96,7 +95,7 @@ def configureband_command_error_propogation(
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -141,8 +140,8 @@ def configureband_command_error_propogation(
     )
     dish_master.SetDefective(RESET_DEFECT)
 
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
@@ -163,7 +162,7 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
@@ -177,7 +176,7 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
-    LRCR_ID = dish_leaf_node.subscribe_event(
+    lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
@@ -206,9 +205,6 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
     result_op, unique_id_op = dish_leaf_node.ConfigureBand("2")
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
-    # Wait for the command timeout to be occurred. The command timeout is set
-    # to 15 sec.
-    time.sleep(18)
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], COMMAND_TIMEOUT),
@@ -226,8 +222,8 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
     )
     dish_master.SetDefective(RESET_DEFECT)
 
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(LRCR_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 
