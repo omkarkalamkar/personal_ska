@@ -32,6 +32,7 @@ class Track(DishLNCommand):
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
+        is_configure_command=False,
     ):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
@@ -40,6 +41,7 @@ class Track(DishLNCommand):
         self.ra_value = ""
         self.dec_value = ""
         self.tracking_thread = None
+        self.is_configure_command = is_configure_command
 
     # pylint: disable=unused-argument
     def track(
@@ -66,7 +68,7 @@ class Track(DishLNCommand):
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        if self.component_manager.is_configure_command is False:
+        if self.is_configure_command is False:
             self.set_command_id(__class__.__name__)
             self.component_manager.start_timer(
                 self.timeout_id,
@@ -82,13 +84,11 @@ class Track(DishLNCommand):
             ResultCode.REJECTED,
             ResultCode.NOT_ALLOWED,
         ]:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(return_code, message),
-                exception=message,
+            self.update_task_status(
+                result=(ResultCode.FAILED, message), exception=message
             )
         else:
-            if self.component_manager.is_configure_command is False:
+            if self.is_configure_command is False:
                 self.start_tracker_thread(
                     "get_track_result_code",
                     [ResultCode.OK],

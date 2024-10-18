@@ -89,7 +89,6 @@ class Configure(DishLNCommand):
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        self.component_manager.is_configure_command = True
         self.set_command_id(__class__.__name__)
         self.component_manager.command_in_progress = "Configure"
         self.component_manager.start_timer(
@@ -355,19 +354,6 @@ class Configure(DishLNCommand):
                 if result is None:
                     pass
                 else:
-                    # with self.component_manager.command_result_update_lock:
-                    # self.component_manager.configure_band_result[
-                    #     "result_code"
-                    # ] = result[0]
-                    # self.component_manager.configure_band_result[
-                    #     "message"
-                    # ] = result[1]
-                    # self.component_manager.configure_band_result[
-                    #     "exception"
-                    # ] = exception
-                    # self.component_manager.configure_band_result[
-                    #     "status"
-                    # ] = status
                     self.component_manager.set_configure_band_result_dict(
                         result[0], result[1], exception, status
                     )
@@ -378,6 +364,7 @@ class Configure(DishLNCommand):
                 self.op_state_model,
                 self.adapter_factory,
                 logger=self.logger,
+                is_configure_command=True,
             )
             configure_band_command.configure_band(
                 argin=self.receiver_band,
@@ -479,19 +466,6 @@ class Configure(DishLNCommand):
                 self.component_manager.set_track_load_static_off_result_dict(
                     result[0], result[1], exception, status
                 )
-                # with self.component_manager.command_result_update_lock:
-                #     self.component_manager.track_load_static_off_result[
-                #         "result_code"
-                #     ] = result[0]
-                #     self.component_manager.track_load_static_off_result[
-                #         "message"
-                #     ] = result[1]
-                #     self.component_manager.track_load_static_off_result[
-                #         "exception"
-                #     ] = exception
-                #     self.component_manager.track_load_static_off_result[
-                #         "status"
-                #     ] = status
 
         # pylint: enable=unused-argument
         # Call the TrackStaticLoadOff command
@@ -500,6 +474,7 @@ class Configure(DishLNCommand):
             self.op_state_model,
             self.adapter_factory,
             self.logger,
+            is_configure_command=True,
         )
         track_load_static_off_command.invoke_track_load_static_off(
             argin=json.dumps(offsets_argin),
@@ -579,13 +554,6 @@ class Configure(DishLNCommand):
             ]:
                 return result_code, message
         else:
-            # with self.component_manager.command_result_update_lock:
-            #     self.component_manager.set_operate_mode_result[
-            #         "result_code"
-            #     ] = ResultCode.OK
-            #     self.component_manager.set_operate_mode_result[
-            #         "message"
-            #     ] = "Dish is already in DishMode OPERATE."
             message = "Dish is already in DishMode OPERATE."
             self.component_manager.update_set_operate_mode_result_dict(
                 ResultCode.OK, message
@@ -678,19 +646,6 @@ class Configure(DishLNCommand):
                 self.component_manager.update_set_operate_mode_result_dict(
                     result[0], result[1], exception, status
                 )
-                # with self.component_manager.command_result_update_lock:
-                #     self.component_manager.set_operate_mode_result[
-                #         "result_code"
-                #     ] = result[0]
-                #     self.component_manager.set_operate_mode_result[
-                #         "message"
-                #     ] = result[1]
-                #     self.component_manager.set_operate_mode_result[
-                #         "exception"
-                #     ] = exception
-                #     self.component_manager.set_operate_mode_result[
-                #         "status"
-                #     ] = status
 
         # pylint: enable=unused-argument
         setoperatemode_command = SetOperateMode(
@@ -698,6 +653,7 @@ class Configure(DishLNCommand):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=True,
         )
         setoperatemode_command.set_operate_mode(
             logger=self.logger, task_callback=_invoke_setoperatemode_callback
@@ -778,12 +734,6 @@ class Configure(DishLNCommand):
                 "Dish is already tracking/slewing. Track() command "
                 + "is not invoked."
             )
-            # with self.component_manager.command_result_update_lock:
-            #     self.component_manager.track_result["result_code"] =
-            # ResultCode.OK
-            #     self.component_manager.track_result[
-            #         "message"
-            #     ] = "Dish is already tracking/slewing."
             message = "Dish is already tracking/slewing."
             self.component_manager.set_track_result_dict(
                 ResultCode.OK, message
@@ -836,14 +786,6 @@ class Configure(DishLNCommand):
                 self.component_manager.set_track_result_dict(
                     result[0], result[1], exception, status
                 )
-                # with self.component_manager.command_result_update_lock:
-                #     self.component_manager.track_result["result_code"] =
-                # result[0]
-                #     self.component_manager.track_result["message"] =
-                # result[1]
-                #     self.component_manager.track_result["exception"] =
-                # exception
-                #     self.component_manager.track_result["status"] = status
 
         # pylint: enable=unused-argument
         track_command = Track(
@@ -851,6 +793,7 @@ class Configure(DishLNCommand):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=True,
         )
         track_command.track(
             argin=json_argument,

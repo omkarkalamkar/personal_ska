@@ -146,7 +146,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_number = None
         self._track_process_event = Event()
         self.reset_track_process_event()
-        self.is_configure_command = False
         self.is_configureband_completed_event = threading.Event()
         self.is_setoperatemode_completed_event = threading.Event()
         self.is_track_completed_event = threading.Event()
@@ -274,7 +273,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Method to reset the command result dictionaries, events and flgas
         utilised in Configure command"""
         self.reset_command_result_values()
-        self.is_configure_command = False
         self.is_configureband_completed_event.clear()
         self.is_setoperatemode_completed_event.clear()
         self.is_track_completed_event.clear()
@@ -907,6 +905,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=False,
         )
         # validate the JSON argument
         validation_result, message = track_command.validate_json_argument(
@@ -989,6 +988,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=False,
         )
         task_status, response = self.submit_task(
             configure_band_command.configure_band,
@@ -1015,6 +1015,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=False,
         )
         task_status, response = self.submit_task(
             setoperatemode_command.set_operate_mode,
@@ -1114,6 +1115,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             self.logger,
+            is_configure_command=False,
         )
 
         task_status, response = self.submit_task(
@@ -1817,7 +1819,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 # If the Configure command is executed, below LRCR callback
                 # for the commands ConfigureBand, SetOperateMode and
                 # TrackLoadStaticOff is set via is invoke_configure method.
-                if self.is_configure_command:
+                if self.command_in_progress == "Configure":
                     if (
                         ("ConfigureBand" in unique_id)
                         or ("SetOperateMode" in unique_id)
@@ -1985,6 +1987,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 self.op_state_model,
                                 self.adapter_factory,
                                 self.logger,
+                                is_configure_command=False,
                             )
                             (
                                 result_code,
