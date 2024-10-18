@@ -99,6 +99,21 @@ def check_command(
             and dishleaf_node.pointingState == PointingState.TRACK
         ):
             dishleaf_node.TrackStop()
+            dish_master_proxy.subscribe_event(
+                "PointingState",
+                tango.EventType.CHANGE_EVENT,
+                group_callback["PointingState"],
+            )
+            group_callback["PointingState"].assert_change_event(
+                (PointingState.READY),
+                lookahead=8,
+            )
+
+            group_callback["dishMode"].assert_change_event(
+                (DishMode.OPERATE),
+                lookahead=8,
+            )
+
     assert str(dish_master_proxy.state()) == resultant_state
     dishleaf_node.unsubscribe_event(LRCR_ID)
 
