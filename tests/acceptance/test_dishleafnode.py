@@ -100,11 +100,11 @@ def check_command(
         ):
             dishleaf_node.TrackStop()
             dish_master_proxy.subscribe_event(
-                "PointingState",
+                "pointingState",
                 tango.EventType.CHANGE_EVENT,
-                group_callback["PointingState"],
+                group_callback["pointingState"],
             )
-            group_callback["PointingState"].assert_change_event(
+            group_callback["pointingState"].assert_change_event(
                 (PointingState.READY),
                 lookahead=8,
             )
