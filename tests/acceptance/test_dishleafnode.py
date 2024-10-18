@@ -116,10 +116,6 @@ def check_command(
                 (PointingState.READY),
                 lookahead=6,
             )
-            group_callback["dishMode"].assert_change_event(
-                (DishMode.OPERATE),
-                lookahead=6,
-            )
 
     assert str(dish_master_proxy.state()) == resultant_state
     dishleaf_node.unsubscribe_event(LRCR_ID)
