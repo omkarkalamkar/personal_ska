@@ -1596,7 +1596,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_scheduler.run()
                 self.logger.debug("Execution done")
 
-            # self.stop_track_table_process()
             self.logger.debug("Program Track Table Calculation stopped.")
 
             with self.tango_operation_execution_lock:

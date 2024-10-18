@@ -118,7 +118,7 @@ class AbortCommands(DishLNCommand):
         """
 
         self.component_manager.stop_track_table_process()
-        # self.component_manager.set_track_process_event()
+
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state in [PointingState.TRACK, PointingState.SLEW]:

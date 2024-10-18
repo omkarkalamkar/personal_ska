@@ -78,6 +78,12 @@ Fixed
 ======
 
 
+[0.17.7]
+********
+* Updated logic to stop program track table process.
+* Added Try Catch mechanism to identify issues faced in writing program track table on dish master
+
+
 [0.17.6]
 ********
 * Fix bug SKB-467 - Track command will not be invoked if pointingState is TRACK/SLEW
