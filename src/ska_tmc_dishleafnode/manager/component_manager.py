@@ -663,36 +663,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._device
 
-    # def get_dishmode(self: DishLNComponentManager) -> DishMode:
-    #     """
-    #     Return the dishMode of the device
-
-    #     :return: dish_mode
-    #     :rtype: DishMode
-    #     """
-    #     self.logger.info("Dish Mode: %s", self._device.dish_mode)
-    #     return self._device.dish_mode
-
-    # def get_pointingstate(self: DishLNComponentManager) -> PointingState:
-    #     """
-    #     Return the pointingState of the device
-
-    #     :return: pointing_state
-    #     :rtype: PointingState
-    #     """
-    #     self.logger.info("PointingState is %s", self._device.pointing_state)
-    #     return self._device.pointing_state
-
-    # def get_dish_configured_band(self: DishLNComponentManager) -> str:
-    #     """
-    #     Return the configuredBand of the device
-
-    #     :return: dish band
-    #     :rtype: str
-    #     """
-    #     self.logger.info("Dish Band: %s", self.dishConfiguredBand)
-    #     return self.dishConfiguredBand
-
     # pylint: disable=signature-differs
     def off(
         self: DishLNComponentManager, task_callback: TaskCallbackType
@@ -1438,10 +1408,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def check_device_responsive(self: DishLNComponentManager) -> None:
         """Checks if dish master device is responsive."""
-        self.logger.info("self._device is: %s", self._device)
-        self.logger.info(
-            "self._device.unresponsive is: %s", self._device.unresponsive
-        )
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
 
