@@ -98,20 +98,27 @@ def check_command(
             dishleaf_node.dishMode == DishMode.OPERATE
             and dishleaf_node.pointingState == PointingState.TRACK
         ):
-            dishleaf_node.TrackStop()
             dish_master_proxy.subscribe_event(
                 "pointingState",
                 tango.EventType.CHANGE_EVENT,
                 group_callback["pointingState"],
             )
-            group_callback["pointingState"].assert_change_event(
-                (PointingState.READY),
-                lookahead=8,
+
+            result_trackstop, unique_id_trackstop = dishleaf_node.TrackStop()
+            assert result_trackstop[0] == ResultCode.QUEUED
+
+            group_callback["longRunningCommandResult"].assert_change_event(
+                (unique_id_trackstop[0], COMMAND_COMPLETED),
+                lookahead=6,
             )
 
+            group_callback["pointingState"].assert_change_event(
+                (PointingState.READY),
+                lookahead=6,
+            )
             group_callback["dishMode"].assert_change_event(
                 (DishMode.OPERATE),
-                lookahead=8,
+                lookahead=6,
             )
 
     assert str(dish_master_proxy.state()) == resultant_state
