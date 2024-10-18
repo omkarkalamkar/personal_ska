@@ -9,7 +9,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import COMMAND_COMPLETED
+from tests.settings import COMMAND_COMPLETED, logger
 
 
 @given(
@@ -50,6 +50,7 @@ def call_command(
             (dishMode),
             lookahead=8,
         )
+        logger.info("Dish Mode is %s", dish_master_proxy.dishMode)
         if command_name == "Configure":
             configure_string = json_factory("dishleafnode_configure")
             pytest.command_result = dishleaf_node.command_inout(
