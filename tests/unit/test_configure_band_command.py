@@ -7,6 +7,7 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from tests.settings import simulate_result_code_event
 
 
 def test_configure_band_command_completed(
@@ -23,6 +24,7 @@ def test_configure_band_command_completed(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    simulate_result_code_event(cm, "ConfigureBand", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

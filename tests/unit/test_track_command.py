@@ -8,6 +8,7 @@ from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from tests.settings import simulate_result_code_event
 
 
 def get_track_input_str(
@@ -33,6 +34,7 @@ def test_track_command_completed(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    simulate_result_code_event(cm, "Track", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

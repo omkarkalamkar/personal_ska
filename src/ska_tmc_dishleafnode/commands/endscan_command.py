@@ -42,7 +42,7 @@ class EndScan(DishLNCommand):
 
     # pylint: disable=unused-argument
     @timeout_decorator
-    @error_propagation_decorator("get_end_scan_result", [ResultCode.OK])
+    @error_propagation_decorator("get_end_scan_result_code", [ResultCode.OK])
     def endscan(
         self: EndScan,
     ) -> Tuple[ResultCode, str]:

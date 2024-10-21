@@ -34,10 +34,12 @@ class TrackLoadStaticOff(DishLNCommand):
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
+        is_configure_command: bool = False,
     ):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.is_configure_command = is_configure_command
 
     # pylint: disable=unused-argument
     def invoke_track_load_static_off(
@@ -66,7 +68,7 @@ class TrackLoadStaticOff(DishLNCommand):
         """
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        if self.component_manager.is_configure_command is False:
+        if self.is_configure_command is False:
             self.set_command_id(__class__.__name__)
             self.component_manager.start_timer(
                 self.timeout_id,
@@ -82,24 +84,21 @@ class TrackLoadStaticOff(DishLNCommand):
             ResultCode.NOT_ALLOWED,
         ]:
             logger.warning("Command failed with exception: %s", message)
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=message,
+            self.update_task_status(
+                result=(ResultCode.FAILED, message), exception=message
             )
-            self.component_manager.command_in_progress = ""
         else:
             logger.info(
                 "The TrackLoadStaticOff command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
-            if self.component_manager.is_configure_command is False:
+            if self.is_configure_command is False:
                 logger.info(
                     "Configure flag is: %s",
-                    self.component_manager.is_configure_command,
+                    self.is_configure_command,
                 )
                 self.start_tracker_thread(
-                    "get_track_load_static_off_result",
+                    "get_track_load_static_off_result_code",
                     [ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,

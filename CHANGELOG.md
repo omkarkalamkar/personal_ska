@@ -5,6 +5,11 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.17.8]
+********
+* Improved the timeout and error propagation for Configure command
+* Implemented timeout and error propagation for commands TrackStop, Scan and EndScan
+
 [0.17.3]
 ********
 * Fix bug SKB-502, to update the attributes at initialization, so that it can 
@@ -77,6 +82,9 @@ show states of attributes at initialization on dashboards
 Fixed
 ======
 
+[0.17.9]
+********
+* Error Propagation changes incorporated with process to stop track table.
 
 [0.17.7]
 ********
