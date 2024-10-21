@@ -359,13 +359,14 @@ def scan_command(
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
 
-    wait_for_attribute_value(dish_master, "scanID", "1")
-    assert dish_master.scanID == "1"
-
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_scan[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
+    assert dish_master.scanID == "1"
+
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
