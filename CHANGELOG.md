@@ -78,7 +78,7 @@ Fixed
 ======
 
 
-[0.17.8]
+[0.17.7]
 ********
 * Updated logic to stop program track table process.
 * Added Try Catch mechanism to identify issues faced in writing program track table on dish master
