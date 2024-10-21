@@ -5,7 +5,7 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-[0.17.7]
+[0.17.8]
 ********
 * Improved the timeout and error propagation for Configure command
 * Implemented timeout and error propagation for commands TrackStop, Scan and EndScan

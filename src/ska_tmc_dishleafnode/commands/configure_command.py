@@ -354,8 +354,9 @@ class Configure(DishLNCommand):
                 if result is None:
                     pass
                 else:
+                    result_code, message = result
                     self.component_manager.set_configure_band_result_dict(
-                        result[0], result[1], exception, status
+                        result_code, message, exception, status
                     )
 
             # pylint: enable=unused-argument
@@ -463,8 +464,9 @@ class Configure(DishLNCommand):
             if result is None:
                 pass
             else:
+                result_code, message = result
                 self.component_manager.set_track_load_static_off_result_dict(
-                    result[0], result[1], exception, status
+                    result_code, message, exception, status
                 )
 
         # pylint: enable=unused-argument
@@ -505,24 +507,23 @@ class Configure(DishLNCommand):
                 "AbortCommands() command is invoked on the DishLeafNode.",
             )
         if result == CommandResult.ACHIEVED:
-            # pylint: disable=line-too-long
             if (
                 self.component_manager.get_track_load_static_off_result_code()
                 == ResultCode.FAILED
             ):
+                # pylint: disable=line-too-long
+                track_load_static_off_dict = (
+                    self.component_manager.get_track_load_static_off_result_dict()  # noqa: E501
+                )
+                # pylint: enable=line-too-long
                 self.logger.error(
                     "TrackStaticLoadOff command failed with reason: %s",
-                    self.component_manager.get_track_load_static_off_result_dict()[  # noqa: E501
-                        "message"
-                    ],
+                    track_load_static_off_dict["message"],
                 )
                 return (
                     ResultCode.FAILED,
-                    self.component_manager.get_track_load_static_off_result_dict()[  # noqa: E501
-                        "message"
-                    ],
+                    track_load_static_off_dict["message"],
                 )
-            # pylint: enable=line-too-long
 
         else:
             self.logger.error(
@@ -590,22 +591,19 @@ class Configure(DishLNCommand):
                 self.component_manager.get_configure_band_result_code()
                 == ResultCode.FAILED
             ):
+                configure_band_dict = (
+                    self.component_manager.get_configure_band_result_dict()
+                )
                 self.logger.error(
                     "ConfigureBand command failed with reason: %s",
-                    self.component_manager.get_configure_band_result_dict()[
-                        "message"
-                    ],
+                    configure_band_dict["message"],
                 )
-                # pylint: disable=line-too-long
                 return (
                     [ResultCode.FAILED],
                     [
-                        self.component_manager.get_configure_band_result_dict()[  # noqa: E501
-                            "message"
-                        ],
+                        configure_band_dict["message"],
                     ],
                 )
-                # pylint: enable=line-too-long
 
         else:
             self.logger.error(
@@ -643,8 +641,9 @@ class Configure(DishLNCommand):
             if result is None:
                 pass
             else:
+                result_code, message = result
                 self.component_manager.update_set_operate_mode_result_dict(
-                    result[0], result[1], exception, status
+                    result_code, message, exception, status
                 )
 
         # pylint: enable=unused-argument
@@ -686,22 +685,19 @@ class Configure(DishLNCommand):
                 self.component_manager.get_set_operate_mode_result_code()
                 == ResultCode.FAILED
             ):
+                set_operate_mode_result_dict = (
+                    self.component_manager.get_set_operate_mode_result_dict()
+                )
                 self.logger.error(
                     "SetOperateMode command failed with reason: %s",
-                    self.component_manager.get_set_operate_mode_result_dict()[
-                        "message"
-                    ],
+                    set_operate_mode_result_dict["message"],
                 )
-                # pylint: disable=line-too-long
                 return (
                     [ResultCode.FAILED],
                     [
-                        self.component_manager.get_set_operate_mode_result_dict()[  # noqa: E501
-                            "message"
-                        ],
+                        set_operate_mode_result_dict["message"],
                     ],
                 )
-                # pylint: enable=line-too-long
 
         else:
             self.logger.error(
@@ -783,8 +779,9 @@ class Configure(DishLNCommand):
             if result is None:
                 pass
             else:
+                result_code, message = result
                 self.component_manager.set_track_result_dict(
-                    result[0], result[1], exception, status
+                    result_code, message, exception, status
                 )
 
         # pylint: enable=unused-argument

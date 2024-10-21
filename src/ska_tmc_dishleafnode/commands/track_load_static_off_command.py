@@ -34,7 +34,7 @@ class TrackLoadStaticOff(DishLNCommand):
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
-        is_configure_command=False,
+        is_configure_command: bool = False,
     ):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
