@@ -1,16 +1,21 @@
 """TrackStop command class for Dishleafnode."""
 from __future__ import annotations
 
-import threading
-from logging import Logger
-from typing import Optional, Tuple
+import logging
+from typing import Tuple
 
-from ska_tango_base.base import TaskCallbackType
+from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import (
+    TimeKeeper,
+    error_propagation_decorator,
+    timeout_decorator,
+)
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+
+configure_logging()
+LOGGER = logging.getLogger(__name__)
 
 
 class TrackStop(DishLNCommand):
@@ -21,40 +26,33 @@ class TrackStop(DishLNCommand):
     This command invokes TrackStop command on Dish Master
     """
 
+    def __init__(
+        self: TrackStop,
+        component_manager,
+        op_state_model,
+        adapter_factory=None,
+        logger: logging.Logger = LOGGER,
+    ):
+        super().__init__(
+            component_manager, op_state_model, adapter_factory, logger
+        )
+        self.timekeeper = TimeKeeper(
+            self.component_manager.command_timeout, logger
+        )
+
     # pylint: disable=unused-argument
+    @timeout_decorator
+    @error_propagation_decorator("get_track_stop_result", [ResultCode.OK])
     def trackstop(
         self: TrackStop,
-        logger: Logger,
-        task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
-    ) -> None:
+    ) -> Tuple[ResultCode, str]:
         """This is a long running method for TrackStop command, it
         executes the do hook, invoking TrackStop command on Dish Master
 
-        :param logger: logger
-        :type logger: logging.Logger
-        :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType, optional
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
-        :return: : None
-        :rtype: None
+        :return: A tuple containing the result code and a message.
+        :rtype: Tuple[ResultCode, str]
         """
-        # Indicate that the task has started
-        task_callback(status=TaskStatus.IN_PROGRESS)
-        result_code, message = self.do()
-        logger.info(message)
-        if result_code == ResultCode.FAILED:
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=message,
-            )
-        else:
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-            )
+        return self.do()
 
     # pylint: disable=arguments-differ
     def do(self: TrackStop) -> Tuple[ResultCode, str]:

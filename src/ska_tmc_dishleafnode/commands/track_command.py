@@ -11,9 +11,9 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -67,23 +67,38 @@ class Track(DishLNCommand):
         # Indicate that the task has started
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
+        if self.component_manager.is_configure_command is False:
+            self.set_command_id(__class__.__name__)
+            self.component_manager.start_timer(
+                self.timeout_id,
+                self.component_manager.command_timeout,
+                self.timeout_callback,
+            )
+
         return_code, message = self.do(argin)
-        self.component_manager.track_in_progress_id = message
+        self.component_manager.command_in_progress = "Track"
         logger.info("Message is: %s", message)
-        if return_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        if return_code in [
+            ResultCode.FAILED,
+            ResultCode.REJECTED,
+            ResultCode.NOT_ALLOWED,
+        ]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(return_code, message),
                 exception=message,
             )
         else:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(
-                    ResultCode.OK,
-                    COMMAND_COMPLETION_MESSAGE,
-                ),
-            )
+            if self.component_manager.is_configure_command is False:
+                self.start_tracker_thread(
+                    "get_pointingstate",
+                    [PointingState.TRACK],
+                    task_abort_event,
+                    self.timeout_id,
+                    self.timeout_callback,
+                    self.component_manager.command_id,
+                    self.component_manager.long_running_result_callback,
+                )
 
     def validate_json_argument(self: Track, input_argin: dict) -> tuple:
         """Validates the json argument"""
@@ -121,13 +136,6 @@ class Track(DishLNCommand):
             self.logger.debug("Grabbed tango lock")
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
-            )
-            self.component_manager.command_mapping.setdefault(
-                self.component_manager.command_id, {}
-            )["message_or_unique_id"] = message[0]
-            self.logger.debug(
-                "self.component_manager.command_mapping: %s",
-                self.component_manager.command_mapping,
             )
 
         self.logger.debug("Released tango lock")

@@ -3,7 +3,6 @@ This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
 from __future__ import annotations
 
-import copy
 import datetime
 import json
 import os
@@ -59,7 +58,6 @@ from ska_tmc_dishleafnode.commands import (
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
-from .common_utils import process_long_running_command_result
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 from .program_track_table_calculator import ProgramTrackTableCalculator
@@ -132,7 +130,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.rlock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
-        __adapter_factory = AdapterFactory()
+        self.adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
@@ -148,6 +146,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_number = None
         self._track_process_event = Event()
         self.reset_track_process_event()
+        self.is_configure_command = False
+        self.is_configureband_completed_event = threading.Event()
+        self.is_setoperatemode_completed_event = threading.Event()
+        self.is_track_completed_event = threading.Event()
+        self.is_trackloadstaticoff_completed_event = threading.Event()
+
         self.elevation = elevation
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
@@ -157,7 +161,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.radec_value = ""
         self.process_manager = Manager()
         self._actual_pointing = self.process_manager.list()
-        self.reset_configure_command_ids()
+        self.reset_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
@@ -180,16 +184,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_last_pointing_data_cb
         )
         self.update_availablity_callback = _update_availablity_callback
-        self.supported_commands: Tuple = (
-            "Configure_TrackLoadStaticOff",
-            "TrackLoadStaticOff",
-            "Track",
-            "Configure",
-        )
         self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
-        self.command_mapping = {}
         self.event_receiver = _event_receiver
 
         # Event Receiver
@@ -210,99 +207,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.target_data: List | str
         self.track_table_process: Process = Process(target=self.track_process)
-        self.logger.info(
-            "track_table_process id - %s", self.track_table_process.pid
-        )
-        self.setstandbyfpmode_command = SetStandbyFPMode(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.setstandbylpmode_command = SetStandbyLPMode(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.setstowmode_command = SetStowMode(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.setoperatemode_command = SetOperateMode(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.configure_command = Configure(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.scan_command = Scan(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.endscan_command = EndScan(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.track_command = Track(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.configure_band_command = ConfigureBand(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.trackstop_command = TrackStop(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.off_command = Off(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            logger=self.logger,
-        )
-        self.track_load_static_off_command = TrackLoadStaticOff(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            self.logger,
-        )
-        self.dish_adapter: DishAdapter | None = (
-            self.configure_command.dish_master_adapter
-        )
 
-        self.static_pm_setup_command = StaticPmSetup(
-            self,
-            self.op_state_model,
-            __adapter_factory,
-            self.logger,
-        )
+        self.dish_adapter = None
 
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
         )
-        self.command_object: dict = {
-            "TrackLoadStaticOff": self.track_load_static_off_command,
-            "Configure_TrackLoadStaticOff": self.configure_command,
-        }
         self.process_lock = Lock()
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
@@ -313,13 +223,62 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
 
-    def reset_configure_command_ids(self: DishLNComponentManager):
-        """Method to reset the command ids for the commands ConfigureBand,
-        SetoeprateMode, Track and TrackLoadStaticOff"""
-        self.configure_band_in_progress_id = None
-        self.setoperatemode_in_progress_id = None
-        self.track_in_progress_id = None
-        self.trackloadstaticoff_in_progress_id = None
+    def reset_command_result_values(self: DishLNComponentManager):
+        """Method to reset the command result dictionaries for the commands
+        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
+        self.set_operate_mode_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.track_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.configure_band_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.track_load_static_off_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.track_stop_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.scan_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.end_scan_result = {
+            "result_code": None,
+            "message": None,
+            "exception": None,
+            "status": None,
+        }
+        self.logger.info("Cleared the command reult dictionaries.")
+
+    def clear_configure_command_events_flags(self: DishLNComponentManager):
+        """Method to reset the command result dictionaries, events and flgas
+        utilised in Configure command"""
+        self.reset_command_result_values()
+        self.is_configure_command = False
+        self.is_configureband_completed_event.clear()
+        self.is_setoperatemode_completed_event.clear()
+        self.is_track_completed_event.clear()
+        self.is_trackloadstaticoff_completed_event.clear()
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -706,6 +665,36 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._device
 
+    def get_dishmode(self: DishLNComponentManager) -> DishMode:
+        """
+        Return the dishMode of the device
+
+        :return: dish_mode
+        :rtype: DishMode
+        """
+        self.logger.info("Dish Mode: %s", self._device.dish_mode)
+        return self._device.dish_mode
+
+    def get_pointingstate(self: DishLNComponentManager) -> PointingState:
+        """
+        Return the pointingState of the device
+
+        :return: pointing_state
+        :rtype: PointingState
+        """
+        self.logger.info("PointingState is %s", self._device.pointing_state)
+        return self._device.pointing_state
+
+    def get_dish_configured_band(self: DishLNComponentManager) -> str:
+        """
+        Return the configuredBand of the device
+
+        :return: dish band
+        :rtype: str
+        """
+        self.logger.info("Dish Band: %s", self.dishConfiguredBand)
+        return self.dishConfiguredBand
+
     # pylint: disable=signature-differs
     def off(
         self: DishLNComponentManager, task_callback: TaskCallbackType
@@ -714,8 +703,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: Tuple
         """
+        off_command = Off(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.off_command.invoke_off,
+            off_command.invoke_off,
             args=[self.logger],
             task_callback=task_callback,
         )
@@ -732,8 +727,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             indicating status. The message is for information purpose
             only.
         """
+        setstandbyfpmode_command = SetStandbyFPMode(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.setstandbyfpmode_command.set_standby_fp_mode,
+            setstandbyfpmode_command.set_standby_fp_mode,
             args=[self.logger],
             is_cmd_allowed=self.is_command_allowed_callable(
                 "SetStandbyFPMode"
@@ -754,8 +755,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        setstandbylpmode_command = SetStandbyLPMode(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.setstandbylpmode_command.set_standby_lp_mode,
+            setstandbylpmode_command.set_standby_lp_mode,
             args=[self.logger],
             is_cmd_allowed=self.is_command_allowed_callable(
                 "SetStandbyLPMode"
@@ -776,8 +783,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        setstowmode_command = SetStowMode(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.setstowmode_command.set_stow_mode,
+            setstowmode_command.set_stow_mode,
             args=[self.logger],
             is_cmd_allowed=self.is_command_allowed_callable("SetStowMode"),
             task_callback=task_callback,
@@ -800,9 +813,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        scan_command = Scan(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.scan_command.scan,
-            args=[argin, self.logger],
+            scan_command.scan,
+            kwargs={"argin": argin},
             is_cmd_allowed=self.is_command_allowed_callable("Scan"),
             task_callback=task_callback,
         )
@@ -819,9 +838,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :rtype: Tuple
         """
+        endscan_command = EndScan(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.endscan_command.endscan,
-            args=[self.logger],
+            endscan_command.endscan,
             is_cmd_allowed=self.is_command_allowed_callable("EndScan"),
             task_callback=task_callback,
         )
@@ -878,15 +902,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"Error while loading the input json: {exception}",
             )
 
+        track_command = Track(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         # validate the JSON argument
-        validation_result, message = self.track_command.validate_json_argument(
+        validation_result, message = track_command.validate_json_argument(
             input_json
         )
         if validation_result != ResultCode.OK:
             return validation_result, message
 
         task_status, response = self.submit_task(
-            self.track_command.track,
+            track_command.track,
             args=[input_json, self.logger],
             is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
@@ -925,9 +955,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        trackstop_command = TrackStop(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.trackstop_command.trackstop,
-            args=[self.logger],
+            trackstop_command.trackstop,
             is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
@@ -949,8 +984,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        configure_band_command = ConfigureBand(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.configure_band_command.configure_band,
+            configure_band_command.configure_band,
             args=[argin, self.logger],
             is_cmd_allowed=self.is_command_allowed_callable("ConfigureBand"),
             task_callback=task_callback,
@@ -969,8 +1010,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        setoperatemode_command = SetOperateMode(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
         task_status, response = self.submit_task(
-            self.setoperatemode_command.set_operate_mode,
+            setoperatemode_command.set_operate_mode,
             args=[self.logger],
             is_cmd_allowed=self.is_command_allowed_callable("SetOperateMode"),
             task_callback=task_callback,
@@ -1001,18 +1048,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"Error while loading the input json: {exception}",
             )
 
+        configure_command = Configure(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            logger=self.logger,
+        )
+
+        self.dish_adapter = configure_command.dish_master_adapter
+
         # validate the JSON argument
         (
             validation_result,
             message,
-        ) = self.configure_command.validate_json_argument(input_json)
+        ) = configure_command.validate_json_argument(input_json)
         if validation_result != ResultCode.OK:
             return validation_result, message
         if "correction" in input_json["pointing"]:
             self.correction_key = input_json["pointing"]["correction"]
         # submit the command to the queue
         task_status, response = self.submit_task(
-            self.configure_command.invoke_configure,
+            configure_command.invoke_configure,
             args=[argin, self.logger],
             is_cmd_allowed=self.is_command_allowed_callable("Configure"),
             task_callback=task_callback,
@@ -1053,8 +1109,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "Input argument is incorrect for TrackLoadStaticOff command.",
             )
 
+        track_load_static_off_command = TrackLoadStaticOff(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            self.logger,
+        )
+
         task_status, response = self.submit_task(
-            self.track_load_static_off_command.invoke_track_load_static_off,
+            track_load_static_off_command.invoke_track_load_static_off,
             args=[argin, self.logger],
             is_cmd_allowed=self.is_command_allowed_callable(
                 "TrackLoadStaticOff"
@@ -1107,8 +1170,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        static_pm_setup_command = StaticPmSetup(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            self.logger,
+        )
         task_status, response = self.submit_task(
-            self.static_pm_setup_command.invoke_static_pm_setup,
+            static_pm_setup_command.invoke_static_pm_setup,
             args=[argin, self.logger],
             is_cmd_allowed=self.is_command_allowed_callable("StaticPmSetup"),
             task_callback=task_callback,
@@ -1780,30 +1849,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def get_lrcr_result(self) -> List[str]:
-        """Returns long running command result for command
-        with given command ID"""
-
-        command_dict_ref = {}
-        command_dict_ref = copy.deepcopy(self.command_mapping)
-
-        for key, command_dict in command_dict_ref.items():
-            if key == self.command_id:
-                # Iterate through the  dictionary for each command Id
-                for inner_key, value in command_dict.items():
-                    if inner_key == "ResultCode":
-                        self.logger.info(
-                            "command mapping has required command ID"
-                            " and ResultCode  as here \n"
-                            " %s",
-                            self.command_mapping,
-                        )
-                        self.logger.info("ResultCode-%s", value)
-                        return [value]
-        return [""]
-
     def update_device_long_running_command_result(
-        self: DishLNComponentManager, lrc_result: Tuple[str, str]
+        self: DishLNComponentManager,
+        device_name: str,
+        lrc_result: Tuple[str, str],
     ) -> None:
         """
         Method to update task callback based on long running command result
@@ -1812,7 +1861,115 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
-        process_long_running_command_result(self, lrc_result)
+        self.logger.info("LRC Result is:  %s", lrc_result)
+        self.update_command_result(device_name, lrc_result)
+
+    def update_command_result(self, device_name: str, value) -> None:
+        """Updates the long running command result callback"""
+        self.logger.info(
+            "Received longRunningCommandResult event for device: %s, "
+            + "with value: %s",
+            device_name,
+            value,
+        )
+        if value == ("", "") or not value:
+            return
+        try:
+            unique_id, result_code_message = value
+            result_code, message = json.loads(result_code_message)
+
+            if "ConfigureBand" in unique_id:
+                self.configure_band_result["result_code"] = result_code
+                self.configure_band_result["message"] = message
+                self.logger.debug(
+                    "ConfigureBand result: %s",
+                    self.configure_band_result,
+                )
+                self.is_configureband_completed_event.set()
+            elif "SetOperateMode" in unique_id:
+                self.set_operate_mode_result["result_code"] = result_code
+                self.set_operate_mode_result["message"] = message
+                self.logger.debug(
+                    "SetOperateMode result: %s",
+                    self.set_operate_mode_result,
+                )
+                self.is_setoperatemode_completed_event.set()
+            elif "EndScan" in unique_id:
+                self.end_scan_result["result_code"] = result_code
+                self.end_scan_result["message"] = message
+                self.logger.debug(
+                    "EndScan result: %s",
+                    self.end_scan_result,
+                )
+            elif "Scan" in unique_id:
+                self.scan_result["result_code"] = result_code
+                self.scan_result["message"] = message
+                self.logger.debug(
+                    "Scan result: %s",
+                    self.scan_result,
+                )
+            elif "TrackLoadStaticOff" in unique_id:
+                self.track_load_static_off_result["result_code"] = result_code
+                self.track_load_static_off_result["message"] = message
+                self.logger.debug(
+                    "TrackLoadStaticOff result: %s",
+                    self.track_load_static_off_result,
+                )
+                self.is_trackloadstaticoff_completed_event.set()
+            elif "TrackStop" in unique_id:
+                self.track_stop_result["result_code"] = result_code
+                self.track_stop_result["message"] = message
+                self.logger.debug(
+                    "TrackStop result: %s",
+                    self.track_stop_result,
+                )
+
+            elif "Track" in unique_id:
+                self.track_result["result_code"] = result_code
+                self.track_result["message"] = message
+                self.logger.debug(
+                    "Track result: %s",
+                    self.track_result,
+                )
+                self.is_track_completed_event.set()
+
+            if result_code in [
+                ResultCode.FAILED,
+                ResultCode.NOT_ALLOWED,
+                ResultCode.REJECTED,
+            ]:
+                # If the Configure command is executed, below LRCR callback
+                # for the commands ConfigureBand, SetOperateMode and
+                # TrackLoadStaticOff is set via is invoke_configure method.
+                if self.is_configure_command:
+                    if (
+                        ("ConfigureBand" in unique_id)
+                        or ("SetOperateMode" in unique_id)
+                        or ("TrackLoadStaticOff" in unique_id)
+                    ):
+                        self.logger.info(
+                            "LRCRCallback is: %s",
+                            self.long_running_result_callback,
+                        )
+                else:
+                    self.logger.info(
+                        "Updating LRCRCallback with value: %s for %s"
+                        + "for device: %s",
+                        value,
+                        unique_id,
+                        device_name,
+                    )
+                    self.long_running_result_callback(
+                        self.command_id,
+                        ResultCode.FAILED,
+                        exception_msg=message,
+                    )
+        except Exception as exception:
+            self.logger.error(
+                "Exception has occurred while processing"
+                "long running command result event: %s",
+                exception,
+            )
 
     @property
     def elevation_limit(self: DishLNComponentManager) -> bool:
@@ -1946,10 +2103,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                     event_data.attr_value.value[2],
                                 ]
                             )
+
+                            track_load_static_off_command = TrackLoadStaticOff(
+                                self,
+                                self.op_state_model,
+                                self.adapter_factory,
+                                self.logger,
+                            )
                             (
                                 result_code,
                                 message,
-                            ) = self.track_load_static_off_command.do(offsets)
+                            ) = track_load_static_off_command.do(offsets)
                             self.logger.debug(
                                 f"result code : {result_code}"
                                 + f"message : {message}"
@@ -2049,8 +2213,44 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return [
             self.dishMode,
             self.pointingState,
-            self.get_lrcr_result()[0],
+            self.dishConfiguredBand,
         ]
+
+    def get_track_load_static_off_result(self: DishLNComponentManager):
+        """
+        Return the result of the trackLoadStaticOff command execution
+
+        :return: track_load_static_off_result
+        :rtype: dict
+        """
+        return self.track_load_static_off_result["result_code"]
+
+    def get_end_scan_result(self: DishLNComponentManager):
+        """
+        Return the result of the EndScan command execution
+
+        :return: ResultCode from end_scan_result
+        :rtype: ResultCode
+        """
+        return self.end_scan_result["result_code"]
+
+    def get_scan_result(self: DishLNComponentManager):
+        """
+        Return the result of the Scan command execution
+
+        :return: ResultCode from scan_result
+        :rtype: ResultCode
+        """
+        return self.scan_result["result_code"]
+
+    def get_track_stop_result(self: DishLNComponentManager):
+        """
+        Return the result of the TrackStop command execution
+
+        :return: ResultCode from track_stop_result
+        :rtype: ResultCode
+        """
+        return self.track_stop_result["result_code"]
 
     def __del__(self: DishLNComponentManager):
         """

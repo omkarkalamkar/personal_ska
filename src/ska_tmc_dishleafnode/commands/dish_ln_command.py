@@ -3,18 +3,22 @@ from __future__ import annotations
 
 import logging
 import time
-from operator import methodcaller
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Union
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
+from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     AdapterFactory,
     AdapterType,
     DishMode,
+    TimeoutCallback,
+    TimeoutState,
     TmcLeafNodeCommand,
 )
 from tango import ConnectionFailed, DevFailed
+
+from ska_tmc_dishleafnode.enums import CommandResult
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -34,10 +38,14 @@ class DishLNCommand(TmcLeafNodeCommand):
         logger: logging.Logger = LOGGER,
     ):
         super().__init__(component_manager, logger)
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
+        self.task_callback: Callable
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
-        self.partial_configure = False
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
@@ -105,29 +113,80 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         return flag
 
-    def set_wait_for_configured_band(
-        self: DishLNCommand, configured_band: str
-    ) -> str:
-        """Waits for transition of configuredBand to the correct state.
+    def set_wait_for_setoperatemode_completed(self: DishLNCommand):
+        """Waits for the SetOperateMode command to be completed.
 
-        :return: True if the DishMode transitions to the correct state within
-            the timeout period,False otherwise.
-        :rtype: boolean
+        :return: ACHIEVED if is_setoperatemode_completed event is set.
+            ABORTED if the abort event occurss. NOT_ACHIEVED otherwise.
+        :rtype: enum
         """
         start_time = time.time()
         elapsed_time = 0
-        flag = "NOT_ACHIEVED"
-        while elapsed_time < self.component_manager.command_timeout:
+        command_result = CommandResult.NOT_ACHIEVED
+        while elapsed_time < (self.component_manager.command_timeout - 5):
             if self.component_manager.abort_event.is_set():
-                flag = "ABORTED"
-                return flag
-            if self.component_manager.dishConfiguredBand == configured_band:
-                self.logger.info(
-                    "Dish band %s is configured.", configured_band
-                )
-                return "ACHIEVED"
+                command_result = CommandResult.ABORTED
+                return command_result
+            evt = self.component_manager.is_setoperatemode_completed_event
+            if evt.is_set():
+                command_result = CommandResult.ACHIEVED
+                self.logger.info("Returning Flag to be %s", command_result)
+                return command_result
             elapsed_time = time.time() - start_time
-        return "NOT_ACHIEVED"
+        self.logger.info(
+            "SetOperateMode flag is: %s",
+            self.component_manager.is_setoperatemode_completed_event.is_set(),
+        )
+        self.logger.info("Returning Flag to be %s", command_result)
+        return command_result
+
+    def set_wait_for_trackloadstaticoff_completed(self: DishLNCommand):
+        """Waits for the TrackLoadStaticOff command to be completed.
+
+        :return: ACHIEVED if is_trackloadstaticoff_completed event is set.
+            ABORTED if the abort event occurss. NOT_ACHIEVED otherwise.
+        :rtype: enum
+        """
+        start_time = time.time()
+        elapsed_time = 0
+        command_result = CommandResult.NOT_ACHIEVED
+        while elapsed_time < (self.component_manager.command_timeout - 5):
+            if self.component_manager.abort_event.is_set():
+                command_result = CommandResult.ABORTED
+                return command_result
+            evt = self.component_manager.is_trackloadstaticoff_completed_event
+            if evt.is_set():
+                command_result = CommandResult.ACHIEVED
+                self.logger.info("Returning Flag to be %s", command_result)
+                return command_result
+            elapsed_time = time.time() - start_time
+
+        self.logger.info("Returning Flag to be %s", command_result)
+        return command_result
+
+    def set_wait_for_configured_band_completed(self: DishLNCommand):
+        """Waits for configureBand command to be completed.
+
+        :return: ACHIEVED if is_configureband_completed event is set.
+            ABORTED if the abort event occurss. NOT_ACHIEVED otherwise.
+        :rtype: enum
+        """
+        start_time = time.time()
+        elapsed_time = 0
+        command_result = CommandResult.NOT_ACHIEVED
+        while elapsed_time < (self.component_manager.command_timeout - 5):
+            if self.component_manager.abort_event.is_set():
+                command_result = CommandResult.ABORTED
+                return command_result
+            evt = self.component_manager.is_configureband_completed_event
+            if evt.is_set():
+                command_result = CommandResult.ACHIEVED
+                self.logger.info("Returning result to be %s", command_result)
+                return command_result
+            elapsed_time = time.time() - start_time
+
+        self.logger.info("Returning result to be %s", command_result)
+        return command_result
 
     def init_adapter_mid(self: DishLNCommand):
         self.init_adapter()
@@ -142,50 +201,33 @@ class DishLNCommand(TmcLeafNodeCommand):
         command_id = f"{time.time()}-{command_name}"
         self.component_manager.command_id = command_id
 
-    # pylint: disable=arguments-differ
-    def check_device_state(
+    def update_task_status(
         self,
-        state_function: str,
-        state_to_achieve: Any,
-        expected_state: list,
-        command_id,
-    ) -> bool:
+        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+    ) -> None:
         """
-        Waits for expected state with or without
-        transitional state. On expected state occurrence,
-        it sets ResultCode to OK and stops the tracker thread.
+        Update the status of a task.
 
-        :param state_function: The function to determine the state of the
-            device. Should be accessible in the component_manager
-        :type state_function: str
-
-        :param state_to_achieve: A particular state that needs to be
-            achieved for command completion.
-
-        :param expected_state: Expected state of the device in case of
-            successful command execution. It's a list containing
-            transitional obsState if it exists for a command.
-        :return: boolean value indicating if the state change occurred or not
+        Args:
+            **kwargs: Keyword arguments for task status update.
         """
-        if self.partial_configure:
-            result_code = methodcaller(state_function)(self.component_manager)
-
-            # Check if the result match the expected value
-            return result_code[0] == state_to_achieve
-
-        dish_mode, pointing_state, result_code = methodcaller(state_function)(
-            self.component_manager
+        result = kwargs.get("result")
+        status = kwargs.get("status", TaskStatus.COMPLETED)
+        message = kwargs.get("exception")
+        self.logger.info(
+            "Result, status, message: %s, %s, %s",
+            result,
+            status,
+            message,
         )
-
-        (
-            expected_dish_mode,
-            expected_pointing_states,
-            expected_result_code,
-        ) = expected_state
-
-        # Check if the results match the expected values
-        return (
-            dish_mode == expected_dish_mode
-            and pointing_state in expected_pointing_states
-            and result_code == expected_result_code
-        )
+        if status == TaskStatus.ABORTED:
+            self.task_callback(status=status)
+        if result:
+            if result[0] == ResultCode.FAILED:
+                self.task_callback(
+                    status=status, result=result, exception=message
+                )
+            else:
+                self.task_callback(status=status, result=result)
+        self.component_manager.command_in_progress = ""
+        self.component_manager.clear_configure_command_events_flags()

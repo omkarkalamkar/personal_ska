@@ -12,3 +12,14 @@ class CORRECTION_KEY(Enum):
     UPDATE = "UPDATE"
     MAINTAIN = "MAINTAIN"
     NOT_SET = ""
+
+
+class CommandResult(Enum):
+    """
+    Pointing state of the dish.
+    """
+
+    NONE = "NONE"
+    NOT_ACHIEVED = "NOT_ACHIEVED"
+    ACHIEVED = "ACHIEVED"
+    ABORTED = "ABORTED"

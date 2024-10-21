@@ -12,9 +12,9 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -38,7 +38,6 @@ class SetOperateMode(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.task_callback = None
 
     # pylint: disable=unused-argument
     def set_operate_mode(
@@ -48,40 +47,43 @@ class SetOperateMode(DishLNCommand):
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:
         """A method to invoke the SetOperateMode command.
-        It sets the task_callback status according to command progress.
 
-        :param logger: logger
-        :type logger: logging.Logger
-        :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType, optional
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
-        :return: : None
-        :rtype: None
+        :return: A tuple containing the result code and a message.
+        :rtype: Tuple[ResultCode, str]
         """
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
+        if self.component_manager.is_configure_command is False:
+            self.set_command_id(__class__.__name__)
+            self.component_manager.start_timer(
+                self.timeout_id,
+                self.component_manager.command_timeout,
+                self.timeout_callback,
+            )
 
         result_code, message = self.do()
-        self.component_manager.setoperatemode_in_progress_id = message
-        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+        self.component_manager.command_in_progress = "SetOperateMode"
+        if result_code in [
+            ResultCode.FAILED,
+            ResultCode.REJECTED,
+            ResultCode.NOT_ALLOWED,
+        ]:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, message),
                 exception=message,
             )
         else:
-            logger.info(
-                "The SetOperateMode command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
-            )
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(
-                    ResultCode.OK,
-                    COMMAND_COMPLETION_MESSAGE,
-                ),
-            )
+            if self.component_manager.is_configure_command is False:
+                self.start_tracker_thread(
+                    "get_dishmode",
+                    [DishMode.OPERATE],
+                    task_abort_event,
+                    self.timeout_id,
+                    self.timeout_callback,
+                    self.component_manager.command_id,
+                    self.component_manager.long_running_result_callback,
+                )
 
     # pylint: disable=arguments-differ
     def do(self: SetOperateMode) -> Tuple[ResultCode, str]:

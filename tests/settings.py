@@ -1,6 +1,4 @@
 """This module provides settings for the test cases."""
-# pylint: disable=cyclic-import
-import copy
 import json
 import logging
 import time
@@ -33,6 +31,16 @@ SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
 COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
 COMMAND_FAILED = json.dumps(
     [ResultCode.FAILED, "Exception occured, command failed."]
+)
+COMMAND_TIMEOUT = json.dumps(
+    [ResultCode.FAILED, "Timeout has occurred, command failed"]
+)
+COMMAND_CONFIGURE_BAND_TIMEOUT = json.dumps(
+    [
+        ResultCode.FAILED,
+        "Timeout occurred while waiting for "
+        + "configuredBand command to be completed in Configure command.",
+    ]
 )
 SKA_EPOCH = "1999-12-31T23:59:28Z"
 COMMAND_COMPLETION_MESSAGE = "Command Completed"
@@ -194,7 +202,7 @@ def tear_down(
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
-        LRCR_ID = dish_leaf_node.subscribe_event(
+        lrcr_event_id = dish_leaf_node.subscribe_event(
             "longRunningCommandResult",
             tango.EventType.CHANGE_EVENT,
             group_callback["longRunningCommandResult"],
@@ -203,15 +211,15 @@ def tear_down(
             (unique_id[0], COMMAND_COMPLETED),
             lookahead=4,
         )
-        dish_leaf_node.unsubscribe_event(LRCR_ID)
+        dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dish_master.SetDirectPointingState(PointingState.NONE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    DISHMODE_ID = dish_leaf_node.subscribe_event(
+    dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    POINTINGSTATE_ID = dish_leaf_node.subscribe_event(
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
@@ -225,8 +233,8 @@ def tear_down(
         (DishMode.STANDBY_LP),
         lookahead=12,
     )
-    dish_leaf_node.unsubscribe_event(DISHMODE_ID)
-    dish_leaf_node.unsubscribe_event(POINTINGSTATE_ID)
+    dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
 
 
 def build_partial_configure_data(
@@ -360,19 +368,8 @@ def simulate_result_code_event(
 ):
     """Simulate LRCR event from given device for given result."""
     command_id = ""
-    logging.info("Command mapping: %s", cm.command_mapping)
-    test_command_dict_ref = copy.deepcopy(cm.command_mapping)
-    logging.info("command_dict_ref is %s", test_command_dict_ref)
-    for _, command_dict in test_command_dict_ref.items():
-        for inner_key, value in command_dict.items():
-            logging.info("inner_key, value  is %s %s", inner_key, value)
-            if inner_key == "message_or_unique_id":
-                logging.info("value  is: %s", value)
-                if "-" + command_name in value:
-                    command_id = value
-
-            else:
-                command_id = f"{time.time()}_{command_name}"
+    device_name = "mid-dish/dish-manager/SKA001"
+    command_id = f"{time.time()}_{command_name}"
     logging.info("command_id  is: %s", command_id)
     command_result = (
         command_id,
@@ -383,7 +380,7 @@ def simulate_result_code_event(
             ]
         ),
     )
-    cm.update_device_long_running_command_result(command_result)
+    cm.update_device_long_running_command_result(device_name, command_result)
 
 
 def get_non_sidereal_json_for_now(non_side_real_json) -> str:
