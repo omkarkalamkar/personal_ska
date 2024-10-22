@@ -15,7 +15,6 @@ from multiprocessing import Event, Lock, Manager, Process, current_process
 from typing import Callable, List, Tuple
 
 import numpy as np
-import psutil
 import tango
 from astropy.time import Time
 from astropy.utils import iers
@@ -1661,75 +1660,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "track_table_process id - %s", self.track_table_process.pid
         )
 
-    def check_resources(self) -> None:
-        """
-        Function to check resource utiliztion at the time of creating process.
-        """
-
-        # List all processes
-        processes = psutil.pids()
-
-        self.logger.debug(f"Number of processes running: {len(processes)}")
-
-        # Optionally, print details of each process
-        for pid in processes:
-            try:
-                p = psutil.Process(pid)
-                self.logger.debug(
-                    f"PID: {pid}, Name: {p.name()}, Status: {p.status()}"
-                )
-            except psutil.NoSuchProcess:
-                pass
-
-        # Set a threshold (example: 350MB)
-        threshold_memory = 350  # in MB
-
-        # Check available memory
-        memory_info = psutil.virtual_memory()
-        available_memory = memory_info.available / (
-            1024 * 1024
-        )  # Convert bytes to MB
-
-        self.logger.debug(f"available_memory - {available_memory}")
-
-        if available_memory < threshold_memory:
-            self.logger.warning("Not enough memory to start the process.")
-        else:
-            self.logger.debug(
-                "Sufficient memory available to start the process."
-            )
-
-        # Set a threshold (example: 1000MB)
-        threshold_disk_space = 1000  # in MB
-
-        # Check available disk space
-        disk_usage = psutil.disk_usage("/")
-        available_disk_space = disk_usage.free / (
-            1024 * 1024
-        )  # Convert bytes to MB
-
-        self.logger.debug(f"available_disk_space - {available_disk_space}")
-        if available_disk_space < threshold_disk_space:
-            self.logger.warning("Not enough disk space to start the process.")
-        else:
-            self.logger.debug(
-                "Sufficient disk space available to start the process."
-            )
-
-        # Set a threshold (example: 75% CPU usage)
-        threshold_cpu_usage = 80  # in %
-
-        # Check current CPU usage
-        cpu_usage = psutil.cpu_percent(interval=1)
-        self.logger.debug(f"cpu_usage - {cpu_usage}")
-
-        if cpu_usage > threshold_cpu_usage:
-            self.logger.warning("CPU usage is too high to start the process.")
-        else:
-            self.logger.debug(
-                "CPU usage is within acceptable limits to start the process."
-            )
-
     def set_target_data(self, target_data: list | str) -> None:
         """Sets target data to for programTrackTable generation."""
         self.target_data = target_data
@@ -1749,7 +1679,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.info(
                     "track_table_process id - %s", self.track_table_process.pid
                 )
-                self.check_resources()
+
                 self.create_track_process()
 
                 self.logger.debug("Starting programTrackTable calculation")
