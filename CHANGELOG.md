@@ -82,6 +82,15 @@ show states of attributes at initialization on dashboards
 Fixed
 ======
 
+[0.17.9]
+********
+* Error Propagation changes incorporated with process to stop track table.
+
+[0.17.7]
+********
+* Updated logic to stop program track table process.
+* Added Try Catch mechanism to identify issues faced in writing program track table on dish master
+
 
 [0.17.6]
 ********
