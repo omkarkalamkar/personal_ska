@@ -1532,7 +1532,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         self.logger.debug(
-            "ProgramTrackTable will be updated, will grab tango lock"
+            "ProgramTrackTable will be updated, "
+            "will acquire tango lock for same"
         )
         with self.tango_operation_execution_lock:
             try:
@@ -1557,12 +1558,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         try:
-            self.logger.info(
+            self.logger.debug(
                 "The track process name is : %s",
                 Process(target=current_process().name),
             )
 
-            self.logger.info(
+            self.logger.debug(
                 "The track process id - %s", current_process().pid
             )
 
