@@ -1902,6 +1902,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
 
                 elif "Track" in unique_id:
+                    self.logger.debug("Track result: %s", result_code)
                     self.track_result["result_code"] = result_code
                     self.track_result["message"] = message
                     self.logger.debug(
@@ -2320,6 +2321,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: ResultCode from the track_result
         :rtype: ResultCode
         """
+
         with self.command_result_update_lock:
             return self.track_result["result_code"]
 
