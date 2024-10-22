@@ -2323,6 +2323,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         with self.command_result_update_lock:
+            self.logger.info(
+                "Current Value of result_code - %s",
+                self.track_result["result_code"],
+            )
             return self.track_result["result_code"]
 
     def get_track_result_dict(self: DishLNComponentManager):
