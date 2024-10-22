@@ -1537,7 +1537,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         with self.tango_operation_execution_lock:
             try:
-                self.logger.debug("Grabbed tango lock")
+                self.logger.debug("Acquired  tango lock")
                 self.dish_adapter.programTrackTable = program_track_table
                 self.logger.debug("ProgramTrackTable Updated")
             except BaseException as exception:

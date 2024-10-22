@@ -824,7 +824,7 @@ class Configure(DishLNCommand):
                 track_table_status = CommandResult.ABORTED
                 return track_table_status
             with self.component_manager.tango_operation_execution_lock:
-                self.logger.debug("Grabbed tango lock")
+                self.logger.debug("Acquired  tango lock")
                 track_table = self.dish_master_adapter.programTrackTable
 
             self.logger.debug("Released tango lock")
