@@ -42,7 +42,7 @@ class Scan(DishLNCommand):
 
     # pylint: disable=unused-argument
     @timeout_decorator
-    @error_propagation_decorator("get_scan_result", [ResultCode.OK])
+    @error_propagation_decorator("get_scan_result_code", [ResultCode.OK])
     def scan(
         self: Scan,
         argin: str,

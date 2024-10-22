@@ -42,7 +42,7 @@ class TrackStop(DishLNCommand):
 
     # pylint: disable=unused-argument
     @timeout_decorator
-    @error_propagation_decorator("get_track_stop_result", [ResultCode.OK])
+    @error_propagation_decorator("get_track_stop_result_code", [ResultCode.OK])
     def trackstop(
         self: TrackStop,
     ) -> Tuple[ResultCode, str]:

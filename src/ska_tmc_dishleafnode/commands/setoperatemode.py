@@ -12,7 +12,6 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
@@ -34,10 +33,12 @@ class SetOperateMode(DishLNCommand):
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
+        is_configure_command: bool = False,
     ):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.is_configure_command = is_configure_command
 
     # pylint: disable=unused-argument
     def set_operate_mode(
@@ -53,7 +54,7 @@ class SetOperateMode(DishLNCommand):
         """
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        if self.component_manager.is_configure_command is False:
+        if self.is_configure_command is False:
             self.set_command_id(__class__.__name__)
             self.component_manager.start_timer(
                 self.timeout_id,
@@ -68,16 +69,14 @@ class SetOperateMode(DishLNCommand):
             ResultCode.REJECTED,
             ResultCode.NOT_ALLOWED,
         ]:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=message,
+            self.update_task_status(
+                result=(ResultCode.FAILED, message), exception=message
             )
         else:
-            if self.component_manager.is_configure_command is False:
+            if self.is_configure_command is False:
                 self.start_tracker_thread(
-                    "get_dishmode",
-                    [DishMode.OPERATE],
+                    "get_set_operate_mode_result_code",
+                    [ResultCode.OK],
                     task_abort_event,
                     self.timeout_id,
                     self.timeout_callback,

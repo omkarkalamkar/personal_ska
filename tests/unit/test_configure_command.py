@@ -19,13 +19,12 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context_process_true,
+    tango_context,
     cm,
     task_callback,
     json_factory,
     dish_master_device,
 ):
-    cm.get_device().update_unresponsive(False, "")
     dev_factory = DevFactory()
     dish_device = dev_factory.get_device(dish_master_device)
     dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
@@ -55,6 +54,11 @@ def test_configure_command_completed(
     time.sleep(2)
     cm.update_device_dish_mode(DishMode.OPERATE)
     simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
+
+    time.sleep(2)
+    cm.update_device_pointing_state(PointingState.TRACK)
+    simulate_result_code_event(cm, "TRACK", ResultCode.OK)
+
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

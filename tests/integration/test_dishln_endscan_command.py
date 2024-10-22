@@ -91,13 +91,13 @@ def endscan_command_timeout(
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
 
-    wait_for_attribute_value(dish_master, "scanID", "1")
-    assert dish_master.scanID == "1"
-
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_scan[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
+    assert dish_master.scanID == "1"
 
     TIMEOUT_DEFECT = json.dumps(
         {
@@ -234,13 +234,13 @@ def endscan_command_error_propogation(
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
 
-    wait_for_attribute_value(dish_master, "scanID", "1")
-    assert dish_master.scanID == "1"
-
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_scan[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
+    assert dish_master.scanID == "1"
 
     ERROR_PROPAGATION_DEFECT = json.dumps(
         {
@@ -376,13 +376,14 @@ def endscan_command(
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
 
-    wait_for_attribute_value(dish_master, "scanID", "1")
-    assert dish_master.scanID == "1"
-
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_scan[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+
+    wait_for_attribute_value(dish_master, "scanID", "1")
+    assert dish_master.scanID == "1"
+
     result_endscan, unique_id_endscan = dish_leaf_node.EndScan()
     assert result_endscan[0] == ResultCode.QUEUED
     logger.info(

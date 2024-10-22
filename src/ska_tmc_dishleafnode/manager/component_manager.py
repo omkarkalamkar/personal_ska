@@ -140,12 +140,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
+        self.command_result_update_lock = Lock()
         self.tango_operation_execution_lock = Lock()
         self.observer = None
         self.dish_number = None
         self._track_process_event = Event()
         self.reset_track_process_event()
-        self.is_configure_command = False
         self.is_configureband_completed_event = threading.Event()
         self.is_setoperatemode_completed_event = threading.Event()
         self.is_track_completed_event = threading.Event()
@@ -224,55 +224,55 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
         ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
-        self.set_operate_mode_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.track_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.configure_band_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.track_load_static_off_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.track_stop_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.scan_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
-        self.end_scan_result = {
-            "result_code": None,
-            "message": None,
-            "exception": None,
-            "status": None,
-        }
+        with self.command_result_update_lock:
+            self.set_operate_mode_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
+            self.track_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
+            self.configure_band_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
+            self.track_load_static_off_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
+            self.track_stop_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
+            self.scan_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
+            self.end_scan_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
         self.logger.info("Cleared the command reult dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
         """Method to reset the command result dictionaries, events and flgas
         utilised in Configure command"""
         self.reset_command_result_values()
-        self.is_configure_command = False
         self.is_configureband_completed_event.clear()
         self.is_setoperatemode_completed_event.clear()
         self.is_track_completed_event.clear()
@@ -663,36 +663,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._device
 
-    def get_dishmode(self: DishLNComponentManager) -> DishMode:
-        """
-        Return the dishMode of the device
-
-        :return: dish_mode
-        :rtype: DishMode
-        """
-        self.logger.info("Dish Mode: %s", self._device.dish_mode)
-        return self._device.dish_mode
-
-    def get_pointingstate(self: DishLNComponentManager) -> PointingState:
-        """
-        Return the pointingState of the device
-
-        :return: pointing_state
-        :rtype: PointingState
-        """
-        self.logger.info("PointingState is %s", self._device.pointing_state)
-        return self._device.pointing_state
-
-    def get_dish_configured_band(self: DishLNComponentManager) -> str:
-        """
-        Return the configuredBand of the device
-
-        :return: dish band
-        :rtype: str
-        """
-        self.logger.info("Dish Band: %s", self.dishConfiguredBand)
-        return self.dishConfiguredBand
-
     # pylint: disable=signature-differs
     def off(
         self: DishLNComponentManager, task_callback: TaskCallbackType
@@ -905,6 +875,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=False,
         )
         # validate the JSON argument
         validation_result, message = track_command.validate_json_argument(
@@ -987,6 +958,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=False,
         )
         task_status, response = self.submit_task(
             configure_band_command.configure_band,
@@ -1013,6 +985,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             logger=self.logger,
+            is_configure_command=False,
         )
         task_status, response = self.submit_task(
             setoperatemode_command.set_operate_mode,
@@ -1112,6 +1085,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.op_state_model,
             self.adapter_factory,
             self.logger,
+            is_configure_command=False,
         )
 
         task_status, response = self.submit_task(
@@ -1745,61 +1719,63 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             unique_id, result_code_message = value
             result_code, message = json.loads(result_code_message)
+            with self.command_result_update_lock:
+                if "ConfigureBand" in unique_id:
+                    self.configure_band_result["result_code"] = result_code
+                    self.configure_band_result["message"] = message
+                    self.logger.debug(
+                        "ConfigureBand result: %s",
+                        self.configure_band_result,
+                    )
+                    self.is_configureband_completed_event.set()
+                elif "SetOperateMode" in unique_id:
+                    self.set_operate_mode_result["result_code"] = result_code
+                    self.set_operate_mode_result["message"] = message
+                    self.logger.debug(
+                        "SetOperateMode result: %s",
+                        self.set_operate_mode_result,
+                    )
+                    self.is_setoperatemode_completed_event.set()
+                elif "EndScan" in unique_id:
+                    self.end_scan_result["result_code"] = result_code
+                    self.end_scan_result["message"] = message
+                    self.logger.debug(
+                        "EndScan result: %s",
+                        self.end_scan_result,
+                    )
+                elif "Scan" in unique_id:
+                    self.scan_result["result_code"] = result_code
+                    self.scan_result["message"] = message
+                    self.logger.debug(
+                        "Scan result: %s",
+                        self.scan_result,
+                    )
+                elif "TrackLoadStaticOff" in unique_id:
+                    self.track_load_static_off_result[
+                        "result_code"
+                    ] = result_code
+                    self.track_load_static_off_result["message"] = message
+                    self.logger.debug(
+                        "TrackLoadStaticOff result: %s",
+                        self.track_load_static_off_result,
+                    )
+                    self.is_trackloadstaticoff_completed_event.set()
+                elif "TrackStop" in unique_id:
+                    self.track_stop_result["result_code"] = result_code
+                    self.track_stop_result["message"] = message
+                    self.logger.debug(
+                        "TrackStop result: %s",
+                        self.track_stop_result,
+                    )
 
-            if "ConfigureBand" in unique_id:
-                self.configure_band_result["result_code"] = result_code
-                self.configure_band_result["message"] = message
-                self.logger.debug(
-                    "ConfigureBand result: %s",
-                    self.configure_band_result,
-                )
-                self.is_configureband_completed_event.set()
-            elif "SetOperateMode" in unique_id:
-                self.set_operate_mode_result["result_code"] = result_code
-                self.set_operate_mode_result["message"] = message
-                self.logger.debug(
-                    "SetOperateMode result: %s",
-                    self.set_operate_mode_result,
-                )
-                self.is_setoperatemode_completed_event.set()
-            elif "EndScan" in unique_id:
-                self.end_scan_result["result_code"] = result_code
-                self.end_scan_result["message"] = message
-                self.logger.debug(
-                    "EndScan result: %s",
-                    self.end_scan_result,
-                )
-            elif "Scan" in unique_id:
-                self.scan_result["result_code"] = result_code
-                self.scan_result["message"] = message
-                self.logger.debug(
-                    "Scan result: %s",
-                    self.scan_result,
-                )
-            elif "TrackLoadStaticOff" in unique_id:
-                self.track_load_static_off_result["result_code"] = result_code
-                self.track_load_static_off_result["message"] = message
-                self.logger.debug(
-                    "TrackLoadStaticOff result: %s",
-                    self.track_load_static_off_result,
-                )
-                self.is_trackloadstaticoff_completed_event.set()
-            elif "TrackStop" in unique_id:
-                self.track_stop_result["result_code"] = result_code
-                self.track_stop_result["message"] = message
-                self.logger.debug(
-                    "TrackStop result: %s",
-                    self.track_stop_result,
-                )
-
-            elif "Track" in unique_id:
-                self.track_result["result_code"] = result_code
-                self.track_result["message"] = message
-                self.logger.debug(
-                    "Track result: %s",
-                    self.track_result,
-                )
-                self.is_track_completed_event.set()
+                elif "Track" in unique_id:
+                    self.track_result["result_code"] = result_code
+                    self.track_result["message"] = message
+                    self.logger.debug(
+                        "Track result: %s",
+                        self.track_result,
+                    )
+                    self.is_track_completed_event.set()
 
             if result_code in [
                 ResultCode.FAILED,
@@ -1809,7 +1785,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 # If the Configure command is executed, below LRCR callback
                 # for the commands ConfigureBand, SetOperateMode and
                 # TrackLoadStaticOff is set via is invoke_configure method.
-                if self.is_configure_command:
+                if self.command_in_progress == "Configure":
                     if (
                         ("ConfigureBand" in unique_id)
                         or ("SetOperateMode" in unique_id)
@@ -1977,6 +1953,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 self.op_state_model,
                                 self.adapter_factory,
                                 self.logger,
+                                is_configure_command=False,
                             )
                             (
                                 result_code,
@@ -2063,62 +2040,245 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 
-    def get_dish_state(self) -> Tuple[DishMode, PointingState, ResultCode]:
+    def get_dish_state(
+        self,
+    ) -> Tuple[
+        DishMode, PointingState, Band, ResultCode, ResultCode, ResultCode
+    ]:
         """
         Returns the current state of the dish including its mode,
-        pointing state,and the result code of a specified command.
-
-        Args:
-            command_id: The identifier for the command whose result is required
+        pointing state, band and the result code of the specified commands.
 
         Returns:
             A tuple containing:
                 - DishMode: The current operational mode of the dish.
                 - PointingState: The current pointing state of the dish.
-                - ResultCode: The result code of the command identified by
-                    command_id.
+                - Band: The dish configured band
+                - ResultCode: ConfigureBand command result code
+                - ResultCode: SetOperateMode command result code
+                - ResultCode: Track command result code
         """
         return [
             self.dishMode,
             self.pointingState,
             self.dishConfiguredBand,
+            self.get_configure_band_result_code(),
+            self.get_set_operate_mode_result_code(),
+            self.get_track_result_code(),
         ]
 
-    def get_track_load_static_off_result(self: DishLNComponentManager):
+    def get_track_load_static_off_result_code(self: DishLNComponentManager):
         """
         Return the result of the trackLoadStaticOff command execution
 
         :return: track_load_static_off_result
         :rtype: dict
         """
-        return self.track_load_static_off_result["result_code"]
+        with self.command_result_update_lock:
+            return self.track_load_static_off_result["result_code"]
 
-    def get_end_scan_result(self: DishLNComponentManager):
+    def get_track_load_static_off_result_dict(self: DishLNComponentManager):
+        """
+        Return the dictionary containing TrackLoadStaticOff command execution
+        status
+
+        :return: track_load_static_off_result dictionary
+        :rtype: dict
+        """
+        with self.command_result_update_lock:
+            return self.track_load_static_off_result
+
+    def set_track_load_static_off_result_dict(
+        self: DishLNComponentManager,
+        result_code=None,
+        message=None,
+        exception=None,
+        status=None,
+    ):
+        """
+        Set the dictionary containing TrackLoadStaticOff command execution
+        status
+
+        :param result_code: ResultCode to be set in
+        track_load_static_off_result
+        :type result_code: ResultCode
+        :param: message to be set in track_load_static_off_result
+        :type: str
+        :param: exception to be set in track_load_static_off_result
+        :type: str
+        :param: status to be set in track_load_static_off_result
+        :type: str
+        """
+        with self.command_result_update_lock:
+            self.track_load_static_off_result["result_code"] = result_code
+            self.track_load_static_off_result["message"] = message
+            self.track_load_static_off_result["exception"] = exception
+            self.track_load_static_off_result["status"] = status
+
+    def get_configure_band_result_code(self: DishLNComponentManager):
+        """
+        Return the result of the ConfigureBand command execution
+
+        :return: ResultCode from dictionary configure_band_result
+        :rtype: ResultCode
+        """
+        with self.command_result_update_lock:
+            return self.configure_band_result["result_code"]
+
+    def get_configure_band_result_dict(self: DishLNComponentManager):
+        """
+        Return the dictionary containing ConfigureBand command execution status
+
+        :return: configure_band_result dictionary
+        :rtype: dict
+        """
+        with self.command_result_update_lock:
+            return self.configure_band_result
+
+    def set_configure_band_result_dict(
+        self: DishLNComponentManager,
+        result_code=None,
+        message=None,
+        exception=None,
+        status=None,
+    ):
+        """
+        Set the dictionary containing ConfigureBand command execution status
+
+        :param result_code: ResultCode to be set in configure_band_result
+        :type result_code: ResultCode
+        :param: message to be set in configure_band_result
+        :type: str
+        :param: exception to be set in configure_band_result
+        :type: str
+        :param: status to be set in configure_band_result
+        :type: str
+        """
+        with self.command_result_update_lock:
+            self.configure_band_result["result_code"] = result_code
+            self.configure_band_result["message"] = message
+            self.configure_band_result["exception"] = exception
+            self.configure_band_result["status"] = status
+
+    def get_set_operate_mode_result_code(self: DishLNComponentManager):
+        """
+        Return the result of the SetOperateMode command execution
+
+        :return: ResultCode from the set_operate_mode_result
+        :rtype: ResultCode
+        """
+        with self.command_result_update_lock:
+            return self.set_operate_mode_result["result_code"]
+
+    def get_set_operate_mode_result_dict(self: DishLNComponentManager):
+        """
+        Return the dictinary containing SetOperateMode command execution status
+
+        :return: set_operate_mode_result dictionary
+        :rtype: dict
+        """
+        with self.command_result_update_lock:
+            return self.set_operate_mode_result
+
+    def get_track_result_code(self: DishLNComponentManager):
+        """
+        Return the result of the Track command execution
+
+        :return: ResultCode from the track_result
+        :rtype: ResultCode
+        """
+        with self.command_result_update_lock:
+            return self.track_result["result_code"]
+
+    def get_track_result_dict(self: DishLNComponentManager):
+        """
+        Return the dictionary containing Track command execution status
+
+        :return: track_result dictionary
+        :rtype: dict
+        """
+        with self.command_result_update_lock:
+            return self.track_result
+
+    def update_set_operate_mode_result_dict(
+        self: DishLNComponentManager,
+        result_code=None,
+        message=None,
+        exception=None,
+        status=None,
+    ):
+        """
+        Set the dictionary containing SetOperateMode command execution status
+
+        :param result_code: ResultCode to be set in set_operate_mode_result
+        :type result_code: ResultCode
+        :param: message to be set in set_operate_mode_result
+        :type: str
+        :param: exception to be set in set_operate_mode_result
+        :type: str
+        :param: status to be set in set_operate_mode_result
+        :type: str
+        """
+        with self.command_result_update_lock:
+            self.set_operate_mode_result["result_code"] = result_code
+            self.set_operate_mode_result["message"] = message
+            self.set_operate_mode_result["exception"] = exception
+            self.set_operate_mode_result["status"] = status
+
+    def set_track_result_dict(
+        self: DishLNComponentManager,
+        result_code=None,
+        message=None,
+        exception=None,
+        status=None,
+    ):
+        """
+        Set the dictionary containing Track command execution status
+
+        :param result_code: ResultCode to be set in track_result
+        :type result_code: ResultCode
+        :param: message to be set in track_result
+        :type: str
+        :param: exception to be set in track_result
+        :type: str
+        :param: status to be set in track_result
+        :type: str
+        """
+        with self.command_result_update_lock:
+            self.track_result["result_code"] = result_code
+            self.track_result["message"] = message
+            self.track_result["exception"] = exception
+            self.track_result["status"] = status
+
+    def get_end_scan_result_code(self: DishLNComponentManager):
         """
         Return the result of the EndScan command execution
 
         :return: ResultCode from end_scan_result
         :rtype: ResultCode
         """
-        return self.end_scan_result["result_code"]
+        with self.command_result_update_lock:
+            return self.end_scan_result["result_code"]
 
-    def get_scan_result(self: DishLNComponentManager):
+    def get_scan_result_code(self: DishLNComponentManager):
         """
         Return the result of the Scan command execution
 
         :return: ResultCode from scan_result
         :rtype: ResultCode
         """
-        return self.scan_result["result_code"]
+        with self.command_result_update_lock:
+            return self.scan_result["result_code"]
 
-    def get_track_stop_result(self: DishLNComponentManager):
+    def get_track_stop_result_code(self: DishLNComponentManager):
         """
         Return the result of the TrackStop command execution
 
         :return: ResultCode from track_stop_result
         :rtype: ResultCode
         """
-        return self.track_stop_result["result_code"]
+        with self.command_result_update_lock:
+            return self.track_stop_result["result_code"]
 
     def __del__(self: DishLNComponentManager):
         """
