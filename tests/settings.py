@@ -32,6 +32,13 @@ COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
 COMMAND_FAILED = json.dumps(
     [ResultCode.FAILED, "Exception occured, command failed."]
 )
+COMMAND_FAILED_WITH_TRACK = json.dumps(
+    [
+        ResultCode.FAILED,
+        "Dish manager did not receive TrackTable. Track() command is not "
+        + "invoked on the Dish.",
+    ]
+)
 COMMAND_TIMEOUT = json.dumps(
     [ResultCode.FAILED, "Timeout has occurred, command failed"]
 )
@@ -86,6 +93,11 @@ def update_availablity_callback():
     """An empty update_availablity callback"""
 
 
+def update_track_table_error_callback(value):
+    """An empty update_track_table_error callback"""
+    logger.info("Track Table error is: %s", value)
+
+
 def update_source_offset_callback(source_offset):
     """An empty update_source_offset callback"""
     logger.info("Source offset is: %s", source_offset)
@@ -112,6 +124,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
+        _update_track_table_error_callback=update_track_table_error_callback,
     )
     return cm
 
@@ -388,6 +401,7 @@ def get_non_sidereal_json_for_now(non_side_real_json) -> str:
     according to current time.
     """
     current_time = int(datetime.utcnow().strftime("%H"))
+    logging.info("CURRENT TIME: %s", current_time)
     configure_input_json = json.loads(non_side_real_json)
     # The data below is losely based on information found from the web, and has
     # loose limits such that elevation is >= 17.5 for the source at
@@ -407,5 +421,57 @@ def get_non_sidereal_json_for_now(non_side_real_json) -> str:
         return json.dumps(configure_input_json)
     if 14 <= current_time <= 15:
         configure_input_json["pointing"]["target"]["target_name"] = "Venus"
+        return json.dumps(configure_input_json)
+    return ""
+
+
+def get_non_sidereal_json_for_source_not_visible(non_side_real_json) -> str:
+    """Return the json for Configure command with visible non-sidereal object
+    according to current time.
+    """
+    current_time = int(datetime.utcnow().strftime("%H"))
+    logging.info("CURRENT TIME: %s", current_time)
+    configure_input_json = json.loads(non_side_real_json)
+
+    if 8 <= current_time <= 14:
+        configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
+        return json.dumps(configure_input_json)
+    if 3 <= current_time <= 8:
+        configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
+        return json.dumps(configure_input_json)
+    if current_time <= 3 or current_time >= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
+        return json.dumps(configure_input_json)
+    if 17 <= current_time <= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
+        return json.dumps(configure_input_json)
+    if 14 <= current_time <= 15:
+        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
+        return json.dumps(configure_input_json)
+    return ""
+
+
+def get_non_sidereal_json_for_source_unknown(non_side_real_json) -> str:
+    """Return the json for Configure command with visible non-sidereal object
+    according to current time.
+    """
+    current_time = int(datetime.utcnow().strftime("%H"))
+    logging.info("CURRENT TIME: %s", current_time)
+    configure_input_json = json.loads(non_side_real_json)
+
+    if 8 <= current_time <= 14:
+        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+        return json.dumps(configure_input_json)
+    if 3 <= current_time <= 8:
+        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+        return json.dumps(configure_input_json)
+    if current_time <= 3 or current_time >= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+        return json.dumps(configure_input_json)
+    if 17 <= current_time <= 21:
+        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+        return json.dumps(configure_input_json)
+    if 14 <= current_time <= 15:
+        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
         return json.dumps(configure_input_json)
     return ""

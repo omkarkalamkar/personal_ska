@@ -95,6 +95,11 @@ class DishLeafNode(TMCBaseLeafDevice):
         access=AttrWriteType.READ_WRITE,
     )
 
+    trackTableError = attribute(
+        dtype="DevString",
+        access=AttrWriteType.READ,
+    )
+
     isSubsystemAvailable = attribute(
         dtype=bool,
         access=AttrWriteType.READ,
@@ -129,6 +134,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
+        self._track_table_error = ""
         super().init_device()
         for attribute_name in [
             "healthState",
@@ -141,6 +147,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             "sourceOffset",
             "lastPointingData",
             "kValue",
+            "trackTableError",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -220,6 +227,16 @@ class DishLeafNode(TMCBaseLeafDevice):
             "actualPointing", json.dumps(actual_pointing)
         )
 
+    def update_track_table_error_callback(self, value: str) -> None:
+        """Push an event for the trackTableError attribute."""
+        self.logger.info(
+            "Component Manager value: %s",
+            self.component_manager.track_table_error,
+        )
+        self._track_table_error = value
+        self.push_change_archive_events("trackTableError", value)
+        self.logger.info("Pushed the trackTableError event: %s", value)
+
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
         self._dishMode = dish_mode
@@ -264,6 +281,11 @@ class DishLeafNode(TMCBaseLeafDevice):
     def write_dishMasterDevName(self, value: str) -> None:
         """Set the dishMasterDevName attribute."""
         self.component_manager.dish_dev_name = value
+
+    def read_trackTableError(self) -> str:
+        """Read method for trackTableError"""
+        self.logger.info("TrackTableError value: %s", self._track_table_error)
+        return self._track_table_error
 
     def read_isSubsystemAvailable(self) -> bool:
         """Read method for isSubsystemAvailable"""
@@ -901,6 +923,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         return self.component_manager.is_staticpmsetup_allowed()
 
     def create_component_manager(self: DishLeafNode):
+        # pylint: disable=line-too-long
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
             logger=self.logger,
@@ -927,7 +950,9 @@ class DishLeafNode(TMCBaseLeafDevice):
             _update_source_offset_callback=self.update_source_offset_callback,
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
             track_table_advance_sec=self.TrackTableInAdvance,
+            _update_track_table_error_callback=self.update_track_table_error_callback,  # noqa: E501
         )
+        # pylint: enable=line-too-long
         return cm
 
     def init_command_objects(self: DishLeafNode) -> None:

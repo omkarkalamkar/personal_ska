@@ -57,18 +57,28 @@ class AzElConverter:
         self: AzElConverter, azel: AltAz
     ) -> List[float]:
         """Apply refraction correction on given AzEl."""
-        refraction_corrected_azel = self.refraction_correction.refract(
-            azel,
-            self.weather_data["pressure"] * u.hPa,
-            self.weather_data["temperature"] * u.deg_C,
-            self.weather_data["humidity"],
-        )
-        logger.debug(
-            "The Azimuth value is: %s and the Elevation is %s : after "
-            "forward transform.",
-            refraction_corrected_azel.az.deg,
-            refraction_corrected_azel.alt.deg,
-        )
+        try:
+            refraction_corrected_azel = self.refraction_correction.refract(
+                azel,
+                self.weather_data["pressure"] * u.hPa,
+                self.weather_data["temperature"] * u.deg_C,
+                self.weather_data["humidity"],
+            )
+            logger.debug(
+                "The Azimuth value is: %s and the Elevation is %s : after "
+                "forward transform.",
+                refraction_corrected_azel.az.deg,
+                refraction_corrected_azel.alt.deg,
+            )
+        except Exception as exception:
+            message = (
+                "Exception occurred while applying refraction correction: "
+                + str(exception)
+            )
+            logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
+
         return [
             refraction_corrected_azel.az.deg,
             refraction_corrected_azel.alt.deg,
@@ -86,14 +96,35 @@ class AzElConverter:
         :param timestamp: Timestamp for observation
         :type timestamp: str
         """
-        non_sidereal_target = Target(f"{target_name}, special")
-        logger.debug("non_sidereal_target - %s", non_sidereal_target)
-        with iers.earth_orientation_table.set(self.component_manager.iers_a):
-            azel = non_sidereal_target.azel(
-                timestamp, self.component_manager.observer
-            )
+        refraction_corrected_azel = []
+        try:
+            non_sidereal_target = Target(f"{target_name}, special")
+            logger.debug("non_sidereal_target - %s", non_sidereal_target)
+            with iers.earth_orientation_table.set(
+                self.component_manager.iers_a
+            ):
+                azel = non_sidereal_target.azel(
+                    timestamp, self.component_manager.observer
+                )
 
-        return self.apply_refraction_correction(azel)
+            refraction_corrected_azel = self.apply_refraction_correction(azel)
+
+        except ValueError as value_error:
+            message = "Exception is: %s" + str(value_error)
+            logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
+
+        except Exception as exception:
+            message = (
+                "Exception occurred while starting programTrackTable "
+                "calculation: " + str(exception)
+            )
+            logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
+
+        return refraction_corrected_azel
 
     def point(
         self: AzElConverter,
@@ -112,10 +143,24 @@ class AzElConverter:
         return:
             az_el_coordinates (list)
         """
-        logger.debug(
-            "Converting Target RaDec coordinates to the AzEl coordinates"
-        )
-        return self.radec_to_azel(right_ascension, declination, timestamp)
+        az_el_coordinates = []
+        try:
+            logger.debug(
+                "Converting Target RaDec coordinates to the AzEl coordinates"
+            )
+            az_el_coordinates = self.radec_to_azel(
+                right_ascension, declination, timestamp
+            )
+
+        except Exception as exception:
+            message = (
+                "Exception occurred while calling RaDec to AzEl conversion: "
+                + str(exception)
+            )
+            logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
+        return az_el_coordinates
 
     def azel_to_radec(
         self: AzElConverter,
@@ -189,10 +234,32 @@ class AzElConverter:
         Return:
             az_el_coordinates (list[degrees])
         """
-        target = Target.from_radec(right_ascension, declination)
+        refraction_corrected_azel = []
+        try:
+            target = Target.from_radec(right_ascension, declination)
 
-        # Preloading the IERS A chart for Astrop's usage.
-        with iers.earth_orientation_table.set(self.component_manager.iers_a):
-            azel = target.azel(timestamp, self.component_manager.observer)
+            # Preloading the IERS A chart for Astrop's usage.
+            with iers.earth_orientation_table.set(
+                self.component_manager.iers_a
+            ):
+                azel = target.azel(timestamp, self.component_manager.observer)
 
-        return self.apply_refraction_correction(azel)
+            refraction_corrected_azel = self.apply_refraction_correction(azel)
+
+        except ValueError as value_error:
+            message = "Exception is: %s" + str(value_error)
+            logger.error(message)
+            # self.component_manager.track_table_error = str(value_error)
+            raise Exception(message)
+
+        except Exception as exception:
+            message = (
+                "Exception occurred while starting programTrackTable "
+                + "calculation: "
+                + str(exception)
+            )
+            logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
+
+        return refraction_corrected_azel

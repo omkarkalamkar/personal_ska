@@ -84,6 +84,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_availablity_callback: Callable,
         _update_source_offset_callback: Callable,
         _update_last_pointing_data_cb: Callable,
+        _update_track_table_error_callback: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         proxy_timeout: int = 500,
@@ -164,7 +165,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
+        self._update_track_table_error_callback = (
+            _update_track_table_error_callback
+        )
         self._kvalue: int = 0
+        self._track_table_error: str = ""
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
@@ -480,6 +485,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         if self.pointing_callback:
             self.pointing_callback(list(self._actual_pointing))
+
+    @property
+    def track_table_error(self: DishLNComponentManager) -> str:
+        """Returns the trackTableError of the dish leaf node."""
+        return self._track_table_error
+
+    @track_table_error.setter
+    def track_table_error(self: DishLNComponentManager, value: str) -> None:
+        """Update the trackTableError of the dish leaf node
+        :param value: Error observed in track table calculation
+        :value dtype: str
+        :return: None
+        :rtype: None
+        """
+        self._track_table_error = value
+        self.logger.info(
+            "Setting the track table error to: %s", self._track_table_error
+        )
+        if self._update_track_table_error_callback:
+            self._update_track_table_error_callback(self._track_table_error)
 
     @property
     def last_pointing_data(self: DishLNComponentManager):
@@ -1532,11 +1557,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.tango_operation_execution_lock:
             try:
                 self.dish_adapter.programTrackTable = program_track_table
+                self.logger.debug("ProgramTrackTable: %s", program_track_table)
             except (tango.DevFailed, Exception) as exception:
-                self.logger.exception(
-                    "Exception while writing tracktable: %s", str(exception)
+                message = "Exception while writing tracktable: " + str(
+                    exception
                 )
-        self.logger.debug("ProgramTrackTable: %s", program_track_table)
+                self.logger.exception(message)
+                # self.track_table_error = message
+                raise Exception(message)
 
     def track_process(
         self: DishLNComponentManager,
@@ -1548,80 +1576,99 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+        try:
+            self.logger.info(
+                "The track process name is : %s",
+                Process(target=current_process().name),
+            )
 
-        self.logger.info(
-            "The track process name is : %s",
-            Process(target=current_process().name),
-        )
+            # self.track_table_error = "The track process started"
+            timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+            # This is dummy calculation because first time calculation takes
+            # time due to IERS file downloads
+            if isinstance(self.target_data, str):
+                self.converter.point_to_body(self.target_data, timestamp)
+            else:
+                ra, dec = self.target_data
+                self.converter.point(ra, dec, timestamp)
 
-        timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
-        # This is dummy calculation because first time calculation takes
-        # time due to IERS file downloads
-        if isinstance(self.target_data, str):
-            self.converter.point_to_body(self.target_data, timestamp)
-        else:
-            ra, dec = self.target_data
-            self.converter.point(ra, dec, timestamp)
+            self.logger.debug("Converter Object Updated")
+            # self.track_table_error = "Converter Object Updated"
+            utc_now = datetime.datetime.utcnow()
 
-        self.logger.debug("Converter Object Updated")
+            # For future timestamp few seconds are added in current time.
+            # Divided by 1000 to convert ms to sec conversion.
+            time_to_add: float = (
+                (self.track_table_entries * self.pointing_calculation_period)
+                / 1000
+            ) + self.track_table_advance_sec
 
-        utc_now = datetime.datetime.utcnow()
-
-        # For future timestamp few seconds are added in current time.
-        # Divided by 1000 to convert ms to sec conversion.
-        time_to_add: float = (
-            (self.track_table_entries * self.pointing_calculation_period)
-            / 1000
-        ) + self.track_table_advance_sec
-
-        extended_time: datetime.datetime = utc_now + datetime.timedelta(
-            seconds=time_to_add
-        )
-        self.track_table_calculator.track_table_time_stamp = extended_time
-        while self.get_track_process_event_status() is False:
-            program_track_table: list = (
-                self.track_table_calculator.calculate_program_track_table(
-                    self.target_data, self.converter
+            extended_time: datetime.datetime = utc_now + datetime.timedelta(
+                seconds=time_to_add
+            )
+            self.track_table_calculator.track_table_time_stamp = extended_time
+            while self.get_track_process_event_status() is False:
+                # self.track_table_error = "Calculate track table"
+                program_track_table: list = (
+                    self.track_table_calculator.calculate_program_track_table(
+                        self.target_data, self.converter
+                    )
                 )
+                first_entry_timestamp: float = program_track_table[0]
+
+                # advance_time is subtracted to provide programTrackTable few
+                # seconds in advance
+                actual_time = (
+                    first_entry_timestamp - self.track_table_advance_sec
+                )
+
+                scheduled_time = Time(
+                    float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
+                    format="unix_tai",
+                    scale="tai",
+                ).unix
+
+                # Convert to human-readable format
+                actual_time_readable = datetime.datetime.utcfromtimestamp(
+                    actual_time
+                ).strftime("%Y-%m-%d %H:%M:%S")
+                scheduled_time_readable = datetime.datetime.utcfromtimestamp(
+                    scheduled_time
+                ).strftime("%Y-%m-%d %H:%M:%S")
+
+                self.logger.debug("actual_time_human %s", actual_time_readable)
+                self.logger.debug(
+                    "scheduled_time_human  %s", scheduled_time_readable
+                )
+
+                event_priority: int = 1
+                self.track_table_scheduler.enterabs(
+                    scheduled_time,
+                    event_priority,
+                    self.update_program_track_table,
+                    argument=(program_track_table,),
+                )
+                self.track_table_scheduler.run()
+                # self.track_table_error = "Track table calculation completion"
+            self.logger.debug("Program Track Table Calculation stopped.")
+
+            with self.tango_operation_execution_lock:
+                self.dish_adapter.programTrackTable = []
+
+            self.logger.debug("Cleared programTrackTable attribute.")
+            # self.track_table_error = "Cleared programTrackTable attribute"
+
+        except ValueError as value_error:
+            self.logger.error("Exception is: %s", str(value_error))
+            self.track_table_error = str(value_error)
+
+        except Exception as exception:
+            message = (
+                "Exception occurred while in track table process: "
+                + str(exception)
             )
-            first_entry_timestamp: float = program_track_table[0]
-
-            # advance_time is subtracted to provide programTrackTable few
-            # seconds in advance
-            actual_time = first_entry_timestamp - self.track_table_advance_sec
-
-            scheduled_time = Time(
-                float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
-                format="unix_tai",
-                scale="tai",
-            ).unix
-
-            # Convert to human-readable format
-            actual_time_readable = datetime.datetime.utcfromtimestamp(
-                actual_time
-            ).strftime("%Y-%m-%d %H:%M:%S")
-            scheduled_time_readable = datetime.datetime.utcfromtimestamp(
-                scheduled_time
-            ).strftime("%Y-%m-%d %H:%M:%S")
-
-            self.logger.debug("actual_time_human %s", actual_time_readable)
-            self.logger.debug(
-                "scheduled_time_human  %s", scheduled_time_readable
-            )
-
-            event_priority: int = 1
-            self.track_table_scheduler.enterabs(
-                scheduled_time,
-                event_priority,
-                self.update_program_track_table,
-                argument=(program_track_table,),
-            )
-            self.track_table_scheduler.run()
-        self.logger.debug("Program Track Table Calculation stopped.")
-
-        with self.tango_operation_execution_lock:
-            self.dish_adapter.programTrackTable = []
-        self.logger.debug("Cleared programTrackTable attribute.")
+            self.logger.error(message)
+            self.track_table_error = message
 
     def create_track_process(self) -> None:
         """Creates new process for programTrackTable calculation."""
@@ -1650,11 +1697,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     + " New process will not be hosted."
                 )
         except Exception as exception:
-            self.logger.error(
+            message = (
                 "Exception occurred while starting programTrackTable "
-                "calculation: %s",
-                str(exception),
+                + "calculation: "
+                + str(exception)
             )
+            self.logger.error(message)
+            self.track_table_error = message
 
     def stop_track_table_process(self):
         """Stops track process"""

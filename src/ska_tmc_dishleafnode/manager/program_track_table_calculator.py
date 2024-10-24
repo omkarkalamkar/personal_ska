@@ -59,13 +59,20 @@ class ProgramTrackTableCalculator:
         self.weather_data = self.azel_converter.weather_data
         program_track_table = []
 
-        time_stamp_list, tai_timestamp_list = self.calculate_time_stamp_list()
-        results: list = list(map(self.point, time_stamp_list))
         try:
+            (
+                time_stamp_list,
+                tai_timestamp_list,
+            ) = self.calculate_time_stamp_list()
+            results: list = list(map(self.point, time_stamp_list))
+
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):
-                    tai_timestamp_list.pop(0)
-                    continue
+                    message = (
+                        "Minimum/maximum elevation limit has been reached."
+                        + ("Source is not visible currently.")
+                    )
+                    raise Exception(message)
                 if result[0] < 0:
                     result[0] = 360 - abs(result[0])
 
@@ -79,10 +86,17 @@ class ProgramTrackTableCalculator:
                         "Stopping the ProgramTrackTable calculation."
                     )
                     break
-        except Exception as exception:
-            self.logger.error(exception)
 
-        return program_track_table
+                return program_track_table
+
+        except Exception as exception:
+            message = (
+                "Exception occurred while calculating track table: "
+                + str(exception)
+            )
+            self.logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
 
     def _is_elevation_within_mechanical_limits(
         self: ProgramTrackTableCalculator,
@@ -101,10 +115,11 @@ class ProgramTrackTableCalculator:
             <= self.component_manager.elevation_max_limit
         ):
             self.elevation_limit = True
-            self.logger.info(
-                "Minimum/maximum elevation limit has been reached."
-                + " Source is not visible currently."
+            message = "Minimum/maximum elevation limit has been reached." + (
+                "Source is not visible currently."
             )
+            self.logger.info(message)
+            # self.component_manager.track_table_error = message
             return False
 
         self.elevation_limit = False
@@ -123,20 +138,39 @@ class ProgramTrackTableCalculator:
         """
         time_stamp_list = []
         tai_timestamp_list = []
-        for _ in range(self.component_manager.track_table_entries):
-            timestamp_time_obj = Time(self.track_table_time_stamp, scale="utc")
-            time_stamp_list.append(timestamp_time_obj)
-            tai_time = self.convert_utc_to_tai(timestamp_time_obj)
-            tai_timestamp_list.append(tai_time)
+        try:
+            for _ in range(self.component_manager.track_table_entries):
+                timestamp_time_obj = Time(
+                    self.track_table_time_stamp, scale="utc"
+                )
+                time_stamp_list.append(timestamp_time_obj)
+                tai_time = self.convert_utc_to_tai(timestamp_time_obj)
+                tai_timestamp_list.append(tai_time)
 
-            self.track_table_time_stamp = (
-                self.track_table_time_stamp
-                + datetime.timedelta(
-                    milliseconds=(
-                        self.component_manager.pointing_calculation_period
+                self.track_table_time_stamp = (
+                    self.track_table_time_stamp
+                    + datetime.timedelta(
+                        milliseconds=(
+                            self.component_manager.pointing_calculation_period
+                        )
                     )
                 )
+
+        except ValueError as value_error:
+            message = "Exception is: " + str(value_error)
+            self.logger.error(message)
+            # self.component_manager.track_table_error = str(value_error)
+            raise Exception(message)
+
+        except Exception as exception:
+            message = (
+                "Exception occurred while calculating timestamp list: "
+                + str(exception)
             )
+            self.logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
+
         return time_stamp_list, tai_timestamp_list
 
     def point(self: ProgramTrackTableCalculator, timestamp: str) -> list:
@@ -151,15 +185,23 @@ class ProgramTrackTableCalculator:
         :return: Azimuth and Elevation coordinates (Az, El) of source.
         :rtype: list
         """
-        if self.target_name:
-            return self.azel_converter.point_to_body(
-                self.target_name, timestamp
+        try:
+            if self.target_name:
+                result = self.azel_converter.point_to_body(
+                    self.target_name, timestamp
+                )
+                return result
+
+            result = self.azel_converter.radec_to_azel(
+                self.right_ascension,
+                self.declination,
+                timestamp,
             )
-        return self.azel_converter.radec_to_azel(
-            self.right_ascension,
-            self.declination,
-            timestamp,
-        )
+            return result
+        except Exception as exception:
+            self.logger.error(exception)
+            # self.component_manager.track_table_error = message
+            raise Exception(str(exception))
 
     def convert_utc_to_tai(
         self: ProgramTrackTableCalculator, utc_time: float
@@ -171,6 +213,24 @@ class ProgramTrackTableCalculator:
         :returns: Time in TAI format (seconds)
         :rtype: float
         """
+        tai_time = 0.0
+        try:
+            ska_epoch_utc = Time(SKA_EPOCH, scale="utc")
+            tai_time = utc_time.unix_tai - ska_epoch_utc.unix_tai
 
-        ska_epoch_utc = Time(SKA_EPOCH, scale="utc")
-        return utc_time.unix_tai - ska_epoch_utc.unix_tai
+        except ValueError as value_error:
+            message = "Exception is: " + str(value_error)
+            self.logger.error(message)
+            # self.component_manager.track_table_error = str(value_error)
+            raise Exception(message)
+
+        except Exception as exception:
+            message = (
+                "Exception occurred while converting utc time to tai format: "
+                + str(exception)
+            )
+            self.logger.error(message)
+            # self.component_manager.track_table_error = message
+            raise Exception(message)
+
+        return tai_time
