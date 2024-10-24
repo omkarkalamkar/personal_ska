@@ -79,11 +79,10 @@ class AbortCommands(DishLNCommand):
         )
 
         if self.component_manager.is_dish_abort_commands_enabled:
-            with self.component_manager.tango_operation_execution_lock:
-                self.logger.debug("Grabbed tango lock")
-                result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "AbortCommands"
-                )
+            self.logger.debug("Grabbed tango lock")
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "AbortCommands"
+            )
 
             self.logger.debug("Released tango lock")
             self.logger.info(
@@ -122,9 +121,8 @@ class AbortCommands(DishLNCommand):
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
-            with self.component_manager.tango_operation_execution_lock:
-                result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "TrackStop"
-                )
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "TrackStop"
+            )
             return result_code[0], message[0]
         return ResultCode.OK, ""
