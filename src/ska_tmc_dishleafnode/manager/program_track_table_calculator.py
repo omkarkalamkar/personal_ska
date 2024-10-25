@@ -96,7 +96,7 @@ class ProgramTrackTableCalculator:
             )
             self.logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
+            raise Exception(message) from exception
 
     def _is_elevation_within_mechanical_limits(
         self: ProgramTrackTableCalculator,
@@ -160,7 +160,7 @@ class ProgramTrackTableCalculator:
             message = "Exception is: " + str(value_error)
             self.logger.error(message)
             # self.component_manager.track_table_error = str(value_error)
-            raise Exception(message)
+            raise Exception(message) from value_error
 
         except Exception as exception:
             message = (
@@ -169,7 +169,7 @@ class ProgramTrackTableCalculator:
             )
             self.logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
+            raise Exception(message) from exception
 
         return time_stamp_list, tai_timestamp_list
 
@@ -201,7 +201,7 @@ class ProgramTrackTableCalculator:
         except Exception as exception:
             self.logger.error(exception)
             # self.component_manager.track_table_error = message
-            raise Exception(str(exception))
+            raise Exception(str(exception)) from exception
 
     def convert_utc_to_tai(
         self: ProgramTrackTableCalculator, utc_time: float
@@ -222,7 +222,7 @@ class ProgramTrackTableCalculator:
             message = "Exception is: " + str(value_error)
             self.logger.error(message)
             # self.component_manager.track_table_error = str(value_error)
-            raise Exception(message)
+            raise Exception(message) from value_error
 
         except Exception as exception:
             message = (
@@ -231,6 +231,6 @@ class ProgramTrackTableCalculator:
             )
             self.logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
+            raise Exception(message) from exception
 
         return tai_time

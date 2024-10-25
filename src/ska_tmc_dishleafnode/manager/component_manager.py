@@ -1564,7 +1564,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
                 self.logger.exception(message)
                 # self.track_table_error = message
-                raise Exception(message)
+                raise Exception(message) from exception
 
     def track_process(
         self: DishLNComponentManager,

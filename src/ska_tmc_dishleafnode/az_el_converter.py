@@ -77,7 +77,7 @@ class AzElConverter:
             )
             logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
+            raise Exception(message) from exception
 
         return [
             refraction_corrected_azel.az.deg,
@@ -113,7 +113,7 @@ class AzElConverter:
             message = "Exception is: %s" + str(value_error)
             logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
+            raise Exception(message) from value_error
 
         except Exception as exception:
             message = (
@@ -122,8 +122,7 @@ class AzElConverter:
             )
             logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
-
+            raise Exception(message) from exception
         return refraction_corrected_azel
 
     def point(
@@ -159,7 +158,7 @@ class AzElConverter:
             )
             logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
+            raise Exception(message) from exception
         return az_el_coordinates
 
     def azel_to_radec(
@@ -250,7 +249,7 @@ class AzElConverter:
             message = "Exception is: %s" + str(value_error)
             logger.error(message)
             # self.component_manager.track_table_error = str(value_error)
-            raise Exception(message)
+            raise Exception(message) from value_error
 
         except Exception as exception:
             message = (
@@ -260,6 +259,6 @@ class AzElConverter:
             )
             logger.error(message)
             # self.component_manager.track_table_error = message
-            raise Exception(message)
+            raise Exception(message) from exception
 
         return refraction_corrected_azel
