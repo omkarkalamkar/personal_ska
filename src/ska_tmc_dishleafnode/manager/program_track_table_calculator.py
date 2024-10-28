@@ -95,7 +95,6 @@ class ProgramTrackTableCalculator:
                 + str(exception)
             )
             self.logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from exception
 
     def _is_elevation_within_mechanical_limits(
@@ -119,7 +118,6 @@ class ProgramTrackTableCalculator:
                 "Source is not visible currently."
             )
             self.logger.info(message)
-            # self.component_manager.track_table_error = message
             return False
 
         self.elevation_limit = False
@@ -157,9 +155,11 @@ class ProgramTrackTableCalculator:
                 )
 
         except ValueError as value_error:
-            message = "Exception is: " + str(value_error)
+            message = (
+                "Exception occurred while calculating timestamp list: "
+                + str(value_error)
+            )
             self.logger.error(message)
-            # self.component_manager.track_table_error = str(value_error)
             raise Exception(message) from value_error
 
         except Exception as exception:
@@ -168,7 +168,6 @@ class ProgramTrackTableCalculator:
                 + str(exception)
             )
             self.logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from exception
 
         return time_stamp_list, tai_timestamp_list
@@ -200,7 +199,6 @@ class ProgramTrackTableCalculator:
             return result
         except Exception as exception:
             self.logger.error(exception)
-            # self.component_manager.track_table_error = message
             raise Exception(str(exception)) from exception
 
     def convert_utc_to_tai(
@@ -219,9 +217,11 @@ class ProgramTrackTableCalculator:
             tai_time = utc_time.unix_tai - ska_epoch_utc.unix_tai
 
         except ValueError as value_error:
-            message = "Exception is: " + str(value_error)
+            message = (
+                "Exception occurred while converting utc time to tai format: "
+                + str(value_error)
+            )
             self.logger.error(message)
-            # self.component_manager.track_table_error = str(value_error)
             raise Exception(message) from value_error
 
         except Exception as exception:
@@ -230,7 +230,6 @@ class ProgramTrackTableCalculator:
                 + str(exception)
             )
             self.logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from exception
 
         return tai_time

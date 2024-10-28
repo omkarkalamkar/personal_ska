@@ -76,7 +76,6 @@ class AzElConverter:
                 + str(exception)
             )
             logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from exception
 
         return [
@@ -110,9 +109,11 @@ class AzElConverter:
             refraction_corrected_azel = self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
-            message = "Exception is: %s" + str(value_error)
+            message = (
+                "Exception occurred while starting programTrackTable "
+                "calculation: " + str(value_error)
+            )
             logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from value_error
 
         except Exception as exception:
@@ -121,7 +122,6 @@ class AzElConverter:
                 "calculation: " + str(exception)
             )
             logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from exception
         return refraction_corrected_azel
 
@@ -153,11 +153,10 @@ class AzElConverter:
 
         except Exception as exception:
             message = (
-                "Exception occurred while calling RaDec to AzEl conversion: "
+                "Exception occurred while converting RaDec to AzEl: "
                 + str(exception)
             )
             logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from exception
         return az_el_coordinates
 
@@ -246,9 +245,12 @@ class AzElConverter:
             refraction_corrected_azel = self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
-            message = "Exception is: %s" + str(value_error)
+            message = (
+                "Exception occurred while starting programTrackTable "
+                + "calculation: "
+                + str(value_error)
+            )
             logger.error(message)
-            # self.component_manager.track_table_error = str(value_error)
             raise Exception(message) from value_error
 
         except Exception as exception:
@@ -258,7 +260,6 @@ class AzElConverter:
                 + str(exception)
             )
             logger.error(message)
-            # self.component_manager.track_table_error = message
             raise Exception(message) from exception
 
         return refraction_corrected_azel

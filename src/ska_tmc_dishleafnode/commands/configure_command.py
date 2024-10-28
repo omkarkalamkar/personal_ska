@@ -178,6 +178,7 @@ class Configure(DishLNCommand):
                     result=result,
                     exception=message,
                 )
+
                 self.component_manager.command_in_progress = ""
                 self.component_manager.set_track_process_event()
             self.component_manager.command_id = ""

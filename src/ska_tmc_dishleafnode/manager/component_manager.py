@@ -84,7 +84,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_availablity_callback: Callable,
         _update_source_offset_callback: Callable,
         _update_last_pointing_data_cb: Callable,
-        _update_track_table_error_callback: Callable,
+        _update_track_table_errors_callback: Callable,
         _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
         _event_receiver: bool = True,
         proxy_timeout: int = 500,
@@ -165,11 +165,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
         self._update_pointingstate_callback = _update_pointingstate_callback
-        self._update_track_table_error_callback = (
-            _update_track_table_error_callback
+        self._update_track_table_errors_callback = (
+            _update_track_table_errors_callback
         )
         self._kvalue: int = 0
-        self._track_table_error: str = ""
+        self._current_track_table_error = self.process_manager.list()
+        self.errors_to_be_reported = self.process_manager.list()
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
@@ -487,24 +488,33 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.pointing_callback(list(self._actual_pointing))
 
     @property
-    def track_table_error(self: DishLNComponentManager) -> str:
+    def current_track_table_error(self: DishLNComponentManager):
         """Returns the trackTableError of the dish leaf node."""
-        return self._track_table_error
+        return list(self._current_track_table_error)
 
-    @track_table_error.setter
-    def track_table_error(self: DishLNComponentManager, value: str) -> None:
+    @current_track_table_error.setter
+    def current_track_table_error(
+        self: DishLNComponentManager, value: list
+    ) -> None:
         """Update the trackTableError of the dish leaf node
         :param value: Error observed in track table calculation
         :value dtype: str
         :return: None
         :rtype: None
         """
-        self._track_table_error = value
+        self._current_track_table_error[:] = value
+        self.errors_to_be_reported.extend(value)
         self.logger.info(
-            "Setting the track table error to: %s", self._track_table_error
+            "Setting the current track table error to: %s",
+            self._current_track_table_error,
         )
-        if self._update_track_table_error_callback:
-            self._update_track_table_error_callback(self._track_table_error)
+        self.logger.info(
+            "Errors to be reported: %s", self.errors_to_be_reported
+        )
+        if self._update_track_table_errors_callback:
+            self._update_track_table_errors_callback(
+                self.errors_to_be_reported
+            )
 
     @property
     def last_pointing_data(self: DishLNComponentManager):
@@ -1559,11 +1569,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.dish_adapter.programTrackTable = program_track_table
                 self.logger.debug("ProgramTrackTable: %s", program_track_table)
             except (tango.DevFailed, Exception) as exception:
-                message = "Exception while writing tracktable: " + str(
+                message = "Exception while writing the tracktable: " + str(
                     exception
                 )
                 self.logger.exception(message)
-                # self.track_table_error = message
                 raise Exception(message) from exception
 
     def track_process(
@@ -1581,8 +1590,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "The track process name is : %s",
                 Process(target=current_process().name),
             )
+            self.current_track_table_error = [""]
+            self.errors_to_be_reported[:] = []
 
-            # self.track_table_error = "The track process started"
+            self.logger.info(
+                "self.current_track_table_error is cleared: %s",
+                self._current_track_table_error,
+            )
+            self.logger.info(
+                "Errors to be propagated is cleared: %s",
+                self.errors_to_be_reported,
+            )
+
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             # This is dummy calculation because first time calculation takes
             # time due to IERS file downloads
@@ -1593,7 +1612,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.converter.point(ra, dec, timestamp)
 
             self.logger.debug("Converter Object Updated")
-            # self.track_table_error = "Converter Object Updated"
             utc_now = datetime.datetime.utcnow()
 
             # For future timestamp few seconds are added in current time.
@@ -1608,7 +1626,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
             self.track_table_calculator.track_table_time_stamp = extended_time
             while self.get_track_process_event_status() is False:
-                # self.track_table_error = "Calculate track table"
                 program_track_table: list = (
                     self.track_table_calculator.calculate_program_track_table(
                         self.target_data, self.converter
@@ -1649,26 +1666,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     argument=(program_track_table,),
                 )
                 self.track_table_scheduler.run()
-                # self.track_table_error = "Track table calculation completion"
             self.logger.debug("Program Track Table Calculation stopped.")
 
             with self.tango_operation_execution_lock:
                 self.dish_adapter.programTrackTable = []
 
             self.logger.debug("Cleared programTrackTable attribute.")
-            # self.track_table_error = "Cleared programTrackTable attribute"
 
         except ValueError as value_error:
             self.logger.error("Exception is: %s", str(value_error))
-            self.track_table_error = str(value_error)
+            self.current_track_table_error = [(str(value_error))]
 
         except Exception as exception:
-            message = (
-                "Exception occurred while in track table process: "
-                + str(exception)
-            )
-            self.logger.error(message)
-            self.track_table_error = message
+            self.logger.error(exception)
+            self.current_track_table_error = [str(exception)]
 
     def create_track_process(self) -> None:
         """Creates new process for programTrackTable calculation."""
@@ -1703,7 +1714,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 + str(exception)
             )
             self.logger.error(message)
-            self.track_table_error = message
+            self.current_track_table_error = [message]
 
     def stop_track_table_process(self):
         """Stops track process"""
@@ -2086,6 +2097,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.track_table_process.is_alive():
             self.set_track_process_event()
             self.track_table_process.join()
+        del self._current_track_table_error
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 

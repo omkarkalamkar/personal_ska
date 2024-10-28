@@ -93,7 +93,7 @@ def update_availablity_callback():
     """An empty update_availablity callback"""
 
 
-def update_track_table_error_callback(value):
+def update_track_table_errors_callback(value):
     """An empty update_track_table_error callback"""
     logger.info("Track Table error is: %s", value)
 
@@ -124,7 +124,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
-        _update_track_table_error_callback=update_track_table_error_callback,
+        _update_track_table_errors_callback=update_track_table_errors_callback,
     )
     return cm
 
