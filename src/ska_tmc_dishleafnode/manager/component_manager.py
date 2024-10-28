@@ -224,7 +224,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
-        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
+        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff
+        """
         with self.command_result_update_lock:
             self.set_operate_mode_result = {
                 "result_code": None,
@@ -1898,7 +1899,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Sets flag for elevation limit.
 
         :param elevation_limit: Flag is set to True if elevation is out of
-        dish's observable boundary.
+            dish's observable boundary.
         :type elevation_limit: bool
         :return: None
         :rtype: None
@@ -2165,7 +2166,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         status
 
         :param result_code: ResultCode to be set in
-        track_load_static_off_result
+            track_load_static_off_result
         :type result_code: ResultCode
         :param: message to be set in track_load_static_off_result
         :type: str

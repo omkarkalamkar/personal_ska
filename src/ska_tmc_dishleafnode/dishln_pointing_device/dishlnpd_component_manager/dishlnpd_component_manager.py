@@ -10,7 +10,7 @@ from ska_tmc_common.tmc_component_manager import BaseTmcComponentManager
 
 class DishPDComponentManager(BaseTmcComponentManager):
     """
-    A component manager for The Dish pointing device component.
+    A component manager for The Dish leaf node pointing device component.
     """
 
     # pylint: disable=unused-argument
