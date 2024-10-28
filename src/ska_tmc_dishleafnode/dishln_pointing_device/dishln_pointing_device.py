@@ -13,7 +13,7 @@ from ska_tmc_dishleafnode.dishln_pointing_device import DishPDComponentManager
 
 class DishPointingDevice(SKABaseDevice):
     """
-    This class is a responsible for doing the pointing calculations,
+    This class is responsible for doing the pointing calculations,
     forward transform and generating the programTrackTable
 
     :Device Properties:

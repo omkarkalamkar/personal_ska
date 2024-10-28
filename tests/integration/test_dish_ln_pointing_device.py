@@ -6,7 +6,7 @@ from tests.settings import DISHLN_POINTING_DEVICE
 
 
 @pytest.mark.post_deployment
-@pytest.mark.test
+@pytest.mark.SKA_mid
 def test_dishln_pointing_device(tango_context):
     """Test the dishln pointing device is up and pingable"""
 
