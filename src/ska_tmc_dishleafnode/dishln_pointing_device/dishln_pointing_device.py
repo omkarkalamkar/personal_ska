@@ -8,7 +8,9 @@ from ska_tango_base.control_model import HealthState
 from tango import ArgType, AttrDataFormat, AttrWriteType
 from tango.server import attribute, command, run
 
-from ska_tmc_dishleafnode.dishln_pointing_device import DishPDComponentManager
+from ska_tmc_dishleafnode.dishln_pointing_device import (
+    DishlnPointingDataComponentManager,
+)
 
 
 class DishPointingDevice(SKABaseDevice):
@@ -34,17 +36,18 @@ class DishPointingDevice(SKABaseDevice):
         def do(self) -> Tuple[ResultCode, str]:
             """Change device state to INIT."""
             super().do()
-            self._device.set_change_event("healthState", True)
             return (ResultCode.OK, "DishPointingDevice Initialized")
 
-    def create_component_manager(self) -> DishPDComponentManager:
+    def create_component_manager(self) -> DishlnPointingDataComponentManager:
         """
-        Creates an instance of DishPDComponentManager
+        Creates an instance of DishlnPointingDataComponentManager
         :return: component manager instance
-        :rtype: DishPDComponentManager
+        :rtype: DishlnPointingDataComponentManager
         """
-        dish_pointing_device_component_manager = DishPDComponentManager(
-            logger=self.logger,
+        dish_pointing_device_component_manager = (
+            DishlnPointingDataComponentManager(
+                logger=self.logger,
+            )
         )
         return dish_pointing_device_component_manager
 
@@ -71,7 +74,7 @@ class DishPointingDevice(SKABaseDevice):
         This command instructs dish pointing device to start generating program
         track table.
 
-        :return: ResultCode and meeage
+        :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
 

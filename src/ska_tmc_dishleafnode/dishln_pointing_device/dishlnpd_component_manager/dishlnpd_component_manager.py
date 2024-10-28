@@ -1,6 +1,6 @@
 """
 This module provides an implementation of the Dish Leaf Node
-pointing device ComponentManager.
+pointing device component manager.
 """
 
 from logging import Logger
@@ -8,7 +8,7 @@ from logging import Logger
 from ska_tmc_common.tmc_component_manager import BaseTmcComponentManager
 
 
-class DishPDComponentManager(BaseTmcComponentManager):
+class DishlnPointingDataComponentManager(BaseTmcComponentManager):
     """
     A component manager for The Dish leaf node pointing device component.
     """
