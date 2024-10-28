@@ -65,10 +65,7 @@ def configure_dish_leaf_node_source_not_visible(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
-    logger.info(
-        "Track table error: %s",
-        dish_leaf_node.read_attribute("trackTableErrors").value,
-    )
+
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
@@ -77,16 +74,8 @@ def configure_dish_leaf_node_source_not_visible(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
 
-    logger.info(
-        "Track table error: %s",
-        dish_leaf_node.read_attribute("trackTableErrors").value,
-    )
+    # TODO: Need to work on the below wait statement
     sleep(4)
-    logger.info(
-        "Track table error: %s",
-        dish_leaf_node.read_attribute("trackTableErrors").value,
-    )
-
     track_table_error_event_id = dish_leaf_node.subscribe_event(
         "trackTableErrors",
         tango.EventType.CHANGE_EVENT,
@@ -180,10 +169,7 @@ def configure_dish_leaf_node_unknown_source(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
-    # logger.info(
-    #     "Track table error: %s",
-    #     dish_leaf_node.read_attribute("trackTableErrors").value,
-    # )
+
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
@@ -192,16 +178,8 @@ def configure_dish_leaf_node_unknown_source(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
 
-    logger.info(
-        "Track table error: %s",
-        dish_leaf_node.read_attribute("trackTableErrors").value,
-    )
+    # TODO: Need to work on the below wait statement
     sleep(4)
-    logger.info(
-        "Track table error: %s",
-        dish_leaf_node.read_attribute("trackTableErrors").value,
-    )
-
     track_table_error_event_id = dish_leaf_node.subscribe_event(
         "trackTableErrors",
         tango.EventType.CHANGE_EVENT,
@@ -216,13 +194,7 @@ def configure_dish_leaf_node_unknown_source(
         expected_message,
         lookahead=6,
     )
-    # group_callback["trackTableErrors"].assert_change_event(
-    #     (
-    #         "Exception occurred while in track table process: list index
-    # out of range"
-    #     ),
-    #     lookahead=6,
-    # )
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (
             unique_id_config[0],

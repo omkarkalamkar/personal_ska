@@ -504,11 +504,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self._current_track_table_error[:] = value
         self.errors_to_be_reported.extend(value)
-        self.logger.info(
+        self.logger.debug(
             "Setting the current track table error to: %s",
             self._current_track_table_error,
         )
-        self.logger.info(
+        self.logger.debug(
             "Errors to be reported: %s", self.errors_to_be_reported
         )
         if self._update_track_table_errors_callback:
@@ -1593,11 +1593,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.current_track_table_error = [""]
             self.errors_to_be_reported[:] = []
 
-            self.logger.info(
+            self.logger.debug(
                 "self.current_track_table_error is cleared: %s",
                 self._current_track_table_error,
             )
-            self.logger.info(
+            self.logger.debug(
                 "Errors to be propagated is cleared: %s",
                 self.errors_to_be_reported,
             )
@@ -2098,6 +2098,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.set_track_process_event()
             self.track_table_process.join()
         del self._current_track_table_error
+        del self.errors_to_be_reported
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 
