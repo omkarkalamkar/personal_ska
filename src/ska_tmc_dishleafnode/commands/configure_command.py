@@ -825,7 +825,11 @@ class Configure(DishLNCommand):
                 track_table_status = CommandResult.ABORTED
                 return track_table_status
             with self.component_manager.tango_operation_execution_lock:
+                self.logger.debug("Acquired  tango lock")
                 track_table = self.dish_master_adapter.programTrackTable
+
+            self.logger.debug("Released tango lock")
+
             if len(track_table) > 0:
                 track_table_status = CommandResult.ACHIEVED
                 return track_table_status
@@ -855,7 +859,7 @@ class Configure(DishLNCommand):
 
         :param expected_state: Expected state of the device in case of
                         successful command execution. It's a list containing
-                            transitional obsState if it exists for a command.
+                        transitional obsState if it exists for a command.
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:

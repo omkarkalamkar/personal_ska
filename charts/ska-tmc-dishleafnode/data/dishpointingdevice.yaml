@@ -1,0 +1,23 @@
+name: "dishpointingdevice-test"
+function: dish-pointing
+domain: pattern-mapping
+entrypoints:
+  - name: "ska_tmc_dishleafnode.dishln_pointing_device.dishln_pointing_device.DishPointingDevice"
+server:
+  name: "dishpointing"
+  instances:
+  {{- range  .Values.deviceServers.dishln.instances }}
+    - name: "{{ . }}"
+      classes:
+      - name: "DishPointingDevice"
+        devices:
+        - name: "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+  {{- end }}
+
+depends_on:
+  - device: sys/database/2
+image:
+  registry: "{{.Values.dishleafnode.image.registry}}"
+  image: "{{.Values.dishleafnode.image.image}}"
+  tag: "{{.Values.dishleafnode.image.tag}}"
+  pullPolicy: "{{.Values.dishleafnode.image.pullPolicy}}"

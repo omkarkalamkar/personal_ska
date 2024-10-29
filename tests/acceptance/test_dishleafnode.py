@@ -9,7 +9,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState  # noqa:F401
 from tango import Database, DeviceProxy
 
-from tests.settings import COMMAND_COMPLETED
+from tests.settings import COMMAND_COMPLETED, logger
 
 
 @given(
@@ -50,6 +50,7 @@ def call_command(
             (dishMode),
             lookahead=8,
         )
+        logger.info("Dish Mode is %s", dish_master_proxy.dishMode)
         if command_name == "Configure":
             configure_string = json_factory("dishleafnode_configure")
             pytest.command_result = dishleaf_node.command_inout(
@@ -97,7 +98,25 @@ def check_command(
             dishleaf_node.dishMode == DishMode.OPERATE
             and dishleaf_node.pointingState == PointingState.TRACK
         ):
-            dishleaf_node.TrackStop()
+            dish_master_proxy.subscribe_event(
+                "pointingState",
+                tango.EventType.CHANGE_EVENT,
+                group_callback["pointingState"],
+            )
+
+            result_trackstop, unique_id_trackstop = dishleaf_node.TrackStop()
+            assert result_trackstop[0] == ResultCode.QUEUED
+
+            group_callback["longRunningCommandResult"].assert_change_event(
+                (unique_id_trackstop[0], COMMAND_COMPLETED),
+                lookahead=6,
+            )
+
+            group_callback["pointingState"].assert_change_event(
+                (PointingState.READY),
+                lookahead=6,
+            )
+
     assert str(dish_master_proxy.state()) == resultant_state
     dishleaf_node.unsubscribe_event(lrcr_event_id)
 

@@ -212,6 +212,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.target_data: List | str
         self.track_table_process: Process = Process(target=self.track_process)
+
         self.dish_adapter = None
 
         self.actual_pointing_process = Process(
@@ -229,7 +230,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
-        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff"""
+        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff
+        """
         with self.command_result_update_lock:
             self.set_operate_mode_result = {
                 "result_code": None,
@@ -1564,16 +1566,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+
+        self.logger.debug(
+            "ProgramTrackTable will be updated, "
+            "will acquire tango lock for same"
+        )
         with self.tango_operation_execution_lock:
             try:
+                self.logger.debug("Acquired  tango lock")
                 self.dish_adapter.programTrackTable = program_track_table
-                self.logger.debug("ProgramTrackTable: %s", program_track_table)
-            except (tango.DevFailed, Exception) as exception:
-                message = "Exception while writing the tracktable: " + str(
+                self.logger.debug("ProgramTrackTable Updated")
+            except BaseException as exception:
+                message = "Exception while writing tracktable: %s" + str(
                     exception
                 )
                 self.logger.exception(message)
                 raise Exception(message) from exception
+        self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def track_process(
         self: DishLNComponentManager,
@@ -1589,6 +1598,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.info(
                 "The track process name is : %s",
                 Process(target=current_process().name),
+            )
+            self.logger.debug(
+                "The track process id - %s", current_process().pid
             )
             self.current_track_table_error = []
             self.errors_to_be_reported[:] = []
@@ -1665,10 +1677,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.update_program_track_table,
                     argument=(program_track_table,),
                 )
+
+                self.logger.debug(
+                    "update_program_track_table - Added in scheduler"
+                )
                 self.track_table_scheduler.run()
+                self.logger.debug("Execution done")
+
             self.logger.debug("Program Track Table Calculation stopped.")
 
             with self.tango_operation_execution_lock:
+                self.logger.debug("Grabbed tango operation lock")
                 self.dish_adapter.programTrackTable = []
 
             self.logger.debug("Cleared programTrackTable attribute.")
@@ -1681,10 +1700,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.error(exception)
             self.current_track_table_error = [str(exception)]
 
+        except BaseException as exception:
+            self.logger.error(
+                "Exception occurred during track_process :%s",
+                str(exception),
+            )
+            self.current_track_table_error = [str(exception)]
+
     def create_track_process(self) -> None:
         """Creates new process for programTrackTable calculation."""
         self.logger.debug("Creating new process for tracktable calculation")
         self.track_table_process = Process(target=self.track_process)
+        self.logger.info(
+            "track_table_process id - %s", self.track_table_process.pid
+        )
 
     def set_target_data(self, target_data: list | str) -> None:
         """Sets target data to for programTrackTable generation."""
@@ -1698,11 +1727,28 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """This method create and start process for programTrackTable
         calculation."""
         try:
+            self.logger.info(
+                "track_table_process id - %s", self.track_table_process.pid
+            )
             if not self.track_table_process.is_alive():
+                self.logger.info(
+                    "track_table_process id - %s", self.track_table_process.pid
+                )
+
                 self.create_track_process()
+
                 self.logger.debug("Starting programTrackTable calculation")
                 self.track_table_process.start()
+                self.logger.debug("Started programTrackTable calculation")
+                self.logger.debug(
+                    f"Is track_table_process alive:"
+                    f" {self.track_table_process.is_alive()}"
+                )
+
             else:
+                self.logger.info(
+                    "track_table_process id - %s", self.track_table_process.pid
+                )
                 self.logger.debug(
                     "programTrackTable calculation is already going on."
                     + " New process will not be hosted."
@@ -1715,12 +1761,33 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
             self.logger.error(message)
             self.current_track_table_error = [message]
+        except BaseException as exception:
+            message = (
+                "Exception occurred while starting programTrackTable "
+                + "calculation: "
+                + str(exception)
+            )
+            self.logger.error(message)
+            self.current_track_table_error = [message]
 
     def stop_track_table_process(self):
         """Stops track process"""
         if self.track_table_process.is_alive():
+            self.logger.info(
+                "The track process id is  : %s", self.track_table_process.pid
+            )
+            self.logger.info(
+                "The track process name is : %s", self.track_table_process.name
+            )
+            self.set_track_process_event()
+
             self.logger.debug("Stopping Track table process")
             self.track_table_process.join()
+            self.logger.debug("Stopped Track table process")
+            self.logger.debug(
+                f"Is track_table_process alive:"
+                f" {self.track_table_process.is_alive()}"
+            )
 
     # pylint: disable=arguments-differ
     def update_exception_for_unresponsiveness(
@@ -1780,6 +1847,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             unique_id, result_code_message = value
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
+                self.logger.info("Checking unique_id- %s", unique_id)
                 if "ConfigureBand" in unique_id:
                     self.configure_band_result["result_code"] = result_code
                     self.configure_band_result["message"] = message
@@ -1829,6 +1897,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
 
                 elif "Track" in unique_id:
+                    self.logger.debug("Track result: %s", result_code)
                     self.track_result["result_code"] = result_code
                     self.track_result["message"] = message
                     self.logger.debug(
@@ -1893,7 +1962,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Sets flag for elevation limit.
 
         :param elevation_limit: Flag is set to True if elevation is out of
-        dish's observable boundary.
+            dish's observable boundary.
         :type elevation_limit: bool
         :return: None
         :rtype: None
@@ -2162,7 +2231,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         status
 
         :param result_code: ResultCode to be set in
-        track_load_static_off_result
+            track_load_static_off_result
         :type result_code: ResultCode
         :param: message to be set in track_load_static_off_result
         :type: str
@@ -2249,7 +2318,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: ResultCode from the track_result
         :rtype: ResultCode
         """
+
         with self.command_result_update_lock:
+            self.logger.info(
+                "Current Value of result_code - %s",
+                self.track_result["result_code"],
+            )
             return self.track_result["result_code"]
 
     def get_track_result_dict(self: DishLNComponentManager):
