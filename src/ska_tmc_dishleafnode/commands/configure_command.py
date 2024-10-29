@@ -25,6 +25,7 @@ from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
     TrackLoadStaticOff,
 )
 from ska_tmc_dishleafnode.constants import (
+    ADJUST_TIMEOUT,
     COMMAND_COMPLETION_MESSAGE,
     RESET_OFFSETS,
 )
@@ -814,7 +815,10 @@ class Configure(DishLNCommand):
 
         start_time = time.time()
         elapsed_time = 0
-        while elapsed_time < self.component_manager.command_timeout - 5:
+        while (
+            elapsed_time
+            < self.component_manager.command_timeout - ADJUST_TIMEOUT
+        ):
             if self.component_manager.abort_event.is_set():
                 # self.component_manager.abort_event.clear()
                 # self.logger.info("Abort event is cleared")
