@@ -1595,7 +1595,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            self.logger.info(
+            self.logger.debug(
                 "The track process name is : %s",
                 Process(target=current_process().name),
             )
