@@ -7,7 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 [0.18.0]
 ********
-* Added Dishleaf node pointing tango device.
+* Added DishLeafNode pointing tango device.
 
 [0.17.8]
 ********
