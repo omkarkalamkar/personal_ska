@@ -15,11 +15,18 @@ def test_error_in_apply_refraction_method(tango_context, cm):
         az_el_convarter.apply_refraction_correction([])
 
 
-def test_error_in_point_to_body_method(tango_context, cm):
+def test_source_error_in_point_to_body_method(tango_context, cm):
     az_el_convarter = AzElConverter(cm)
     with pytest.raises(Exception):
         timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
         az_el_convarter.point_to_body("Pluto", str(timestamp))
+
+
+def test_timestamp_error_in_point_to_body_method(tango_context, cm):
+    az_el_convarter = AzElConverter(cm)
+    with pytest.raises(Exception):
+        cm.iers_a = ""
+        az_el_convarter.point_to_body("Sun", "0")
 
 
 def test_error_in_azel_to_radec_body_method(tango_context, cm):

@@ -24,11 +24,7 @@ from ska_tmc_dishleafnode.commands.track_command import Track
 from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
     TrackLoadStaticOff,
 )
-from ska_tmc_dishleafnode.constants import (
-    ADJUST_TIMEOUT,
-    COMMAND_COMPLETION_MESSAGE,
-    RESET_OFFSETS,
-)
+from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CommandResult
 
 configure_logging()
@@ -192,33 +188,6 @@ class Configure(DishLNCommand):
             self.logger.exception(
                 "Exception occurred while updating task status %s", e
             )
-
-    def update_task_callback(
-        self: Configure, result_code: ResultCode, exception: str = ""
-    ) -> None:
-        """
-        Method to update task callback.
-
-        :param result_code: result code
-        :type result_code: ResultCode
-        :param exception: Exception occurred during command execution
-        :type exception: str
-        :return: None
-        :rtype: NoneType.
-        """
-        if exception:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, exception),
-                exception=exception,
-            )
-        else:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-            )
-
-        self.component_manager.command_in_progress = ""
 
     # pylint: enable=unused-argument
     def validate_json_argument(
