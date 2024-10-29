@@ -426,8 +426,8 @@ def get_non_sidereal_json_for_now(non_side_real_json) -> str:
 
 
 def get_non_sidereal_json_for_source_not_visible(non_side_real_json) -> str:
-    """Return the json for Configure command with visible non-sidereal object
-    according to current time.
+    """Return the json for Configure command with non-visible non-sidereal
+    object according to current time.
     """
     current_time = int(datetime.utcnow().strftime("%H"))
     logging.info("CURRENT TIME: %s", current_time)
@@ -452,26 +452,8 @@ def get_non_sidereal_json_for_source_not_visible(non_side_real_json) -> str:
 
 
 def get_non_sidereal_json_for_source_unknown(non_side_real_json) -> str:
-    """Return the json for Configure command with visible non-sidereal object
-    according to current time.
-    """
-    current_time = int(datetime.utcnow().strftime("%H"))
-    logging.info("CURRENT TIME: %s", current_time)
+    """Return the json for Configure command with unknown non-sidereal
+    object."""
     configure_input_json = json.loads(non_side_real_json)
-
-    if 8 <= current_time <= 14:
-        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
-        return json.dumps(configure_input_json)
-    if 3 <= current_time <= 8:
-        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
-        return json.dumps(configure_input_json)
-    if current_time <= 3 or current_time >= 21:
-        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
-        return json.dumps(configure_input_json)
-    if 17 <= current_time <= 21:
-        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
-        return json.dumps(configure_input_json)
-    if 14 <= current_time <= 15:
-        configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
-        return json.dumps(configure_input_json)
-    return ""
+    configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+    return json.dumps(configure_input_json)

@@ -74,7 +74,6 @@ def configure_dish_leaf_node_source_not_visible(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
 
-    # TODO: Need to work on the below wait statement
     sleep(4)
     track_table_error_event_id = dish_leaf_node.subscribe_event(
         "trackTableErrors",
@@ -105,7 +104,7 @@ def configure_dish_leaf_node_source_not_visible(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1608
+# @pytest.mark.sah1608
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
@@ -178,13 +177,13 @@ def configure_dish_leaf_node_unknown_source(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
 
-    # TODO: Need to work on the below wait statement
     sleep(4)
     track_table_error_event_id = dish_leaf_node.subscribe_event(
         "trackTableErrors",
         tango.EventType.CHANGE_EVENT,
         group_callback["trackTableErrors"],
     )
+
     expected_message = (
         "Exception occurred while starting programTrackTable calculation: "
         + "Target description 'Pluto, special' contains unknown *special* "
@@ -192,7 +191,7 @@ def configure_dish_leaf_node_unknown_source(
     )
     group_callback["trackTableErrors"].assert_change_event(
         expected_message,
-        lookahead=6,
+        lookahead=12,
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(

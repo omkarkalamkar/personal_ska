@@ -230,10 +230,6 @@ class DishLeafNode(TMCBaseLeafDevice):
     def update_track_table_errors_callback(self, value: list) -> None:
         """Push an event for the trackTableErrors attribute."""
         self.logger.debug(
-            "current_track_table_error value: %s",
-            self.component_manager.current_track_table_error,
-        )
-        self.logger.debug(
             "errors_to_be_reported value: %s",
             self.component_manager.errors_to_be_reported,
         )
@@ -287,10 +283,6 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     def read_trackTableErrors(self):
         """Read method for trackTableErrors"""
-        self.logger.debug(
-            "current_track_table_error in read method: %s",
-            self.component_manager.current_track_table_error,
-        )
         self.logger.debug(
             "errors_to_be_reported in read method: %s",
             self.component_manager.errors_to_be_reported,

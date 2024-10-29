@@ -169,7 +169,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_track_table_errors_callback
         )
         self._kvalue: int = 0
-        self._current_track_table_error = self.process_manager.list()
+        self._current_track_table_error = []
         self.errors_to_be_reported = self.process_manager.list()
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
@@ -490,7 +490,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     @property
     def current_track_table_error(self: DishLNComponentManager):
         """Returns the trackTableError of the dish leaf node."""
-        return list(self._current_track_table_error)
+        return self._current_track_table_error
 
     @current_track_table_error.setter
     def current_track_table_error(
@@ -502,7 +502,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self._current_track_table_error[:] = value
+        self._current_track_table_error = value
         self.errors_to_be_reported.extend(value)
         self.logger.debug(
             "Setting the current track table error to: %s",
@@ -1590,7 +1590,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "The track process name is : %s",
                 Process(target=current_process().name),
             )
-            self.current_track_table_error = [""]
+            self.current_track_table_error = []
             self.errors_to_be_reported[:] = []
 
             self.logger.debug(
@@ -2097,7 +2097,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.track_table_process.is_alive():
             self.set_track_process_event()
             self.track_table_process.join()
-        del self._current_track_table_error
+        # del self._current_track_table_error
         del self.errors_to_be_reported
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
