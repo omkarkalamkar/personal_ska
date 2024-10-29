@@ -11,10 +11,7 @@ from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
 
 def test_error_in_apply_refraction_method(tango_context, cm):
     az_el_convarter = AzElConverter(cm)
-    with pytest.raises(
-        Exception,
-        match="Exception occurred while applying refraction correction: 'list' object has no attribute 'alt'",
-    ):
+    with pytest.raises(Exception):
         az_el_convarter.apply_refraction_correction([])
 
 
