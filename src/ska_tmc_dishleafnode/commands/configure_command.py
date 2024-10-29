@@ -858,7 +858,7 @@ class Configure(DishLNCommand):
 
         :param expected_state: Expected state of the device in case of
                         successful command execution. It's a list containing
-                            transitional obsState if it exists for a command.
+                        transitional obsState if it exists for a command.
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:

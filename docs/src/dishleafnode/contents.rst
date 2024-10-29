@@ -12,6 +12,12 @@ Modules
 
    ska_tmc_dishleafnode
 
+.. toctree::
+   :maxdepth: 4
+   :caption: TMC DishLeaf node Pointing Device
+
+   dishln_pointing_device
+
 Subpackages
 ------------
 .. toctree::
@@ -25,6 +31,13 @@ Subpackages
    :caption: dish_leaf_node.manager
 
    ska_tmc_dishleafnode.manager
-   
+
+.. toctree::
+   :maxdepth: 4
+   :caption: DishLeaf Node Pointing Device Component Manager
+
+   dishlnpd_component_manager
+
+
 
 

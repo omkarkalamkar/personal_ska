@@ -20,9 +20,18 @@ from ska_tmc_common.test_helpers.helper_sdp_queue_connector_device import (
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
 from ska_tmc_dishleafnode import DishLeafNode
+
+# isort: off
+# fmt: off
+from ska_tmc_dishleafnode.\
+    dishln_pointing_device.dishln_pointing_device import DishPointingDevice
+
+# isort: on
+# fmt: on
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 from tests.settings import (
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE2,
 )
@@ -94,6 +103,14 @@ def devices_to_load():
                 },
                 {
                     "name": SDP_QUEUE_CONNECTOR_DEVICE2,
+                },
+            ],
+        },
+        {
+            "class": DishPointingDevice,
+            "devices": [
+                {
+                    "name": DISHLN_POINTING_DEVICE,
                 },
             ],
         },
