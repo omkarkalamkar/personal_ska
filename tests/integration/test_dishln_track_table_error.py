@@ -104,7 +104,6 @@ def configure_dish_leaf_node_source_not_visible(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.sah1608
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
@@ -209,7 +208,6 @@ def configure_dish_leaf_node_unknown_source(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1608
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])

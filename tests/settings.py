@@ -435,7 +435,7 @@ def get_non_sidereal_json_for_source_not_visible(non_side_real_json) -> str:
     configure_input_json = json.loads(non_side_real_json)
 
     if 8 <= current_time <= 14:
-        configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
+        configure_input_json["pointing"]["target"]["target_name"] = "Uranus"
         return json.dumps(configure_input_json)
     if 3 <= current_time <= 8:
         configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
