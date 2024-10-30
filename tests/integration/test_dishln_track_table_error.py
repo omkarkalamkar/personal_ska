@@ -1,4 +1,4 @@
-from time import sleep
+import time
 
 import pytest
 import tango
@@ -10,6 +10,7 @@ from tests.settings import (
     COMMAND_FAILED_WITH_TRACK,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    TIMEOUT,
     get_non_sidereal_json_for_source_not_visible,
     get_non_sidereal_json_for_source_unknown,
     logger,
@@ -47,7 +48,7 @@ def configure_dish_leaf_node_source_not_visible(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    sleep(1)
+    time.sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
@@ -74,21 +75,22 @@ def configure_dish_leaf_node_source_not_visible(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
 
-    sleep(4)
-    track_table_error_event_id = dish_leaf_node.subscribe_event(
-        "trackTableErrors",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["trackTableErrors"],
+    track_table_error_before_configure = dish_leaf_node.trackTableErrors
+    logger.info(
+        "track_table_error_before_configure: %s",
+        track_table_error_before_configure,
+    )
+
+    monitor_track_table_errors_attribute(
+        dish_leaf_node, track_table_error_before_configure
     )
     expected_message = (
         "Exception occurred while calculating track table: "
         + "Minimum/maximum elevation limit has been reached."
         + "Source is not visible currently.",
     )
-    group_callback["trackTableErrors"].assert_change_event(
-        expected_message,
-        lookahead=6,
-    )
+    assert dish_leaf_node.trackTableErrors == expected_message
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (
             unique_id_config[0],
@@ -100,7 +102,6 @@ def configure_dish_leaf_node_source_not_visible(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    dish_leaf_node.unsubscribe_event(track_table_error_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -149,7 +150,7 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    sleep(1)
+    time.sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
@@ -168,6 +169,11 @@ def configure_dish_leaf_node_unknown_source(
         lookahead=6,
     )
 
+    track_table_error_before_configure = dish_leaf_node.trackTableErrors
+    logger.info(
+        "track_table_error_before_configure: %s",
+        track_table_error_before_configure,
+    )
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
@@ -176,22 +182,15 @@ def configure_dish_leaf_node_unknown_source(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
 
-    sleep(4)
-    track_table_error_event_id = dish_leaf_node.subscribe_event(
-        "trackTableErrors",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["trackTableErrors"],
+    monitor_track_table_errors_attribute(
+        dish_leaf_node, track_table_error_before_configure
     )
-
     expected_message = (
         "Exception occurred while starting programTrackTable calculation: "
         + "Target description 'Pluto, special' contains unknown *special* "
         + "body 'Pluto'",
     )
-    group_callback["trackTableErrors"].assert_change_event(
-        expected_message,
-        lookahead=12,
-    )
+    assert dish_leaf_node.trackTableErrors == expected_message
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (
@@ -204,7 +203,6 @@ def configure_dish_leaf_node_unknown_source(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    dish_leaf_node.unsubscribe_event(track_table_error_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -223,3 +221,19 @@ def test_configure_command_unknown_source(
         group_callback,
         json_to_use,
     )
+
+
+def monitor_track_table_errors_attribute(
+    dish_leaf_node, track_table_error_before_configure
+):
+    time_consumed = 0
+    track_table_errors = dish_leaf_node.trackTableErrors
+
+    while track_table_errors == track_table_error_before_configure:
+        track_table_errors = dish_leaf_node.trackTableErrors
+        time.sleep(0.5)
+        if time_consumed >= TIMEOUT:
+            return False
+        time_consumed = time_consumed + 0.5
+    logger.info("TrackTableErrors: %s", dish_leaf_node.trackTableErrors)
+    return True

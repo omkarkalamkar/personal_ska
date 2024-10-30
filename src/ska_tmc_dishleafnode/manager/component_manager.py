@@ -1578,6 +1578,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 raise Exception(message) from exception
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
+    def clear_track_table_errors(self: DishLNComponentManager):
+        """
+        This method clears the variables that include track table errors
+        """
+        self.current_track_table_error = []
+        self.errors_to_be_reported[:] = []
+
     def track_process(
         self: DishLNComponentManager,
     ) -> None:
@@ -1596,8 +1603,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug(
                 "The track process id - %s", current_process().pid
             )
-            self.current_track_table_error = []
-            self.errors_to_be_reported[:] = []
+            self.clear_track_table_errors()
 
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             # This is dummy calculation because first time calculation takes
@@ -1679,11 +1685,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         except ValueError as value_error:
             self.logger.error("Exception is: %s", str(value_error))
-            self.current_track_table_error = [(str(value_error))]
-
-        except Exception as exception:
-            self.logger.error(exception)
-            self.current_track_table_error = [str(exception)]
+            self.current_track_table_error = [str(value_error)]
 
         except BaseException as exception:
             self.logger.error(
@@ -1738,14 +1740,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     "programTrackTable calculation is already going on."
                     + " New process will not be hosted."
                 )
-        except Exception as exception:
-            message = (
-                "Exception occurred while starting programTrackTable "
-                + "calculation: "
-                + str(exception)
-            )
-            self.logger.error(message)
-            self.current_track_table_error = [message]
         except BaseException as exception:
             message = (
                 "Exception occurred while starting programTrackTable "

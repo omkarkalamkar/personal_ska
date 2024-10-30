@@ -45,19 +45,42 @@ def test_error_in_calculate_program_track_table(tango_context, cm):
     az_el_convarter = AzElConverter(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     with pytest.raises(Exception):
+        track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
         track_table_calculator.calculate_program_track_table(
             "Pluto", az_el_convarter
         )
 
 
-def test_error_in_track_table_point_method(tango_context, cm):
+def test_timestamp_error_in_track_table_point_method(tango_context, cm):
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
     with pytest.raises(Exception):
         track_table_calculator.point(str(timestamp))
 
 
+def test_error_in_track_table_point_method(tango_context, cm):
+    azel_converter = AzElConverter(cm)
+
+    track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
+    track_table_calculator.azel_converter = azel_converter
+    track_table_calculator.target_name = "Sun"
+    timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+    result = None
+    result = track_table_calculator.point(str(timestamp))
+    assert result is not None
+
+
 def test_error_in_utc_to_tai_method(tango_context, cm):
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     with pytest.raises(Exception):
         track_table_calculator.convert_utc_to_tai(0.0)
+
+
+def test_is_elevation_within_limits_method(tango_context, cm):
+    track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
+
+    result = track_table_calculator._is_elevation_within_mechanical_limits(
+        16.0
+    )
+    assert result is False
+    assert track_table_calculator.elevation_limit is True

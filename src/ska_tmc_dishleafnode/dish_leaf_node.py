@@ -921,7 +921,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         return self.component_manager.is_staticpmsetup_allowed()
 
     def create_component_manager(self: DishLeafNode):
-        # pylint: disable=line-too-long
+        update_track_err_cb = self.update_track_table_errors_callback
         cm = DishLNComponentManager(
             self.DishMasterFQDN,
             logger=self.logger,
@@ -948,9 +948,8 @@ class DishLeafNode(TMCBaseLeafDevice):
             _update_source_offset_callback=self.update_source_offset_callback,
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
             track_table_advance_sec=self.TrackTableInAdvance,
-            _update_track_table_errors_callback=self.update_track_table_errors_callback,  # noqa: E501
+            _update_track_table_errors_callback=update_track_err_cb,
         )
-        # pylint: enable=line-too-long
         return cm
 
     def init_command_objects(self: DishLeafNode) -> None:
