@@ -45,7 +45,9 @@ def test_error_in_calculate_program_track_table(tango_context, cm):
     az_el_convarter = AzElConverter(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     with pytest.raises(Exception):
-        track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
+        track_table_calculator.track_table_time_stamp = (
+            datetime.datetime.utcnow()
+        )
         track_table_calculator.calculate_program_track_table(
             "Pluto", az_el_convarter
         )
