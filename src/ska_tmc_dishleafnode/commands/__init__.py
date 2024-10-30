@@ -11,7 +11,7 @@ from .setoperatemode import SetOperateMode
 from .setstandbyfpmode import SetStandbyFPMode
 from .setstandbylpmode import SetStandbyLPMode
 from .setstowmode import SetStowMode
-from .static_pm_setup import StaticPmSetup
+from .static_pm_setup import ApplyPointingModel
 from .track_command import Track
 from .track_load_static_off_command import TrackLoadStaticOff
 from .trackstop_command import TrackStop
@@ -32,5 +32,5 @@ __all__ = [
     "DishLNCommand",
     "TrackLoadStaticOff",
     "SetKValue",
-    "StaticPmSetup",
+    "ApplyPointingModel",
 ]

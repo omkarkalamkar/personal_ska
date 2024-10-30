@@ -49,7 +49,7 @@ from ska_tmc_dishleafnode.commands import (
     SetStandbyFPMode,
     SetStandbyLPMode,
     SetStowMode,
-    StaticPmSetup,
+    ApplyPointingModel,
     Track,
     TrackLoadStaticOff,
     TrackStop,
@@ -361,7 +361,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.STOW,
                     DishMode.MAINTENANCE,
                 ],
-                "StaticPmSetup": [
+                "ApplyPointingModel": [
                     DishMode.STANDBY_FP,
                     DishMode.OPERATE,
                     DishMode.STANDBY_LP,
@@ -1134,7 +1134,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         argin: str,
         task_callback: TaskCallbackType,
     ) -> Tuple[TaskStatus, str]:
-        """Submits the StaticPmSetup command for execution
+        """Submits the ApplyPointingModel command for execution
 
         :param argin: String giving TelModel URI.
         :type: str
@@ -1144,7 +1144,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
-        static_pm_setup_command = StaticPmSetup(
+        static_pm_setup_command = ApplyPointingModel(
             self,
             self.op_state_model,
             self.adapter_factory,
@@ -1153,19 +1153,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             static_pm_setup_command.invoke_static_pm_setup,
             args=[argin, self.logger],
-            is_cmd_allowed=self.is_command_allowed_callable("StaticPmSetup"),
+            is_cmd_allowed=self.is_command_allowed_callable("ApplyPointingModel"),
             task_callback=task_callback,
         )
         self.logger.info(
-            "StaticPmSetup command queued for execution with argin: %s",
+            "ApplyPointingModel command queued for execution with argin: %s",
             argin,
         )
         return task_status, response
 
-    def is_staticpmsetup_allowed(self: DishLNComponentManager) -> bool:
-        """Checks if the command StaticPmSetup is allowed.
+    def is_ApplyPointingModel_allowed(self: DishLNComponentManager) -> bool:
+        """Checks if the command ApplyPointingModel is allowed.
 
-        :return: True if the command 'StaticPmSetup' is allowed,
+        :return: True if the command 'ApplyPointingModel' is allowed,
             False otherwise.
         :rtype: boolean
         """

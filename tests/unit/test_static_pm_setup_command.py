@@ -12,7 +12,7 @@ def test_static_pm_setup_command(
     """Test to check the global pointing model command
     functionality"""
     cm.get_device().update_unresponsive(False, "")
-    cm.is_staticpmsetup_allowed()
+    cm.is_ApplyPointingModel_allowed()
     global_pointing_tm_data_path = json_factory("global_pointing_model")
     cm.static_pm_setup(
         global_pointing_tm_data_path, task_callback=task_callback
@@ -41,7 +41,7 @@ def test_static_pm_setup_command_with_faulty_path(
     gets detected.
     """
     cm.get_device().update_unresponsive(False, "")
-    cm.is_staticpmsetup_allowed()
+    cm.is_ApplyPointingModel_allowed()
     global_pointing_tm_model_path = json_factory("global_pointing_model")
     global_pointing_tm_model_path = json.loads(global_pointing_tm_model_path)
     global_pointing_tm_model_path["tm_data_sources"] = "abc"
@@ -80,7 +80,7 @@ def test_static_pm_setup_command_with_faulty_json(
     gets detected.
     """
     cm.get_device().update_unresponsive(False, "")
-    cm.is_staticpmsetup_allowed()
+    cm.is_ApplyPointingModel_allowed()
     global_pointing_tm_model_path = json_factory(
         "global_pointing_model_faulty"
     )
@@ -115,7 +115,7 @@ def test_static_pm_setup_command_with_wrong_dish_id(
     gets detected.
     """
     cm.get_device().update_unresponsive(False, "")
-    cm.is_staticpmsetup_allowed()
+    cm.is_ApplyPointingModel_allowed()
     global_pointing_tm_model_path = json_factory(
         "global_pointing_model_ska002"
     )

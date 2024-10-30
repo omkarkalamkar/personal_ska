@@ -20,7 +20,7 @@ def static_pm_setup(tango_context, dishln_name, group_callback, gpm_json):
         group_callback["longRunningCommandResult"],
     )
 
-    result, unique_id = dish_leaf_node.StaticPmSetup(gpm_json)
+    result, unique_id = dish_leaf_node.ApplyPointingModel(gpm_json)
 
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
 
@@ -32,7 +32,7 @@ def static_pm_setup(tango_context, dishln_name, group_callback, gpm_json):
     )
 
 
-def staticpmsetup_with_invalid_tm_path(
+def ApplyPointingModel_with_invalid_tm_path(
     tango_context, dishln_name, group_callback, gpm_json
 ):
     logger.info(f"{tango_context}")
@@ -45,7 +45,7 @@ def staticpmsetup_with_invalid_tm_path(
         group_callback["longRunningCommandResult"],
     )
 
-    result, unique_id = dish_leaf_node.StaticPmSetup(gpm_json)
+    result, unique_id = dish_leaf_node.ApplyPointingModel(gpm_json)
 
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
 
@@ -60,11 +60,11 @@ def staticpmsetup_with_invalid_tm_path(
         "attribute_value"
     ]
 
-    assert "StaticPmSetup" in unique_id
+    assert "ApplyPointingModel" in unique_id
     assert "Error in Loading global pointing" in message
 
 
-def staticpmsetup_with_invalid_dish_id(
+def ApplyPointingModel_with_invalid_dish_id(
     tango_context, dishln_name, group_callback, gpm_json
 ):
     logger.info(f"{tango_context}")
@@ -77,7 +77,7 @@ def staticpmsetup_with_invalid_dish_id(
         group_callback["longRunningCommandResult"],
     )
 
-    result, unique_id = dish_leaf_node.StaticPmSetup(gpm_json)
+    result, unique_id = dish_leaf_node.ApplyPointingModel(gpm_json)
 
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
 
@@ -92,11 +92,11 @@ def staticpmsetup_with_invalid_dish_id(
         "attribute_value"
     ]
 
-    assert "StaticPmSetup" in unique_id
+    assert "ApplyPointingModel" in unique_id
     assert "Global pointing antenna SKA002 is not matching" in message
 
 
-def staticpmsetup_with_invalid_json(
+def ApplyPointingModel_with_invalid_json(
     tango_context, dishln_name, group_callback, gpm_json
 ):
     logger.info(f"{tango_context}")
@@ -109,7 +109,7 @@ def staticpmsetup_with_invalid_json(
         group_callback["longRunningCommandResult"],
     )
 
-    result, unique_id = dish_leaf_node.StaticPmSetup(gpm_json)
+    result, unique_id = dish_leaf_node.ApplyPointingModel(gpm_json)
 
     logger.info(f"Command ID: {unique_id} Returned result: {result}")
 
@@ -124,14 +124,14 @@ def staticpmsetup_with_invalid_json(
         "attribute_value"
     ]
 
-    assert "StaticPmSetup" in unique_id
+    assert "ApplyPointingModel" in unique_id
     assert "JSON Error" in message
 
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_static_pm_setup(tango_context, group_callback, json_factory):
-    """Test to check StaticPmSetup command with valid TM path"""
+    """Test to check ApplyPointingModel command with valid TM path"""
     static_pm_setup(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
@@ -142,14 +142,14 @@ def test_static_pm_setup(tango_context, group_callback, json_factory):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_staticpmsetup_invalid_tm_path(
+def test_ApplyPointingModel_invalid_tm_path(
     tango_context, group_callback, json_factory
 ):
-    """Test to check StaticPmSetup command with invalid TM path"""
+    """Test to check ApplyPointingModel command with invalid TM path"""
 
     gpm_tm_path = json.loads(json_factory("global_pointing_model"))
     gpm_tm_path["tm_data_sources"] = "Invalid_source"
-    staticpmsetup_with_invalid_tm_path(
+    ApplyPointingModel_with_invalid_tm_path(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
@@ -162,8 +162,8 @@ def test_staticpmsetup_invalid_tm_path(
 def test_static_pm_setup_with_wrong_dish_id(
     tango_context, group_callback, json_factory
 ):
-    """Test to check StaticPmSetup command with valid TM path"""
-    staticpmsetup_with_invalid_dish_id(
+    """Test to check ApplyPointingModel command with valid TM path"""
+    ApplyPointingModel_with_invalid_dish_id(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
@@ -176,8 +176,8 @@ def test_static_pm_setup_with_wrong_dish_id(
 def test_static_pm_setup_with_erroneous_json(
     tango_context, group_callback, json_factory
 ):
-    """Test to check StaticPmSetup command with valid TM path"""
-    staticpmsetup_with_invalid_json(
+    """Test to check ApplyPointingModel command with valid TM path"""
+    ApplyPointingModel_with_invalid_json(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,

@@ -1,5 +1,5 @@
 """
-StaticPmSetup command class for DishLeafNode.
+ApplyPointingModel command class for DishLeafNode.
 """
 from __future__ import annotations
 
@@ -24,9 +24,9 @@ if TYPE_CHECKING:
     from ..manager.component_manager import DishLNComponentManager
 
 
-class StaticPmSetup(DishLNCommand):
+class ApplyPointingModel(DishLNCommand):
     """
-    A class for DishLeafNode's StaticPmSetup() command.
+    A class for DishLeafNode's ApplyPointingModel() command.
     Its a dummy command at present.
     Will be renamed, once Dish ICD gets updated.
 
@@ -37,7 +37,7 @@ class StaticPmSetup(DishLNCommand):
     """
 
     def __init__(
-        self: StaticPmSetup,
+        self: ApplyPointingModel,
         component_manager: DishLNComponentManager,
         op_state_model,
         adapter_factory=None,
@@ -50,14 +50,14 @@ class StaticPmSetup(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_static_pm_setup(
-        self: StaticPmSetup,
+        self: ApplyPointingModel,
         argin: str,
         logger: Logger,
         task_callback: TaskCallbackType,
         task_abort_event: threading.Event,
     ) -> None:
         # pylint: enable=unused-argument
-        """A method to invoke the do method of the StaticPmSetup command
+        """A method to invoke the do method of the ApplyPointingModel command
         class. This method also updates the task callback according to command
         status.
 
@@ -75,7 +75,7 @@ class StaticPmSetup(DishLNCommand):
         """
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        self.component_manager.command_in_progress = "StaticPmSetup"
+        self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)
 
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
@@ -91,12 +91,12 @@ class StaticPmSetup(DishLNCommand):
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
             logger.info(
-                "The StaticPmSetup command is invoked successfully on %s",
+                "The ApplyPointingModel command is invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
 
     def get_global_pointing_data_json(
-        self: StaticPmSetup, initial_params: dict
+        self: ApplyPointingModel, initial_params: dict
     ) -> Tuple[dict, str]:
         """Get global pointing data json from initial params
         This method downloads the JSON, from given TelModel path
@@ -134,7 +134,7 @@ class StaticPmSetup(DishLNCommand):
         return {}, f"Error found in: {tm_data_sources} and {tm_data_filepath}"
 
     def validate_global_pointing_json(
-        self: StaticPmSetup, input_json: dict
+        self: ApplyPointingModel, input_json: dict
     ) -> Tuple[bool, str]:
         """The purpose of this method is to do the desired validations
         on the provided global pointing model json.
@@ -159,9 +159,9 @@ class StaticPmSetup(DishLNCommand):
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
-    def do(self: StaticPmSetup, argin: str) -> Tuple[ResultCode, str]:
+    def do(self: ApplyPointingModel, argin: str) -> Tuple[ResultCode, str]:
         """
-        Method to invoke StaticPmSetup command on DishMaster.
+        Method to invoke ApplyPointingModel command on DishMaster.
          Example JSON:
             {
             "interface":
@@ -207,7 +207,7 @@ class StaticPmSetup(DishLNCommand):
                 result_code, message = self.call_adapter_method(
                     "Dish Master",
                     self.dish_master_adapter,
-                    "StaticPmSetup",
+                    "ApplyPointingModel",
                     argin=json.dumps(global_pointing_data_json),
                 )
                 return result_code[0], message[0]

@@ -873,22 +873,22 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StaticPmSetup(
+    def ApplyPointingModel(
         self: DishLeafNode, argin: str
     ) -> Tuple[List[ResultCode], List[str]]:
         """
-        Invokes StaticPmSetup command on DishMaster
+        Invokes ApplyPointingModel command on DishMaster
         Its a dummy command at present.
         Will be renamed, once Dish ICD gets updated.
 
         :rtype: tuple
         """
-        handler = self.get_command_object("StaticPmSetup")
+        handler = self.get_command_object("ApplyPointingModel")
         result_code, unique_id = handler(argin)
 
         return [result_code], [str(unique_id)]
 
-    def is_StaticPmSetup_allowed(self: DishLeafNode) -> bool:
+    def is_ApplyPointingModel_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -898,7 +898,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_staticpmsetup_allowed()
+        return self.component_manager.is_ApplyPointingModel_allowed()
 
     def create_component_manager(self: DishLeafNode):
         cm = DishLNComponentManager(
@@ -949,7 +949,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ("TrackLoadStaticOff", "track_load_static_off"),
             ("Scan", "scan"),
             ("EndScan", "endscan"),
-            ("StaticPmSetup", "static_pm_setup"),
+            ("ApplyPointingModel", "static_pm_setup"),
         ]:
             self.register_command_object(
                 command_name,
