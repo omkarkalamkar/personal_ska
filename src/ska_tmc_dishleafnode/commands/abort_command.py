@@ -104,6 +104,8 @@ class AbortCommands(DishLNCommand):
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
+        self.component_manager.clear_track_table_errors()
+
         self.logger.debug(
             "AbortCommands command executed successfully on"
             + " the DishLeafNode."
