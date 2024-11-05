@@ -7,11 +7,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 [0.18.1]
 ********
-* Implemented error propagation for Track Table calculation.
+* Added DishLeafNode pointing tango device.
 
 [0.18.0]
 ********
-* Added DishLeafNode pointing tango device.
+* Implemented error propagation for Track Table calculation.
 
 [0.17.8]
 ********

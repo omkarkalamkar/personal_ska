@@ -105,7 +105,7 @@ def configure_dish_leaf_node_source_not_visible(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.xfail(reason="Test fails if the source is not visible.")
+@pytest.mark.xfail(reason="Test fails if the source is visible.")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
