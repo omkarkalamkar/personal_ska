@@ -40,6 +40,7 @@ from ska_tmc_common.lrcr_callback import LRCRCallback
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     AbortCommands,
+    ApplyPointingModel,
     Configure,
     ConfigureBand,
     EndScan,
@@ -49,7 +50,6 @@ from ska_tmc_dishleafnode.commands import (
     SetStandbyFPMode,
     SetStandbyLPMode,
     SetStowMode,
-    ApplyPointingModel,
     Track,
     TrackLoadStaticOff,
     TrackStop,
@@ -1182,7 +1182,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             static_pm_setup_command.invoke_static_pm_setup,
             args=[argin, self.logger],
-            is_cmd_allowed=self.is_command_allowed_callable("ApplyPointingModel"),
+            is_cmd_allowed=self.is_command_allowed_callable(
+                "ApplyPointingModel"
+            ),
             task_callback=task_callback,
         )
         self.logger.info(
