@@ -11,6 +11,14 @@ abort\_command
    :undoc-members:
    :show-inheritance:
 
+configure_band\_command
+-----------------------------------------------------
+
+.. automodule:: ska_tmc_dishleafnode.commands.configure_band_command
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 configure\_command 
 ---------------------------------------------------------
 

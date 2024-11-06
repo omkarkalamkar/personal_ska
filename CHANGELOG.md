@@ -9,9 +9,13 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 ********
 * Command ApplyPointing model is applied.
 
-[0.18.0]
+[0.18.1]
 ********
 * Added DishLeafNode pointing tango device.
+
+[0.18.0]
+********
+* Implemented error propagation for Track Table calculation.
 
 [0.17.8]
 ********

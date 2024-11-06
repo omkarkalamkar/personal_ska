@@ -196,6 +196,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "sourceOffset",
         "kValue",
         "commandCallInfo",
+        "trackTableErrors",
         timeout=50,
     )
     return group_callback
@@ -261,6 +262,11 @@ def update_last_pointing_data_callback(temp):
     logger.debug(temp)
 
 
+def update_track_table_errors_callback(value):
+    """An empty update_track_table_error callback"""
+    logger.info("Track Table error is: %s", value)
+
+
 @pytest.fixture(scope="session")
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
@@ -278,6 +284,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
+        _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
@@ -320,6 +327,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
+        _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
@@ -352,6 +360,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
+        _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=5,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,

@@ -18,6 +18,7 @@ from ska_tmc_common import (
 )
 from tango import ConnectionFailed, DevFailed
 
+from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT
 from ska_tmc_dishleafnode.enums import CommandResult
 
 configure_logging()
@@ -123,7 +124,9 @@ class DishLNCommand(TmcLeafNodeCommand):
         start_time = time.time()
         elapsed_time = 0
         command_result = CommandResult.NOT_ACHIEVED
-        while elapsed_time < (self.component_manager.command_timeout - 5):
+        while elapsed_time < (
+            self.component_manager.command_timeout - ADJUST_TIMEOUT
+        ):
             if self.component_manager.abort_event.is_set():
                 command_result = CommandResult.ABORTED
                 return command_result
@@ -150,7 +153,9 @@ class DishLNCommand(TmcLeafNodeCommand):
         start_time = time.time()
         elapsed_time = 0
         command_result = CommandResult.NOT_ACHIEVED
-        while elapsed_time < (self.component_manager.command_timeout - 5):
+        while elapsed_time < (
+            self.component_manager.command_timeout - ADJUST_TIMEOUT
+        ):
             if self.component_manager.abort_event.is_set():
                 command_result = CommandResult.ABORTED
                 return command_result
@@ -174,7 +179,9 @@ class DishLNCommand(TmcLeafNodeCommand):
         start_time = time.time()
         elapsed_time = 0
         command_result = CommandResult.NOT_ACHIEVED
-        while elapsed_time < (self.component_manager.command_timeout - 5):
+        while elapsed_time < (
+            self.component_manager.command_timeout - ADJUST_TIMEOUT
+        ):
             if self.component_manager.abort_event.is_set():
                 command_result = CommandResult.ABORTED
                 return command_result
