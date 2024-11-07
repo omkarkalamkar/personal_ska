@@ -7,7 +7,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 [0.19.0]
 ********
-* Command ApplyPointing model is applied.
+* Command static pointing model is refactored .
 
 [0.18.1]
 ********
