@@ -1,5 +1,6 @@
 """This is init module for DishLeafNode commands."""
 from .abort_command import AbortCommands
+from .apply_pm_setup import ApplyPointingModel
 from .configure_band_command import ConfigureBand
 from .configure_command import Configure
 from .dish_ln_command import DishLNCommand
@@ -11,7 +12,6 @@ from .setoperatemode import SetOperateMode
 from .setstandbyfpmode import SetStandbyFPMode
 from .setstandbylpmode import SetStandbyLPMode
 from .setstowmode import SetStowMode
-from .static_pm_setup import ApplyPointingModel
 from .track_command import Track
 from .track_load_static_off_command import TrackLoadStaticOff
 from .trackstop_command import TrackStop

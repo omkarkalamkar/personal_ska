@@ -49,7 +49,7 @@ class ApplyPointingModel(DishLNCommand):
         self.task_callback = None
 
     # pylint: disable=unused-argument
-    def invoke_static_pm_setup(
+    def invoke_apply_pm_setup(
         self: ApplyPointingModel,
         argin: str,
         logger: Logger,
@@ -98,66 +98,62 @@ class ApplyPointingModel(DishLNCommand):
     def get_global_pointing_data_json(
         self: ApplyPointingModel, initial_params: dict
     ) -> Tuple[dict, str]:
-        """Get global pointing data json from initial params
-        This method downloads the JSON, from given TelModel path
+        """Get global pointing data json from initial params with a timeout.
+        This method downloads the JSON, from the given TelModel path.
 
-        :param initial_param: this param containing tm data source uri
-         and file path used to get the global pointing data.
+        :param initial_param: contains tm data source URI and file path
+        used to get the global pointing data.
 
-        :return: dictionary in downloaded JSON and message
-         string if any
+        :return: dictionary in downloaded JSON and message string if any
         :rtype: Tuple[dict, str]
         """
         tm_data_sources = initial_params.get("tm_data_sources", None)
         tm_data_filepath = initial_params.get("tm_data_filepath", None)
-        if tm_data_sources and tm_data_filepath:
+
+        if not tm_data_sources or not tm_data_filepath:
+            return (
+                {},
+                f"Error found in: {tm_data_sources} and {tm_data_filepath}",
+            )
+
+        result = {}
+        message = ""
+
+        # Function to execute data retrieval within a thread
+        def retrieve_data():
+            nonlocal result, message
             try:
                 data = TMData(tm_data_sources, update=True)
-                return data[tm_data_filepath].get_dict(), ""
-
+                result, message = data[tm_data_filepath].get_dict(), ""
             except json.JSONDecodeError as json_error:
                 self.logger.exception("JSON Error: %s", json_error)
-                return {}, f"JSON Error: {json_error}"
-
+                result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
                     "Error in Loading global pointing data json file %s",
                     exception,
                 )
-                return (
+                result, message = (
                     {},
-                    (
-                        f"Error in Loading global pointing data json"
-                        f" file {exception}"
-                    ),
+                    "Error in Loading global pointing"
+                    + " data json file {exception}",
                 )
-        return {}, f"Error found in: {tm_data_sources} and {tm_data_filepath}"
 
-    def validate_global_pointing_json(
-        self: ApplyPointingModel, input_json: dict
-    ) -> Tuple[bool, str]:
-        """The purpose of this method is to do the desired validations
-        on the provided global pointing model json.
+        # Set up a thread for data retrieval
+        data_thread = threading.Thread(target=retrieve_data)
+        data_thread.start()
+        data_thread.join(timeout=10)  # Wait for up to 10 seconds
 
-        param input_json: JSON containing GPM data
-        return: Tuple[bool, str]
+        # Check if the thread is still active after the timeout
+        if data_thread.is_alive():
+            message = "URI not reachable (timeout)"
+            result = {}
+            data_thread.join()  # Optional cleanup, forcefully ends the thread
 
-        """
+        return result, message
 
-        if (
-            input_json["Antenna"].lower()
-            != self.component_manager.dish_id.lower()
-        ):
-            message = (
-                f"Global pointing antenna {input_json['Antenna']} is "
-                f"not matching with Dish ID {self.component_manager.dish_id}"
-            )
-            self.logger.info(message)
-            return (False, message)
+        # pylint: disable=signature-differs
 
-        return True, ""
-
-    # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
     def do(self: ApplyPointingModel, argin: str) -> Tuple[ResultCode, str]:
         """
@@ -199,17 +195,13 @@ class ApplyPointingModel(DishLNCommand):
             "Global pointing data JSON: %s", global_pointing_data_json
         )
 
-        result, message = self.validate_global_pointing_json(
-            global_pointing_data_json
-        )
-        if result:
-            with self.component_manager.tango_operation_execution_lock:
-                result_code, message = self.call_adapter_method(
-                    "Dish Master",
-                    self.dish_master_adapter,
-                    "ApplyPointingModel",
-                    argin=json.dumps(global_pointing_data_json),
-                )
-                return result_code[0], message[0]
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.call_adapter_method(
+                "Dish Master",
+                self.dish_master_adapter,
+                "ApplyPointingModel",
+                argin=json.dumps(global_pointing_data_json),
+            )
+            return result_code[0], message[0]
 
-        return ResultCode.FAILED, message
+        return result_code, message

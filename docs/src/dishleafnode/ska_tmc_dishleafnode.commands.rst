@@ -123,10 +123,10 @@ trackstop\_command
    :undoc-members:
    :show-inheritance:
 
-static_pm_setup\_command
+apply_pm_setup\_command
 ---------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.static_pm_setup
+.. automodule:: ska_tmc_dishleafnode.commands.apply_pm_setup
    :members:
    :undoc-members:
    :show-inheritance:

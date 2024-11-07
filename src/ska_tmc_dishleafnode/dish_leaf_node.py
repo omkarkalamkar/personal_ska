@@ -971,7 +971,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ("TrackLoadStaticOff", "track_load_static_off"),
             ("Scan", "scan"),
             ("EndScan", "endscan"),
-            ("ApplyPointingModel", "static_pm_setup"),
+            ("ApplyPointingModel", "apply_pm_setup"),
         ]:
             self.register_command_object(
                 command_name,
