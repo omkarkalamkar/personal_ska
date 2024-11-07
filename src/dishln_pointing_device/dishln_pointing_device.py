@@ -136,6 +136,22 @@ class DishPointingDevice(TMCBaseLeafDevice):
         self.logger.info("StopProgramTrackTable command executed successfully")
         return ([ResultCode.OK], ["Command Completed"])
 
+    @command(
+        dtype_in="DevVoid",
+        dtype_out="DevVarLongStringArray",
+        doc_out="(ReturnType, 'informational message')",
+    )
+    def ChangePointingOffset(self) -> Tuple[List[ResultCode], List[str]]:
+        """
+        This command sets change pointing offset flag.
+
+        :return: ResultCode and message
+        :rtype: Tuple[List[ResultCode], List[str]]
+        """
+
+        self.component_manager.set_change_pointing_event.set()
+        return ([ResultCode.OK], ["offset change event set"])
+
     def create_component_manager(self) -> DishlnPointingDataComponentManager:
         """
         Creates an instance of DishlnPointingDataComponentManager
