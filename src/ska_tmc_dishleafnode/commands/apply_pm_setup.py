@@ -152,8 +152,7 @@ class ApplyPointingModel(DishLNCommand):
 
         return result, message
 
-        # pylint: disable=signature-differs
-
+    # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
     def do(self: ApplyPointingModel, argin: str) -> Tuple[ResultCode, str]:
         """
