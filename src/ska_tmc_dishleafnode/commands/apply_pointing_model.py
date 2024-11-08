@@ -49,7 +49,7 @@ class ApplyPointingModel(DishLNCommand):
         self.task_callback = None
 
     # pylint: disable=unused-argument
-    def invoke_apply_pm_setup(
+    def invoke_apply_pointing_model(
         self: ApplyPointingModel,
         argin: str,
         logger: Logger,

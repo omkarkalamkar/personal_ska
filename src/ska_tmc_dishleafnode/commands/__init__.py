@@ -1,6 +1,6 @@
 """This is init module for DishLeafNode commands."""
 from .abort_command import AbortCommands
-from .apply_pm_setup import ApplyPointingModel
+from .apply_pointing_model import ApplyPointingModel
 from .configure_band_command import ConfigureBand
 from .configure_command import Configure
 from .dish_ln_command import DishLNCommand

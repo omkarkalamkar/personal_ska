@@ -9,7 +9,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from tests.settings import COMMAND_COMPLETED, DISH_LEAF_NODE_DEVICE, logger
 
 
-def apply_pm_setup(tango_context, dishln_name, group_callback, gpm_json):
+def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
@@ -130,9 +130,9 @@ def ApplyPointingModel_with_invalid_json(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_apply_pm_setup(tango_context, group_callback, json_factory):
+def test_apply_pointing_model(tango_context, group_callback, json_factory):
     """Test to check ApplyPointingModel command with valid TM path"""
-    apply_pm_setup(
+    apply_pointing_model(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
@@ -159,7 +159,7 @@ def test_ApplyPointingModel_invalid_tm_path(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_apply_pm_setup_with_wrong_dish_id(
+def test_apply_pointing_model_with_wrong_dish_id(
     tango_context, group_callback, json_factory
 ):
     """Test to check ApplyPointingModel command with valid TM path"""
@@ -173,7 +173,7 @@ def test_apply_pm_setup_with_wrong_dish_id(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_apply_pm_setup_with_erroneous_json(
+def test_apply_pointing_model_with_erroneous_json(
     tango_context, group_callback, json_factory
 ):
     """Test to check ApplyPointingModel command with valid TM path"""

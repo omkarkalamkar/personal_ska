@@ -1158,7 +1158,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def apply_pm_setup(
+    def apply_pointing_model(
         self: DishLNComponentManager,
         argin: str,
         task_callback: TaskCallbackType,
@@ -1173,14 +1173,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
-        apply_pm_setup_command = ApplyPointingModel(
+        apply_pointing_model_command = ApplyPointingModel(
             self,
             self.op_state_model,
             self.adapter_factory,
             self.logger,
         )
         task_status, response = self.submit_task(
-            apply_pm_setup_command.invoke_apply_pm_setup,
+            apply_pointing_model_command.invoke_apply_pointing_model,
             args=[argin, self.logger],
             is_cmd_allowed=self.is_command_allowed_callable(
                 "ApplyPointingModel"

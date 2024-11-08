@@ -123,10 +123,10 @@ trackstop\_command
    :undoc-members:
    :show-inheritance:
 
-apply_pm_setup\_command
+apply_pointing_model\_command
 ---------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.commands.apply_pm_setup
+.. automodule:: ska_tmc_dishleafnode.commands.apply_pointing_model
    :members:
    :undoc-members:
    :show-inheritance:
