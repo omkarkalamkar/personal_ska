@@ -148,7 +148,6 @@ class DishLeafNode(TMCBaseLeafDevice):
             "lastPointingData",
             "kValue",
             "trackTableErrors",
-            "bandPointingModelParams",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -187,22 +186,6 @@ class DishLeafNode(TMCBaseLeafDevice):
             # pylint: disable=unnecessary-dunder-call
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call
-
-    def read_bandPointingModelParams(self) -> List[float]:
-        """
-        This method reads the band1PointingModelParams attribute of a dish.
-        :rtype: List
-        """
-        return self._bandPointingModelParams
-
-    def write_bandPointingModelParams(self, value):
-        """
-        This method writes band1PointingModelParams attribute of dish.
-        :param value: _band1PointingModelParams as given is the json
-        :value dtype: List
-        :rtype: None
-        """
-        self._bandPointingModelParams = value
 
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
