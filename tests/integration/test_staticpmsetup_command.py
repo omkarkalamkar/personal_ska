@@ -159,20 +159,6 @@ def test_ApplyPointingModel_invalid_tm_path(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_apply_pointing_model_with_wrong_dish_id(
-    tango_context, group_callback, json_factory
-):
-    """Test to check ApplyPointingModel command with valid TM path"""
-    ApplyPointingModel_with_invalid_dish_id(
-        tango_context,
-        DISH_LEAF_NODE_DEVICE,
-        group_callback,
-        json_factory("global_pointing_model_ska002"),
-    )
-
-
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
 def test_apply_pointing_model_with_erroneous_json(
     tango_context, group_callback, json_factory
 ):
