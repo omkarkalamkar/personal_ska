@@ -17,7 +17,6 @@ from ska_tmc_common import (
     LivelinessProbeType,
     PointingState,
 )
-from ska_tmc_common.exceptions import CoefficientError
 from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import (
     ArgType,
@@ -26,7 +25,6 @@ from tango import (
     AttrWriteType,
     Database,
     DebugIt,
-    DevFloat,
     TimeVal,
 )
 from tango.server import attribute, command, device_property, run
@@ -122,9 +120,6 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype=PointingState,
         access=AttrWriteType.READ,
     )
-    bandPointingModelParams = attribute(
-        dtype=(DevFloat,), access=AttrWriteType.READ_WRITE, max_dim_x=18
-    )
 
     # ---------------
     # General methods
@@ -140,7 +135,6 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
-        self._band1PointingModelParams = []
         super().init_device()
         for attribute_name in [
             "healthState",
@@ -209,56 +203,6 @@ class DishLeafNode(TMCBaseLeafDevice):
         :rtype: None
         """
         self._bandPointingModelParams = value
-
-    def process_json_to_band_params(self, json_data: str) -> None:
-        """
-        Processes the given JSON string, extracts 'coefficients'
-        values in a specified order,
-        and assigns them to an attribute based on the 'band' value.
-        :raises CoefficientError: Not implemented error
-        """
-        # Load JSON data
-        data = json.loads(json_data)
-
-        # Define expected keys in the required order
-        required_keys = [
-            "IA",
-            "CA",
-            "NPAE",
-            "AN",
-            "AN0",
-            "AW",
-            "AW0",
-            "ACEC",
-            "ACES",
-            "ABA",
-            "ABphi",
-            "IE",
-            "ECEC",
-            "ECES",
-            "HECE4",
-            "HESE4",
-            "HECE8",
-            "HESE8",
-        ]
-
-        # Check if all required coefficients are present
-        coefficients = data.get("coefficients", {})
-        missing_keys = [
-            key for key in required_keys if key not in coefficients
-        ]
-        if missing_keys:
-            raise CoefficientError(
-                f"Missing coefficient values for: {', '.join(missing_keys)}"
-            )
-
-        # Extract values in the specified order
-        values_list = [coefficients[key]["value"] for key in required_keys]
-
-        # Determine which attribute to set based on 'band' value
-
-        self.push_change_event("bandPointingModelParams", values_list)
-        self.push_archive_event("bandPointingModelParams", values_list)
 
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
@@ -978,7 +922,6 @@ class DishLeafNode(TMCBaseLeafDevice):
         """
         handler = self.get_command_object("ApplyPointingModel")
         result_code, unique_id = handler(argin)
-        self.process_json_to_band_params(argin)
         return [result_code], [str(unique_id)]
 
     def is_ApplyPointingModel_allowed(self: DishLeafNode) -> bool:
