@@ -98,6 +98,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
         track_table_advance_sec: int = 6,
+        max_track_table_retry: int = 3,
+        track_table_retry_duration: float = 0.2,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -169,7 +171,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_track_table_errors_callback
         )
         self._kvalue: int = 0
-        self._current_track_table_error = []
+        self._current_track_table_error = ""
         self.errors_to_be_reported = self.process_manager.list()
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
@@ -227,6 +229,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.download_iers_data()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self.max_track_table_retry = max_track_table_retry
+        self.track_table_retry_duration = track_table_retry_duration
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
@@ -496,7 +500,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @current_track_table_error.setter
     def current_track_table_error(
-        self: DishLNComponentManager, value: list
+        self: DishLNComponentManager, value: str
     ) -> None:
         """Update the trackTableError of the dish leaf node
         :param value: Error observed in track table calculation
@@ -505,12 +509,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._current_track_table_error = value
-        self.errors_to_be_reported.extend(value)
+        self.logger.debug("Value is: %s", value)
+        # Ensure that the value is not empty string
+        if value:
+            self.logger.debug("Value is: %s", value)
+            now = datetime.datetime.now()
+            current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+            time_added_message = current_time + ": " + value
+            self.logger.debug("Time added message: %s", time_added_message)
+            self.errors_to_be_reported.extend([time_added_message])
 
-        if self._update_track_table_errors_callback:
-            self._update_track_table_errors_callback(
-                self.errors_to_be_reported
-            )
+            if self._update_track_table_errors_callback:
+                self._update_track_table_errors_callback(
+                    self.errors_to_be_reported
+                )
 
     @property
     def last_pointing_data(self: DishLNComponentManager):
@@ -1566,23 +1578,37 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "will acquire tango lock for same"
         )
         with self.tango_operation_execution_lock:
-            try:
-                self.logger.debug("Acquired  tango lock")
-                self.dish_adapter.programTrackTable = program_track_table
-                self.logger.debug("ProgramTrackTable Updated")
-            except BaseException as exception:
-                message = "Exception while writing tracktable: %s" + str(
-                    exception
-                )
-                self.logger.exception(message)
-                raise Exception(message) from exception
+            self.logger.debug("Acquired  tango lock")
+            # track_table_written = False
+            for retry in range(0, self.max_track_table_retry):
+                self.logger.debug("Retry is: %s", retry)
+                try:
+                    # if track_table_written != True:
+                    self.dish_adapter.programTrackTable = program_track_table
+                    self.logger.debug("ProgramTrackTable Updated")
+                    # track_table_written = True
+                    break
+
+                except BaseException as exception:
+                    message = "Exception while writing tracktable: %s" + str(
+                        exception
+                    )
+                    self.logger.exception(message)
+                    # Write exception into attribute once all the retries are
+                    # for one write operation are completed
+                    if retry == (self.max_track_table_retry - 1):
+                        self.current_track_table_error = message
+
+                retry += 1
+                time.sleep(self.track_table_retry_duration)
+
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def clear_track_table_errors(self: DishLNComponentManager):
         """
         This method clears the variables that include track table errors
         """
-        self.current_track_table_error = []
+        self.current_track_table_error = ""
         self.errors_to_be_reported[:] = []
 
     def track_process(
@@ -1660,6 +1686,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug(
                     "scheduled_time_human  %s", scheduled_time_readable
                 )
+                self.logger.debug("Updating program track table -------")
 
                 event_priority: int = 1
                 self.track_table_scheduler.enterabs(
@@ -1685,14 +1712,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         except ValueError as value_error:
             self.logger.error("Exception is: %s", str(value_error))
-            self.current_track_table_error = [str(value_error)]
+            self.current_track_table_error = str(value_error)
 
         except BaseException as exception:
             self.logger.error(
                 "Exception occurred during track_process :%s",
                 str(exception),
             )
-            self.current_track_table_error = [str(exception)]
+            self.current_track_table_error = str(exception)
 
     def create_track_process(self) -> None:
         """Creates new process for programTrackTable calculation."""
@@ -1747,7 +1774,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 + str(exception)
             )
             self.logger.error(message)
-            self.current_track_table_error = [message]
+            self.current_track_table_error = message
 
     def stop_track_table_process(self):
         """Stops track process"""

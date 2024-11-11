@@ -85,6 +85,16 @@ class DishLeafNode(TMCBaseLeafDevice):
         default_value=6,
         doc="programTrackTable in advance in seconds",
     )
+    MaxTrackTableRetry = device_property(
+        dtype="DevShort",
+        default_value=3,
+        doc="Maximum retries for the programTrackTable write operations",
+    )
+    TrackTableRetryDuration = device_property(
+        dtype="DevFloat",
+        default_value=0.2,
+        doc="Retry duration for programTrackTable write operation in seconds",
+    )
 
     # ----------
     # Attributes
@@ -949,6 +959,8 @@ class DishLeafNode(TMCBaseLeafDevice):
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
             track_table_advance_sec=self.TrackTableInAdvance,
             _update_track_table_errors_callback=update_track_err_cb,
+            max_track_table_retry=self.MaxTrackTableRetry,
+            track_table_retry_duration=self.TrackTableRetryDuration,
         )
         return cm
 

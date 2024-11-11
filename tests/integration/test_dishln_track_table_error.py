@@ -10,10 +10,10 @@ from tests.settings import (
     COMMAND_FAILED_WITH_TRACK,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    TIMEOUT,
     get_non_sidereal_json_for_source_not_visible,
     get_non_sidereal_json_for_source_unknown,
     logger,
+    monitor_track_table_errors_attribute,
     tear_down,
 )
 
@@ -87,9 +87,16 @@ def configure_dish_leaf_node_source_not_visible(
     expected_message = (
         "Exception occurred while calculating track table: "
         + "Minimum/maximum elevation limit has been reached."
-        + "Source is not visible currently.",
+        + "Source is not visible currently."
     )
-    assert dish_leaf_node.trackTableErrors == expected_message
+    track_table_error = dish_leaf_node.trackTableErrors
+    logger.info(
+        "track_table_error after configure: %s",
+        track_table_error,
+    )
+    result = any(expected_message in message for message in track_table_error)
+
+    assert result
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (
@@ -105,6 +112,7 @@ def configure_dish_leaf_node_source_not_visible(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.sah1623
 @pytest.mark.xfail(reason="Test fails if the source is visible.")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
@@ -189,9 +197,17 @@ def configure_dish_leaf_node_unknown_source(
     expected_message = (
         "Exception occurred while starting programTrackTable calculation: "
         + "Target description 'Pluto, special' contains unknown *special* "
-        + "body 'Pluto'",
+        + "body 'Pluto'"
     )
-    assert dish_leaf_node.trackTableErrors == expected_message
+
+    track_table_error = dish_leaf_node.trackTableErrors
+    logger.info(
+        "track_table_error after configure: %s",
+        track_table_error,
+    )
+    result = any(expected_message in message for message in track_table_error)
+
+    assert result
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (
@@ -207,6 +223,7 @@ def configure_dish_leaf_node_unknown_source(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.sah1623
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
@@ -222,19 +239,3 @@ def test_configure_command_unknown_source(
         group_callback,
         json_to_use,
     )
-
-
-def monitor_track_table_errors_attribute(
-    dish_leaf_node, track_table_error_before_configure
-):
-    time_consumed = 0
-    track_table_errors = dish_leaf_node.trackTableErrors
-
-    while track_table_errors == track_table_error_before_configure:
-        track_table_errors = dish_leaf_node.trackTableErrors
-        time.sleep(0.5)
-        if time_consumed >= TIMEOUT:
-            return False
-        time_consumed = time_consumed + 0.5
-    logger.info("TrackTableErrors: %s", dish_leaf_node.trackTableErrors)
-    return True
