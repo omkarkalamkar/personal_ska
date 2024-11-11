@@ -76,6 +76,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         track_table_entries: int,
         pointing_calculation_period: int,
         _update_dishmode_callback: Callable,
+        _update_dish_pointing_model_param_callback: Callable,
         _update_pointingstate_callback: Callable,
         communication_state_callback: Callable,
         component_state_callback: Callable,
@@ -141,6 +142,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
+        self.dish_pointing_model_param = ["" for _ in range(6)]
         self.command_result_update_lock = Lock()
         self.tango_operation_execution_lock = Lock()
         self.observer = None
@@ -164,6 +166,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.reset_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
+        self._update_dish_pointing_model_param_callback = (
+            _update_dish_pointing_model_param_callback
+        )
         self._update_pointingstate_callback = _update_pointingstate_callback
         self._update_track_table_errors_callback = (
             _update_track_table_errors_callback
@@ -1464,6 +1469,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
+
+    def update_dish_pointing_model_param_callback(
+        self: DishLNComponentManager, dish_param: str, band_id
+    ) -> None:
+        """
+        Update the dish mode of the given dish and call
+        the relative callbacks if available.
+
+        :param dishMode: Dish mode of the device
+        :type dishMode: DishMode
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+            self.dish_pointing_model_param[band_id] = dish_param
+            self.logger.info(f"dish_params value updated to {dish_param}")
+            if self._update_dish_pointing_model_param_callback:
+                self._update_dish_pointing_model_param_callback(
+                    self.dish_pointing_model_param
+                )
 
     def update_device_pointing_state(
         self: DishLNComponentManager, pointingState: PointingState

@@ -58,6 +58,14 @@ class DishLNEventReceiver(EventReceiver):
         dev_info: DishDeviceInfo,
         attribute_dictionary=None,
     ) -> None:
+        pointing_model_params_attrs = [
+            "band1PointingModelParams",
+            "band2PointingModelParams",
+            "band3PointingModelParams",
+            "band4PointingModelParams",
+            "band5APointingModelParams",
+            "band5BPointingModelParams",
+        ]
         with tango.EnsureOmniThread():
             try:
                 dish_dev_proxy = self._dev_factory.get_device(
@@ -96,6 +104,16 @@ class DishLNEventReceiver(EventReceiver):
                     self.handle_long_running_command_result,
                     stateless=True,
                 )
+                for attr_name in pointing_model_params_attrs:
+                    band_id = 0
+                    dish_dev_proxy.subscribe_event(
+                        attr_name,
+                        tango.EventType.CHANGE_EVENT,
+                        self.create_event_handler(band_id=band_id),
+                        stateless=True,
+                    )
+                    band_id = band_id + 1
+
             except Exception as exception:
                 log_msg = (
                     "Event not working for "
@@ -104,6 +122,41 @@ class DishLNEventReceiver(EventReceiver):
                 self._logger.exception(log_msg)
             else:
                 self.subscribed = True
+
+    def create_event_handler(self, band_id):
+        """This method returns a callable that handles the event"""
+
+        def handler(event):
+            """This callable returns handler method"""
+            return self.handle_pointing_model_params(event, band_id)
+
+        return handler
+
+    def handle_pointing_model_params(
+        self: DishLNEventReceiver, event_flag: tango.EventData, band_id
+    ):
+        """Method to handle and update the latest value of dish_pointing_model
+        params.
+
+        :parameter event_flag: To flag the change in event for Dishglobalpoing
+            params.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(
+                event_flag.device.dev_name()
+            )
+            return
+        new_value = event_flag.attr_value.value
+        self._component_manager.update_dish_pointing_model_param_callback(
+            new_value, band_id
+        )
+        self.log_event_exit("handle_dish_mode_event")
 
     def handle_dish_mode_event(
         self: DishLNEventReceiver, event_flag: tango.EventData

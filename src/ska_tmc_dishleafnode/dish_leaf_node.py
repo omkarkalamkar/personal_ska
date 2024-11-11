@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import List, Tuple, Union
 
+import tango
 from numpy import isnan
 from numpy import nan as NaN
 from ska_control_model import HealthState
@@ -129,6 +130,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._isSubsystemAvailable = True
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
+        self._global_pointing_model_params = ""
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
@@ -148,6 +150,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             "lastPointingData",
             "kValue",
             "trackTableErrors",
+            "globalPointingModelParams",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -235,6 +238,15 @@ class DishLeafNode(TMCBaseLeafDevice):
         )
         self.push_change_archive_events("trackTableErrors", value)
         self.logger.debug("Pushed the trackTableErrors event: %s", value)
+
+    def update_global_pointing_param_callback(
+        self, global_pointing_model_params: str
+    ) -> None:
+        """Push an event for the change of dishMode attribute."""
+        self._global_pointing_model_params = global_pointing_model_params
+        self.push_change_archive_events(
+            "globalPointingModelParams", self._global_pointing_model_params
+        )
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
@@ -324,6 +336,11 @@ class DishLeafNode(TMCBaseLeafDevice):
     def kValue(self: DishLeafNode) -> int:
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
+
+    @attribute(dtype=tango.IMAGE, access=AttrWriteType.READ)
+    def globalPointingModelParams(self: DishLeafNode) -> str:
+        """Returns the globalpointingModelparam attribute value."""
+        return self._global_pointing_model_params
 
     @kValue.write
     def kValue(self: DishLeafNode, k_value: int) -> None:
@@ -933,6 +950,9 @@ class DishLeafNode(TMCBaseLeafDevice):
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             _update_dishmode_callback=self.update_dishmode_callback,
+            _update_dish_pointing_model_param_callback=(
+                self.update_global_pointing_param_callback
+            ),
             _update_pointingstate_callback=self.update_pointingstate_callback,
             sleep_time=self.SleepTime,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
