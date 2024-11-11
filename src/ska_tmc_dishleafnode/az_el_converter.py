@@ -127,7 +127,7 @@ class AzElConverter:
 
     def point(
         self: AzElConverter,
-        right_ascension: str,
+        right_ascension: str | float,
         declination: str,
         timestamp: str,
     ) -> list[float]:
@@ -214,8 +214,8 @@ class AzElConverter:
 
     def radec_to_azel(
         self: AzElConverter,
-        right_ascension: str,
-        declination: str,
+        right_ascension: str | float,
+        declination: str | float,
         timestamp: str,
     ) -> List[float]:
         """This method invokes the katpoint commands to do the forward
@@ -232,9 +232,15 @@ class AzElConverter:
         Return:
             az_el_coordinates (list[degrees])
         """
+        ra = right_ascension
+        dec = declination
+        if isinstance(right_ascension, float):
+            ra = Angle(right_ascension, unit=u.degree)
+            dec = Angle(declination, unit=u.degree)
+
         refraction_corrected_azel = []
         try:
-            target = Target.from_radec(right_ascension, declination)
+            target = Target.from_radec(ra, dec)
 
             # Preloading the IERS A chart for Astrop's usage.
             with iers.earth_orientation_table.set(

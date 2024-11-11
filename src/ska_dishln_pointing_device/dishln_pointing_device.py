@@ -1,0 +1,248 @@
+""" A DishLeaf Node pointing device."""
+
+import json
+from typing import List, Tuple
+
+from ska_tango_base.base.base_device import SKABaseDevice
+from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
+from ska_tango_base.control_model import HealthState
+from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
+from tango import ArgType, AttrDataFormat, AttrWriteType
+from tango.server import attribute, command, device_property, run
+
+from ska_dishln_pointing_device import (
+    DishlnPointingDataComponentManager,
+    NormalMappingScan,
+)
+
+
+class DishPointingDevice(TMCBaseLeafDevice):
+    """
+    This class is responsible for doing the pointing calculations,
+    forward transform and generating the programTrackTable
+
+    :Device Properties:
+    :Device Attributes:
+    :commandExecuted: Stores command executed on the device.
+    :DishlnPointingDeviceFQDN: Stores Dish leaf node pointing device name.
+    """
+
+    # Dish Track command properties
+    Elevation = device_property(dtype="DevFloat", default_value=30.0)
+    Azimuth = device_property(dtype="DevFloat", default_value=0.0)
+    ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
+    ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
+    TrackTableEntries = device_property(
+        dtype="DevShort",
+        default_value=25,
+        doc="Number of entries in programTrackTable",
+    )
+    PointingCalculationPeriod = device_property(
+        dtype="DevShort",
+        default_value=100,
+        doc="Time difference between two consecutive entries of"
+        + "programTrackTable in milliseconds",
+    )
+    TrackTableInAdvance = device_property(
+        dtype="DevShort",
+        default_value=6,
+        doc="programTrackTable in advance in seconds",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pointing_program_track_table: list = []
+
+    def init_device(self: SKABaseDevice) -> None:
+        super().init_device()
+        self._health_state = HealthState.OK
+        self.dev_name = self.get_name()
+        self.set_change_event("pointingProgramTrackTable", True, False)
+        self.set_archive_event("pointingProgramTrackTable", True)
+
+    class InitCommand(SKABaseDevice.InitCommand):
+        """A class for the DishPointingDevice's init_device() command."""
+
+        # pylint: disable=W0221
+        def do(self) -> Tuple[ResultCode, str]:
+            """Change device state to INIT."""
+            super().do()
+            return (ResultCode.OK, "DishPointingDevice Initialized")
+
+    @attribute(
+        dtype=ArgType.DevString,
+        dformat=AttrDataFormat.SCALAR,
+        access=AttrWriteType.READ,
+    )
+    def dishlnPointingDeviceFqdn(self) -> str:
+        """
+        This attribute is used for storing the FQDN of Dish leaf node pointing
+        device.
+        :return: str
+        """
+        return self.dev_name
+
+    @attribute(dtype=str, access=AttrWriteType.READ_WRITE)
+    def targetData(self) -> str:
+        """
+        This attribute is used for storing the target data.
+        device.
+        :return: str
+        """
+        return json.dumps(self.component_manager.target_data)
+
+    @targetData.write
+    def targetData(self, target_data: str) -> None:
+        """This method writes the attribute data in component manager.
+
+        Args:
+            target_data (str): _description_
+        """
+        self.component_manager.target_data = json.loads(target_data)
+
+    @attribute(
+        dtype=ArgType.DevString,
+        dformat=AttrDataFormat.SCALAR,
+        access=AttrWriteType.READ,
+    )
+    def pointingProgramTrackTable(self) -> str:
+        """
+        This attribute is used for storing the FQDN of Dish leaf node pointing
+        device.
+        :return: str
+        """
+        return json.dumps(self.pointing_program_track_table)
+
+    def update_pointing_program_track_table_callback(
+        self, pointing_program_track_table: list
+    ) -> None:
+        """This method helps in pushing event of program track table change.
+
+        Args:
+            pointing_program_track_table (dict): data of program track table.
+        """
+        self.pointing_program_track_table = pointing_program_track_table
+        self.push_change_archive_events(
+            "pointingProgramTrackTable",
+            json.dumps(pointing_program_track_table),
+        )
+
+    @command(
+        dtype_in="DevVoid",
+        dtype_out="DevVarLongStringArray",
+        doc_out="(ReturnType, 'informational message')",
+    )
+    def GenerateProgramTrackTable(self) -> Tuple[List[ResultCode], List[str]]:
+        """
+        This command instructs dish pointing device to start generating program
+        track table.
+
+        :return: ResultCode and message
+        :rtype: Tuple[List[ResultCode], List[str]]
+        """
+        self.component_manager.mapping_scan_event.clear()
+        if "trajectory" not in self.component_manager.target_data["pointing"]:
+            NormalMappingScan(
+                logger=self.logger, component_manager=self.component_manager
+            ).generate_program_track_table()
+
+        self.logger.info(
+            "GenerateProgramTrackTable command executed successfully"
+        )
+        return ([ResultCode.OK], ["Command Completed"])
+
+    @command(
+        dtype_in="DevVoid",
+        dtype_out="DevVarLongStringArray",
+        doc_out="(ReturnType, 'informational message')",
+    )
+    def StopProgramTrackTable(self) -> Tuple[List[ResultCode], List[str]]:
+        """
+        This command instructs dish pointing device to stop generation of
+        program track table.
+
+        :return: ResultCode and message
+        :rtype: Tuple[List[ResultCode], List[str]]
+        """
+        self.component_manager.mapping_scan_event.set()
+        self.logger.info("StopProgramTrackTable command executed successfully")
+        return ([ResultCode.OK], ["Command Completed"])
+
+    @command(
+        dtype_in="DevVoid",
+        dtype_out="DevVarLongStringArray",
+        doc_out="(ReturnType, 'informational message')",
+    )
+    def ChangePointingOffset(self) -> Tuple[List[ResultCode], List[str]]:
+        """
+        This command sets change pointing offset flag.
+
+        :return: ResultCode and message
+        :rtype: Tuple[List[ResultCode], List[str]]
+        """
+
+        self.component_manager.set_change_pointing_event.set()
+        while not self.component_manager.set_change_pointing_event.set():
+            "generate programTrackTable"
+
+        return ([ResultCode.OK], ["offset change event set"])
+
+    def create_component_manager(self) -> DishlnPointingDataComponentManager:
+        """
+        Creates an instance of DishlnPointingDataComponentManager
+        :return: component manager instance
+        :rtype: DishlnPointingDataComponentManager
+        """
+        dish_pointing_device_component_manager = (
+            DishlnPointingDataComponentManager(
+                disln_pointing_device_name=self.get_name(),
+                logger=self.logger,
+                update_pointing_program_track_table_callback=(
+                    self.update_pointing_program_track_table_callback
+                ),
+                track_table_entries=self.TrackTableEntries,
+                pointing_calculation_period=self.PointingCalculationPeriod,
+                elevation=self.Elevation,
+                azimuth=self.Azimuth,
+                elevation_max_limit=self.ElevationMaxLimit,
+                elevation_min_limit=self.ElevationMinLimit,
+                track_table_advance_sec=self.TrackTableInAdvance,
+            )
+        )
+        return dish_pointing_device_component_manager
+
+    def init_command_objects(self) -> None:
+        """
+        Initializes the command handlers for commands supported by this device.
+        """
+        super().init_command_objects()
+        for command_name, method_name in [
+            ("GenerateProgramTrackTable", "generate_program_track_table"),
+            ("StopProgramTrackTable", "stop_program_track_table"),
+        ]:
+            self.register_command_object(
+                command_name,
+                SubmittedSlowCommand(
+                    command_name,
+                    self._command_tracker,
+                    self.component_manager,
+                    method_name,
+                    logger=self.logger,
+                ),
+            )
+
+
+def main(args=None, **kwargs):
+    """
+    Runs the DishPointingDevice Tango device.
+    :param args: Arguments internal to TANGO
+
+    :param kwargs: Arguments internal to TANGO
+
+    :return: integer. Exit code of the run method.
+    """
+    return run((DishPointingDevice,), args=args, **kwargs)
+
+
+if __name__ == "__main__":
+    main()
