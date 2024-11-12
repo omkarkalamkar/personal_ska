@@ -26,7 +26,7 @@ def test_dishln_pointing_device():
     assert result_code == [ResultCode.OK]
     assert message == ["Command Completed"]
 
-    result_code, message == dishln_pointing_device.ChangePointingData(
+    result_code, message = dishln_pointing_device.ChangePointingData(
         "trajectory"
     )
     assert result_code == [ResultCode.OK]
