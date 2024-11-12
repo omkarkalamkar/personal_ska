@@ -84,6 +84,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         self.dish_id = (
             "SKA" + self.dishln_pointing_device_name.split('/')[-1][-3:]
         )
+        self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
         self.create_converter_obj_and_antenna_obj()
         self.download_iers_data()
@@ -267,7 +268,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             while not self.mapping_scan_event.is_set():
                 program_track_table: list = (
                     self.track_table_calculator.calculate_program_track_table(
-                        self.target, self.converter
+                        self.current_mapping_scan_obj.target, self.converter
                     )
                 )
 

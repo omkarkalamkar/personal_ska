@@ -12,7 +12,7 @@ from tango.server import attribute, command, device_property, run
 
 from ska_dishln_pointing_device import (
     DishlnPointingDataComponentManager,
-    NormalMappingScan,
+    PointMappingScan,
 )
 
 
@@ -143,9 +143,12 @@ class DishPointingDevice(TMCBaseLeafDevice):
         """
         self.component_manager.mapping_scan_event.clear()
         if "trajectory" not in self.component_manager.target_data["pointing"]:
-            NormalMappingScan(
-                logger=self.logger, component_manager=self.component_manager
-            ).generate_program_track_table()
+            self.component_manager.current_mapping_scan_obj = PointMappingScan(
+                pattern_name="point",
+                component_manager=self.component_manager,
+                logger=self.logger
+            )
+            self.component_manager.current_mapping_scan_obj.set_target_and_start_process()
 
         self.logger.info(
             "GenerateProgramTrackTable command executed successfully"
