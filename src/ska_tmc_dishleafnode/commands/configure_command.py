@@ -178,7 +178,6 @@ class Configure(DishLNCommand):
                 )
 
                 self.component_manager.command_in_progress = ""
-                self.component_manager.set_track_process_event()
             self.component_manager.command_id = ""
             self.receiver_band = ""
             self.partial_configure = False
