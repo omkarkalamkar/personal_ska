@@ -1,11 +1,16 @@
 import json
 from unittest import mock
 
+import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 
 from tests.settings import COMMAND_COMPLETION_MESSAGE
 
 
+@pytest.mark.skip(
+    reason="StaticPmSetup() is changed to ApplyPointingModel()."
+    + " This test will be enabled as part of HM-552."
+)
 def test_static_pm_setup_command(
     tango_context, cm, json_factory, task_callback
 ):

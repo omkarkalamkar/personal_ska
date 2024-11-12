@@ -128,6 +128,10 @@ def staticpmsetup_with_invalid_json(
     assert "JSON Error" in message
 
 
+@pytest.mark.skip(
+    reason="StaticPmSetup() is changed to ApplyPointingModel()."
+    + " This test will be enabled as part of HM-552."
+)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_static_pm_setup(tango_context, group_callback, json_factory):
@@ -140,6 +144,10 @@ def test_static_pm_setup(tango_context, group_callback, json_factory):
     )
 
 
+@pytest.mark.skip(
+    reason="StaticPmSetup() is changed to ApplyPointingModel()."
+    + " This test will be enabled as part of HM-552."
+)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_staticpmsetup_invalid_tm_path(
@@ -157,6 +165,10 @@ def test_staticpmsetup_invalid_tm_path(
     )
 
 
+@pytest.mark.skip(
+    reason="StaticPmSetup() is changed to ApplyPointingModel()."
+    + " This test will be enabled as part of HM-552."
+)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_static_pm_setup_with_wrong_dish_id(
@@ -171,6 +183,10 @@ def test_static_pm_setup_with_wrong_dish_id(
     )
 
 
+@pytest.mark.skip(
+    reason="StaticPmSetup() is changed to ApplyPointingModel()."
+    + " This test will be enabled as part of HM-552."
+)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_static_pm_setup_with_erroneous_json(
