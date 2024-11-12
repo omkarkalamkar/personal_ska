@@ -2,7 +2,7 @@ name: "dishpointingdevice-test"
 function: dish-pointing
 domain: pattern-mapping
 entrypoints:
-  - name: "dishln_pointing_device.dishln_pointing_device.DishPointingDevice"
+  - name: "ska_dishln_pointing_device.dishln_pointing_device.DishPointingDevice"
 server:
   name: "dishpointing"
   instances:

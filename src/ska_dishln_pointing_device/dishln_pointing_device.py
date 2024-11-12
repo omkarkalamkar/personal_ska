@@ -10,11 +10,11 @@ from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import ArgType, AttrDataFormat, AttrWriteType
 from tango.server import attribute, command, run
 
-from dishln_pointing_device import DishlnPointingDataComponentManager
-from dishln_pointing_device.commands.generate_program_track_table import (
+from ska_dishln_pointing_device import DishlnPointingDataComponentManager
+from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
-from dishln_pointing_device.commands.stop_program_track_table import (
+from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
 
@@ -67,7 +67,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
     def TargetData(self) -> str:
         """
         This attribute is used for storing the target data.
-        device.
         :return: str
         """
         return self.component_manager.target_data
@@ -153,7 +152,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         self, argin: str | None = None
     ) -> Tuple[List[ResultCode], List[str]]:
         """
-        This command sets change pointing offset flag.
+        This command instructs to change current pointing/offset.
 
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]

@@ -1,7 +1,7 @@
 import logging
 from unittest import mock
 
-from dishln_pointing_device.dishlnpd_component_manager import (
+from ska_dishln_pointing_device.dishlnpd_component_manager import (
     dishlnpd_component_manager,
 )
 

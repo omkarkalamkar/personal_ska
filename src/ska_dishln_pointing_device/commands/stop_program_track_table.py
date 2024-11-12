@@ -1,16 +1,17 @@
-"""This module contains GenerateProgramTrackTable implementation.
+"""This module contains StopProgramTrackTable implementation.
 """
+
 import logging
 
 from ska_tango_base.commands import FastCommand, ResultCode
 
-from dishln_pointing_device.dishlnpd_component_manager import (
+from ska_dishln_pointing_device.dishlnpd_component_manager import (
     dishlnpd_component_manager as manager,
 )
 
 
-class GenerateProgramTrackTable(FastCommand):
-    """This class contains GenerateProgramTrackTrable implementation"""
+class StopProgramTrackTable(FastCommand):
+    """This class contains StopProgramTrackTrable implementation"""
 
     def __init__(
         self,
@@ -28,5 +29,5 @@ class GenerateProgramTrackTable(FastCommand):
         self.component_manager = component_manager
 
     def do(self, *args, **kwargs) -> None:
-        """This method generates program track table."""
-        return ResultCode.STARTED, "Generation Started"
+        """This method stops program track table generation."""
+        return ResultCode.OK, "Command Completed"
