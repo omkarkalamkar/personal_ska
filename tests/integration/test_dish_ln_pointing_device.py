@@ -1,5 +1,6 @@
 import pytest
 from ska_control_model import HealthState
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory
 
 from tests.settings import DISHLN_POINTING_DEVICE
@@ -7,7 +8,7 @@ from tests.settings import DISHLN_POINTING_DEVICE
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_dishln_pointing_device(tango_context):
+def test_dishln_pointing_device():
     """Test the dishln pointing device is up and pingable"""
 
     dishln_pointing_device = DevFactory().get_device(DISHLN_POINTING_DEVICE)
@@ -17,9 +18,17 @@ def test_dishln_pointing_device(tango_context):
         dishln_pointing_device.dishlnPointingDeviceFqdn
         == DISHLN_POINTING_DEVICE
     )
-    assert (
-        'Command Completed'
-        in dishln_pointing_device.command_inout("generateprogramtracktable")[
-            1
-        ][0]
+    result_code, message = dishln_pointing_device.GenerateProgramTrackTable()
+    assert result_code == [ResultCode.STARTED]
+    assert message == ['Generation Started']
+
+    result_code, message = dishln_pointing_device.StopProgramTrackTable()
+    assert result_code == [ResultCode.OK]
+    assert message == ["Command Completed"]
+
+    result_code, message == dishln_pointing_device.ChangePointingData(
+        "trajectory"
     )
+    assert result_code == [ResultCode.OK]
+    assert message == ["offset change event set"]
+    assert dishln_pointing_device.pointingProgramTrackTable == {}

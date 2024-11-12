@@ -3,7 +3,6 @@ This module provides an implementation of the Dish Leaf Node
 pointing device component manager.
 """
 
-import threading
 from logging import Logger
 from typing import Callable
 
@@ -15,7 +14,6 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
     A component manager for The Dish leaf node pointing device component.
     """
 
-    # pylint: disable=unused-argument
     def __init__(
         self,
         logger: Logger,
@@ -36,9 +34,6 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             update_pointing_program_track_table_callback
         )
         self.__target_data: list | str | None = None
-        # This event can be used by on going process to change the offset
-        # and clear the event for next usage.
-        self.set_change_pointing_event = threading.Event()
 
     @property
     def target_data(self):
@@ -58,13 +53,3 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             self.logger.error(
                 "Writing of target data failed due to : %s", exception
             )
-
-    def generate_program_track_table(self):
-        """This method generates the program track table."""
-        if self.update_pointing_program_track_table_callback:
-            self.update_pointing_program_track_table_callback(
-                self.pointing_program_track_table
-            )
-
-    def stop_program_track_table(self):
-        """This method stops the generation of track table."""
