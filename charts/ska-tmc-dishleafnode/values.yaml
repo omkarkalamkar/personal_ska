@@ -58,9 +58,6 @@ deviceServers:
     enabled: true
     instances: ["01", "02"]
     file: "data/dishleafnode.yaml"
-    TrackTableEntries: 50
-    PointingCalculationPeriod: 50
-    TrackTableInAdvance: 7
     IsDishAbortCommandsEnabled: False
   sdpqc:
     enabled: true
@@ -69,6 +66,14 @@ deviceServers:
   dishpointingdevice:
     enabled: true
     instances: ["01", "02"]
+    TrackTableEntries: 50
+    PointingCalculationPeriod: 50
+    TrackTableInAdvance: 7
+    Elevation: 30.0
+    Azimuth: 0.0
+    ElevationMaxLimit: 90.0
+    ElevationMinLimit: 17.5
+    ElevationLimit: true
     file: "data/dishpointingdevice.yaml"
 
 

@@ -40,6 +40,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
         track_table_advance_sec: int = 6,
+        elevation_limit: bool = False,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -66,7 +67,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
-        self.el_limit = True
+        self.el_limit = elevation_limit
         self.iers_a = None
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.pointing_calculation_period: int = pointing_calculation_period

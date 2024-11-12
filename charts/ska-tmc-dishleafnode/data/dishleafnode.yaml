@@ -3,9 +3,6 @@ function: telescope-monitoring
 domain: general-monitoring
 instances: ["01"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
-{{- $TrackTableEntries := .Values.deviceServers.dishln.TrackTableEntries }}
-{{- $PointingCalculationPeriod := .Values.deviceServers.dishln.PointingCalculationPeriod }}
-{{- $TrackTableInAdvance := .Values.deviceServers.dishln.TrackTableInAdvance }}
 {{- $IsDishAbortCommandsEnabled := .Values.deviceServers.dishln.IsDishAbortCommandsEnabled }}
 server:
   name: "dish_leaf_node"
@@ -20,6 +17,9 @@ server:
           - name: "DishMasterFQDN"
             values:
               - "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"
+          - name: "DishlnPointingDeviceFQDN"
+            values:
+              - "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
           - name: "SkaLevel"
             values:
               - "3"
@@ -29,15 +29,6 @@ server:
           - name: "LoggingLevelDefault"
             values:
               - "5"
-          - name: "TrackTableEntries"
-            values:
-              - "{{ $TrackTableEntries }}"
-          - name: "PointingCalculationPeriod"
-            values:
-              - "{{ $PointingCalculationPeriod }}"
-          - name: "TrackTableInAdvance"
-            values:
-              - "{{ $TrackTableInAdvance }}"
           - name: "IsDishAbortCommandsEnabled"
             values:
               - "{{ $IsDishAbortCommandsEnabled }}"

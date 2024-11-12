@@ -119,7 +119,7 @@ class AbortCommands(DishLNCommand):
             (ResultCode, str)
         """
 
-        self.component_manager.stop_track_table_process()
+        self.dishln_pointing_device_adapter.StopProgramTrackTable()
 
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.

@@ -2,7 +2,16 @@ name: "dishpointingdevice-test"
 function: dish-pointing
 domain: pattern-mapping
 entrypoints:
-  - name: "ska_tmc_dishleafnode.dishln_pointing_device.dishln_pointing_device.DishPointingDevice"
+  - name: "ska_dishln_pointing_device.dishln_pointing_device.DishPointingDevice"
+{{- $TrackTableEntries := .Values.deviceServers.dishpointingdevice.TrackTableEntries }}
+{{- $PointingCalculationPeriod := .Values.deviceServers.dishpointingdevice.PointingCalculationPeriod }}
+{{- $TrackTableInAdvance := .Values.deviceServers.dishpointingdevice.TrackTableInAdvance }}
+{{- $Elevation := .Values.deviceServers.dishpointingdevice.Elevation }}
+{{- $Azimuth := .Values.deviceServers.dishpointingdevice.Azimuth }}
+{{- $ElevationMaxLimit := .Values.deviceServers.dishpointingdevice.ElevationMaxLimit }}
+{{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
+{{- $ElevationLimit := .Values.deviceServers.dishpointingdevice.ElevationLimit }}
+
 server:
   name: "dishpointing"
   instances:
@@ -12,6 +21,31 @@ server:
       - name: "DishPointingDevice"
         devices:
         - name: "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+          properties:
+            - name: "TrackTableEntries"
+              values:
+                - "{{ $TrackTableEntries }}"
+            - name: "PointingCalculationPeriod"
+              values:
+                - "{{ $PointingCalculationPeriod }}"
+            - name: "TrackTableInAdvance"
+              values:
+                - "{{ $TrackTableInAdvance }}"
+            - name: "Elevation"
+              values:
+                - "{{ $Elevation }}"
+            - name: "Azimuth"
+              values:
+                - "{{ $Azimuth }}"
+            - name: "ElevationMaxLimit"
+              values:
+                - "{{ $ElevationMaxLimit }}"
+            - name: "ElevationMinLimit"
+              values:
+                - "{{ $ElevationMinLimit }}"
+            - name: "ElevationLimit"
+              values:
+                - "{{ $ElevationLimit }}"      
   {{- end }}
 
 depends_on:

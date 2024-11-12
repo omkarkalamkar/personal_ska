@@ -28,6 +28,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     """
 
     # Dish Track command properties
+    ElevationLimit = device_property(dtype="DevBoolean", default_value=True)
     Elevation = device_property(dtype="DevFloat", default_value=30.0)
     Azimuth = device_property(dtype="DevFloat", default_value=0.0)
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
@@ -204,6 +205,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 elevation_max_limit=self.ElevationMaxLimit,
                 elevation_min_limit=self.ElevationMinLimit,
                 track_table_advance_sec=self.TrackTableInAdvance,
+                elevation_limit=self.ElevationLimit,
             )
         )
         return dish_pointing_device_component_manager
