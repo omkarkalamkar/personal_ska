@@ -6,10 +6,10 @@ pointing device component manager.
 from logging import Logger
 from typing import Callable
 
-from ska_tmc_common.tmc_component_manager import BaseTmcComponentManager
+from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 
-class DishlnPointingDataComponentManager(BaseTmcComponentManager):
+class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish leaf node pointing device component.
     """
