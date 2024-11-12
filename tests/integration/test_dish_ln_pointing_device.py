@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
@@ -31,4 +33,4 @@ def test_dishln_pointing_device():
     )
     assert result_code == [ResultCode.OK]
     assert message == ["offset change event set"]
-    assert dishln_pointing_device.pointingProgramTrackTable == {}
+    assert dishln_pointing_device.pointingProgramTrackTable == json.dumps({})

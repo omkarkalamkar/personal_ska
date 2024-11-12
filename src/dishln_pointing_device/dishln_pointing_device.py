@@ -1,5 +1,6 @@
 """ A DishLeaf Node pointing device."""
 
+import json
 from typing import List, Tuple
 
 from ska_tango_base.base.base_device import SKABaseDevice
@@ -91,7 +92,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         device.
         :return: str
         """
-        return self.pointing_program_track_table
+        return json.dumps(self.pointing_program_track_table)
 
     def update_pointing_program_track_table_callback(
         self, pointing_program_track_table: dict
@@ -103,7 +104,8 @@ class DishPointingDevice(TMCBaseLeafDevice):
         """
         self.pointing_program_track_table = pointing_program_track_table
         self.push_change_archive_events(
-            "pointingProgramTrackTable", pointing_program_track_table
+            "pointingProgramTrackTable",
+            json.dumps(pointing_program_track_table),
         )
 
     @command(
