@@ -33,6 +33,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         disln_pointing_device_name: str,
         logger: Logger,
         update_pointing_program_track_table_callback: Callable,
+        update_program_track_table_error_callback: Callable,
         track_table_entries: int,
         pointing_calculation_period: int,
         elevation: float = 0.0,
@@ -56,8 +57,11 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         self.update_pointing_program_track_table_callback = (
             update_pointing_program_track_table_callback
         )
+        self.update_program_track_table_error_callback = (
+            update_program_track_table_error_callback
+        )
         self.target: list | str | None = None
-        self._current_track_table_error = []
+        self._current_track_table_error = ""
         self.__target_data: str = ""
         # This event can be used by on going process to change the offset
         # and clear the event for next usage.
@@ -319,11 +323,11 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
 
         except Exception as value_error:
             self.logger.error("Exception is: %s", str(value_error))
-            self.current_track_table_error = [str(value_error)]
+            self.update_program_track_table_error_callback(str(value_error))
 
         except BaseException as exception:
             self.logger.error(
                 "Exception occurred during track_process :%s",
                 str(exception),
             )
-            self.current_track_table_error = [str(exception)]
+            self.update_program_track_table_error_callback(str(exception))

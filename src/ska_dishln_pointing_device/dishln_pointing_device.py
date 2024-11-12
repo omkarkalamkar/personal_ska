@@ -53,6 +53,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pointing_program_track_table: list = []
+        self.program_track_table_error: str = ""
 
     def init_device(self: SKABaseDevice) -> None:
         super().init_device()
@@ -60,6 +61,8 @@ class DishPointingDevice(TMCBaseLeafDevice):
         self.dev_name = self.get_name()
         self.set_change_event("pointingProgramTrackTable", True, False)
         self.set_archive_event("pointingProgramTrackTable", True)
+        self.set_change_event("programTrackTableError", True, False)
+        self.set_archive_event("programTrackTableError", True)
 
     class InitCommand(SKABaseDevice.InitCommand):
         """A class for the DishPointingDevice's init_device() command."""
@@ -82,6 +85,15 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: str
         """
         return self.dev_name
+
+    @attribute(dtype=str, access=AttrWriteType.READ)
+    def programTrackTableError(self) -> str:
+        """
+        This attribute is used for storing error
+        occurred during program track table calculation
+        :return: str
+        """
+        return json.dumps(self.program_track_table_error)
 
     @attribute(dtype=str, access=AttrWriteType.READ_WRITE)
     def targetData(self) -> str:
@@ -126,6 +138,18 @@ class DishPointingDevice(TMCBaseLeafDevice):
         self.push_change_archive_events(
             "pointingProgramTrackTable",
             json.dumps(pointing_program_track_table),
+        )
+
+    def update_program_track_table_error_callback(
+        self, program_track_table_error: str
+    ) -> None:
+        """This method helps in pushing event of program track table error.
+        :param program_track_table_error: program track table error.
+        """
+        self.program_track_table_error = program_track_table_error
+        self.push_change_archive_events(
+            "programTrackTableError",
+            program_track_table_error,
         )
 
     @command(
@@ -200,6 +224,9 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 logger=self.logger,
                 update_pointing_program_track_table_callback=(
                     self.update_pointing_program_track_table_callback
+                ),
+                update_program_track_table_error_callback=(
+                    self.update_program_track_table_error_callback
                 ),
                 track_table_entries=self.TrackTableEntries,
                 pointing_calculation_period=self.PointingCalculationPeriod,
