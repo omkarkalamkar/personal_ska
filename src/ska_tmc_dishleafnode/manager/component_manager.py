@@ -142,7 +142,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
-        self.dish_pointing_model_param = ["" for _ in range(6)]
+        self.dish_pointing_model_param = [
+            [
+                "band1PointingModelParams",
+                "band2PointingModelParams",
+                "band3PointingModelParams",
+                "band4PointingModelParams",
+                "band5APointingModelParams",
+                "band5BPointingModelParams",
+            ],
+            ["", "", "", "", "", ""],
+        ]
         self.command_result_update_lock = Lock()
         self.tango_operation_execution_lock = Lock()
         self.observer = None
@@ -1471,21 +1481,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self._update_dishmode_callback(dish_mode)
 
     def update_dish_pointing_model_param_callback(
-        self: DishLNComponentManager, dish_param: str, band_id
+        self: DishLNComponentManager, dish_param: str, band_name: str
     ) -> None:
         """
-        Update the dish mode of the given dish and call
-        the relative callbacks if available.
+        Update the dish pointing model parameter for the specified band and
+        invoke the relevant callbacks if available.
 
-        :param dishMode: Dish mode of the device
-        :type dishMode: DishMode
+        :param dish_param: New value for the dish pointing model parameter.
+        :type dish_param: str
+        :param band_name: Name of the band to update.
+        :type band_name: str
         """
         with self.lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-            self.dish_pointing_model_param[band_id] = dish_param
-            self.logger.info(f"dish_params value updated to {dish_param}")
+
+            bands = self.dish_pointing_model_param[0]
+            params = self.dish_pointing_model_param[1]
+
+            try:
+                index = bands.index(band_name)
+                params[index] = dish_param
+                self.logger.info(
+                    "dish_params value for :'{band_name}' "
+                    + "updated to :'{dish_param}'"
+                )
+            except ValueError:
+                self.logger.error(
+                    f"Band name '{band_name}' not found in parameters."
+                )
+                return
+
             if self._update_dish_pointing_model_param_callback:
                 self._update_dish_pointing_model_param_callback(
                     self.dish_pointing_model_param

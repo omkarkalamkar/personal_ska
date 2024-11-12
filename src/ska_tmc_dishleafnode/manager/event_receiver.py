@@ -105,14 +105,12 @@ class DishLNEventReceiver(EventReceiver):
                     stateless=True,
                 )
                 for attr_name in pointing_model_params_attrs:
-                    band_id = 0
                     dish_dev_proxy.subscribe_event(
                         attr_name,
                         tango.EventType.CHANGE_EVENT,
-                        self.create_event_handler(band_id=band_id),
+                        self.handle_pointing_model_params,
                         stateless=True,
                     )
-                    band_id = band_id + 1
 
             except Exception as exception:
                 log_msg = (
@@ -123,17 +121,8 @@ class DishLNEventReceiver(EventReceiver):
             else:
                 self.subscribed = True
 
-    def create_event_handler(self, band_id):
-        """This method returns a callable that handles the event"""
-
-        def handler(event):
-            """This callable returns handler method"""
-            return self.handle_pointing_model_params(event, band_id)
-
-        return handler
-
     def handle_pointing_model_params(
-        self: DishLNEventReceiver, event_flag: tango.EventData, band_id
+        self: DishLNEventReceiver, event_flag: tango.EventData
     ):
         """Method to handle and update the latest value of dish_pointing_model
         params.
@@ -154,7 +143,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_dish_pointing_model_param_callback(
-            new_value, band_id
+            new_value, event_flag.attr_value.name
         )
         self.log_event_exit("handle_dish_mode_event")
 
