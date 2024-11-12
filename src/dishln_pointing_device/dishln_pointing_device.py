@@ -183,11 +183,11 @@ class DishPointingDevice(TMCBaseLeafDevice):
 
         self.register_command_object(
             "GenerateProgramTrackTable",
-            GenerateProgramTrackTable(self.logger),
+            GenerateProgramTrackTable(self.logger, self.component_manager),
         )
         self.register_command_object(
             "StopProgramTrackTable",
-            StopProgramTrackTable(self.logger),
+            StopProgramTrackTable(self.logger, self.component_manager),
         )
 
 
