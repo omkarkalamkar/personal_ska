@@ -262,14 +262,18 @@ def update_track_table_errors_callback(value):
     logger.info("Track Table error is: %s", value)
 
 
+def update_health_state_callback(temp):
+    """An empty health state callback"""
+    logger.debug(temp)
+
+
 @pytest.fixture(scope="session")
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
-        DISH_MASTER_DEVICE,
+        dish_dev_name=DISH_MASTER_DEVICE,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
@@ -281,10 +285,9 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=5,
-        elevation_max_limit=90.0,
-        elevation_min_limit=17.5,
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
+        _update_health_state_callback=update_health_state_callback,
     )
 
     start_time = time.time()
@@ -307,10 +310,9 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
     probe for Dish Leaf Node.
     """
     cm = DishLNComponentManager(
-        DISH_MASTER_DEVICE,
+        dish_dev_name=DISH_MASTER_DEVICE,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
         _event_receiver=False,
         _liveliness_probe=LivelinessProbeType.NONE,
@@ -324,8 +326,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=5,
-        elevation_max_limit=90.0,
-        elevation_min_limit=17.5,
+        _update_health_state_callback=update_health_state_callback,
     )
     cm.actual_pointing_process_alive.set()
     if cm.event_receiver:
@@ -342,10 +343,9 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
 def cm_new() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
-        DISH_MASTER_DEVICE,
+        dish_dev_name=DISH_MASTER_DEVICE,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
@@ -357,8 +357,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=5,
-        elevation_max_limit=90.0,
-        elevation_min_limit=17.5,
+        _update_health_state_callback=update_health_state_callback,
     )
 
     elapsed_time = 0

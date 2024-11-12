@@ -109,13 +109,17 @@ def update_last_pointing_data_callback(temp):
     logger.debug(temp)
 
 
+def update_health_state_callback(temp):
+    """An empty health state callback"""
+    logger.debug(temp)
+
+
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
         device,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         _update_dishmode_callback=dish_mode_callback,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
@@ -126,6 +130,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
+        _update_health_state_callback=update_health_state_callback,
     )
     return cm
 

@@ -182,9 +182,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
         """
 
         self.component_manager.set_change_pointing_event.set()
-        while not self.component_manager.set_change_pointing_event.set():
-            "generate programTrackTable"
-
         return ([ResultCode.OK], ["offset change event set"])
 
     def create_component_manager(self) -> DishlnPointingDataComponentManager:

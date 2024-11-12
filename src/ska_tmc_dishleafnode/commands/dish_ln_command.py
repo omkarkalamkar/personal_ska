@@ -47,6 +47,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.op_state_model = op_state_model
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
+        self.dishln_pointing_device_adapter = None
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
@@ -63,9 +64,52 @@ class DishLNCommand(TmcLeafNodeCommand):
                     )
                 )
                 self.dish_master_adapter.proxy.set_timeout_millis(5000)
-                self.logger.info("Adapter created successfully")
+                self.logger.info("Dish master adapter created successfully")
                 self.component_manager.set_dish_adapter(
                     self.dish_master_adapter
+                )
+            except ConnectionFailed as connection_failed:
+                elapsed_time = time.time() - start_time
+                if elapsed_time > timeout:
+                    return (
+                        ResultCode.FAILED,
+                        str(connection_failed),
+                    )
+            except DevFailed as device_failed:
+                elapsed_time = time.time() - start_time
+                if elapsed_time > timeout:
+                    return (
+                        ResultCode.FAILED,
+                        str(device_failed),
+                    )
+
+            except (AttributeError, ValueError, TypeError) as exception:
+                return (
+                    ResultCode.FAILED,
+                    str(exception),
+                )
+
+        elapsed_time = 0
+        start_time = time.time()
+        while (
+            self.dishln_pointing_device_adapter is None
+            and elapsed_time <= timeout
+        ):
+            try:
+                self.dishln_pointing_device_adapter = (
+                    self._adapter_factory.get_or_create_adapter(
+                        self.component_manager.dishln_pointing_dev_name,
+                        AdapterType.DISHLN_POINTING_DEVICE,
+                    )
+                )
+                self.dishln_pointing_device_adapter.proxy.set_timeout_millis(
+                    5000
+                )
+                self.logger.info(
+                    "DISHLN pointing device adapter created successfully"
+                )
+                self.component_manager.set_dishln_pointing_device_adapter(
+                    self.dishln_pointing_device_adapter
                 )
             except ConnectionFailed as connection_failed:
                 elapsed_time = time.time() - start_time

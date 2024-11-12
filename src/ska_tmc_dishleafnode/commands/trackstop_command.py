@@ -70,15 +70,11 @@ class TrackStop(DishLNCommand):
             return result_code, message
         # Stop the thread which started when Track command was invoked
 
-        self.component_manager.stop_track_table_process()
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
-
         self.logger.debug("Released tango lock")
-
-        self.component_manager.stop_track_table_process()
-
+        self.dishln_pointing_device_adapter.StopProgramTrackTable()
         return result_code[0], message[0]
