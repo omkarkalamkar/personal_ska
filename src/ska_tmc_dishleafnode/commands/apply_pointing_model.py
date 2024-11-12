@@ -113,7 +113,8 @@ class ApplyPointingModel(DishLNCommand):
         if not tm_data_sources or not tm_data_filepath:
             return (
                 {},
-                f"Provide both tm data sources and tm data filepath in input paramter",
+                "Provide both tm data sources and tm data filepath in input"
+                + " paramter",
             )
 
         result = {}
