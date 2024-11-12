@@ -1,7 +1,7 @@
 """This module provides base class for the mappings/patterns"""
 
-from logging import Logger
 import threading
+from logging import Logger
 
 
 class BaseScanMapping:
@@ -32,16 +32,14 @@ class BaseScanMapping:
 
         if "target" in self.component_manager.target_data["pointing"]:
             if (
-                    self.component_manager.target_data["pointing"]["target"][
-                        "reference_frame"
-                    ].lower()
-                    == "special"
+                self.component_manager.target_data["pointing"]["target"][
+                    "reference_frame"
+                ].lower()
+                == "special"
             ):
-                self.target = (
-                    self.component_manager.target_data["pointing"]["target"][
-                        "target_name"
-                    ]
-                )
+                self.target = self.component_manager.target_data["pointing"][
+                    "target"
+                ]["target_name"]
             else:
                 self.target = [
                     self.component_manager.target_data["pointing"]["target"][

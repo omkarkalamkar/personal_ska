@@ -170,9 +170,10 @@ class DishPointingDevice(TMCBaseLeafDevice):
             self.component_manager.current_mapping_scan_obj = PointMappingScan(
                 pattern_name="point",
                 component_manager=self.component_manager,
-                logger=self.logger
+                logger=self.logger,
             )
-            self.component_manager.current_mapping_scan_obj.set_target_and_start_process()
+            current_scan_obj = self.component_manager.current_mapping_scan_obj
+            current_scan_obj.set_target_and_start_process()
 
         self.logger.info(
             "GenerateProgramTrackTable command executed successfully"

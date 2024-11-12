@@ -22,6 +22,10 @@ class PointMappingScan(BaseScanMapping):
         """
         Initialize the PointMappingScan object.
         :param dish_node (object): An object representing the dish node.
-        :param logger (object, optional): An object for logging. Defaults to None.
+        :param logger (object, optional): An object for logging.
         """
-        super().__init__(pattern_name=pattern_name, component_manager=component_manager, logger=logger)
+        super().__init__(
+            pattern_name=pattern_name,
+            component_manager=component_manager,
+            logger=logger,
+        )
