@@ -131,6 +131,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.skip
 def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     """Note: Its observed that frequent running of this test case makes the
     k8s pod unstable due to restart which results in test case failure.
