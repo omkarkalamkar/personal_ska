@@ -179,6 +179,12 @@ class DishLNEventReceiver(EventReceiver):
                     self.handle_pointing_program_track_table_event,
                     stateless=True,
                 )
+                dishln_pointing_dev_proxy.subscribe_event(
+                    "programTrackTableError",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_program_track_table_error_event,
+                    stateless=True,
+                )
             except Exception as exception:
                 log_msg = (
                     "Event not working for "
@@ -443,4 +449,34 @@ class DishLNEventReceiver(EventReceiver):
         # self.log_event_exit("handle_pointing_program_track_table_event")
         self._logger.debug(
             "pointingProgramTrackTable value updated to %s", new_value
+        )
+
+    def handle_program_track_table_error_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
+        """Method to handle and update the latest value of
+        program track table error attribute.
+
+        :parameter event_flag: To flag the change in event
+            for programTrackTableError.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(
+                event_flag.device.dev_name()
+            )
+            return
+        new_value = event_flag.attr_value.value
+        self._logger.debug("New value is %s", new_value)
+        if new_value:
+            self._logger.debug("updating track table error value")
+            self._component_manager.current_track_table_error = [new_value]
+        # self.log_event_exit("handle_pointing_program_track_table_event")
+        self._logger.debug(
+            "pointingProgramTrackTable error updated to %s", new_value
         )

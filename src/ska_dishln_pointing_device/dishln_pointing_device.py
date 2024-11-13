@@ -93,7 +93,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         occurred during program track table calculation
         :return: str
         """
-        return json.dumps(self.program_track_table_error)
+        return self.program_track_table_error
 
     @attribute(dtype=str, access=AttrWriteType.READ_WRITE)
     def targetData(self) -> str:
