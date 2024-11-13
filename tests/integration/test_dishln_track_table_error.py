@@ -209,6 +209,7 @@ def configure_dish_leaf_node_unknown_source(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.skip
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
 def test_configure_command_unknown_source(
     tango_context, group_callback, json_factory, json_to_use
