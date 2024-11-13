@@ -52,17 +52,11 @@ class DishLeafNode(TMCBaseLeafDevice):
     DishMasterFQDN = device_property(
         dtype="str",
         doc="FQDN of Dish Master Device",
-        default_value=(
-            "tango://skancra010:45896/mid-dish/dish-manager/ska001#dbase=no",
-        ),
     )
 
     DishlnPointingDeviceFQDN = device_property(
         dtype="str",
         doc="FQDN of DishLeaf Node Pointing Device",
-        default_value=(
-            "tango://skancra010:30099/mid-tmc/dish-pointing/d0001#dbase=no",
-        ),
     )
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)

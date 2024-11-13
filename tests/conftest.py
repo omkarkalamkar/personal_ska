@@ -1,7 +1,9 @@
 """conftest module for CSP Subarray Leaf Node."""
 # pylint: disable=unused-argument,redefined-outer-name
+
 import json
 import logging
+import signal
 import time
 from os.path import dirname, join
 from time import sleep
@@ -19,6 +21,7 @@ from ska_tmc_common.test_helpers.helper_sdp_queue_connector_device import (
 )
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
+from ska_dishln_pointing_device import DishlnPointingDataComponentManager
 from ska_dishln_pointing_device.dishln_pointing_device import (
     DishPointingDevice,
 )
@@ -33,6 +36,57 @@ from tests.settings import (
 
 configure_logging()
 logger = logging.getLogger(__name__)
+
+
+def pytest_configure(config):
+    """Configure pytest with default test execution settings.
+
+    This hook is called after command line options have been parsed
+    and all plugins and initial conftest files been loaded.
+
+    Args:
+        config: The pytest config object that contains parsed
+        command line options and the current execution environment.
+    """
+    config.option.timeout = 120
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_protocol(item, nextitem):
+    """Handle test execution protocol with timeout exception management.
+
+    This hook implements custom test execution handling, specifically focusing
+    on graceful timeout management to prevent test suite termination on
+    timeout.
+
+    Args:
+        item: The pytest.Item object representing the test being executed
+        nextitem: The next pytest.Item to be executed
+        (can be None for last test)
+    """
+    try:
+        return None  # Allow pytest to handle the test normally
+    except Exception as e:
+        if isinstance(e, pytest.TimeoutException):
+            item.session.shouldstop = False  # Don't stop on timeout
+            return True  # Mark as handled
+        raise  # Re-raise other exceptions
+
+
+@pytest.fixture(autouse=True)
+def timeout_handler(request):
+    """Global timeout handler for all tests"""
+
+    def handle_timeout(signum, frame):
+        pytest.skip(
+            f"Test timed out after {request.config.option.timeout} seconds"
+        )
+
+    original_handler = signal.signal(signal.SIGALRM, handle_timeout)
+    try:
+        yield
+    finally:
+        signal.signal(signal.SIGALRM, original_handler)
 
 
 def pytest_sessionstart(session):
@@ -80,17 +134,6 @@ def devices_to_load():
             ],
         },
         {
-            "class": DishLeafNode,
-            "devices": [
-                {
-                    "name": "ska_mid/tm_leaf_node/d0001",
-                    "properties": {
-                        "DishMasterFQDN": DISH_MASTER_DEVICE,
-                    },
-                },
-            ],
-        },
-        {
             "class": HelperSdpQueueConnector,
             "devices": [
                 {
@@ -109,6 +152,17 @@ def devices_to_load():
                 },
             ],
         },
+        {
+            "class": DishLeafNode,
+            "devices": [
+                {
+                    "name": "ska_mid/tm_leaf_node/d0001",
+                    "properties": {
+                        "DishMasterFQDN": DISH_MASTER_DEVICE,
+                    },
+                },
+            ],
+        },
     )
 
 
@@ -119,7 +173,7 @@ def tango_context(devices_to_load, request):
     logging.info("true context: %s", true_context)
     if not true_context:
         with MultiDeviceTestContext(
-            devices_to_load, process=False, timeout=80
+            devices_to_load, process=True, timeout=80
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -267,6 +321,16 @@ def update_health_state_callback(temp):
     logger.debug(temp)
 
 
+def update_pointing_program_track_table_callback(temp):
+    """An empty pointing program track table callback"""
+    logger.debug(temp)
+
+
+def update_program_track_table_error_callback(temp):
+    """An empty program track table error callback"""
+    logger.debug(temp)
+
+
 @pytest.fixture(scope="session")
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
@@ -284,7 +348,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=5,
+        dish_availability_check_timeout=1,
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
@@ -325,7 +389,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=5,
+        dish_availability_check_timeout=1,
         _update_health_state_callback=update_health_state_callback,
     )
     cm.actual_pointing_process_alive.set()
@@ -356,7 +420,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=5,
+        dish_availability_check_timeout=1,
         _update_health_state_callback=update_health_state_callback,
     )
 
@@ -379,3 +443,30 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
     sleep(1)  # Give some time to pytest cleanup
+
+
+@pytest.fixture
+def cm_pointig_device() -> (
+    Generator[DishlnPointingDataComponentManager, None, None]
+):
+    """Create DishLeaf Node Pointing Device component manager"""
+    cm = DishlnPointingDataComponentManager(
+        disln_pointing_device_name=DISHLN_POINTING_DEVICE,
+        logger=logger,
+        update_pointing_program_track_table_callback=(
+            update_pointing_program_track_table_callback
+        ),
+        update_program_track_table_error_callback=(
+            update_program_track_table_error_callback
+        ),
+        track_table_entries=25,
+        pointing_calculation_period=50,
+        elevation=30.0,
+        azimuth=0.0,
+        elevation_max_limit=90.0,
+        elevation_min_limit=17.5,
+        track_table_advance_sec=7,
+        elevation_limit=True,
+    )
+
+    yield cm

@@ -188,8 +188,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
-        # if _liveliness_probe != LivelinessProbeType.NONE:
-        #     self.start_liveliness_probe(_liveliness_probe)
+        if _liveliness_probe != LivelinessProbeType.NONE:
+            self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None

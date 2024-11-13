@@ -66,9 +66,6 @@ def test_configure_command_completed(
         }
     )
 
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
-
 
 def test_configure_command_completed_partial_config(
     tango_context, cm_without_er_lp, task_callback, json_factory
@@ -97,8 +94,6 @@ def test_configure_command_completed_partial_config(
         },
         lookahead=6,
     )
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_partial_config_missing_key(
@@ -131,8 +126,6 @@ def test_configure_command_completed_partial_config_missing_key(
         },
         lookahead=12,
     )
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
 
 
 @pytest.mark.skip(reason="The scenario is not getting simulated properly")
