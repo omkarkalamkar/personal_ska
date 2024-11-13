@@ -73,9 +73,11 @@ class ApplyPointingModel(DishLNCommand):
         :return: : None
         :rtype: None
         """
+
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "ApplyPointingModel"
+
         result_code, message = self.do(argin)
 
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
@@ -91,7 +93,7 @@ class ApplyPointingModel(DishLNCommand):
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
             logger.info(
-                "The ApplyPointingModel command is invoked successfully on %s",
+                "The ApplyPointingModel command invoked successfully %s",
                 self.dish_master_adapter.dev_name,
             )
 

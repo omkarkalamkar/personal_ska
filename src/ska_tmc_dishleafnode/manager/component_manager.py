@@ -12,7 +12,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import tango
@@ -142,17 +142,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
-        self.dish_pointing_model_param = [
-            [
-                "band1PointingModelParams",
-                "band2PointingModelParams",
-                "band3PointingModelParams",
-                "band4PointingModelParams",
-                "band5APointingModelParams",
-                "band5BPointingModelParams",
-            ],
-            ["", "", "", "", "", ""],
-        ]
+        self.dish_pointing_model_param: Dict[str, str] = {
+            "band1pointingmodelparams": "",
+            "band2pointingmodelparams": "",
+            "band3pointingmodelparams": "",
+            "band4pointingmodelparams": "",
+            "band5apointingmodelparams": "",
+            "band5bpointingmodelparams": "",
+        }
         self.command_result_update_lock = Lock()
         self.tango_operation_execution_lock = Lock()
         self.observer = None
@@ -381,16 +378,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.STANDBY_FP,
                     DishMode.STOW,
                     DishMode.MAINTENANCE,
-                ],
-                "ApplyPointingModel": [
-                    DishMode.STANDBY_FP,
-                    DishMode.OPERATE,
-                    DishMode.STANDBY_LP,
-                    DishMode.CONFIG,
-                    DishMode.MAINTENANCE,
-                    DishMode.STARTUP,
-                    DishMode.SHUTDOWN,
-                    DishMode.UNKNOWN,
                 ],
             }
 
@@ -1188,6 +1175,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+
         apply_pointing_model_command = ApplyPointingModel(
             self,
             self.op_state_model,
@@ -1197,11 +1185,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         task_status, response = self.submit_task(
             apply_pointing_model_command.invoke_apply_pointing_model,
             args=[argin, self.logger],
-            is_cmd_allowed=self.is_command_allowed_callable(
-                "ApplyPointingModel"
-            ),
             task_callback=task_callback,
         )
+
         self.logger.info(
             "ApplyPointingModel command queued for execution with argin: %s",
             argin,
@@ -1481,7 +1467,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self._update_dishmode_callback(dish_mode)
 
     def update_dish_pointing_model_param_callback(
-        self: DishLNComponentManager, dish_param: str, band_name: str
+        self, dish_param: str, band_name: str
     ) -> None:
         """
         Update the dish pointing model parameter for the specified band and
@@ -1497,17 +1483,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
 
-            bands = self.dish_pointing_model_param[0]
-            params = self.dish_pointing_model_param[1]
-
-            try:
-                index = bands.index(band_name)
-                params[index] = dish_param
+            if band_name in self.dish_pointing_model_param:
+                self.dish_pointing_model_param[band_name] = dish_param
                 self.logger.info(
-                    "dish_params value for :'{band_name}' "
-                    + "updated to :'{dish_param}'"
+                    f"Dish parameter: {band_name} updated to {dish_param}."
                 )
-            except ValueError:
+            else:
                 self.logger.error(
                     f"Band name '{band_name}' not found in parameters."
                 )

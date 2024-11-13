@@ -197,7 +197,9 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "kValue",
         "commandCallInfo",
         "trackTableErrors",
-        timeout=50,
+        "globalPointingModelParams",
+        "band2PointingModelParams",
+        timeout=80,
     )
     return group_callback
 

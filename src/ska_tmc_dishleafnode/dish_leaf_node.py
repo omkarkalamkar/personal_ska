@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from typing import List, Tuple, Union
 
-import tango
 from numpy import isnan
 from numpy import nan as NaN
 from ska_control_model import HealthState
@@ -130,7 +129,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._isSubsystemAvailable = True
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
-        self._global_pointing_model_params = ""
+        self._global_pointing_model_params = "{}"
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
@@ -245,7 +244,8 @@ class DishLeafNode(TMCBaseLeafDevice):
         """Push an event for the change of dishMode attribute."""
         self._global_pointing_model_params = global_pointing_model_params
         self.push_change_archive_events(
-            "globalPointingModelParams", self._global_pointing_model_params
+            "globalPointingModelParams",
+            json.dumps(self._global_pointing_model_params),
         )
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
@@ -337,10 +337,13 @@ class DishLeafNode(TMCBaseLeafDevice):
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
 
-    @attribute(dtype=tango.IMAGE, access=AttrWriteType.READ)
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ,
+    )
     def globalPointingModelParams(self: DishLeafNode) -> str:
         """Returns the globalpointingModelparam attribute value."""
-        return self._global_pointing_model_params
+        return json.dumps(self._global_pointing_model_params)
 
     @kValue.write
     def kValue(self: DishLeafNode, k_value: int) -> None:

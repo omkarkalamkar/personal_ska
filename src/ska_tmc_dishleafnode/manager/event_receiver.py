@@ -3,6 +3,7 @@ Event Receiver for Dish Leaf Node
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from logging import Logger
 from time import sleep
@@ -143,7 +144,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.update_dish_pointing_model_param_callback(
-            new_value, event_flag.attr_value.name
+            json.dumps(new_value.tolist()), event_flag.attr_value.name
         )
         self.log_event_exit("handle_dish_mode_event")
 

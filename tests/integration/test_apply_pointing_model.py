@@ -6,18 +6,34 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 
-from tests.settings import COMMAND_COMPLETED, DISH_LEAF_NODE_DEVICE, logger
+from tests.settings import (
+    COMMAND_COMPLETED,
+    DISH_LEAF_NODE_DEVICE,
+    DISH_MASTER_DEVICE,
+    GPM_JSON,
+    logger,
+)
 
 
 def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
-
+    dish_master_dev = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
+    )
+    dish_leaf_node.subscribe_event(
+        "globalPointingModelParams",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["globalPointingModelParams"],
+    )
+    dish_master_dev.subscribe_event(
+        "band2PointingModelParams",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["band2PointingModelParams"],
     )
 
     result, unique_id = dish_leaf_node.ApplyPointingModel(gpm_json)
@@ -28,7 +44,11 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_COMPLETED),
-        lookahead=4,
+        lookahead=8,
+    )
+    group_callback["globalPointingModelParams"].assert_change_event(
+        GPM_JSON,
+        lookahead=8,
     )
 
 
@@ -128,6 +148,7 @@ def ApplyPointingModel_with_invalid_json(
     assert "JSON Error" in message
 
 
+@pytest.mark.test
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_apply_pointing_model(tango_context, group_callback, json_factory):
