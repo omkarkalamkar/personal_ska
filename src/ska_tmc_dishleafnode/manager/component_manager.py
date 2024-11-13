@@ -1677,12 +1677,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             self.logger.debug("Program Track Table Calculation stopped.")
 
-            with self.tango_operation_execution_lock:
-                self.logger.debug("Grabbed tango operation lock")
-                self.dish_adapter.programTrackTable = []
-
-            self.logger.debug("Cleared programTrackTable attribute.")
-
         except ValueError as value_error:
             self.logger.error("Exception is: %s", str(value_error))
             self.current_track_table_error = [str(value_error)]
@@ -1763,6 +1757,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug("Stopping Track table process")
             self.track_table_process.join()
             self.logger.debug("Stopped Track table process")
+            with self.tango_operation_execution_lock:
+                self.logger.debug("Acquired tango operation lock")
+                self.dish_adapter.programTrackTable = []
+            self.logger.debug("Cleared programTrackTable attribute.")
             self.logger.debug(
                 f"Is track_table_process alive:"
                 f" {self.track_table_process.is_alive()}"
