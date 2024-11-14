@@ -116,7 +116,7 @@ track_load_static_off\_command
    :show-inheritance:
 
 trackstop\_command
----------------------------------------------------------
+---------------------------------------------------------------
 
 .. automodule:: ska_tmc_dishleafnode.commands.trackstop_command
    :members:
@@ -124,7 +124,7 @@ trackstop\_command
    :show-inheritance:
 
 apply_pointing_model\_command
----------------------------------------------------------
+------------------------------------------------------------------
 
 .. automodule:: ska_tmc_dishleafnode.commands.apply_pointing_model
    :members:

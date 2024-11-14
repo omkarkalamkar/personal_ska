@@ -1,7 +1,10 @@
 """
 ApplyPointingModel command class for DishLeafNode.
-"""
 
+This module contains the implementation of the ApplyPointingModel command
+for the DishLeafNode component. It provides functionality to apply a
+pointing model to the dish based on the provided TelModel URI.
+"""
 from __future__ import annotations
 
 import json
@@ -162,16 +165,16 @@ class ApplyPointingModel(DishLNCommand):
         """
         Method to invoke ApplyPointingModel command on DishMaster.
         Example JSON:
-            {
-            "interface":
-            "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0",
-            "tm_data_sources":
-            ["car://gitlab.com/ska-telescope/ska-tmc/
-            ska-tmc-simulators?main#tmdata"],
-            "tm_data_filepath":
-            "instrument/ska_mid1/global_pointing_model_data/
-            global_pointing_model.json"
-            }
+        {
+        "interface":
+        "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0",
+        "tm_data_sources":
+        ["car://gitlab.com/ska-telescope/ska-tmc/
+        ska-tmc-simulators?main#tmdata"],
+        "tm_data_filepath":
+        "instrument/ska_mid1/global_pointing_model_data/
+        global_pointing_model.json"
+        }
 
         param argin: Global pointing model data JSON
 
