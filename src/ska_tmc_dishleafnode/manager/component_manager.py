@@ -1546,9 +1546,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
             try:
-                if program_track_table:
-                    self.dish_adapter.programTrackTable = program_track_table
-                    self.logger.debug("ProgramTrackTable Updated")
+                self.dish_adapter.programTrackTable = program_track_table
+                self.logger.debug("ProgramTrackTable Updated")
             except BaseException as exception:
                 message = "Exception while writing tracktable: %s" + str(
                     exception
