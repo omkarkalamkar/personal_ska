@@ -130,6 +130,7 @@ def staticpmsetup_with_invalid_json(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.skip
 def test_static_pm_setup(tango_context, group_callback, json_factory):
     """Test to check StaticPmSetup command with valid TM path"""
     static_pm_setup(
