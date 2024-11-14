@@ -71,7 +71,7 @@ class ApplyPointingModel(DishLNCommand):
         :type task_callback: TaskCallbackType
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
-        :return: : None
+        :return: None
         :rtype: None
         """
 
@@ -161,7 +161,7 @@ class ApplyPointingModel(DishLNCommand):
     def do(self: ApplyPointingModel, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke ApplyPointingModel command on DishMaster.
-         Example JSON:
+        Example JSON:
             {
             "interface":
             "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0",
@@ -175,8 +175,7 @@ class ApplyPointingModel(DishLNCommand):
 
         param argin: Global pointing model data JSON
 
-        return:
-            (ResultCode, str)
+        return:(ResultCode, str)
         """
 
         result_code, message = self.init_adapter()
