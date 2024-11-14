@@ -299,7 +299,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=1,
+        dish_availability_check_timeout=3,
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
@@ -315,6 +315,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
+    sleep(1)
     # pylint: enable=unnecessary-dunder-call
 
 
@@ -339,7 +340,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=1,
+        dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
     )
     cm.actual_pointing_process_alive.set()
@@ -370,7 +371,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=1,
+        dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
     )
 
