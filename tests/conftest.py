@@ -315,7 +315,6 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
-    sleep(1)
     # pylint: enable=unnecessary-dunder-call
 
 
@@ -350,7 +349,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
-    sleep(1)  # Give some time to pytest cleanup
+    # Give some time to pytest cleanup
     # pylint: enable=unnecessary-dunder-call
 
 
@@ -393,7 +392,6 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
-    sleep(1)  # Give some time to pytest cleanup
 
 
 @pytest.fixture
