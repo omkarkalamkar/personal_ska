@@ -48,7 +48,7 @@ def configure_dish_leaf_node_source_not_visible(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    time.sleep(1)
+
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
@@ -112,8 +112,6 @@ def configure_dish_leaf_node_source_not_visible(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1623
-@pytest.mark.xfail(reason="Test fails if the source is visible.")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
@@ -223,7 +221,6 @@ def configure_dish_leaf_node_unknown_source(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1623
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])

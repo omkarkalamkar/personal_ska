@@ -111,10 +111,6 @@ def configure_dish_leaf_node(
     db.delete_device(DISH_MASTER_DEVICE)
     dish_master_admin_proxy.RestartServer()
 
-    # Added a wait for the completion of dish device deletion from TANGO
-    # database and the dish device restart
-    sleep(5)
-
     monitor_track_table_errors_attribute(
         dish_leaf_node, track_table_error_before_configure
     )
@@ -139,25 +135,9 @@ def configure_dish_leaf_node(
     dish_master_admin_proxy.RestartServer()
     dish1_leaf_admin_dev_proxy.RestartServer()
 
-    # When device restart it will around 15 sec to up again
-    # so wait for the dish1 dishmode attribute to be in ptoper state
-    sleep(20)
-    dish1_info = db.get_device_info(DISH_MASTER_DEVICE)
-    logger.info("dish1_info: %s", dish1_info)
-
-    dish_leaf1_info = db.get_device_info(DISH_LEAF_NODE_DEVICE)
-    logger.info("dish_leaf1_info: %s", dish_leaf1_info)
-
-    logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
-
     # delete stale dish leaf node proxy from the dictionary and create new one
     del dev_factory.dev_proxys["ska_mid/tm_leaf_node/d0001"]
-    logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
 
-    dish_leaf_node = dev_factory.get_device(dishln_name)
-    logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
-
-    # logger.info("DishLN State: %s", dish_leaf_node.state())
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
@@ -178,7 +158,6 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.skip()
 @pytest.mark.sah1623
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
