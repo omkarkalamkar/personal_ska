@@ -76,7 +76,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         track_table_entries: int,
         pointing_calculation_period: int,
         _update_dishmode_callback: Callable,
-        _update_dish_pointing_model_param_callback: Callable,
+        _update_dish_pointing_model_param: Callable,
         _update_pointingstate_callback: Callable,
         communication_state_callback: Callable,
         component_state_callback: Callable,
@@ -173,8 +173,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.reset_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
-        self._update_dish_pointing_model_param_callback = (
-            _update_dish_pointing_model_param_callback
+        self._update_dish_pointing_model_param = (
+            _update_dish_pointing_model_param
         )
         self._update_pointingstate_callback = _update_pointingstate_callback
         self._update_track_table_errors_callback = (
@@ -1466,7 +1466,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
-    def update_dish_pointing_model_param_callback(
+    def update_dish_pointing_model_param(
         self, dish_param: str, band_name: str
     ) -> None:
         """
@@ -1494,8 +1494,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
                 return
 
-            if self._update_dish_pointing_model_param_callback:
-                self._update_dish_pointing_model_param_callback(
+            if self._update_dish_pointing_model_param:
+                self._update_dish_pointing_model_param(
                     self.dish_pointing_model_param
                 )
 

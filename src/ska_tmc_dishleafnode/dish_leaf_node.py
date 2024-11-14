@@ -953,7 +953,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             _update_dishmode_callback=self.update_dishmode_callback,
-            _update_dish_pointing_model_param_callback=(
+            _update_dish_pointing_model_param=(
                 self.update_global_pointing_param_callback
             ),
             _update_pointingstate_callback=self.update_pointingstate_callback,

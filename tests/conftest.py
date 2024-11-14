@@ -282,9 +282,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         track_table_entries=25,
         pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
-        _update_dish_pointing_model_param_callback=(
-            pointing_model_param_callaback
-        ),
+        _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
         component_state_callback=communication_state_callback,
@@ -326,9 +324,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         track_table_entries=25,
         pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
-        _update_dish_pointing_model_param_callback=(
-            pointing_model_param_callaback
-        ),
+        _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _event_receiver=False,
         _liveliness_probe=LivelinessProbeType.NONE,
         _update_pointingstate_callback=pointing_state_callback,
@@ -364,9 +360,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         track_table_entries=25,
         pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
-        _update_dish_pointing_model_param_callback=(
-            pointing_model_param_callaback
-        ),
+        _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
         component_state_callback=communication_state_callback,

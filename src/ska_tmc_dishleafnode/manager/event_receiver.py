@@ -143,7 +143,7 @@ class DishLNEventReceiver(EventReceiver):
             )
             return
         new_value = event_flag.attr_value.value
-        self._component_manager.update_dish_pointing_model_param_callback(
+        self._component_manager.update_dish_pointing_model_param(
             json.dumps(new_value.tolist()), event_flag.attr_value.name
         )
         self.log_event_exit("handle_dish_mode_event")
