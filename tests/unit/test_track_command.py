@@ -21,7 +21,7 @@ def get_track_input_str(
 
 
 def test_track_command_completed(
-    tango_context_process_true, task_callback, cm, group_callback
+    tango_context, task_callback, cm, group_callback
 ):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)

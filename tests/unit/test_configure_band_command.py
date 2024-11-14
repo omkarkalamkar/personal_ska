@@ -11,7 +11,7 @@ from tests.settings import simulate_result_code_event
 
 
 def test_configure_band_command_completed(
-    tango_context_process_true, task_callback, cm, group_callback
+    tango_context, task_callback, cm, group_callback
 ):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()
@@ -52,7 +52,7 @@ def test_configureband_command_adapter_none(task_callback, cm_without_er_lp):
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-def test_configureband_command_not_allowed(tango_context_process_true, cm):
+def test_configureband_command_not_allowed(tango_context, cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configureband_allowed()

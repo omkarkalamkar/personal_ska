@@ -13,7 +13,7 @@ from tests.settings import (
 )
 
 
-def test_set_kvalue_command(tango_context_process_true, cm):
+def test_set_kvalue_command(tango_context, cm):
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
@@ -28,9 +28,7 @@ def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     )
 
 
-def test_dm_available_after_dln_init_or_restart(
-    tango_context_process_true, cm
-):
+def test_dm_available_after_dln_init_or_restart(tango_context, cm):
     """"""
     cm.get_device().update_unresponsive(False, "")
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)

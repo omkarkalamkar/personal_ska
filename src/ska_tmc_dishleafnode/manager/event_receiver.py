@@ -48,26 +48,18 @@ class DishLNEventReceiver(EventReceiver):
         self._event_enter_exit_time: List[datetime] = []
 
     def run(self: DishLNEventReceiver) -> None:
-        self._logger.info(
-            ">>>>>>>>>>>>>>>> %s %s",
-            self._component_manager.dishln_pointing_dev_name,
-            self._component_manager.get_device().dev_name,
-        )
-
         while not self.subscribed:
             dishDevInfo = self._component_manager.get_device()
             if dishDevInfo.dev_name:
                 self.subscribe_dish_master_events(dishDevInfo)
             sleep(self._sleep_time)
         self.subscribed = False
-        timeout = 0
-        while not self.subscribed and timeout < 20:
+        while not self.subscribed:
             if self._component_manager.dishln_pointing_dev_name:
                 self.subscribe_dishlnpd_events(
                     self._component_manager.dishln_pointing_dev_name
                 )
             sleep(self._sleep_time)
-            timeout = timeout + 1
 
     # pylint: disable=unused-argument
     def subscribe_dish_master_events(
@@ -295,7 +287,7 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        # self.log_event_data(event_flag, "handle_achieved_pointing_event")
+        self.log_event_data(event_flag, "handle_achieved_pointing_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -306,7 +298,7 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.achieved_pointing_data.put(new_value)
-        # self.log_event_exit("handle_achieved_pointing_event")
+        self.log_event_exit("handle_achieved_pointing_event")
 
     def handle_long_running_command_result(
         self: DishLNEventReceiver, event_data: tango.EventData
@@ -439,9 +431,9 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        # self.log_event_data(
-        #     event_flag, "handle_pointing_program_track_table_event"
-        # )
+        self.log_event_data(
+            event_flag, "handle_pointing_program_track_table_event"
+        )
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -454,7 +446,7 @@ class DishLNEventReceiver(EventReceiver):
         self._component_manager.update_program_track_table(
             json.loads(new_value)
         )
-        # self.log_event_exit("handle_pointing_program_track_table_event")
+        self.log_event_exit("handle_pointing_program_track_table_event")
         self._logger.debug(
             "pointingProgramTrackTable value updated to %s", new_value
         )
@@ -471,6 +463,9 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
+        self.log_event_data(
+            event_flag, "handle_pointing_program_track_table_event"
+        )
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
@@ -484,7 +479,7 @@ class DishLNEventReceiver(EventReceiver):
         if new_value:
             self._logger.debug("updating track table error value")
             self._component_manager.current_track_table_error = [new_value]
-        # self.log_event_exit("handle_pointing_program_track_table_event")
+        self.log_event_exit("handle_pointing_program_track_table_event")
         self._logger.debug(
             "pointingProgramTrackTable error updated to %s", new_value
         )

@@ -1,4 +1,4 @@
-"""This is init module for DishLeafNode pointing device Component Manager"""
+"""This is init module for DishLeafNode pointing device"""
 
 from .dishlnpd_component_manager.dishlnpd_component_manager import (
     DishlnPointingDataComponentManager,
