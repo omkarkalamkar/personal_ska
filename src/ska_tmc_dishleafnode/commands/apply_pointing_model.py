@@ -108,7 +108,7 @@ class ApplyPointingModel(DishLNCommand):
         This method downloads the JSON, from the given TelModel path.
 
         :param initial_param: contains tm data source URI and file path
-        used to get the global pointing data.
+                                used to get the global pointing data.
 
         :return: dictionary in downloaded JSON and message string if any
         :rtype: Tuple[dict, str]
