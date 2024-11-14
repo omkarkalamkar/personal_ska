@@ -87,9 +87,9 @@ def configure_dish_leaf_node_source_not_visible(
     expected_message = (
         "Exception occurred while calculating track table: "
         + "Minimum/maximum elevation limit has been reached."
-        + "Source is not visible currently.",
+        + "Source is not visible currently."
     )
-    assert dish_leaf_node.trackTableErrors == expected_message
+    assert expected_message in dish_leaf_node.trackTableErrors
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (
