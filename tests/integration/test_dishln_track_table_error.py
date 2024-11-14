@@ -186,12 +186,13 @@ def configure_dish_leaf_node_unknown_source(
     monitor_track_table_errors_attribute(
         dish_leaf_node, track_table_error_before_configure
     )
+
     expected_message = (
-        "Exception occurred while starting programTrackTable calculation: "
-        + "Target description 'Pluto, special' contains unknown *special* "
-        + "body 'Pluto'",
+        "Exception occurred while calculating track table: Exception occurred "
+        + "while starting programTrackTable calculation: Target description "
+        + "'Pluto, special' contains unknown *special* body 'Pluto'"
     )
-    assert dish_leaf_node.trackTableErrors == expected_message
+    assert expected_message in dish_leaf_node.trackTableErrors
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (
@@ -209,7 +210,6 @@ def configure_dish_leaf_node_unknown_source(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.skip
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
 def test_configure_command_unknown_source(
     tango_context, group_callback, json_factory, json_to_use
