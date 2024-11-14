@@ -7,6 +7,7 @@ import datetime
 import json
 import os
 import re
+import signal
 import threading
 import time
 from logging import Logger
@@ -1891,8 +1892,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
-            self.actual_pointing_process.kill()
-            self.actual_pointing_process.join()
+            self.actual_pointing_process.terminate()
+            self.actual_pointing_process.join(timeout=1.0)
+            if self.actual_pointing_process.is_alive():
+                self.logger.info(
+                    "Actual pointing process is still alive,"
+                    "killing it forcefully"
+                )
+                os.kill(self.actual_pointing_process.pid, signal.SIGKILL)
         del self._actual_pointing
         del self.received_pointing_data
         while not self.achieved_pointing_data.empty():
