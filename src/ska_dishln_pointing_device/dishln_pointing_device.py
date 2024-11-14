@@ -73,6 +73,14 @@ class DishPointingDevice(TMCBaseLeafDevice):
             super().do()
             return (ResultCode.OK, "DishPointingDevice Initialized")
 
+    def delete_device(self):
+        # if the init is called more than once
+        # I need to stop all threads
+        if hasattr(self, "component_manager"):
+            # pylint: disable=unnecessary-dunder-call
+            self.component_manager.stop_threads()
+            # pylint: enable=unnecessary-dunder-call
+
     @attribute(
         dtype=ArgType.DevString,
         dformat=AttrDataFormat.SCALAR,

@@ -340,3 +340,8 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
                 str(exception),
             )
             self.update_program_track_table_error_callback(str(exception))
+
+    def stop_threads(self):
+        """Method to stop running threads"""
+        if self.download_thread.is_alive():
+            self.download_thread.join(timeout=5.0)
