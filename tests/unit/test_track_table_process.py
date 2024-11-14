@@ -62,6 +62,7 @@ def test_timestamp_error_in_track_table_point_method(tango_context, cm):
 
 def test_error_in_track_table_point_method(tango_context, cm_pointig_device):
     cm = cm_pointig_device
+    cm.create_converter_obj_and_antenna_obj()
     non_side_real_objects = [
         "Sun",
         "Moon",

@@ -80,7 +80,7 @@ endif
 # Applying exit at fail for k8s tests only
 ifeq ($(MAKECMDGOALS),k8s-test)
 ifeq ($(EXIT_AT_FAIL),true)
-ADD_ARGS += 
+ADD_ARGS += -x
 endif
 endif
 CLUSTER_DOMAIN ?= cluster.local
