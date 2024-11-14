@@ -1,5 +1,3 @@
-import time
-
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -157,7 +155,7 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    time.sleep(1)
+
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
