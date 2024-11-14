@@ -328,6 +328,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             self.logger.debug("Program Track Table Calculation stopped.")
 
             self.logger.debug("Cleared programTrackTable attribute.")
+            self.update_program_track_table([])
 
         except Exception as value_error:
             self.logger.error("Exception is: %s", str(value_error))
