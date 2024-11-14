@@ -67,7 +67,7 @@ EXIT_AT_FAIL ?= false
 
 PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
-ADD_ARGS +=  --count=$(PYTHON_TEST_COUNT)
+ADD_ARGS +=  --forked --count=$(PYTHON_TEST_COUNT)
 MARK = (not post_deployment and not acceptance)
 endif
 
@@ -86,8 +86,6 @@ endif
 CLUSTER_DOMAIN ?= cluster.local
 
 CLUSTER_DOMAIN ?= cluster.local
-
-PYTEST_TIMEOUT = 10
 
 PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE)
 

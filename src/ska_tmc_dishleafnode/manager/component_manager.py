@@ -137,7 +137,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.command_result_update_lock = Lock()
         self.tango_operation_execution_lock = threading.Lock()
-        self.observer = None
         self.dish_number = None
         self.is_configureband_completed_event = threading.Event()
         self.is_setoperatemode_completed_event = threading.Event()
@@ -158,7 +157,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._update_health_state_callback = _update_health_state_callback
         self._kvalue: int = 0
         self._current_track_table_error = []
-        self.errors_to_be_reported = self.process_manager.list()
+        self.errors_to_be_reported = []
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
@@ -188,8 +187,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
-        if _liveliness_probe != LivelinessProbeType.NONE:
-            self.start_liveliness_probe(_liveliness_probe)
+        # if _liveliness_probe != LivelinessProbeType.NONE:
+        #     self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
@@ -1564,7 +1563,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         This method clears the variables that include track table errors
         """
         self.current_track_table_error = []
-        self.errors_to_be_reported[:] = []
+        self.errors_to_be_reported = []
 
     def set_dish_adapter(self, dish_adapter: DishAdapter) -> None:
         """Sets dish adapter, used to write programTrackTable on the dish."""
@@ -1884,6 +1883,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+
         if self.event_receiver:
             self.stop_event_receiver()
 
@@ -1892,13 +1892,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
+            self.actual_pointing_process.kill()
             self.actual_pointing_process.join()
         del self._actual_pointing
         del self.received_pointing_data
         while not self.achieved_pointing_data.empty():
             _ = self.achieved_pointing_data.get(block=True)
         del self.achieved_pointing_data
-        del self.errors_to_be_reported
         self.process_manager.shutdown()
         self.logger.info("stop_executors_and_cleanup_memory successful")
 

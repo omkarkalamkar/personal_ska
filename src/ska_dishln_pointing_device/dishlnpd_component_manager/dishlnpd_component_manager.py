@@ -73,6 +73,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         self.elevation_min_limit = elevation_min_limit
         self.el_limit = elevation_limit
         self.iers_a = None
+        self.observer = None
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.pointing_calculation_period: int = pointing_calculation_period
         self.track_table_entries: int = track_table_entries
@@ -90,8 +91,10 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         )
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
-        self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
+        self.download_thread = threading.Thread(
+            target=self.download_antenna_and_iers_data
+        )
+        self.download_thread.start()
 
     @property
     def target_data(self):
@@ -164,6 +167,11 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
 
     def stop_program_track_table(self):
         """This method stops the generation of track table."""
+
+    def download_antenna_and_iers_data(self):
+        """Method that downloads antenna and iers data"""
+        self.create_converter_obj_and_antenna_obj()
+        self.download_iers_data()
 
     def create_converter_obj_and_antenna_obj(
         self: DishlnPointingDataComponentManager,

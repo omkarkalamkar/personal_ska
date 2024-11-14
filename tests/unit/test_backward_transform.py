@@ -27,7 +27,6 @@ from tests.settings import SKA_EPOCH, logger
     ],
 )
 def test_azel_to_radec(
-    tango_context,
     timestamp,
     az,
     el,
@@ -55,7 +54,7 @@ def test_azel_to_radec(
     assert expected_dec == dec
 
 
-def test_actual_pointing(tango_context, cm):
+def test_actual_pointing(cm):
     """Test to check actual pointing is getting updated"""
     timestamp_str = "2019-02-19 06:01:00"
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")

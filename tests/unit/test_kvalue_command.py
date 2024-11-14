@@ -1,6 +1,3 @@
-import logging
-from time import sleep
-
 import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DeviceUnresponsive
@@ -11,19 +8,18 @@ from ska_tmc_dishleafnode.manager.dish_kvalue_validation_manager import (
 )
 from tests.settings import (
     DISH_MASTER_DEVICE,
+    logger,
     wait_and_validate_attribute_value_available,
 )
 
-logger = logging.getLogger(__name__)
 
-
-def test_set_kvalue_command(tango_context, cm):
-    logger.info("%s", tango_context)
+def test_set_kvalue_command(tango_context_process_true, cm):
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
 
 
+@pytest.mark.kval
 def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     assert wait_and_validate_attribute_value_available(
         dishln_device,
@@ -32,23 +28,24 @@ def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     )
 
 
-def test_dm_available_after_dln_init_or_restart(tango_context, cm):
+def test_dm_available_after_dln_init_or_restart(
+    tango_context_process_true, cm
+):
+    """"""
     cm.get_device().update_unresponsive(False, "")
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
     assert kvalue_validation_obj.is_dish_manager_ready()
 
 
-def test_kvalue_identical_after_dln_restart(tango_context, cm):
+def test_kvalue_identical_after_dln_restart(cm):
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
-    sleep(3)
     cm.kValue = 9
     kvalue_validation_obj.dish_manager_kvalue = 9
     kvalue_validation_obj.validate_dish_kvalue()
     assert cm.kValueValidationResult == ResultCode.OK
 
 
-def test_kvalue_not_identical_after_dln_restart(tango_context, cm):
-    sleep(3)
+def test_kvalue_not_identical_after_dln_restart(cm):
     cm.kValue = 9
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
     kvalue_validation_obj.dish_manager_kvalue = 10

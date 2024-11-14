@@ -61,7 +61,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     SleepTime = device_property(dtype="DevFloat", default_value=1)
     DishAvailabilityCheckTimeout = device_property(
-        dtype="DevUShort", default_value=120
+        dtype="DevUShort", default_value=3
     )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)

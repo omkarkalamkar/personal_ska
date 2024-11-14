@@ -157,8 +157,6 @@ def test_configure_command_completed_with_correction_key_reset(
         time.sleep(1)
 
     assert "Command Completed" in message
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_with_correction_key_update(
@@ -246,8 +244,6 @@ def test_configure_command_completed_with_correction_key_update(
 
     assert "Command Completed" in message
     time.sleep(0.2)
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
 
 
 def test_correction_key_reset_partial_config(

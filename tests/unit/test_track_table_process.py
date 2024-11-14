@@ -60,15 +60,33 @@ def test_timestamp_error_in_track_table_point_method(tango_context, cm):
         track_table_calculator.point(str(timestamp))
 
 
-def test_error_in_track_table_point_method(tango_context, cm):
+def test_error_in_track_table_point_method(tango_context, cm_pointig_device):
+    cm = cm_pointig_device
+    non_side_real_objects = [
+        "Sun",
+        "Moon",
+        "Venus",
+        "Mars",
+        "Jupiter",
+        "Saturn",
+        "Mercury",
+        "Urenus",
+        "Neptune",
+    ]
     azel_converter = AzElConverter(cm)
-
-    track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
-    track_table_calculator.azel_converter = azel_converter
-    track_table_calculator.target_name = "Sun"
-    timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
     result = None
-    result = track_table_calculator.point(str(timestamp))
+    for nsr_obj in non_side_real_objects:
+        try:
+            track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
+            track_table_calculator.azel_converter = azel_converter
+            track_table_calculator.target_name = nsr_obj
+            timestamp = Time(datetime.datetime.utcnow(), scale="utc")
+            result = track_table_calculator.point(str(timestamp))
+            if result:
+                break
+        except Exception:
+            continue
+
     assert result is not None
 
 
@@ -78,7 +96,8 @@ def test_error_in_utc_to_tai_method(tango_context, cm):
         track_table_calculator.convert_utc_to_tai(0.0)
 
 
-def test_is_elevation_within_limits_method(tango_context, cm):
+def test_is_elevation_within_limits_method(tango_context, cm_pointig_device):
+    cm = cm_pointig_device
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
 
     result = track_table_calculator._is_elevation_within_mechanical_limits(

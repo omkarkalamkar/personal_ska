@@ -3,7 +3,6 @@
 
 import json
 import logging
-import signal
 import time
 from os.path import dirname, join
 from time import sleep
@@ -36,57 +35,6 @@ from tests.settings import (
 
 configure_logging()
 logger = logging.getLogger(__name__)
-
-
-def pytest_configure(config):
-    """Configure pytest with default test execution settings.
-
-    This hook is called after command line options have been parsed
-    and all plugins and initial conftest files been loaded.
-
-    Args:
-        config: The pytest config object that contains parsed
-        command line options and the current execution environment.
-    """
-    config.option.timeout = 120
-
-
-@pytest.hookimpl(tryfirst=True)
-def pytest_runtest_protocol(item, nextitem):
-    """Handle test execution protocol with timeout exception management.
-
-    This hook implements custom test execution handling, specifically focusing
-    on graceful timeout management to prevent test suite termination on
-    timeout.
-
-    Args:
-        item: The pytest.Item object representing the test being executed
-        nextitem: The next pytest.Item to be executed
-        (can be None for last test)
-    """
-    try:
-        return None  # Allow pytest to handle the test normally
-    except Exception as e:
-        if isinstance(e, pytest.TimeoutException):
-            item.session.shouldstop = False  # Don't stop on timeout
-            return True  # Mark as handled
-        raise  # Re-raise other exceptions
-
-
-@pytest.fixture(autouse=True)
-def timeout_handler(request):
-    """Global timeout handler for all tests"""
-
-    def handle_timeout(signum, frame):
-        pytest.skip(
-            f"Test timed out after {request.config.option.timeout} seconds"
-        )
-
-    original_handler = signal.signal(signal.SIGALRM, handle_timeout)
-    try:
-        yield
-    finally:
-        signal.signal(signal.SIGALRM, original_handler)
 
 
 def pytest_sessionstart(session):
@@ -128,6 +76,26 @@ def devices_to_load():
     """Returns helper state devices."""
     return (
         {
+            "class": DishLeafNode,
+            "devices": [
+                {
+                    "name": "ska_mid/tm_leaf_node/d0001",
+                    "properties": {
+                        "DishMasterFQDN": DISH_MASTER_DEVICE,
+                        "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
+                    },
+                },
+            ],
+        },
+        {
+            "class": DishPointingDevice,
+            "devices": [
+                {
+                    "name": DISHLN_POINTING_DEVICE,
+                },
+            ],
+        },
+        {
             "class": HelperDishDevice,
             "devices": [
                 {"name": DISH_MASTER_DEVICE},
@@ -144,25 +112,6 @@ def devices_to_load():
                 },
             ],
         },
-        {
-            "class": DishPointingDevice,
-            "devices": [
-                {
-                    "name": DISHLN_POINTING_DEVICE,
-                },
-            ],
-        },
-        {
-            "class": DishLeafNode,
-            "devices": [
-                {
-                    "name": "ska_mid/tm_leaf_node/d0001",
-                    "properties": {
-                        "DishMasterFQDN": DISH_MASTER_DEVICE,
-                    },
-                },
-            ],
-        },
     )
 
 
@@ -173,7 +122,7 @@ def tango_context(devices_to_load, request):
     logging.info("true context: %s", true_context)
     if not true_context:
         with MultiDeviceTestContext(
-            devices_to_load, process=True, timeout=80
+            devices_to_load, process=False, timeout=80
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -208,8 +157,10 @@ def dishln_device(request):
             device_name="ska_mid/tm_leaf_node/d0001",
             properties={
                 "DishMasterFQDN": DISH_MASTER_DEVICE,
-                "DishAvailabilityCheckTimeout": 10,
+                "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
+                "DishAvailabilityCheckTimeout": 5,
             },
+            process=True,
             timeout=20,
         ) as proxy:
             yield proxy
@@ -364,7 +315,6 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
-    sleep(1)  # Give some time to pytest cleanup
     # pylint: enable=unnecessary-dunder-call
 
 
