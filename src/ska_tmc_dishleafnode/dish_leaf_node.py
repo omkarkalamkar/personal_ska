@@ -129,6 +129,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         self._isSubsystemAvailable = True
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
+        self._global_pointing_model_params = "{}"
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
@@ -148,6 +149,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             "lastPointingData",
             "kValue",
             "trackTableErrors",
+            "globalPointingModelParams",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -235,6 +237,16 @@ class DishLeafNode(TMCBaseLeafDevice):
         )
         self.push_change_archive_events("trackTableErrors", value)
         self.logger.debug("Pushed the trackTableErrors event: %s", value)
+
+    def update_global_pointing_param_callback(
+        self, global_pointing_model_params: str
+    ) -> None:
+        """Push an event for the change of dishMode attribute."""
+        self._global_pointing_model_params = global_pointing_model_params
+        self.push_change_archive_events(
+            "globalPointingModelParams",
+            json.dumps(self._global_pointing_model_params),
+        )
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
@@ -324,6 +336,14 @@ class DishLeafNode(TMCBaseLeafDevice):
     def kValue(self: DishLeafNode) -> int:
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ,
+    )
+    def globalPointingModelParams(self: DishLeafNode) -> str:
+        """Returns the globalpointingModelparam attribute value."""
+        return json.dumps(self._global_pointing_model_params)
 
     @kValue.write
     def kValue(self: DishLeafNode, k_value: int) -> None:
@@ -893,22 +913,21 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StaticPmSetup(
+    def ApplyPointingModel(
         self: DishLeafNode, argin: str
     ) -> Tuple[List[ResultCode], List[str]]:
         """
-        Invokes StaticPmSetup command on DishMaster
+        Invokes ApplyPointingModel command on DishMaster
         Its a dummy command at present.
         Will be renamed, once Dish ICD gets updated.
 
         :rtype: tuple
         """
-        handler = self.get_command_object("StaticPmSetup")
+        handler = self.get_command_object("ApplyPointingModel")
         result_code, unique_id = handler(argin)
-
         return [result_code], [str(unique_id)]
 
-    def is_StaticPmSetup_allowed(self: DishLeafNode) -> bool:
+    def is_ApplyPointingModel_allowed(self: DishLeafNode) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -918,7 +937,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_staticpmsetup_allowed()
+        return self.component_manager.is_ApplyPointingModel_allowed()
 
     def create_component_manager(self: DishLeafNode):
         update_track_err_cb = self.update_track_table_errors_callback
@@ -934,6 +953,9 @@ class DishLeafNode(TMCBaseLeafDevice):
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
             _event_receiver=True,
             _update_dishmode_callback=self.update_dishmode_callback,
+            _update_dish_pointing_model_param=(
+                self.update_global_pointing_param_callback
+            ),
             _update_pointingstate_callback=self.update_pointingstate_callback,
             sleep_time=self.SleepTime,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
@@ -971,7 +993,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ("TrackLoadStaticOff", "track_load_static_off"),
             ("Scan", "scan"),
             ("EndScan", "endscan"),
-            ("StaticPmSetup", "static_pm_setup"),
+            ("ApplyPointingModel", "apply_pointing_model"),
         ]:
             self.register_command_object(
                 command_name,
