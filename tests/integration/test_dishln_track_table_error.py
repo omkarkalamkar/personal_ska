@@ -192,6 +192,11 @@ def configure_dish_leaf_node_unknown_source(
         + "while starting programTrackTable calculation: Target description "
         + "'Pluto, special' contains unknown *special* body 'Pluto'"
     )
+    expected_message = (
+        "Exception occurred while starting programTrackTable calculation: "
+        + "Target description 'Pluto, special' contains unknown "
+        + "*special* body 'Pluto'"
+    )
     assert expected_message in dish_leaf_node.trackTableErrors
 
     group_callback["longRunningCommandResult"].assert_change_event(

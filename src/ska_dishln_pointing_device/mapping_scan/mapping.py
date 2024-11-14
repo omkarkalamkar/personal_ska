@@ -37,11 +37,13 @@ class BaseScanMapping:
                 ].lower()
                 == "special"
             ):
-                self.target = self.component_manager.target_data["pointing"][
-                    "target"
-                ]["target_name"]
+                self.component_manager.target = (
+                    self.component_manager.target_data["pointing"]["target"][
+                        "target_name"
+                    ]
+                )
             else:
-                self.target = [
+                self.component_manager.target = [
                     self.component_manager.target_data["pointing"]["target"][
                         "ra"
                     ],
@@ -50,7 +52,7 @@ class BaseScanMapping:
                     ],
                 ]
         else:
-            self.target = [
+            self.component_manager.target = [
                 self.component_manager.target_data["pointing"]["field"][
                     "attrs"
                 ]["c1"],

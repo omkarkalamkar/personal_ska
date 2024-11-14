@@ -203,6 +203,10 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             self.download_iers_data_from_a_different_source()
         self.logger.info("IERS data download completed.")
 
+    def clear_track_table_errors(self):
+        """Clear track table errors"""
+        self.update_program_track_table_error_callback("")
+
     def download_iers_data_from_a_different_source(
         self: DishlnPointingDataComponentManager,
     ) -> None:
@@ -264,6 +268,18 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             self.logger.info(
                 "ProgramTrackTable generation started.",
             )
+            timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+            # This is dummy calculation because first time calculation takes
+            # time due to IERS file downloads
+            if isinstance(self.target, str):
+                self.converter.point_to_body(self.target, timestamp)
+            else:
+                ra, dec = self.target  # pylint: disable=E0633
+                self.converter.point(ra, dec, timestamp)
+
+            self.update_program_track_table_error_callback("")
+            self.logger.debug("Converter Object Updated")
+
             utc_now = datetime.datetime.utcnow()
 
             # For future timestamp few seconds are added in current time.
@@ -280,7 +296,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             while not self.mapping_scan_event.is_set():
                 program_track_table: list = (
                     self.track_table_calculator.calculate_program_track_table(
-                        self.current_mapping_scan_obj.target, self.converter
+                        self.target, self.converter
                     )
                 )
 
