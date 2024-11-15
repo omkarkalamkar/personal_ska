@@ -2713,7 +2713,7 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.22.2"
+version = "0.22.3"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 optional = false
 python-versions = "^3.10"
@@ -2743,7 +2743,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "hm-567"
-resolved_reference = "7acf43066729fcb797557d61a3f6b26615fa9741"
+resolved_reference = "1fcf984cd189d1d904eecc06dda7d685a1b7a35e"
 
 [[package]]
 name = "smmap"
