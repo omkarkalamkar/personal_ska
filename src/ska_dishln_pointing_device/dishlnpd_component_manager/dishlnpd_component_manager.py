@@ -95,6 +95,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             target=self.download_antenna_and_iers_data
         )
         self.download_thread.start()
+        self.track_process_lock = threading.RLock()
 
     @property
     def target_data(self):
@@ -293,7 +294,10 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
                 seconds=time_to_add
             )
             self.track_table_calculator.track_table_time_stamp = extended_time
-            while not self.mapping_scan_event.is_set():
+            is_track_process_stop = self.mapping_scan_event.is_set()
+            while not is_track_process_stop:
+                with self.track_process_lock:
+                    is_track_process_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     self.track_table_calculator.calculate_program_track_table(
                         self.target, self.converter

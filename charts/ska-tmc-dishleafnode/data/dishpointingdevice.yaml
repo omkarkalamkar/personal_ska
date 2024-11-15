@@ -45,7 +45,16 @@ server:
                 - "{{ $ElevationMinLimit }}"
             - name: "ElevationLimit"
               values:
-                - "{{ $ElevationLimit }}"      
+                - "{{ $ElevationLimit }}"
+            - name: "LoggingTargetsDefault"
+              values:
+                - "tango::logger"
+            - name: "LoggingLevelDefault"
+              values:
+                - "5"
+            - name: "SkaLevel"
+              values:
+                - "3"
   {{- end }}
 
 depends_on:

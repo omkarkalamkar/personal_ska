@@ -173,7 +173,8 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        self.component_manager.mapping_scan_event.clear()
+        with self.component_manager.track_process_lock:
+            self.component_manager.mapping_scan_event.clear()
         if "trajectory" not in self.component_manager.target_data["pointing"]:
             self.component_manager.current_mapping_scan_obj = PointMappingScan(
                 pattern_name="point",
@@ -201,7 +202,8 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        self.component_manager.mapping_scan_event.set()
+        with self.component_manager.track_process_lock:
+            self.component_manager.mapping_scan_event.set()
         self.logger.info("StopProgramTrackTable command executed successfully")
         return ([ResultCode.OK], ["Command Completed"])
 
