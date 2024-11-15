@@ -65,7 +65,7 @@ class ProgramTrackTableCalculator:
                 tai_timestamp_list,
             ) = self.calculate_time_stamp_list()
             results: list = list(map(self.point, time_stamp_list))
-
+            self.logger.debug("Result is %s", results)
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):
                     message = (
