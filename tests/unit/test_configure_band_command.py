@@ -10,9 +10,7 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-def test_configure_band_command_completed(
-    tango_context_process_true, task_callback, cm, group_callback
-):
+def test_configure_band_command_completed(tango_context, task_callback, cm):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()
 
