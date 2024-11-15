@@ -67,30 +67,15 @@ class DishLNEventReceiver(EventReceiver):
         dev_info: DishDeviceInfo,
         attribute_dictionary=None,
     ) -> None:
-        """
-        Subscribe to Dish Master events for monitoring and
-        handling device updates.
-
-        Parameters
-        ----------
-        self : DishLNEventReceiver
-            The DishLNEventReceiver instance.
-        dev_info : DishDeviceInfo
-            Information about the Dish device to subscribe to.
-        attribute_dictionary : Optional[dict]
-            Dictionary containing attribute configurations
-            for the subscription.Defaults to None.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        This method sets up event subscriptions for a
-        Dish Master device using the provided device
-        information and optional attribute configurations.
-        """
+        """Subscribe to Dish Master"""
+        pointing_model_params_attrs = [
+            "band1PointingModelParams",
+            "band2PointingModelParams",
+            "band3PointingModelParams",
+            "band4PointingModelParams",
+            "band5APointingModelParams",
+            "band5BPointingModelParams",
+        ]
         with tango.EnsureOmniThread():
             try:
                 dish_dev_proxy = self._dev_factory.get_device(
@@ -129,6 +114,14 @@ class DishLNEventReceiver(EventReceiver):
                     self.handle_long_running_command_result,
                     stateless=True,
                 )
+                for attr_name in pointing_model_params_attrs:
+                    dish_dev_proxy.subscribe_event(
+                        attr_name,
+                        tango.EventType.CHANGE_EVENT,
+                        self.handle_pointing_model_params,
+                        stateless=True,
+                    )
+
             except Exception as exception:
                 log_msg = (
                     "Event not working for "
@@ -195,6 +188,31 @@ class DishLNEventReceiver(EventReceiver):
                 self.subscribed = True
 
     # pylint: enable=unused-argument
+    def handle_pointing_model_params(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ):
+        """Method to handle and update the latest value of dish_pointing_model
+        params.
+
+        :parameter event_flag: To flag the change in event for Dishglobalpoing
+            params.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(
+                event_flag.device.dev_name()
+            )
+            return
+        new_value = event_flag.attr_value.value
+        self._component_manager.update_dish_pointing_model_param(
+            json.dumps(new_value.tolist()), event_flag.attr_value.name
+        )
+        self.log_event_exit("handle_dish_mode_event")
 
     def handle_dish_mode_event(
         self: DishLNEventReceiver, event_flag: tango.EventData

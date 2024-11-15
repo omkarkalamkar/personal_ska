@@ -4,15 +4,18 @@ import json
 from typing import List, Tuple
 
 from ska_tango_base.base.base_device import SKABaseDevice
-from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
+from ska_tango_base.commands import ResultCode
 from ska_tango_base.control_model import HealthState
 from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import ArgType, AttrDataFormat, AttrWriteType
 from tango.server import attribute, command, device_property, run
 
-from ska_dishln_pointing_device import (
-    DishlnPointingDataComponentManager,
-    PointMappingScan,
+from ska_dishln_pointing_device import DishlnPointingDataComponentManager
+from ska_dishln_pointing_device.commands.generate_program_track_table import (
+    GenerateProgramTrackTable,
+)
+from ska_dishln_pointing_device.commands.stop_program_track_table import (
+    StopProgramTrackTable,
 )
 
 
@@ -107,7 +110,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
     def targetData(self) -> str:
         """
         This attribute is used for storing the target data.
-        device.
         :return: str
         """
         return json.dumps(self.component_manager.target_data)
@@ -173,21 +175,10 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        with self.component_manager.track_process_lock:
-            self.component_manager.mapping_scan_event.clear()
-        if "trajectory" not in self.component_manager.target_data["pointing"]:
-            self.component_manager.current_mapping_scan_obj = PointMappingScan(
-                pattern_name="point",
-                component_manager=self.component_manager,
-                logger=self.logger,
-            )
-            current_scan_obj = self.component_manager.current_mapping_scan_obj
-            current_scan_obj.set_target_and_start_process()
+        handler = self.get_command_object("GenerateProgramTrackTable")
+        result_code, message = handler()
 
-        self.logger.info(
-            "GenerateProgramTrackTable command executed successfully"
-        )
-        return ([ResultCode.OK], ["Command Completed"])
+        return [result_code], [message]
 
     @command(
         dtype_in="DevVoid",
@@ -202,25 +193,26 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        with self.component_manager.track_process_lock:
-            self.component_manager.mapping_scan_event.set()
-        self.logger.info("StopProgramTrackTable command executed successfully")
-        return ([ResultCode.OK], ["Command Completed"])
+        handler = self.get_command_object("StopProgramTrackTable")
+        result_code, message = handler()
+
+        return [result_code], [message]
 
     @command(
-        dtype_in="DevVoid",
+        dtype_in="DevString",
         dtype_out="DevVarLongStringArray",
         doc_out="(ReturnType, 'informational message')",
     )
-    def ChangePointingOffset(self) -> Tuple[List[ResultCode], List[str]]:
+    def ChangePointingData(
+        self, argin: str | None = None
+    ) -> Tuple[List[ResultCode], List[str]]:
         """
-        This command sets change pointing offset flag.
+        This command instructs to change current pointing/offset.
 
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-
-        self.component_manager.set_change_pointing_event.set()
+        self.logger.debug("Command invoked with argin %s", argin)
         return ([ResultCode.OK], ["offset change event set"])
 
     def create_component_manager(self) -> DishlnPointingDataComponentManager:
@@ -256,20 +248,15 @@ class DishPointingDevice(TMCBaseLeafDevice):
         Initializes the command handlers for commands supported by this device.
         """
         super().init_command_objects()
-        for command_name, method_name in [
-            ("GenerateProgramTrackTable", "generate_program_track_table"),
-            ("StopProgramTrackTable", "stop_program_track_table"),
-        ]:
-            self.register_command_object(
-                command_name,
-                SubmittedSlowCommand(
-                    command_name,
-                    self._command_tracker,
-                    self.component_manager,
-                    method_name,
-                    logger=self.logger,
-                ),
-            )
+
+        self.register_command_object(
+            "GenerateProgramTrackTable",
+            GenerateProgramTrackTable(self.logger, self.component_manager),
+        )
+        self.register_command_object(
+            "StopProgramTrackTable",
+            StopProgramTrackTable(self.logger, self.component_manager),
+        )
 
 
 def main(args=None, **kwargs):

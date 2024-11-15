@@ -38,6 +38,10 @@ Subpackages
 
    dishlnpd_component_manager
 
+.. toctree::
+   :maxdepth: 4
+   :caption: ska_dishln_pointing_device.commands
 
+   ska_dishln_pointing_device.commands
 
 

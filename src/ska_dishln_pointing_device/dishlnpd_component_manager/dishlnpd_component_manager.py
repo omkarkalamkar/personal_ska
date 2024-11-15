@@ -13,7 +13,7 @@ from typing import Callable, List
 
 from astropy.time import Time
 from astropy.utils import iers
-from ska_tmc_common.tmc_component_manager import BaseTmcComponentManager
+from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
@@ -22,7 +22,7 @@ from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
 )
 
 
-class DishlnPointingDataComponentManager(BaseTmcComponentManager):
+class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish leaf node pointing device component.
     """

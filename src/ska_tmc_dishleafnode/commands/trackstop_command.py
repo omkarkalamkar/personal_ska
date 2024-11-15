@@ -75,6 +75,6 @@ class TrackStop(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
+            self.dishln_pointing_device_adapter.StopProgramTrackTable()
         self.logger.debug("Released tango lock")
-        self.dishln_pointing_device_adapter.StopProgramTrackTable()
         return result_code[0], message[0]

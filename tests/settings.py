@@ -52,6 +52,16 @@ COMMAND_CONFIGURE_BAND_TIMEOUT = json.dumps(
 )
 SKA_EPOCH = "1999-12-31T23:59:28Z"
 COMMAND_COMPLETION_MESSAGE = "Command Completed"
+# this json is stored remotely so needs to hardcode this here
+GPM_JSON = (
+    '{"band1pointingmodelparams": "", "band2pointingmodelparams": '
+    + '"[-491.0523681640625, -46.494388580322266, -0.20043884217739105, '
+    + '6.303488731384277, 0.0, 16.015695571899414, 0.0, 11.97440242767334, '
+    + '-3.738542079925537, 0.0, 0.0, 1655.9869384765625, -145.2842254638672, '
+    + '-26.760848999023438, 0.0, 0.0, 0.0, 0.0]", "band3pointingmodelparams": '
+    + '"", "band4pointingmodelparams": "", "band5apointingmodelparams": "", '
+    + '"band5bpointingmodelparams": ""}'
+)
 
 
 def wait_for_ping(dishleafnode_cm):
@@ -67,6 +77,10 @@ def wait_for_ping(dishleafnode_cm):
 
 
 def dish_mode_callback():
+    """An empty dishmode callback"""
+
+
+def pointing_model_param_callaback():
     """An empty dishmode callback"""
 
 
@@ -121,6 +135,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         logger=logger,
         dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         _update_dishmode_callback=dish_mode_callback,
+        _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
         component_state_callback=communication_state_callback,
