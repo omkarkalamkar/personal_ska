@@ -1579,14 +1579,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         with self.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
-            # track_table_written = False
             for retry in range(0, self.max_track_table_retry):
                 self.logger.debug("Retry is: %s", retry)
                 try:
-                    # if track_table_written != True:
                     self.dish_adapter.programTrackTable = program_track_table
                     self.logger.debug("ProgramTrackTable Updated")
-                    # track_table_written = True
                     break
 
                 except BaseException as exception:
@@ -1686,7 +1683,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug(
                     "scheduled_time_human  %s", scheduled_time_readable
                 )
-                self.logger.debug("Updating program track table -------")
 
                 event_priority: int = 1
                 self.track_table_scheduler.enterabs(

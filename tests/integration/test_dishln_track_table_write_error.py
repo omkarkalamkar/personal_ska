@@ -148,11 +148,16 @@ def configure_dish_leaf_node(
     logger.info("dish_leaf1_info: %s", dish_leaf1_info)
 
     # delete stale dish leaf node proxy from the dictionary and create new one
+    logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
     del dev_factory.dev_proxys["ska_mid/tm_leaf_node/d0001"]
 
     logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
 
     dish_leaf_node = dev_factory.get_device(dishln_name)
+    dish_leaf_node1 = tango.DeviceProxy("ska_mid/tm_leaf_node/d0001")
+    logger.info("State1-----------: %s", dish_leaf_node1.state())
+    logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
+    logger.info("State------------: %s", dish_leaf_node.state())
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -174,8 +179,9 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.skip()
-@pytest.mark.sah1623
+@pytest.mark.skip(
+    reason="Not able to connect to dishLeafNode once it is restarted."
+)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_command(tango_context, group_callback, json_factory):
