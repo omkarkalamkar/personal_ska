@@ -19,7 +19,7 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context,
+    tango_context_process_true,
     cm,
     task_callback,
     json_factory,
