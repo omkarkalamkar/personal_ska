@@ -33,4 +33,4 @@ class StopProgramTrackTable(FastCommand):
         with self.component_manager.track_process_lock:
             self.component_manager.mapping_scan_event.set()
         self.logger.info("StopProgramTrackTable command executed successfully")
-        return ResultCode.STARTED, "Stop Program Track Table"
+        return ResultCode.OK, "Command Completed"
