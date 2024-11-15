@@ -295,6 +295,7 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             )
             self.track_table_calculator.track_table_time_stamp = extended_time
             is_track_process_stop = self.mapping_scan_event.is_set()
+            self.logger.debug("Current target used %s", self.target)
             while not is_track_process_stop:
                 with self.track_process_lock:
                     is_track_process_stop = self.mapping_scan_event.is_set()
@@ -332,18 +333,19 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
                 )
 
                 event_priority: int = 1
-                self.track_table_scheduler.enterabs(
-                    scheduled_time,
-                    event_priority,
-                    self.update_program_track_table,
-                    argument=(program_track_table,),
-                )
+                if not is_track_process_stop:
+                    self.track_table_scheduler.enterabs(
+                        scheduled_time,
+                        event_priority,
+                        self.update_program_track_table,
+                        argument=(program_track_table,),
+                    )
 
-                self.logger.debug(
-                    "update_program_track_table - Added in scheduler"
-                )
-                self.track_table_scheduler.run()
-                self.logger.debug("Execution done")
+                    self.logger.debug(
+                        "update_program_track_table - Added in scheduler"
+                    )
+                    self.track_table_scheduler.run()
+                    self.logger.debug("Execution done")
 
             self.logger.debug("Program Track Table Calculation stopped.")
 
