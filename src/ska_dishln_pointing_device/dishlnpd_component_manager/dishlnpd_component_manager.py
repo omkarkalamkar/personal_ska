@@ -71,16 +71,13 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
-        self.el_limit = elevation_limit
+        self.el_limit = False
         self.iers_a = None
         self.observer = None
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.pointing_calculation_period: int = pointing_calculation_period
         self.track_table_entries: int = track_table_entries
         self.track_table_advance_sec: float = track_table_advance_sec
-        self.track_table_calculator = ProgramTrackTableCalculator(
-            self, self.logger
-        )
         self.dishln_pointing_device_name = disln_pointing_device_name
         self.logger.info(
             "Dish leaf node pointing device name is %s",
@@ -293,14 +290,17 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
             extended_time: datetime.datetime = utc_now + datetime.timedelta(
                 seconds=time_to_add
             )
-            self.track_table_calculator.track_table_time_stamp = extended_time
+            track_table_calculator = ProgramTrackTableCalculator(
+                self, self.logger
+            )
+            track_table_calculator.track_table_time_stamp = extended_time
             is_track_process_stop = self.mapping_scan_event.is_set()
             self.logger.debug("Current target used %s", self.target)
             while not is_track_process_stop:
                 with self.track_process_lock:
                     is_track_process_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
-                    self.track_table_calculator.calculate_program_track_table(
+                    track_table_calculator.calculate_program_track_table(
                         self.target, self.converter
                     )
                 )
@@ -333,19 +333,20 @@ class DishlnPointingDataComponentManager(BaseTmcComponentManager):
                 )
 
                 event_priority: int = 1
-                if not is_track_process_stop:
-                    self.track_table_scheduler.enterabs(
-                        scheduled_time,
-                        event_priority,
-                        self.update_program_track_table,
-                        argument=(program_track_table,),
-                    )
+                with self.track_process_lock:
+                    if not self.mapping_scan_event.is_set():
+                        self.track_table_scheduler.enterabs(
+                            scheduled_time,
+                            event_priority,
+                            self.update_program_track_table,
+                            argument=(program_track_table,),
+                        )
 
-                    self.logger.debug(
-                        "update_program_track_table - Added in scheduler"
-                    )
-                    self.track_table_scheduler.run()
-                    self.logger.debug("Execution done")
+                        self.logger.debug(
+                            "update_program_track_table - Added in scheduler"
+                        )
+                        self.track_table_scheduler.run()
+                        self.logger.debug("Execution done")
 
             self.logger.debug("Program Track Table Calculation stopped.")
 
