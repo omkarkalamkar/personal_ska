@@ -19,7 +19,6 @@ def test_set_kvalue_command(tango_context, cm):
     assert result_code == ResultCode.OK
 
 
-@pytest.mark.kval
 def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     assert wait_and_validate_attribute_value_available(
         dishln_device,
@@ -28,7 +27,9 @@ def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
     )
 
 
-def test_dm_available_after_dln_init_or_restart(tango_context, cm):
+def test_dm_available_after_dln_init_or_restart(
+    cm, tango_context_process_true
+):
     """"""
     cm.get_device().update_unresponsive(False, "")
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)

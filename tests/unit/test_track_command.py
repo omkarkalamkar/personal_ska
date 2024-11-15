@@ -20,9 +20,8 @@ def get_track_input_str(
     return config_str
 
 
-@pytest.mark.skip(reason="Bug in pytango segmentation fault")
 def test_track_command_completed(
-    tango_context, task_callback, cm, group_callback
+    tango_context_process_true, task_callback, cm, group_callback
 ):
     track_input_str = get_track_input_str()
     cm.update_device_dish_mode(DishMode.OPERATE)
@@ -72,7 +71,7 @@ def test_json_validation(tango_context, task_callback, cm):
     assert "key is not present" in message
 
 
-def test_track_command_not_allowed(tango_context, cm):
+def test_track_command_not_allowed(cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_track_allowed()

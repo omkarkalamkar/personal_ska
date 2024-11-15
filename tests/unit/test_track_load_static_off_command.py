@@ -22,7 +22,6 @@ from tests.settings import (
 POINTING_CAL1 = [1.1, 2.2, 3.3]
 
 
-@pytest.mark.skip(reason="Bug in pytango segmentation fault")
 def test_trackloadstaticoff_command(
     tango_context, cm, task_callback, group_callback
 ):

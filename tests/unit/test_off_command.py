@@ -66,7 +66,7 @@ def test_off_command_adapter_none(cm_without_er_lp, task_callback):
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-def test_off_command_not_allowed(tango_context, cm):
+def test_off_command_not_allowed(cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_off_allowed()

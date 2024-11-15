@@ -167,7 +167,7 @@ def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     assert f"{key} key is not present" in message
 
 
-def test_configure_command_not_allowed(tango_context, cm):
+def test_configure_command_not_allowed(cm):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()

@@ -29,9 +29,7 @@ def test_abort_command_fail_check_allowed_with_device_unresponsive(
         cm.is_abortcommands_allowed()
 
 
-def test_trackloadstaticoff_command_not_allowed(
-    tango_context_process_true, cm
-):
+def test_trackloadstaticoff_command_not_allowed(cm):
     """Test the command not allowed when the device is unresponsive."""
     cm.get_device().update_unresponsive(True, "Not available")
     with pytest.raises(DeviceUnresponsive):
