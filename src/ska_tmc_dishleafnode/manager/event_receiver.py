@@ -78,8 +78,8 @@ class DishLNEventReceiver(EventReceiver):
         ]
         with tango.EnsureOmniThread():
             try:
-                dish_dev_proxy = self._dev_factory.get_device(
-                    dev_info.dev_name
+                dish_dev_proxy = tango.DeviceProxy(
+                    dev_info.dev_name,
                 )
                 dish_dev_proxy.subscribe_event(
                     "dishMode",
