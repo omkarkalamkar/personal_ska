@@ -91,7 +91,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.download_thread = threading.Thread(
             target=self.download_antenna_and_iers_data
         )
-        self.download_thread.start()
+        self.download_antenna_and_iers_data()
         self.track_process_lock = threading.RLock()
 
     @property
