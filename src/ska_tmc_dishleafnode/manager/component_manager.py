@@ -265,7 +265,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "exception": None,
                 "status": None,
             }
-        self.logger.info("Cleared the command reult dictionaries.")
+        self.logger.info("Cleared the command result dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
         """Method to reset the command result dictionaries, events and flgas
@@ -608,7 +608,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
         self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
@@ -1928,8 +1927,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
-            self.actual_pointing_process.terminate()
-            self.actual_pointing_process.join(timeout=1.0)
+            self.actual_pointing_process.join(timeout=10.0)
             if self.actual_pointing_process.is_alive():
                 self.logger.info(
                     "Actual pointing process is still alive,"

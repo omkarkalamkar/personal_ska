@@ -53,13 +53,6 @@ class DishLNEventReceiver(EventReceiver):
             if dishDevInfo.dev_name:
                 self.subscribe_dish_master_events(dishDevInfo)
             sleep(self._sleep_time)
-        self.subscribed = False
-        while not self.subscribed:
-            if self._component_manager.dishln_pointing_dev_name:
-                self.subscribe_dishlnpd_events(
-                    self._component_manager.dishln_pointing_dev_name
-                )
-            sleep(self._sleep_time)
 
     # pylint: disable=unused-argument
     def subscribe_dish_master_events(
