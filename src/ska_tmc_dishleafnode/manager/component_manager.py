@@ -1927,7 +1927,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
-            self.actual_pointing_process.join(timeout=10.0)
+            self.actual_pointing_process.terminate()
+            self.actual_pointing_process.join()
             if self.actual_pointing_process.is_alive():
                 self.logger.info(
                     "Actual pointing process is still alive,"
