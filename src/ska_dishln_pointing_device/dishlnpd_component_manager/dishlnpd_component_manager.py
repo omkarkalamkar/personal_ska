@@ -367,4 +367,4 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     def stop_threads(self):
         """Method to stop running threads"""
         if self.download_thread.is_alive():
-            self.download_thread.join(timeout=5.0)
+            self.download_thread.join(timeout=1.0)
