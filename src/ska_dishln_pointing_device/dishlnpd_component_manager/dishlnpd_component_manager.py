@@ -53,7 +53,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
         super().__init__(logger)
         self.logger = logger
-        self.pointing_program_track_table: dict = {}
+        self.pointing_program_track_table: list = []
         self.update_pointing_program_track_table_callback = (
             update_pointing_program_track_table_callback
         )
