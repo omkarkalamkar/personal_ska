@@ -1,6 +1,6 @@
 import json
 from unittest import mock
-charts/test-parent/Chart.yaml 
+
 from ska_tango_base.commands import ResultCode, TaskStatus
 
 from tests.settings import COMMAND_COMPLETION_MESSAGE

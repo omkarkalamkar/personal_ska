@@ -161,10 +161,6 @@ def test_apply_pointing_model(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.skip(
-    reason="StaticPmSetup() is changed to ApplyPointingModel()."
-    + " This test will be enabled as part of HM-552."
-)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_ApplyPointingModel_invalid_tm_path(
@@ -182,10 +178,6 @@ def test_ApplyPointingModel_invalid_tm_path(
     )
 
 
-@pytest.mark.skip(
-    reason="StaticPmSetup() is changed to ApplyPointingModel()."
-    + " This test will be enabled as part of HM-552."
-)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_apply_pointing_model_with_erroneous_json(

@@ -161,7 +161,7 @@ def test_configure_command_completed_with_correction_key_reset(
     cm.stop_track_table_process()
 
 
-@pytest.mark.skip(reason="Getting TRANSIENT_NoUsableProfile error.")
+# @pytest.mark.skip(reason="Getting TRANSIENT_NoUsableProfile error.")
 def test_configure_command_completed_with_correction_key_update(
     tango_context,
     cm,
