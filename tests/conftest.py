@@ -322,8 +322,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
             break
 
     yield cm
-    if cm.kvalue_validation_thread.is_alive():
-        cm.kvalue_validation_thread.join(timeout=5.0)
+
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
     # pylint: enable=unnecessary-dunder-call
