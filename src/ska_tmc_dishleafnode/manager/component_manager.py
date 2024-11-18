@@ -214,6 +214,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
+        self.create_converter_obj_and_antenna_obj()
+        self.download_iers_data()
         self.correction_key: str = CORRECTION_KEY.NOT_SET.value
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
@@ -607,7 +609,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
-        self.create_converter_obj_and_antenna_obj()
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
