@@ -87,7 +87,7 @@ class ProgramTrackTableCalculator:
                     )
                     break
 
-                return program_track_table
+            return program_track_table
 
         except Exception as exception:
             message = (

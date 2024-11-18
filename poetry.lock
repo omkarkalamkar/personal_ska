@@ -391,13 +391,10 @@ reference = "PyPI-public"
 [[package]]
 name = "execnet"
 version = "2.1.1"
-description = "execnet: rapid multi-Python deployment"
+description = ""
 category = "dev"
 optional = false
-python-versions = ">=3.8"
-
-[package.extras]
-testing = ["hatch", "pre-commit", "pytest", "tox"]
+python-versions = "*"
 
 [package.source]
 type = "legacy"
@@ -597,7 +594,7 @@ notebook = ["ipywidgets", "notebook"]
 parallel = ["ipyparallel"]
 qtconsole = ["qtconsole"]
 test = ["pytest (<7.1)", "pytest-asyncio", "testpath"]
-test-extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pytest (<7.1)", "pytest-asyncio", "testpath", "trio"]
+test_extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pytest (<7.1)", "pytest-asyncio", "testpath", "trio"]
 
 [package.source]
 type = "legacy"
@@ -1237,13 +1234,10 @@ reference = "PyPI-public"
 [[package]]
 name = "pygments"
 version = "2.18.0"
-description = "Pygments is a syntax highlighting package written in Python."
+description = ""
 category = "main"
 optional = false
-python-versions = ">=3.8"
-
-[package.extras]
-windows-terminal = ["colorama (>=0.4.6)"]
+python-versions = "*"
 
 [package.source]
 type = "legacy"
@@ -1589,7 +1583,7 @@ urllib3 = ">=1.21.1,<3"
 
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
-use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
+use_chardet_on_py3 = ["chardet (>=3.0.2,<6)"]
 
 [package.source]
 type = "legacy"
@@ -1640,7 +1634,7 @@ reference = "PyPI-public"
 
 [[package]]
 name = "setuptools"
-version = "75.4.0"
+version = "75.5.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "dev"
 optional = false
@@ -2225,14 +2219,10 @@ reference = "PyPI-public"
 [[package]]
 name = "traitlets"
 version = "5.14.3"
-description = "Traitlets Python configuration system"
+description = ""
 category = "main"
 optional = false
-python-versions = ">=3.8"
-
-[package.extras]
-docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
-test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,<8.2)", "pytest-mock", "pytest-mypy-testing"]
+python-versions = "*"
 
 [package.source]
 type = "legacy"
@@ -3225,8 +3215,8 @@ schema = [
     {file = "schema-0.7.7.tar.gz", hash = "sha256:7da553abd2958a19dc2547c388cde53398b39196175a9be59ea1caf5ab0a1807"},
 ]
 setuptools = [
-    {file = "setuptools-75.4.0-py3-none-any.whl", hash = "sha256:b3c5d862f98500b06ffdf7cc4499b48c46c317d8d56cb30b5c8bce4d88f5c216"},
-    {file = "setuptools-75.4.0.tar.gz", hash = "sha256:1dc484f5cf56fd3fe7216d7b8df820802e7246cfb534a1db2aa64f14fcb9cdcb"},
+    {file = "setuptools-75.5.0-py3-none-any.whl", hash = "sha256:87cb777c3b96d638ca02031192d40390e0ad97737e27b6b4fa831bea86f2f829"},
+    {file = "setuptools-75.5.0.tar.gz", hash = "sha256:5c4ccb41111392671f02bb5f8436dfc5a9a7185e80500531b133f5775c4163ef"},
 ]
 sgp4 = [
     {file = "sgp4-2.23-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ebf585c09bebf7f7b9c89cff42e0f097654c4c5e092181fbbbee29c338dc11ed"},
