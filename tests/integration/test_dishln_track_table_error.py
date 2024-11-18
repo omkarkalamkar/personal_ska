@@ -10,6 +10,7 @@ from tests.settings import (
     COMMAND_FAILED_WITH_TRACK,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     TIMEOUT,
     get_non_sidereal_json_for_source_not_visible,
     get_non_sidereal_json_for_source_unknown,
@@ -133,7 +134,10 @@ def configure_dish_leaf_node_unknown_source(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
+
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -143,6 +147,11 @@ def configure_dish_leaf_node_unknown_source(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
+    )
+    dishpd_event_id = dishln_pointing_device.subscribe_event(
+        "programTrackTableError",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["programTrackTableError"],
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -188,15 +197,16 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     expected_message = (
-        "Exception occurred while calculating track table: Exception occurred "
-        + "while starting programTrackTable calculation: Target description "
-        + "'Pluto, special' contains unknown *special* body 'Pluto'"
-    )
-    expected_message = (
         "Exception occurred while starting programTrackTable calculation: "
         + "Target description 'Pluto, special' contains unknown "
         + "*special* body 'Pluto'"
     )
+
+    group_callback["programTrackTableError"].assert_change_event(
+        expected_message,
+        lookahead=8,
+    )
+
     assert expected_message in dish_leaf_node.trackTableErrors
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -210,6 +220,7 @@ def configure_dish_leaf_node_unknown_source(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

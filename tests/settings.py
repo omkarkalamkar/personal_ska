@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 KVALUE = 9
 SLEEP_TIME = 0.5
 TIMEOUT = 100
+NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
 DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
