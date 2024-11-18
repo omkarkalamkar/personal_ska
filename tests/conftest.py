@@ -123,8 +123,8 @@ def tango_context(devices_to_load, request):
     if not true_context:
         with MultiDeviceTestContext(
             devices_to_load,
-            process=False,
-            timeout=80,
+            process=True,
+            timeout=180,
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -290,7 +290,7 @@ def update_program_track_table_error_callback(temp):
     logger.debug(temp)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
@@ -385,6 +385,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
+        _liveliness_probe=LivelinessProbeType.NONE,
     )
 
     elapsed_time = 0

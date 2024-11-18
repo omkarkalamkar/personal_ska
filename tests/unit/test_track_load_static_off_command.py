@@ -23,9 +23,10 @@ POINTING_CAL1 = [1.1, 2.2, 3.3]
 
 
 def test_trackloadstaticoff_command(
-    tango_context, cm, task_callback, group_callback
+    tango_context, cm_without_er_lp, task_callback, group_callback
 ):
     """Test the successful completion of the TrackLoadStaticOff command."""
+    cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     cm.get_device()._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
@@ -71,10 +72,11 @@ def test_trackloadstaticoff_command(
     ],
 )
 def test_trackloadstaticoff_command_invalid_input(
-    tango_context, cm, argin, task_callback
+    tango_context, cm_without_er_lp, argin, task_callback
 ):
     """Test the failure scenario while invoking
     TrackLoadStaticOff command."""
+    cm = cm_without_er_lp
     cm.get_device()._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
 
@@ -167,7 +169,6 @@ def test_configure_command_completed_with_correction_key_update(
     json_factory,
 ):
     """Test configure command with correction key as UPDATE"""
-
     cm.get_device().update_unresponsive(False, "")
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
@@ -248,12 +249,13 @@ def test_configure_command_completed_with_correction_key_update(
 
 def test_correction_key_reset_partial_config(
     tango_context,
-    cm,
+    cm_without_er_lp,
     group_callback,
     task_callback,
     json_factory,
 ):
     """Test correction key RESET functionality for partial config"""
+    cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
@@ -291,12 +293,13 @@ def test_correction_key_reset_partial_config(
 
 def test_correction_key_update_partial_config(
     tango_context,
-    cm,
+    cm_without_er_lp,
     group_callback,
     task_callback,
     json_factory,
 ):
     """Test correction UPDATE key functionality for partial config"""
+    cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
@@ -362,11 +365,12 @@ def test_correction_key_update_partial_config(
 @pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
 def test_correction_key_maintain_empty_partial_main_config(
     tango_context,
-    cm,
+    cm_without_er_lp,
     group_callback,
     correction_key,
 ):
     """Test correction MAINTAIN key functionality for main config"""
+    cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)

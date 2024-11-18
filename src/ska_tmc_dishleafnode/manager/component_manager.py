@@ -214,8 +214,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread = threading.Timer(
             5, self.update_kvalue_validation_result
         )
-        self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
         self.correction_key: str = CORRECTION_KEY.NOT_SET.value
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
@@ -609,6 +607,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
+        self.create_converter_obj_and_antenna_obj()
+        self.download_iers_data()
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
@@ -1790,25 +1790,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(
             dish_id=self.dish_id
         )
-        self.event_receiver_object.subscribe_sdpqc_attribute(
-            self.queue_connector_device_info, attribute_name
-        )
 
-        if self.queue_connector_device_info.event_id:
-            self.queue_connector_device_info.subscribed_to_attribute = True
-            self.queue_connector_device_info.attribute_name = attribute_name
-            self.logger.info(
-                "Subscribed to %s of %s.",
-                self.queue_connector_device_info.attribute_name,
-                self.queue_connector_device_info.dev_name,
+        if self.event_receiver:
+            self.event_receiver_object.subscribe_sdpqc_attribute(
+                self.queue_connector_device_info, attribute_name
             )
-        else:
-            self.queue_connector_device_info.dev_name = ""
-            self.logger.exception(
-                "Failed to subscribe to %s of %s.",
-                self.queue_connector_device_info.attribute_name,
-                self.queue_connector_device_info.dev_name,
-            )
+
+            if self.queue_connector_device_info.event_id:
+                self.queue_connector_device_info.subscribed_to_attribute = True
+                self.queue_connector_device_info.attribute_name = (
+                    attribute_name
+                )
+                self.logger.info(
+                    "Subscribed to %s of %s.",
+                    self.queue_connector_device_info.attribute_name,
+                    self.queue_connector_device_info.dev_name,
+                )
+            else:
+                self.queue_connector_device_info.dev_name = ""
+                self.logger.exception(
+                    "Failed to subscribe to %s of %s.",
+                    self.queue_connector_device_info.attribute_name,
+                    self.queue_connector_device_info.dev_name,
+                )
 
     def process_pointing_calibration(
         self: DishLNComponentManager, event_data: tango.EventData

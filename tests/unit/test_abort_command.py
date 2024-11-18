@@ -5,7 +5,8 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import logger
 
 
-def test_abort_command(tango_context, cm):
+def test_abort_command(tango_context, cm_without_er_lp):
+    cm = cm_without_er_lp
     logger.info("%s", tango_context)
     abort_command = AbortCommands(cm, logger=logger)
     result_code, message = abort_command.do()

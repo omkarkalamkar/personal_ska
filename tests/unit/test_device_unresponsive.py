@@ -19,8 +19,9 @@ def devices_to_load():
 
 
 def test_abort_command_fail_check_allowed_with_device_unresponsive(
-    tango_context, cm
+    tango_context, cm_without_er_lp
 ):
+    cm = cm_without_er_lp
     logger.info("%s", tango_context)
     cm.get_device().update_unresponsive(True, "Not available")
     with pytest.raises(
@@ -29,7 +30,8 @@ def test_abort_command_fail_check_allowed_with_device_unresponsive(
         cm.is_abortcommands_allowed()
 
 
-def test_trackloadstaticoff_command_not_allowed(cm):
+def test_trackloadstaticoff_command_not_allowed(cm_without_er_lp):
+    cm = cm_without_er_lp
     """Test the command not allowed when the device is unresponsive."""
     cm.get_device().update_unresponsive(True, "Not available")
     with pytest.raises(DeviceUnresponsive):

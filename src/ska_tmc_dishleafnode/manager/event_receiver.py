@@ -127,7 +127,7 @@ class DishLNEventReceiver(EventReceiver):
                     "Event not working for "
                     f"device {dev_info.dev_name}/{exception}"
                 )
-                self._logger.exception("%s", log_msg)
+                self._logger.exception(log_msg)
             else:
                 self.subscribed = True
 
@@ -189,7 +189,7 @@ class DishLNEventReceiver(EventReceiver):
                     "Event not working for "
                     f"device {dlnPointingDev_name}/{exception}"
                 )
-                self._logger.exception("%s", log_msg)
+                self._logger.exception(log_msg)
             else:
                 self.subscribed = True
 
@@ -209,7 +209,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error("%s", error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
@@ -234,7 +234,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.debug("%s", error_msg)
+            self._logger.debug(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
@@ -262,7 +262,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error("%s", error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
@@ -289,7 +289,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error("%s", error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
@@ -315,7 +315,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error("%s", error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
@@ -339,7 +339,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_data.err:
             error = event_data.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error("%s", error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_data.device.dev_name()
             )
@@ -379,7 +379,7 @@ class DishLNEventReceiver(EventReceiver):
                     f"Unable to subscribe {attribute_name} "
                     f"device {dev_info.dev_name}/{exception}"
                 )
-                self._logger.exception("%s", log_msg)
+                self._logger.exception(log_msg)
                 elapsed_time = elapsed_time + 1
                 sleep(1)
 
@@ -404,7 +404,7 @@ class DishLNEventReceiver(EventReceiver):
                 f"Unable to unsubscribe {dev_info.attribute_name} "
                 f"device {dev_info.dev_name}/{exception}"
             )
-            self._logger.exception("%s", log_msg)
+            self._logger.exception(log_msg)
 
     def log_event_data(
         self, event_data: tango.EventData, callback_name: str
@@ -461,7 +461,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error("%s", error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
@@ -493,7 +493,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.error("%s", error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
