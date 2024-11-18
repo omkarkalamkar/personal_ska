@@ -33,9 +33,10 @@ def test_radec_to_azel(
     timestamp: str,
     expected_az: float,
     expected_el: float,
-    cm,
+    cm_without_er_lp,
 ):
     """Function to test AzEl conversion"""
+    cm = cm_without_er_lp
     cm.get_device().update_unresponsive(False, "")
     cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
     converter = AzElConverter(component_manager=cm)

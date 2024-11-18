@@ -1,8 +1,10 @@
 from time import sleep
 
 import pytest
+from astropy.utils import iers
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
 from tests.settings import logger
 
 NSR_BODIES = {
@@ -18,12 +20,12 @@ NSR_BODIES = {
 
 
 def test_point_at_body(
-    tango_context,
-    cm,
+    cm_without_er_lp,
 ):
     """Function to test AzEl conversion"""
+    cm = cm_without_er_lp
     timestamp = '2019-02-19 06:01:00'
-    cm.download_iers_data()
+    cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:

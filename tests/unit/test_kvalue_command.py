@@ -13,7 +13,8 @@ from tests.settings import (
 )
 
 
-def test_set_kvalue_command(tango_context, cm):
+def test_set_kvalue_command(tango_context, cm_without_er_lp):
+    cm = cm_without_er_lp
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
@@ -36,7 +37,8 @@ def test_dm_available_after_dln_init_or_restart(
     assert kvalue_validation_obj.is_dish_manager_ready()
 
 
-def test_kvalue_identical_after_dln_restart(cm):
+def test_kvalue_identical_after_dln_restart(cm_without_er_lp):
+    cm = cm_without_er_lp
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
     cm.kValue = 9
     kvalue_validation_obj.dish_manager_kvalue = 9
@@ -44,7 +46,8 @@ def test_kvalue_identical_after_dln_restart(cm):
     assert cm.kValueValidationResult == ResultCode.OK
 
 
-def test_kvalue_not_identical_after_dln_restart(cm):
+def test_kvalue_not_identical_after_dln_restart(cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.kValue = 9
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
     kvalue_validation_obj.dish_manager_kvalue = 10
@@ -52,7 +55,10 @@ def test_kvalue_not_identical_after_dln_restart(cm):
     assert cm.kValueValidationResult == ResultCode.FAILED
 
 
-def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(cm):
+def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
+    cm_without_er_lp,
+):
+    cm = cm_without_er_lp
     cm.get_device().update_unresponsive(True, "Not available")
     with pytest.raises(
         DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"

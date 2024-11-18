@@ -9,7 +9,10 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-def test_trackstop_command_completed(tango_context, task_callback, cm):
+def test_trackstop_command_completed(
+    tango_context, task_callback, cm_without_er_lp
+):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()
@@ -47,7 +50,8 @@ def test_trackstop_command_adapter_none(task_callback, cm_without_er_lp):
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-def test_trackstop_command_not_allowed(cm):
+def test_trackstop_command_not_allowed(cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_trackstop_allowed()
