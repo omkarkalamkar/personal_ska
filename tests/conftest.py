@@ -412,7 +412,6 @@ def cm_pointig_device() -> (
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
         track_table_advance_sec=7,
-        elevation_limit=True,
     )
 
     yield cm

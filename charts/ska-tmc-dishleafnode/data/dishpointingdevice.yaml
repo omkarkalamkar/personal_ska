@@ -10,7 +10,6 @@ entrypoints:
 {{- $Azimuth := .Values.deviceServers.dishpointingdevice.Azimuth }}
 {{- $ElevationMaxLimit := .Values.deviceServers.dishpointingdevice.ElevationMaxLimit }}
 {{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
-{{- $ElevationLimit := .Values.deviceServers.dishpointingdevice.ElevationLimit }}
 
 server:
   name: "dishpointing"
@@ -43,9 +42,6 @@ server:
             - name: "ElevationMinLimit"
               values:
                 - "{{ $ElevationMinLimit }}"
-            - name: "ElevationLimit"
-              values:
-                - "{{ $ElevationLimit }}"
             - name: "LoggingTargetsDefault"
               values:
                 - "tango::logger"

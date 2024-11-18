@@ -31,7 +31,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
     """
 
     # Dish Track command properties
-    ElevationLimit = device_property(dtype="DevBoolean", default_value=True)
     Elevation = device_property(dtype="DevFloat", default_value=30.0)
     Azimuth = device_property(dtype="DevFloat", default_value=0.0)
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
@@ -75,14 +74,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
             """Change device state to INIT."""
             super().do()
             return (ResultCode.OK, "DishPointingDevice Initialized")
-
-    def delete_device(self):
-        # if the init is called more than once
-        # I need to stop all threads
-        if hasattr(self, "component_manager"):
-            # pylint: disable=unnecessary-dunder-call
-            self.component_manager.stop_threads()
-            # pylint: enable=unnecessary-dunder-call
 
     @attribute(
         dtype=ArgType.DevString,
@@ -238,7 +229,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 elevation_max_limit=self.ElevationMaxLimit,
                 elevation_min_limit=self.ElevationMinLimit,
                 track_table_advance_sec=self.TrackTableInAdvance,
-                elevation_limit=self.ElevationLimit,
             )
         )
         return dish_pointing_device_component_manager
