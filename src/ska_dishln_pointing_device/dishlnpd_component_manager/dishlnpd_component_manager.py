@@ -27,7 +27,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     A component manager for The Dish leaf node pointing device component.
     """
 
-    # pylint: disable=unused-argument
     def __init__(
         self,
         disln_pointing_device_name: str,
@@ -41,7 +40,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         elevation_max_limit: float = 0.0,
         elevation_min_limit: float = 0.0,
         track_table_advance_sec: int = 6,
-        elevation_limit: bool = False,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -71,7 +69,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
-        self.el_limit = False
         self.iers_a = None
         self.observer = None
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
@@ -88,9 +85,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
-        self.download_thread = threading.Thread(
-            target=self.download_antenna_and_iers_data
-        )
         self.download_antenna_and_iers_data()
         self.track_process_lock = threading.RLock()
 
@@ -120,7 +114,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     @current_track_table_error.setter
     def current_track_table_error(
-        self: DishlnPointingDataComponentManager, value: list
+        self: DishlnPointingDataComponentManager, value: str
     ) -> None:
         """Update the trackTableError of the dish leaf node
         :param value: Error observed in track table calculation
@@ -129,42 +123,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._current_track_table_error = value
-
-    @property
-    def elevation_limit(self: DishlnPointingDataComponentManager) -> bool:
-        """Returns the True if dish is within its mechanical limit.
-
-        :return: True if the dish is within its mechanical elevation limit,
-            False otherwise.
-        :rtype: boolean
-        """
-        return self.el_limit
-
-    @elevation_limit.setter
-    def elevation_limit(
-        self: DishlnPointingDataComponentManager, elevation_limit: bool
-    ) -> None:
-        """
-        Sets flag for elevation limit.
-
-        :param elevation_limit: Flag is set to True if elevation is out of
-            dish's observable boundary.
-        :type elevation_limit: bool
-        :return: None
-        :rtype: None
-        """
-        if self.el_limit != elevation_limit:
-            self.el_limit = elevation_limit
-
-    def generate_program_track_table(self):
-        """This method generates the program track table."""
-        # if self.update_pointing_program_track_table_callback:
-        #     self.update_pointing_program_track_table_callback(
-        #         self.pointing_program_track_table
-        #     )
-
-    def stop_program_track_table(self):
-        """This method stops the generation of track table."""
 
     def download_antenna_and_iers_data(self):
         """Method that downloads antenna and iers data"""
@@ -203,6 +161,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     def clear_track_table_errors(self):
         """Clear track table errors"""
+        self.current_track_table_error = ""
         self.update_program_track_table_error_callback("")
 
     def download_iers_data_from_a_different_source(
@@ -240,11 +199,13 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
         self.logger.info("ProgramTrackTable will be updated")
         try:
+            self.pointing_program_track_table = program_track_table
             self.update_pointing_program_track_table_callback(
-                program_track_table
+                self.pointing_program_track_table
             )
             self.logger.info(
-                "ProgramTrackTable Updated %s", program_track_table
+                "ProgramTrackTable Updated %s",
+                self.pointing_program_track_table,
             )
         except BaseException as exception:
             message = "Exception while writing tracktable: %s" + str(exception)
@@ -356,6 +317,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         except Exception as value_error:
             self.logger.error("Exception is: %s", str(value_error))
             self.update_program_track_table_error_callback(str(value_error))
+            self.current_track_table_error = str(value_error)
 
         except BaseException as exception:
             self.logger.error(
@@ -363,8 +325,4 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 str(exception),
             )
             self.update_program_track_table_error_callback(str(exception))
-
-    def stop_threads(self):
-        """Method to stop running threads"""
-        if self.download_thread.is_alive():
-            self.download_thread.join(timeout=1.0)
+            self.current_track_table_error = str(exception)

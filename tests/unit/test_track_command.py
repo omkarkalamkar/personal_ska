@@ -21,8 +21,11 @@ def get_track_input_str(
 
 
 def test_track_command_completed(
-    tango_context_process_true, task_callback, cm, group_callback
+    tango_context,
+    task_callback,
+    cm_without_er_lp,
 ):
+    cm = cm_without_er_lp
     track_input_str = get_track_input_str()
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
@@ -61,7 +64,8 @@ def test_track_command_adapter_none(task_callback, cm_without_er_lp):
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-def test_json_validation(tango_context, task_callback, cm):
+def test_json_validation(tango_context, task_callback, cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     assert cm.is_track_allowed()
@@ -71,7 +75,8 @@ def test_json_validation(tango_context, task_callback, cm):
     assert "key is not present" in message
 
 
-def test_track_command_not_allowed(cm):
+def test_track_command_not_allowed(cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_track_allowed()

@@ -32,6 +32,7 @@ class GenerateProgramTrackTable(FastCommand):
 
     def do(self, *args, **kwargs) -> None:
         """This method generates program track table."""
+
         with self.component_manager.track_process_lock:
             self.component_manager.mapping_scan_event.clear()
         if (

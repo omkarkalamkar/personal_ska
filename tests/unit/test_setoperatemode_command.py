@@ -7,7 +7,8 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-def test_set_operate_command(tango_context, cm, task_callback):
+def test_set_operate_command(tango_context, cm_without_er_lp, task_callback):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_setoperatemode_allowed()
 

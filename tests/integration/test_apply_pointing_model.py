@@ -148,7 +148,6 @@ def ApplyPointingModel_with_invalid_json(
     assert "JSON Error" in message
 
 
-@pytest.mark.test
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_apply_pointing_model(tango_context, group_callback, json_factory):

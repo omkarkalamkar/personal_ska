@@ -73,7 +73,6 @@ deviceServers:
     Azimuth: 0.0
     ElevationMaxLimit: 90.0
     ElevationMinLimit: 17.5
-    ElevationLimit: true
     file: "data/dishpointingdevice.yaml"
 
 

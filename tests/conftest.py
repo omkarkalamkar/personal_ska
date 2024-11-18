@@ -134,22 +134,6 @@ def tango_context(devices_to_load, request):
 
 
 @pytest.fixture
-def tango_context_process_true(devices_to_load, request):
-    """Provides context to run devices without database."""
-    true_context = request.config.getoption("--true-context")
-    logging.info("true context: %s", true_context)
-    if not true_context:
-        with MultiDeviceTestContext(
-            devices_to_load, process=True, timeout=80
-        ) as context:
-            DevFactory._test_context = context
-            logging.info("test context set")
-            yield context
-    else:
-        yield None
-
-
-@pytest.fixture
 def dishln_device(request):
     """Create DeviceProxy for tests"""
     true_context = request.config.getoption("--true-context")
@@ -430,7 +414,6 @@ def cm_pointig_device() -> (
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
         track_table_advance_sec=7,
-        elevation_limit=True,
     )
 
     yield cm

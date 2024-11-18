@@ -19,12 +19,13 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context_process_true,
-    cm,
+    tango_context,
+    cm_without_er_lp,
     task_callback,
     json_factory,
     dish_master_device,
 ):
+    cm = cm_without_er_lp
     dev_factory = DevFactory()
     dish_device = dev_factory.get_device(dish_master_device)
     dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
@@ -167,7 +168,8 @@ def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     assert f"{key} key is not present" in message
 
 
-def test_configure_command_not_allowed(cm):
+def test_configure_command_not_allowed(cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()
