@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Tuple
 
+from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import (
@@ -75,6 +76,18 @@ class TrackStop(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
+
+        try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
+        except Exception as exception:
+            self.logger.exception(
+                "Unable to stop programTrackTable: %s",
+                exception,
+            )
+            if self.component_manager._update_health_state_callback:
+                self.component_manager._update_health_state_callback(
+                    HealthState.DEGRADED
+                )
+
         self.logger.debug("Released tango lock")
         return result_code[0], message[0]

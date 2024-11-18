@@ -85,7 +85,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_last_pointing_data_cb: Callable,
         _update_track_table_errors_callback: Callable,
         _update_health_state_callback: Callable,
-        _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
+        _liveliness_probe=LivelinessProbeType.NONE,
         _event_receiver: bool = True,
         proxy_timeout: int = 500,
         sleep_time: int = 1,

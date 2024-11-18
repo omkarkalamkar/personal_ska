@@ -298,9 +298,13 @@ class Configure(DishLNCommand):
                     {"pointing": pointing_device_conf_json["pointing"]}
                 )
                 self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
+                if self.component_manager._update_health_state_callback:
+                    self.component_manager._update_health_state_callback(
+                        HealthState.OK
+                    )
             except Exception as exception:
                 self.logger.exception(
-                    "Exception occured in calculating programTrackTable: %s",
+                    "Unable to generate programTrackTable: %s: %s",
                     exception,
                 )
                 if self.component_manager._update_health_state_callback:

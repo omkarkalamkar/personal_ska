@@ -165,7 +165,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             {release.description}"""
             device._version_id = release.version
             device._dishln_name = device.get_name()
-            device._update_health_state(HealthState.OK)
+            device._update_health_state(HealthState.DEGRADED)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
