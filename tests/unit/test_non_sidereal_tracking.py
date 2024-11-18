@@ -23,6 +23,7 @@ def test_point_at_body(
 ):
     """Function to test AzEl conversion"""
     timestamp = '2019-02-19 06:01:00'
+    cm.download_iers_data()
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:
