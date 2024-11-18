@@ -11,7 +11,7 @@ from tests.settings import simulate_result_code_event
 
 
 def test_configure_band_command_completed(
-    tango_context_process_true, task_callback, cm, group_callback
+    tango_context, task_callback, cm, group_callback
 ):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()

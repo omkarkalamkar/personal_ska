@@ -92,12 +92,13 @@ def test_trackloadstaticoff_command_invalid_input(
 
 def test_configure_command_completed_with_correction_key_reset(
     tango_context,
-    cm,
+    cm_without_er_lp,
     group_callback,
     task_callback,
     json_factory,
 ):
     """Test Configure command with correction key as RESET"""
+    cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
     result_code, _ = set_kvalue_command.do(1)
@@ -127,7 +128,6 @@ def test_configure_command_completed_with_correction_key_reset(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(4)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     time.sleep(2)
     cm.update_device_configured_band("2")

@@ -28,7 +28,7 @@ def test_dish_unavailable_check_after_dln_init_or_restart(dishln_device):
 
 
 def test_dm_available_after_dln_init_or_restart(
-    cm_without_er_lp, tango_context_process_true
+    cm_without_er_lp, tango_context
 ):
     cm = cm_without_er_lp
     cm.get_device().update_unresponsive(False, "")
