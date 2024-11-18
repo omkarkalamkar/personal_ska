@@ -1,5 +1,5 @@
 {
   "interface": "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0",
  "tm_data_sources": ["car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators?main#tmdata"],
- "tm_data_filepath": "instrument/ska_mid1/global_pointing_model_data/global_pointing_model_ska002.json"
+ "tm_data_filepath": "instrument/ska_mid1/global_pointing_model_data/gpm-SKA001-Band_2.json"
 }

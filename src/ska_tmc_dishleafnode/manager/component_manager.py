@@ -12,7 +12,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process, current_process
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import tango
@@ -40,6 +40,7 @@ from ska_tmc_common.lrcr_callback import LRCRCallback
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     AbortCommands,
+    ApplyPointingModel,
     Configure,
     ConfigureBand,
     EndScan,
@@ -49,7 +50,6 @@ from ska_tmc_dishleafnode.commands import (
     SetStandbyFPMode,
     SetStandbyLPMode,
     SetStowMode,
-    StaticPmSetup,
     Track,
     TrackLoadStaticOff,
     TrackStop,
@@ -76,6 +76,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         track_table_entries: int,
         pointing_calculation_period: int,
         _update_dishmode_callback: Callable,
+        _update_dish_pointing_model_param: Callable,
         _update_pointingstate_callback: Callable,
         communication_state_callback: Callable,
         component_state_callback: Callable,
@@ -143,6 +144,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if dish_dev_name
             else None
         )
+        self.dish_pointing_model_param: Dict[str, str] = {
+            "band1pointingmodelparams": "",
+            "band2pointingmodelparams": "",
+            "band3pointingmodelparams": "",
+            "band4pointingmodelparams": "",
+            "band5apointingmodelparams": "",
+            "band5bpointingmodelparams": "",
+        }
         self.command_result_update_lock = Lock()
         self.tango_operation_execution_lock = Lock()
         self.observer = None
@@ -166,6 +175,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.reset_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
+        self._update_dish_pointing_model_param = (
+            _update_dish_pointing_model_param
+        )
         self._update_pointingstate_callback = _update_pointingstate_callback
         self._update_track_table_errors_callback = (
             _update_track_table_errors_callback
@@ -370,16 +382,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.STANDBY_FP,
                     DishMode.STOW,
                     DishMode.MAINTENANCE,
-                ],
-                "StaticPmSetup": [
-                    DishMode.STANDBY_FP,
-                    DishMode.OPERATE,
-                    DishMode.STANDBY_LP,
-                    DishMode.CONFIG,
-                    DishMode.MAINTENANCE,
-                    DishMode.STARTUP,
-                    DishMode.SHUTDOWN,
-                    DishMode.UNKNOWN,
                 ],
             }
 
@@ -1170,12 +1172,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
-    def static_pm_setup(
+    def apply_pointing_model(
         self: DishLNComponentManager,
         argin: str,
         task_callback: TaskCallbackType,
     ) -> Tuple[TaskStatus, str]:
-        """Submits the StaticPmSetup command for execution
+        """Submits the ApplyPointingModel command for execution
 
         :param argin: String giving TelModel URI.
         :type: str
@@ -1185,28 +1187,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
-        static_pm_setup_command = StaticPmSetup(
+
+        apply_pointing_model_command = ApplyPointingModel(
             self,
             self.op_state_model,
             self.adapter_factory,
             self.logger,
         )
         task_status, response = self.submit_task(
-            static_pm_setup_command.invoke_static_pm_setup,
+            apply_pointing_model_command.invoke_apply_pointing_model,
             args=[argin, self.logger],
-            is_cmd_allowed=self.is_command_allowed_callable("StaticPmSetup"),
             task_callback=task_callback,
         )
+
         self.logger.info(
-            "StaticPmSetup command queued for execution with argin: %s",
+            "ApplyPointingModel command queued for execution with argin: %s",
             argin,
         )
         return task_status, response
 
-    def is_staticpmsetup_allowed(self: DishLNComponentManager) -> bool:
-        """Checks if the command StaticPmSetup is allowed.
+    def is_ApplyPointingModel_allowed(self: DishLNComponentManager) -> bool:
+        """Checks if the command ApplyPointingModel is allowed.
 
-        :return: True if the command 'StaticPmSetup' is allowed,
+        :return: True if the command 'ApplyPointingModel' is allowed,
             False otherwise.
         :rtype: boolean
         """
@@ -1475,6 +1478,39 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
+    def update_dish_pointing_model_param(
+        self, dish_param: str, band_name: str
+    ) -> None:
+        """
+        Update the dish pointing model parameter for the specified band and
+        invoke the relevant callbacks if available.
+
+        :param dish_param: New value for the dish pointing model parameter.
+        :type dish_param: str
+        :param band_name: Name of the band to update.
+        :type band_name: str
+        """
+        with self.lock:
+            dev_info = self.get_device()
+            dev_info.last_event_arrived = time.time()
+            dev_info.update_unresponsive(False)
+
+            if band_name in self.dish_pointing_model_param:
+                self.dish_pointing_model_param[band_name] = dish_param
+                self.logger.info(
+                    f"Dish parameter: {band_name} updated to {dish_param}."
+                )
+            else:
+                self.logger.error(
+                    f"Band name '{band_name}' not found in parameters."
+                )
+                return
+
+            if self._update_dish_pointing_model_param:
+                self._update_dish_pointing_model_param(
+                    self.dish_pointing_model_param
+                )
+
     def update_device_pointing_state(
         self: DishLNComponentManager, pointingState: PointingState
     ) -> None:
@@ -1700,12 +1736,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             self.logger.debug("Program Track Table Calculation stopped.")
 
-            with self.tango_operation_execution_lock:
-                self.logger.debug("Grabbed tango operation lock")
-                self.dish_adapter.programTrackTable = []
-
-            self.logger.debug("Cleared programTrackTable attribute.")
-
         except ValueError as value_error:
             self.logger.error("Exception is: %s", str(value_error))
             self.current_track_table_error = str(value_error)
@@ -1786,6 +1816,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug("Stopping Track table process")
             self.track_table_process.join()
             self.logger.debug("Stopped Track table process")
+            with self.tango_operation_execution_lock:
+                self.logger.debug("Acquired tango operation lock")
+                self.dish_adapter.programTrackTable = []
+            self.logger.debug("Cleared programTrackTable attribute.")
             self.logger.debug(
                 f"Is track_table_process alive:"
                 f" {self.track_table_process.is_alive()}"
