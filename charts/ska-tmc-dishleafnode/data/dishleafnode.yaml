@@ -36,8 +36,8 @@ server:
             values:
               - "{{ $IsDishAbortCommandsEnabled }}"
           - name: "MaxTrackTableRetry"
-              values:
-                - "{{ $MaxTrackTableRetry }}"
+            values:
+              - "{{ $MaxTrackTableRetry }}"
           - name: "TrackTableRetryDuration"
             values:
               - "{{ $TrackTableRetryDuration }}"
