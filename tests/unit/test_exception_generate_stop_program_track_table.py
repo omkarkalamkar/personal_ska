@@ -5,7 +5,6 @@ from unittest import mock
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
-from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
@@ -15,13 +14,7 @@ from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-from tests.settings import (
-    logger,
-    simulate_dish_mode_event,
-    simulate_result_code_event,
-    wait_for_dish_mode,
-)
+from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
 
 
 def test_generate_program_track_table(cm_pointig_device):
@@ -50,7 +43,7 @@ def test_stop_program_track_table():
     ):
         stop_program_track_table.do()
 
-@pytest.mark.n
+
 def test_error_propagation_program_track_table(
     cm_without_er_lp,
     task_callback,
@@ -101,4 +94,43 @@ def test_error_propagation_program_track_table(
     assert (
         cm.current_track_table_error
         == "Exception while generating programTrackTable error"
+    )
+
+
+def test_error_propagation_stop_program_track_table(
+    task_callback, cm_without_er_lp
+):
+    attrs = {
+        'StopProgramTrackTable.side_effect': (Exception("error")),
+        'TrackStop.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(
+        programTrackTable=[
+            775853423.2247269,
+            178.758613204265,
+            31.165682681453,
+        ],
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm = cm_without_er_lp
+    cm.adapter_factory = adapter_factory
+    simulate_dish_mode_event(cm, DishMode.OPERATE)
+    cm.update_device_pointing_state(PointingState.TRACK)
+    assert cm.is_trackstop_allowed()
+    cm.trackstop(task_callback=task_callback)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    time.sleep(1)
+    assert (
+        cm.current_track_table_error
+        == "Exception while stopping programTrackTable error"
     )
