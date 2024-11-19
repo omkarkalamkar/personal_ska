@@ -5,6 +5,7 @@ AbortCommands command class for DishLeafNode.
 import logging
 from typing import Tuple
 
+from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import PointingState
@@ -118,9 +119,20 @@ class AbortCommands(DishLNCommand):
         rtype:
             (ResultCode, str)
         """
-
-        self.dishln_pointing_device_adapter.StopProgramTrackTable()
-
+        try:
+            self.dishln_pointing_device_adapter.StopProgramTrackTable()
+        except Exception as exception:
+            self.logger.exception(
+                "Unable to stop programTrackTable: %s",
+                exception,
+            )
+            self.component_manager.current_track_table_error = [
+                f"Exception while stopping programTrackTable {exception}"
+            ]
+            if self.component_manager._update_health_state_callback:
+                self.component_manager._update_health_state_callback(
+                    HealthState.DEGRADED
+                )
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state in [PointingState.TRACK, PointingState.SLEW]:

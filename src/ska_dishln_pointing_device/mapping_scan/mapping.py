@@ -67,6 +67,6 @@ class BaseScanMapping:
                 ]["c2"],
             ]
         track_thread = threading.Thread(
-            target=self.component_manager.track_process
+            target=self.component_manager.track_thread
         )
         track_thread.start()

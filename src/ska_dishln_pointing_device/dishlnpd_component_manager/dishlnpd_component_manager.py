@@ -86,7 +86,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
         self.download_antenna_and_iers_data()
-        self.track_process_lock = threading.RLock()
+        self.track_thread_lock = threading.RLock()
 
     @property
     def target_data(self):
@@ -206,7 +206,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Calculated ProgramTrackTable: %s", program_track_table
         )
 
-    def track_process(
+    def track_thread(
         self: DishlnPointingDataComponentManager,
     ) -> None:
         """
@@ -248,11 +248,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self, self.logger
             )
             track_table_calculator.track_table_time_stamp = extended_time
-            is_track_process_stop = self.mapping_scan_event.is_set()
+            is_track_thread_stop = self.mapping_scan_event.is_set()
             self.logger.debug("Current target used %s", self.target)
-            while not is_track_process_stop:
-                with self.track_process_lock:
-                    is_track_process_stop = self.mapping_scan_event.is_set()
+            while not is_track_thread_stop:
+                with self.track_thread_lock:
+                    is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
                         self.target, self.converter
@@ -287,7 +287,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 )
 
                 event_priority: int = 1
-                with self.track_process_lock:
+                with self.track_thread_lock:
                     if not self.mapping_scan_event.is_set():
                         self.track_table_scheduler.enterabs(
                             scheduled_time,
@@ -313,7 +313,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
         except BaseException as exception:
             self.logger.error(
-                "Exception occurred during track_process :%s",
+                "Exception occurred during track_thread :%s",
                 str(exception),
             )
             self.update_program_track_table_error_callback(str(exception))
