@@ -502,7 +502,7 @@ class DishLNEventReceiver(EventReceiver):
         self._logger.debug("New value is %s", new_value)
         if new_value:
             self._logger.debug("updating track table error value")
-            self._component_manager.current_track_table_error = [new_value]
+            self._component_manager.current_track_table_error = new_value
         self.log_event_exit("handle_pointing_program_track_table_event")
         self._logger.debug(
             "pointingProgramTrackTable error updated to %s", new_value

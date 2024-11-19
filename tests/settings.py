@@ -418,6 +418,14 @@ def simulate_result_code_event(
     cm.update_device_long_running_command_result(device_name, command_result)
 
 
+def simulate_dish_mode_event(
+    cm: DishLNComponentManager,
+    dishmode: DishMode,
+):
+    """Simulate Dish mode event from dish master."""
+    cm.update_device_dish_mode(dishmode)
+
+
 def get_non_sidereal_json_for_now(non_side_real_json) -> str:
     """Return the json for Configure command with visible non-sidereal object
     according to current time.
@@ -479,3 +487,21 @@ def get_non_sidereal_json_for_source_unknown(non_side_real_json) -> str:
     configure_input_json = json.loads(non_side_real_json)
     configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
     return json.dumps(configure_input_json)
+
+
+def monitor_track_table_errors_attribute(
+    dish_leaf_node, track_table_error_before_configure
+) -> bool:
+    """Monitors the trackTableErrors attribute and returns True if the
+    value is updated"""
+    time_consumed = 0
+    track_table_errors = dish_leaf_node.trackTableErrors
+
+    while track_table_errors == track_table_error_before_configure:
+        track_table_errors = dish_leaf_node.trackTableErrors
+        time.sleep(0.5)
+        if time_consumed >= TIMEOUT:
+            return False
+        time_consumed = time_consumed + 0.5
+    logger.info("TrackTableErrors: %s", dish_leaf_node.trackTableErrors)
+    return True
