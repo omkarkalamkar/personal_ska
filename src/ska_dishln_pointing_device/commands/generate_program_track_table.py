@@ -58,4 +58,4 @@ class GenerateProgramTrackTable(FastCommand):
                 exception,
             )
             raise exception
-        return ResultCode.STARTED, "ProgramTrackTable generation Started"
+        return ResultCode.STARTED, "ProgramTrackTable generation started"

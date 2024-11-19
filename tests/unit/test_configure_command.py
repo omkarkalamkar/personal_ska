@@ -177,10 +177,11 @@ def test_configure_command_not_allowed(cm_without_er_lp):
 
 def test_configure_command_status_not_allowed(
     tango_context,
-    cm,
+    cm_without_er_lp,
     task_callback,
     json_factory,
 ):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     assert wait_for_dish_mode(cm, DishMode.UNKNOWN)
     set_kvalue_command = SetKValue(cm, logger=logger)
