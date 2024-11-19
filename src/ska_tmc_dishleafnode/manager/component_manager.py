@@ -93,6 +93,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         command_timeout: int = 15,
         is_dish_abort_commands_enabled: bool = False,
         adapter_timeout: int = 2,
+        max_track_table_retry: int = 3,
+        track_table_retry_duration: float = 0.2,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -169,7 +171,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self._update_health_state_callback = _update_health_state_callback
         self._kvalue: int = 0
-        self._current_track_table_error = []
+        self._current_track_table_error = ""
         self.errors_to_be_reported = []
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
@@ -217,6 +219,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.correction_key: str = CORRECTION_KEY.NOT_SET.value
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self.max_track_table_retry = max_track_table_retry
+        self.track_table_retry_duration = track_table_retry_duration
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
@@ -475,7 +479,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @current_track_table_error.setter
     def current_track_table_error(
-        self: DishLNComponentManager, value: list
+        self: DishLNComponentManager, value: str
     ) -> None:
         """Update the trackTableError of the dish leaf node
         :param value: Error observed in track table calculation
@@ -484,12 +488,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._current_track_table_error = value
-        self.errors_to_be_reported.extend(value)
+        self.logger.debug("Value is: %s", value)
+        # Ensure that the value is not empty string
+        if value:
+            self.logger.debug("Value is: %s", value)
+            now = datetime.datetime.now()
+            current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+            time_added_message = current_time + ": " + value
+            self.logger.debug("Time added message: %s", time_added_message)
+            self.errors_to_be_reported.extend([time_added_message])
 
-        if self._update_track_table_errors_callback:
-            self._update_track_table_errors_callback(
-                self.errors_to_be_reported
-            )
+            if self._update_track_table_errors_callback:
+                self._update_track_table_errors_callback(
+                    self.errors_to_be_reported
+                )
 
     @property
     def last_pointing_data(self: DishLNComponentManager):
@@ -1582,23 +1594,33 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         with self.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
-            try:
-                self.dish_adapter.programTrackTable = program_track_table
-                self.logger.debug("ProgramTrackTable Updated")
-            except BaseException as exception:
-                message = "Exception while writing tracktable: %s" + str(
-                    exception
-                )
-                self.logger.exception(message)
-                raise Exception(message) from exception
-            self.logger.debug("Released  tango lock")
+            for retry in range(0, self.max_track_table_retry):
+                self.logger.debug("Retry is: %s", retry)
+                try:
+                    self.dish_adapter.programTrackTable = program_track_table
+                    self.logger.debug("ProgramTrackTable Updated")
+                    break
+
+                except BaseException as exception:
+                    message = "Exception while writing tracktable: %s" + str(
+                        exception
+                    )
+                    self.logger.exception(message)
+                    # Write exception into attribute once all the retries are
+                    # for one write operation are completed
+                    if retry == (self.max_track_table_retry - 1):
+                        self.current_track_table_error = message
+
+                retry += 1
+                time.sleep(self.track_table_retry_duration)
+
         self.logger.debug("ProgramTrackTable: %s", program_track_table)
 
     def clear_track_table_errors(self: DishLNComponentManager):
         """
         This method clears the variables that include track table errors
         """
-        self.current_track_table_error = []
+        self.current_track_table_error = ""
         self.errors_to_be_reported = []
 
     def set_dish_adapter(self, dish_adapter: DishAdapter) -> None:
