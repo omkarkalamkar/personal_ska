@@ -214,6 +214,9 @@ class AzElConverter:
 
     def radec_to_azel(
         self: AzElConverter,
+        # The ra/dec can str or float
+        # as per ADR-106 the c1 and c2 ie ra and dec
+        # are expressed in the form of float
         right_ascension: str | float,
         declination: str | float,
         timestamp: str,

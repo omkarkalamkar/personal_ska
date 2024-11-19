@@ -133,13 +133,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self: DishlnPointingDataComponentManager,
     ):
         """Create AzElConverter Object and antenna object"""
-        # Once SKB-398 is fixed from TelModel then this
-        # exception handling can be removed.
-        try:
-            self.converter.create_antenna_obj()
-            self.logger.debug("Antenna object created")
-        except Exception as exp:
-            self.logger.exception("Error while creating antenna obj %s", exp)
+
+        self.converter.create_antenna_obj()
+        self.logger.debug("Antenna object created")
 
     def download_iers_data(self: DishlnPointingDataComponentManager) -> None:
         """Downloads and initialises the IERS file.

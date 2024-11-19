@@ -11,6 +11,7 @@ entrypoints:
 {{- $ElevationMaxLimit := .Values.deviceServers.dishpointingdevice.ElevationMaxLimit }}
 {{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
 
+
 server:
   name: "dishpointing"
   instances:

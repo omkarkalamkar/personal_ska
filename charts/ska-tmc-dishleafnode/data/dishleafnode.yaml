@@ -4,6 +4,9 @@ domain: general-monitoring
 instances: ["01"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $IsDishAbortCommandsEnabled := .Values.deviceServers.dishln.IsDishAbortCommandsEnabled }}
+{{- $MaxTrackTableRetry := .Values.deviceServers.dishpointingdevice.MaxTrackTableRetry }}
+{{- $TrackTableRetryDuration := .Values.deviceServers.dishpointingdevice.TrackTableRetryDuration }}
+
 server:
   name: "dish_leaf_node"
   instances:
@@ -32,6 +35,12 @@ server:
           - name: "IsDishAbortCommandsEnabled"
             values:
               - "{{ $IsDishAbortCommandsEnabled }}"
+          - name: "MaxTrackTableRetry"
+              values:
+                - "{{ $MaxTrackTableRetry }}"
+          - name: "TrackTableRetryDuration"
+            values:
+              - "{{ $TrackTableRetryDuration }}"
   {{- end }}
 depends_on:
   - device: sys/database/2

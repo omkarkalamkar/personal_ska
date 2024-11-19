@@ -32,19 +32,30 @@ class GenerateProgramTrackTable(FastCommand):
 
     def do(self, *args, **kwargs) -> None:
         """This method generates program track table."""
-
-        with self.component_manager.track_process_lock:
-            self.component_manager.mapping_scan_event.clear()
-        if (
-            self.component_manager.target_data
-            and "trajectory"
-            not in self.component_manager.target_data["pointing"]
-        ):
-            self.component_manager.current_mapping_scan_obj = PointMappingScan(
-                pattern_name="point",
-                component_manager=self.component_manager,
-                logger=self.logger,
+        try:
+            with self.component_manager.track_process_lock:
+                self.component_manager.mapping_scan_event.clear()
+            if (
+                self.component_manager.target_data
+                and "trajectory"
+                not in self.component_manager.target_data["pointing"]
+            ):
+                self.component_manager.current_mapping_scan_obj = (
+                    PointMappingScan(
+                        pattern_name="point",
+                        component_manager=self.component_manager,
+                        logger=self.logger,
+                    )
+                )
+                current_scan_obj = (
+                    self.component_manager.current_mapping_scan_obj
+                )
+                current_scan_obj.set_target_and_start_process()
+        except Exception as exception:
+            self.logger.error(
+                "Exception occurred in  GenerateProgramTrackTable"
+                "command : %s",
+                exception,
             )
-            current_scan_obj = self.component_manager.current_mapping_scan_obj
-            current_scan_obj.set_target_and_start_process()
-        return ResultCode.STARTED, "Generation Started"
+            raise exception
+        return ResultCode.STARTED, "ProgramTrackTable generation Started"

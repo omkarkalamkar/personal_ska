@@ -29,6 +29,10 @@ class BaseScanMapping:
         Returns:
             dict: A dictionary containing the program track table.
         """
+        # The below if checks the presence of target key in dish configure
+        # input, if its present it checks what kind of reference frame
+        #  it is for example, "special" or "icrs" and generates AzEl
+        # accordingly
 
         if "target" in self.component_manager.target_data["pointing"]:
             if (
@@ -52,6 +56,8 @@ class BaseScanMapping:
                     ],
                 ]
         else:
+            # The below code is for pointing dishes in holography/mapping scans
+            # The pointing devices does normal scanning in mapping scans.
             self.component_manager.target = [
                 self.component_manager.target_data["pointing"]["field"][
                     "attrs"

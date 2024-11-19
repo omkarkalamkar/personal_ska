@@ -72,7 +72,9 @@ deviceServers:
     Elevation: 30.0
     Azimuth: 0.0
     ElevationMaxLimit: 90.0
-    ElevationMinLimit: 17.5
+    ElevationMinLimit: 15.0
+    MaxTrackTableRetry: 3
+    TrackTableRetryDuration: 0.2
     file: "data/dishpointingdevice.yaml"
 
 

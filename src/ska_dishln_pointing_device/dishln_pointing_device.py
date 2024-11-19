@@ -34,7 +34,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     Elevation = device_property(dtype="DevFloat", default_value=30.0)
     Azimuth = device_property(dtype="DevFloat", default_value=0.0)
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
-    ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
+    ElevationMinLimit = device_property(dtype="DevFloat", default_value=15.0)
     TrackTableEntries = device_property(
         dtype="DevShort",
         default_value=25,

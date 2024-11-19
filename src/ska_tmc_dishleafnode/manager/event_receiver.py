@@ -44,17 +44,17 @@ class DishLNEventReceiver(EventReceiver):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-        self.subscribed: bool = False
+        self.dish_master_subscribed: bool = False
+        self.dislnpd_subscribed: bool = False
         self._event_enter_exit_time: List[datetime] = []
 
     def run(self: DishLNEventReceiver) -> None:
-        while not self.subscribed:
+        while not self.dish_master_subscribed:
             dishDevInfo = self._component_manager.get_device()
             if dishDevInfo.dev_name:
                 self.subscribe_dish_master_events(dishDevInfo)
             sleep(self._sleep_time)
-        self.subscribed = False
-        while not self.subscribed:
+        while not self.dislnpd_subscribed:
             if self._component_manager.dishln_pointing_dev_name:
                 self.subscribe_dishlnpd_events(
                     self._component_manager.dishln_pointing_dev_name
@@ -129,7 +129,7 @@ class DishLNEventReceiver(EventReceiver):
                 )
                 self._logger.exception(log_msg)
             else:
-                self.subscribed = True
+                self.dish_master_subscribed = True
 
     def subscribe_dishlnpd_events(
         self: DishLNEventReceiver,
@@ -191,7 +191,7 @@ class DishLNEventReceiver(EventReceiver):
                 )
                 self._logger.exception(log_msg)
             else:
-                self.subscribed = True
+                self.dislnpd_subscribed = True
 
     # pylint: enable=unused-argument
     def handle_pointing_model_params(
