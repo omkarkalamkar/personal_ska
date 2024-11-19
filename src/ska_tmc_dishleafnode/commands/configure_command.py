@@ -800,7 +800,7 @@ class Configure(DishLNCommand):
                 track_table_status = CommandResult.ABORTED
                 return track_table_status
             track_table = self.dish_master_adapter.programTrackTable
-            self.logger.info("is_tracktable_provided: %s", track_table)
+            self.logger.debug("is_tracktable_provided: %s", track_table)
 
             if len(track_table) > 0:
                 track_table_status = CommandResult.ACHIEVED

@@ -14,7 +14,7 @@ class BaseScanMapping:
         logger: Logger,
     ) -> None:
         self.pattern_name = pattern_name
-        self.target = None
+        self.target: str | None = None
         self.component_manager = component_manager
         self.logger = logger
 

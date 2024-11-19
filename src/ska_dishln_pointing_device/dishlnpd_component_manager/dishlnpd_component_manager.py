@@ -197,21 +197,18 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
 
-        self.logger.info("ProgramTrackTable will be updated")
         try:
             self.pointing_program_track_table = program_track_table
             self.update_pointing_program_track_table_callback(
                 self.pointing_program_track_table
             )
-            self.logger.info(
-                "ProgramTrackTable Updated %s",
-                self.pointing_program_track_table,
-            )
         except BaseException as exception:
             message = "Exception while writing tracktable: %s" + str(exception)
             self.logger.exception(message)
             raise Exception(message) from exception
-        self.logger.debug("ProgramTrackTable: %s", program_track_table)
+        self.logger.debug(
+            "Calculated ProgramTrackTable: %s", program_track_table
+        )
 
     def track_process(
         self: DishlnPointingDataComponentManager,
@@ -224,8 +221,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            self.logger.info(
-                "ProgramTrackTable generation started.",
+            self.logger.debug(
+                "Staring ProgramTrackTable.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             # This is dummy calculation because first time calculation takes
@@ -310,9 +307,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         self.logger.debug("Execution done")
 
             self.logger.debug("Program Track Table Calculation stopped.")
-
-            self.logger.debug("Cleared programTrackTable attribute.")
             self.update_program_track_table([])
+            self.logger.debug("Cleared programTrackTable attribute.")
 
         except Exception as value_error:
             self.logger.error("Exception is: %s", str(value_error))

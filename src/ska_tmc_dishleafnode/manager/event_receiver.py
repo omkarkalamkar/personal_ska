@@ -234,7 +234,7 @@ class DishLNEventReceiver(EventReceiver):
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
-            self._logger.debug(error_msg)
+            self._logger.error(error_msg)
             self._component_manager.update_event_failure(
                 event_flag.device.dev_name()
             )
