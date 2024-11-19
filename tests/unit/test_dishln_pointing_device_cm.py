@@ -79,7 +79,7 @@ def test_dish_pointing_device_program_track_table_error(
     configure_data = json_factory("non_sidereal_tracking")
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
-    configure_data["pointing"]["target_name"] = "Urenus"
+    configure_data["pointing"]["target"]["target_name"] = "Urenus"
     cm.target_data = configure_data
     generate_program_track_table = GenerateProgramTrackTable(
         logger=logger, component_manager=cm
