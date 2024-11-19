@@ -304,7 +304,7 @@ class Configure(DishLNCommand):
                     )
             except Exception as exception:
                 self.logger.exception(
-                    "Unable to generate programTrackTable: %s: %s",
+                    "Unable to generate programTrackTable: %s",
                     exception,
                 )
                 self.component_manager.current_track_table_error = (

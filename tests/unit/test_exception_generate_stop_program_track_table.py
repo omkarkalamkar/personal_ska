@@ -1,14 +1,26 @@
 import logging
 import threading
+import time
 from unittest import mock
 
 import pytest
+from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_tmc_common import DevFactory
+from ska_tmc_common.enum import DishMode, PointingState
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
+)
+from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from tests.settings import (
+    logger,
+    simulate_dish_mode_event,
+    simulate_result_code_event,
+    wait_for_dish_mode,
 )
 
 
@@ -37,3 +49,56 @@ def test_stop_program_track_table():
         Exception, match="mapping scan event doesn't have set attribute"
     ):
         stop_program_track_table.do()
+
+@pytest.mark.n
+def test_error_propagation_program_track_table(
+    cm_without_er_lp,
+    task_callback,
+    json_factory,
+):
+    cm = cm_without_er_lp
+    cm.kvalue_validation_thread.cancel()
+    cm.command_timeout = 5
+    attrs = {
+        'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+        'TrackLoadStaticOff.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+        'ConfigureBand2.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+        'GenerateProgramTrackTable.side_effect': (Exception("error")),
+    }
+    dishMock = mock.Mock(
+        programTrackTable=[
+            775853423.2247269,
+            178.758613204265,
+            31.165682681453,
+        ],
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
+    simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    set_kvalue_command._adapter_factory = adapter_factory
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+    configure_input_str = json_factory("dishleafnode_configure")
+    cm.configure(configure_input_str, task_callback=task_callback)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    time.sleep(1)
+    assert (
+        cm.current_track_table_error
+        == "Exception while generating programTrackTable error"
+    )
