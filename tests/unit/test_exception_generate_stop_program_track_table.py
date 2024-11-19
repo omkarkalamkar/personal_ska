@@ -21,7 +21,7 @@ def test_generate_program_track_table(cm_pointig_device):
         generate_program_track_table.do()
     cm_pointig_device.target_data = {"pointing": [1, 2]}  # invalid target data
     with pytest.raises(Exception):
-        generate_program_track_table.do()  # without scan mapping object
+        generate_program_track_table.do()
 
 
 def test_stop_program_track_table():
