@@ -307,9 +307,9 @@ class Configure(DishLNCommand):
                     "Unable to generate programTrackTable: %s: %s",
                     exception,
                 )
-                self.component_manager.current_track_table_error = [
+                self.component_manager.current_track_table_error = (
                     f"Exception while generating programTrackTable {exception}"
-                ]
+                )
                 if self.component_manager._update_health_state_callback:
                     self.component_manager._update_health_state_callback(
                         HealthState.DEGRADED
