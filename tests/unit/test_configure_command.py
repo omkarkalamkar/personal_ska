@@ -200,8 +200,8 @@ def test_configure_command_status_not_allowed(
         result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
     )
 
-
-def test_configure_timeout(tango_context, cm, task_callback, json_factory):
+def test_configure_timeout(tango_context, cm_without_er_lp, task_callback, json_factory):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     configure_input_str = json_factory("dishleafnode_configure")
 
