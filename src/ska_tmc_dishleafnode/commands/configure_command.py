@@ -336,7 +336,7 @@ class Configure(DishLNCommand):
             configure_band_command = ConfigureBand(
                 self.component_manager,
                 self.op_state_model,
-                self.adapter_factory,
+                self._adapter_factory,
                 logger=self.logger,
                 is_configure_command=True,
             )
@@ -447,7 +447,7 @@ class Configure(DishLNCommand):
         track_load_static_off_command = TrackLoadStaticOff(
             self.component_manager,
             self.op_state_model,
-            self.adapter_factory,
+            self._adapter_factory,
             self.logger,
             is_configure_command=True,
         )
@@ -623,7 +623,7 @@ class Configure(DishLNCommand):
         setoperatemode_command = SetOperateMode(
             self.component_manager,
             self.op_state_model,
-            self.adapter_factory,
+            self._adapter_factory,
             logger=self.logger,
             is_configure_command=True,
         )
@@ -761,7 +761,7 @@ class Configure(DishLNCommand):
         track_command = Track(
             self.component_manager,
             self.op_state_model,
-            self.adapter_factory,
+            self._adapter_factory,
             logger=self.logger,
             is_configure_command=True,
         )

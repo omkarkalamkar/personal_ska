@@ -1,12 +1,13 @@
 import json
 import time
+from unittest import mock
 
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory
-from ska_tmc_common.enum import DishMode
+from ska_tmc_common.enum import DishMode, PointingState
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
@@ -15,6 +16,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     logger,
+    simulate_dish_mode_event,
     simulate_result_code_event,
     wait_for_dish_mode,
 )
@@ -91,74 +93,65 @@ def test_trackloadstaticoff_command_invalid_input(
 
 
 def test_configure_command_completed_with_correction_key_reset(
-    tango_context,
     cm_without_er_lp,
-    group_callback,
     task_callback,
     json_factory,
 ):
     """Test Configure command with correction key as RESET"""
     cm = cm_without_er_lp
-    dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
+    cm.kvalue_validation_thread.cancel()
     set_kvalue_command = SetKValue(cm, logger=logger)
+    attrs = {
+        'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+        'TrackLoadStaticOff.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(
+        programTrackTable=[
+            775853423.2247269,
+            178.758613204265,
+            31.165682681453,
+        ],
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    set_kvalue_command._adapter_factory = adapter_factory
+    cm.adapter_factory = adapter_factory
+
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
+    simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
-    dish_device.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-        stateless=True,
-    )
     configure_input_str = json_factory("dishleafnode_configure")
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "RESET"
     configure_input_str = json.dumps(configure_input_str)
     cm.configure(configure_input_str, task_callback=task_callback)
-    dish_device.programTrackTable = [
-        775853423.2247269,
-        178.758613204265,
-        31.165682681453,
-    ]
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
-    time.sleep(2)
+    cm.update_device_pointing_state(PointingState.TRACK)
     cm.update_device_configured_band("2")
     simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
-
     time.sleep(2)
-    cm.update_device_dish_mode(DishMode.OPERATE)
+    simulate_dish_mode_event(cm, DishMode.OPERATE)
     simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
-
+    simulate_result_code_event(cm, "Track", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
     )
-    unique_id = ""
-    message = ""
-    count = 0
-    while "TrackLoadStaticOff" not in unique_id and count < 10:
-        unique_id, message = group_callback[
-            "longRunningCommandResult"
-        ].assert_change_event(
-            (Anything, '[0, "Command Completed"]'),
-            lookahead=10,
-        )[
-            "attribute_value"
-        ]
-        count = count + 1
-        time.sleep(1)
 
-    assert "Command Completed" in message
+    dishMock.TrackLoadStaticOff.assert_called_once_with([0.0, 0.0])
 
 
 def test_configure_command_completed_with_correction_key_update(
@@ -252,6 +245,7 @@ def test_correction_key_update_partial_config(
     json_factory,
 ):
     """Test correction UPDATE key functionality for partial config"""
+
     cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     set_kvalue_command = SetKValue(cm, logger=logger)
