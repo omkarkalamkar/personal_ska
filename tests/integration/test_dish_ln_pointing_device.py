@@ -22,7 +22,7 @@ def test_dishln_pointing_device():
     )
     result_code, message = dishln_pointing_device.GenerateProgramTrackTable()
     assert result_code == [ResultCode.STARTED]
-    assert message == ['Generation Started']
+    assert message == ['ProgramTrackTable generation started']
 
     result_code, message = dishln_pointing_device.StopProgramTrackTable()
     assert result_code == [ResultCode.OK]
