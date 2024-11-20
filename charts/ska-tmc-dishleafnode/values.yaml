@@ -57,6 +57,8 @@ deviceServers:
   dishln:
     enabled: true
     instances: ["01", "02"]
+    MaxTrackTableRetry: 3
+    TrackTableRetryDuration: 0.2
     file: "data/dishleafnode.yaml"
     IsDishAbortCommandsEnabled: False
   sdpqc:
@@ -73,8 +75,7 @@ deviceServers:
     Azimuth: 0.0
     ElevationMaxLimit: 90.0
     ElevationMinLimit: 15.0
-    MaxTrackTableRetry: 3
-    TrackTableRetryDuration: 0.2
+
     file: "data/dishpointingdevice.yaml"
 
 

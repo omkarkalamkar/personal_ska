@@ -314,6 +314,14 @@ class Configure(DishLNCommand):
                     self.component_manager._update_health_state_callback(
                         HealthState.DEGRADED
                     )
+                return (
+                    ResultCode.FAILED,
+                    (
+                        "There was an error while starting the generation of "
+                        + "program track table: %s",
+                        exception,
+                    ),
+                )
 
             self.logger.info("Invoking ConfigureBand command")
 

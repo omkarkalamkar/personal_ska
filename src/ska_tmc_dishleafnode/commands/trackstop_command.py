@@ -62,6 +62,7 @@ class TrackStop(DishLNCommand):
         return:
             (ResultCode, str)
         """
+        result_code, message = [ResultCode.OK], ""
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -73,9 +74,18 @@ class TrackStop(DishLNCommand):
 
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
-            result_code, message = self.call_adapter_method(
+            result_code, msg = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
+            if result_code[0] in [
+                result_code.FAILED,
+                ResultCode.REJECTED,
+                ResultCode.NOT_ALLOWED,
+            ]:
+                message = (
+                    f"TrackStop result code: {result_code[0]} "
+                    + f"and message: {msg[0]}"
+                )
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
@@ -91,6 +101,12 @@ class TrackStop(DishLNCommand):
                 self.component_manager._update_health_state_callback(
                     HealthState.DEGRADED
                 )
+            result_code = [ResultCode.FAILED]
+            message += (
+                " StopProgramTrackTable: "
+                " There was an error while stopping the generation of "
+                + f"program track table: {exception}"
+            )
 
         self.logger.debug("Released tango lock")
-        return result_code[0], message[0]
+        return result_code[0], message

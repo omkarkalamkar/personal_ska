@@ -119,6 +119,24 @@ class AbortCommands(DishLNCommand):
         rtype:
             (ResultCode, str)
         """
+        result_code, message = [ResultCode.OK], ""
+        pointing_state = self.component_manager.pointingState
+        # Check Pointing State is track before calling track stop.
+        if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, msg = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "TrackStop"
+                )
+                if result_code[0] in [
+                    result_code.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.NOT_ALLOWED,
+                ]:
+                    message = (
+                        f"TrackStop result code: {result_code[0]} "
+                        + f"and message: {msg[0]}"
+                    )
+
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
         except Exception as exception:
@@ -133,12 +151,11 @@ class AbortCommands(DishLNCommand):
                 self.component_manager._update_health_state_callback(
                     HealthState.DEGRADED
                 )
-        pointing_state = self.component_manager.pointingState
-        # Check Pointing State is track before calling track stop.
-        if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
-            with self.component_manager.tango_operation_execution_lock:
-                result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "TrackStop"
+                result_code = [ResultCode.FAILED]
+                message += (
+                    " StopProgramTrackTable: There was an error while"
+                    + " stopping the generation of "
+                    + f"program track table: {exception}"
                 )
-            return result_code[0], message[0]
-        return ResultCode.OK, ""
+
+        return result_code[0], message

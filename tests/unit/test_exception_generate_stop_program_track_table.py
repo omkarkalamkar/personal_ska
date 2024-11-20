@@ -13,6 +13,7 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
+from ska_tmc_dishleafnode.commands.abort_command import AbortCommands
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
 
@@ -106,6 +107,10 @@ def test_error_propagation_stop_program_track_table(
             [ResultCode.OK],
             ["Command Completed"],
         ),
+        'AbortCommands.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
     }
     dishMock = mock.Mock(
         programTrackTable=[
@@ -133,4 +138,40 @@ def test_error_propagation_stop_program_track_table(
     assert (
         cm.current_track_table_error
         == "Exception while stopping programTrackTable error"
+    )
+
+
+def test_error_propagation_abort_stop_program_track_table(
+    task_callback, cm_without_er_lp
+):
+    attrs = {
+        'StopProgramTrackTable.side_effect': (Exception("error")),
+        'AbortCommands.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(
+        programTrackTable=[
+            775853423.2247269,
+            178.758613204265,
+            31.165682681453,
+        ],
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm = cm_without_er_lp
+    abort_command = AbortCommands(
+        cm,
+        logger=cm.logger,
+    )
+    abort_command._adapter_factory = adapter_factory
+    cm.abort_event.set()
+    resulcode, message = abort_command.invoke_abort()
+    assert resulcode == ResultCode.FAILED
+    assert message == (
+        " StopProgramTrackTable: "
+        + "There was an error while stopping the generation of "
+        + "program track table: error"
     )
