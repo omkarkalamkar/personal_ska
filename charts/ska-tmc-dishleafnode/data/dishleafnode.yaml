@@ -4,8 +4,8 @@ domain: general-monitoring
 instances: ["01"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $IsDishAbortCommandsEnabled := .Values.deviceServers.dishln.IsDishAbortCommandsEnabled }}
-{{- $MaxTrackTableRetry := .Values.deviceServers.dishpointingdevice.MaxTrackTableRetry }}
-{{- $TrackTableRetryDuration := .Values.deviceServers.dishpointingdevice.TrackTableRetryDuration }}
+{{- $MaxTrackTableRetry := .Values.deviceServers.dishln.MaxTrackTableRetry }}
+{{- $TrackTableRetryDuration := .Values.deviceServers.dishln.TrackTableRetryDuration }}
 
 server:
   name: "dish_leaf_node"
