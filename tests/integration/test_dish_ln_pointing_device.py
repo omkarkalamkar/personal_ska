@@ -33,4 +33,3 @@ def test_dishln_pointing_device():
     )
     assert result_code == [ResultCode.OK]
     assert message == ["offset change event set"]
-    # assert dishln_pointing_device.pointingProgramTrackTable == json.dumps([])
