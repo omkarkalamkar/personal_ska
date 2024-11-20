@@ -27,15 +27,15 @@ from tests.settings import SKA_EPOCH, logger
     ],
 )
 def test_azel_to_radec(
-    tango_context,
     timestamp,
     az,
     el,
     expected_ra,
     expected_dec,
-    cm,
+    cm_without_er_lp,
 ):
     """Test the backward transform method from AzElConverter."""
+    cm = cm_without_er_lp
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:
@@ -55,8 +55,9 @@ def test_azel_to_radec(
     assert expected_dec == dec
 
 
-def test_actual_pointing(tango_context, cm):
+def test_actual_pointing(cm_without_er_lp):
     """Test to check actual pointing is getting updated"""
+    cm = cm_without_er_lp
     timestamp_str = "2019-02-19 06:01:00"
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")

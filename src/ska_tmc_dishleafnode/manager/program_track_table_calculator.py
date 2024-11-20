@@ -65,7 +65,7 @@ class ProgramTrackTableCalculator:
                 tai_timestamp_list,
             ) = self.calculate_time_stamp_list()
             results: list = list(map(self.point, time_stamp_list))
-
+            self.logger.debug("Result is %s", results)
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):
                     message = (
@@ -73,6 +73,7 @@ class ProgramTrackTableCalculator:
                         + ("Source is not visible currently.")
                     )
                     raise Exception(message)
+
                 if result[0] < 0:
                     result[0] = 360 - abs(result[0])
 
@@ -81,7 +82,7 @@ class ProgramTrackTableCalculator:
                     [round(result[0], 12), round(result[1], 12)]
                 )
 
-                if self.component_manager.get_track_process_event_status():
+                if self.component_manager.mapping_scan_event.is_set():
                     self.logger.debug(
                         "Stopping the ProgramTrackTable calculation."
                     )

@@ -7,7 +7,8 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-def test_scan_command(tango_context, cm, task_callback):
+def test_scan_command(tango_context, cm_without_er_lp, task_callback):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_scan_allowed()
 
@@ -44,7 +45,8 @@ def test_scan_command_adapter_none(cm_without_er_lp, task_callback):
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-def test_scan_mode_command_not_allowed(tango_context, cm):
+def test_scan_mode_command_not_allowed(cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_scan_allowed()

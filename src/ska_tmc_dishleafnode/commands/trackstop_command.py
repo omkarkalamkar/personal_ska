@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Tuple
 
+from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import (
@@ -13,6 +14,7 @@ from ska_tmc_common import (
 )
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -61,6 +63,7 @@ class TrackStop(DishLNCommand):
         return:
             (ResultCode, str)
         """
+
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -69,16 +72,43 @@ class TrackStop(DishLNCommand):
             )
             return result_code, message
         # Stop the thread which started when Track command was invoked
-
-        self.component_manager.stop_track_table_process()
+        result_code, message = [ResultCode.OK], ""
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
-            result_code, message = self.call_adapter_method(
+            result_code, msg = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
+            if result_code[0] in [
+                ResultCode.FAILED,
+                ResultCode.REJECTED,
+                ResultCode.NOT_ALLOWED,
+            ]:
+                message = (
+                    f"TrackStop result code: {result_code[0]} "
+                    + f"and message: {msg[0]}"
+                )
+            self.logger.debug("Released tango lock")
 
-        self.logger.debug("Released tango lock")
-
-        self.component_manager.stop_track_table_process()
-
-        return result_code[0], message[0]
+        try:
+            self.dishln_pointing_device_adapter.StopProgramTrackTable()
+        except Exception as exception:
+            self.logger.exception(
+                "Unable to stop programTrackTable: %s",
+                exception,
+            )
+            self.component_manager.current_track_table_error = (
+                f"Exception while stopping programTrackTable {exception}"
+            )
+            if self.component_manager._update_health_state_callback:
+                self.component_manager._update_health_state_callback(
+                    HealthState.DEGRADED
+                )
+            result_code = [ResultCode.FAILED]
+            message += (
+                " StopProgramTrackTable: "
+                " There was an error while stopping the generation of "
+                + f"program track table: {exception}"
+            )
+        if not message:
+            message = COMMAND_COMPLETION_MESSAGE
+        return result_code[0], message

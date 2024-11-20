@@ -44,21 +44,30 @@ class DishLNEventReceiver(EventReceiver):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-        self.subscribed: bool = False
+        self.dish_master_subscribed: bool = False
+        self.dislnpd_subscribed: bool = False
         self._event_enter_exit_time: List[datetime] = []
 
     def run(self: DishLNEventReceiver) -> None:
-        while not self.subscribed:
+        while not self.dish_master_subscribed:
             dishDevInfo = self._component_manager.get_device()
             if dishDevInfo.dev_name:
-                self.subscribe_events(dishDevInfo)
+                self.subscribe_dish_master_events(dishDevInfo)
+            sleep(self._sleep_time)
+        while not self.dislnpd_subscribed:
+            if self._component_manager.dishln_pointing_dev_name:
+                self.subscribe_dishlnpd_events(
+                    self._component_manager.dishln_pointing_dev_name
+                )
             sleep(self._sleep_time)
 
-    def subscribe_events(
+    # pylint: disable=unused-argument
+    def subscribe_dish_master_events(
         self: DishLNEventReceiver,
         dev_info: DishDeviceInfo,
         attribute_dictionary=None,
     ) -> None:
+        """Subscribe to Dish Master"""
         pointing_model_params_attrs = [
             "band1PointingModelParams",
             "band2PointingModelParams",
@@ -120,8 +129,71 @@ class DishLNEventReceiver(EventReceiver):
                 )
                 self._logger.exception(log_msg)
             else:
-                self.subscribed = True
+                self.dish_master_subscribed = True
 
+    def subscribe_dishlnpd_events(
+        self: DishLNEventReceiver,
+        dlnPointingDev_name: str,
+        attribute_dictionary=None,
+    ) -> None:
+        """
+        Subscribe to DishLeaf Node Pointing Device events.
+
+        Parameters
+        ----------
+        self : DishLNEventReceiver
+            The DishLNEventReceiver instance.
+        dlnPointingDev_name : str
+            The name of the DishLeaf Node Pointing Device to
+            subscribe to.
+        attribute_dictionary : Optional[dict]
+            Dictionary containing attribute configurations for the
+            subscription.
+            Defaults to None.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        This method establishes event subscriptions for a
+        DishLeaf Node Pointing Device using the provided
+        device name and optional attribute configurations.
+        """
+        with tango.EnsureOmniThread():
+            try:
+                dishln_pointing_dev_proxy = self._dev_factory.get_device(
+                    dlnPointingDev_name
+                )
+                dishln_pointing_dev_proxy.subscribe_event(
+                    "pointingProgramTrackTable",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_pointing_program_track_table_event,
+                    stateless=True,
+                )
+                dishln_pointing_dev_proxy.subscribe_event(
+                    "programTrackTableError",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_program_track_table_error_event,
+                    stateless=True,
+                )
+                dishln_pointing_dev_proxy.subscribe_event(
+                    "healthState",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_dishlnpd_healthState_event,
+                    stateless=True,
+                )
+            except Exception as exception:
+                log_msg = (
+                    "Event not working for "
+                    f"device {dlnPointingDev_name}/{exception}"
+                )
+                self._logger.exception(log_msg)
+            else:
+                self.dislnpd_subscribed = True
+
+    # pylint: enable=unused-argument
     def handle_pointing_model_params(
         self: DishLNEventReceiver, event_flag: tango.EventData
     ):
@@ -369,4 +441,102 @@ class DishLNEventReceiver(EventReceiver):
             "Exit time for the callback: %s is %s",
             callback_name,
             time_diff,
+        )
+
+    def handle_pointing_program_track_table_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
+        """Method to handle and update the latest value of
+        pointingProgramTrackTable attribute.
+
+        :parameter event_flag: To flag the change in event
+            for programTrackTable.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        self.log_event_data(
+            event_flag, "handle_pointing_program_track_table_event"
+        )
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(
+                event_flag.device.dev_name()
+            )
+            return
+        new_value = event_flag.attr_value.value
+        self._component_manager.update_program_track_table(
+            json.loads(new_value)
+        )
+        self.log_event_exit("handle_pointing_program_track_table_event")
+        self._logger.debug(
+            "pointingProgramTrackTable value updated to %s", new_value
+        )
+
+    def handle_program_track_table_error_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
+        """Method to handle and update the latest value of
+        program track table error attribute.
+
+        :parameter event_flag: To flag the change in event
+            for programTrackTableError.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        self.log_event_data(
+            event_flag, "handle_pointing_program_track_table_event"
+        )
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(
+                event_flag.device.dev_name()
+            )
+            return
+        new_value = event_flag.attr_value.value
+        self._logger.debug("New value is %s", new_value)
+        if new_value:
+            self._logger.debug("updating track table error value")
+            self._component_manager.current_track_table_error = new_value
+        self.log_event_exit("handle_pointing_program_track_table_event")
+        self._logger.debug(
+            "pointingProgramTrackTable error updated to %s", new_value
+        )
+
+    def handle_dishlnpd_healthState_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
+        """Method to handle and update the latest value of
+        pointing device healthState. If this value/event is
+        unavailable, DishLeaf node healthState is shown as
+        DEGRADED.
+
+        :parameter event_flag: To flag the change in event
+            for programTrackTable.
+        :type event_flag: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        self.log_event_data(
+            event_flag, "handle_pointing_program_track_table_event"
+        )
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(
+                event_flag.device.dev_name()
+            )
+            return
+        new_value = event_flag.attr_value.value
+        self._component_manager._update_health_state_callback(new_value)
+        self.log_event_exit("handle_pointing_device_healthState_event")
+        self._logger.debug(
+            "DishLeaf Node pointing device healthState updated to %s",
+            new_value,
         )

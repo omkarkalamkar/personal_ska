@@ -53,7 +53,7 @@ def check_track_table(
 
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_fp[0], str(int(ResultCode.OK))),
-            lookahead=2,
+            lookahead=5,
         )
 
         result_config, unique_id_config = dish_leaf_node.Configure(

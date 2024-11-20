@@ -39,11 +39,11 @@ def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     cm.dish_id = DISH_ID
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     cm.correction_key = "UPDATE"
+    sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
     sleep(1)
     assert dev_name == cm.queue_connector_device_info.dev_name
     assert ATTRIBUTE_NAME == cm.queue_connector_device_info.attribute_name
     assert cm.queue_connector_device_info.subscribed_to_attribute
-    sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
     assert np.array_equal(
         POINTING_CAL1, list(cm.queue_connector_device_info.pointing_data)
     )

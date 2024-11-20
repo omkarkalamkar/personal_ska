@@ -3,6 +3,14 @@ function: dish-pointing
 domain: pattern-mapping
 entrypoints:
   - name: "ska_dishln_pointing_device.dishln_pointing_device.DishPointingDevice"
+{{- $TrackTableEntries := .Values.deviceServers.dishpointingdevice.TrackTableEntries }}
+{{- $PointingCalculationPeriod := .Values.deviceServers.dishpointingdevice.PointingCalculationPeriod }}
+{{- $TrackTableInAdvance := .Values.deviceServers.dishpointingdevice.TrackTableInAdvance }}
+{{- $Elevation := .Values.deviceServers.dishpointingdevice.Elevation }}
+{{- $Azimuth := .Values.deviceServers.dishpointingdevice.Azimuth }}
+{{- $ElevationMaxLimit := .Values.deviceServers.dishpointingdevice.ElevationMaxLimit }}
+{{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
+
 server:
   name: "dishpointing"
   instances:
@@ -12,6 +20,37 @@ server:
       - name: "DishPointingDevice"
         devices:
         - name: "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+          properties:
+            - name: "TrackTableEntries"
+              values:
+                - "{{ $TrackTableEntries }}"
+            - name: "PointingCalculationPeriod"
+              values:
+                - "{{ $PointingCalculationPeriod }}"
+            - name: "TrackTableInAdvance"
+              values:
+                - "{{ $TrackTableInAdvance }}"
+            - name: "Elevation"
+              values:
+                - "{{ $Elevation }}"
+            - name: "Azimuth"
+              values:
+                - "{{ $Azimuth }}"
+            - name: "ElevationMaxLimit"
+              values:
+                - "{{ $ElevationMaxLimit }}"
+            - name: "ElevationMinLimit"
+              values:
+                - "{{ $ElevationMinLimit }}"
+            - name: "LoggingTargetsDefault"
+              values:
+                - "tango::logger"
+            - name: "LoggingLevelDefault"
+              values:
+                - "5"
+            - name: "SkaLevel"
+              values:
+                - "3"
   {{- end }}
 
 depends_on:

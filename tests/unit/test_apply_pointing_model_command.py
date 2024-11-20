@@ -7,10 +7,11 @@ from tests.settings import COMMAND_COMPLETION_MESSAGE
 
 
 def test_apply_pointing_model_command(
-    tango_context, cm, json_factory, task_callback
+    tango_context, cm_without_er_lp, json_factory, task_callback
 ):
     """Test to check the global pointing model command
     functionality"""
+    cm = cm_without_er_lp
     cm.get_device().update_unresponsive(False, "")
     cm.is_ApplyPointingModel_allowed()
     global_pointing_tm_data_path = json_factory("global_pointing_model")
@@ -34,12 +35,13 @@ def test_apply_pointing_model_command(
 
 
 def test_apply_pointing_model_command_with_faulty_path(
-    tango_context, cm, json_factory, task_callback
+    tango_context, cm_without_er_lp, json_factory, task_callback
 ):
     """
     This test verifies the command gets rejected when faulty TmData path
     gets detected.
     """
+    cm = cm_without_er_lp
     cm.get_device().update_unresponsive(False, "")
     cm.is_ApplyPointingModel_allowed()
     global_pointing_tm_model_path = json_factory("global_pointing_model")
@@ -73,12 +75,13 @@ def test_apply_pointing_model_command_with_faulty_path(
 
 
 def test_apply_pointing_model_command_with_faulty_json(
-    tango_context, cm, json_factory, task_callback
+    tango_context, cm_without_er_lp, json_factory, task_callback
 ):
     """
     This test verifies the command gets rejected when faulty TmData path
     gets detected.
     """
+    cm = cm_without_er_lp
     cm.get_device().update_unresponsive(False, "")
     cm.is_ApplyPointingModel_allowed()
     global_pointing_tm_model_path = json_factory(

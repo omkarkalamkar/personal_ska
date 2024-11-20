@@ -19,12 +19,13 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context_process_true,
-    cm,
+    tango_context,
+    cm_without_er_lp,
     task_callback,
     json_factory,
     dish_master_device,
 ):
+    cm = cm_without_er_lp
     dev_factory = DevFactory()
     dish_device = dev_factory.get_device(dish_master_device)
     dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
@@ -66,9 +67,6 @@ def test_configure_command_completed(
         }
     )
 
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
-
 
 def test_configure_command_completed_partial_config(
     tango_context, cm_without_er_lp, task_callback, json_factory
@@ -97,8 +95,6 @@ def test_configure_command_completed_partial_config(
         },
         lookahead=6,
     )
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
 
 
 def test_configure_command_completed_partial_config_missing_key(
@@ -131,8 +127,6 @@ def test_configure_command_completed_partial_config_missing_key(
         },
         lookahead=12,
     )
-    cm.set_track_process_event()
-    cm.stop_track_table_process()
 
 
 @pytest.mark.skip(reason="The scenario is not getting simulated properly")
@@ -174,7 +168,8 @@ def test_json_validation(tango_context, task_callback, cm, json_factory, key):
     assert f"{key} key is not present" in message
 
 
-def test_configure_command_not_allowed(tango_context, cm):
+def test_configure_command_not_allowed(cm_without_er_lp):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()
@@ -182,10 +177,11 @@ def test_configure_command_not_allowed(tango_context, cm):
 
 def test_configure_command_status_not_allowed(
     tango_context,
-    cm,
+    cm_without_er_lp,
     task_callback,
     json_factory,
 ):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     assert wait_for_dish_mode(cm, DishMode.UNKNOWN)
     set_kvalue_command = SetKValue(cm, logger=logger)
@@ -206,7 +202,10 @@ def test_configure_command_status_not_allowed(
     )
 
 
-def test_configure_timeout(tango_context, cm, task_callback, json_factory):
+def test_configure_timeout(
+    tango_context, cm_without_er_lp, task_callback, json_factory
+):
+    cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     configure_input_str = json_factory("dishleafnode_configure")
 

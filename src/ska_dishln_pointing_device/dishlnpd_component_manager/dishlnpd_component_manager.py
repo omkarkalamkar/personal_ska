@@ -2,11 +2,24 @@
 This module provides an implementation of the Dish Leaf Node
 pointing device component manager.
 """
+from __future__ import annotations
 
+import datetime
+import sched
+import threading
+import time
 from logging import Logger
-from typing import Callable
+from typing import Callable, List
 
+from astropy.time import Time
+from astropy.utils import iers
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
+
+from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
+from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
+    ProgramTrackTableCalculator,
+)
 
 
 class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
@@ -16,8 +29,17 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     def __init__(
         self,
+        disln_pointing_device_name: str,
         logger: Logger,
         update_pointing_program_track_table_callback: Callable,
+        update_program_track_table_error_callback: Callable,
+        track_table_entries: int,
+        pointing_calculation_period: int,
+        elevation: float = 0.0,
+        azimuth: float = 0.0,
+        elevation_max_limit: float = 0.0,
+        elevation_min_limit: float = 0.0,
+        track_table_advance_sec: int = 6,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -29,11 +51,42 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
         super().__init__(logger)
         self.logger = logger
-        self.pointing_program_track_table: dict = {}
+        self.pointing_program_track_table: list = []
         self.update_pointing_program_track_table_callback = (
             update_pointing_program_track_table_callback
         )
-        self.__target_data: list | str | None = None
+        self.update_program_track_table_error_callback = (
+            update_program_track_table_error_callback
+        )
+        self.target: list | str | None = None
+        self._current_track_table_error = ""
+        self.__target_data: str = ""
+        # This event can be used by on going process to change the offset
+        # and clear the event for next usage.
+        self.mapping_scan_event = threading.Event()
+        self.set_change_pointing_event = threading.Event()
+        self.elevation = elevation
+        self.azimuth = azimuth
+        self.elevation_max_limit = elevation_max_limit
+        self.elevation_min_limit = elevation_min_limit
+        self.iers_a = None
+        self.observer = None
+        self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
+        self.pointing_calculation_period: int = pointing_calculation_period
+        self.track_table_entries: int = track_table_entries
+        self.track_table_advance_sec: float = track_table_advance_sec
+        self.dishln_pointing_device_name = disln_pointing_device_name
+        self.logger.info(
+            "Dish leaf node pointing device name is %s",
+            self.dishln_pointing_device_name,
+        )
+        self.dish_id = (
+            "SKA" + self.dishln_pointing_device_name.split('/')[-1][-3:]
+        )
+        self.current_mapping_scan_obj = None
+        self.converter = AzElConverter(self)
+        self.download_antenna_and_iers_data()
+        self.track_thread_lock = threading.RLock()
 
     @property
     def target_data(self):
@@ -53,3 +106,215 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.error(
                 "Writing of target data failed due to : %s", exception
             )
+
+    @property
+    def current_track_table_error(self: DishlnPointingDataComponentManager):
+        """Returns the trackTableError of the dish leaf node."""
+        return self._current_track_table_error
+
+    @current_track_table_error.setter
+    def current_track_table_error(
+        self: DishlnPointingDataComponentManager, value: str
+    ) -> None:
+        """Update the trackTableError of the dish leaf node
+        :param value: Error observed in track table calculation
+        :value dtype: str
+        :return: None
+        :rtype: None
+        """
+        self._current_track_table_error = value
+
+    def download_antenna_and_iers_data(self):
+        """Method that downloads antenna and iers data"""
+        self.create_converter_obj_and_antenna_obj()
+        self.download_iers_data()
+
+    def create_converter_obj_and_antenna_obj(
+        self: DishlnPointingDataComponentManager,
+    ):
+        """Create AzElConverter Object and antenna object"""
+
+        self.converter.create_antenna_obj()
+        self.logger.debug("Antenna object created")
+
+    def download_iers_data(self: DishlnPointingDataComponentManager) -> None:
+        """Downloads and initialises the IERS file.
+        Incase of error with main link, tries downloading using Mirror link.
+
+        :return: None
+        :rtype: None
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
+        except Exception as exception:
+            self.logger.exception(
+                "Failed to download IERS_A data: %s. Trying with a different"
+                + " source.",
+                exception,
+            )
+            self.download_iers_data_from_a_different_source()
+        self.logger.info("IERS data download completed.")
+
+    def clear_track_table_errors(self):
+        """Clear track table errors"""
+        self.current_track_table_error = ""
+        self.update_program_track_table_error_callback("")
+
+    def download_iers_data_from_a_different_source(
+        self: DishlnPointingDataComponentManager,
+    ) -> None:
+        """Downloads and initialises the IERS file from the mirror or local
+        links.
+
+        :return: None
+        :rtype: None
+        """
+        try:
+            self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
+        except Exception as exception:
+            self.logger.exception(
+                "Failed to download IERS_A data: %s. Will use the locally "
+                + "stored data.",
+                exception,
+            )
+            self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
+
+    def update_program_track_table(
+        self: DishlnPointingDataComponentManager, program_track_table: List
+    ) -> None:
+        """
+        This method writes the programTrackTable attribute on dish master
+        device.
+
+        :param program_track_table: It a list of TAI time, Az and El for
+            expected number of TAI times (TrackTableEntries).
+        :type program_track_table: list
+        :return: None
+        :rtype: None
+        """
+
+        try:
+            self.pointing_program_track_table = program_track_table
+            self.update_pointing_program_track_table_callback(
+                self.pointing_program_track_table
+            )
+        except BaseException as exception:
+            message = "Exception while writing tracktable: %s" + str(exception)
+            self.logger.exception(message)
+            raise Exception(message) from exception
+        self.logger.debug(
+            "Calculated ProgramTrackTable: %s", program_track_table
+        )
+
+    def track_thread(
+        self: DishlnPointingDataComponentManager,
+    ) -> None:
+        """
+        This method manages calculation and writing of programTrackTable
+        attribute on DishMaster at the required frequency.
+
+        :return: None
+        :rtype: None
+        """
+        try:
+            self.logger.debug(
+                "Staring ProgramTrackTable.",
+            )
+            timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+            # This is dummy calculation because first time calculation takes
+            # time due to IERS file downloads
+            if isinstance(self.target, str):
+                self.converter.point_to_body(self.target, timestamp)
+            else:
+                ra, dec = self.target  # pylint: disable=E0633
+                self.converter.point(ra, dec, timestamp)
+
+            self.update_program_track_table_error_callback("")
+            self.logger.debug("Converter Object Updated")
+
+            utc_now = datetime.datetime.utcnow()
+
+            # For future timestamp few seconds are added in current time.
+            # Divided by 1000 to convert ms to sec conversion.
+            time_to_add: float = (
+                (self.track_table_entries * self.pointing_calculation_period)
+                / 1000
+            ) + self.track_table_advance_sec
+
+            extended_time: datetime.datetime = utc_now + datetime.timedelta(
+                seconds=time_to_add
+            )
+            track_table_calculator = ProgramTrackTableCalculator(
+                self, self.logger
+            )
+            track_table_calculator.track_table_time_stamp = extended_time
+            is_track_thread_stop = self.mapping_scan_event.is_set()
+            self.logger.debug("Current target used %s", self.target)
+            while not is_track_thread_stop:
+                with self.track_thread_lock:
+                    is_track_thread_stop = self.mapping_scan_event.is_set()
+                program_track_table: list = (
+                    track_table_calculator.calculate_program_track_table(
+                        self.target, self.converter
+                    )
+                )
+
+                first_entry_timestamp: float = program_track_table[0]
+
+                # advance_time is subtracted to provide programTrackTable few
+                # seconds in advance
+                actual_time = (
+                    first_entry_timestamp - self.track_table_advance_sec
+                )
+
+                scheduled_time = Time(
+                    float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
+                    format="unix_tai",
+                    scale="tai",
+                ).unix
+
+                # Convert to human-readable format
+                actual_time_readable = datetime.datetime.utcfromtimestamp(
+                    actual_time
+                ).strftime("%Y-%m-%d %H:%M:%S")
+                scheduled_time_readable = datetime.datetime.utcfromtimestamp(
+                    scheduled_time
+                ).strftime("%Y-%m-%d %H:%M:%S")
+
+                self.logger.debug("actual_time_human %s", actual_time_readable)
+                self.logger.debug(
+                    "scheduled_time_human  %s", scheduled_time_readable
+                )
+
+                event_priority: int = 1
+                with self.track_thread_lock:
+                    if not self.mapping_scan_event.is_set():
+                        self.track_table_scheduler.enterabs(
+                            scheduled_time,
+                            event_priority,
+                            self.update_program_track_table,
+                            argument=(program_track_table,),
+                        )
+
+                        self.logger.debug(
+                            "update_program_track_table - Added in scheduler"
+                        )
+                        self.track_table_scheduler.run()
+                        self.logger.debug("Execution done")
+
+            self.logger.debug("Program Track Table Calculation stopped.")
+            self.update_program_track_table([])
+            self.logger.debug("Cleared programTrackTable attribute.")
+
+        except Exception as value_error:
+            self.logger.error("Exception is: %s", str(value_error))
+            self.update_program_track_table_error_callback(str(value_error))
+            self.current_track_table_error = str(value_error)
+
+        except BaseException as exception:
+            self.logger.error(
+                "Exception occurred during track_thread :%s",
+                str(exception),
+            )
+            self.update_program_track_table_error_callback(str(exception))
+            self.current_track_table_error = str(exception)

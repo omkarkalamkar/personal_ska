@@ -10,6 +10,8 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
+    NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES,
     build_partial_configure_data,
     get_non_sidereal_json_for_now,
     logger,
@@ -29,6 +31,7 @@ def configure_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
@@ -39,6 +42,11 @@ def configure_dish_leaf_node(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
+    )
+    dishpd_event_id = dishln_pointing_device.subscribe_event(
+        "pointingProgramTrackTable",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingProgramTrackTable"],
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -87,6 +95,12 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
+    # Validate number of program track table entries is 150
+    assert (
+        len(json.loads(dishln_pointing_device.pointingProgramTrackTable))
+        == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+    )
+
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
@@ -101,9 +115,14 @@ def configure_dish_leaf_node(
         (DishMode.OPERATE),
         lookahead=6,
     )
+    group_callback["pointingProgramTrackTable"].assert_change_event(
+        ("[]"),
+        lookahead=8,
+    )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

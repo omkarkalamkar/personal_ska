@@ -54,9 +54,14 @@ class DishLeafNode(TMCBaseLeafDevice):
         doc="FQDN of Dish Master Device",
     )
 
+    DishlnPointingDeviceFQDN = device_property(
+        dtype="str",
+        doc="FQDN of DishLeaf Node Pointing Device",
+    )
+
     SleepTime = device_property(dtype="DevFloat", default_value=1)
     DishAvailabilityCheckTimeout = device_property(
-        dtype="DevUShort", default_value=120
+        dtype="DevUShort", default_value=3
     )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
     AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
@@ -65,26 +70,6 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
 
     # Dish Track command properties
-    Elevation = device_property(dtype="DevFloat", default_value=30.0)
-    Azimuth = device_property(dtype="DevFloat", default_value=0.0)
-    ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
-    ElevationMinLimit = device_property(dtype="DevFloat", default_value=17.5)
-    TrackTableEntries = device_property(
-        dtype="DevShort",
-        default_value=25,
-        doc="Number of entries in programTrackTable",
-    )
-    PointingCalculationPeriod = device_property(
-        dtype="DevShort",
-        default_value=100,
-        doc="Time difference between two consecutive entries of"
-        + "programTrackTable in milliseconds",
-    )
-    TrackTableInAdvance = device_property(
-        dtype="DevShort",
-        default_value=6,
-        doc="programTrackTable in advance in seconds",
-    )
     MaxTrackTableRetry = device_property(
         dtype="DevShort",
         default_value=3,
@@ -101,6 +86,11 @@ class DishLeafNode(TMCBaseLeafDevice):
     # ----------
 
     dishMasterDevName = attribute(
+        dtype="DevString",
+        access=AttrWriteType.READ_WRITE,
+    )
+
+    dishlnPointingDevName = attribute(
         dtype="DevString",
         access=AttrWriteType.READ_WRITE,
     )
@@ -187,7 +177,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             {release.description}"""
             device._version_id = release.version
             device._dishln_name = device.get_name()
-            device._update_health_state(HealthState.OK)
+            device._update_health_state(HealthState.DEGRADED)
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
@@ -198,6 +188,14 @@ class DishLeafNode(TMCBaseLeafDevice):
             # pylint: disable=unnecessary-dunder-call
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call
+
+    def update_health_state_callback(self, healthState: HealthState) -> None:
+        """Change event callback for sourceOffset attribute"""
+        self._health_state = healthState
+        self.push_change_archive_events("healthState", self._health_state)
+        self.logger.info(
+            "HealthState updated to value: %s", self._health_state
+        )
 
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
@@ -302,6 +300,14 @@ class DishLeafNode(TMCBaseLeafDevice):
     def write_dishMasterDevName(self, value: str) -> None:
         """Set the dishMasterDevName attribute."""
         self.component_manager.dish_dev_name = value
+
+    def read_dishlnPointingDevName(self) -> str:
+        """Returns the dishlnPointingDevName attribute value."""
+        return self.component_manager.dish_pointing_dev_name
+
+    def write_dishlnPointingDevName(self, value: str) -> None:
+        """Set the dishlnPointingDevName attribute."""
+        self.component_manager.dish_pointing_dev_name = value
 
     def read_trackTableErrors(self):
         """Read method for trackTableErrors"""
@@ -952,10 +958,9 @@ class DishLeafNode(TMCBaseLeafDevice):
     def create_component_manager(self: DishLeafNode):
         update_track_err_cb = self.update_track_table_errors_callback
         cm = DishLNComponentManager(
-            self.DishMasterFQDN,
+            dish_dev_name=self.DishMasterFQDN,
+            dishln_pointing_fqdn=self.DishlnPointingDeviceFQDN,
             logger=self.logger,
-            track_table_entries=self.TrackTableEntries,
-            pointing_calculation_period=self.PointingCalculationPeriod,
             communication_state_callback=None,
             component_state_callback=None,
             pointing_callback=self.pointing_callback,
@@ -972,15 +977,11 @@ class DishLeafNode(TMCBaseLeafDevice):
             adapter_timeout=self.AdapterTimeOut,
             command_timeout=self.CommandTimeOut,
             is_dish_abort_commands_enabled=self.IsDishAbortCommandsEnabled,
-            elevation=self.Elevation,
-            azimuth=self.Azimuth,
-            elevation_max_limit=self.ElevationMaxLimit,
-            elevation_min_limit=self.ElevationMinLimit,
             _update_availablity_callback=self.update_availablity_callback,
             _update_source_offset_callback=self.update_source_offset_callback,
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
-            track_table_advance_sec=self.TrackTableInAdvance,
             _update_track_table_errors_callback=update_track_err_cb,
+            _update_health_state_callback=self.update_health_state_callback,
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
         )

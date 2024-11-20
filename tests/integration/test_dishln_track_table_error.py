@@ -10,6 +10,7 @@ from tests.settings import (
     COMMAND_FAILED_WITH_TRACK,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     get_non_sidereal_json_for_source_not_visible,
     get_non_sidereal_json_for_source_unknown,
     logger,
@@ -28,6 +29,7 @@ def configure_dish_leaf_node_source_not_visible(
 ):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
@@ -40,6 +42,11 @@ def configure_dish_leaf_node_source_not_visible(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
+    )
+    dishpd_event_id = dishln_pointing_device.subscribe_event(
+        "programTrackTableError",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["programTrackTableError"],
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -91,6 +98,10 @@ def configure_dish_leaf_node_source_not_visible(
         + "Source is not visible currently."
     )
     track_table_error = dish_leaf_node.trackTableErrors
+    group_callback["programTrackTableError"].assert_change_event(
+        expected_message,
+        lookahead=8,
+    )
     logger.info(
         "track_table_error after configure: %s",
         track_table_error,
@@ -110,6 +121,7 @@ def configure_dish_leaf_node_source_not_visible(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -141,7 +153,10 @@ def configure_dish_leaf_node_unknown_source(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
+
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -151,6 +166,11 @@ def configure_dish_leaf_node_unknown_source(
         "pointingState",
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
+    )
+    dishpd_event_id = dishln_pointing_device.subscribe_event(
+        "programTrackTableError",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["programTrackTableError"],
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -195,6 +215,7 @@ def configure_dish_leaf_node_unknown_source(
     monitor_track_table_errors_attribute(
         dish_leaf_node, track_table_error_before_configure
     )
+
     expected_message = (
         "Exception occurred while starting programTrackTable calculation: "
         + "Target description 'Pluto, special' contains unknown *special* "
@@ -202,12 +223,16 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     track_table_error = dish_leaf_node.trackTableErrors
+
     logger.info(
         "track_table_error after configure: %s",
         track_table_error,
     )
     result = any(expected_message in message for message in track_table_error)
-
+    group_callback["programTrackTableError"].assert_change_event(
+        expected_message,
+        lookahead=8,
+    )
     assert result
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -221,6 +246,7 @@ def configure_dish_leaf_node_unknown_source(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

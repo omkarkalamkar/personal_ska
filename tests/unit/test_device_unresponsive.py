@@ -1,27 +1,13 @@
 import pytest
 from ska_tmc_common.exceptions import DeviceUnresponsive
 
-from ska_tmc_dishleafnode.dish_leaf_node import DishLeafNode
-from tests.settings import DISH_MASTER_DEVICE, logger
-
-
-@pytest.fixture()
-def devices_to_load():
-    """Returns helper state devices."""
-    return (
-        {
-            "class": DishLeafNode,
-            "devices": [
-                {"name": "ska_mid/tm_leaf_node/d0001"},
-            ],
-        },
-    )
+from tests.settings import DISH_MASTER_DEVICE
 
 
 def test_abort_command_fail_check_allowed_with_device_unresponsive(
-    tango_context, cm
+    cm_without_er_lp,
 ):
-    logger.info("%s", tango_context)
+    cm = cm_without_er_lp
     cm.get_device().update_unresponsive(True, "Not available")
     with pytest.raises(
         DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
@@ -29,9 +15,8 @@ def test_abort_command_fail_check_allowed_with_device_unresponsive(
         cm.is_abortcommands_allowed()
 
 
-def test_trackloadstaticoff_command_not_allowed(
-    tango_context_process_true, cm
-):
+def test_trackloadstaticoff_command_not_allowed(cm_without_er_lp):
+    cm = cm_without_er_lp
     """Test the command not allowed when the device is unresponsive."""
     cm.get_device().update_unresponsive(True, "Not available")
     with pytest.raises(DeviceUnresponsive):

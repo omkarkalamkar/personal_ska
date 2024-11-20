@@ -3,6 +3,7 @@ Configure class for DishLeafNode.
 """
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import threading
@@ -11,6 +12,7 @@ from logging import Logger
 from operator import methodcaller
 from typing import Any, List, Optional, Tuple
 
+from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -56,7 +58,6 @@ class Configure(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
 
-        self.track_table_process = None
         self.partial_configure = False
         self.receiver_band: str = ""
 
@@ -177,7 +178,6 @@ class Configure(DishLNCommand):
                 )
 
                 self.component_manager.command_in_progress = ""
-                self.component_manager.set_track_process_event()
             self.component_manager.command_id = ""
             self.receiver_band = ""
             self.partial_configure = False
@@ -202,7 +202,7 @@ class Configure(DishLNCommand):
         if "pointing" not in input_argin:
             return (
                 ResultCode.FAILED,
-                "pointing key is not present in the input json argument.",
+                "pointing key is not present in the configure input json.",
             )
 
         if "tmc" in input_argin:
@@ -288,28 +288,41 @@ class Configure(DishLNCommand):
                 return self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=reset_offset
                 )
-            if (
-                json_argument["pointing"]["target"]["reference_frame"].lower()
-                == "special"
-            ):
-                target_data = json_argument["pointing"]["target"][
-                    "target_name"
-                ]
-            else:
-                target_data = [
-                    json_argument["pointing"]["target"]["ra"],
-                    json_argument["pointing"]["target"]["dec"],
-                ]
 
-            self.component_manager.set_target_data(target_data)
+            try:
+                pointing_device_conf_json = copy.deepcopy(json_argument)
+                if "correction" in pointing_device_conf_json["pointing"]:
+                    pointing_device_conf_json["pointing"].pop("correction")
 
-            # Start programTrackTable calculation
-            self.component_manager.elevation_limit = True
-            self.component_manager.reset_track_process_event()
+                self.dishln_pointing_device_adapter.targetData = json.dumps(
+                    {"pointing": pointing_device_conf_json["pointing"]}
+                )
+                self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
+                if self.component_manager._update_health_state_callback:
+                    self.component_manager._update_health_state_callback(
+                        HealthState.OK
+                    )
+            except Exception as exception:
+                self.logger.exception(
+                    "Unable to generate programTrackTable: %s",
+                    exception,
+                )
+                self.component_manager.current_track_table_error = (
+                    f"Exception while generating programTrackTable {exception}"
+                )
+                if self.component_manager._update_health_state_callback:
+                    self.component_manager._update_health_state_callback(
+                        HealthState.DEGRADED
+                    )
+                return (
+                    ResultCode.FAILED,
+                    (
+                        "There was an error while starting the generation of "
+                        + "program track table: %s",
+                        exception,
+                    ),
+                )
 
-            # pylint: disable=line-too-long
-            self.component_manager.create_process_and_start_track_table_calculation()  # noqa: E501
-            # pylint: enable=line-too-long
             self.logger.info("Invoking ConfigureBand command")
 
             # pylint: disable=unused-argument
@@ -334,7 +347,7 @@ class Configure(DishLNCommand):
             configure_band_command = ConfigureBand(
                 self.component_manager,
                 self.op_state_model,
-                self.adapter_factory,
+                self._adapter_factory,
                 logger=self.logger,
                 is_configure_command=True,
             )
@@ -445,7 +458,7 @@ class Configure(DishLNCommand):
         track_load_static_off_command = TrackLoadStaticOff(
             self.component_manager,
             self.op_state_model,
-            self.adapter_factory,
+            self._adapter_factory,
             self.logger,
             is_configure_command=True,
         )
@@ -621,7 +634,7 @@ class Configure(DishLNCommand):
         setoperatemode_command = SetOperateMode(
             self.component_manager,
             self.op_state_model,
-            self.adapter_factory,
+            self._adapter_factory,
             logger=self.logger,
             is_configure_command=True,
         )
@@ -759,7 +772,7 @@ class Configure(DishLNCommand):
         track_command = Track(
             self.component_manager,
             self.op_state_model,
-            self.adapter_factory,
+            self._adapter_factory,
             logger=self.logger,
             is_configure_command=True,
         )
@@ -797,11 +810,8 @@ class Configure(DishLNCommand):
                 )
                 track_table_status = CommandResult.ABORTED
                 return track_table_status
-            with self.component_manager.tango_operation_execution_lock:
-                self.logger.debug("Acquired  tango lock")
-                track_table = self.dish_master_adapter.programTrackTable
-
-            self.logger.debug("Released tango lock")
+            track_table = self.dish_master_adapter.programTrackTable
+            self.logger.debug("is_tracktable_provided: %s", track_table)
 
             if len(track_table) > 0:
                 track_table_status = CommandResult.ACHIEVED

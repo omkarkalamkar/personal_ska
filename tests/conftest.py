@@ -1,5 +1,6 @@
 """conftest module for CSP Subarray Leaf Node."""
 # pylint: disable=unused-argument,redefined-outer-name
+
 import json
 import logging
 import time
@@ -19,6 +20,7 @@ from ska_tmc_common.test_helpers.helper_sdp_queue_connector_device import (
 )
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext
 
+from ska_dishln_pointing_device import DishlnPointingDataComponentManager
 from ska_dishln_pointing_device.dishln_pointing_device import (
     DishPointingDevice,
 )
@@ -74,20 +76,29 @@ def devices_to_load():
     """Returns helper state devices."""
     return (
         {
-            "class": HelperDishDevice,
-            "devices": [
-                {"name": DISH_MASTER_DEVICE},
-            ],
-        },
-        {
             "class": DishLeafNode,
             "devices": [
                 {
                     "name": "ska_mid/tm_leaf_node/d0001",
                     "properties": {
                         "DishMasterFQDN": DISH_MASTER_DEVICE,
+                        "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
                     },
                 },
+            ],
+        },
+        {
+            "class": DishPointingDevice,
+            "devices": [
+                {
+                    "name": DISHLN_POINTING_DEVICE,
+                },
+            ],
+        },
+        {
+            "class": HelperDishDevice,
+            "devices": [
+                {"name": DISH_MASTER_DEVICE},
             ],
         },
         {
@@ -101,14 +112,6 @@ def devices_to_load():
                 },
             ],
         },
-        {
-            "class": DishPointingDevice,
-            "devices": [
-                {
-                    "name": DISHLN_POINTING_DEVICE,
-                },
-            ],
-        },
     )
 
 
@@ -119,23 +122,9 @@ def tango_context(devices_to_load, request):
     logging.info("true context: %s", true_context)
     if not true_context:
         with MultiDeviceTestContext(
-            devices_to_load, process=False, timeout=80
-        ) as context:
-            DevFactory._test_context = context
-            logging.info("test context set")
-            yield context
-    else:
-        yield None
-
-
-@pytest.fixture
-def tango_context_process_true(devices_to_load, request):
-    """Provides context to run devices without database."""
-    true_context = request.config.getoption("--true-context")
-    logging.info("true context: %s", true_context)
-    if not true_context:
-        with MultiDeviceTestContext(
-            devices_to_load, process=True, timeout=80
+            devices_to_load,
+            process=True,
+            timeout=180,
         ) as context:
             DevFactory._test_context = context
             logging.info("test context set")
@@ -154,8 +143,10 @@ def dishln_device(request):
             device_name="ska_mid/tm_leaf_node/d0001",
             properties={
                 "DishMasterFQDN": DISH_MASTER_DEVICE,
-                "DishAvailabilityCheckTimeout": 10,
+                "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
+                "DishAvailabilityCheckTimeout": 5,
             },
+            process=True,
             timeout=20,
         ) as proxy:
             yield proxy
@@ -194,6 +185,8 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "trackTableErrors",
         "globalPointingModelParams",
         "band2PointingModelParams",
+        "pointingProgramTrackTable",
+        "programTrackTableError",
         timeout=80,
     )
     return group_callback
@@ -268,14 +261,28 @@ def update_track_table_errors_callback(value):
     logger.info("Track Table error is: %s", value)
 
 
-@pytest.fixture(scope="session")
+def update_health_state_callback(temp):
+    """An empty health state callback"""
+    logger.debug(temp)
+
+
+def update_pointing_program_track_table_callback(temp):
+    """An empty pointing program track table callback"""
+    logger.debug(temp)
+
+
+def update_program_track_table_error_callback(temp):
+    """An empty program track table error callback"""
+    logger.debug(temp)
+
+
+@pytest.fixture()
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
-        DISH_MASTER_DEVICE,
+        dish_dev_name=DISH_MASTER_DEVICE,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
         _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _update_pointingstate_callback=pointing_state_callback,
@@ -287,11 +294,10 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=5,
-        elevation_max_limit=90.0,
-        elevation_min_limit=17.5,
+        dish_availability_check_timeout=3,
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
+        _update_health_state_callback=update_health_state_callback,
     )
 
     start_time = time.time()
@@ -302,9 +308,9 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
             break
 
     yield cm
+
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
-    sleep(1)  # Give some time to pytest cleanup
     # pylint: enable=unnecessary-dunder-call
 
 
@@ -314,10 +320,9 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
     probe for Dish Leaf Node.
     """
     cm = DishLNComponentManager(
-        DISH_MASTER_DEVICE,
+        dish_dev_name=DISH_MASTER_DEVICE,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
         _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _event_receiver=False,
@@ -331,9 +336,8 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=5,
-        elevation_max_limit=90.0,
-        elevation_min_limit=17.5,
+        dish_availability_check_timeout=3,
+        _update_health_state_callback=update_health_state_callback,
     )
     cm.actual_pointing_process_alive.set()
     if cm.event_receiver:
@@ -342,7 +346,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
-    sleep(1)  # Give some time to pytest cleanup
+    # Give some time to pytest cleanup
     # pylint: enable=unnecessary-dunder-call
 
 
@@ -350,10 +354,9 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
 def cm_new() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
-        DISH_MASTER_DEVICE,
+        dish_dev_name=DISH_MASTER_DEVICE,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
         _update_dishmode_callback=dish_mode_callback,
         _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _update_pointingstate_callback=pointing_state_callback,
@@ -365,9 +368,9 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
-        dish_availability_check_timeout=5,
-        elevation_max_limit=90.0,
-        elevation_min_limit=17.5,
+        dish_availability_check_timeout=3,
+        _update_health_state_callback=update_health_state_callback,
+        _liveliness_probe=LivelinessProbeType.NONE,
     )
 
     elapsed_time = 0
@@ -388,4 +391,29 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
     yield cm
     # pylint: disable=unnecessary-dunder-call
     cm.__del__()
-    sleep(1)  # Give some time to pytest cleanup
+
+
+@pytest.fixture
+def cm_pointig_device() -> (
+    Generator[DishlnPointingDataComponentManager, None, None]
+):
+    """Create DishLeaf Node Pointing Device component manager"""
+    cm = DishlnPointingDataComponentManager(
+        disln_pointing_device_name=DISHLN_POINTING_DEVICE,
+        logger=logger,
+        update_pointing_program_track_table_callback=(
+            update_pointing_program_track_table_callback
+        ),
+        update_program_track_table_error_callback=(
+            update_program_track_table_error_callback
+        ),
+        track_table_entries=25,
+        pointing_calculation_period=50,
+        elevation=30.0,
+        azimuth=0.0,
+        elevation_max_limit=90.0,
+        elevation_min_limit=17.5,
+        track_table_advance_sec=7,
+    )
+
+    yield cm

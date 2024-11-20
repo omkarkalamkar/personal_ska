@@ -5,6 +5,7 @@ AbortCommands command class for DishLeafNode.
 import logging
 from typing import Tuple
 
+from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import PointingState
@@ -118,15 +119,43 @@ class AbortCommands(DishLNCommand):
         rtype:
             (ResultCode, str)
         """
-
-        self.component_manager.stop_track_table_process()
-
+        result_code, message = [ResultCode.OK], ""
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
             with self.component_manager.tango_operation_execution_lock:
-                result_code, message = self.call_adapter_method(
+                result_code, msg = self.call_adapter_method(
                     "Dish Master", self.dish_master_adapter, "TrackStop"
                 )
-            return result_code[0], message[0]
-        return ResultCode.OK, ""
+                if result_code[0] in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.NOT_ALLOWED,
+                ]:
+                    message = (
+                        f"TrackStop result code: {result_code[0]} "
+                        + f"and message: {msg[0]}"
+                    )
+
+        try:
+            self.dishln_pointing_device_adapter.StopProgramTrackTable()
+        except Exception as exception:
+            self.logger.exception(
+                "Unable to stop programTrackTable: %s",
+                exception,
+            )
+            self.component_manager.current_track_table_error = (
+                f"Exception while stopping programTrackTable {exception}"
+            )
+            if self.component_manager._update_health_state_callback:
+                self.component_manager._update_health_state_callback(
+                    HealthState.DEGRADED
+                )
+                result_code = [ResultCode.FAILED]
+                message += (
+                    " StopProgramTrackTable: There was an error while"
+                    + " stopping the generation of "
+                    + f"program track table: {exception}"
+                )
+
+        return result_code[0], message

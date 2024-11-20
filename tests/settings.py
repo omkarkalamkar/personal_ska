@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 KVALUE = 9
 SLEEP_TIME = 0.5
 TIMEOUT = 100
+NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
 DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
 DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
@@ -123,13 +124,17 @@ def update_last_pointing_data_callback(temp):
     logger.debug(temp)
 
 
+def update_health_state_callback(temp):
+    """An empty health state callback"""
+    logger.debug(temp)
+
+
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
         device,
         logger=logger,
-        track_table_entries=25,
-        pointing_calculation_period=100,
+        dishln_pointing_fqdn=DISHLN_POINTING_DEVICE,
         _update_dishmode_callback=dish_mode_callback,
         _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _update_pointingstate_callback=pointing_state_callback,
@@ -141,6 +146,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
+        _update_health_state_callback=update_health_state_callback,
     )
     return cm
 
@@ -410,6 +416,14 @@ def simulate_result_code_event(
         ),
     )
     cm.update_device_long_running_command_result(device_name, command_result)
+
+
+def simulate_dish_mode_event(
+    cm: DishLNComponentManager,
+    dishmode: DishMode,
+):
+    """Simulate Dish mode event from dish master."""
+    cm.update_device_dish_mode(dishmode)
 
 
 def get_non_sidereal_json_for_now(non_side_real_json) -> str:
