@@ -128,7 +128,7 @@ class AbortCommands(DishLNCommand):
                     "Dish Master", self.dish_master_adapter, "TrackStop"
                 )
                 if result_code[0] in [
-                    result_code.FAILED,
+                    ResultCode.FAILED,
                     ResultCode.REJECTED,
                     ResultCode.NOT_ALLOWED,
                 ]:

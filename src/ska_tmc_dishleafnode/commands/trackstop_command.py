@@ -14,6 +14,7 @@ from ska_tmc_common import (
 )
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ class TrackStop(DishLNCommand):
         return:
             (ResultCode, str)
         """
-        result_code, message = [ResultCode.OK], ""
+
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
@@ -71,14 +72,14 @@ class TrackStop(DishLNCommand):
             )
             return result_code, message
         # Stop the thread which started when Track command was invoked
-
+        result_code, message = [ResultCode.OK], ""
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
             result_code, msg = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
             if result_code[0] in [
-                result_code.FAILED,
+                ResultCode.FAILED,
                 ResultCode.REJECTED,
                 ResultCode.NOT_ALLOWED,
             ]:
@@ -86,6 +87,7 @@ class TrackStop(DishLNCommand):
                     f"TrackStop result code: {result_code[0]} "
                     + f"and message: {msg[0]}"
                 )
+            self.logger.debug("Released tango lock")
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
@@ -107,6 +109,6 @@ class TrackStop(DishLNCommand):
                 " There was an error while stopping the generation of "
                 + f"program track table: {exception}"
             )
-
-        self.logger.debug("Released tango lock")
+        if not message:
+            message = COMMAND_COMPLETION_MESSAGE
         return result_code[0], message

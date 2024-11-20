@@ -103,10 +103,7 @@ def test_error_propagation_stop_program_track_table(
 ):
     attrs = {
         'StopProgramTrackTable.side_effect': (Exception("error")),
-        'TrackStop.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
+        'TrackStop.return_value': ([ResultCode.OK], ["Command Completed"]),
         'AbortCommands.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
@@ -123,6 +120,8 @@ def test_error_propagation_stop_program_track_table(
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
     adapter_factory = mock.Mock(**factory_attrs)
     cm = cm_without_er_lp
+    cm.kvalue_validation_thread.cancel()
+    cm.command_timeout = 5
     cm.adapter_factory = adapter_factory
     simulate_dish_mode_event(cm, DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.TRACK)
@@ -141,9 +140,7 @@ def test_error_propagation_stop_program_track_table(
     )
 
 
-def test_error_propagation_abort_stop_program_track_table(
-    task_callback, cm_without_er_lp
-):
+def test_error_propagation_abort_stop_program_track_table(cm_without_er_lp):
     attrs = {
         'StopProgramTrackTable.side_effect': (Exception("error")),
         'AbortCommands.return_value': (
