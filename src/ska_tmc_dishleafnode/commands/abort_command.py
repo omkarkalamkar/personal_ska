@@ -122,18 +122,17 @@ class AbortCommands(DishLNCommand):
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
-            with self.component_manager.tango_operation_execution_lock:
-                result_code, msg = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "TrackStop"
-                )
-                if result_code[0] in [
-                    ResultCode.FAILED,
-                    ResultCode.REJECTED,
-                    ResultCode.NOT_ALLOWED,
-                ]:
-                    message = (
-                        f"TrackStop result code: {result_code[0]} "
-                        + f"and message: {msg[0]}"
+            result_code, msg = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "TrackStop"
+            )
+            if result_code[0] in [
+                ResultCode.FAILED,
+                ResultCode.REJECTED,
+                ResultCode.NOT_ALLOWED,
+            ]:
+                message = (
+                    f"TrackStop result code: {result_code[0]} "
+                    + f"and message: {msg[0]}"
                     )
 
         try:
