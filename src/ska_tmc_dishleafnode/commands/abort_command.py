@@ -133,7 +133,7 @@ class AbortCommands(DishLNCommand):
                 message = (
                     f"TrackStop result code: {result_code[0]} "
                     + f"and message: {msg[0]}"
-                    )
+                )
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
