@@ -16,11 +16,14 @@ from astropy.utils import iers
 from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
+from ska_tmc_dishleafnode.constants import (
+    IERS_DATA_STORAGE_PATH,
+    PROGRAM_TRACK_TABLE_SIZE,
+    SKA_EPOCH,
+)
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
 
 
 class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
@@ -73,7 +76,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.observer = None
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.track_table_update_rate: float = track_table_update_rate
-        self.pointing_calculation_period: float = (self.track_table_update_rate/PROGRAM_TRACK_TABLE_SIZE)
+        self.pointing_calculation_period: float = (
+            self.track_table_update_rate / PROGRAM_TRACK_TABLE_SIZE
+        )
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name
         self.logger.info(
@@ -235,10 +240,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             utc_now = datetime.datetime.utcnow()
 
             # The average time required to perform a RaDec to AzEl conversion
-            # is approximately 20 milliseconds. Therefore, the total 
+            # is approximately 20 milliseconds. Therefore, the total
             # calculation time and the advanced tracktable time are added to
             # the current timestamp to generate the future tracktable.
-            time_to_add: float = (PROGRAM_TRACK_TABLE_SIZE * 0.02) + self.track_table_advance_sec
+            time_to_add: float = (
+                PROGRAM_TRACK_TABLE_SIZE * 0.02
+            ) + self.track_table_advance_sec
 
             extended_time: datetime.datetime = utc_now + datetime.timedelta(
                 seconds=time_to_add

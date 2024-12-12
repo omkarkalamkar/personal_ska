@@ -9,7 +9,7 @@ from typing import List, Union
 from astropy.time import Time
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.constants import SKA_EPOCH, PROGRAM_TRACK_TABLE_SIZE
+from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
 
 
 class ProgramTrackTableCalculator:
