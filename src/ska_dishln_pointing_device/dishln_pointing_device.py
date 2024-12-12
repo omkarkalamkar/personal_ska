@@ -35,16 +35,11 @@ class DishPointingDevice(TMCBaseLeafDevice):
     Azimuth = device_property(dtype="DevFloat", default_value=0.0)
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=15.0)
-    TrackTableEntries = device_property(
+    TrackTableUpdateRate = device_property(
         dtype="DevShort",
-        default_value=25,
-        doc="Number of entries in programTrackTable",
-    )
-    PointingCalculationPeriod = device_property(
-        dtype="DevShort",
-        default_value=100,
-        doc="Time difference between two consecutive entries of"
-        + "programTrackTable in milliseconds",
+        default_value=50,
+        doc="The rate at which a tracktable is provided. It is one"
+        + "tracktable per specified number of seconds.",
     )
     TrackTableInAdvance = device_property(
         dtype="DevShort",
@@ -222,8 +217,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 update_program_track_table_error_callback=(
                     self.update_program_track_table_error_callback
                 ),
-                track_table_entries=self.TrackTableEntries,
-                pointing_calculation_period=self.PointingCalculationPeriod,
+                track_table_update_rate=self.TrackTableUpdateRate,
                 elevation=self.Elevation,
                 azimuth=self.Azimuth,
                 elevation_max_limit=self.ElevationMaxLimit,
