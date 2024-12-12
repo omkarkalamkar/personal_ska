@@ -33,6 +33,7 @@ from ska_tmc_common import (
     PointingState,
     SdpQueueConnectorDeviceInfo,
     TmcLeafNodeComponentManager,
+    TrackTableLoadMode,
 )
 from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
@@ -272,8 +273,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Cleared the command result dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
-        """Method to reset the command result dictionaries, events and flgas
-        utilised in Configure command"""
+        """Method to reset the command result dictionaries, events and flags
+        utilized in Configure command"""
         self.reset_command_result_values()
         self.is_configureband_completed_event.clear()
         self.is_setoperatemode_completed_event.clear()
@@ -1574,6 +1575,36 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
+    @property
+    def trackTableLoadMode(self) -> TrackTableLoadMode:
+        """
+        Returns dish's trackTableLoadMode attribute value.
+
+        :return: TrackTableLoadMode
+        :rtype: enum
+        """
+        return self.dish_adapter.trackTableLoadMode
+
+    @trackTableLoadMode.setter
+    def trackTableLoadMode(self, load_mode: TrackTableLoadMode) -> None:
+        """
+        Update dish's trackTableLoadMode attribute value.
+        :param load_mode: It a list of TAI time, Az and El for
+            expected number of TAI times (TrackTableEntries).
+        :type load_mode: TrackTableLoadMode
+        :return: None
+        :rtype: None
+        """
+        try:
+            self.dish_adapter.trackTableLoadMode = load_mode
+            self.logger.debug("Updated trackTableLoadMode to %s", load_mode)
+        except (tango.DevFailed, Exception) as excption:
+            self.logger.error(
+                "Exception occured while setting trackTableLoadMode on"
+                " the dish: %s",
+                excption,
+            )
+
     def update_program_track_table(
         self: DishLNComponentManager, program_track_table: List
     ) -> None:
@@ -1599,6 +1630,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 try:
                     self.dish_adapter.programTrackTable = program_track_table
                     self.logger.debug("ProgramTrackTable Updated")
+                    if (
+                        self.trackTableLoadMode
+                        is not TrackTableLoadMode.APPEND
+                    ):
+                        self.trackTableLoadMode = TrackTableLoadMode.APPEND
+
                     break
 
                 except BaseException as exception:

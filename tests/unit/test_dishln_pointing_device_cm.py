@@ -7,7 +7,7 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
-from tests.settings import logger
+from tests.settings import NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES, logger
 
 
 def test_dish_pointing_device_cm(cm_pointig_device):
@@ -37,7 +37,10 @@ def test_dish_pointing_device_generate_program_track_table_command(
         time.sleep(1)
         timeout += 1
 
-    assert len(cm.pointing_program_track_table) == (cm.track_table_entries * 3)
+    assert (
+        len(cm.pointing_program_track_table)
+        == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+    )
 
 
 def test_dish_pointing_device_stop_program_track_table_command(

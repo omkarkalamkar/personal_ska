@@ -17,7 +17,7 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import DishMode, PointingState
+from ska_tmc_common import DishMode, PointingState, TrackTableLoadMode
 
 from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
@@ -266,6 +266,9 @@ class Configure(DishLNCommand):
                 )
                 return result_code, message
 
+            self.component_manager.trackTableLoadMode = TrackTableLoadMode.NEW
+            initial_dishmode = self.component_manager.dishMode
+
             json_argument = json.loads(argin)
 
             reset_offset = (
@@ -369,7 +372,9 @@ class Configure(DishLNCommand):
                 )
 
             if self.component_manager.dishMode != DishMode.STOW:
-                result_code, message = self.ensure_dish_is_configured()
+                result_code, message = self.ensure_dish_is_configured(
+                    initial_dishmode
+                )
                 if result_code[0] in [
                     ResultCode.FAILED,
                     ResultCode.REJECTED,
@@ -551,7 +556,7 @@ class Configure(DishLNCommand):
         return self.invoke_track_command(json_argument)
 
     def ensure_dish_is_configured(
-        self,
+        self, initial_dishmode
     ) -> Tuple[List[ResultCode], List[str]]:
         """This method check for the completion of configure command
 
@@ -560,7 +565,7 @@ class Configure(DishLNCommand):
         return: Tuple[ResultCode, str]
         """
         # Set wait for dish band to be configured
-        result = self.set_wait_for_configured_band_completed()
+        result = self.set_wait_for_configured_band_completed(initial_dishmode)
         if result == CommandResult.ABORTED:
             self.logger.info(
                 "AbortCommands() command is invoked on the DishLeafNode."

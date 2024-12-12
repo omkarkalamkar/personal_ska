@@ -8,7 +8,7 @@ from typing import Tuple
 from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common.enum import PointingState
+from ska_tmc_common import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE

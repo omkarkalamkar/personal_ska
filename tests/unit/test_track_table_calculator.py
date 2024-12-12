@@ -7,7 +7,7 @@ from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
-from tests.settings import logger
+from tests.settings import NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES, logger
 
 
 def test_calculate_time_stamp_array(cm_pointig_device):
@@ -18,8 +18,8 @@ def test_calculate_time_stamp_array(cm_pointig_device):
         time_stamp_array,
         tai_timestamp_array,
     ) = track_table_calculator.calculate_time_stamp_list()
-    assert len(time_stamp_array) == cm.track_table_entries
-    assert len(tai_timestamp_array) == cm.track_table_entries
+    assert len(time_stamp_array) == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+    assert len(tai_timestamp_array) == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
 
 
 def test_calculate_program_track_table(cm_pointig_device):

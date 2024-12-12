@@ -213,11 +213,13 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.logger.info("Returning Flag to be %s", command_result)
         return command_result
 
-    def set_wait_for_configured_band_completed(self: DishLNCommand):
+    def set_wait_for_configured_band_completed(
+        self: DishLNCommand, initial_dishmode
+    ):
         """Waits for configureBand command to be completed.
 
         :return: ACHIEVED if is_configureband_completed event is set.
-            ABORTED if the abort event occurss. NOT_ACHIEVED otherwise.
+            ABORTED if the abort event occurs. NOT_ACHIEVED otherwise.
         :rtype: enum
         """
         start_time = time.time()
@@ -230,7 +232,10 @@ class DishLNCommand(TmcLeafNodeCommand):
                 command_result = CommandResult.ABORTED
                 return command_result
             evt = self.component_manager.is_configureband_completed_event
-            if evt.is_set():
+            if (
+                evt.is_set()
+                and self.component_manager.dishMode == initial_dishmode
+            ):
                 command_result = CommandResult.ACHIEVED
                 self.logger.info("Returning result to be %s", command_result)
                 return command_result
