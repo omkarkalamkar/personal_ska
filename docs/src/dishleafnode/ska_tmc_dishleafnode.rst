@@ -20,5 +20,5 @@ Attributes in DishleafNode
 +--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
 | pointingState             |     PointingState  |         READ                  | This attribute gives the DISH pointingState                               |
 +--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
-| trackTableErrors          |     DevStringArray |         READ                  | This attribute gives errors occurred in program track table calculation   |                        |
+| trackTableErrors          |     DevStringArray |         READ                  | This attribute gives errors occurred in program track table calculation   |
 +--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
