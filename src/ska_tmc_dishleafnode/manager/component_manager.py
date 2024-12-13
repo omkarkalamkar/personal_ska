@@ -125,6 +125,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             sleep_time=sleep_time,
         )
         self.rlock = threading.RLock()
+        self.lock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         self.adapter_factory = AdapterFactory()
@@ -147,8 +148,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band5apointingmodelparams": "",
             "band5bpointingmodelparams": "",
         }
-        self.command_result_update_lock = Lock()
-        self.tango_operation_execution_lock = threading.Lock()
+        self.command_result_update_lock = threading.RLock()
+        self.tango_operation_execution_lock = threading.RLock()
         self.dish_number = None
         self.is_configureband_completed_event = threading.Event()
         self.is_setoperatemode_completed_event = threading.Event()
@@ -1716,7 +1717,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "EndScan result: %s",
                         self.end_scan_result,
                     )
-                    self.observable.notify_observers(attribute_value=True)
+                    self.observable.notify_observers(
+                        attribute_value_change=True
+                    )
                 elif "Scan" in unique_id:
                     self.scan_result["result_code"] = result_code
                     self.scan_result["message"] = message
@@ -1724,7 +1727,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "Scan result: %s",
                         self.scan_result,
                     )
-                    self.observable.notify_observers(attribute_value=True)
+                    self.observable.notify_observers(
+                        attribute_value_change=True
+                    )
                 elif "TrackLoadStaticOff" in unique_id:
                     self.track_load_static_off_result[
                         "result_code"
@@ -1735,7 +1740,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.track_load_static_off_result,
                     )
                     self.is_trackloadstaticoff_completed_event.set()
-                    self.observable.notify_observers(attribute_value=True)
                 elif "TrackStop" in unique_id:
                     self.track_stop_result["result_code"] = result_code
                     self.track_stop_result["message"] = message
@@ -1743,7 +1747,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "TrackStop result: %s",
                         self.track_stop_result,
                     )
-
+                    self.observable.notify_observers(
+                        attribute_value_change=True
+                    )
                 elif "Track" in unique_id:
                     self.logger.debug("Track result: %s", result_code)
                     self.track_result["result_code"] = result_code
@@ -1775,7 +1781,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 else:
                     self.logger.info(
                         "Updating LRCRCallback with value: %s for %s"
-                        + "for device: %s",
+                        + " for device: %s ",
                         value,
                         unique_id,
                         device_name,
@@ -1785,6 +1791,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         ResultCode.FAILED,
                         exception_msg=message,
                     )
+                    self.observable.notify_observers(command_exception=True)
         except Exception as exception:
             self.logger.exception(
                 "Exception has occurred while processing"
