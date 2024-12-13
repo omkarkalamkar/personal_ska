@@ -1716,6 +1716,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "EndScan result: %s",
                         self.end_scan_result,
                     )
+                    self.observable.notify_observers(attribute_value=True)
                 elif "Scan" in unique_id:
                     self.scan_result["result_code"] = result_code
                     self.scan_result["message"] = message
@@ -1723,6 +1724,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "Scan result: %s",
                         self.scan_result,
                     )
+                    self.observable.notify_observers(attribute_value=True)
                 elif "TrackLoadStaticOff" in unique_id:
                     self.track_load_static_off_result[
                         "result_code"
@@ -1733,6 +1735,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.track_load_static_off_result,
                     )
                     self.is_trackloadstaticoff_completed_event.set()
+                    self.observable.notify_observers(attribute_value=True)
                 elif "TrackStop" in unique_id:
                     self.track_stop_result["result_code"] = result_code
                     self.track_stop_result["message"] = message
@@ -1783,11 +1786,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         exception_msg=message,
                     )
         except Exception as exception:
-            self.logger.error(
+            self.logger.exception(
                 "Exception has occurred while processing"
                 "long running command result event: %s",
                 exception,
             )
+            self.observable.notify_observers(command_exception=True)
 
     def process_sqpqc_attribute_fqdn(self, sdpqc_fqdn: str) -> None:
         """Method to subscribe to SDP queue connector attribute.

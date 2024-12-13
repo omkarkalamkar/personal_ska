@@ -15,14 +15,14 @@ server:
       classes:
       - name: "DishLeafNode"
         devices:
-        - name: "ska_mid/tm_leaf_node/d{{ printf "%04s" . }}"
+        - name: "ska_mid/tm_leaf_node/SKA{{ printf "%03s" . }}"
           properties:
           - name: "DishMasterFQDN"
             values:
               - "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"
           - name: "DishlnPointingDeviceFQDN"
             values:
-              - "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+              - "mid-tmc/dish-pointing/SKA{{ printf "%03s" . }}"
           - name: "SkaLevel"
             values:
               - "3"
