@@ -3,6 +3,7 @@ Configure class for DishLeafNode.
 """
 from __future__ import annotations
 
+import os
 import copy
 import json
 import logging
@@ -28,6 +29,11 @@ from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
 )
 from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CommandResult
+
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
+)
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -58,17 +64,15 @@ class Configure(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
 
-        self.partial_configure = False
         self.receiver_band: str = ""
 
     # pylint: disable=unused-argument
+    @timeout_tracker
+    @error_propagation_tracker("is_configure_completed",[True],)
     def invoke_configure(
         self: Configure,
         argin: str,
-        logger: Logger,
-        task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
-    ) -> None:
+    ):
         """This is a long running method for Configure command, it
         executes do hook, invokes Configure command on Dish Master.
 
@@ -76,82 +80,38 @@ class Configure(DishLNCommand):
         :type argin: str
         :param logger: logger
         :type logger: logging.Logger
-        :param task_callback: Update task state, defaults to None
+        :param task_callback: Update task s`tate, defaults to None
         :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         :return: : None
         :rtype: None
         """
-        self.component_manager.abort_event = task_abort_event
-        # Indicate that the task has started
-        self.task_callback = task_callback
+
         self.task_callback(status=TaskStatus.IN_PROGRESS)
-        self.set_command_id(__class__.__name__)
-        self.component_manager.command_in_progress = "Configure"
-        self.component_manager.start_timer(
-            self.timeout_id,
-            self.component_manager.command_timeout,
-            self.timeout_callback,
-        )
-        lrcr_callback = self.component_manager.long_running_result_callback
         json_argument = json.loads(argin)
         if json_argument.get("tmc"):
-            self.partial_configure = True
+            self.component_manager.partial_configure = True
 
-        if not self.partial_configure:
+
+        if not self.component_manager.partial_configure:
             self.receiver_band = json_argument["dish"]["receiver_band"]
-            self.start_tracker_thread(
-                "get_dish_state",
-                [
-                    DishMode.OPERATE,
-                    (PointingState.TRACK, PointingState.SLEW),
-                    self.receiver_band,
-                    ResultCode.OK,
-                ],
-                task_abort_event,
-                self.timeout_id,
-                self.timeout_callback,
-                command_id=self.component_manager.command_id,
-                lrcr_callback=lrcr_callback,
-            )
-        else:
-            self.start_tracker_thread(
-                "get_track_load_static_off_result_code",
-                [ResultCode.OK],
-                task_abort_event,
-                self.timeout_id,
-                self.timeout_callback,
-                command_id=self.component_manager.command_id,
-                lrcr_callback=lrcr_callback,
-            )
 
-        return_code, message = self.do(argin)
-        self.logger.info("Result is: %s, %s", return_code, message)
-        if return_code in [
-            ResultCode.FAILED,
-            ResultCode.REJECTED,
-            ResultCode.NOT_ALLOWED,
-        ]:
-            self.logger.info(
-                "Setting taskcallback to FAILED with message: %s",
-                message,
-            )
-            lrcr_callback(
-                self.component_manager.command_id,
-                ResultCode.FAILED,
-                exception_msg=message,
-            )
+        self.configure_command_expected_states()
 
-        self.logger.info(
-            "The Configure command is invoked successfully on %s",
-            self.dish_master_adapter.dev_name,
-        )
-
+        return self.do(argin)
+    
+    def configure_command_expected_states(self):
+        """"""
+        self.component_manager.expected_dish_mode = DishMode.OPERATE
+        self.component_manager.expected_pointing_state = (PointingState.TRACK, PointingState.SLEW)
+        self.component_manager.expected_receiver_band = self.receiver_band
+        
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
         if any."""
         try:
+            self.logger.info(">>>>1")
             result = kwargs.get("result")
             status = kwargs.get("status", TaskStatus.COMPLETED)
             message = kwargs.get("exception") or kwargs.get("message")
@@ -160,10 +120,12 @@ class Configure(DishLNCommand):
             )
 
             if status == TaskStatus.ABORTED:
+                self.logger.info(">>>>2")
                 self.task_callback(status=status)
                 self.component_manager.command_in_progress = ""
                 self.logger.info("Configure command execution is aborted.")
             elif result[0] == ResultCode.OK:
+                self.logger.info(">>>>3")
                 self.component_manager.command_in_progress = ""
                 self.task_callback(result=result, status=status)
                 self.logger.info(
@@ -171,6 +133,7 @@ class Configure(DishLNCommand):
                     self.dish_master_adapter.dev_name,
                 )
             else:
+                self.logger.info(">>>>4")
                 self.task_callback(
                     status=status,
                     result=result,
@@ -180,7 +143,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = ""
             self.component_manager.command_id = ""
             self.receiver_band = ""
-            self.partial_configure = False
+            self.component_manager.partial_configure = False
             self.component_manager.clear_configure_command_events_flags()
             self.logger.info("Configure command cleanup completed.")
 
@@ -466,8 +429,8 @@ class Configure(DishLNCommand):
             argin=json.dumps(offsets_argin),
             logger=self.logger,
             task_callback=_invoke_trackstaticloadoff_callback,
+            task_abort_event=self.component_manager.abort_event,
         )
-
         if (
             self.component_manager.get_track_load_static_off_result_code()
             == ResultCode.FAILED
@@ -820,57 +783,4 @@ class Configure(DishLNCommand):
             elapsed_time = time.time() - start_time
         return track_table_status
 
-    # pylint: disable=arguments-differ
-    def check_device_state(
-        self,
-        state_function: str,
-        state_to_achieve: Any,
-        expected_state: list,
-        command_id,
-    ) -> bool:
-        """
-        Waits for expected state with or without
-        transitional state. On expected state occurrence,
-        it sets ResultCode to OK and stops the tracker thread.
-
-        :param state_function: The function to determine the state of the
-                        device. Should be accessible in the component_manager
-        :type state_function: str
-
-        :param state_to_achieve: A particular state that needs to be
-                                achieved for command completion.
-
-        :param expected_state: Expected state of the device in case of
-                        successful command execution. It's a list containing
-                        transitional obsState if it exists for a command.
-        :return: boolean value indicating if the state change occurred or not
-        """
-        if self.partial_configure:
-            result_code = methodcaller(state_function)(self.component_manager)
-            # Check if the result match the expected value
-            return result_code == state_to_achieve
-
-        (
-            dish_mode,
-            pointing_state,
-            receiver_band,
-            configure_band_result,
-            setoperatemode_result,
-            track_result,
-        ) = methodcaller(state_function)(self.component_manager)
-
-        (
-            expected_dish_mode,
-            expected_pointing_states,
-            expected_receiver_band,
-            expected_result_code,
-        ) = expected_state
-        # Check if the results match the expected values
-        return (
-            dish_mode == expected_dish_mode
-            and pointing_state in expected_pointing_states
-            and receiver_band == expected_receiver_band
-            and configure_band_result == expected_result_code
-            and setoperatemode_result == expected_result_code
-            and track_result == expected_result_code
-        )
+    
