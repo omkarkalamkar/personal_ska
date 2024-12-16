@@ -408,8 +408,6 @@ def cm_pointig_device() -> (
             update_program_track_table_error_callback
         ),
         track_table_update_rate=50,
-        elevation=30.0,
-        azimuth=0.0,
         elevation_max_limit=90.0,
         elevation_min_limit=17.5,
         track_table_advance_sec=7,
