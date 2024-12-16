@@ -293,7 +293,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             scheduled_time,
                             event_priority,
                             self.update_program_track_table,
-                            argument=(program_track_table,)
+                            argument=(program_track_table,),
                         )
 
                         self.logger.debug(
