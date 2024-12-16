@@ -38,8 +38,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         update_pointing_program_track_table_callback: Callable,
         update_program_track_table_error_callback: Callable,
         track_table_update_rate: float = 50.0,
-        elevation: float = 0.0,
-        azimuth: float = 0.0,
         elevation_max_limit: float = 90.0,
         elevation_min_limit: float = 15.0,
         track_table_advance_sec: int = 6,
@@ -68,8 +66,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         # and clear the event for next usage.
         self.mapping_scan_event = threading.Event()
         self.set_change_pointing_event = threading.Event()
-        self.elevation = elevation
-        self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
         self.iers_a = None
