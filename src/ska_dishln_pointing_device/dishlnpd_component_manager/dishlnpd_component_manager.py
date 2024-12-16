@@ -293,13 +293,13 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             scheduled_time,
                             event_priority,
                             self.update_program_track_table,
-                            argument=(program_track_table,),
+                            argument=(program_track_table,)
                         )
 
                         self.logger.debug(
                             "update_program_track_table - Added in scheduler"
                         )
-                        self.track_table_scheduler.run()
+                        self.track_table_scheduler.run(blocking=False)
                         self.logger.debug("Execution done")
 
             self.logger.debug("Program Track Table Calculation stopped.")
