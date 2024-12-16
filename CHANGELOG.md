@@ -122,7 +122,7 @@ Fixed
 
 [0.17.1]
 * Updated the correction key behaviour when correction key is empty. 
-  
+
 [0.16.4]
 * Fix for SKB-419 and SKB-469
 * Set and push archive events for all the attributes

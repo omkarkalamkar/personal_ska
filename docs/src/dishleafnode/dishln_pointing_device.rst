@@ -23,5 +23,22 @@ Attributes in DishPointingDevice
 +--------------------------+---------------+----------------------+----------------------------------------------------------+
 | TargetData               | String        | READ_WRITE           | This attribute provides target data.                     |
 +--------------------------+---------------+----------------------+----------------------------------------------------------+
-| pointingProgramTrackTable | String       | READ                 | This attribute provides program track table.             |
+| pointingProgramTrackTable| String        | READ                 | This attribute provides program track table.             |
 +--------------------------+---------------+----------------------+----------------------------------------------------------+
+
+################################
+DishPointingDevice Properties
+################################
+
++--------------------------+---------------+------------------+----------------------------------------------------------+
+| Property Name            | O/P Data Type | Default Value    | Description                                              |
++==========================+===============+==================+==========================================================+
+| TrackTableInAdvance      | DevFloat      |     6.0          | programTrackTable in advance in seconds                  |
++--------------------------+---------------+------------------+----------------------------------------------------------+
+| TrackTableUpdateRate     | DevFloat      |     50.0         | The rate at which a tracktable is provided. It is one    |
+|                          |               |                  |  tracktable per specified number of seconds.             |
++--------------------------+---------------+------------------+----------------------------------------------------------+
+| ElevationMinLimit        | DevFloat      |     15.0         | The minimum elevation to which the dish can point.       |
++--------------------------+---------------+------------------+----------------------------------------------------------+
+| ElevationMaxLimit        | DevFloat      |     90.0         | The Maximum elevation to which the dish can point.       |
++--------------------------+---------------+------------------+----------------------------------------------------------+
