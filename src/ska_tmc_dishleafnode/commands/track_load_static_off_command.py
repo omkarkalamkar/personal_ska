@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from typing import Tuple
 
 from ska_ser_logging import configure_logging
@@ -43,6 +44,7 @@ class TrackLoadStaticOff(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.is_configure_command = is_configure_command
+        self.timeout_id = f"{time.time()}_TrackLoadStaticOff"
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )

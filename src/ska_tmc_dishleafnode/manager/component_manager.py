@@ -1128,7 +1128,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         task_status, response = self.submit_task(
             track_load_static_off_command.invoke_track_load_static_off,
-            args=[argin, self.logger],
+            kwargs={"argin": argin},
             is_cmd_allowed=self.is_command_allowed_callable(
                 "TrackLoadStaticOff"
             ),
@@ -1799,12 +1799,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         or ("TrackLoadStaticOff" in unique_id)
                     ):
                         self.logger.info(
-                            "LRCRCallback is: %s",
+                            "LRCR Callback is: %s",
                             self.long_running_result_callback,
                         )
                 else:
                     self.logger.info(
-                        "Updating LRCRCallback with value: %s for %s"
+                        "Updating LRCR Callback with value: %s for %s"
                         + " for device: %s ",
                         value,
                         unique_id,
@@ -1815,7 +1815,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         ResultCode.FAILED,
                         exception_msg=message,
                     )
-                    self.observable.notify_observers(command_exception=True)
+                self.observable.notify_observers(command_exception=True)
         except Exception as exception:
             self.logger.exception(
                 "Exception has occurred while processing"
