@@ -337,6 +337,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=3,
+        command_timeout=60,
         _update_health_state_callback=update_health_state_callback,
     )
     cm.actual_pointing_process_alive.set()

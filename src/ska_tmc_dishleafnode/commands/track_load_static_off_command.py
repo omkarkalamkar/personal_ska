@@ -44,7 +44,6 @@ class TrackLoadStaticOff(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.is_configure_command = is_configure_command
-        self.timeout_id = f"{time.time()}_TrackLoadStaticOff"
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )

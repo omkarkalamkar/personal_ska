@@ -59,7 +59,6 @@ class Configure(DishLNCommand):
         )
 
         self.receiver_band: str = ""
-        self.timeout_id = f"{time.time()}_Configure"
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )

@@ -64,7 +64,8 @@ def test_configure_command_completed(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=6,
     )
 
 
@@ -88,6 +89,7 @@ def test_configure_command_completed_partial_config(
     )
     time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -241,6 +243,7 @@ def test_configure_timeout(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.FAILED, message),
             "exception": message,
-        }
+        },
+        lookahead=6,
     )
     dish_master.SetDefective(json.dumps({"enabled": False}))
