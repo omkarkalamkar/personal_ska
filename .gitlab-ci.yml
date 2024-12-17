@@ -86,6 +86,3 @@ k8s-test:
     - make k8s-install-chart
     - make k8s-wait
 
-# docs-build-rtd:
-#   rules:
-#     - when: never
