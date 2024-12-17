@@ -10,14 +10,13 @@ from typing import Tuple
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import TimeKeeper
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
 from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-
-from ska_tmc_common import TimeKeeper
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)

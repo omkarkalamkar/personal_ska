@@ -6,16 +6,11 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import os
-import threading
 import time
-from logging import Logger
-from operator import methodcaller
-from typing import Any, List, Optional, Tuple
+from typing import List, Tuple
 
 from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import DishMode, PointingState, TimeKeeper
@@ -106,7 +101,8 @@ class Configure(DishLNCommand):
         return self.do(argin)
 
     def configure_command_expected_states(self):
-        """"""
+        """Method to set the required dish mode, pointing state
+        and receiver band for configure command"""
         self.component_manager.expected_dish_mode = DishMode.OPERATE
         self.component_manager.expected_pointing_state = (
             PointingState.TRACK,
@@ -429,6 +425,7 @@ class Configure(DishLNCommand):
             self.logger,
             is_configure_command=True,
         )
+        # pylint: disable=E1123
         track_load_static_off_command.invoke_track_load_static_off(
             argin=json.dumps(offsets_argin),
             logger=self.logger,
@@ -445,6 +442,7 @@ class Configure(DishLNCommand):
                     "exception"
                 ],
             )
+        # pylint: enable=E1123
         self.component_manager.update_source_offset_callback(offsets_argin)
 
         result = self.set_wait_for_trackloadstaticoff_completed()

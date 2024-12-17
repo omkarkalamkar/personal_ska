@@ -2279,7 +2279,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:
-            flag =  (self.partial_configure_lrc == ResultCode.OK)
+            flag = self.partial_configure_lrc == ResultCode.OK
             self.partial_configure_lrc = ResultCode.UNKNOWN
             return flag
 

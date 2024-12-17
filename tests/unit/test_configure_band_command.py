@@ -23,9 +23,7 @@ def test_configure_band_command_completed(tango_context, task_callback, cm):
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     simulate_result_code_event(cm, "ConfigureBand", ResultCode.OK)
-    cm.observable.notify_observers(
-        attribute_value_change=True
-    )
+    cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
