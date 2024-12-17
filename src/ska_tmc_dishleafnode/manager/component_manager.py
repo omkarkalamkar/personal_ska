@@ -152,6 +152,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.expected_pointing_state: PointingState = PointingState.UNKNOWN
         self.expected_receiver_band = None
         self.partial_configure: bool = False
+        self.partial_configure_lrc = ResultCode.UNKNOWN
         self.command_result_update_lock = threading.RLock()
         self.tango_operation_execution_lock = threading.RLock()
         self.dish_number = None
@@ -633,7 +634,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
         self.create_converter_obj_and_antenna_obj()
-        #self.download_iers_data()
+        self.download_iers_data()
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
@@ -1782,18 +1783,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         attribute_value_change=True
                     )
                     self.is_track_completed_event.set()
-                elif "Configure" in unique_id:
-                    self.logger.info(">>>>> Configure command result is: %s", value)
-                    self.configure_result["result_code"] = result_code
-                    self.configure_result["message"] = message
-                    self.logger.debug(
-                        "Configure result: %s",
-                        self.configure_result,
-                    )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
-                    self.is_configure_event.set()
 
             if result_code in [
                 ResultCode.FAILED,
@@ -2050,7 +2039,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: track_load_static_off_result
         :rtype: dict
         """
-        return self.track_load_static_off_result["result_code"]
+        with self.command_result_update_lock:
+            return self.track_load_static_off_result["result_code"]
 
     def get_track_load_static_off_result_dict(self: DishLNComponentManager):
         """
@@ -2089,7 +2079,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.track_load_static_off_result["message"] = message
             self.track_load_static_off_result["exception"] = exception
             self.track_load_static_off_result["status"] = status
-        
+
     def get_configure_band_result_code(self: DishLNComponentManager):
         """
         Return the result of the ConfigureBand command execution
@@ -2268,12 +2258,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.process_lock:
             self.stop_executors_and_cleanup_memory()
-    
 
     # pylint: disable=arguments-differ
-    def is_configure_completed(
-        self
-    ) -> bool:
+    def is_configure_completed(self) -> bool:
         """
         Waits for expected state with or without
         transitional state. On expected state occurrence,
@@ -2292,9 +2279,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:
-            self.logger.info("<<<<<<<<<<>>>>> Partial Configure")
-            return (self.track_load_static_off_result["result_code"] == ResultCode.OK)
-            
+            flag =  (self.partial_configure_lrc == ResultCode.OK)
+            self.partial_configure_lrc = ResultCode.UNKNOWN
+            return flag
+
         return (
             self.dishMode == self.expected_dish_mode
             and self.pointingState in self.expected_pointing_state

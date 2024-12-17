@@ -17,6 +17,8 @@ from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
+from ska_tmc_common import TimeKeeper
+
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
@@ -42,7 +44,9 @@ class TrackLoadStaticOff(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.is_configure_command = is_configure_command
-        
+        self.timekeeper = TimeKeeper(
+            self.component_manager.command_timeout, logger
+        )
 
     # pylint: disable=unused-argument
     @timeout_tracker

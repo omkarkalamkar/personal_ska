@@ -3,10 +3,10 @@ Configure class for DishLeafNode.
 """
 from __future__ import annotations
 
-import os
 import copy
 import json
 import logging
+import os
 import threading
 import time
 from logging import Logger
@@ -18,7 +18,11 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import DishMode, PointingState
+from ska_tmc_common import DishMode, PointingState, TimeKeeper
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
+)
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
@@ -29,11 +33,6 @@ from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
 )
 from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CommandResult
-
-from ska_tmc_common.v1.error_propagation_tracker import (
-    error_propagation_tracker,
-)
-from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -65,10 +64,16 @@ class Configure(DishLNCommand):
         )
 
         self.receiver_band: str = ""
+        self.timekeeper = TimeKeeper(
+            self.component_manager.command_timeout, logger
+        )
 
     # pylint: disable=unused-argument
     @timeout_tracker
-    @error_propagation_tracker("is_configure_completed",[True],)
+    @error_propagation_tracker(
+        "is_configure_completed",
+        [True],
+    )
     def invoke_configure(
         self: Configure,
         argin: str,
@@ -93,25 +98,26 @@ class Configure(DishLNCommand):
         if json_argument.get("tmc"):
             self.component_manager.partial_configure = True
 
-
         if not self.component_manager.partial_configure:
             self.receiver_band = json_argument["dish"]["receiver_band"]
 
         self.configure_command_expected_states()
 
         return self.do(argin)
-    
+
     def configure_command_expected_states(self):
         """"""
         self.component_manager.expected_dish_mode = DishMode.OPERATE
-        self.component_manager.expected_pointing_state = (PointingState.TRACK, PointingState.SLEW)
+        self.component_manager.expected_pointing_state = (
+            PointingState.TRACK,
+            PointingState.SLEW,
+        )
         self.component_manager.expected_receiver_band = self.receiver_band
-        
+
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
         if any."""
         try:
-            self.logger.info(">>>>1")
             result = kwargs.get("result")
             status = kwargs.get("status", TaskStatus.COMPLETED)
             message = kwargs.get("exception") or kwargs.get("message")
@@ -120,12 +126,10 @@ class Configure(DishLNCommand):
             )
 
             if status == TaskStatus.ABORTED:
-                self.logger.info(">>>>2")
                 self.task_callback(status=status)
                 self.component_manager.command_in_progress = ""
                 self.logger.info("Configure command execution is aborted.")
             elif result[0] == ResultCode.OK:
-                self.logger.info(">>>>3")
                 self.component_manager.command_in_progress = ""
                 self.task_callback(result=result, status=status)
                 self.logger.info(
@@ -133,7 +137,6 @@ class Configure(DishLNCommand):
                     self.dish_master_adapter.dev_name,
                 )
             else:
-                self.logger.info(">>>>4")
                 self.task_callback(
                     status=status,
                     result=result,
@@ -415,6 +418,7 @@ class Configure(DishLNCommand):
                 self.component_manager.set_track_load_static_off_result_dict(
                     result_code, message, exception, status
                 )
+                self.component_manager.partial_configure_lrc = result_code
 
         # pylint: enable=unused-argument
         # Call the TrackStaticLoadOff command
@@ -782,5 +786,3 @@ class Configure(DishLNCommand):
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
         return track_table_status
-
-    
