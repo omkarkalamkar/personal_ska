@@ -154,10 +154,11 @@ def test_configure_command_completed_with_correction_key_reset(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=2
+        lookahead=2,
     )
 
     dishMock.TrackLoadStaticOff.assert_called_once_with([0.0, 0.0])
+
 
 def test_configure_command_completed_with_correction_key_update(
     tango_context,
