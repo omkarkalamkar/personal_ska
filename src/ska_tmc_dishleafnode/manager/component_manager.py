@@ -209,8 +209,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
-        # if _liveliness_probe != LivelinessProbeType.NONE:
-        #     self.start_liveliness_probe(_liveliness_probe)
+        if _liveliness_probe != LivelinessProbeType.NONE:
+            self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
@@ -271,12 +271,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "status": None,
             }
             self.end_scan_result = {
-                "result_code": None,
-                "message": None,
-                "exception": None,
-                "status": None,
-            }
-            self.configure_result = {
                 "result_code": None,
                 "message": None,
                 "exception": None,
@@ -2266,16 +2260,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         transitional state. On expected state occurrence,
         it sets ResultCode to OK and stops the tracker thread.
 
-        :param state_function: The function to determine the state of the
-                        device. Should be accessible in the component_manager
-        :type state_function: str
-
-        :param state_to_achieve: A particular state that needs to be
-                                achieved for command completion.
-
-        :param expected_state: Expected state of the device in case of
-                        successful command execution. It's a list containing
-                        transitional obsState if it exists for a command.
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:

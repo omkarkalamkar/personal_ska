@@ -55,7 +55,7 @@ class TrackLoadStaticOff(DishLNCommand):
     def invoke_track_load_static_off(
         self: TrackLoadStaticOff,
         argin: str,
-    ):
+    ) -> Tuple[ResultCode, str]:
         # pylint: enable=unused-argument
         """A method to invoke the do method of the TrackLoadStaticOff command
         class. This method also updates the task callback according to command
@@ -64,14 +64,8 @@ class TrackLoadStaticOff(DishLNCommand):
         :param argin: Input argument containing the cross elevation and
             elevation offsets.
         :type argin: str
-        :param logger: logger
-        :type logger: logging.Logger
-        :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
-        :return: : None
-        :rtype: None
+        :return: : (ResultCode, str)
+        :rtype: Tuple
         """
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.is_configure_command is False:

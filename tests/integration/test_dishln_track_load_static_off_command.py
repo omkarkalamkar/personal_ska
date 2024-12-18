@@ -89,7 +89,6 @@ def track_load_static_off_dish_leaf_node_timeout(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 def test_track_load_static_off_command_timeout(
     tango_context, group_callback, json_factory
 ):
