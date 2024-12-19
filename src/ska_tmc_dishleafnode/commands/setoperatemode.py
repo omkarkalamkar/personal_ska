@@ -51,7 +51,7 @@ class SetOperateMode(DishLNCommand):
         "get_set_operate_mode_result_code", [ResultCode.OK]
     )
     def set_operate_mode(
-        self: SetOperateMode,
+        self: SetOperateMode, **kwargs
     ) -> Tuple[ResultCode, str]:
         """A method to invoke the SetOperateMode command.
 

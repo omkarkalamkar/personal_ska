@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+import time
+from typing import Callable, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeKeeper
+from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
@@ -41,6 +42,10 @@ class ConfigureBand(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.is_configure_command = is_configure_command
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
@@ -53,6 +58,7 @@ class ConfigureBand(DishLNCommand):
     def configure_band(
         self: ConfigureBand,
         argin: str,
+        **kwargs,
     ) -> Tuple[ResultCode, str]:
         """This is a long running method for ConfigureBand command, it
         executes the do hook, invoking ConfigureBand command on Dish Master

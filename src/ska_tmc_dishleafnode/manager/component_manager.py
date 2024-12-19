@@ -124,6 +124,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
+        self.command_results = []
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
@@ -152,7 +153,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.partial_configure_lrc = ResultCode.UNKNOWN
         self.configure_band_lrcr = ResultCode.UNKNOWN
         self.configure_setoperate_mode_lrcr = ResultCode.UNKNOWN
-        self.configure_track_lrcr = ResultCode.UNKNOWN
         self.partial_configure: bool = False
         self.command_result_update_lock = threading.RLock()
         self.tango_operation_execution_lock = threading.RLock()
@@ -229,6 +229,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.actual_pointing_process.start()
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
+        self._configure_track_lrcr = ResultCode.UNKNOWN
+
+    @property
+    def configure_track_lrcr(self):
+        """Configure track lrcr"""
+        return self._configure_track_lrcr
+
+    @configure_track_lrcr.setter
+    def configure_track_lrcr(self, value):
+        """Set configure track lrcr"""
+        with self.command_result_update_lock:
+            self._configure_track_lrcr = value
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
@@ -737,6 +749,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         task_status, response = self.submit_task(
             setstandbyfpmode_command.set_standby_fp_mode,
+            args=[self.logger],
             is_cmd_allowed=self.is_command_allowed_callable(
                 "SetStandbyFPMode"
             ),
@@ -1709,9 +1722,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "ConfigureBand result: %s",
                         self.configure_band_result,
                     )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
+                    # self.observable.notify_observers(
+                    #     attribute_value_change=True
+                    # )
+                    self.command_results.append("ConfigureBand")
                     self.is_configureband_completed_event.set()
                 elif "SetOperateMode" in unique_id:
                     self.set_operate_mode_result["result_code"] = result_code
@@ -1720,9 +1734,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "SetOperateMode result: %s",
                         self.set_operate_mode_result,
                     )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
+                    # self.observable.notify_observers(
+                    #     attribute_value_change=True
+                    # )
+                    self.command_results.append("SetOperateMode")
                     self.is_setoperatemode_completed_event.set()
                 elif "EndScan" in unique_id:
                     self.end_scan_result["result_code"] = result_code
@@ -1774,10 +1789,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "Track result: %s",
                         self.track_result,
                     )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
+                    # self.observable.notify_observers(
+                    #     attribute_value_change=True
+                    # )
+                    self.command_results.append("Track")
                     self.is_track_completed_event.set()
+
+            if len(self.command_results) == 3:
+                self.logger.info("Got command results from all command")
+                self.observable.notify_observers(attribute_value_change=True)
+                self.command_results = []
 
             if result_code in [
                 ResultCode.FAILED,

@@ -6,7 +6,6 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import os
 import time
 from typing import List, Tuple
 
@@ -589,7 +588,7 @@ class Configure(DishLNCommand):
                 self.component_manager.update_set_operate_mode_result_dict(
                     result_code, message, exception, status
                 )
-                self.component_manager.self.configure_setoperate_mode_lrcr = (
+                self.component_manager.configure_setoperate_mode_lrcr = (
                     result_code
                 )
 
@@ -735,6 +734,9 @@ class Configure(DishLNCommand):
                     result_code, message, exception, status
                 )
                 self.component_manager.configure_track_lrcr = ResultCode.OK
+                self.component_manager.observable.notify_observers(
+                    attribute_value_change=True
+                )
 
         # pylint: enable=unused-argument
         track_command = Track(

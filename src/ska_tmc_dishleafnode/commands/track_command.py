@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+import time
+from typing import Callable, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeKeeper
+from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
@@ -44,6 +45,10 @@ class Track(DishLNCommand):
         self.dec_value = ""
         self.tracking_thread = None
         self.is_configure_command = is_configure_command
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
@@ -51,10 +56,7 @@ class Track(DishLNCommand):
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker("get_track_result_code", [ResultCode.OK])
-    def track(
-        self: Track,
-        argin: dict,
-    ) -> Tuple[ResultCode, str]:
+    def track(self: Track, argin: dict, **kwargs) -> Tuple[ResultCode, str]:
         """This is a long running method for Track command, it
         executes the do hook, invoking Track command on Dish Master
 
