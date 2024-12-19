@@ -416,5 +416,5 @@ def cm_pointig_device() -> (
         elevation_min_limit=17.5,
         track_table_advance_sec=7,
     )
-
+    cm.download_antenna_and_iers_data()
     yield cm

@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import json
 import logging
+import os
 import time
 from typing import List, Tuple
 
@@ -58,7 +59,6 @@ class Configure(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
 
-        self.receiver_band: str = ""
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
@@ -88,21 +88,11 @@ class Configure(DishLNCommand):
             self.component_manager.partial_configure = True
 
         if not self.component_manager.partial_configure:
-            self.receiver_band = json_argument["dish"]["receiver_band"]
-
-        self.configure_command_expected_states()
+            self.component_manager.receiver_band = json_argument["dish"][
+                "receiver_band"
+            ]
 
         return self.do(argin)
-
-    def configure_command_expected_states(self):
-        """Method to set the required dish mode, pointing state
-        and receiver band for configure command"""
-        self.component_manager.expected_dish_mode = DishMode.OPERATE
-        self.component_manager.expected_pointing_state = (
-            PointingState.TRACK,
-            PointingState.SLEW,
-        )
-        self.component_manager.expected_receiver_band = self.receiver_band
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -135,8 +125,14 @@ class Configure(DishLNCommand):
 
                 self.component_manager.command_in_progress = ""
             self.component_manager.command_id = ""
-            self.receiver_band = ""
+            self.component_manager.receiver_band = ""
             self.component_manager.partial_configure = False
+            self.component_manager.configure_band_lrcr = ResultCode.UNKNOWN
+            self.component_manager.configure_setoperate_mode = (
+                ResultCode.UNKNOWN
+            )
+            self.component_manager.partial_configure_lrc = ResultCode.UNKNOWN
+            self.component_manager.configure_track_lrcr = ResultCode.UNKNOWN
             self.component_manager.clear_configure_command_events_flags()
             self.logger.info("Configure command cleanup completed.")
 
@@ -298,6 +294,7 @@ class Configure(DishLNCommand):
                     self.component_manager.set_configure_band_result_dict(
                         result_code, message, exception, status
                     )
+                    self.component_manager.configure_band_lrcr = result_code
 
             # pylint: enable=unused-argument
             configure_band_command = ConfigureBand(
@@ -308,9 +305,10 @@ class Configure(DishLNCommand):
                 is_configure_command=True,
             )
             configure_band_command.configure_band(
-                argin=self.receiver_band,
+                argin=self.component_manager.receiver_band,
                 logger=self.logger,
                 task_callback=_invoke_configure_band_callback,
+                task_abort_event=self.component_manager.abort_event,
             )
 
             if (
@@ -502,6 +500,9 @@ class Configure(DishLNCommand):
             self.component_manager.update_set_operate_mode_result_dict(
                 ResultCode.OK, message
             )
+            self.component_manager.configure_setoperate_mode_lrcr = (
+                ResultCode.OK
+            )
             self.logger.debug(
                 "set_operate_mode_result result: %s",
                 self.component_manager.set_operate_mode_result,
@@ -588,6 +589,9 @@ class Configure(DishLNCommand):
                 self.component_manager.update_set_operate_mode_result_dict(
                     result_code, message, exception, status
                 )
+                self.component_manager.self.configure_setoperate_mode_lrcr = (
+                    result_code
+                )
 
         # pylint: enable=unused-argument
         setoperatemode_command = SetOperateMode(
@@ -598,7 +602,9 @@ class Configure(DishLNCommand):
             is_configure_command=True,
         )
         setoperatemode_command.set_operate_mode(
-            logger=self.logger, task_callback=_invoke_setoperatemode_callback
+            logger=self.logger,
+            task_callback=_invoke_setoperatemode_callback,
+            task_abort_event=self.component_manager.abort_event,
         )
 
         if (
@@ -681,6 +687,7 @@ class Configure(DishLNCommand):
                 "Track result: %s",
                 self.component_manager.track_result,
             )
+            self.component_manager.configure_track_lrcr = ResultCode.OK
             return (
                 [ResultCode.OK],
                 [
@@ -722,10 +729,12 @@ class Configure(DishLNCommand):
             if result is None:
                 pass
             else:
+                self.logger.info(" &&&& Track result: %s", result)
                 result_code, message = result
                 self.component_manager.set_track_result_dict(
                     result_code, message, exception, status
                 )
+                self.component_manager.configure_track_lrcr = ResultCode.OK
 
         # pylint: enable=unused-argument
         track_command = Track(
@@ -739,6 +748,7 @@ class Configure(DishLNCommand):
             argin=json_argument,
             logger=self.logger,
             task_callback=_invoke_track_callback,
+            task_abort_event=self.component_manager.abort_event,
         )
 
         if self.component_manager.get_track_result_code() == ResultCode.FAILED:

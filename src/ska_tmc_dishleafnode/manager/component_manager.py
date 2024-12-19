@@ -148,11 +148,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band5apointingmodelparams": "",
             "band5bpointingmodelparams": "",
         }
-        self.expected_dish_mode: DishMode = DishMode.UNKNOWN
-        self.expected_pointing_state: PointingState = PointingState.UNKNOWN
-        self.expected_receiver_band = None
-        self.partial_configure: bool = False
+        self.receiver_band = None
         self.partial_configure_lrc = ResultCode.UNKNOWN
+        self.configure_band_lrcr = ResultCode.UNKNOWN
+        self.configure_setoperate_mode_lrcr = ResultCode.UNKNOWN
+        self.configure_track_lrcr = ResultCode.UNKNOWN
+        self.partial_configure: bool = False
         self.command_result_update_lock = threading.RLock()
         self.tango_operation_execution_lock = threading.RLock()
         self.dish_number = None
@@ -209,8 +210,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
-        if _liveliness_probe != LivelinessProbeType.NONE:
-            self.start_liveliness_probe(_liveliness_probe)
+        # if _liveliness_probe != LivelinessProbeType.NONE:
+        #     self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
@@ -281,6 +282,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def clear_configure_command_events_flags(self: DishLNComponentManager):
         """Method to reset the command result dictionaries, events and flgas
         utilised in Configure command"""
+
         self.reset_command_result_values()
         self.is_configureband_completed_event.clear()
         self.is_setoperatemode_completed_event.clear()
@@ -628,7 +630,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
         self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
+        # self.download_iers_data()
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
@@ -735,7 +737,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         task_status, response = self.submit_task(
             setstandbyfpmode_command.set_standby_fp_mode,
-            args=[self.logger],
             is_cmd_allowed=self.is_command_allowed_callable(
                 "SetStandbyFPMode"
             ),
@@ -918,7 +919,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         task_status, response = self.submit_task(
             track_command.track,
-            args=[input_json, self.logger],
+            kwargs={"argin": argin},
             is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
@@ -994,7 +995,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         task_status, response = self.submit_task(
             configure_band_command.configure_band,
-            args=[argin, self.logger],
+            kwargs={"argin": argin},
             is_cmd_allowed=self.is_command_allowed_callable("ConfigureBand"),
             task_callback=task_callback,
         )
@@ -2081,6 +2082,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: ResultCode from dictionary configure_band_result
         :rtype: ResultCode
         """
+
         with self.command_result_update_lock:
             return self.configure_band_result["result_code"]
 
@@ -2263,15 +2265,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:
-            flag = self.partial_configure_lrc == ResultCode.OK
-            self.partial_configure_lrc = ResultCode.UNKNOWN
-            return flag
-
+            return self.partial_configure_lrc == ResultCode.OK
+        self.logger.info("TRACK RESULT <<<< %s", self.configure_track_lrcr)
         return (
-            self.dishMode == self.expected_dish_mode
-            and self.pointingState in self.expected_pointing_state
-            and self.dishConfiguredBand == self.expected_receiver_band
-            and self.get_configure_band_result_code() == ResultCode.OK
-            and self.get_set_operate_mode_result_code() == ResultCode.OK
-            and self.get_track_result_code() == ResultCode.OK
+            self.dishMode == DishMode.OPERATE
+            and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
+            and self.dishConfiguredBand == self.receiver_band
+            and self.configure_band_lrcr == ResultCode.OK
+            and self.configure_setoperate_mode_lrcr == ResultCode.OK
+            and self.configure_track_lrcr == ResultCode.OK
         )
