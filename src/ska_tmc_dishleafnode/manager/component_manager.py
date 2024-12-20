@@ -1618,6 +1618,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+        if len(program_track_table) == 0:
+            self.logger.info("TrackTable is not generated yet.")
+            return
 
         self.logger.debug(
             "ProgramTrackTable will be updated, "
