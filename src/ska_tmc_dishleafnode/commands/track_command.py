@@ -69,6 +69,8 @@ class Track(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.is_configure_command is False:
             self.set_command_id(__class__.__name__)
+        else:
+            self.component_manager.command_in_progress = "Configure"
 
         return self.do(argin)
 

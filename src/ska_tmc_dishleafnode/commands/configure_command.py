@@ -132,6 +132,11 @@ class Configure(DishLNCommand):
             )
             self.component_manager.partial_configure_lrc = ResultCode.UNKNOWN
             self.component_manager.configure_track_lrcr = ResultCode.UNKNOWN
+            if (
+                self.component_manager.correction_key
+                == CORRECTION_KEY.RESET.value
+            ):
+                self.component_manager.correction_key = ""
             self.component_manager.clear_configure_command_events_flags()
             self.logger.info("Configure command cleanup completed.")
 
@@ -687,6 +692,9 @@ class Configure(DishLNCommand):
                 self.component_manager.track_result,
             )
             self.component_manager.configure_track_lrcr = ResultCode.OK
+            self.component_manager.observable.notify_observers(
+                attribute_value_change=True
+            )
             return (
                 [ResultCode.OK],
                 [

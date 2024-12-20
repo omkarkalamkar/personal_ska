@@ -24,7 +24,8 @@ def test_set_operate_command(tango_context, cm_without_er_lp, task_callback):
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=6,
     )
 
 

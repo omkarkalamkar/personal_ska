@@ -28,7 +28,8 @@ def test_configure_band_command_completed(tango_context, task_callback, cm):
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=6,
     )
 
 

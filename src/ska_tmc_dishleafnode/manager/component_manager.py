@@ -204,6 +204,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.__command_in_progress: str = ""
         self.event_receiver = _event_receiver
         self.converter = AzElConverter(self)
+        self.max_track_table_retry = max_track_table_retry
+        self.track_table_retry_duration = track_table_retry_duration
+        self._configure_track_lrcr = ResultCode.UNKNOWN
 
         # Event Receiver
         if _event_receiver:
@@ -227,9 +230,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.correction_key: str = CORRECTION_KEY.NOT_SET.value
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
-        self.max_track_table_retry = max_track_table_retry
-        self.track_table_retry_duration = track_table_retry_duration
-        self._configure_track_lrcr = ResultCode.UNKNOWN
 
     @property
     def configure_track_lrcr(self):
@@ -1702,6 +1702,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_command_result(self, device_name: str, value) -> None:
         """Updates the long running command result callback"""
+        configure_commands_counter: int = 0
         self.logger.info(
             "Received longRunningCommandResult event for device: %s, "
             + "with value: %s",
@@ -1722,9 +1723,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "ConfigureBand result: %s",
                         self.configure_band_result,
                     )
-                    # self.observable.notify_observers(
-                    #     attribute_value_change=True
-                    # )
+                    if self.command_in_progress != "Configure":
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
                     self.command_results.append("ConfigureBand")
                     self.is_configureband_completed_event.set()
                 elif "SetOperateMode" in unique_id:
@@ -1734,9 +1736,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "SetOperateMode result: %s",
                         self.set_operate_mode_result,
                     )
-                    # self.observable.notify_observers(
-                    #     attribute_value_change=True
-                    # )
+                    if self.command_in_progress != "Configure":
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
                     self.command_results.append("SetOperateMode")
                     self.is_setoperatemode_completed_event.set()
                 elif "EndScan" in unique_id:
@@ -1768,9 +1771,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "TrackLoadStaticOff result: %s",
                         self.track_load_static_off_result,
                     )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
+                    if (
+                        self.command_in_progress != "Configure"
+                        or self.partial_configure
+                    ):
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
+                    elif self.correction_key == CORRECTION_KEY.RESET.value:
+                        self.command_results.append("TrackLoadStaticOff")
                     self.is_trackloadstaticoff_completed_event.set()
                 elif "TrackStop" in unique_id:
                     self.track_stop_result["result_code"] = result_code
@@ -1782,6 +1791,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.observable.notify_observers(
                         attribute_value_change=True
                     )
+                    self.is_trackloadstaticoff_completed_event.set()
                 elif "Track" in unique_id:
                     self.track_result["result_code"] = result_code
                     self.track_result["message"] = message
@@ -1789,16 +1799,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "Track result: %s",
                         self.track_result,
                     )
-                    # self.observable.notify_observers(
-                    #     attribute_value_change=True
-                    # )
+                    if self.command_in_progress != "Configure":
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
                     self.command_results.append("Track")
                     self.is_track_completed_event.set()
-
-            if len(self.command_results) == 3:
-                self.logger.info("Got command results from all command")
+            if self.correction_key == CORRECTION_KEY.RESET.value:
+                configure_commands_counter = 4
+            else:
+                configure_commands_counter = 3
+            if len(self.command_results) == configure_commands_counter:
+                self.logger.info(
+                    " ^^^^ Got command results from all command %s",
+                    configure_commands_counter,
+                )
                 self.observable.notify_observers(attribute_value_change=True)
-                self.command_results = []
+                self.command_results.clear()
 
             if result_code in [
                 ResultCode.FAILED,

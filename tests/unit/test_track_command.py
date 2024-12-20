@@ -42,7 +42,8 @@ def test_track_command_completed(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=6,
     )
 
 

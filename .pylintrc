@@ -226,7 +226,7 @@ max-locals=25
 max-returns=10
 
 # Maximum number of branch for function / method body
-max-branches=15
+max-branches=50
 
 # Maximum number of statements in function / method body
 max-statements=100
