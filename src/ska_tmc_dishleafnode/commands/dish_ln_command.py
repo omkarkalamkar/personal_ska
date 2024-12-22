@@ -281,4 +281,5 @@ class DishLNCommand(TmcLeafNodeCommand):
             else:
                 self.task_callback(status=status, result=result)
         self.component_manager.command_in_progress = ""
-        # self.component_manager.clear_configure_command_events_flags()
+        if not self.component_manager.is_configure_command:
+            self.component_manager.clear_configure_command_events_flags()

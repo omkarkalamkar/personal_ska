@@ -1793,6 +1793,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             attribute_value_change=True
                         )
                     elif self.correction_key == CORRECTION_KEY.RESET.value:
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
                         self.command_results.append("TrackLoadStaticOff")
                     self.is_trackloadstaticoff_completed_event.set()
                 elif "TrackStop" in unique_id:
