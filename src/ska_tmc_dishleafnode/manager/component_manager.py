@@ -207,6 +207,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
         self._configure_track_lrcr = ResultCode.UNKNOWN
+        self.is_configure_command: bool = False
+        self.configure_command_timer_list = []
 
         # Event Receiver
         if _event_receiver:
@@ -301,6 +303,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.is_track_completed_event.clear()
         self.is_trackloadstaticoff_completed_event.clear()
         self.is_configure_event.clear()
+        self.is_configure_command = False
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -1723,10 +1726,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "ConfigureBand result: %s",
                         self.configure_band_result,
                     )
-                    if self.command_in_progress != "Configure":
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                    # if not self.is_configure_command:
+                    self.observable.notify_observers(
+                        attribute_value_change=True
+                    )
                     self.command_results.append("ConfigureBand")
                     self.is_configureband_completed_event.set()
                 elif "SetOperateMode" in unique_id:
@@ -1736,10 +1739,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "SetOperateMode result: %s",
                         self.set_operate_mode_result,
                     )
-                    if self.command_in_progress != "Configure":
-                        self.observable.notify_observers(
-                            attribute_value_change=True
+                    # pylint: disable=line-too-long
+                    observer_cmd_instance = [
+                        (
+                            observer.command_callback_tracker.command_class_instance,  # noqa: E501
+                            observer.command_callback_tracker.command_id,
                         )
+                        for observer in self.observable.observers
+                    ]
+                    self.logger.info(
+                        "Number of observer %s", observer_cmd_instance
+                    )
+                    # if not self.is_configure_command:
+                    self.observable.notify_observers(
+                        attribute_value_change=True
+                    )
                     self.command_results.append("SetOperateMode")
                     self.is_setoperatemode_completed_event.set()
                 elif "EndScan" in unique_id:
@@ -1799,10 +1813,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "Track result: %s",
                         self.track_result,
                     )
-                    if self.command_in_progress != "Configure":
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                    # if not self.is_configure_command:
+                    self.observable.notify_observers(
+                        attribute_value_change=True
+                    )
                     self.command_results.append("Track")
                     self.is_track_completed_event.set()
             if self.correction_key == CORRECTION_KEY.RESET.value:

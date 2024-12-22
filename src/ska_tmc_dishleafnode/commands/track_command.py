@@ -52,6 +52,10 @@ class Track(DishLNCommand):
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
+        if self.component_manager.is_configure_command:
+            self.component_manager.configure_command_timer_list.append(
+                self.timekeeper
+            )
 
     # pylint: disable=unused-argument
     @timeout_tracker

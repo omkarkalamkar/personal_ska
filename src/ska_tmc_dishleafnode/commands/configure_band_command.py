@@ -49,6 +49,11 @@ class ConfigureBand(DishLNCommand):
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
+        self.configure_band_id = self.timeout_id
+        if self.component_manager.is_configure_command:
+            self.component_manager.configure_command_timer_list.append(
+                self.timekeeper
+            )
 
     # pylint: disable=unused-argument
     @timeout_tracker
@@ -68,6 +73,7 @@ class ConfigureBand(DishLNCommand):
         :return: : (ResultCode, str)
         :rtype: Tuple
         """
+        self.component_manager.command_id = self.configure_band_id
         # Indicate that the task has started
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.is_configure_command is False:

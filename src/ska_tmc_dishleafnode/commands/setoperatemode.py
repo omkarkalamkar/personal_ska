@@ -44,6 +44,11 @@ class SetOperateMode(DishLNCommand):
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
+        self.setoperate_id = self.timeout_id
+        if self.component_manager.is_configure_command:
+            self.component_manager.configure_command_timer_list.append(
+                self.timekeeper
+            )
 
     # pylint: disable=unused-argument
     @timeout_tracker
@@ -58,6 +63,7 @@ class SetOperateMode(DishLNCommand):
         :return: A tuple containing the result code and a message.
         :rtype: Tuple[ResultCode, str]
         """
+        self.component_manager.command_id = self.setoperate_id
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.is_configure_command is False:
             self.set_command_id(__class__.__name__)
