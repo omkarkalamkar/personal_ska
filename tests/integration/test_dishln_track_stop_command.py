@@ -141,6 +141,15 @@ def track_stop_error_propagation_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    RESET_DEFECT = json.dumps(
+        {
+            "enabled": False,
+            "fault_type": FaultType.FAILED_RESULT,
+            "error_message": "Default exception.",
+            "result": ResultCode.FAILED,
+        }
+    )
+    dish_master.SetDefective(RESET_DEFECT)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
     dish_master.SetDirectPointingState(PointingState.READY)
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -206,14 +215,6 @@ def track_stop_error_propagation_dish_leaf_node(
         lookahead=8,
     )
 
-    RESET_DEFECT = json.dumps(
-        {
-            "enabled": False,
-            "fault_type": FaultType.FAILED_RESULT,
-            "error_message": "Default exception.",
-            "result": ResultCode.FAILED,
-        }
-    )
     dish_master.SetDefective(RESET_DEFECT)
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
