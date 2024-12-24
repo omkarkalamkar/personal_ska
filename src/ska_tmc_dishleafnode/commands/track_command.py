@@ -16,6 +16,7 @@ from ska_tmc_common.v1.error_propagation_tracker import (
 from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -49,9 +50,14 @@ class Track(DishLNCommand):
         self.timeout_callback: Callable[
             [str, TimeoutState], Optional[ValueError]
         ] = TimeoutCallback(self.timeout_id, self.logger)
-        self.timekeeper = TimeKeeper(
-            self.component_manager.command_timeout, logger
-        )
+        if self.is_configure_command:
+            self.timekeeper = TimeKeeper(
+                self.component_manager.command_timeout - ADJUST_TIMEOUT, logger
+            )
+        else:
+            self.timekeeper = TimeKeeper(
+                self.component_manager.command_timeout, logger
+            )
         if self.component_manager.is_configure_command:
             self.component_manager.configure_command_timer_list.append(
                 self.timekeeper
