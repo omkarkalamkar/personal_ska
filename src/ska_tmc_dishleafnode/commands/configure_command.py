@@ -411,6 +411,8 @@ class Configure(DishLNCommand):
                     result_code, message, exception, status
                 )
                 self.component_manager.configure_band_lrcr = result_code
+                if self.component_manager.abort_event.is_set():
+                    return
                 if result_code == ResultCode.OK:
                     # Invoke set operate mode command
                     self.invoke_setopermode_command(json_argument)
@@ -515,6 +517,8 @@ class Configure(DishLNCommand):
                     self.component_manager.correction_key,
                     self.component_manager.partial_configure,
                 )
+                if self.component_manager.abort_event.is_set():
+                    return
                 if result_code == ResultCode.OK:
                     if (
                         self.component_manager.correction_key
@@ -709,6 +713,8 @@ class Configure(DishLNCommand):
                 self.component_manager.configure_setoperate_mode_lrcr = (
                     result_code
                 )
+                if self.component_manager.abort_event.is_set():
+                    return
                 if result_code == ResultCode.OK:
                     # Invoke Track command
                     self.invoke_track_command(json_argument)
@@ -935,6 +941,7 @@ class Configure(DishLNCommand):
 
         start_time = time.time()
         elapsed_time = 0
+        track_table = []
         while (
             elapsed_time
             < self.component_manager.command_timeout - ADJUST_TIMEOUT
@@ -957,4 +964,24 @@ class Configure(DishLNCommand):
                 break
             time.sleep(0.5)
             elapsed_time = time.time() - start_time
+        self.logger.info("Come out of loop")
+        if len(track_table) == 0:
+            # Set Failure for configure
+            self.logger.info("Timed out occurred for track table")
+            self.set_failure_for_configure(
+                "Dish manager did not receive TrackTable. "
+                "Track() command is not invoked on the Dish."
+            )
         return track_table_status
+
+    def set_failure_for_configure(self, message):
+        """Set failure for configure"""
+        # pylint: disable=no-member
+        self.component_manager.long_running_result_callback(
+            self.ct.command_id,
+            ResultCode.FAILED,
+            exception_msg=message,
+        )
+        self.component_manager.observable.notify_observers(
+            command_exception=True
+        )

@@ -4,12 +4,13 @@ SetOperateMode command class for DishLeafNode.
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+import time
+from typing import Callable, Optional, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeKeeper
+from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
@@ -41,6 +42,10 @@ class SetOperateMode(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
         self.is_configure_command = is_configure_command
         if self.is_configure_command:
             self.timekeeper = TimeKeeper(
