@@ -815,10 +815,11 @@ class Configure(DishLNCommand):
             self.component_manager.observable.notify_observers(
                 attribute_value_change=True
             )
-        track_table_provided_thread = threading.Thread(
-            target=self.is_tracktable_provided, args=(json_argument,)
-        )
-        track_table_provided_thread.start()
+        else:
+            track_table_provided_thread = threading.Thread(
+                target=self.is_tracktable_provided, args=(json_argument,)
+            )
+            track_table_provided_thread.start()
         # result = self.is_tracktable_provided()
         # if result == CommandResult.ABORTED:
         #     self.logger.info(
