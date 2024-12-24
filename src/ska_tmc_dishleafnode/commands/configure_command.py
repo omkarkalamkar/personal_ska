@@ -84,7 +84,9 @@ class Configure(DishLNCommand):
         :return: : (ResultCode, str)
         :rtype: Tuple
         """
+        self.component_manager.command_id = self.timeout_id
         self.component_manager.is_configure_command = True
+        self.component_manager.command_in_progress = "Configure"
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
         if json_argument.get("tmc"):
@@ -95,7 +97,9 @@ class Configure(DishLNCommand):
                 "receiver_band"
             ]
 
-        return self.do(argin)
+        result_code, message = self.do(argin)
+        self.set_command_id(__class__.__name__)
+        return result_code, message
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -505,6 +509,12 @@ class Configure(DishLNCommand):
                     result_code, message, exception, status
                 )
                 self.component_manager.partial_configure_lrc = result_code
+                self.logger.info(
+                    "Result code for track load %s and %s and %s",
+                    result_code,
+                    self.component_manager.correction_key,
+                    self.component_manager.partial_configure,
+                )
                 if result_code == ResultCode.OK:
                     if (
                         self.component_manager.correction_key
@@ -520,6 +530,7 @@ class Configure(DishLNCommand):
                     self.component_manager.observable.notify_observers(
                         command_exception=True
                     )
+                self.component_manager.command_in_progress = "Configure"
 
         # pylint: enable=unused-argument
         # Call the TrackStaticLoadOff command

@@ -9,7 +9,7 @@ from ska_tmc_common import DevFactory, DishMode, FaultType, PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_CONFIGURE_BAND_TIMEOUT,
+    COMMAND_TIMEOUT,
     COMMAND_FAILED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -324,7 +324,7 @@ def configure_dish_leaf_node_timeout(
     sleep(18)
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_CONFIGURE_BAND_TIMEOUT),
+        (unique_id_config[0], COMMAND_TIMEOUT),
         lookahead=8,
     )
 

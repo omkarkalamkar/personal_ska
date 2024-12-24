@@ -1161,7 +1161,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.abort_event.set()
-        self.observable.notify_observers(attribute_value_change=True)
+        self.observable.notify_observers()
         self.logger.debug("Abort event is set.")
         result_code, message = abort_command.invoke_abort()
         return result_code, message
@@ -1706,7 +1706,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_command_result(self, device_name: str, value) -> None:
         """Updates the long running command result callback"""
-        configure_commands_counter: int = 0
         self.logger.info(
             "Received longRunningCommandResult event for device: %s, "
             + "with value: %s",
@@ -1823,17 +1822,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
                     self.command_results.append("Track")
                     self.is_track_completed_event.set()
-            if self.correction_key == CORRECTION_KEY.RESET.value:
-                configure_commands_counter = 4
-            else:
-                configure_commands_counter = 3
-            if len(self.command_results) == configure_commands_counter:
-                self.logger.info(
-                    " ^^^^ Got command results from all command %s",
-                    configure_commands_counter,
-                )
-                self.observable.notify_observers(attribute_value_change=True)
-                self.command_results.clear()           
+            # if self.correction_key == CORRECTION_KEY.RESET.value:
+            #     configure_commands_counter = 4
+            # else:
+            #     configure_commands_counter = 3
+            # if len(self.command_results) == configure_commands_counter:
+            #     self.logger.info(
+            #         " ^^^^ Got command results from all command %s",
+            #         configure_commands_counter,
+            #     )
+            #     self.observable.notify_observers(attribute_value_change=True)
+            #     self.command_results.clear()
+
             if result_code in [
                 ResultCode.FAILED,
                 ResultCode.NOT_ALLOWED,
@@ -1842,6 +1842,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 # If the Configure command is executed, below LRCR callback
                 # for the commands ConfigureBand, SetOperateMode and
                 # TrackLoadStaticOff is set via is invoke_configure method.
+                self.logger.info(
+                    "Observer %s",
+                    [
+                        observer.command_callback_tracker.command_id
+                        for observer in self.observable.observers
+                    ],
+                )
                 if self.command_in_progress == "Configure":
                     if (
                         ("ConfigureBand" in unique_id)
@@ -1851,6 +1858,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.logger.info(
                             "LRCR Callback is: %s",
                             self.long_running_result_callback,
+                        )
+                        self.long_running_result_callback(
+                            self.command_id,
+                            ResultCode.FAILED,
+                            exception_msg=message,
                         )
                 else:
                     self.logger.info(
