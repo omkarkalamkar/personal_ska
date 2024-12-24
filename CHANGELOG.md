@@ -5,9 +5,15 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.19.2]
+********
+* Update lock placement.
+* Update scheduler blocking to false
+
 [0.19.1]
 ********
 * Fix errors observed while testing dish error propagation in tmc-mid integration repository
+  
 [0.19.0]
 ********
 * Command static pointing model is renamed to ApplyPointingModel.
