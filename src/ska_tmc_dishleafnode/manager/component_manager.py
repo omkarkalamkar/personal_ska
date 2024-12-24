@@ -1161,8 +1161,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=self.logger,
         )
         self.abort_event.set()
-        self.observable.notify_observers(attribute_value_change=True)
         self.logger.debug("Abort event is set.")
+        self.observable.notify_observers(attribute_value_change=True)
         result_code, message = abort_command.invoke_abort()
         return result_code, message
 
