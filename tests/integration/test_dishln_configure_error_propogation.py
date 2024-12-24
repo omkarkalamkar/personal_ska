@@ -9,8 +9,8 @@ from ska_tmc_common import DevFactory, DishMode, FaultType, PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_TIMEOUT,
     COMMAND_FAILED,
+    COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     build_partial_configure_data,

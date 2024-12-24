@@ -61,7 +61,9 @@ def test_track_command_adapter_none(task_callback, cm_without_er_lp):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    result = task_callback.assert_against_call(status=TaskStatus.COMPLETED, lookahead=2)
+    result = task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, lookahead=2
+    )
     assert ResultCode.FAILED == result["result"][0]
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 

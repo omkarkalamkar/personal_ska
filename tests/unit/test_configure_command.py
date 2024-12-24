@@ -232,9 +232,7 @@ def test_configure_timeout(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    message = (
-        "Timeout has occurred, command failed"
-    )
+    message = "Timeout has occurred, command failed"
     time.sleep(5)
     task_callback.assert_against_call(
         call_kwargs={
