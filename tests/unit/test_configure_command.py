@@ -89,7 +89,6 @@ def test_configure_command_completed_partial_config(
     )
     time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
-    cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -233,10 +232,7 @@ def test_configure_timeout(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    message = (
-        "Timeout occurred while waiting for configuredBand command to "
-        + "be completed in Configure command."
-    )
+    message = "Timeout has occurred, command failed"
     time.sleep(5)
     task_callback.assert_against_call(
         call_kwargs={
