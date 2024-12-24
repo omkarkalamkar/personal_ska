@@ -150,7 +150,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band5bpointingmodelparams": "",
         }
         self.receiver_band = None
-        self.partial_configure_lrc = ResultCode.UNKNOWN
+        self.partial_configure_lrcr = ResultCode.UNKNOWN
         self.configure_band_lrcr = ResultCode.UNKNOWN
         self.configure_setoperate_mode_lrcr = ResultCode.UNKNOWN
         self.partial_configure: bool = False
@@ -2332,8 +2332,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: boolean value indicating if the state change occurred or not
         """
         if self.partial_configure:
-            return self.partial_configure_lrc == ResultCode.OK
-        self.logger.info("TRACK RESULT <<<< %s", self.configure_track_lrcr)
+            return self.partial_configure_lrcr == ResultCode.OK
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
