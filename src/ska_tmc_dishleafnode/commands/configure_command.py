@@ -320,10 +320,11 @@ class Configure(DishLNCommand):
             """
             # once configure band completed then invoke set operate mode
             # command
-            self.logger.info(
-                "Received result for configure band %s and %s",
+            self.logger.debug(
+                "Received result for configure band %s and %s and %s",
                 result,
                 progress,
+                exception,
             )
             if result is None:
                 pass
@@ -343,9 +344,19 @@ class Configure(DishLNCommand):
                         "Result code is %s for configure band command",
                         result_code,
                     )
-                    self.component_manager.observable.notify_observers(
-                        command_exception=True
-                    )
+                    # If timed out has occurred for configure band then update
+                    # exception message for configure command
+                    if "Timeout has occurred" in exception:
+                        exception_message = (
+                            "Timeout occurred while waiting for "
+                            "configuredBand command to be completed in "
+                            "Configure command."
+                        )
+                        self.set_failure_for_configure(exception_message)
+                    else:
+                        self.component_manager.observable.notify_observers(
+                            command_exception=True
+                        )
 
         # pylint: enable=unused-argument
         configure_band_command = ConfigureBand(
@@ -453,9 +464,20 @@ class Configure(DishLNCommand):
                             attribute_value_change=True
                         )
                 elif result_code == ResultCode.FAILED:
-                    self.component_manager.observable.notify_observers(
-                        command_exception=True
-                    )
+                    # If timed out has occurred for trackload
+                    # static off then update
+                    # exception message for configure command
+                    if "Timeout has occurred" in exception:
+                        exception_message = (
+                            "Timeout occurred while waiting for "
+                            "TrackStaticLoadOff command"
+                            " to be completed in Configure command."
+                        )
+                        self.set_failure_for_configure(exception_message)
+                    else:
+                        self.component_manager.observable.notify_observers(
+                            command_exception=True
+                        )
                 self.component_manager.command_in_progress = "Configure"
 
         # pylint: enable=unused-argument
@@ -545,9 +567,20 @@ class Configure(DishLNCommand):
                     # Invoke Track command
                     self.invoke_track_command(json_argument)
                 elif result_code == ResultCode.FAILED:
-                    self.component_manager.observable.notify_observers(
-                        command_exception=True
-                    )
+                    # If timed out has occurred for trackload
+                    # static off then update
+                    # exception message for configure command
+                    if "Timeout has occurred" in exception:
+                        exception_message = (
+                            "Timeout occurred while waiting for "
+                            "SetOperateMode command to"
+                            " be completed in Configure command."
+                        )
+                        self.set_failure_for_configure(exception_message)
+                    else:
+                        self.component_manager.observable.notify_observers(
+                            command_exception=True
+                        )
 
         # pylint: enable=unused-argument
         setoperatemode_command = SetOperateMode(

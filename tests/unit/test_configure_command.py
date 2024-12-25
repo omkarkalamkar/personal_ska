@@ -11,6 +11,7 @@ from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
+    COMMAND_CONFIGURE_BAND_TIMEOUT,
     DISH_MASTER_DEVICE,
     logger,
     simulate_result_code_event,
@@ -232,13 +233,13 @@ def test_configure_timeout(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    message = "Timeout has occurred, command failed"
     time.sleep(5)
+    configure_band_timeout = json.loads(COMMAND_CONFIGURE_BAND_TIMEOUT)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.FAILED, message),
-            "exception": message,
+            "result": (ResultCode.FAILED, configure_band_timeout[1]),
+            "exception": configure_band_timeout[1],
         },
         lookahead=6,
     )
