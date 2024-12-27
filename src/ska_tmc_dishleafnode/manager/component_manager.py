@@ -2322,7 +2322,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.process_lock:
             self.stop_executors_and_cleanup_memory()
 
-    # pylint: disable=arguments-differ
     def is_configure_completed(self) -> bool:
         """
         Waits for expected state with or without

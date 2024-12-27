@@ -506,7 +506,6 @@ class Configure(DishLNCommand):
                     "exception"
                 ],
             )
-        # pylint: enable=E1123
         self.component_manager.update_source_offset_callback(offsets_argin)
         return ResultCode.QUEUED, ""
 

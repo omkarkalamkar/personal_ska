@@ -19,7 +19,7 @@ server:
       classes:
       - name: "DishPointingDevice"
         devices:
-        - name: "mid-tmc/dish-pointing/SKA{{ printf "%03s" . }}"
+        - name: "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
           properties:
             - name: "TrackTableEntries"
               values:
@@ -51,7 +51,6 @@ server:
             - name: "SkaLevel"
               values:
                 - "3"
-            
   {{- end }}
 
 depends_on:
