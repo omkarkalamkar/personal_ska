@@ -209,8 +209,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_receiver_object = DishLNEventReceiver(self, logger)
             self.event_receiver_object.start()
 
-        # if _liveliness_probe != LivelinessProbeType.NONE:
-        #     self.start_liveliness_probe(_liveliness_probe)
+        if _liveliness_probe != LivelinessProbeType.NONE:
+            self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
@@ -635,7 +635,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
         self.create_converter_obj_and_antenna_obj()
-        # self.download_iers_data()
+        self.download_iers_data()
         while self.actual_pointing_process_alive.is_set() is False:
             if not self.achieved_pointing_data.empty():
                 try:
