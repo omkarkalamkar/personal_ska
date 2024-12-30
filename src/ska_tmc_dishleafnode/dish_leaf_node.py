@@ -1007,6 +1007,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ("Scan", "scan"),
             ("EndScan", "endscan"),
             ("ApplyPointingModel", "apply_pointing_model"),
+            ("AbortCommands", "abort_commands"),
         ]:
             self.register_command_object(
                 command_name,
@@ -1019,12 +1020,12 @@ class DishLeafNode(TMCBaseLeafDevice):
                 ),
             )
 
-        self.register_command_object(
-            "AbortCommands",
-            self.AbortCommandsCommand(
-                self.component_manager, logger=self.logger
-            ),
-        )
+        # self.register_command_object(
+        #     "AbortCommands",
+        #     self.AbortCommandsCommand(
+        #         self.component_manager, logger=self.logger
+        #     ),
+        # )
         self.register_command_object(
             "SetKValue",
             SetKValue(self.component_manager, logger=self.logger),
