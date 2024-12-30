@@ -29,12 +29,13 @@ class AbortCommands(DishLNCommand):
         self,
         component_manager,
         op_state_model=None,
+        adapter_factory=None,
         logger: logging.Logger = LOGGER,
     ) -> None:
         super().__init__(
             component_manager=component_manager,
             op_state_model=op_state_model,
-            adapter_factory=None,
+            adapter_factory=adapter_factory,
             logger=logger,
         )
         self._name = "AbortCommands"
@@ -58,7 +59,7 @@ class AbortCommands(DishLNCommand):
             self.task_callback(
                 status=TaskStatus.COMPLETED,
                 result=(result_code, message),
-                exception=Exception(message),
+                exception=message,
             )
             self.component_manager.command_in_progress = ""
         else:

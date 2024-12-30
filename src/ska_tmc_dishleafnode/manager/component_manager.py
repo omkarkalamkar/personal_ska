@@ -1150,6 +1150,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         abort_command = AbortCommands(
             self,
+            adapter_factory=self.adapter_factory,
             logger=self.logger,
         )
         task_status, response = self.submit_task(
