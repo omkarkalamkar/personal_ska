@@ -85,7 +85,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
-        self.download_antenna_and_iers_data()
+        self.data_download_thread = threading.Thread(
+            target=self.download_antenna_and_iers_data
+        )
+        self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
 
     @property

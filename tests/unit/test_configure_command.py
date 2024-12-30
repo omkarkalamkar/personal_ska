@@ -11,6 +11,7 @@ from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
+    COMMAND_CONFIGURE_BAND_TIMEOUT,
     DISH_MASTER_DEVICE,
     logger,
     simulate_result_code_event,
@@ -59,12 +60,13 @@ def test_configure_command_completed(
     time.sleep(2)
     cm.update_device_pointing_state(PointingState.TRACK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
-
+    cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=6,
     )
 
 
@@ -231,16 +233,14 @@ def test_configure_timeout(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    message = (
-        "Timeout occurred while waiting for configuredBand command to "
-        + "be completed in Configure command."
-    )
     time.sleep(5)
+    configure_band_timeout = json.loads(COMMAND_CONFIGURE_BAND_TIMEOUT)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.FAILED, message),
-            "exception": message,
-        }
+            "result": (ResultCode.FAILED, configure_band_timeout[1]),
+            "exception": configure_band_timeout[1],
+        },
+        lookahead=6,
     )
     dish_master.SetDefective(json.dumps({"enabled": False}))
