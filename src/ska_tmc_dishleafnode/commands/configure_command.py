@@ -566,9 +566,8 @@ class Configure(DishLNCommand):
                     # Invoke Track command
                     self.invoke_track_command(json_argument)
                 elif result_code == ResultCode.FAILED:
-                    # If timed out has occurred for trackload
-                    # static off then update
-                    # exception message for configure command
+                    # If timed out has occurred for SetOperateMode
+                    # then update exception message for configure command
                     if "Timeout has occurred" in exception:
                         exception_message = (
                             "Timeout occurred while waiting for "
@@ -655,10 +654,27 @@ class Configure(DishLNCommand):
                 self.component_manager.set_track_result_dict(
                     result_code, message, exception, status
                 )
-                self.component_manager.configure_track_lrcr = ResultCode.OK
-                self.component_manager.observable.notify_observers(
-                    attribute_value_change=True
-                )
+                if result_code == ResultCode.OK:
+                    # Invoke Track command
+                    self.component_manager.configure_track_lrcr = ResultCode.OK
+                    self.component_manager.observable.notify_observers(
+                        attribute_value_change=True
+                    )
+                elif result_code == ResultCode.FAILED:
+                    # If timed out has occurred for track
+                    # then update exception message for
+                    # configure command
+                    if "Timeout has occurred" in exception:
+                        exception_message = (
+                            "Timeout occurred while waiting for "
+                            "Track command to"
+                            " be completed in Configure command."
+                        )
+                        self.set_failure_for_configure(exception_message)
+                    else:
+                        self.component_manager.observable.notify_observers(
+                            command_exception=True
+                        )
 
         # pylint: enable=unused-argument
         track_command = Track(

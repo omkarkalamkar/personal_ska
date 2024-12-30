@@ -124,7 +124,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             proxy_timeout=proxy_timeout,
             sleep_time=sleep_time,
         )
-        self.command_results = []
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
@@ -157,12 +156,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.command_result_update_lock = threading.RLock()
         self.tango_operation_execution_lock = threading.RLock()
         self.dish_number = None
-        self.is_configureband_completed_event = threading.Event()
-        self.is_setoperatemode_completed_event = threading.Event()
-        self.is_track_completed_event = threading.Event()
         self.is_configure_event = threading.Event()
-        self.is_trackloadstaticoff_completed_event = threading.Event()
-
         self.is_dish_abort_commands_enabled = is_dish_abort_commands_enabled
         self.radec_value = ""
         self.process_manager = Manager()
@@ -298,10 +292,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         utilised in Configure command"""
 
         self.reset_command_result_values()
-        self.is_configureband_completed_event.clear()
-        self.is_setoperatemode_completed_event.clear()
-        self.is_track_completed_event.clear()
-        self.is_trackloadstaticoff_completed_event.clear()
         self.is_configure_event.clear()
         self.is_configure_command = False
 
@@ -1730,8 +1720,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.observable.notify_observers(
                         attribute_value_change=True
                     )
-                    self.command_results.append("ConfigureBand")
-                    self.is_configureband_completed_event.set()
                 elif "SetOperateMode" in unique_id:
                     self.set_operate_mode_result["result_code"] = result_code
                     self.set_operate_mode_result["message"] = message
@@ -1754,8 +1742,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.observable.notify_observers(
                         attribute_value_change=True
                     )
-                    self.command_results.append("SetOperateMode")
-                    self.is_setoperatemode_completed_event.set()
                 elif "EndScan" in unique_id:
                     self.end_scan_result["result_code"] = result_code
                     self.end_scan_result["message"] = message
@@ -1796,8 +1782,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
-                        self.command_results.append("TrackLoadStaticOff")
-                    self.is_trackloadstaticoff_completed_event.set()
                 elif "TrackStop" in unique_id:
                     self.track_stop_result["result_code"] = result_code
                     self.track_stop_result["message"] = message
@@ -1808,7 +1792,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.observable.notify_observers(
                         attribute_value_change=True
                     )
-                    self.is_trackloadstaticoff_completed_event.set()
                 elif "Track" in unique_id:
                     self.track_result["result_code"] = result_code
                     self.track_result["message"] = message
@@ -1820,19 +1803,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.observable.notify_observers(
                         attribute_value_change=True
                     )
-                    self.command_results.append("Track")
-                    self.is_track_completed_event.set()
-            # if self.correction_key == CORRECTION_KEY.RESET.value:
-            #     configure_commands_counter = 4
-            # else:
-            #     configure_commands_counter = 3
-            # if len(self.command_results) == configure_commands_counter:
-            #     self.logger.info(
-            #         " ^^^^ Got command results from all command %s",
-            #         configure_commands_counter,
-            #     )
-            #     self.observable.notify_observers(attribute_value_change=True)
-            #     self.command_results.clear()
 
             if result_code in [
                 ResultCode.FAILED,
