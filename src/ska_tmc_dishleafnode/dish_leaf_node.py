@@ -1019,13 +1019,6 @@ class DishLeafNode(TMCBaseLeafDevice):
                     logger=self.logger,
                 ),
             )
-
-        # self.register_command_object(
-        #     "AbortCommands",
-        #     self.AbortCommandsCommand(
-        #         self.component_manager, logger=self.logger
-        #     ),
-        # )
         self.register_command_object(
             "SetKValue",
             SetKValue(self.component_manager, logger=self.logger),
