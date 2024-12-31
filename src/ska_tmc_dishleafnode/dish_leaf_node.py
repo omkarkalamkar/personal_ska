@@ -260,7 +260,6 @@ class DishLeafNode(TMCBaseLeafDevice):
         """Push an event for the change of dishMode attribute."""
         self._dishMode = dish_mode
         self.push_change_archive_events("dishMode", self._dishMode)
-        self.logger.info("DishMode value event pushed: %s", self._dishMode)
 
     def update_pointingstate_callback(
         self, pointing_state: PointingState
