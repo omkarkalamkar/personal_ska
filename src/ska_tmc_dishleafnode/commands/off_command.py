@@ -81,7 +81,6 @@ class Off(DishLNCommand):
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
-        self.logger.info("dish mode is : %s", self.component_manager.dishMode)
         if self.component_manager.dishMode in [
             DishMode.OPERATE,
             DishMode.STOW,
