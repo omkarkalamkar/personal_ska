@@ -43,12 +43,6 @@ class AbortCommands(DishLNCommand):
     # pylint: disable=unused-argument
     def invoke_abort(self, task_callback: TaskCallbackType, task_abort_event):
         """This method calls do for DishLeafNode Abort command"""
-        self.component_manager.abort_event.set()
-        self.logger.debug("Abort event is set.")
-        self.component_manager.observable.notify_observers(
-            attribute_value_change=True
-        )
-        self.component_manager.abort_event.clear()
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "AbortCommands"
@@ -93,6 +87,12 @@ class AbortCommands(DishLNCommand):
             "Command in progress: %s",
             self.component_manager.command_in_progress,
         )
+        self.component_manager.abort_event.set()
+        self.logger.debug("Abort event is set.")
+        self.component_manager.observable.notify_observers(
+            attribute_value_change=True
+        )
+        self.component_manager.abort_event.clear()
         if not self.component_manager.command_in_progress:
             self.component_manager.abort_event.clear()
             self.logger.info("Abort event is cleared")
