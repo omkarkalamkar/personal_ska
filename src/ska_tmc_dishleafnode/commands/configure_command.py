@@ -727,7 +727,7 @@ class Configure(DishLNCommand):
             track_table = self.dish_master_adapter.programTrackTable
             self.logger.debug("is_tracktable_provided: %s", track_table)
 
-            if self.component_manager.is_tracktable_provided:
+            if self.component_manager.is_tracktable_provided.is_set():
                 track_table_status = CommandResult.ACHIEVED
                 self.invoke_track_command_on_dish(json_argument)
                 break
