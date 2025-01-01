@@ -10,7 +10,7 @@ CAR_OCI_REGISTRY_HOST:=artefact.skao.int
 PROJECT = ska-tmc-dishleafnode
 TANGO_HOST ?= tango-databaseds:10000 ## TANGO_HOST connection to the Tango DS
 TELESCOPE ?= SKA-mid
-MARK ?= ## What -m opt to pass to pytest
+MARK ?= repeat_test ## What -m opt to pass to pytest
 # run one test with FILE=acceptance/test_subarray_node.py::test_check_internal_model_according_to_the_tango_ecosystem_deployed
 FILE ?= tests## A specific test file to pass to pytest
 ADD_ARGS ?= ## Additional args to pass to pytest
@@ -71,10 +71,11 @@ ADD_ARGS += --forked --count=$(PYTHON_TEST_COUNT)
 MARK = (not post_deployment and not acceptance)
 endif
 
-K8S_TEST_COUNT ?= 1
+K8S_TEST_COUNT ?= 50
 ifeq ($(MAKECMDGOALS),k8s-test)
 ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT)
 MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
+MARK = repeat_test
 endif
 
 # Applying exit at fail for k8s tests only
