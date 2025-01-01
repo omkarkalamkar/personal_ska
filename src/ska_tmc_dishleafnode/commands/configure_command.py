@@ -266,6 +266,7 @@ class Configure(DishLNCommand):
                 )
                 return result_code, message
 
+            self.component_manager.is_tracktable_provided.clear()
             self.component_manager.trackTableLoadMode = TrackTableLoadMode.NEW
             initial_dishmode = self.component_manager.dishMode
 
@@ -818,7 +819,7 @@ class Configure(DishLNCommand):
             track_table = self.dish_master_adapter.programTrackTable
             self.logger.debug("is_tracktable_provided: %s", track_table)
 
-            if len(track_table) > 0:
+            if self.component_manager.is_tracktable_provided.is_set():
                 track_table_status = CommandResult.ACHIEVED
                 return track_table_status
             time.sleep(0.1)

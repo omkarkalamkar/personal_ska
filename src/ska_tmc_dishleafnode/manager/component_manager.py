@@ -222,6 +222,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.actual_pointing_process.start()
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
+        self.is_tracktable_provided = threading.Event()
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
@@ -1632,6 +1633,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug("Retry is: %s", retry)
                 try:
                     self.dish_adapter.programTrackTable = program_track_table
+                    self.is_tracktable_provided.set()
                     self.logger.debug("ProgramTrackTable Updated")
                     if (
                         self.trackTableLoadMode

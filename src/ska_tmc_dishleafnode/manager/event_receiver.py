@@ -471,9 +471,6 @@ class DishLNEventReceiver(EventReceiver):
             json.loads(new_value)
         )
         self.log_event_exit("handle_pointing_program_track_table_event")
-        self._logger.debug(
-            "pointingProgramTrackTable value updated to %s", new_value
-        )
 
     def handle_program_track_table_error_event(
         self: DishLNEventReceiver, event_flag: tango.EventData

@@ -1,6 +1,5 @@
 """This module provides base class for the mappings/patterns"""
 
-import threading
 from logging import Logger
 
 
@@ -33,40 +32,49 @@ class BaseScanMapping:
         # input, if its present it checks what kind of reference frame
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
-
-        if "target" in self.component_manager.target_data["pointing"]:
-            if (
-                self.component_manager.target_data["pointing"]["target"][
-                    "reference_frame"
-                ].lower()
-                == "special"
-            ):
-                self.component_manager.target = (
+        try:
+            if "target" in self.component_manager.target_data["pointing"]:
+                if (
                     self.component_manager.target_data["pointing"]["target"][
-                        "target_name"
+                        "reference_frame"
+                    ].lower()
+                    == "special"
+                ):
+                    self.component_manager.target = (
+                        self.component_manager.target_data["pointing"][
+                            "target"
+                        ]["target_name"]
+                    )
+                else:
+                    self.component_manager.target = [
+                        self.component_manager.target_data["pointing"][
+                            "target"
+                        ]["ra"],
+                        self.component_manager.target_data["pointing"][
+                            "target"
+                        ]["dec"],
                     ]
-                )
             else:
+                # The below code is for pointing dishes in holography/mapping
+                # scans. The pointing devices does normal scanning in
+                # mapping scans.
                 self.component_manager.target = [
-                    self.component_manager.target_data["pointing"]["target"][
-                        "ra"
-                    ],
-                    self.component_manager.target_data["pointing"]["target"][
-                        "dec"
-                    ],
+                    self.component_manager.target_data["pointing"]["field"][
+                        "attrs"
+                    ]["c1"],
+                    self.component_manager.target_data["pointing"]["field"][
+                        "attrs"
+                    ]["c2"],
                 ]
-        else:
-            # The below code is for pointing dishes in holography/mapping scans
-            # The pointing devices does normal scanning in mapping scans.
-            self.component_manager.target = [
-                self.component_manager.target_data["pointing"]["field"][
-                    "attrs"
-                ]["c1"],
-                self.component_manager.target_data["pointing"]["field"][
-                    "attrs"
-                ]["c2"],
-            ]
-        track_thread = threading.Thread(
-            target=self.component_manager.track_thread
-        )
-        track_thread.start()
+        except Exception as exception:
+            self.logger.error(
+                "An exception occurred while setting target data: %s",
+                exception,
+            )
+
+        try:
+            # pylint: disable = C0301
+            self.component_manager.create_thread_and_start_track_table_calculation()  # noqa: E501
+            # pylint: enable = C0301
+        except Exception as exception:
+            self.logger.error("Exception: %s", exception)
