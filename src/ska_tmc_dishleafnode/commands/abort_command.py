@@ -55,7 +55,6 @@ class AbortCommands(DishLNCommand):
                 result=(result_code, message),
                 exception=message,
             )
-            self.component_manager.command_in_progress = ""
         else:
             self.task_callback(
                 status=TaskStatus.COMPLETED,
@@ -65,6 +64,7 @@ class AbortCommands(DishLNCommand):
                 "The AbortCommands command invoked successfully %s",
                 self.dish_master_adapter.dev_name,
             )
+        self.component_manager.command_in_progress = ""
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:

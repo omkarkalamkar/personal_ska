@@ -185,12 +185,13 @@ def abort_while_configuring(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
-    assert (
-        dish_leaf_node.read_attribute("pointingState").value
-        == PointingState.READY
-    )
 
     assert is_configure_aborted(dish_leaf_node, unique_id_config[0])
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
