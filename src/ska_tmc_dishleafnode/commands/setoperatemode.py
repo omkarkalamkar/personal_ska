@@ -4,16 +4,20 @@ SetOperateMode command class for DishLeafNode.
 from __future__ import annotations
 
 import logging
-import threading
-from logging import Logger
-from typing import Optional, Tuple
+import time
+from typing import Callable, Optional, Tuple
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
+)
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -38,51 +42,46 @@ class SetOperateMode(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
         self.is_configure_command = is_configure_command
+        if self.is_configure_command:
+            self.timekeeper = TimeKeeper(
+                self.component_manager.command_timeout - ADJUST_TIMEOUT, logger
+            )
+        else:
+            self.timekeeper = TimeKeeper(
+                self.component_manager.command_timeout, logger
+            )
+        self.setoperate_id = self.timeout_id
+        if self.component_manager.is_configure_command:
+            self.component_manager.configure_command_timer_list.append(
+                self.timekeeper
+            )
 
     # pylint: disable=unused-argument
+    @timeout_tracker
+    @error_propagation_tracker(
+        "get_set_operate_mode_result_code", [ResultCode.OK]
+    )
     def set_operate_mode(
-        self: SetOperateMode,
-        logger: Logger,
-        task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
-    ) -> None:
+        self: SetOperateMode, **kwargs
+    ) -> Tuple[ResultCode, str]:
         """A method to invoke the SetOperateMode command.
 
         :return: A tuple containing the result code and a message.
         :rtype: Tuple[ResultCode, str]
         """
-        self.task_callback = task_callback
+        self.component_manager.command_id = self.setoperate_id
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.is_configure_command is False:
             self.set_command_id(__class__.__name__)
-            self.component_manager.start_timer(
-                self.timeout_id,
-                self.component_manager.command_timeout,
-                self.timeout_callback,
-            )
-
-        result_code, message = self.do()
-        self.component_manager.command_in_progress = "SetOperateMode"
-        if result_code in [
-            ResultCode.FAILED,
-            ResultCode.REJECTED,
-            ResultCode.NOT_ALLOWED,
-        ]:
-            self.update_task_status(
-                result=(ResultCode.FAILED, message), exception=message
-            )
         else:
-            if self.is_configure_command is False:
-                self.start_tracker_thread(
-                    "get_set_operate_mode_result_code",
-                    [ResultCode.OK],
-                    task_abort_event,
-                    self.timeout_id,
-                    self.timeout_callback,
-                    self.component_manager.command_id,
-                    self.component_manager.long_running_result_callback,
-                )
+            self.component_manager.command_in_progress = "Configure"
+
+        return self.do()
 
     # pylint: disable=arguments-differ
     def do(self: SetOperateMode) -> Tuple[ResultCode, str]:

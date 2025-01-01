@@ -85,7 +85,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
-        self.download_antenna_and_iers_data()
+        self.data_download_thread = threading.Thread(
+            target=self.download_antenna_and_iers_data
+        )
+        self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
         self.track_table_thread = None
 
@@ -278,7 +281,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.track_table_time_stamp = extended_time
 
             with self.track_thread_lock:
-                is_track_thread_stop = self.mapping_scan_event.clear()
+                self.mapping_scan_event.clear()
+                is_track_thread_stop = self.mapping_scan_event.is_set()
 
             track_table_scheduler = sched.scheduler(time.time, time.sleep)
             event_priority: int = 1

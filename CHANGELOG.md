@@ -96,6 +96,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.19.2]
+********
+* Fixed SKB-525
 
 [0.17.9]
 ********

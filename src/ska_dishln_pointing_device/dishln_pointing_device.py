@@ -7,7 +7,7 @@ from ska_tango_base.base.base_device import SKABaseDevice
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.control_model import HealthState
 from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
-from tango import ArgType, AttrDataFormat, AttrWriteType
+from tango import ArgType, AttrDataFormat, AttrWriteType, DevState
 from tango.server import attribute, command, device_property, run
 
 from ska_dishln_pointing_device import DishlnPointingDataComponentManager
@@ -49,6 +49,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         super().__init__(*args, **kwargs)
         self.pointing_program_track_table: list = []
         self.program_track_table_error: str = ""
+        self._update_state(DevState.ON)
 
     def init_device(self: SKABaseDevice) -> None:
         super().init_device()

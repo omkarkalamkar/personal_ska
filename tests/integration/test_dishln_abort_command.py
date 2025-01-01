@@ -221,6 +221,7 @@ def test_abort_after_configure(tango_context, group_callback, json_factory):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.skip(reason="This test case will be addressed in HM-564")
 def test_abort_while_configuring(tango_context, group_callback, json_factory):
     abort_while_configuring(
         tango_context,

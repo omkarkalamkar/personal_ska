@@ -10,6 +10,7 @@ from typing import Generator
 
 import pytest
 import tango
+from astropy.utils import iers
 from ska_ser_logging.configuration import configure_logging
 from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
@@ -25,6 +26,7 @@ from ska_dishln_pointing_device.dishln_pointing_device import (
     DishPointingDevice,
 )
 from ska_tmc_dishleafnode import DishLeafNode
+from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 from tests.settings import (
     DISH_MASTER_DEVICE,
@@ -337,6 +339,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         dish_availability_check_timeout=3,
+        command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
     )
     cm.actual_pointing_process_alive.set()
@@ -412,5 +415,6 @@ def cm_pointig_device() -> (
         elevation_min_limit=17.5,
         track_table_advance_sec=7,
     )
-
+    cm.converter.create_antenna_obj()
+    cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
     yield cm
