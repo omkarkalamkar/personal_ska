@@ -7,8 +7,10 @@ from typing import Tuple
 
 from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common import PointingState
+from ska_tango_base.executor import TaskStatus
+from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
@@ -27,19 +29,42 @@ class AbortCommands(DishLNCommand):
         self,
         component_manager,
         op_state_model=None,
+        adapter_factory=None,
         logger: logging.Logger = LOGGER,
     ) -> None:
         super().__init__(
             component_manager=component_manager,
             op_state_model=op_state_model,
-            adapter_factory=None,
+            adapter_factory=adapter_factory,
             logger=logger,
         )
         self._name = "AbortCommands"
 
-    def invoke_abort(self):
+    # pylint: disable=unused-argument
+    def invoke_abort(self, task_callback: TaskCallbackType, task_abort_event):
         """This method calls do for DishLeafNode Abort command"""
-        return self.do()
+        self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
+        self.component_manager.command_in_progress = "AbortCommands"
+
+        result_code, message = self.do()
+
+        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+            self.task_callback(
+                status=TaskStatus.COMPLETED,
+                result=(result_code, message),
+                exception=message,
+            )
+        else:
+            self.task_callback(
+                status=TaskStatus.COMPLETED,
+                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+            )
+            self.logger.info(
+                "The AbortCommands command invoked successfully %s",
+                self.dish_master_adapter.dev_name,
+            )
+        self.component_manager.command_in_progress = ""
 
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
@@ -62,6 +87,13 @@ class AbortCommands(DishLNCommand):
             "Command in progress: %s",
             self.component_manager.command_in_progress,
         )
+        self.component_manager.abort_event.set()
+        self.logger.debug("Abort event is set.")
+        with self.component_manager.command_result_update_lock:
+            self.component_manager.observable.notify_observers(
+                attribute_value_change=True
+            )
+        self.component_manager.abort_event.clear()
         if not self.component_manager.command_in_progress:
             self.component_manager.abort_event.clear()
             self.logger.info("Abort event is cleared")

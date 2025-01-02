@@ -731,7 +731,7 @@ class Configure(DishLNCommand):
                 track_table_status = CommandResult.ACHIEVED
                 self.invoke_track_command_on_dish(json_argument)
                 break
-            time.sleep(0.5)
+            time.sleep(0.1)
             elapsed_time = time.time() - start_time
         self.logger.debug(
             "Come out of loop that waits for tracktable before Track"
