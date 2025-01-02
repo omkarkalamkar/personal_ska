@@ -241,6 +241,10 @@ def test_partial_configure_with_update_reset_correction_key(
             RESET_OFFSETS,
             lookahead=2,
         )
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id_config[0], COMMAND_COMPLETED),
+            lookahead=8,
+        )
     else:
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], COMMAND_COMPLETED),
