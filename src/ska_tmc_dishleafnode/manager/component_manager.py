@@ -1142,19 +1142,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return task_status, response
 
     # pylint: disable=arguments-differ
-    def abort_commands(self) -> Tuple[TaskStatus, str]:
+    def abort_commands(
+        self, task_callback: TaskCallbackType
+    ) -> Tuple[TaskStatus, str]:
         """
         Invokes Abort command on Dish manager.
         """
         abort_command = AbortCommands(
             self,
+            adapter_factory=self.adapter_factory,
             logger=self.logger,
         )
-        self.abort_event.set()
-        self.logger.debug("Abort event is set.")
-        self.observable.notify_observers(attribute_value_change=True)
-        result_code, message = abort_command.invoke_abort()
-        return result_code, message
+        task_status, response = self.submit_task(
+            abort_command.invoke_abort,
+            task_callback=task_callback,
+        )
+        return task_status, response
 
     def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the command TrackLoadStaticOff is allowed.

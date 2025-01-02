@@ -723,9 +723,11 @@ class Configure(DishLNCommand):
                 track_table_status = CommandResult.ACHIEVED
                 self.invoke_track_command_on_dish(json_argument)
                 break
-            time.sleep(0.5)
+            time.sleep(0.1)
             elapsed_time = time.time() - start_time
-        self.logger.info("Come out of loop")
+        self.logger.debug(
+            "Number of track table provided %s", len(track_table)
+        )
         if len(track_table) == 0:
             # Set Failure for configure
             self.logger.info("Timed out occurred for track table")
