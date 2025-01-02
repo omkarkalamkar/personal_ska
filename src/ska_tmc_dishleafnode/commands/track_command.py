@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 import logging
-import threading
-from logging import Logger
-from typing import Optional, Tuple
+import time
+from typing import Callable, Optional, Tuple
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
+)
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
+from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -42,62 +46,43 @@ class Track(DishLNCommand):
         self.dec_value = ""
         self.tracking_thread = None
         self.is_configure_command = is_configure_command
+        self.timeout_id = f"{time.time()}_{__class__.__name__}"
+        self.timeout_callback: Callable[
+            [str, TimeoutState], Optional[ValueError]
+        ] = TimeoutCallback(self.timeout_id, self.logger)
+        if self.is_configure_command:
+            self.timekeeper = TimeKeeper(
+                self.component_manager.command_timeout - ADJUST_TIMEOUT, logger
+            )
+        else:
+            self.timekeeper = TimeKeeper(
+                self.component_manager.command_timeout, logger
+            )
+        if self.component_manager.is_configure_command:
+            self.component_manager.configure_command_timer_list.append(
+                self.timekeeper
+            )
 
     # pylint: disable=unused-argument
-    def track(
-        self: Track,
-        argin: str,
-        logger: Logger,
-        task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
-    ) -> None:
+    @timeout_tracker
+    @error_propagation_tracker("get_track_result_code", [ResultCode.OK])
+    def track(self: Track, argin: dict, **kwargs) -> Tuple[ResultCode, str]:
         """This is a long running method for Track command, it
         executes the do hook, invoking Track command on Dish Master
 
         :param argin: Input JSON string
-        :type argin: str
-        :param logger: logger
-        :type logger: logging.Logger
-        :param task_callback: Update task state, defaults to None
-        :type task_callback: TaskCallbackType
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
-        :return: : None
-        :rtype: None
+        :type argin: dict
+        :return: : (ResultCode, str)
+        :rtype: Tuple
         """
         # Indicate that the task has started
-        self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.is_configure_command is False:
             self.set_command_id(__class__.__name__)
-            self.component_manager.start_timer(
-                self.timeout_id,
-                self.component_manager.command_timeout,
-                self.timeout_callback,
-            )
-
-        return_code, message = self.do(argin)
-        self.component_manager.command_in_progress = "Track"
-        logger.info("Message is: %s", message)
-        if return_code in [
-            ResultCode.FAILED,
-            ResultCode.REJECTED,
-            ResultCode.NOT_ALLOWED,
-        ]:
-            self.update_task_status(
-                result=(ResultCode.FAILED, message), exception=message
-            )
         else:
-            if self.is_configure_command is False:
-                self.start_tracker_thread(
-                    "get_track_result_code",
-                    [ResultCode.OK],
-                    task_abort_event,
-                    self.timeout_id,
-                    self.timeout_callback,
-                    self.component_manager.command_id,
-                    self.component_manager.long_running_result_callback,
-                )
+            self.component_manager.command_in_progress = "Configure"
+
+        return self.do(argin)
 
     def validate_json_argument(self: Track, input_argin: dict) -> tuple:
         """Validates the json argument"""

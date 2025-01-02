@@ -270,6 +270,7 @@ def tear_down(
     )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    dish_master.clearcommandcallinfo()
 
 
 def build_partial_configure_data(

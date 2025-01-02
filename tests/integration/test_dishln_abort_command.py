@@ -24,7 +24,7 @@ def abort_on_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     result_fp, _ = dish_leaf_node.AbortCommands()
-    assert result_fp[0] == ResultCode.STARTED
+    assert result_fp[0] == ResultCode.QUEUED
 
 
 def abort_when_configured(
@@ -98,7 +98,7 @@ def abort_when_configured(
         f"Command ID: {unique_id_abort} Returned result: {result_abort}"
     )
 
-    assert result_abort == ResultCode.STARTED
+    assert result_abort == ResultCode.QUEUED
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
@@ -155,7 +155,7 @@ def abort_while_configuring(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_fp[0], COMMAND_COMPLETED),
-        lookahead=2,
+        lookahead=5,
     )
 
     result_config, unique_id_config = dish_leaf_node.Configure(
@@ -179,18 +179,19 @@ def abort_while_configuring(
         f"Command ID: {unique_id_abort} Returned result: {result_abort}"
     )
 
-    assert result_abort == ResultCode.STARTED
+    assert result_abort == ResultCode.QUEUED
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
-    assert (
-        dish_leaf_node.read_attribute("pointingState").value
-        == PointingState.READY
-    )
 
     assert is_configure_aborted(dish_leaf_node, unique_id_config[0])
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)

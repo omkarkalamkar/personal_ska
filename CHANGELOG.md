@@ -5,6 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.19.5]
+********
+* Update lock placement with skb-525 changes.
+  
 [0.19.4]
 ********
 * Update lock placement.
@@ -101,6 +105,13 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.19.3]
+********
+* AbortCommands is implemented as a Slow Command
+
+[0.19.2]
+********
+* Fixed SKB-525
 
 [0.17.9]
 ********

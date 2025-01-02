@@ -7,11 +7,11 @@ from typing import Tuple
 from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common import (
-    TimeKeeper,
-    error_propagation_decorator,
-    timeout_decorator,
+from ska_tmc_common import TimeKeeper
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
 )
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
@@ -43,8 +43,8 @@ class TrackStop(DishLNCommand):
         )
 
     # pylint: disable=unused-argument
-    @timeout_decorator
-    @error_propagation_decorator("get_track_stop_result_code", [ResultCode.OK])
+    @timeout_tracker
+    @error_propagation_tracker("get_track_stop_result_code", [ResultCode.OK])
     def trackstop(
         self: TrackStop,
     ) -> Tuple[ResultCode, str]:

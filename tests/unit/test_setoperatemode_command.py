@@ -24,7 +24,8 @@ def test_set_operate_command(tango_context, cm_without_er_lp, task_callback):
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=6,
     )
 
 
@@ -41,7 +42,9 @@ def test_set_operate_command_adapter_none(cm_without_er_lp, task_callback):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    result = task_callback.assert_against_call(status=TaskStatus.COMPLETED)
+    result = task_callback.assert_against_call(
+        status=TaskStatus.COMPLETED, lookahead=2
+    )
     assert ResultCode.FAILED == result["result"][0]
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 

@@ -107,6 +107,10 @@ def test_configure_command_completed_with_correction_key_reset(
             [ResultCode.OK],
             ["Command Completed"],
         ),
+        'ConfigureBand2.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
     }
     dishMock = mock.Mock(
         programTrackTable=[
@@ -139,16 +143,18 @@ def test_configure_command_completed_with_correction_key_reset(
     )
     cm.update_device_pointing_state(PointingState.TRACK)
     cm.update_device_configured_band("2")
-    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
     time.sleep(2)
     simulate_dish_mode_event(cm, DishMode.OPERATE)
     simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
+    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=2,
     )
 
     dishMock.TrackLoadStaticOff.assert_called_once_with([0.0, 0.0])

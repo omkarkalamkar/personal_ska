@@ -50,7 +50,7 @@ server:
                 - "5"
             - name: "SkaLevel"
               values:
-                - "3"
+                - "4"
   {{- end }}
 
 depends_on:
