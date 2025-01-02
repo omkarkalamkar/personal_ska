@@ -1,4 +1,5 @@
 # import json
+import time
 
 import pytest
 from ska_control_model import HealthState
@@ -23,10 +24,12 @@ def test_dishln_pointing_device():
     result_code, message = dishln_pointing_device.GenerateProgramTrackTable()
     assert result_code == [ResultCode.STARTED]
     assert message == ['ProgramTrackTable generation started']
+    time.sleep(60)
 
     result_code, message = dishln_pointing_device.StopProgramTrackTable()
     assert result_code == [ResultCode.OK]
     assert message == ["Command Completed"]
+    time.sleep(60)
 
     result_code, message = dishln_pointing_device.ChangePointingData(
         "trajectory"

@@ -282,12 +282,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
             with self.track_thread_lock:
                 self.mapping_scan_event.clear()
-                # is_track_thread_stop = self.mapping_scan_event.is_set()
+                is_track_thread_stop = self.mapping_scan_event.is_set()
 
             track_table_scheduler = sched.scheduler(time.time, time.sleep)
             event_priority: int = 1
-            # while not is_track_thread_stop:
-            while not self.mapping_scan_event.is_set():
+            while not is_track_thread_stop:
                 self.logger.debug(
                     "Current Thread ID: %s", threading.get_native_id()
                 )
@@ -295,8 +294,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     "Target used to calculate tracktable: %s", self.target
                 )
 
-                # with self.track_thread_lock:
-                #     is_track_thread_stop = self.mapping_scan_event.is_set()
+                with self.track_thread_lock:
+                    is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
                         self.target, self.converter

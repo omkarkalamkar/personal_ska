@@ -85,9 +85,7 @@ class ProgramTrackTableCalculator:
                     self.logger.debug(
                         "Stopping the ProgramTrackTable calculation."
                     )
-                    raise Exception(
-                        "Stopping the ProgramTrackTable calculation"
-                    )
+                    break
 
             return program_track_table
 
