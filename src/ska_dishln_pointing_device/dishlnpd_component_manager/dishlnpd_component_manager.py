@@ -344,6 +344,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         track_table_scheduler.run(blocking=False)
                         self.logger.debug("Execution done")
 
+            self.update_program_track_table([])
             self.logger.debug("Program Track Table Calculation stopped.")
 
         except Exception as value_error:
