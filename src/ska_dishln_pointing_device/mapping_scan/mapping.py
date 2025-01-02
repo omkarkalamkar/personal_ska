@@ -75,6 +75,10 @@ class BaseScanMapping:
         try:
             # pylint: disable = C0301
             self.component_manager.create_thread_and_start_track_table_calculation()  # noqa: E501
+            # Following log will be removed, so don't worry.
+            self.logger.debug(
+                "Calling .. create_thread_and_start_track_table_calculation"
+            )  # noqa: E501
             # pylint: enable = C0301
         except Exception as exception:
             self.logger.error("Exception: %s", exception)

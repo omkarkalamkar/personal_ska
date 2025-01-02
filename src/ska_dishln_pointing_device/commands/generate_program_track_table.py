@@ -33,6 +33,7 @@ class GenerateProgramTrackTable(FastCommand):
     def do(self, *args, **kwargs) -> None:
         """This method generates program track table."""
         try:
+            self.logger.debug("Executing GenerateProgramTrackTable command.")
             if (
                 self.component_manager.target_data
                 and "trajectory"
