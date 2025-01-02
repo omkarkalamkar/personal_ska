@@ -79,7 +79,6 @@ k8s-test:
   variables:
     COUNT: 1
     SERVICE_ACCOUNT: "ci-svc-$CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA-on-demand-tmc-test"
-    MARK: repeat_test
 
   before_script:
     - make cred SERVICE_ACCOUNT=$SERVICE_ACCOUNT
