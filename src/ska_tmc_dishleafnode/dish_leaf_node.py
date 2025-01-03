@@ -838,9 +838,9 @@ class DishLeafNode(TMCBaseLeafDevice):
     @DebugIt()
     def AbortCommands(self: DishLeafNode):
         """Invokes AbortCommands command on the DishMaster."""
-        with self.component_manager.tango_operation_execution_lock:
-            handler = self.get_command_object("AbortCommands")
-            result_code, unique_id = handler()
+
+        handler = self.get_command_object("AbortCommands")
+        result_code, unique_id = handler()
         return [result_code], [unique_id]
 
     def is_Restart_allowed(self: DishLeafNode) -> bool:

@@ -46,8 +46,8 @@ class AbortCommands(DishLNCommand):
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "AbortCommands"
-
-        result_code, message = self.do()
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.do()
 
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
