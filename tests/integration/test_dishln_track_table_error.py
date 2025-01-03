@@ -122,7 +122,9 @@ def configure_dish_leaf_node_source_not_visible(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dishln_pointing_device.unsubscribe_event(dishpd_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.xfail(reason="Test fails if the source is not visible.")
@@ -247,7 +249,9 @@ def configure_dish_leaf_node_unknown_source(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dishln_pointing_device.unsubscribe_event(dishpd_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.post_deployment

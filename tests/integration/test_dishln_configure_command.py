@@ -123,7 +123,9 @@ def configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dishln_pointing_device.unsubscribe_event(dishpd_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 # TO-Do - Enable non_sidereal_tracking once Error propogation is enabled.
@@ -165,6 +167,7 @@ def partial_configure_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     sleep(1)
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -262,7 +265,9 @@ def partial_configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.post_deployment

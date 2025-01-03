@@ -13,6 +13,7 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     tear_down,
 )
@@ -30,6 +31,7 @@ def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = DevFactory().get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     device_host = tango.Database().get_db_host()
     device_port = tango.Database().get_db_port()
@@ -149,4 +151,6 @@ def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )

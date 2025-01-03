@@ -12,6 +12,7 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     SKA_EPOCH,
     logger,
     tear_down,
@@ -26,6 +27,7 @@ def forward_backward_transform(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_FP)
 
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -99,7 +101,9 @@ def forward_backward_transform(
     logger.info("Actual Pointing value is: %s", actual_pointing)
     # Checking if the actualPointing attribute is populated
     assert len(ast.literal_eval(actual_pointing)) == 3
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointing_state_event_id)

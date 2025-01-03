@@ -13,6 +13,7 @@ from tests.settings import (
     COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     logger,
     tear_down,
     wait_for_attribute_value,
@@ -26,6 +27,7 @@ def scan_command_timeout(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -139,7 +141,9 @@ def scan_command_timeout(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.post_deployment
@@ -160,6 +164,7 @@ def scan_command_error_propagation(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -270,7 +275,9 @@ def scan_command_error_propagation(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.post_deployment
@@ -293,6 +300,7 @@ def scan_command(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -385,7 +393,9 @@ def scan_command(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.post_deployment

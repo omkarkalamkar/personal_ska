@@ -12,6 +12,7 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     logger,
     tear_down,
@@ -63,6 +64,7 @@ def test_main_config_with_correction_key_update_reset(
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = DevFactory().get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     device_host = tango.Database().get_db_host()
     device_port = tango.Database().get_db_port()
@@ -142,7 +144,9 @@ def test_main_config_with_correction_key_update_reset(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.post_deployment
@@ -160,6 +164,7 @@ def test_partial_configure_with_update_reset_correction_key(
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     sdp_queue_connector = dev_factory.get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     device_host = tango.Database().get_db_host()
     device_port = tango.Database().get_db_port()
@@ -278,7 +283,9 @@ def test_partial_configure_with_update_reset_correction_key(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
 
 
 @pytest.mark.post_deployment
@@ -296,6 +303,7 @@ def test_configure_with_maintain_notset_correction_key(
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     sdp_queue_connector = dev_factory.get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     device_host = tango.Database().get_db_host()
     device_port = tango.Database().get_db_port()
@@ -407,4 +415,6 @@ def test_configure_with_maintain_notset_correction_key(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
+    tear_down(
+        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
+    )
