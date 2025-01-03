@@ -138,6 +138,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = ""
                 # Stop tracktable calculation if Configure command execution
                 # is not completed successfully.
+                self.logger.debug("Stopping tracktable calculation")
                 self.dishln_pointing_device_adapter.StopProgramTrackTable()
             self.component_manager.command_id = ""
             self.component_manager.receiver_band = ""
