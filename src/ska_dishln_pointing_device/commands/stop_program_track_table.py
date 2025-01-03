@@ -37,6 +37,7 @@ class StopProgramTrackTable(FastCommand):
             self.logger.info(
                 "StopProgramTrackTable command executed successfully"
             )
+            self.component_manager.track_table_thread.join()
             self.component_manager.update_program_track_table([])
         except Exception as exception:
             self.logger.error(
