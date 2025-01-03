@@ -46,8 +46,8 @@ class AbortCommands(DishLNCommand):
         self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "AbortCommands"
-
-        result_code, message = self.do()
+        with self.component_manager.tango_operation_execution_lock:
+            result_code, message = self.do()
 
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             self.task_callback(
@@ -112,13 +112,9 @@ class AbortCommands(DishLNCommand):
         )
 
         if self.component_manager.is_dish_abort_commands_enabled:
-            with self.component_manager.tango_operation_execution_lock:
-                self.logger.debug("Acquired  tango lock")
-                result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "AbortCommands"
-                )
-
-            self.logger.debug("Released tango lock")
+            result_code, message = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "AbortCommands"
+            )
             self.logger.info(
                 "AbortCommands() command has been invoked, the result code"
                 + " is %s and the message is %s",
@@ -155,19 +151,18 @@ class AbortCommands(DishLNCommand):
         pointing_state = self.component_manager.pointingState
         # Check Pointing State is track before calling track stop.
         if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
-            with self.component_manager.tango_operation_execution_lock:
-                result_code, msg = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "TrackStop"
+            result_code, msg = self.call_adapter_method(
+                "Dish Master", self.dish_master_adapter, "TrackStop"
+            )
+            if result_code[0] in [
+                ResultCode.FAILED,
+                ResultCode.REJECTED,
+                ResultCode.NOT_ALLOWED,
+            ]:
+                message = (
+                    f"TrackStop result code: {result_code[0]} "
+                    + f"and message: {msg[0]}"
                 )
-                if result_code[0] in [
-                    ResultCode.FAILED,
-                    ResultCode.REJECTED,
-                    ResultCode.NOT_ALLOWED,
-                ]:
-                    message = (
-                        f"TrackStop result code: {result_code[0]} "
-                        + f"and message: {msg[0]}"
-                    )
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
