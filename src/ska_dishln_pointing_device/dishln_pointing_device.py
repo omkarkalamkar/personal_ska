@@ -115,8 +115,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     )
     def pointingProgramTrackTable(self) -> str:
         """
-        This attribute is used for storing the FQDN of Dish leaf node pointing
-        device.
+        This attribute is used for storing calculated tracktable.
         :return: str
         """
         return json.dumps(self.pointing_program_track_table)
