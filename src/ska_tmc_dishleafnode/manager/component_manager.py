@@ -91,7 +91,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         proxy_timeout: int = 500,
         sleep_time: int = 1,
         dish_availability_check_timeout: int = 40,
-        command_timeout: int = 15,
+        command_timeout: int = 20,
         is_dish_abort_commands_enabled: bool = False,
         adapter_timeout: int = 2,
         max_track_table_retry: int = 3,
