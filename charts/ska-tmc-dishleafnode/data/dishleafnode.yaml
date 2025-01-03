@@ -15,7 +15,7 @@ server:
       classes:
       - name: "DishLeafNode"
         devices:
-        - name: "ska_mid/tm_leaf_node/d{{ printf "%04s" . }}"
+        - name: "mid-tmc/leaf-node-dish/SKA{{ printf "%04s" . }}"
           properties:
           - name: "DishMasterFQDN"
             values:

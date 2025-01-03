@@ -81,7 +81,7 @@ def devices_to_load():
             "class": DishLeafNode,
             "devices": [
                 {
-                    "name": "ska_mid/tm_leaf_node/d0001",
+                    "name": "mid-tmc/leaf-node-dish/SKA001",
                     "properties": {
                         "DishMasterFQDN": DISH_MASTER_DEVICE,
                         "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
@@ -142,7 +142,7 @@ def dishln_device(request):
     if not true_context:
         with DeviceTestContext(
             DishLeafNode,
-            device_name="ska_mid/tm_leaf_node/d0001",
+            device_name="mid-tmc/leaf-node-dish/SKA001",
             properties={
                 "DishMasterFQDN": DISH_MASTER_DEVICE,
                 "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
