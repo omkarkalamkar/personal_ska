@@ -5,10 +5,23 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.19.6]
+********
+* Updated code as per ADR-9 and resolved bug SKB-690
+
+[0.19.5]
+********
+* Update lock placement with skb-525 changes.
+  
+[0.19.4]
+********
+* Update lock placement.
+* Update scheduler blocking to false
+
 [0.19.1]
 ********
 * Fix errors observed while testing dish error propagation in tmc-mid integration repository
-
+  
 [0.19.0]
 ********
 * Command static pointing model is renamed to ApplyPointingModel.
@@ -96,10 +109,6 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
-[0.19.4]
-********
-* Fix SKB-690
-
 [0.19.3]
 ********
 * AbortCommands is implemented as a Slow Command
