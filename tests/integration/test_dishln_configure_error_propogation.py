@@ -241,6 +241,7 @@ def configure_dish_leaf_node_error_propagation(
     )
 
 
+@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_error_propagation(

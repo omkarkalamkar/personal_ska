@@ -100,6 +100,7 @@ class ConfigureBand(DishLNCommand):
         return:
             (ResultCode, str)
         """
+        self.logger.debug("Argin: %s", argin)
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
