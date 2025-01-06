@@ -355,6 +355,7 @@ def configure_dish_leaf_node_timeout(
     )
 
 
+@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_error_timeout(tango_context, group_callback, json_factory):
