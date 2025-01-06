@@ -143,6 +143,7 @@ class Configure(DishLNCommand):
                 # is not completed successfully.
                 self.logger.debug("Stopping tracktable calculation")
                 self.dishln_pointing_device_adapter.StopProgramTrackTable()
+            self.logger.debug("Performing configure command cleanup.")
             self.component_manager.command_id = ""
             self.component_manager.receiver_band = ""
             self.component_manager.partial_configure = False
