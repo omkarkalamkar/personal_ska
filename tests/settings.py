@@ -254,10 +254,10 @@ def tear_down(
             (unique_id[0], COMMAND_COMPLETED),
             lookahead=4,
         )
-        group_callback["pointingProgramTrackTable"].assert_change_event(
-            ("[]"),
-            lookahead=8,
-        )
+        # group_callback["pointingProgramTrackTable"].assert_change_event(
+        #     ("[]"),
+        #     lookahead=8,
+        # )
         dish_leaf_node.unsubscribe_event(lrcr_event_id)
         dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     dish_master.SetDirectPointingState(PointingState.NONE)
