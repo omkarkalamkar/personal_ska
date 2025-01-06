@@ -18,7 +18,9 @@ from tests.settings import COMMAND_COMPLETED, logger
 )
 def dishleaf_node():
     database = Database()
-    instance_list = database.get_device_exported_for_class("DishLeafNode")
+    instance_list = database.get_device_exported_for_class(
+        "MidTmcLeafNodeDish"
+    )
     for instance in instance_list.value_string:
         return DeviceProxy(instance)
 
