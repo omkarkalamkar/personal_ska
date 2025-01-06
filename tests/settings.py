@@ -283,6 +283,19 @@ def tear_down(
     )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
+    if len(dishln_pointing_device.pointingProgramTrackTable) > 0:
+        dishpd_event_id = dishln_pointing_device.subscribe_event(
+            "pointingProgramTrackTable",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["pointingProgramTrackTable"],
+        )
+        dishln_pointing_device.StopProgramTrackTable()
+        group_callback["pointingProgramTrackTable"].assert_change_event(
+            ("[]"),
+            lookahead=8,
+        )
+        dishln_pointing_device.unsubscribe_event(dishpd_event_id)
+
     dish_master.clearcommandcallinfo()
 
 

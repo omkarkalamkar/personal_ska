@@ -101,6 +101,9 @@ class Configure(DishLNCommand):
             self.component_manager.receiver_band = json_argument["dish"][
                 "receiver_band"
             ]
+            self.logger.debug(
+                "Set receiver_band to %s", self.component_manager.receiver_band
+            )
 
         result_code, message = self.do(argin)
         self.set_command_id(__class__.__name__)
@@ -378,6 +381,9 @@ class Configure(DishLNCommand):
             self._adapter_factory,
             logger=self.logger,
             is_configure_command=True,
+        )
+        self.logger.debug(
+            "ConfigureBand: %s", self.component_manager.receiver_band
         )
         configure_band_command.configure_band(
             argin=self.component_manager.receiver_band,
