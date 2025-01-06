@@ -25,7 +25,7 @@ from ska_dishln_pointing_device import DishlnPointingDataComponentManager
 from ska_dishln_pointing_device.dishln_pointing_device import (
     DishPointingDevice,
 )
-from ska_tmc_dishleafnode import DishLeafNode
+from ska_tmc_dishleafnode import MidTmcLeafNodeDish
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 from tests.settings import (
@@ -78,7 +78,7 @@ def devices_to_load():
     """Returns helper state devices."""
     return (
         {
-            "class": DishLeafNode,
+            "class": MidTmcLeafNodeDish,
             "devices": [
                 {
                     "name": "mid-tmc/leaf-node-dish/SKA001",
@@ -141,7 +141,7 @@ def dishln_device(request):
     true_context = request.config.getoption("--true-context")
     if not true_context:
         with DeviceTestContext(
-            DishLeafNode,
+            MidTmcLeafNodeDish,
             device_name="mid-tmc/leaf-node-dish/SKA001",
             properties={
                 "DishMasterFQDN": DISH_MASTER_DEVICE,

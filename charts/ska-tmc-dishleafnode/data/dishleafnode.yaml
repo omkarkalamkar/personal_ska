@@ -1,7 +1,7 @@
 name: "dishleafnode-test"
 function: telescope-monitoring
 domain: general-monitoring
-instances: ["01"]
+instances: ["0"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $IsDishAbortCommandsEnabled := .Values.deviceServers.dishln.IsDishAbortCommandsEnabled }}
 {{- $MaxTrackTableRetry := .Values.deviceServers.dishln.MaxTrackTableRetry }}
@@ -13,7 +13,7 @@ server:
   {{- range  .Values.deviceServers.dishln.instances }}
     - name: "{{ . }}"
       classes:
-      - name: "DishLeafNode"
+      - name: "MidTmcLeafNodeDish"
         devices:
         - name: "mid-tmc/leaf-node-dish/SKA{{ printf "%04s" . }}"
           properties:

@@ -12,9 +12,9 @@ This is a DishLeafNode package which is responsible for monitoring and control
 of the Dish device.
 """
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.dish_leaf_node import DishLeafNode
+from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
 
 __all__ = [
     "AzElConverter",
-    "DishLeafNode",
+    "MidTmcLeafNodeDish",
 ]
