@@ -33,6 +33,8 @@ tmc-dishleafnode:
       enabled: true
     dishln:
       enabled: true
+      family: "leaf-node-dish"
+      member : "SKA001"
       IsDishAbortCommandsEnabled: True
       MaxTrackTableRetry: 3
       TrackTableRetryDuration: 0.2
