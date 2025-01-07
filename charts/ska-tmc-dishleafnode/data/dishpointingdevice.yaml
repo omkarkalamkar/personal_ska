@@ -19,7 +19,7 @@ server:
       classes:
       - name: "DishPointingDevice"
         devices:
-              - "{{ $.Values.global.domain }}/dish-pointing/{{ $.Values.deviceServers.prefix_member }}{{ printf "%03s" . }}"
+              - "{{ $.Values.global.domain }}/dish-pointing/{{ $.Values.deviceServers.dishpointingdevice.prefix_member }}{{ printf "%03s" . }}"
           properties:
             - name: "TrackTableEntries"
               values:
