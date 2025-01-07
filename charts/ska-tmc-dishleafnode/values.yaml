@@ -71,6 +71,7 @@ deviceServers:
   dishpointingdevice:
     enabled: true
     instances: ["01", "02"]
+    prefix_member : "SKA"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
     TrackTableInAdvance: 7
