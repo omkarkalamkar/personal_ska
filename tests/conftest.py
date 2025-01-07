@@ -83,8 +83,8 @@ def devices_to_load():
                 {
                     "name": "mid-tmc/leaf-node-dish/SKA001",
                     "properties": {
-                        "DishMasterFQDN": DISH_MASTER_DEVICE,
-                        "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
+                        "MidDishControl": DISH_MASTER_DEVICE,
+                        "MidPointingDevice": DISHLN_POINTING_DEVICE,
                     },
                 },
             ],
@@ -144,8 +144,8 @@ def dishln_device(request):
             MidTmcLeafNodeDish,
             device_name="mid-tmc/leaf-node-dish/SKA001",
             properties={
-                "DishMasterFQDN": DISH_MASTER_DEVICE,
-                "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
+                "MidDishControl": DISH_MASTER_DEVICE,
+                "MidPointingDevice": DISHLN_POINTING_DEVICE,
                 "DishAvailabilityCheckTimeout": 5,
             },
             process=True,

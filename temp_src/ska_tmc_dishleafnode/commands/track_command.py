@@ -78,7 +78,7 @@ class Track(BaseCommand):
 
         try:
             self.this_server = TangoServerHelper.get_instance()
-            property_value = self.this_server.read_property("DishMasterFQDN")
+            property_value = self.this_server.read_property("MidDishControl")
             self.dish_master_fqdn = self.dish_master_fqdn.join(property_value)
             json_argin = device_data._load_config_string(argin)
             self.ra_value, self.dec_value = device_data._get_targets(

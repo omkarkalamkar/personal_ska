@@ -40,7 +40,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     A Leaf control node for DishMaster.
 
     :Device Properties:
-    :DishMasterFQDN: FQDN of Dish Master Device
+    :MidDishControl: FQDN of Dish Master Device
     :Device Attributes:
     :commandExecuted: Stores command executed on the device.
     :dishMasterDevName: Stores Dish Master Device name.
@@ -49,12 +49,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     # -----------------
     # Device Properties
     # -----------------
-    DishMasterFQDN = device_property(
+    MidDishControl = device_property(
         dtype="str",
         doc="FQDN of Dish Master Device",
     )
 
-    DishlnPointingDeviceFQDN = device_property(
+    MidPointingDevice = device_property(
         dtype="str",
         doc="FQDN of DishLeaf Node Pointing Device",
     )
@@ -967,8 +967,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def create_component_manager(self: MidTmcLeafNodeDish):
         update_track_err_cb = self.update_track_table_errors_callback
         cm = DishLNComponentManager(
-            dish_dev_name=self.DishMasterFQDN,
-            dishln_pointing_fqdn=self.DishlnPointingDeviceFQDN,
+            dish_dev_name=self.MidDishControl,
+            dishln_pointing_fqdn=self.MidPointingDevice,
             logger=self.logger,
             communication_state_callback=None,
             component_state_callback=None,

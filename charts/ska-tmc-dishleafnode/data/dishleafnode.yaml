@@ -17,12 +17,12 @@ server:
         devices:
         - name: "{{ $.Values.global.domain }}/{{ $.Values.deviceServers.dishln.family }}/{{ $.Values.deviceServers.dishln.prefix_member }}{{ printf "%03s" . }}"
           properties:
-          - name: "DishMasterFQDN"
+          - name: "MidDishControl"
             values:
-              - "{{ $.Values.global.domain }}/dish-manager/{{ $.Values.deviceServers.prefix_member }}{{ printf "%03s" . }}"
-          - name: "DishlnPointingDeviceFQDN"
+              - "{{ $.Values.global.domain }}/dish-control/{{ $.Values.deviceServers.prefix_member }}{{ printf "%03s" . }}"
+          - name: "MidPointingDevice"
             values:
-              - "{{ $.Values.global.domain }}/dish-pointing/d{{ printf "%04s" . }}"
+              - "{{ $.Values.global.domain }}/dish-pointing/{{ $.Values.deviceServers.prefix_member }}{{ printf "%03s" . }}"
           - name: "SkaLevel"
             values:
               - "3"

@@ -65,7 +65,7 @@ class StopTrack(BaseCommand):
             # Note: The DishMaster implements the 'TrackStop' command. This is in accordance to the
             # SKA-TEL-SKO-0000150-04-SKA1-Mid TM to Dish ICD.
             self.dish_master_fqdn = ""
-            property_value = this_server.read_property("DishMasterFQDN")
+            property_value = this_server.read_property("MidDishControl")
             self.dish_master_fqdn = self.dish_master_fqdn.join(property_value)
             dish_client = TangoClient(self.dish_master_fqdn)
             dish_client.send_command_async(
