@@ -15,7 +15,7 @@ server:
       classes:
       - name: "MidTmcLeafNodeDish"
         devices:
-        - name: "{{ $.Values.global.domain }}/{{ $.Values.deviceServers.dishln.family }}/{{ $.Values.deviceServers.prefix_member }}{{ printf "%03s" . }}"
+        - name: "{{ $.Values.global.domain }}/{{ $.Values.deviceServers.dishln.family }}/{{ $.Values.deviceServers.dishln.prefix_member }}{{ printf "%03s" . }}"
           properties:
           - name: "DishMasterFQDN"
             values:
