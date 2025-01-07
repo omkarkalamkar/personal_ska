@@ -15,8 +15,8 @@ server:
       classes:
       - name: "MidTmcLeafNodeDish"
         devices:
-        - name: "mid-tmc/leaf-node-dish/SKA{{ printf "%03s" . }}"
-          properties:
+        - name: "{{ $.Values.global.mid.domain }}/{{ $.Values.deviceServers.dishln.family }}/{{ $.Values.deviceServers.SKA001.prefix_member }}"         
+         properties:
           - name: "DishMasterFQDN"
             values:
               - "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"

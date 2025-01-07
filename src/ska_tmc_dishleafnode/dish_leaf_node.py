@@ -162,7 +162,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         # pylint: disable=W0221
         def do(self):
             """
-            Initializes the attributes and properties of the DishLeafNode.
+            Initializes the attributes and properties of the MidTmcLeafNodeDish.
 
             return:
                 A tuple containing a return code and a string message
