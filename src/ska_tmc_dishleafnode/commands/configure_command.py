@@ -132,6 +132,10 @@ class Configure(DishLNCommand):
                     self.dish_master_adapter.dev_name,
                 )
             else:
+                # Stop tracktable calculation if Configure command execution
+                # is not completed successfully.
+                self.logger.debug("Stopping tracktable calculation")
+                self.dishln_pointing_device_adapter.StopProgramTrackTable()
                 self.task_callback(
                     status=status,
                     result=result,
@@ -139,10 +143,6 @@ class Configure(DishLNCommand):
                 )
 
                 self.component_manager.command_in_progress = ""
-                # Stop tracktable calculation if Configure command execution
-                # is not completed successfully.
-                self.logger.debug("Stopping tracktable calculation")
-                self.dishln_pointing_device_adapter.StopProgramTrackTable()
             self.logger.debug("Performing configure command cleanup.")
             self.component_manager.command_id = ""
             self.component_manager.receiver_band = ""

@@ -15,7 +15,6 @@ from tests.settings import (
     COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    DISHLN_POINTING_DEVICE,
     logger,
     tear_down,
 )
@@ -31,7 +30,6 @@ def track_stop_timeout_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
     dish_master.SetDirectPointingState(PointingState.READY)
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -117,9 +115,7 @@ def track_stop_timeout_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    tear_down(
-        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
-    )
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment
@@ -145,7 +141,6 @@ def track_stop_error_propagation_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.OPERATE)
     dish_master.SetDirectPointingState(PointingState.READY)
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -224,9 +219,7 @@ def track_stop_error_propagation_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    tear_down(
-        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
-    )
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment

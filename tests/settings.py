@@ -230,7 +230,6 @@ def tear_down(
     dish_leaf_node: DeviceProxy,
     dish_master: DeviceProxy,
     group_callback,
-    dishln_pointing_device: DeviceProxy,
 ):
     """Teardown for the Dish Leaf Node device."""
 
@@ -245,21 +244,11 @@ def tear_down(
             tango.EventType.CHANGE_EVENT,
             group_callback["longRunningCommandResult"],
         )
-        dishpd_event_id = dishln_pointing_device.subscribe_event(
-            "pointingProgramTrackTable",
-            tango.EventType.CHANGE_EVENT,
-            group_callback["pointingProgramTrackTable"],
-        )
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id[0], COMMAND_COMPLETED),
             lookahead=4,
         )
-        # group_callback["pointingProgramTrackTable"].assert_change_event(
-        #     ("[]"),
-        #     lookahead=8,
-        # )
         dish_leaf_node.unsubscribe_event(lrcr_event_id)
-        dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     dish_master.SetDirectPointingState(PointingState.NONE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -283,19 +272,6 @@ def tear_down(
     )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
-    # if len(dishln_pointing_device.pointingProgramTrackTable) > 0:
-    #     dishpd_event_id = dishln_pointing_device.subscribe_event(
-    #         "pointingProgramTrackTable",
-    #         tango.EventType.CHANGE_EVENT,
-    #         group_callback["pointingProgramTrackTable"],
-    #     )
-    #     dishln_pointing_device.StopProgramTrackTable()
-    #     group_callback["pointingProgramTrackTable"].assert_change_event(
-    #         ("[]"),
-    #         lookahead=8,
-    #     )
-    #     dishln_pointing_device.unsubscribe_event(dishpd_event_id)
-
     dish_master.clearcommandcallinfo()
 
 

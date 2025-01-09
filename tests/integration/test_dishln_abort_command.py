@@ -10,7 +10,6 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    DISHLN_POINTING_DEVICE,
     TIMEOUT,
     logger,
     tear_down,
@@ -124,7 +123,6 @@ def abort_while_configuring(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
@@ -199,9 +197,7 @@ def abort_while_configuring(
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
-    tear_down(
-        dish_leaf_node, dish_master, group_callback, dishln_pointing_device
-    )
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment
