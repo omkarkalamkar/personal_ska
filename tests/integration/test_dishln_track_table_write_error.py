@@ -149,12 +149,12 @@ def configure_dish_leaf_node(
 
     # delete stale dish leaf node proxy from the dictionary and create new one
     logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
-    del dev_factory.dev_proxys["mid-tmc/leaf-node-dish/SKA001"]
+    del dev_factory.dev_proxys["mid-dish/leaf-node-dish/SKA001"]
 
     logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
 
     dish_leaf_node = dev_factory.get_device(dishln_name)
-    dish_leaf_node1 = tango.DeviceProxy("mid-tmc/leaf-node-dish/SKA001")
+    dish_leaf_node1 = tango.DeviceProxy("mid-dish/leaf-node-dish/SKA001")
     logger.info("State1-----------: %s", dish_leaf_node1.state())
     logger.info("dev_factory.dev_proxys: %s", dev_factory.dev_proxys)
     logger.info("State------------: %s", dish_leaf_node.state())
