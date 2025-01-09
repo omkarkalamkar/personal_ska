@@ -61,6 +61,11 @@ deviceServers:
     TrackTableRetryDuration: 0.2
     file: "data/dishleafnode.yaml"
     IsDishAbortCommandsEnabled: False
+    LivelinessCheckPeriod: 1.0
+    EventSubscriptionCheckPeriod: 1.0
+    CommandTimeOut: 30.0
+    AdapterTimeOut: 2.0
+    DishAvailabilityCheckTimeout: 3
   sdpqc:
     enabled: true
     instances: ["01"]

@@ -10,13 +10,13 @@ from time import sleep
 from typing import Any, Callable, List
 
 import tango
-from ska_tmc_common import (
+from ska_tmc_common import (  # EventReceiver,
     DishDeviceInfo,
     DishMode,
-    EventReceiver,
     PointingState,
     SdpQueueConnectorDeviceInfo,
 )
+from ska_tmc_common.v1.event_receiver import EventReceiver
 
 
 class DishLNEventReceiver(EventReceiver):
@@ -35,14 +35,14 @@ class DishLNEventReceiver(EventReceiver):
         logger: Logger,
         attribute_dict: dict[str, Callable[..., Any]] | None = None,
         proxy_timeout: int = 500,
-        sleep_time: int = 1,
+        event_subscription_check_period: int = 1,
     ):
         super().__init__(
             component_manager=component_manager,
             logger=logger,
             attribute_dict=attribute_dict,
             proxy_timeout=proxy_timeout,
-            sleep_time=sleep_time,
+            event_subscription_check_period=event_subscription_check_period,
         )
         self.dish_master_subscribed: bool = False
         self.dislnpd_subscribed: bool = False
@@ -53,13 +53,13 @@ class DishLNEventReceiver(EventReceiver):
             dishDevInfo = self._component_manager.get_device()
             if dishDevInfo.dev_name:
                 self.subscribe_dish_master_events(dishDevInfo)
-            sleep(self._sleep_time)
+            sleep(self._event_subscription_check_period)
         while not self.dislnpd_subscribed:
             if self._component_manager.dishln_pointing_dev_name:
                 self.subscribe_dishlnpd_events(
                     self._component_manager.dishln_pointing_dev_name
                 )
-            sleep(self._sleep_time)
+            sleep(self._event_subscription_check_period)
 
     # pylint: disable=unused-argument
     def subscribe_dish_master_events(

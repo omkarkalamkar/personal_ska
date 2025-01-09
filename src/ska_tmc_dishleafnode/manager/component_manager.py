@@ -21,7 +21,7 @@ from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import (
+from ska_tmc_common import (  # TmcLeafNodeComponentManager,
     AdapterFactory,
     Band,
     CommandNotAllowed,
@@ -32,10 +32,10 @@ from ska_tmc_common import (
     LivelinessProbeType,
     PointingState,
     SdpQueueConnectorDeviceInfo,
-    TmcLeafNodeComponentManager,
 )
 from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
+from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -88,7 +88,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _liveliness_probe=LivelinessProbeType.NONE,
         _event_receiver: bool = True,
         proxy_timeout: int = 500,
-        sleep_time: int = 1,
+        event_subscription_check_period: int = 1,
+        liveliness_check_period: int = 1,
         dish_availability_check_timeout: int = 40,
         command_timeout: int = 15,
         is_dish_abort_commands_enabled: bool = False,
@@ -122,7 +123,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             communication_state_callback=communication_state_callback,
             component_state_callback=component_state_callback,
             proxy_timeout=proxy_timeout,
-            sleep_time=sleep_time,
+            event_subscription_check_period=event_subscription_check_period,
+            liveliness_check_period=liveliness_check_period,
         )
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
@@ -206,7 +208,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # Event Receiver
         if _event_receiver:
-            self.event_receiver_object = DishLNEventReceiver(self, logger)
+            evt_subscription_check_period = event_subscription_check_period
+            self.event_receiver_object = DishLNEventReceiver(
+                self,
+                logger,
+                proxy_timeout=proxy_timeout,
+                event_subscription_check_period=evt_subscription_check_period,
+            )
             self.event_receiver_object.start()
 
         if _liveliness_probe != LivelinessProbeType.NONE:

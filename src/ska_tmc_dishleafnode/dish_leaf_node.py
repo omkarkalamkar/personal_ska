@@ -17,7 +17,7 @@ from ska_tmc_common import (
     LivelinessProbeType,
     PointingState,
 )
-from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
+from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import (
     ArgType,
     AttrDataFormat,
@@ -59,12 +59,12 @@ class DishLeafNode(TMCBaseLeafDevice):
         doc="FQDN of DishLeaf Node Pointing Device",
     )
 
-    SleepTime = device_property(dtype="DevFloat", default_value=1)
+    # SleepTime = device_property(dtype="DevFloat", default_value=1)
     DishAvailabilityCheckTimeout = device_property(
         dtype="DevUShort", default_value=3
     )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
-    AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
+    # AdapterTimeOut = device_property(dtype="DevFloat", default_value=2)
     IsDishAbortCommandsEnabled = device_property(
         dtype="DevBoolean", default_value=False
     )
@@ -972,7 +972,8 @@ class DishLeafNode(TMCBaseLeafDevice):
                 self.update_global_pointing_param_callback
             ),
             _update_pointingstate_callback=self.update_pointingstate_callback,
-            sleep_time=self.SleepTime,
+            event_subscription_check_period=self.EventSubscriptionCheckPeriod,
+            liveliness_check_period=self.LivelinessCheckPeriod,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,
             command_timeout=self.CommandTimeOut,
