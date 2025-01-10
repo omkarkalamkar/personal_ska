@@ -37,7 +37,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         update_pointing_program_track_table_callback: Callable,
         update_program_track_table_error_callback: Callable,
-        track_table_update_rate: float = 50.0,
+        track_table_update_rate: float = 10.0,
         elevation_max_limit: float = 90.0,
         elevation_min_limit: float = 15.0,
         track_table_advance_sec: int = 6,
