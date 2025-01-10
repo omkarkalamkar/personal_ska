@@ -49,11 +49,13 @@ class DishLNCommand(TmcLeafNodeCommand):
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
         dev_name = self.component_manager.dish_dev_name
-        timeout = self.component_manager.adapter_timeout
+        adapter_timeout = self.component_manager.adapter_timeout
         elapsed_time = 0
         start_time = time.time()
-
-        while self.dish_master_adapter is None and elapsed_time <= timeout:
+        while (
+            self.dish_master_adapter is None
+            and elapsed_time <= adapter_timeout
+        ):
             try:
                 self.dish_master_adapter = (
                     self._adapter_factory.get_or_create_adapter(
@@ -67,35 +69,39 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
             except ConnectionFailed as connection_failed:
                 elapsed_time = time.time() - start_time
-                if elapsed_time > timeout:
+                if elapsed_time > adapter_timeout:
                     return (
                         ResultCode.FAILED,
-                        str(connection_failed),
+                        "Error in creating adapter for "
+                        f"{dev_name}: {connection_failed}",
                     )
             except DevFailed as device_failed:
                 elapsed_time = time.time() - start_time
-                if elapsed_time > timeout:
+                if elapsed_time > adapter_timeout:
                     return (
                         ResultCode.FAILED,
-                        str(device_failed),
+                        f"Error in creating adapter for "
+                        f"{dev_name}: {device_failed}",
                     )
 
             except (AttributeError, ValueError, TypeError) as exception:
                 return (
                     ResultCode.FAILED,
-                    str(exception),
+                    f"Error in creating adapter for "
+                    f"{dev_name}: {exception}",
                 )
 
         elapsed_time = 0
         start_time = time.time()
+        dev_name = self.component_manager.dishln_pointing_dev_name
         while (
             self.dishln_pointing_device_adapter is None
-            and elapsed_time <= timeout
+            and elapsed_time <= adapter_timeout
         ):
             try:
                 self.dishln_pointing_device_adapter = (
                     self._adapter_factory.get_or_create_adapter(
-                        self.component_manager.dishln_pointing_dev_name,
+                        dev_name,
                         AdapterType.DISHLN_POINTING_DEVICE,
                     )
                 )
@@ -110,26 +116,29 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
             except ConnectionFailed as connection_failed:
                 elapsed_time = time.time() - start_time
-                if elapsed_time > timeout:
+                if elapsed_time > adapter_timeout:
                     return (
                         ResultCode.FAILED,
-                        str(connection_failed),
+                        f"Error in creating adapter for "
+                        f"{dev_name}: {connection_failed}",
                     )
             except DevFailed as device_failed:
                 elapsed_time = time.time() - start_time
-                if elapsed_time > timeout:
+                if elapsed_time > adapter_timeout:
                     return (
                         ResultCode.FAILED,
-                        str(device_failed),
+                        f"Error in creating adapter for "
+                        f"{dev_name}: {device_failed}",
                     )
 
             except (AttributeError, ValueError, TypeError) as exception:
                 return (
                     ResultCode.FAILED,
-                    str(exception),
+                    f"Error in creating adapter for "
+                    f"{dev_name}: {exception}",
                 )
 
-        return ResultCode.OK, ""
+        return ResultCode.OK, "Adapter initialisation is successful"
 
     def set_wait_for_dishmode(self: DishLNCommand, dishmode: DishMode) -> str:
         """Waits for transition of DishMode to the correct state.
