@@ -32,45 +32,39 @@ class BaseScanMapping:
         # input, if its present it checks what kind of reference frame
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
-        try:
-            if "target" in self.component_manager.target_data["pointing"]:
-                if (
+        if "target" in self.component_manager.target_data["pointing"]:
+            if (
+                self.component_manager.target_data["pointing"]["target"][
+                    "reference_frame"
+                ].lower()
+                == "special"
+            ):
+                self.component_manager.target = (
                     self.component_manager.target_data["pointing"]["target"][
-                        "reference_frame"
-                    ].lower()
-                    == "special"
-                ):
-                    self.component_manager.target = (
-                        self.component_manager.target_data["pointing"][
-                            "target"
-                        ]["target_name"]
-                    )
-                else:
-                    self.component_manager.target = [
-                        self.component_manager.target_data["pointing"][
-                            "target"
-                        ]["ra"],
-                        self.component_manager.target_data["pointing"][
-                            "target"
-                        ]["dec"],
+                        "target_name"
                     ]
+                )
             else:
-                # The below code is for pointing dishes in holography/mapping
-                # scans. The pointing devices does normal scanning in
-                # mapping scans.
                 self.component_manager.target = [
-                    self.component_manager.target_data["pointing"]["field"][
-                        "attrs"
-                    ]["c1"],
-                    self.component_manager.target_data["pointing"]["field"][
-                        "attrs"
-                    ]["c2"],
+                    self.component_manager.target_data["pointing"]["target"][
+                        "ra"
+                    ],
+                    self.component_manager.target_data["pointing"]["target"][
+                        "dec"
+                    ],
                 ]
-        except Exception as exception:
-            self.logger.error(
-                "An exception occurred while setting target data: %s",
-                exception,
-            )
+        else:
+            # The below code is for pointing dishes in holography/mapping
+            # scans. The pointing devices does normal scanning in
+            # mapping scans.
+            self.component_manager.target = [
+                self.component_manager.target_data["pointing"]["field"][
+                    "attrs"
+                ]["c1"],
+                self.component_manager.target_data["pointing"]["field"][
+                    "attrs"
+                ]["c2"],
+            ]
 
         try:
             # pylint: disable = C0301
