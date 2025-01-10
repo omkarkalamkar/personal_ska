@@ -34,7 +34,11 @@ class StopProgramTrackTable(FastCommand):
             self.logger.info("Executing StopProgramTrackTable command.")
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.set()
-            self.component_manager.track_table_thread.join()
+            if (
+                self.component_manager.track_table_thread
+                and self.component_manager.track_table_thread.is_alive()
+            ):
+                self.component_manager.track_table_thread.join()
             self.component_manager.update_program_track_table([])
             self.logger.info(
                 "StopProgramTrackTable command executed successfully"
