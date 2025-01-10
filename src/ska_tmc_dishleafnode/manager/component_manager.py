@@ -21,7 +21,7 @@ from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import (  # TmcLeafNodeComponentManager,
+from ska_tmc_common import (
     AdapterFactory,
     Band,
     CommandNotAllowed,
@@ -111,10 +111,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             EventReceiver object should be instantiated or not
         :param proxy_timeout: allows to specify a client side timeout
             for sub-devices in milliseconds used by the liveliness probe
-        :param sleep_time: allows to specify the wait between
-            each iteration of the liveliness probe and EventSubscriber
-        :param timeout: Time period to wait for initialization
-            of adapter
+        :param event_subscription_check_period: (int) Time in seconds for sleep
+            intervals in the event subsription thread.
+        :param liveliness_check_period: (int) Period for the liveliness probe
+            to monitor each device in a loop
+        :param adapter_timeout: (int) Timeout for the adapter creation
+        :param command_timeout: (int) Timeout for the command execution
 
         """
         super().__init__(

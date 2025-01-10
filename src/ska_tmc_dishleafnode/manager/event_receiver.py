@@ -10,7 +10,7 @@ from time import sleep
 from typing import Any, Callable, List
 
 import tango
-from ska_tmc_common import (  # EventReceiver,
+from ska_tmc_common import (
     DishDeviceInfo,
     DishMode,
     PointingState,
