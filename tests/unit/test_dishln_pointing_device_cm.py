@@ -7,7 +7,11 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
-from tests.settings import NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES, logger
+from tests.settings import (
+    NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES,
+    TIMEOUT,
+    logger,
+)
 
 
 def test_dish_pointing_device_cm(cm_pointig_device):
@@ -108,7 +112,6 @@ def test_dish_pointing_device_multi_command_scenarios(
     GenerateProgramTrackTable
 
     """
-    timeout = 0
     cm = cm_pointig_device
     configure_data = json_factory("dishleafnode_configure")
     configure_data = json.loads(configure_data)
@@ -118,9 +121,12 @@ def test_dish_pointing_device_multi_command_scenarios(
         logger=logger, component_manager=cm
     )
     generate_program_track_table.do()
-    while not cm.pointing_program_track_table and timeout < 5:
+    start_time = time.time()
+    while (
+        not cm.pointing_program_track_table
+        and (time.time() - start_time) < TIMEOUT
+    ):
         time.sleep(1)
-        timeout += 1
 
     assert (
         len(cm.pointing_program_track_table)
@@ -128,9 +134,13 @@ def test_dish_pointing_device_multi_command_scenarios(
     )
     track_table_thread1 = cm.track_table_thread
     generate_program_track_table.do()
-    while not cm.pointing_program_track_table and timeout < 5:
+
+    start_time = time.time()
+    while (
+        not cm.pointing_program_track_table
+        and (time.time() - start_time) < TIMEOUT
+    ):
         time.sleep(1)
-        timeout += 1
 
     assert (
         len(cm.pointing_program_track_table)
@@ -145,15 +155,21 @@ def test_dish_pointing_device_multi_command_scenarios(
     )
 
     stop_program_track_table.do()
-    while cm.pointing_program_track_table and timeout < 5:
+    start_time = time.time()
+    while (
+        cm.pointing_program_track_table
+        and (time.time() - start_time) < TIMEOUT
+    ):
         time.sleep(1)
-        timeout += 1
     assert len(cm.pointing_program_track_table) == 0
 
     generate_program_track_table.do()
-    while not cm.pointing_program_track_table and timeout < 5:
+    start_time = time.time()
+    while (
+        not cm.pointing_program_track_table
+        and (time.time() - start_time) < TIMEOUT
+    ):
         time.sleep(1)
-        timeout += 1
 
     assert (
         len(cm.pointing_program_track_table)
@@ -165,7 +181,10 @@ def test_dish_pointing_device_multi_command_scenarios(
     assert track_table_thread3 is not track_table_thread2
 
     stop_program_track_table.do()
-    while cm.pointing_program_track_table and timeout < 5:
+    start_time = time.time()
+    while (
+        cm.pointing_program_track_table
+        and (time.time() - start_time) < TIMEOUT
+    ):
         time.sleep(1)
-        timeout += 1
     assert len(cm.pointing_program_track_table) == 0
