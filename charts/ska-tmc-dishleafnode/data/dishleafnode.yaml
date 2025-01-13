@@ -6,6 +6,11 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $IsDishAbortCommandsEnabled := .Values.deviceServers.dishln.IsDishAbortCommandsEnabled }}
 {{- $MaxTrackTableRetry := .Values.deviceServers.dishln.MaxTrackTableRetry }}
 {{- $TrackTableRetryDuration := .Values.deviceServers.dishln.TrackTableRetryDuration }}
+{{- $LivelinessCheckPeriod := .Values.deviceServers.dishln.LivelinessCheckPeriod }}
+{{- $EventSubscriptionCheckPeriod := .Values.deviceServers.dishln.EventSubscriptionCheckPeriod }}
+{{- $CommandTimeOut := .Values.deviceServers.dishln.CommandTimeOut }}
+{{- $AdapterTimeOut := .Values.deviceServers.dishln.AdapterTimeOut }}
+{{- $DishAvailabilityCheckTimeout := .Values.deviceServers.dishln.DishAvailabilityCheckTimeout }}
 
 server:
   name: "dish_leaf_node"
@@ -41,6 +46,21 @@ server:
           - name: "TrackTableRetryDuration"
             values:
               - "{{ $TrackTableRetryDuration }}"
+          - name: "LivelinessCheckPeriod"
+            values:
+              - "{{ $LivelinessCheckPeriod }}"
+          - name: "EventSubscriptionCheckPeriod"
+            values:
+              - "{{ $EventSubscriptionCheckPeriod }}"
+          - name: "AdapterTimeOut"
+            values:
+              - "{{ $AdapterTimeOut }}"
+          - name: "CommandTimeOut"
+            values:
+              - "{{ $CommandTimeOut }}"
+          - name: "DishAvailabilityCheckTimeout"
+            values:
+              - "{{ $DishAvailabilityCheckTimeout }}"
   {{- end }}
 depends_on:
   - device: sys/database/2

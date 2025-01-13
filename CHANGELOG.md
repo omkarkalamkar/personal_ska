@@ -105,6 +105,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.19.6]
+********
+* Resolved bug SKB-658
+
 [0.19.3]
 ********
 * AbortCommands is implemented as a Slow Command
