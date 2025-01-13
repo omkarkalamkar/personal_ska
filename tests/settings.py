@@ -421,6 +421,19 @@ def simulate_result_code_event(
     cm.update_device_long_running_command_result(device_name, command_result)
 
 
+def simulate_track_table_event(
+    cm: DishLNComponentManager,
+):
+    """Simulate an event for tracktable."""
+    cm.update_program_track_table(
+        [
+            775853423.2247269,
+            178.758613204265,
+            31.165682681453,
+        ]
+    )
+
+
 def simulate_dish_mode_event(
     cm: DishLNComponentManager,
     dishmode: DishMode,

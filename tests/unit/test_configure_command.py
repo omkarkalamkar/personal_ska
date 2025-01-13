@@ -15,6 +15,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     simulate_result_code_event,
+    simulate_track_table_event,
     wait_for_dish_mode,
 )
 
@@ -38,11 +39,6 @@ def test_configure_command_completed(
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
-    dish_device.programTrackTable = [
-        775853423.2247269,
-        178.758613204265,
-        31.165682681453,
-    ]
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -58,6 +54,7 @@ def test_configure_command_completed(
     simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
 
     time.sleep(2)
+    simulate_track_table_event(cm)
     cm.update_device_pointing_state(PointingState.TRACK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
     cm.observable.notify_observers(attribute_value_change=True)
