@@ -383,9 +383,6 @@ class Configure(DishLNCommand):
             logger=self.logger,
             is_configure_command=True,
         )
-        self.logger.debug(
-            "ConfigureBand: %s", self.component_manager.receiver_band
-        )
         configure_band_command.configure_band(
             argin=self.component_manager.receiver_band,
             logger=self.logger,

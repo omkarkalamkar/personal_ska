@@ -92,3 +92,80 @@ def test_dish_pointing_device_program_track_table_error(
         time.sleep(1)
         timeout += 1
     assert "exception" in cm.current_track_table_error.lower()
+
+
+def test_dish_pointing_device_multi_command_scenarios(
+    cm_pointig_device, json_factory
+):
+    """
+    This test tests following scenarios:
+    1. Ensure same thread is used for tracktable calculation in following
+    command sequence:
+    GenerateProgramTrackTable -> GenerateProgramTrackTable
+
+    2. Ensure same thread is not are used in following command sequence:
+    GenerateProgramTrackTable -> StopProgramTrackTable ->
+    GenerateProgramTrackTable
+
+    """
+    timeout = 0
+    cm = cm_pointig_device
+    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json.loads(configure_data)
+    del configure_data["dish"]
+    cm.target_data = configure_data
+    generate_program_track_table = GenerateProgramTrackTable(
+        logger=logger, component_manager=cm
+    )
+    generate_program_track_table.do()
+    while not cm.pointing_program_track_table and timeout < 5:
+        time.sleep(1)
+        timeout += 1
+
+    assert (
+        len(cm.pointing_program_track_table)
+        == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+    )
+    track_table_thread1 = cm.track_table_thread
+    generate_program_track_table.do()
+    while not cm.pointing_program_track_table and timeout < 5:
+        time.sleep(1)
+        timeout += 1
+
+    assert (
+        len(cm.pointing_program_track_table)
+        == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+    )
+    track_table_thread2 = cm.track_table_thread
+
+    assert track_table_thread1 is track_table_thread2
+
+    stop_program_track_table = StopProgramTrackTable(
+        logger=logger, component_manager=cm
+    )
+
+    stop_program_track_table.do()
+    while cm.pointing_program_track_table and timeout < 5:
+        time.sleep(1)
+        timeout += 1
+    assert len(cm.pointing_program_track_table) == 0
+
+    generate_program_track_table.do()
+    while not cm.pointing_program_track_table and timeout < 5:
+        time.sleep(1)
+        timeout += 1
+
+    assert (
+        len(cm.pointing_program_track_table)
+        == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+    )
+
+    track_table_thread3 = cm.track_table_thread
+    assert track_table_thread3 is not track_table_thread1
+    assert track_table_thread3 is not track_table_thread2
+
+    stop_program_track_table.do()
+    while cm.pointing_program_track_table and timeout < 5:
+        time.sleep(1)
+        timeout += 1
+    assert len(cm.pointing_program_track_table) == 0
