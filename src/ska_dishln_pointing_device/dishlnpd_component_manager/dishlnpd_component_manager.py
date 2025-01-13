@@ -210,7 +210,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Calculated ProgramTrackTable: %s", program_track_table
         )
 
-    def create_thread_and_start_track_table_calculation(self) -> None:
+    def start_track_table_calculation(self) -> None:
         """This method creates and starts a thread for the programTrackTable
         calculation."""
         try:
@@ -218,10 +218,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 not self.track_table_thread
                 or not self.track_table_thread.is_alive()
             ):
-                self.track_table_thread = threading.Thread(
-                    target=self.track_thread
-                )
-                self.logger.debug("Starting programTrackTable calculation.")
+                self.create_track_table_thread()
                 self.track_table_thread.start()
                 self.logger.debug("Started programTrackTable calculation.")
             else:
@@ -229,6 +226,19 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     "programTrackTable calculation is already going on."
                     + " New thread will not be hosted."
                 )
+        except Exception as exception:
+            self.logger.error(
+                "Exception occurred while starting programTrackTable "
+                "calculation: %s",
+                str(exception),
+            )
+
+    def create_track_table_thread(self) -> None:
+        """This creates thread for track table calculation."""
+        try:
+            self.track_table_thread = threading.Thread(
+                target=self.track_thread
+            )
         except Exception as exception:
             self.logger.error(
                 "Exception occurred while starting programTrackTable "
