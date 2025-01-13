@@ -44,7 +44,8 @@ Properties in Dish Leaf Node
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | CommandTimeOut                | DevFloat      | Timeout for the command execution                                              |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
-| DishAvailabilityCheckTimeout  | DevFloat      | Timeout for the dish availability check. This property is for internal use?    |
+| DishAvailabilityCheckTimeout  | DevFloat      | Timeout for the dish availability check during intialisation. This property is |
+|                               |               | for internal use.                                                              |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | MaxTrackTableRetry            | DevShort      | Maximum retries for the programTrackTable write operations                     |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
