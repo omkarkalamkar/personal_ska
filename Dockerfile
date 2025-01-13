@@ -11,7 +11,6 @@ USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 RUN poetry config virtualenvs.create false
 WORKDIR /app
-
 COPY --chown=tango:tango . /app
 # Install runtime dependencies and the app
 RUN poetry install --only main
