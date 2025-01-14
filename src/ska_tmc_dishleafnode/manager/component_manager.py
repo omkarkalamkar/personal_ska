@@ -32,7 +32,6 @@ from ska_tmc_common import (
     LivelinessProbeType,
     PointingState,
     SdpQueueConnectorDeviceInfo,
-    TmcLeafNodeComponentManager,
     TrackTableLoadMode,
 )
 from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
