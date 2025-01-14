@@ -291,7 +291,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.track_table_time_stamp = extended_time
 
             with self.track_thread_lock:
-                self.mapping_scan_event.clear()
+                # self.mapping_scan_event.clear()
                 is_track_thread_stop = self.mapping_scan_event.is_set()
 
             track_table_scheduler = sched.scheduler(time.time, time.sleep)

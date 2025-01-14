@@ -34,6 +34,8 @@ class GenerateProgramTrackTable(FastCommand):
         """This method generates program track table."""
         try:
             self.logger.debug("Executing GenerateProgramTrackTable command.")
+            with self.component_manager.track_thread_lock:
+                self.component_manager.mapping_scan_event.clear()
             if (
                 self.component_manager.target_data
                 and "trajectory"
