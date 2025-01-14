@@ -6,7 +6,7 @@ from typing import List, Tuple
 from ska_tango_base.base.base_device import SKABaseDevice
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.control_model import HealthState
-from ska_tmc_common.tmc_base_leaf_device import TMCBaseLeafDevice
+from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import ArgType, AttrDataFormat, AttrWriteType, DevState
 from tango.server import attribute, command, device_property, run
 

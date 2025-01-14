@@ -13,7 +13,7 @@ from typing import Callable, List
 
 from astropy.time import Time
 from astropy.utils import iers
-from ska_tmc_common.tmc_component_manager import TmcLeafNodeComponentManager
+from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import (
