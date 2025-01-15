@@ -5,6 +5,7 @@ pointing device component manager.
 from __future__ import annotations
 
 import datetime
+import operator
 import sched
 import threading
 import time
@@ -37,7 +38,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         update_pointing_program_track_table_callback: Callable,
         update_program_track_table_error_callback: Callable,
-        track_table_update_rate: float = 10.0,
+        track_table_update_rate: float,
         elevation_max_limit: float = 90.0,
         elevation_min_limit: float = 15.0,
         track_table_advance_sec: int = 6,
@@ -71,8 +72,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.observer = None
         self.track_table_update_rate: float = track_table_update_rate
-        self.pointing_calculation_period: float = (
-            self.track_table_update_rate / PROGRAM_TRACK_TABLE_SIZE
+        self.pointing_calculation_period: float = operator.truediv(
+            self.track_table_update_rate, PROGRAM_TRACK_TABLE_SIZE
         )
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name
@@ -218,9 +219,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 not self.track_table_thread
                 or not self.track_table_thread.is_alive()
             ):
-                self.create_track_table_thread()
-                self.track_table_thread.start()
-                self.logger.debug("Started programTrackTable calculation.")
+                with self.track_thread_lock:
+                    self.create_track_table_thread()
+                    self.track_table_thread.start()
+                    self.logger.debug("Started trackTable thread.")
             else:
                 self.logger.debug(
                     "programTrackTable calculation is already going on."
@@ -258,7 +260,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.logger.debug(
-                "Staring ProgramTrackTable.",
+                "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             # This is dummy calculation because first time calculation takes
@@ -278,9 +280,14 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             # is approximately 20 milliseconds. Therefore, the total
             # calculation time and the advanced tracktable time are added to
             # the current timestamp to generate the future tracktable.
+
+            RaDec_AzEl_conversion_time = 0.02
             time_to_add: float = (
-                PROGRAM_TRACK_TABLE_SIZE * 0.02
-            ) + self.track_table_advance_sec
+                operator.mul(
+                    PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
+                )
+                + self.track_table_advance_sec
+            )
 
             extended_time: datetime.datetime = utc_now + datetime.timedelta(
                 seconds=time_to_add
@@ -348,10 +355,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         )
 
                         self.logger.debug(
-                            "update_program_track_table - Added in scheduler"
+                            "Scheduled tracktable write operation"
                         )
                         track_table_scheduler.run(blocking=False)
-                        self.logger.debug("Execution done")
+                        self.logger.debug("Schedular execution done")
 
             self.logger.debug("Program Track Table Calculation stopped.")
 
