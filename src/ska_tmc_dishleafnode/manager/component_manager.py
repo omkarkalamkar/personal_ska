@@ -1486,6 +1486,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.info(
                 f"dishMode value updated to {DishMode(dish_mode).name}"
             )
+            self.observable.notify_observers(attribute_value_change=True)
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
@@ -1544,6 +1545,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
             )
+            self.observable.notify_observers(attribute_value_change=True)
             if self._update_pointingstate_callback:
                 self._update_pointingstate_callback(pointingState)
 
