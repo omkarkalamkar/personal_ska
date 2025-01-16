@@ -1767,7 +1767,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
                 self.logger.info("Checking unique_id- %s", unique_id)
-                if "ConfigureBand" in unique_id:
+                if "ConfigureBand" in unique_id and not "SPFRX" in unique_id:
                     self.configure_band_result["result_code"] = result_code
                     self.configure_band_result["message"] = message
                     self.logger.debug(
