@@ -14,7 +14,12 @@ from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import DishMode, PointingState, TimeKeeper
+from ska_tmc_common import (
+    DishMode,
+    PointingState,
+    TimeKeeper,
+    TrackTableLoadMode,
+)
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
@@ -96,6 +101,9 @@ class Configure(DishLNCommand):
             self.component_manager.receiver_band = json_argument["dish"][
                 "receiver_band"
             ]
+            self.logger.debug(
+                "Set receiver_band to %s", self.component_manager.receiver_band
+            )
 
         result_code, message = self.do(argin)
         self.set_command_id(__class__.__name__)
@@ -124,6 +132,10 @@ class Configure(DishLNCommand):
                     self.dish_master_adapter.dev_name,
                 )
             else:
+                # Stop tracktable calculation if Configure command execution
+                # is not completed successfully.
+                self.logger.debug("Stopping tracktable calculation")
+                self.dishln_pointing_device_adapter.StopProgramTrackTable()
                 self.task_callback(
                     status=status,
                     result=result,
@@ -131,6 +143,7 @@ class Configure(DishLNCommand):
                 )
 
                 self.component_manager.command_in_progress = ""
+            self.logger.debug("Performing configure command cleanup.")
             self.component_manager.command_id = ""
             self.component_manager.receiver_band = ""
             self.component_manager.partial_configure = False
@@ -230,6 +243,9 @@ class Configure(DishLNCommand):
                 )
                 return result_code, message
 
+            self.component_manager.trackTableLoadMode = TrackTableLoadMode.NEW
+            self.component_manager.is_tracktable_provided.clear()
+
             json_argument = json.loads(argin)
 
             reset_offset = (
@@ -261,6 +277,7 @@ class Configure(DishLNCommand):
                 self.dishln_pointing_device_adapter.targetData = json.dumps(
                     {"pointing": pointing_device_conf_json["pointing"]}
                 )
+                self.logger.debug("Calling GenerateProgramTrackTable()")
                 self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
                 if self.component_manager._update_health_state_callback:
                     self.component_manager._update_health_state_callback(
@@ -719,14 +736,14 @@ class Configure(DishLNCommand):
             track_table = self.dish_master_adapter.programTrackTable
             self.logger.debug("is_tracktable_provided: %s", track_table)
 
-            if len(track_table) > 0:
+            if self.component_manager.is_tracktable_provided.is_set():
                 track_table_status = CommandResult.ACHIEVED
                 self.invoke_track_command_on_dish(json_argument)
                 break
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
         self.logger.debug(
-            "Number of track table provided %s", len(track_table)
+            "Come out of loop that waits for tracktable before Track"
         )
         if len(track_table) == 0:
             # Set Failure for configure

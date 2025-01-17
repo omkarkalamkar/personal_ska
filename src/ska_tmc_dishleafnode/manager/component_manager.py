@@ -32,6 +32,7 @@ from ska_tmc_common import (
     LivelinessProbeType,
     PointingState,
     SdpQueueConnectorDeviceInfo,
+    TrackTableLoadMode,
 )
 from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
@@ -236,6 +237,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.correction_key: str = CORRECTION_KEY.NOT_SET.value
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self.max_track_table_retry = max_track_table_retry
+        self.track_table_retry_duration = track_table_retry_duration
+        self.is_tracktable_provided = threading.Event()
 
     @property
     def configure_track_lrcr(self):
@@ -298,9 +302,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Cleared the command result dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
-        """Method to reset the command result dictionaries, events and flgas
-        utilised in Configure command"""
-
+        """Method to reset the command result dictionaries, events and flags
+        utilized in Configure command"""
         self.reset_command_result_values()
         self.is_configure_event.clear()
         self.is_configure_command = False
@@ -1483,6 +1486,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.info(
                 f"dishMode value updated to {DishMode(dish_mode).name}"
             )
+            self.observable.notify_observers(attribute_value_change=True)
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
@@ -1541,6 +1545,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
             )
+            self.observable.notify_observers(attribute_value_change=True)
             if self._update_pointingstate_callback:
                 self._update_pointingstate_callback(pointingState)
 
@@ -1603,6 +1608,36 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.check_device_responsive()
         return True
 
+    @property
+    def trackTableLoadMode(self) -> TrackTableLoadMode:
+        """
+        Returns dish's trackTableLoadMode attribute value.
+
+        :return: TrackTableLoadMode
+        :rtype: enum
+        """
+        return self.dish_adapter.trackTableLoadMode
+
+    @trackTableLoadMode.setter
+    def trackTableLoadMode(self, load_mode: TrackTableLoadMode) -> None:
+        """
+        Update dish's trackTableLoadMode attribute value.
+        :param load_mode: It a list of TAI time, Az and El for
+            expected number of TAI times (TrackTableEntries).
+        :type load_mode: TrackTableLoadMode
+        :return: None
+        :rtype: None
+        """
+        try:
+            self.dish_adapter.trackTableLoadMode = load_mode
+            self.logger.debug("Updated trackTableLoadMode to %s", load_mode)
+        except (tango.DevFailed, Exception) as excption:
+            self.logger.error(
+                "Exception occured while setting trackTableLoadMode on"
+                " the dish: %s",
+                excption,
+            )
+
     def update_program_track_table(
         self: DishLNComponentManager, program_track_table: List
     ) -> None:
@@ -1616,6 +1651,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+        if len(program_track_table) == 0:
+            self.logger.info("TrackTable is not generated yet.")
+            return
 
         self.logger.debug(
             "ProgramTrackTable will be updated, "
@@ -1627,7 +1665,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug("Retry is: %s", retry)
                 try:
                     self.dish_adapter.programTrackTable = program_track_table
+                    self.is_tracktable_provided.set()
                     self.logger.debug("ProgramTrackTable Updated")
+                    if (
+                        self.trackTableLoadMode
+                        is not TrackTableLoadMode.APPEND
+                    ):
+                        self.trackTableLoadMode = TrackTableLoadMode.APPEND
+
                     break
 
                 except BaseException as exception:
@@ -1722,7 +1767,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
                 self.logger.info("Checking unique_id- %s", unique_id)
-                if "ConfigureBand" in unique_id:
+                if "ConfigureBand" in unique_id and "SPFRX" not in unique_id:
                     self.configure_band_result["result_code"] = result_code
                     self.configure_band_result["message"] = message
                     self.logger.debug(

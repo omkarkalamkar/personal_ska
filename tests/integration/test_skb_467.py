@@ -11,6 +11,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     get_non_sidereal_json_for_now,
     logger,
+    tear_down,
 )
 
 OFFSET = 5.0
@@ -111,6 +112,7 @@ def configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
 @pytest.mark.post_deployment

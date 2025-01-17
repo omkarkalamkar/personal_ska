@@ -1,5 +1,3 @@
-# import json
-
 import pytest
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
@@ -14,6 +12,7 @@ def test_dishln_pointing_device():
     """Test the dishln pointing device is up and pingable"""
 
     dishln_pointing_device = DevFactory().get_device(DISHLN_POINTING_DEVICE)
+    dishln_pointing_device.set_timeout_millis(5000)
     assert dishln_pointing_device.ping() > 0
     assert dishln_pointing_device.HealthState == HealthState.OK
     assert (

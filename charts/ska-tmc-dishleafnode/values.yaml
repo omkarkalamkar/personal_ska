@@ -73,9 +73,8 @@ deviceServers:
   dishpointingdevice:
     enabled: true
     instances: ["01", "02"]
-    TrackTableEntries: 50
-    PointingCalculationPeriod: 50
-    TrackTableInAdvance: 7
+    TrackTableUpdateRate: 50
+    TrackTableInAdvance: 6
     Elevation: 30.0
     Azimuth: 0.0
     ElevationMaxLimit: 90.0

@@ -9,7 +9,7 @@ from typing import List, Union
 from astropy.time import Time
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.constants import SKA_EPOCH
+from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
 
 
 class ProgramTrackTableCalculator:
@@ -65,7 +65,6 @@ class ProgramTrackTableCalculator:
                 tai_timestamp_list,
             ) = self.calculate_time_stamp_list()
             results: list = list(map(self.point, time_stamp_list))
-            self.logger.debug("Result is %s", results)
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):
                     message = (
@@ -138,7 +137,7 @@ class ProgramTrackTableCalculator:
         time_stamp_list = []
         tai_timestamp_list = []
         try:
-            for _ in range(self.component_manager.track_table_entries):
+            for _ in range(PROGRAM_TRACK_TABLE_SIZE):
                 timestamp_time_obj = Time(
                     self.track_table_time_stamp, scale="utc"
                 )
@@ -149,7 +148,7 @@ class ProgramTrackTableCalculator:
                 self.track_table_time_stamp = (
                     self.track_table_time_stamp
                     + datetime.timedelta(
-                        milliseconds=(
+                        seconds=(
                             self.component_manager.pointing_calculation_period
                         )
                     )

@@ -31,23 +31,16 @@ class DishPointingDevice(TMCBaseLeafDevice):
     """
 
     # Dish Track command properties
-    Elevation = device_property(dtype="DevFloat", default_value=30.0)
-    Azimuth = device_property(dtype="DevFloat", default_value=0.0)
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=15.0)
-    TrackTableEntries = device_property(
-        dtype="DevShort",
-        default_value=25,
-        doc="Number of entries in programTrackTable",
-    )
-    PointingCalculationPeriod = device_property(
-        dtype="DevShort",
-        default_value=100,
-        doc="Time difference between two consecutive entries of"
-        + "programTrackTable in milliseconds",
+    TrackTableUpdateRate = device_property(
+        dtype="DevFloat",
+        default_value=50,
+        doc="The rate at which a tracktable is provided. It is one"
+        + "tracktable per specified number of seconds.",
     )
     TrackTableInAdvance = device_property(
-        dtype="DevShort",
+        dtype="DevFloat",
         default_value=6,
         doc="programTrackTable in advance in seconds",
     )
@@ -122,8 +115,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     )
     def pointingProgramTrackTable(self) -> str:
         """
-        This attribute is used for storing the FQDN of Dish leaf node pointing
-        device.
+        This attribute is used for storing calculated tracktable.
         :return: str
         """
         return json.dumps(self.pointing_program_track_table)
@@ -223,10 +215,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 update_program_track_table_error_callback=(
                     self.update_program_track_table_error_callback
                 ),
-                track_table_entries=self.TrackTableEntries,
-                pointing_calculation_period=self.PointingCalculationPeriod,
-                elevation=self.Elevation,
-                azimuth=self.Azimuth,
+                track_table_update_rate=self.TrackTableUpdateRate,
                 elevation_max_limit=self.ElevationMaxLimit,
                 elevation_min_limit=self.ElevationMinLimit,
                 track_table_advance_sec=self.TrackTableInAdvance,

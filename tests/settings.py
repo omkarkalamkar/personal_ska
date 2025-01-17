@@ -227,7 +227,9 @@ def wait_for_unresponsive(cm: DishLNComponentManager) -> bool:
 
 
 def tear_down(
-    dish_leaf_node: DeviceProxy, dish_master: DeviceProxy, group_callback
+    dish_leaf_node: DeviceProxy,
+    dish_master: DeviceProxy,
+    group_callback,
 ):
     """Teardown for the Dish Leaf Node device."""
 
@@ -417,6 +419,19 @@ def simulate_result_code_event(
         ),
     )
     cm.update_device_long_running_command_result(device_name, command_result)
+
+
+def simulate_track_table_event(
+    cm: DishLNComponentManager,
+):
+    """Simulate an event for tracktable."""
+    cm.update_program_track_table(
+        [
+            775853423.2247269,
+            178.758613204265,
+            31.165682681453,
+        ]
+    )
 
 
 def simulate_dish_mode_event(

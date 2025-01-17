@@ -8,7 +8,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 [0.19.5]
 ********
 * Update lock placement with skb-525 changes.
-  
+* Applied fix for SKB-606.
+* Applied fixes for multi-configure issues
+* Provided TrackTableUpdateRate as a configurable parameter
+* Removed PointingCalculationPeriod configurable parameter
+
 [0.19.4]
 ********
 * Update lock placement.
@@ -142,7 +146,7 @@ Fixed
 
 [0.17.1]
 * Updated the correction key behaviour when correction key is empty. 
-  
+
 [0.16.4]
 * Fix for SKB-419 and SKB-469
 * Set and push archive events for all the attributes

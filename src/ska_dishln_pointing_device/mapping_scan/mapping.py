@@ -1,6 +1,5 @@
 """This module provides base class for the mappings/patterns"""
 
-import threading
 from logging import Logger
 
 
@@ -33,7 +32,6 @@ class BaseScanMapping:
         # input, if its present it checks what kind of reference frame
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
-
         if "target" in self.component_manager.target_data["pointing"]:
             if (
                 self.component_manager.target_data["pointing"]["target"][
@@ -56,8 +54,9 @@ class BaseScanMapping:
                     ],
                 ]
         else:
-            # The below code is for pointing dishes in holography/mapping scans
-            # The pointing devices does normal scanning in mapping scans.
+            # The below code is for pointing dishes in holography/mapping
+            # scans. The pointing devices does normal scanning in
+            # mapping scans.
             self.component_manager.target = [
                 self.component_manager.target_data["pointing"]["field"][
                     "attrs"
@@ -66,7 +65,8 @@ class BaseScanMapping:
                     "attrs"
                 ]["c2"],
             ]
-        track_thread = threading.Thread(
-            target=self.component_manager.track_thread
-        )
-        track_thread.start()
+
+        try:
+            self.component_manager.start_track_table_calculation()
+        except Exception as exception:
+            self.logger.error("Exception: %s", exception)

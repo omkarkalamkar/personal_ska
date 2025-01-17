@@ -5,6 +5,7 @@ pointing device component manager.
 from __future__ import annotations
 
 import datetime
+import operator
 import sched
 import threading
 import time
@@ -16,7 +17,11 @@ from astropy.utils import iers
 from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
+from ska_tmc_dishleafnode.constants import (
+    IERS_DATA_STORAGE_PATH,
+    PROGRAM_TRACK_TABLE_SIZE,
+    SKA_EPOCH,
+)
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
@@ -33,12 +38,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         logger: Logger,
         update_pointing_program_track_table_callback: Callable,
         update_program_track_table_error_callback: Callable,
-        track_table_entries: int,
-        pointing_calculation_period: int,
-        elevation: float = 0.0,
-        azimuth: float = 0.0,
-        elevation_max_limit: float = 0.0,
-        elevation_min_limit: float = 0.0,
+        track_table_update_rate: float,
+        elevation_max_limit: float = 90.0,
+        elevation_min_limit: float = 15.0,
         track_table_advance_sec: int = 6,
     ):
         """
@@ -65,15 +67,14 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         # and clear the event for next usage.
         self.mapping_scan_event = threading.Event()
         self.set_change_pointing_event = threading.Event()
-        self.elevation = elevation
-        self.azimuth = azimuth
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
         self.iers_a = None
         self.observer = None
-        self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
-        self.pointing_calculation_period: int = pointing_calculation_period
-        self.track_table_entries: int = track_table_entries
+        self.track_table_update_rate: float = track_table_update_rate
+        self.pointing_calculation_period: float = operator.truediv(
+            self.track_table_update_rate, PROGRAM_TRACK_TABLE_SIZE
+        )
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name
         self.logger.info(
@@ -90,6 +91,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
+        self.track_table_thread = None
 
     @property
     def target_data(self):
@@ -209,6 +211,43 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Calculated ProgramTrackTable: %s", program_track_table
         )
 
+    def start_track_table_calculation(self) -> None:
+        """This method creates and starts a thread for the programTrackTable
+        calculation."""
+        try:
+            if (
+                not self.track_table_thread
+                or not self.track_table_thread.is_alive()
+            ):
+                with self.track_thread_lock:
+                    self.create_track_table_thread()
+                    self.track_table_thread.start()
+                    self.logger.debug("Started trackTable thread.")
+            else:
+                self.logger.debug(
+                    "programTrackTable calculation is already going on."
+                    + " New thread will not be hosted."
+                )
+        except Exception as exception:
+            self.logger.error(
+                "Exception occurred while starting programTrackTable "
+                "calculation: %s",
+                str(exception),
+            )
+
+    def create_track_table_thread(self) -> None:
+        """This creates thread for track table calculation."""
+        try:
+            self.track_table_thread = threading.Thread(
+                target=self.track_thread
+            )
+        except Exception as exception:
+            self.logger.error(
+                "Exception occurred while starting programTrackTable "
+                "calculation: %s",
+                str(exception),
+            )
+
     def track_thread(
         self: DishlnPointingDataComponentManager,
     ) -> None:
@@ -221,7 +260,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.logger.debug(
-                "Staring ProgramTrackTable.",
+                "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             # This is dummy calculation because first time calculation takes
@@ -237,12 +276,18 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
             utc_now = datetime.datetime.utcnow()
 
-            # For future timestamp few seconds are added in current time.
-            # Divided by 1000 to convert ms to sec conversion.
+            # The average time required to perform a RaDec to AzEl conversion
+            # is approximately 20 milliseconds. Therefore, the total
+            # calculation time and the advanced tracktable time are added to
+            # the current timestamp to generate the future tracktable.
+
+            RaDec_AzEl_conversion_time = 0.02
             time_to_add: float = (
-                (self.track_table_entries * self.pointing_calculation_period)
-                / 1000
-            ) + self.track_table_advance_sec
+                operator.mul(
+                    PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
+                )
+                + self.track_table_advance_sec
+            )
 
             extended_time: datetime.datetime = utc_now + datetime.timedelta(
                 seconds=time_to_add
@@ -251,9 +296,20 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self, self.logger
             )
             track_table_calculator.track_table_time_stamp = extended_time
-            is_track_thread_stop = self.mapping_scan_event.is_set()
-            self.logger.debug("Current target used %s", self.target)
+
+            with self.track_thread_lock:
+                is_track_thread_stop = self.mapping_scan_event.is_set()
+
+            track_table_scheduler = sched.scheduler(time.time, time.sleep)
+            event_priority: int = 1
             while not is_track_thread_stop:
+                self.logger.debug(
+                    "Current Thread ID: %s", threading.get_native_id()
+                )
+                self.logger.debug(
+                    "Target used to calculate tracktable: %s", self.target
+                )
+
                 with self.track_thread_lock:
                     is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
@@ -289,10 +345,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     "scheduled_time_human  %s", scheduled_time_readable
                 )
 
-                event_priority: int = 1
                 with self.track_thread_lock:
                     if not self.mapping_scan_event.is_set():
-                        self.track_table_scheduler.enterabs(
+                        track_table_scheduler.enterabs(
                             scheduled_time,
                             event_priority,
                             self.update_program_track_table,
@@ -300,14 +355,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         )
 
                         self.logger.debug(
-                            "update_program_track_table - Added in scheduler"
+                            "Scheduled tracktable write operation"
                         )
-                        self.track_table_scheduler.run(blocking=False)
-                        self.logger.debug("Execution done")
+                        track_table_scheduler.run(blocking=False)
+                        self.logger.debug("Schedular execution done")
 
             self.logger.debug("Program Track Table Calculation stopped.")
-            self.update_program_track_table([])
-            self.logger.debug("Cleared programTrackTable attribute.")
 
         except Exception as value_error:
             self.logger.error("Exception is: %s", str(value_error))

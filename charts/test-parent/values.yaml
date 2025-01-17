@@ -37,9 +37,8 @@ tmc-dishleafnode:
       MaxTrackTableRetry: 3
       TrackTableRetryDuration: 0.2
     dishpointingdevice:
-      TrackTableEntries: 50
-      PointingCalculationPeriod: 50
-      TrackTableInAdvance: 7
+      TrackTableUpdateRate: 50
+      TrackTableInAdvance: 6
       Elevation: 30.0
       Azimuth: 0.0
       ElevationMaxLimit: 90.0

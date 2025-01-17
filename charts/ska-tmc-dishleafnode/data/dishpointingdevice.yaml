@@ -3,8 +3,7 @@ function: dish-pointing
 domain: pattern-mapping
 entrypoints:
   - name: "ska_dishln_pointing_device.dishln_pointing_device.DishPointingDevice"
-{{- $TrackTableEntries := .Values.deviceServers.dishpointingdevice.TrackTableEntries }}
-{{- $PointingCalculationPeriod := .Values.deviceServers.dishpointingdevice.PointingCalculationPeriod }}
+{{- $TrackTableUpdateRate := .Values.deviceServers.dishpointingdevice.TrackTableUpdateRate }}
 {{- $TrackTableInAdvance := .Values.deviceServers.dishpointingdevice.TrackTableInAdvance }}
 {{- $Elevation := .Values.deviceServers.dishpointingdevice.Elevation }}
 {{- $Azimuth := .Values.deviceServers.dishpointingdevice.Azimuth }}
@@ -21,12 +20,9 @@ server:
         devices:
         - name: "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
           properties:
-            - name: "TrackTableEntries"
+            - name: "TrackTableUpdateRate"
               values:
-                - "{{ $TrackTableEntries }}"
-            - name: "PointingCalculationPeriod"
-              values:
-                - "{{ $PointingCalculationPeriod }}"
+                - "{{ $TrackTableUpdateRate }}"
             - name: "TrackTableInAdvance"
               values:
                 - "{{ $TrackTableInAdvance }}"
