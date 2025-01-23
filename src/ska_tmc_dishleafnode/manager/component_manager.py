@@ -318,6 +318,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.reset_command_result_values()
         self.is_configure_event.clear()
         self.is_configure_command = False
+        self.command_unique_id_list.clear()
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -1780,8 +1781,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if unique_id not in self.command_unique_id_list:
             self.logger.debug(
-                "Event for is %s will be ignored by the DishLeafNode since its"
-                + " irrlevent.",
+                "Event for %s will be ignored by the DishLeafNode.",
                 unique_id,
             )
             return
