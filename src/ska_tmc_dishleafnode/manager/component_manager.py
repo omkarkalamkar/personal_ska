@@ -240,6 +240,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
+        self.command_unique_id_list = []
 
     @property
     def configure_track_lrcr(self):
@@ -1762,12 +1763,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         if value == ("", "") or not value:
             return
+        unique_id, result_code_message = value
+
+        if unique_id not in self.command_unique_id_list:
+            self.logger.debug(
+                "Event for is %s will be ignored by the DishLeafNode since its"
+                + " irrlevent.",
+                unique_id,
+            )
+            return
+
         try:
-            unique_id, result_code_message = value
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
                 self.logger.info("Checking unique_id- %s", unique_id)
-                if "ConfigureBand" in unique_id and "SPFRX" not in unique_id:
+                if "ConfigureBand" in unique_id:
                     self.configure_band_result["result_code"] = result_code
                     self.configure_band_result["message"] = message
                     self.logger.debug(

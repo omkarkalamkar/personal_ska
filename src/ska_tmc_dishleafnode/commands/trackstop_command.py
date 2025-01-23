@@ -89,6 +89,14 @@ class TrackStop(DishLNCommand):
                 )
             self.logger.debug("Released tango lock")
 
+        self.logger.info(
+            "TrackStop command -> Result Code: %s, msg: %s",
+            result_code,
+            message,
+        )
+        # Append command unique id
+        self.component_manager.command_unique_id_list.append(message[0])
+
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
         except Exception as exception:
