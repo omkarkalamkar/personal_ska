@@ -208,6 +208,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._configure_track_lrcr = ResultCode.UNKNOWN
         self.is_configure_command: bool = False
         self.configure_command_timer_list = []
+        self.supported_commands = (
+            "ConfigureBand1",
+            "ConfigureBand2",
+            "Track",
+            "SetOperateMode",
+            "EndScan",
+            "Scan",
+            "TrackLoadStaticOff",
+            "TrackStop",
+        )
 
         # Event Receiver
         if _event_receiver:
@@ -1764,6 +1774,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if value == ("", "") or not value:
             return
         unique_id, result_code_message = value
+
+        if not unique_id.endswith(self.supported_commands):
+            return
 
         if unique_id not in self.command_unique_id_list:
             self.logger.debug(
