@@ -211,6 +211,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.supported_commands = (
             "ConfigureBand1",
             "ConfigureBand2",
+            "ConfigureBand3",
+            "ConfigureBand4",
+            "ConfigureBand5a",
+            "ConfigureBand5b",
             "Track",
             "SetOperateMode",
             "EndScan",
