@@ -81,10 +81,11 @@ class Scan(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Scan", argin
             )
-
-        self.logger.info(
-            "Scan command -> Result Code: %s, msg: %s", result_code, message
-        )
-        # Append command unique id
-        self.component_manager.command_unique_id_list.append(message[0])
+            self.logger.debug(
+                "Scan command returned ResultCode: %s, msg: %s",
+                ResultCode(result_code).name,
+                message,
+            )
+            # Append command unique id
+            self.component_manager.command_unique_id_list.append(message[0])
         return result_code[0], message[0]

@@ -78,9 +78,9 @@ class TrackStop(DishLNCommand):
             result_code, msg = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
-            self.logger.info(
-                "TrackStop command -> Result Code: %s, msg: %s",
-                result_code,
+            self.logger.debug(
+                "TrackStop command returned ResultCode: %s, message: %s",
+                ResultCode(result_code).name,
                 msg,
             )
             # Append command unique id

@@ -103,12 +103,12 @@ class TrackLoadStaticOff(DishLNCommand):
                 "TrackLoadStaticOff",
                 argin=offsets,
             )
-
-        self.logger.info(
-            "TrackLoadStaticOff command -> Result Code: %s, msg: %s",
-            result_code,
-            message,
-        )
-        # Append command unique id
-        self.component_manager.command_unique_id_list.append(message[0])
+            self.logger.debug(
+                "TrackLoadStaticOff command returned ResultCode: %s,"
+                + " message: %s",
+                ResultCode(result_code).name,
+                message,
+            )
+            # Append command unique id
+            self.component_manager.command_unique_id_list.append(message[0])
         return result_code[0], message[0]

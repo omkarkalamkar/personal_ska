@@ -121,16 +121,14 @@ class Track(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
-
-        self.logger.debug("Released tango lock")
-
-        self.logger.info(
-            "Track command -> Result Code: %s, msg: %s",
-            result_code,
-            message,
-        )
-        # Append command unique id
-        self.component_manager.command_unique_id_list.append(message[0])
+            self.logger.debug(
+                "Track command returned ResultCode: %s, message: %s",
+                ResultCode(result_code).name,
+                message,
+            )
+            # Append command unique id
+            self.component_manager.command_unique_id_list.append(message[0])
+            self.logger.debug("Released tango lock")
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]

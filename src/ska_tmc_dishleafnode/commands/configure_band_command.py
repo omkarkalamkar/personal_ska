@@ -121,15 +121,15 @@ class ConfigureBand(DishLNCommand):
                 command_name,
                 True,
             )
-
-        self.logger.debug("Released tango lock")
-        self.logger.info(
-            "ConfigureBand command -> Result Code: %s, msg: %s",
-            result_code,
-            message,
-        )
-        # Append command unique id
-        self.component_manager.command_unique_id_list.append(message[0])
+            self.logger.debug(
+                "%s command returned ResultCode: %s and message: %s",
+                command_name,
+                ResultCode(result_code).name,
+                message,
+            )
+            # Append command unique id
+            self.component_manager.command_unique_id_list.append(message[0])
+            self.logger.debug("Released tango lock")
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
