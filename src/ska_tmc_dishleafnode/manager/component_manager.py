@@ -1775,10 +1775,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return
         unique_id, result_code_message = value
 
-        if not unique_id.endswith(self.supported_commands):
-            return
-
-        if unique_id not in self.command_unique_id_list:
+        if (
+            unique_id not in self.command_unique_id_list
+            or not unique_id.endswith(self.supported_commands)
+        ):
             self.logger.debug(
                 "Event for %s will be ignored by the DishLeafNode.",
                 unique_id,

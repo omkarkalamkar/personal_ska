@@ -304,7 +304,7 @@ class Configure(DishLNCommand):
                     ),
                 )
             if not reset_offset:
-                self.logger.info("Invoking ConfigureBand command")
+                self.logger.info("ConfigureBand command will executed shortly")
                 return self.invoke_configure_band_on_dish(json_argument)
 
         except Exception as exception:
@@ -554,7 +554,7 @@ class Configure(DishLNCommand):
 
         return: None
         """
-        self.logger.info("Invoking SetOperateMode command")
+        self.logger.info("SetOperateMode command will be executed shortly.")
 
         # pylint: disable=unused-argument
         def _invoke_setoperatemode_callback(
@@ -757,11 +757,12 @@ class Configure(DishLNCommand):
     def set_failure_for_configure(self, message):
         """Set failure for configure"""
         # pylint: disable=no-member
-        self.component_manager.long_running_result_callback(
-            self.ct.command_id,
-            ResultCode.FAILED,
-            exception_msg=message,
-        )
-        self.component_manager.observable.notify_observers(
-            command_exception=True
-        )
+        if hasattr(self, "ct"):
+            self.component_manager.long_running_result_callback(
+                self.ct.command_id,
+                ResultCode.FAILED,
+                exception_msg=message,
+            )
+            self.component_manager.observable.notify_observers(
+                command_exception=True
+            )
