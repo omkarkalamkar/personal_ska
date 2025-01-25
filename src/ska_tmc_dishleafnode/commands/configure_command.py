@@ -721,7 +721,6 @@ class Configure(DishLNCommand):
 
         start_time = time.time()
         elapsed_time = 0
-        track_table = []
         while (
             elapsed_time
             < self.component_manager.command_timeout - ADJUST_TIMEOUT
@@ -733,8 +732,6 @@ class Configure(DishLNCommand):
                 )
                 track_table_status = CommandResult.ABORTED
                 break
-            track_table = self.dish_master_adapter.programTrackTable
-            self.logger.debug("is_tracktable_provided: %s", track_table)
 
             if self.component_manager.is_tracktable_provided.is_set():
                 track_table_status = CommandResult.ACHIEVED
@@ -742,10 +739,12 @@ class Configure(DishLNCommand):
                 break
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
+
         self.logger.debug(
-            "Come out of loop that waits for tracktable before Track"
+            "Exited the loop that waits to supply the tracktable before"
+            + " invoking the Track command."
         )
-        if len(track_table) == 0:
+        if not self.component_manager.is_tracktable_provided.is_set():
             # Set Failure for configure
             self.logger.info("Timed out occurred for track table")
             self.set_failure_for_configure(
