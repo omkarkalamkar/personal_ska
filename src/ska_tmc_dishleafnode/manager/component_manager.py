@@ -97,6 +97,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         adapter_timeout: int = 2,
         max_track_table_retry: int = 3,
         track_table_retry_duration: float = 0.2,
+        min_azimuth: float = -270,
+        max_azimuth: float = 270,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -255,6 +257,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
         self.command_unique_id_list = []
+        self.min_azimuth = min_azimuth
+        self.max_azimuth = max_azimuth
 
     @property
     def configure_track_lrcr(self):

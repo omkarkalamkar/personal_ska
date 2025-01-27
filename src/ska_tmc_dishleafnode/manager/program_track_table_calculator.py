@@ -73,8 +73,12 @@ class ProgramTrackTableCalculator:
                     )
                     raise Exception(message)
 
-                if result[0] < 0:
-                    result[0] = 360 - abs(result[0])
+                if not (
+                    self.component_manager.min_azimuth
+                    < result[0]
+                    < self.component_manager.max_azimuth
+                ):
+                    result[0] = self.fit_azimuth_in_observable_range(result[0])
 
                 program_track_table.append(tai_timestamp_list.pop(0))
                 program_track_table.extend(
@@ -233,3 +237,33 @@ class ProgramTrackTableCalculator:
             raise Exception(message) from exception
 
         return tai_time
+
+    def fit_azimuth_in_observable_range(
+        self, calculated_azimuth: float
+    ) -> float:
+        """
+        This method fits the calculated azimuth to the dish's observable
+        azimuth range.
+        :param: calculated_azimuth: Azimuth in degrees
+        :type calculated_azimuth: float
+        :returns: Azimuth in degrees
+        :rtype: float
+        """
+        try:
+            azimuth_range_size = (
+                self.component_manager.max_azimuth
+                - self.component_manager.min_azimuth
+            )
+            return (
+                (calculated_azimuth - self.component_manager.min_azimuth)
+                % azimuth_range_size
+            ) + self.component_manager.min_azimuth
+
+        except ValueError as exception:
+            exception_message = (
+                "Exception occurred while fitting azimuth in the dish's"
+                + " observable range: %s",
+                exception,
+            )
+            self.logger.error(exception_message)
+            raise Exception(exception_message) from exception

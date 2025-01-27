@@ -66,6 +66,8 @@ deviceServers:
     CommandTimeOut: 30.0
     AdapterTimeOut: 2.0
     DishAvailabilityCheckTimeout: 3
+    MinAzimuth: -270
+    MaxAzimuth: 270
   sdpqc:
     enabled: true
     instances: ["01"]

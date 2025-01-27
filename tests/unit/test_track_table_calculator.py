@@ -70,3 +70,33 @@ def wait_for_iers_data_available(cm):
     start_time = time.time()
     while cm.iers_a is not None and (time.time() - start_time) < TIMEOUT:
         time.sleep(0.5)
+
+
+def test_azimuth_range(cm):
+    track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
+    assert (
+        cm.min_azimuth
+        < track_table_calculator.fit_azimuth_in_observable_range(500.0)
+        < cm.max_azimuth
+    )
+    assert (
+        cm.min_azimuth
+        < track_table_calculator.fit_azimuth_in_observable_range(-500.0)
+        < cm.max_azimuth
+    )
+    assert (
+        cm.min_azimuth
+        < track_table_calculator.fit_azimuth_in_observable_range(0.0)
+        < cm.max_azimuth
+    )
+    assert (
+        cm.min_azimuth
+        < track_table_calculator.fit_azimuth_in_observable_range(100.0)
+        < cm.max_azimuth
+    )
+
+
+def test_azimuth_range_exception(cm):
+    track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
+    with pytest.raises(Exception):
+        track_table_calculator.fit_azimuth_in_range()

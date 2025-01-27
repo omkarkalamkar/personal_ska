@@ -77,6 +77,16 @@ class DishLeafNode(TMCBaseLeafDevice):
         default_value=0.2,
         doc="Retry duration for programTrackTable write operation in seconds",
     )
+    MinAzimuth = device_property(
+        dtype="DevFloat",
+        default_value=-270.0,
+        doc="Minimum value of Azimuth where dish can point",
+    )
+    MaxAzimuth = device_property(
+        dtype="DevFloat",
+        default_value=270.0,
+        doc="Maximum value of Azimuth where dish can point",
+    )
 
     # ----------
     # Attributes
@@ -982,6 +992,8 @@ class DishLeafNode(TMCBaseLeafDevice):
             _update_health_state_callback=self.update_health_state_callback,
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
+            min_azimuth=self.MinAzimuth,
+            max_azimuth=self.MaxAzimuth,
         )
         return cm
 
