@@ -83,8 +83,9 @@ class TrackStop(DishLNCommand):
                 ResultCode(result_code).name,
                 msg,
             )
-            # Append command unique id
-            self.component_manager.command_unique_id_list.append(msg[0])
+            if result_code[0] is not ResultCode.FAILED:
+                # Append command unique id
+                self.component_manager.command_unique_id_list.append(msg[0])
             if result_code[0] in [
                 ResultCode.FAILED,
                 ResultCode.REJECTED,
