@@ -72,31 +72,35 @@ def wait_for_iers_data_available(cm):
         time.sleep(0.5)
 
 
-def test_azimuth_range(cm):
-    track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
+def test_azimuth_range(cm_pointig_device):
+    track_table_calculator = ProgramTrackTableCalculator(
+        cm_pointig_device, logger=logger
+    )
     assert (
-        cm.min_azimuth
+        cm_pointig_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(500.0)
-        < cm.max_azimuth
+        < cm_pointig_device.azimuth_max_limit
     )
     assert (
-        cm.min_azimuth
+        cm_pointig_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(-500.0)
-        < cm.max_azimuth
+        < cm_pointig_device.azimuth_max_limit
     )
     assert (
-        cm.min_azimuth
+        cm_pointig_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(0.0)
-        < cm.max_azimuth
+        < cm_pointig_device.azimuth_max_limit
     )
     assert (
-        cm.min_azimuth
+        cm_pointig_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(100.0)
-        < cm.max_azimuth
+        < cm_pointig_device.azimuth_max_limit
     )
 
 
-def test_azimuth_range_exception(cm):
-    track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
+def test_azimuth_range_exception(cm_pointig_device):
+    track_table_calculator = ProgramTrackTableCalculator(
+        cm_pointig_device, logger=logger
+    )
     with pytest.raises(Exception):
-        track_table_calculator.fit_azimuth_in_range()
+        track_table_calculator.fit_azimuth_in_observable_range()

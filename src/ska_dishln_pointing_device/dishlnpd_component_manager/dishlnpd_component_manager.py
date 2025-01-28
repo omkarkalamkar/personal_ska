@@ -42,6 +42,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         elevation_max_limit: float = 90.0,
         elevation_min_limit: float = 15.0,
         track_table_advance_sec: int = 6,
+        azimuth_min_limit: float = -270,
+        azimuth_max_limit: float = 270,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -69,6 +71,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.set_change_pointing_event = threading.Event()
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
+        self.azimuth_min_limit = azimuth_min_limit
+        self.azimuth_max_limit = azimuth_max_limit
         self.iers_a = None
         self.observer = None
         self.track_table_update_rate: float = track_table_update_rate

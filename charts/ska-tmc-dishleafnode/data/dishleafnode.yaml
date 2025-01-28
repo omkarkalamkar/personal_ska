@@ -11,8 +11,6 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $CommandTimeOut := .Values.deviceServers.dishln.CommandTimeOut }}
 {{- $AdapterTimeOut := .Values.deviceServers.dishln.AdapterTimeOut }}
 {{- $DishAvailabilityCheckTimeout := .Values.deviceServers.dishln.DishAvailabilityCheckTimeout }}
-{{- $MinAzimuth := .Values.deviceServers.dishln.MinAzimuth }}
-{{- $MaxAzimuth := .Values.deviceServers.dishln.MaxAzimuth }}
 
 server:
   name: "dish_leaf_node"
@@ -63,12 +61,6 @@ server:
           - name: "DishAvailabilityCheckTimeout"
             values:
               - "{{ $DishAvailabilityCheckTimeout }}"
-          - name: "MinAzimuth"
-            values:
-              - "{{ $MinAzimuth }}"
-          - name: "MaxAzimuth"
-            values:
-              - "{{ $MaxAzimuth }}"
   {{- end }}
 depends_on:
   - device: sys/database/2

@@ -27,7 +27,8 @@ class ProgramTrackTableCalculator:
     ) -> None:
         """
         Init method for ProgramTrackTableCalculator class.
-        :param component_manager: Dish Leaf Node component manager object
+        :param component_manager: DishLeafNode pointing device component
+        manager object
         :type component_manager: DishLNComponentManager
         :param logger: logger
         :type logger: Logger
@@ -251,13 +252,13 @@ class ProgramTrackTableCalculator:
         """
         try:
             azimuth_range_size = (
-                self.component_manager.max_azimuth
-                - self.component_manager.min_azimuth
+                self.component_manager.azimuth_max_limit
+                - self.component_manager.azimuth_min_limit
             )
             return (
-                (calculated_azimuth - self.component_manager.min_azimuth)
+                (calculated_azimuth - self.component_manager.azimuth_min_limit)
                 % azimuth_range_size
-            ) + self.component_manager.min_azimuth
+            ) + self.component_manager.azimuth_min_limit
 
         except ValueError as exception:
             exception_message = (

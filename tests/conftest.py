@@ -300,8 +300,6 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
-        min_azimuth=-270,
-        max_azimuth=270,
     )
 
     start_time = time.time()
@@ -343,8 +341,6 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         dish_availability_check_timeout=3,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
-        min_azimuth=-270,
-        max_azimuth=270,
     )
     cm.actual_pointing_process_alive.set()
     if cm.event_receiver:
@@ -378,8 +374,6 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
         _liveliness_probe=LivelinessProbeType.NONE,
-        min_azimuth=-270,
-        max_azimuth=270,
     )
 
     elapsed_time = 0

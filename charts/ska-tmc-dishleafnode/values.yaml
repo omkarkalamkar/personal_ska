@@ -66,8 +66,6 @@ deviceServers:
     CommandTimeOut: 30.0
     AdapterTimeOut: 2.0
     DishAvailabilityCheckTimeout: 3
-    MinAzimuth: -270
-    MaxAzimuth: 270
   sdpqc:
     enabled: true
     instances: ["01"]
@@ -81,6 +79,8 @@ deviceServers:
     Azimuth: 0.0
     ElevationMaxLimit: 90.0
     ElevationMinLimit: 15.0
+    AzimuthMinLimit: -270
+    AzimuthMaxLimit: 270
 
     file: "data/dishpointingdevice.yaml"
 

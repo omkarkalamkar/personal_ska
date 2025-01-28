@@ -36,8 +36,6 @@ tmc-dishleafnode:
       IsDishAbortCommandsEnabled: True
       MaxTrackTableRetry: 3
       TrackTableRetryDuration: 0.2
-      MinAzimuth: -270
-      MaxAzimuth: 270
     dishpointingdevice:
       TrackTableUpdateRate: 50
       TrackTableInAdvance: 6
@@ -45,6 +43,8 @@ tmc-dishleafnode:
       Azimuth: 0.0
       ElevationMaxLimit: 90.0
       ElevationMinLimit: 15.0
+      AzimuthMinLimit: -270
+      AzimuthMaxLimit: 270
 
 ska-taranta:
   enabled: false
