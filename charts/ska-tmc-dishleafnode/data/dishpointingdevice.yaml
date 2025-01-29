@@ -9,8 +9,8 @@ entrypoints:
 {{- $Azimuth := .Values.deviceServers.dishpointingdevice.Azimuth }}
 {{- $ElevationMaxLimit := .Values.deviceServers.dishpointingdevice.ElevationMaxLimit }}
 {{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
-{{- $AzimuthMinLimit := .Values.deviceServers.dishln.AzimuthMinLimit }}
-{{- $AzimuthMaxLimit := .Values.deviceServers.dishln.AzimuthMaxLimit }}
+{{- $AzimuthMinLimit := .Values.deviceServers.dishpointingdevice.AzimuthMinLimit }}
+{{- $AzimuthMaxLimit := .Values.deviceServers.dishpointingdevice.AzimuthMaxLimit }}
 
 server:
   name: "dishpointing"

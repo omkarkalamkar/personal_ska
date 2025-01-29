@@ -49,6 +49,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         default_value=-270.0,
         doc="Minimum value of Azimuth where dish can point",
     )
+
     AzimuthMaxLimit = device_property(
         dtype="DevFloat",
         default_value=270.0,
