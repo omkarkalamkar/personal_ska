@@ -42,8 +42,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         elevation_max_limit: float = 90.0,
         elevation_min_limit: float = 15.0,
         track_table_advance_sec: int = 6,
-        azimuth_min_limit: float = -270,
-        azimuth_max_limit: float = 270,
+        azimuth_min_limit: float = -270.0,
+        azimuth_max_limit: float = 270.0,
     ):
         """
         Initialise a new ComponentManager instance.

@@ -75,9 +75,9 @@ class ProgramTrackTableCalculator:
                     raise Exception(message)
 
                 if not (
-                    self.component_manager.min_azimuth
+                    self.component_manager.azimuth_min_limit
                     < result[0]
-                    < self.component_manager.max_azimuth
+                    < self.component_manager.azimuth_max_limit
                 ):
                     result[0] = self.fit_azimuth_in_observable_range(result[0])
 
