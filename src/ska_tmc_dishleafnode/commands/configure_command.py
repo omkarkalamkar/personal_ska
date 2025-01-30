@@ -304,7 +304,9 @@ class Configure(DishLNCommand):
                     ),
                 )
             if not reset_offset:
-                self.logger.info("ConfigureBand command will executed shortly")
+                self.logger.info(
+                    "ConfigureBand command will be executed shortly."
+                )
                 return self.invoke_configure_band_on_dish(json_argument)
 
         except Exception as exception:

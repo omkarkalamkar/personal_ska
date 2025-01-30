@@ -190,7 +190,6 @@ class DishLNCommand(TmcLeafNodeCommand):
         result = kwargs.get("result")
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
-        # Command name is not clear
         self.logger.info(
             "Result, status, message: %s, %s, %s",
             result,
