@@ -250,16 +250,12 @@ class ProgramTrackTableCalculator:
         :returns: Azimuth in degrees
         :rtype: float
         """
+        azimuth: float
         try:
-            azimuth_range_size = (
-                self.component_manager.azimuth_max_limit
-                - self.component_manager.azimuth_min_limit
-            )
-            return (
-                (calculated_azimuth - self.component_manager.azimuth_min_limit)
-                % azimuth_range_size
-            ) + self.component_manager.azimuth_min_limit
-
+            if calculated_azimuth > self.component_manager.azimuth_max_limit:
+                azimuth = calculated_azimuth - 360
+            elif calculated_azimuth < self.component_manager.azimuth_min_limit:
+                azimuth = calculated_azimuth + 360
         except ValueError as exception:
             exception_message = (
                 "Exception occurred while fitting azimuth in the dish's"
@@ -268,3 +264,4 @@ class ProgramTrackTableCalculator:
             )
             self.logger.error(exception_message)
             raise Exception(exception_message) from exception
+        return azimuth
