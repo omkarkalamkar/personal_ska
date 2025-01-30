@@ -124,7 +124,7 @@ class ConfigureBand(DishLNCommand):
             self.logger.debug(
                 "%s command returned ResultCode: %s and message: %s",
                 command_name,
-                ResultCode(result_code).name,
+                result_code,
                 message,
             )
             if result_code[0] is not ResultCode.FAILED:

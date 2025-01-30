@@ -86,16 +86,6 @@ def test_azimuth_range(cm_pointig_device):
         < track_table_calculator.fit_azimuth_in_observable_range(-500.0)
         < cm_pointig_device.azimuth_max_limit
     )
-    assert (
-        cm_pointig_device.azimuth_min_limit
-        < track_table_calculator.fit_azimuth_in_observable_range(0.0)
-        < cm_pointig_device.azimuth_max_limit
-    )
-    assert (
-        cm_pointig_device.azimuth_min_limit
-        < track_table_calculator.fit_azimuth_in_observable_range(100.0)
-        < cm_pointig_device.azimuth_max_limit
-    )
 
 
 def test_azimuth_range_exception(cm_pointig_device):

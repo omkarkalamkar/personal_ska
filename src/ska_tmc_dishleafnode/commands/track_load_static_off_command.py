@@ -106,7 +106,7 @@ class TrackLoadStaticOff(DishLNCommand):
             self.logger.debug(
                 "TrackLoadStaticOff command returned ResultCode: %s,"
                 + " message: %s",
-                ResultCode(result_code).name,
+                result_code,
                 message,
             )
             if result_code[0] is not ResultCode.FAILED:
