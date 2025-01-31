@@ -126,7 +126,7 @@ class Track(DishLNCommand):
                 ResultCode(result_code).name,
                 message,
             )
-            if result_code[0] is ResultCode.QUEUED:
+            if ResultCode(result_code[0]) is ResultCode.QUEUED:
                 # Append command unique id
                 self.component_manager.command_unique_id_dict[
                     "Track"

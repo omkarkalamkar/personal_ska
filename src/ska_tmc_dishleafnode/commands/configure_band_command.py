@@ -128,10 +128,10 @@ class ConfigureBand(DishLNCommand):
                 result_code,
                 message,
             )
-            if result_code[0] is ResultCode.QUEUED:
+            if ResultCode(result_code[0]) is ResultCode.QUEUED:
                 # Append command unique id
                 self.component_manager.command_unique_id_dict[
-                    "command_name"
+                    command_name
                 ] = message[0]
             self.logger.debug("Released tango lock")
 
