@@ -83,9 +83,11 @@ class TrackStop(DishLNCommand):
                 result_code,
                 msg,
             )
-            if result_code[0] is not ResultCode.FAILED:
+            if result_code[0] is ResultCode.QUEUED:
                 # Append command unique id
-                self.component_manager.command_unique_id_list.append(msg[0])
+                self.component_manager.command_unique_id_dict[
+                    "TrackStop"
+                ] = msg[0]
             if result_code[0] in [
                 ResultCode.FAILED,
                 ResultCode.REJECTED,

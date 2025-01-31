@@ -262,6 +262,6 @@ class ProgramTrackTableCalculator:
                 + " observable range: %s",
                 exception,
             )
-            self.logger.error(exception_message)
+            self.logger.exception(exception_message)
             raise Exception(exception_message) from exception
         return azimuth
