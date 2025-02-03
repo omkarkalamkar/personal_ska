@@ -322,7 +322,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.reset_command_result_values()
         self.is_configure_event.clear()
         self.is_configure_command = False
-        self.command_unique_id_dict.clear()
 
     def create_converter_obj_and_antenna_obj(self: DishLNComponentManager):
         """Create AzElConverter Object and antenna object"""
@@ -1784,8 +1783,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             or not unique_id.endswith(self.supported_commands)
         ):
             self.logger.debug(
-                "LRCR event for id %s is ignored as corresponding command is"
-                + " not executed by DishLeafNode",
+                "LRCR event for id %s will be ignored",
                 unique_id,
             )
             return

@@ -159,6 +159,7 @@ class Configure(DishLNCommand):
             ):
                 self.component_manager.correction_key = ""
             self.component_manager.clear_configure_command_events_flags()
+            self.component_manager.command_unique_id_dict.clear()
             self.logger.info("Configure command cleanup completed.")
 
         except Exception as e:

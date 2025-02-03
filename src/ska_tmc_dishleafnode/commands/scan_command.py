@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+from typing import Dict, Tuple, Union
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
+from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import TimeKeeper
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
@@ -39,6 +40,26 @@ class Scan(DishLNCommand):
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
+        self.command_uniq_id: str = ""
+
+    def update_task_status(
+        self,
+        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+    ) -> None:
+        """
+        Update the status of a task.
+
+        Args:
+            **kwargs: Keyword arguments for task status update.
+        """
+        super().update_task_status()
+        if self.component_manager.command_unique_id_dict.get(
+            self.command_uniq_id
+        ):
+            del self.component_manager.command_unique_id_dict[
+                self.command_uniq_id
+            ]
+            self.command_uniq_id = ""
 
     # pylint: disable=unused-argument
     @timeout_tracker
@@ -86,6 +107,7 @@ class Scan(DishLNCommand):
                 self.component_manager.command_unique_id_dict[
                     "Scan"
                 ] = message[0]
+                self.command_uniq_id = message[0]
             self.logger.debug(
                 "Scan command returned ResultCode: %s, msg: %s",
                 ResultCode(result_code).name,
