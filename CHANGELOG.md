@@ -110,7 +110,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Fixed
 ======
 [0.19.7]
-* Applied fix for SKB-661
+* Applied fix for SKB-661 and SKB-728
 
 [0.19.6]
 ********

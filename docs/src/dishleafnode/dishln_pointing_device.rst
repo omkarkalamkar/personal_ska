@@ -45,3 +45,10 @@ Properties in Dish Pointing Device
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | TrackTableInAdvance           | DevShort      | programTrackTable in advance in seconds                                        |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
+| TrackTableUpdateRate          | DevFloat      | The rate at which a tracktable is provided. It is one tracktable per specified |
+|                               |               | number of seconds.                                                             |
++-------------------------------+---------------+--------------------------------------------------------------------------------+
+| AzimuthMinLimit               | DevFloat      | Minimum value of Azimuth to which dish can point                               |
++-------------------------------+---------------+--------------------------------------------------------------------------------+
+| AzimuthMaxLimit               | DevFloat      | Maximum value of Azimuth to which dish can point                               |
++-------------------------------+---------------+--------------------------------------------------------------------------------+

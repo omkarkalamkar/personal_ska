@@ -1804,7 +1804,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "ConfigureBand result: %s",
                             self.configure_band_result,
                         )
-                        # if not self.is_configure_command:
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
@@ -1828,7 +1827,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.logger.info(
                             "Number of observer %s", observer_cmd_instance
                         )
-                        # if not self.is_configure_command:
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
@@ -1889,7 +1887,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "Track result: %s",
                             self.track_result,
                         )
-                        # if not self.is_configure_command:
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
