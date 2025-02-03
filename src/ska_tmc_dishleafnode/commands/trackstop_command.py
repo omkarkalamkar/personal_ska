@@ -100,7 +100,6 @@ class TrackStop(DishLNCommand):
             self.logger.debug("Released tango lock")
 
         try:
-            self.logger.info("Invoking stop program track table cmd")
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
         except Exception as exception:
             self.logger.exception(
