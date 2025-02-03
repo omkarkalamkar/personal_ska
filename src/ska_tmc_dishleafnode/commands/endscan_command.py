@@ -74,14 +74,14 @@ class EndScan(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "EndScan"
             )
-            self.logger.debug(
-                "EndScan command returned ResultCode: %s, message: %s",
-                ResultCode(result_code).name,
-                message,
-            )
             if ResultCode(result_code[0]) is ResultCode.QUEUED:
                 # Append command unique id
                 self.component_manager.command_unique_id_dict[
                     "EndScan"
                 ] = message[0]
+            self.logger.debug(
+                "EndScan command returned ResultCode: %s, message: %s",
+                ResultCode(result_code).name,
+                message,
+            )
         return result_code[0], message[0]

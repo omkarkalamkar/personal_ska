@@ -1784,7 +1784,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             or not unique_id.endswith(self.supported_commands)
         ):
             self.logger.debug(
-                "LRCR event for id %s is ignored as corrsponding command is"
+                "LRCR event for id %s is ignored as corresponding command is"
                 + " not executed by DishLeafNode",
                 unique_id,
             )

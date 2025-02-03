@@ -103,15 +103,15 @@ class TrackLoadStaticOff(DishLNCommand):
                 "TrackLoadStaticOff",
                 argin=offsets,
             )
+            if ResultCode(result_code[0]) is ResultCode.QUEUED:
+                # Append command unique id
+                self.component_manager.command_unique_id_dict[
+                    "TrackLoadStaticOff"
+                ] = message[0]
             self.logger.debug(
                 "TrackLoadStaticOff command returned ResultCode: %s,"
                 + " message: %s",
                 result_code,
                 message,
             )
-            if ResultCode(result_code[0]) is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    "TrackLoadStaticOff"
-                ] = message[0]
         return result_code[0], message[0]

@@ -78,16 +78,16 @@ class TrackStop(DishLNCommand):
             result_code, msg = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
-            self.logger.debug(
-                "TrackStop command returned ResultCode: %s, message: %s",
-                result_code,
-                msg,
-            )
             if ResultCode(result_code[0]) is ResultCode.QUEUED:
                 # Append command unique id
                 self.component_manager.command_unique_id_dict[
                     "TrackStop"
                 ] = msg[0]
+            self.logger.debug(
+                "TrackStop command returned ResultCode: %s, message: %s",
+                result_code,
+                msg,
+            )
             if result_code[0] in [
                 ResultCode.FAILED,
                 ResultCode.REJECTED,

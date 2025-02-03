@@ -107,15 +107,15 @@ class SetOperateMode(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetOperateMode"
             )
-            self.logger.debug(
-                "SetOperateCode command returned ResultCode: %s, message: %s",
-                ResultCode(result_code).name,
-                message,
-            )
             if ResultCode(result_code[0]) is ResultCode.QUEUED:
                 # Append command unique id
                 self.component_manager.command_unique_id_dict[
                     "SetOperateMode"
                 ] = message[0]
+            self.logger.debug(
+                "SetOperateCode command returned ResultCode: %s, message: %s",
+                ResultCode(result_code).name,
+                message,
+            )
             self.logger.debug("Released tango lock")
         return result_code[0], message[0]
