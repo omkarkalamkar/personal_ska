@@ -52,7 +52,7 @@ class Scan(DishLNCommand):
         Args:
             **kwargs: Keyword arguments for task status update.
         """
-        super().update_task_status()
+        super().update_task_status(**kwargs)
         if self.component_manager.command_unique_id_dict.get(
             self.command_uniq_id
         ):
