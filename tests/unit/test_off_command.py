@@ -9,7 +9,7 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import wait_for_dish_mode
 
 
-def test_off_command_in_lp(tango_context, cm):
+def test_off_command_in_lp(cm):
     cm.update_device_dish_mode(DishMode.STANDBY_LP)
     with pytest.raises(CommandNotAllowed):
         cm.is_off_allowed()

@@ -11,7 +11,6 @@ from tests.settings import simulate_result_code_event
 
 def test_endscan_command(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
-
     attrs = {
         'EndScan.return_value': ([ResultCode.OK], ["Command Completed"]),
     }

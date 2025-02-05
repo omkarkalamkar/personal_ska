@@ -140,7 +140,7 @@ def test_error_propagation_stop_program_track_table(
 
 
 def test_error_propagation_abort_stop_program_track_table(
-    tango_context, task_callback, cm_without_er_lp
+    task_callback, cm_without_er_lp
 ):
     attrs = {
         'StopProgramTrackTable.side_effect': (Exception("error")),

@@ -74,7 +74,7 @@ def test_trackloadstaticoff_command(
     ],
 )
 def test_trackloadstaticoff_command_invalid_input(
-    tango_context, cm_without_er_lp, argin, task_callback
+    cm_without_er_lp, argin, task_callback
 ):
     """Test the failure scenario while invoking
     TrackLoadStaticOff command."""
