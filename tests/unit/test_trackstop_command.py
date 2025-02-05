@@ -1,5 +1,7 @@
 """Unit Tests for TrackStop command
 """
+from unittest import mock
+
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode, PointingState
@@ -9,10 +11,20 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-def test_trackstop_command_completed(
-    tango_context, task_callback, cm_without_er_lp
-):
+def test_trackstop_command_completed(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
+    attrs = {
+        'TrackStop.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()

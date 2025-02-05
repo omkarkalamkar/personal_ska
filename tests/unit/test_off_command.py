@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
@@ -13,8 +15,24 @@ def test_off_command_in_lp(tango_context, cm):
         cm.is_off_allowed()
 
 
-def test_off_command_in_fp(tango_context, cm_without_er_lp, task_callback):
+def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
+    attrs = {
+        'SetStandbyFPMode.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+        'SetStandbyLPMode.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
     wait_for_dish_mode(cm, DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
     cm.setstandbyfpmode(task_callback)

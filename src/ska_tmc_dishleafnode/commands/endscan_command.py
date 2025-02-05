@@ -103,7 +103,7 @@ class EndScan(DishLNCommand):
                 self.command_uniq_id = message[0]
             self.logger.debug(
                 "EndScan command returned ResultCode: %s, message: %s",
-                ResultCode(result_code).name,
+                result_code,
                 message,
             )
         return result_code[0], message[0]

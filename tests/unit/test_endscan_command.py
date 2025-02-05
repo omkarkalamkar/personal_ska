@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
@@ -7,11 +9,20 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-def test_endscan_command(tango_context, cm_without_er_lp, task_callback):
+def test_endscan_command(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
+
+    attrs = {
+        'EndScan.return_value': ([ResultCode.OK], ["Command Completed"]),
+    }
+    dishMock = mock.Mock(
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_endscan_allowed()
-
     cm.endscan(task_callback=task_callback)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}

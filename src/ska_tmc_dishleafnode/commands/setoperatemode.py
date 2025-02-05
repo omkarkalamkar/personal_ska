@@ -114,7 +114,7 @@ class SetOperateMode(DishLNCommand):
                 ] = message[0]
             self.logger.debug(
                 "SetOperateCode command returned ResultCode: %s, message: %s",
-                ResultCode(result_code).name,
+                result_code,
                 message,
             )
             self.logger.debug("Released tango lock")
