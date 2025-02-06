@@ -1,5 +1,6 @@
 import json
 import time
+from unittest import mock
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
@@ -14,6 +15,7 @@ from tests.settings import (
     COMMAND_CONFIGURE_BAND_TIMEOUT,
     DISH_MASTER_DEVICE,
     logger,
+    simulate_dish_mode_event,
     simulate_result_code_event,
     simulate_track_table_event,
     wait_for_dish_mode,
@@ -21,20 +23,36 @@ from tests.settings import (
 
 
 def test_configure_command_completed(
-    tango_context,
     cm_without_er_lp,
     task_callback,
     json_factory,
-    dish_master_device,
 ):
     cm = cm_without_er_lp
-    dev_factory = DevFactory()
-    dish_device = dev_factory.get_device(dish_master_device)
-    dish_device.SetDirectDishMode(DishMode.STANDBY_FP)
-    time.sleep(0.2)
+
+    attr = {
+        'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+        'ConfigureBand2.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+        'SetOperateMode.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+        'Track.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(**attr)
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
+    simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     set_kvalue_command = SetKValue(cm, logger=logger)
+    set_kvalue_command._adapter_factory = adapter_factory
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
@@ -45,15 +63,10 @@ def test_configure_command_completed(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(4)
     cm.update_device_configured_band("2")
     simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
-
-    time.sleep(2)
     cm.update_device_dish_mode(DishMode.OPERATE)
     simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
-
-    time.sleep(2)
     simulate_track_table_event(cm)
     cm.update_device_pointing_state(PointingState.TRACK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
@@ -68,12 +81,21 @@ def test_configure_command_completed(
 
 
 def test_configure_command_completed_partial_config(
-    tango_context, cm_without_er_lp, task_callback, json_factory
+    cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm = cm_without_er_lp
+    attr = {
+        'TrackLoadStaticOff.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        )
+    }
+    dishMock = mock.Mock(**attr)
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
     cm.update_device_dish_mode(DishMode.OPERATE)
-
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("partial_configure")
@@ -85,7 +107,6 @@ def test_configure_command_completed_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
@@ -97,10 +118,20 @@ def test_configure_command_completed_partial_config(
 
 
 def test_configure_command_completed_partial_config_missing_key(
-    tango_context, cm_without_er_lp, task_callback, json_factory
+    cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm = cm_without_er_lp
+    attr = {
+        'TrackLoadStaticOff.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        )
+    }
+    dishMock = mock.Mock(**attr)
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
     cm.update_device_dish_mode(DishMode.OPERATE)
     wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
@@ -117,14 +148,13 @@ def test_configure_command_completed_partial_config_missing_key(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    time.sleep(5)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=12,
+        lookahead=7,
     )
 
 
@@ -152,7 +182,7 @@ def test_configure_command_adapter_none(
 
 
 @pytest.mark.parametrize("key", ["pointing", "dish"])
-def test_json_validation(tango_context, task_callback, cm, json_factory, key):
+def test_json_validation(task_callback, cm, json_factory, key):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
@@ -175,22 +205,31 @@ def test_configure_command_not_allowed(cm_without_er_lp):
 
 
 def test_configure_command_status_not_allowed(
-    tango_context,
     cm_without_er_lp,
     task_callback,
     json_factory,
 ):
     cm = cm_without_er_lp
+    attr = {
+        'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+        'Configure.return_value': (
+            [ResultCode.NOT_ALLOWED],
+            ["Command is not allowed"],
+        ),
+    }
+    dishMock = mock.Mock(**attr)
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     assert wait_for_dish_mode(cm, DishMode.UNKNOWN)
     set_kvalue_command = SetKValue(cm, logger=logger)
+    set_kvalue_command._adapter_factory = adapter_factory
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
-    time.sleep(0.5)
     cm.update_device_configured_band("2")
-    time.sleep(0.5)
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
