@@ -208,6 +208,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._configure_track_lrcr = ResultCode.UNKNOWN
         self.is_configure_command: bool = False
         self.configure_command_timer_list = []
+        self.supported_commands = (
+            "ConfigureBand1",
+            "ConfigureBand2",
+            "ConfigureBand3",
+            "ConfigureBand4",
+            "ConfigureBand5a",
+            "ConfigureBand5b",
+            "Track",
+            "SetOperateMode",
+            "EndScan",
+            "Scan",
+            "TrackLoadStaticOff",
+            "TrackStop",
+        )
 
         # Event Receiver
         if _event_receiver:
@@ -240,6 +254,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
+        self.command_unique_id_dict = {}
 
     @property
     def configure_track_lrcr(self):
@@ -1652,7 +1667,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         if len(program_track_table) == 0:
-            self.logger.info("TrackTable is not generated yet.")
+            self.logger.info("TrackTable is empty.")
             return
 
         self.logger.debug(
@@ -1749,7 +1764,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param lrc_result: longRunningCommandResult attribute event data
         :type: (Tuple[List[str], List[str]])
         """
-        self.logger.info("LRC Result is:  %s", lrc_result)
         self.update_command_result(device_name, lrc_result)
 
     def update_command_result(self, device_name: str, value) -> None:
@@ -1762,105 +1776,118 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         if value == ("", "") or not value:
             return
+        unique_id, result_code_message = value
+
+        if (
+            unique_id not in self.command_unique_id_dict.values()
+            or not unique_id.endswith(self.supported_commands)
+        ):
+            self.logger.debug(
+                "LRCR event for id %s will be ignored",
+                unique_id,
+            )
+            return
+
         try:
-            unique_id, result_code_message = value
+            command_name = unique_id.split('_')[-1]
+
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
                 self.logger.info("Checking unique_id- %s", unique_id)
-                if "ConfigureBand" in unique_id and "SPFRX" not in unique_id:
-                    self.configure_band_result["result_code"] = result_code
-                    self.configure_band_result["message"] = message
-                    self.logger.debug(
-                        "ConfigureBand result: %s",
-                        self.configure_band_result,
-                    )
-                    # if not self.is_configure_command:
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
-                elif "SetOperateMode" in unique_id:
-                    self.set_operate_mode_result["result_code"] = result_code
-                    self.set_operate_mode_result["message"] = message
-                    self.logger.debug(
-                        "SetOperateMode result: %s",
-                        self.set_operate_mode_result,
-                    )
-                    # pylint: disable=line-too-long
-                    observer_cmd_instance = [
-                        (
-                            observer.command_callback_tracker.command_class_instance,  # noqa: E501
-                            observer.command_callback_tracker.command_id,
+                if self.command_unique_id_dict[command_name] == unique_id:
+                    if "ConfigureBand" in unique_id:
+                        self.configure_band_result["result_code"] = result_code
+                        self.configure_band_result["message"] = message
+                        self.logger.debug(
+                            "ConfigureBand result: %s",
+                            self.configure_band_result,
                         )
-                        for observer in self.observable.observers
-                    ]
-                    self.logger.info(
-                        "Number of observer %s", observer_cmd_instance
-                    )
-                    # if not self.is_configure_command:
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
-                elif "EndScan" in unique_id:
-                    self.end_scan_result["result_code"] = result_code
-                    self.end_scan_result["message"] = message
-                    self.logger.debug(
-                        "EndScan result: %s",
-                        self.end_scan_result,
-                    )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
-                elif "Scan" in unique_id:
-                    self.scan_result["result_code"] = result_code
-                    self.scan_result["message"] = message
-                    self.logger.debug(
-                        "Scan result: %s",
-                        self.scan_result,
-                    )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
-                elif "TrackLoadStaticOff" in unique_id:
-                    self.track_load_static_off_result[
-                        "result_code"
-                    ] = result_code
-                    self.track_load_static_off_result["message"] = message
-                    self.logger.debug(
-                        "TrackLoadStaticOff result: %s",
-                        self.track_load_static_off_result,
-                    )
-                    if (
-                        self.command_in_progress != "Configure"
-                        or self.partial_configure
-                    ):
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
-                    elif self.correction_key == CORRECTION_KEY.RESET.value:
+                    elif "SetOperateMode" in unique_id:
+                        self.set_operate_mode_result[
+                            "result_code"
+                        ] = result_code
+                        self.set_operate_mode_result["message"] = message
+                        self.logger.debug(
+                            "SetOperateMode result: %s",
+                            self.set_operate_mode_result,
+                        )
+                        # pylint: disable=line-too-long
+                        observer_cmd_instance = [
+                            (
+                                observer.command_callback_tracker.command_class_instance,  # noqa: E501
+                                observer.command_callback_tracker.command_id,
+                            )
+                            for observer in self.observable.observers
+                        ]
+                        self.logger.info(
+                            "Number of observer %s", observer_cmd_instance
+                        )
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
-                elif "TrackStop" in unique_id:
-                    self.track_stop_result["result_code"] = result_code
-                    self.track_stop_result["message"] = message
-                    self.logger.debug(
-                        "TrackStop result: %s",
-                        self.track_stop_result,
-                    )
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
-                elif "Track" in unique_id:
-                    self.track_result["result_code"] = result_code
-                    self.track_result["message"] = message
-                    self.logger.debug(
-                        "Track result: %s",
-                        self.track_result,
-                    )
-                    # if not self.is_configure_command:
-                    self.observable.notify_observers(
-                        attribute_value_change=True
-                    )
+                    elif "EndScan" in unique_id:
+                        self.end_scan_result["result_code"] = result_code
+                        self.end_scan_result["message"] = message
+                        self.logger.debug(
+                            "EndScan result: %s",
+                            self.end_scan_result,
+                        )
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
+                    elif "Scan" in unique_id:
+                        self.scan_result["result_code"] = result_code
+                        self.scan_result["message"] = message
+                        self.logger.debug(
+                            "Scan result: %s",
+                            self.scan_result,
+                        )
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
+                    elif "TrackLoadStaticOff" in unique_id:
+                        self.track_load_static_off_result[
+                            "result_code"
+                        ] = result_code
+                        self.track_load_static_off_result["message"] = message
+                        self.logger.debug(
+                            "TrackLoadStaticOff result: %s",
+                            self.track_load_static_off_result,
+                        )
+                        if (
+                            self.command_in_progress != "Configure"
+                            or self.partial_configure
+                        ):
+                            self.observable.notify_observers(
+                                attribute_value_change=True
+                            )
+                        elif self.correction_key == CORRECTION_KEY.RESET.value:
+                            self.observable.notify_observers(
+                                attribute_value_change=True
+                            )
+                    elif "TrackStop" in unique_id:
+                        self.track_stop_result["result_code"] = result_code
+                        self.track_stop_result["message"] = message
+                        self.logger.debug(
+                            "TrackStop result: %s",
+                            self.track_stop_result,
+                        )
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
+                    elif "Track" in unique_id:
+                        self.track_result["result_code"] = result_code
+                        self.track_result["message"] = message
+                        self.logger.debug(
+                            "Track result: %s",
+                            self.track_result,
+                        )
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
 
             if result_code in [
                 ResultCode.FAILED,

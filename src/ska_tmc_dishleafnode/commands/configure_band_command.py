@@ -113,6 +113,7 @@ class ConfigureBand(DishLNCommand):
 
         command_name: str = f"ConfigureBand{argin}"
         self.logger.info("command_name: %s", command_name)
+        self.logger.info("%s command will be executed shortly.", command_name)
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
             result_code, message = self.call_adapter_method(
@@ -121,8 +122,18 @@ class ConfigureBand(DishLNCommand):
                 command_name,
                 True,
             )
-
-        self.logger.debug("Released tango lock")
+            if ResultCode(result_code[0]) is ResultCode.QUEUED:
+                # Append command unique id
+                self.component_manager.command_unique_id_dict[
+                    command_name
+                ] = message[0]
+            self.logger.debug(
+                "%s command returned ResultCode: %s and message: %s",
+                command_name,
+                result_code,
+                message,
+            )
+            self.logger.debug("Released tango lock")
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]

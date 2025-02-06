@@ -1,6 +1,7 @@
 """Unit Tests for Track command
 """
 from os.path import dirname, join
+from unittest import mock
 
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
@@ -20,12 +21,20 @@ def get_track_input_str(
     return config_str
 
 
-def test_track_command_completed(
-    tango_context,
-    task_callback,
-    cm_without_er_lp,
-):
+def test_track_command_completed(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
+    attrs = {
+        'Track.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
     track_input_str = get_track_input_str()
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
@@ -68,7 +77,7 @@ def test_track_command_adapter_none(task_callback, cm_without_er_lp):
     assert "TRANSIENT_NoUsableProfile" in result["result"][1]
 
 
-def test_json_validation(tango_context, task_callback, cm_without_er_lp):
+def test_json_validation(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)

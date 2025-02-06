@@ -121,8 +121,17 @@ class Track(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
-
-        self.logger.debug("Released tango lock")
+            if ResultCode(result_code[0]) is ResultCode.QUEUED:
+                # Append command unique id
+                self.component_manager.command_unique_id_dict[
+                    "Track"
+                ] = message[0]
+            self.logger.debug(
+                "Track command returned ResultCode: %s, message: %s",
+                result_code,
+                message,
+            )
+            self.logger.debug("Released tango lock")
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]

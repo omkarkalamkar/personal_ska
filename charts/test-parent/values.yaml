@@ -43,6 +43,8 @@ tmc-dishleafnode:
       Azimuth: 0.0
       ElevationMaxLimit: 90.0
       ElevationMinLimit: 15.0
+      AzimuthMinLimit: -270.0
+      AzimuthMaxLimit: 270.0
 
 ska-taranta:
   enabled: false

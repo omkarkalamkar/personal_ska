@@ -27,7 +27,8 @@ class ProgramTrackTableCalculator:
     ) -> None:
         """
         Init method for ProgramTrackTableCalculator class.
-        :param component_manager: Dish Leaf Node component manager object
+        :param component_manager: DishLeafNode pointing device component
+        manager object
         :type component_manager: DishLNComponentManager
         :param logger: logger
         :type logger: Logger
@@ -73,8 +74,12 @@ class ProgramTrackTableCalculator:
                     )
                     raise Exception(message)
 
-                if result[0] < 0:
-                    result[0] = 360 - abs(result[0])
+                if not (
+                    self.component_manager.azimuth_min_limit
+                    < result[0]
+                    < self.component_manager.azimuth_max_limit
+                ):
+                    result[0] = self.fit_azimuth_in_observable_range(result[0])
 
                 program_track_table.append(tai_timestamp_list.pop(0))
                 program_track_table.extend(
@@ -233,3 +238,30 @@ class ProgramTrackTableCalculator:
             raise Exception(message) from exception
 
         return tai_time
+
+    def fit_azimuth_in_observable_range(
+        self, calculated_azimuth: float
+    ) -> float:
+        """
+        This method fits the calculated azimuth to the dish's observable
+        azimuth range.
+        :param: calculated_azimuth: Azimuth in degrees
+        :type calculated_azimuth: float
+        :returns: Azimuth in degrees
+        :rtype: float
+        """
+        azimuth: float
+        try:
+            if calculated_azimuth > self.component_manager.azimuth_max_limit:
+                azimuth = calculated_azimuth - 360
+            elif calculated_azimuth < self.component_manager.azimuth_min_limit:
+                azimuth = calculated_azimuth + 360
+        except ValueError as exception:
+            exception_message = (
+                "Exception occurred while fitting azimuth in the dish's"
+                + " observable range: %s",
+                exception,
+            )
+            self.logger.exception(exception_message)
+            raise Exception(exception_message) from exception
+        return azimuth

@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DeviceUnresponsive
@@ -13,9 +15,19 @@ from tests.settings import (
 )
 
 
-def test_set_kvalue_command(tango_context, cm_without_er_lp):
+def test_set_kvalue_command(cm_without_er_lp):
     cm = cm_without_er_lp
+    attrs = {
+        'SetKValue.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(**attrs)
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
     set_kvalue_command = SetKValue(cm, logger=logger)
+    set_kvalue_command._adapter_factory = adapter_factory
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
 

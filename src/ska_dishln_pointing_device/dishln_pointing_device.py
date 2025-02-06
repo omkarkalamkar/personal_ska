@@ -44,6 +44,17 @@ class DishPointingDevice(TMCBaseLeafDevice):
         default_value=6,
         doc="programTrackTable in advance in seconds",
     )
+    AzimuthMinLimit = device_property(
+        dtype="DevFloat",
+        default_value=-270.0,
+        doc="Minimum value of Azimuth where dish can point",
+    )
+
+    AzimuthMaxLimit = device_property(
+        dtype="DevFloat",
+        default_value=270.0,
+        doc="Maximum value of Azimuth where dish can point",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -219,6 +230,8 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 elevation_max_limit=self.ElevationMaxLimit,
                 elevation_min_limit=self.ElevationMinLimit,
                 track_table_advance_sec=self.TrackTableInAdvance,
+                azimuth_min_limit=self.AzimuthMinLimit,
+                azimuth_max_limit=self.AzimuthMaxLimit,
             )
         )
         return dish_pointing_device_component_manager

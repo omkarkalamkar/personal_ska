@@ -9,6 +9,8 @@ entrypoints:
 {{- $Azimuth := .Values.deviceServers.dishpointingdevice.Azimuth }}
 {{- $ElevationMaxLimit := .Values.deviceServers.dishpointingdevice.ElevationMaxLimit }}
 {{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
+{{- $AzimuthMinLimit := .Values.deviceServers.dishpointingdevice.AzimuthMinLimit }}
+{{- $AzimuthMaxLimit := .Values.deviceServers.dishpointingdevice.AzimuthMaxLimit }}
 
 server:
   name: "dishpointing"
@@ -47,6 +49,12 @@ server:
             - name: "SkaLevel"
               values:
                 - "4"
+            - name: "AzimuthMinLimit"
+              values:
+                - "{{ $AzimuthMinLimit }}"
+            - name: "AzimuthMaxLimit"
+              values:
+                - "{{ $AzimuthMaxLimit }}"
   {{- end }}
 
 depends_on:

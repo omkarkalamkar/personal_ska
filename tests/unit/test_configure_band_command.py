@@ -1,6 +1,8 @@
 """Unit Tests for Track command
 """
 
+from unittest import mock
+
 import pytest
 from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_tmc_common.enum import DishMode
@@ -10,7 +12,20 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-def test_configure_band_command_completed(tango_context, task_callback, cm):
+def test_configure_band_command_completed(task_callback, cm):
+    attrs = {
+        'ConfigureBand1.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+    dishMock = mock.Mock(
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
+
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()
 
@@ -22,7 +37,7 @@ def test_configure_band_command_completed(tango_context, task_callback, cm):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    simulate_result_code_event(cm, "ConfigureBand", ResultCode.OK)
+    simulate_result_code_event(cm, "ConfigureBand1", ResultCode.OK)
     cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
         call_kwargs={

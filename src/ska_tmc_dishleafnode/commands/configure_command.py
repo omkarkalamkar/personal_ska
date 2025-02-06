@@ -159,6 +159,7 @@ class Configure(DishLNCommand):
             ):
                 self.component_manager.correction_key = ""
             self.component_manager.clear_configure_command_events_flags()
+            self.component_manager.command_unique_id_dict.clear()
             self.logger.info("Configure command cleanup completed.")
 
         except Exception as e:
@@ -304,7 +305,6 @@ class Configure(DishLNCommand):
                     ),
                 )
             if not reset_offset:
-                self.logger.info("Invoking ConfigureBand command")
                 return self.invoke_configure_band_on_dish(json_argument)
 
         except Exception as exception:
@@ -554,7 +554,7 @@ class Configure(DishLNCommand):
 
         return: None
         """
-        self.logger.info("Invoking SetOperateMode command")
+        self.logger.info("SetOperateMode command will be executed shortly.")
 
         # pylint: disable=unused-argument
         def _invoke_setoperatemode_callback(
@@ -721,7 +721,6 @@ class Configure(DishLNCommand):
 
         start_time = time.time()
         elapsed_time = 0
-        track_table = []
         while (
             elapsed_time
             < self.component_manager.command_timeout - ADJUST_TIMEOUT
@@ -733,8 +732,6 @@ class Configure(DishLNCommand):
                 )
                 track_table_status = CommandResult.ABORTED
                 break
-            track_table = self.dish_master_adapter.programTrackTable
-            self.logger.debug("is_tracktable_provided: %s", track_table)
 
             if self.component_manager.is_tracktable_provided.is_set():
                 track_table_status = CommandResult.ACHIEVED
@@ -742,10 +739,12 @@ class Configure(DishLNCommand):
                 break
             time.sleep(0.1)
             elapsed_time = time.time() - start_time
+
         self.logger.debug(
-            "Come out of loop that waits for tracktable before Track"
+            "Exited the loop that waits to supply the tracktable before"
+            + " invoking the Track command."
         )
-        if len(track_table) == 0:
+        if not self.component_manager.is_tracktable_provided.is_set():
             # Set Failure for configure
             self.logger.info("Timed out occurred for track table")
             self.set_failure_for_configure(
@@ -757,11 +756,12 @@ class Configure(DishLNCommand):
     def set_failure_for_configure(self, message):
         """Set failure for configure"""
         # pylint: disable=no-member
-        self.component_manager.long_running_result_callback(
-            self.ct.command_id,
-            ResultCode.FAILED,
-            exception_msg=message,
-        )
-        self.component_manager.observable.notify_observers(
-            command_exception=True
-        )
+        if hasattr(self, "ct"):
+            self.component_manager.long_running_result_callback(
+                self.ct.command_id,
+                ResultCode.FAILED,
+                exception_msg=message,
+            )
+            self.component_manager.observable.notify_observers(
+                command_exception=True
+            )

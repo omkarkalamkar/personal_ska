@@ -20,7 +20,7 @@ def test_adapter_creation_success(cm_without_er_lp) -> None:
     assert message == "Adapter initialisation is successful"
 
 
-def test_adapter_creation_timeout(tango_context, cm_without_er_lp) -> None:
+def test_adapter_creation_timeout(cm_without_er_lp) -> None:
     cm = cm_without_er_lp
     setoperatemode_command_obj = SetOperateMode(
         cm,

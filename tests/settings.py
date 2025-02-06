@@ -408,6 +408,7 @@ def simulate_result_code_event(
     command_id = ""
     device_name = "mid-dish/dish-manager/SKA001"
     command_id = f"{time.time()}_{command_name}"
+    cm.command_unique_id_dict[command_name] = command_id
     logging.info("command_id  is: %s", command_id)
     command_result = (
         command_id,
