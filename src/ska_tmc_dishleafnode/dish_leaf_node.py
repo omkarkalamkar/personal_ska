@@ -35,12 +35,12 @@ from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
 # pylint: disable = attribute-defined-outside-init
-class DishLeafNode(TMCBaseLeafDevice):
+class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     """
     A Leaf control node for DishMaster.
 
     :Device Properties:
-    :DishMasterFQDN: FQDN of Dish Master Device
+    :MidDishControl: FQDN of Dish Master Device
     :Device Attributes:
     :commandExecuted: Stores command executed on the device.
     :dishMasterDevName: Stores Dish Master Device name.
@@ -49,12 +49,12 @@ class DishLeafNode(TMCBaseLeafDevice):
     # -----------------
     # Device Properties
     # -----------------
-    DishMasterFQDN = device_property(
+    MidDishControl = device_property(
         dtype="str",
         doc="FQDN of Dish Master Device",
     )
 
-    DishlnPointingDeviceFQDN = device_property(
+    MidPointingDevice = device_property(
         dtype="str",
         doc="FQDN of DishLeaf Node Pointing Device",
     )
@@ -122,7 +122,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     # General methods
     # ---------------
 
-    def init_device(self: DishLeafNode):
+    def init_device(self: MidTmcLeafNodeDish):
         self._isSubsystemAvailable = True
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
@@ -159,7 +159,8 @@ class DishLeafNode(TMCBaseLeafDevice):
         # pylint: disable=W0221
         def do(self):
             """
-            Initializes the attributes and properties of the DishLeafNode.
+            Initializes the attributes and properties of the
+            MidTmcLeafNodeDish.
 
             return:
                 A tuple containing a return code and a string message
@@ -346,7 +347,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         memorized=True,
         hw_memorized=True,
     )
-    def kValue(self: DishLeafNode) -> int:
+    def kValue(self: MidTmcLeafNodeDish) -> int:
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
 
@@ -354,12 +355,12 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype="str",
         access=AttrWriteType.READ,
     )
-    def globalPointingModelParams(self: DishLeafNode) -> str:
+    def globalPointingModelParams(self: MidTmcLeafNodeDish) -> str:
         """Returns the globalpointingModelparam attribute value."""
         return json.dumps(self._global_pointing_model_params)
 
     @kValue.write
-    def kValue(self: DishLeafNode, k_value: int) -> None:
+    def kValue(self: MidTmcLeafNodeDish, k_value: int) -> None:
         """Set the dish k-value."""
         self.component_manager.kValue = k_value
 
@@ -367,7 +368,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype="str",
         access=AttrWriteType.READ,
     )
-    def kValueValidationResult(self: DishLeafNode) -> str:
+    def kValueValidationResult(self: MidTmcLeafNodeDish) -> str:
         """Read method to get the k-value validation result"""
         return str(int(self.component_manager.kValueValidationResult))
 
@@ -376,7 +377,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         dformat=AttrDataFormat.SCALAR,
         access=AttrWriteType.READ_WRITE,
     )
-    def sdpQueueConnectorFqdn(self: DishLeafNode) -> str:
+    def sdpQueueConnectorFqdn(self: MidTmcLeafNodeDish) -> str:
         """
         This attribute is used for storing the FQDN of pointing_cal
         attribute from SDP queue connector device, which is required in
@@ -386,7 +387,9 @@ class DishLeafNode(TMCBaseLeafDevice):
         return self._sdpQueueConnectorFqdn
 
     @sdpQueueConnectorFqdn.write
-    def sdpQueueConnectorFqdn(self: DishLeafNode, sdpqc_fqdn: str) -> None:
+    def sdpQueueConnectorFqdn(
+        self: MidTmcLeafNodeDish, sdpqc_fqdn: str
+    ) -> None:
         """
         This Method is used to get the SDP queue connector FQDN from
         subarray node and then Dish Leaf Node have to subscribe to its
@@ -405,7 +408,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         access=AttrWriteType.READ,
         max_dim_x=2,
     )
-    def sourceOffset(self: DishLeafNode) -> list[float]:
+    def sourceOffset(self: MidTmcLeafNodeDish) -> list[float]:
         """
         This attribute is used for storing the commanded offsets
         received as a part of delta/partial configuration.
@@ -428,7 +431,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         dformat=AttrDataFormat.SCALAR,
         access=AttrWriteType.READ,
     )
-    def lastPointingData(self: DishLeafNode):
+    def lastPointingData(self: MidTmcLeafNodeDish):
         """
         This attribute is used to store the recent
         pointing data received in calibration scan
@@ -446,7 +449,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     # Commands
     # --------
 
-    def is_SetStowMode_allowed(self: DishLeafNode) -> bool:
+    def is_SetStowMode_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -460,7 +463,9 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetStowMode(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
+    def SetStowMode(
+        self: MidTmcLeafNodeDish,
+    ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetStowMode command on DishMaster.
 
         :rtype: Tuple"""
@@ -470,7 +475,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetStandbyLPMode_allowed(self: DishLeafNode) -> bool:
+    def is_SetStandbyLPMode_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -483,7 +488,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def SetStandbyLPMode(self: DishLeafNode):
+    def SetStandbyLPMode(self: MidTmcLeafNodeDish):
         """Invokes SetStandbyLPMode command on DishMaster (Standby-Low power)
         mode."""
         handler = self.get_command_object("SetStandbyLPMode")
@@ -491,7 +496,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetOperateMode_allowed(self: DishLeafNode) -> bool:
+    def is_SetOperateMode_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -506,7 +511,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetOperateMode(
-        self: DishLeafNode,
+        self: MidTmcLeafNodeDish,
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetOperateMode command on DishMaster device.
 
@@ -516,7 +521,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetStandbyFPMode_allowed(self: DishLeafNode) -> bool:
+    def is_SetStandbyFPMode_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -531,7 +536,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyFPMode(
-        self: DishLeafNode,
+        self: MidTmcLeafNodeDish,
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetStandbyFPMode command on DishMaster (Standby-Full power)
         mode."""
@@ -548,7 +553,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
     @DebugIt()
     def Scan(
-        self: DishLeafNode, argin: str
+        self: MidTmcLeafNodeDish, argin: str
     ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes Scan command on DishMaster
@@ -560,7 +565,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         return [result_code], [str(unique_id)]
 
     def is_Scan_allowed(
-        self: DishLeafNode,
+        self: MidTmcLeafNodeDish,
     ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
@@ -575,7 +580,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         return self.component_manager.is_scan_allowed()
 
     def is_EndScan_allowed(
-        self: DishLeafNode,
+        self: MidTmcLeafNodeDish,
     ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
@@ -595,7 +600,9 @@ class DishLeafNode(TMCBaseLeafDevice):
         doc_out="(ReturnType, 'informational message')",
     )
     @DebugIt()
-    def EndScan(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
+    def EndScan(
+        self: MidTmcLeafNodeDish,
+    ) -> Tuple[List[ResultCode], List[str]]:
         """
         Updates the scanID attribute of Dish Master to empty string
 
@@ -606,7 +613,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_off_allowed(self: DishLeafNode):
+    def is_off_allowed(self: MidTmcLeafNodeDish):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -620,7 +627,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def Off(self: DishLeafNode) -> tuple:
+    def Off(self: MidTmcLeafNodeDish) -> tuple:
         """
         Invokes On command on Dish Master.
         """
@@ -628,7 +635,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
-    def is_Configure_allowed(self: DishLeafNode) -> bool:
+    def is_Configure_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -647,7 +654,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         doc_out="information-only string",
     )
     @DebugIt()
-    def Configure(self: DishLeafNode, argin) -> tuple:
+    def Configure(self: MidTmcLeafNodeDish, argin) -> tuple:
         """
         Invokes Configure command on Dish Master.
         """
@@ -655,7 +662,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
-    def is_StartCapture_allowed(self: DishLeafNode) -> bool:
+    def is_StartCapture_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -674,7 +681,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StartCapture(self: DishLeafNode):
+    def StartCapture(self: MidTmcLeafNodeDish):
         """Triggers the DishMaster to start data capturing on the configured
         band."""
 
@@ -683,7 +690,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ["StartCapture command will be refactored in later PI's"],
         ]
 
-    def is_StopCapture_allowed(self: DishLeafNode) -> bool:
+    def is_StopCapture_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -702,7 +709,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def StopCapture(self: DishLeafNode):
+    def StopCapture(self: MidTmcLeafNodeDish):
         """Invokes StopCapture command on DishMaster on the set configured
         band."""
 
@@ -711,7 +718,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ["StopCapture command will be refactored in later PI's"],
         ]
 
-    def is_Track_allowed(self: DishLeafNode) -> bool:
+    def is_Track_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -729,14 +736,14 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def Track(self: DishLeafNode, argin) -> tuple:
+    def Track(self: MidTmcLeafNodeDish, argin) -> tuple:
         """Invokes Track command on the DishMaster."""
 
         handler = self.get_command_object("Track")
         result_code, unique_id = handler(argin)
         return [result_code], [unique_id]
 
-    def is_ConfigureBand_allowed(self: DishLeafNode) -> bool:
+    def is_ConfigureBand_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -755,7 +762,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         dtype_out="DevVarLongStringArray",
     )
     @DebugIt()
-    def ConfigureBand(self: DishLeafNode, argin) -> tuple:
+    def ConfigureBand(self: MidTmcLeafNodeDish, argin) -> tuple:
         """Invokes ConfigureBand command on the DishMaster."""
 
         handler = self.get_command_object("ConfigureBand")
@@ -764,7 +771,9 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def TrackStop(self: DishLeafNode) -> Tuple[List[ResultCode], List[str]]:
+    def TrackStop(
+        self: MidTmcLeafNodeDish,
+    ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes TrackStop command on DishMaster
 
@@ -775,7 +784,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_TrackStop_allowed(self: DishLeafNode) -> bool:
+    def is_TrackStop_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -795,7 +804,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
     @DebugIt()
     def TrackLoadStaticOff(
-        self: DishLeafNode, argin: str
+        self: MidTmcLeafNodeDish, argin: str
     ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes TrackLoadStaticOff command on DishMaster
@@ -807,7 +816,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_TrackLoadStaticOff_allowed(self: DishLeafNode) -> bool:
+    def is_TrackLoadStaticOff_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -819,7 +828,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         """
         return self.component_manager.is_trackloadstaticoff_allowed()
 
-    def is_AbortCommands_allowed(self: DishLeafNode) -> bool:
+    def is_AbortCommands_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -833,14 +842,14 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def AbortCommands(self: DishLeafNode):
+    def AbortCommands(self: MidTmcLeafNodeDish):
         """Invokes AbortCommands command on the DishMaster."""
 
         handler = self.get_command_object("AbortCommands")
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
-    def is_Restart_allowed(self: DishLeafNode) -> bool:
+    def is_Restart_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -853,7 +862,7 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def Restart(self: DishLeafNode):
+    def Restart(self: MidTmcLeafNodeDish):
         """Invokes Restart command on the DishMaster."""
 
         return [
@@ -861,7 +870,7 @@ class DishLeafNode(TMCBaseLeafDevice):
             ["Restart command will be refactored in later PI's"],
         ]
 
-    def is_ObsReset_allowed(self: DishLeafNode) -> bool:
+    def is_ObsReset_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -875,15 +884,15 @@ class DishLeafNode(TMCBaseLeafDevice):
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def ObsReset(self: DishLeafNode):
-        """Invokes ObsReset command on the DishLeafNode."""
+    def ObsReset(self: MidTmcLeafNodeDish):
+        """Invokes ObsReset command on the MidTmcLeafNodeDish."""
 
         return [
             [ResultCode.FAILED],
             ["ObsReset command will be refactored in later PI's"],
         ]
 
-    def is_SetKValue_allowed(self: DishLeafNode) -> bool:
+    def is_SetKValue_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -903,7 +912,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
     @DebugIt()
     def SetKValue(
-        self: DishLeafNode, k_value: int
+        self: MidTmcLeafNodeDish, k_value: int
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetKValue command on the DishMaster."""
         handler = self.get_command_object("SetKValue")
@@ -927,7 +936,7 @@ class DishLeafNode(TMCBaseLeafDevice):
     )
     @DebugIt()
     def ApplyPointingModel(
-        self: DishLeafNode, argin: str
+        self: MidTmcLeafNodeDish, argin: str
     ) -> Tuple[List[ResultCode], List[str]]:
         """
         Invokes ApplyPointingModel command on DishMaster
@@ -940,7 +949,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         result_code, unique_id = handler(argin)
         return [result_code], [str(unique_id)]
 
-    def is_ApplyPointingModel_allowed(self: DishLeafNode) -> bool:
+    def is_ApplyPointingModel_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -952,11 +961,11 @@ class DishLeafNode(TMCBaseLeafDevice):
         """
         return self.component_manager.is_ApplyPointingModel_allowed()
 
-    def create_component_manager(self: DishLeafNode):
+    def create_component_manager(self: MidTmcLeafNodeDish):
         update_track_err_cb = self.update_track_table_errors_callback
         cm = DishLNComponentManager(
-            dish_dev_name=self.DishMasterFQDN,
-            dishln_pointing_fqdn=self.DishlnPointingDeviceFQDN,
+            dish_dev_name=self.MidDishControl,
+            dishln_pointing_fqdn=self.MidPointingDevice,
             logger=self.logger,
             communication_state_callback=None,
             component_state_callback=None,
@@ -985,7 +994,7 @@ class DishLeafNode(TMCBaseLeafDevice):
         )
         return cm
 
-    def init_command_objects(self: DishLeafNode) -> None:
+    def init_command_objects(self: MidTmcLeafNodeDish) -> None:
         """
         Initializes the command handlers for commands supported by this device.
         """
@@ -1030,14 +1039,14 @@ class DishLeafNode(TMCBaseLeafDevice):
 
 def main(args=None, **kwargs):
     """
-    Runs the DishLeafNode.
+    Runs the MidTmcLeafNodeDish.
 
     :param args: Arguments internal to TANGO
     :param kwargs: Arguments internal to TANGO
-    :return: DishLeafNode TANGO object.
+    :return: MidTmcLeafNodeDish TANGO object.
 
     """
-    return run((DishLeafNode,), args=args, **kwargs)
+    return run((MidTmcLeafNodeDish,), args=args, **kwargs)
 
 
 if __name__ == "__main__":

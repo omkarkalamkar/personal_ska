@@ -17,7 +17,7 @@ Attributes in DishPointingDevice
 +--------------------------+---------------+----------------------+----------------------------------------------------------+
 | Attribute Name           | O/P Data Type | access/AttrWriteType | Description                                              |
 +==========================+===============+======================+==========================================================+
-| dishlnPointingDeviceFqdn | String        | READ                 | This attribute gives dish pointing device fqdn           |
+| MidPointingDevice | String        | READ                 | This attribute gives dish pointing device fqdn           |
 +--------------------------+---------------+----------------------+----------------------------------------------------------+
 | healthState              | HealthState   | READ                 | This attribute gives HealthState of dish pointing device |
 +--------------------------+---------------+----------------------+----------------------------------------------------------+

@@ -1583,7 +1583,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
     ) -> None:
-        """Find out dish number from DishMasterFQDN
+        """Find out dish number from MidDishControl
         property e.g. mid-dish/dish-manager/SKA001
         Here, SKA001 is the dish number.
         """

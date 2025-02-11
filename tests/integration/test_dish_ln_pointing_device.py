@@ -15,10 +15,7 @@ def test_dishln_pointing_device():
     dishln_pointing_device.set_timeout_millis(5000)
     assert dishln_pointing_device.ping() > 0
     assert dishln_pointing_device.HealthState == HealthState.OK
-    assert (
-        dishln_pointing_device.dishlnPointingDeviceFqdn
-        == DISHLN_POINTING_DEVICE
-    )
+    assert dishln_pointing_device.MidPointingDevice == DISHLN_POINTING_DEVICE
     result_code, message = dishln_pointing_device.GenerateProgramTrackTable()
     assert result_code == [ResultCode.STARTED]
     assert message == ['ProgramTrackTable generation started']

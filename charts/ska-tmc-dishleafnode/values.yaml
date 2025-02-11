@@ -14,6 +14,8 @@ labels:
 global:
   minikube: true
   tango_host: databaseds-tango-base-test:10000
+  domain: mid-tmc
+  domain_dish: mid-dish
   retry:
   - "--tries=10"
   - "--sleep=5"
@@ -57,6 +59,8 @@ deviceServers:
   dishln:
     enabled: true
     instances: ["01", "02"]
+    family: "leaf-node-dish"
+    prefix_member : "SKA"
     MaxTrackTableRetry: 3
     TrackTableRetryDuration: 0.2
     file: "data/dishleafnode.yaml"
@@ -75,6 +79,10 @@ deviceServers:
     instances: ["01", "02"]
     TrackTableUpdateRate: 50
     TrackTableInAdvance: 6
+    prefix_member : "SKA"
+    TrackTableEntries: 50
+    PointingCalculationPeriod: 50
+    TrackTableInAdvance: 7
     Elevation: 30.0
     Azimuth: 0.0
     ElevationMaxLimit: 90.0

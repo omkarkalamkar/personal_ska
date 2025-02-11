@@ -18,16 +18,16 @@ server:
   {{- range  .Values.deviceServers.dishln.instances }}
     - name: "{{ . }}"
       classes:
-      - name: "DishLeafNode"
+      - name: "MidTmcLeafNodeDish"
         devices:
-        - name: "ska_mid/tm_leaf_node/d{{ printf "%04s" . }}"
+        - name: "{{ $.Values.global.domain }}/{{ $.Values.deviceServers.dishln.family }}/{{ $.Values.deviceServers.dishln.prefix_member }}{{ printf "%03s" . }}"
           properties:
-          - name: "DishMasterFQDN"
+          - name: "MidDishControl"
             values:
-              - "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"
-          - name: "DishlnPointingDeviceFQDN"
+              - "{{ $.Values.global.domain }}/control/{{ $.Values.deviceServers.dishln.prefix_member }}{{ printf "%03s" . }}"
+          - name: "MidPointingDevice"
             values:
-              - "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+              - "{{ $.Values.global.domain }}/dish-pointing/SKA{{ printf "%03s" . }}"
           - name: "SkaLevel"
             values:
               - "3"
@@ -69,4 +69,3 @@ image:
   image: "{{.Values.dishleafnode.image.image}}"
   tag: "{{.Values.dishleafnode.image.tag}}"
   pullPolicy: "{{.Values.dishleafnode.image.pullPolicy}}"
-

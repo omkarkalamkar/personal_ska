@@ -66,7 +66,7 @@ class Abort(BaseCommand):
         try:
             this_server = TangoServerHelper.get_instance()
             self.dish_master_fqdn = ""
-            property_value = this_server.read_property("DishMasterFQDN")
+            property_value = this_server.read_property("MidDishControl")
             self.dish_master_fqdn = self.dish_master_fqdn.join(property_value)
             dish_client = TangoClient(self.dish_master_fqdn)
             dish_pointing_state = dish_client.get_attribute("pointingState")

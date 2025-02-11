@@ -20,7 +20,7 @@ server:
       classes:
       - name: "DishPointingDevice"
         devices:
-        - name: "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+        - name: "{{ $.Values.global.domain }}/dish-pointing/SKA{{ printf "%03s" . }}"
           properties:
             - name: "TrackTableUpdateRate"
               values:

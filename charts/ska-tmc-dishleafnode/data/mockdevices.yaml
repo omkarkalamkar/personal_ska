@@ -12,7 +12,7 @@ server:
       classes:
       - name: "HelperDishDevice"
         devices:
-        - name: "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"
+        - name: "{{ $.Values.global.domain_dish }}/dish-manager/{{ $.Values.deviceServers.dishln.prefix_member }}{{ printf "%03s" . }}"
   {{- end }}
 
 depends_on:

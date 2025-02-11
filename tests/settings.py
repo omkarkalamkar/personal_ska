@@ -26,10 +26,10 @@ TIMEOUT = 100
 NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
 DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
-DISH_LEAF_NODE_DEVICE = "ska_mid/tm_leaf_node/d0001"
+DISH_LEAF_NODE_DEVICE = "mid-dish/leaf-node-dish/SKA001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
-DISHLN_POINTING_DEVICE = "mid-tmc/dish-pointing/d0001"
+DISHLN_POINTING_DEVICE = "mid-dish/dish-pointing/SKA001"
 COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
 COMMAND_FAILED = json.dumps(
     [ResultCode.FAILED, "Exception occured, command failed."]
@@ -406,7 +406,7 @@ def simulate_result_code_event(
 ):
     """Simulate LRCR event from given device for given result."""
     command_id = ""
-    device_name = "mid-dish/dish-manager/SKA001"
+    device_name = "mid-dish/control/SKA001"
     command_id = f"{time.time()}_{command_name}"
     cm.command_unique_id_dict[command_name] = command_id
     logging.info("command_id  is: %s", command_id)
