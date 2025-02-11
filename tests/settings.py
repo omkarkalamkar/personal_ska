@@ -25,7 +25,7 @@ SLEEP_TIME = 0.5
 TIMEOUT = 100
 NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
-DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
+DISH_MASTER_DEVICE = "mid-dish/control/SKA001"
 DISH_LEAF_NODE_DEVICE = "mid-dish/leaf-node-dish/SKA001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"

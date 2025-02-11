@@ -109,6 +109,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.20.0]
+* Updated the FQDN's as per ADR-9.
+
 [0.19.7]
 * Applied fix for SKB-661 and SKB-728
 
