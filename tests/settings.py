@@ -25,7 +25,7 @@ SLEEP_TIME = 0.5
 TIMEOUT = 100
 NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
-DISH_MASTER_DEVICE = "mid-dish/control/SKA001"
+DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
 DISH_LEAF_NODE_DEVICE = "mid-tmc/leaf-node-dish/SKA001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
@@ -406,7 +406,7 @@ def simulate_result_code_event(
 ):
     """Simulate LRCR event from given device for given result."""
     command_id = ""
-    device_name = "mid-dish/control/SKA001"
+    device_name = DISH_MASTER_DEVICE
     command_id = f"{time.time()}_{command_name}"
     cm.command_unique_id_dict[command_name] = command_id
     logging.info("command_id  is: %s", command_id)

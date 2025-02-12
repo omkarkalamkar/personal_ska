@@ -2,6 +2,9 @@ name: "mocks-{{.Release.Name}}"
 function: testing
 domain: mocks
 instances: ["01"]
+{{- $domainDish := $.Values.global.domain_dish }}
+{{- $prefixMember := $.Values.deviceServers.dishln.prefix_member }}
+{{- $dishFamily := $.Values.deviceServers.mocks.family }}
 entrypoints:
   - name: "ska_tmc_common.test_helpers.helper_dish_device.HelperDishDevice"
 server:
@@ -12,7 +15,7 @@ server:
       classes:
       - name: "HelperDishDevice"
         devices:
-        - name: "{{ $.Values.global.domain_dish }}/control/{{ $.Values.deviceServers.dishln.prefix_member }}{{ printf "%03s" . }}"
+        - name: "{{ $domainDish }}/{{ $dishFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
   {{- end }}
 
 depends_on:
