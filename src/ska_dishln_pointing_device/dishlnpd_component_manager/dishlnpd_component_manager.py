@@ -76,9 +76,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.observer = None
         self.track_table_update_rate: float = track_table_update_rate
-        self.pointing_calculation_period: float = operator.truediv(
-            self.track_table_update_rate, PROGRAM_TRACK_TABLE_SIZE
-        )
+        # self.pointing_calculation_period: float = operator.truediv(
+        #     self.track_table_update_rate, PROGRAM_TRACK_TABLE_SIZE
+        # )
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name
         self.logger.info(

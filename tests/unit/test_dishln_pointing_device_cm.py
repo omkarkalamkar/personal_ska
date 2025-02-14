@@ -188,3 +188,45 @@ def test_dish_pointing_device_multi_command_scenarios(
     ):
         time.sleep(1)
     assert len(cm.pointing_program_track_table) == 0
+
+
+def test_track_table_min_frequency(cm_pointig_device, json_factory):
+    timeout = 0
+    cm = cm_pointig_device
+    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json.loads(configure_data)
+    del configure_data["dish"]
+    cm.target_data = configure_data
+    cm.track_table_update_rate = 10
+    generate_program_track_table = GenerateProgramTrackTable(
+        logger=logger, component_manager=cm
+    )
+    generate_program_track_table.do()
+    while not cm.pointing_program_track_table and timeout < 5:
+        time.sleep(1)
+        timeout += 1
+    tracktable1_time = cm.pointing_program_track_table[0]
+    time.sleep(11)
+    tracktable2_time = cm.pointing_program_track_table[0]
+    assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
+
+
+def test_track_table_max_frequency(cm_pointig_device, json_factory):
+    timeout = 0
+    cm = cm_pointig_device
+    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json.loads(configure_data)
+    del configure_data["dish"]
+    cm.target_data = configure_data
+    cm.track_table_update_rate = 50
+    generate_program_track_table = GenerateProgramTrackTable(
+        logger=logger, component_manager=cm
+    )
+    generate_program_track_table.do()
+    while not cm.pointing_program_track_table and timeout < 5:
+        time.sleep(1)
+        timeout += 1
+    tracktable1_time = cm.pointing_program_track_table[0]
+    time.sleep(51)
+    tracktable2_time = cm.pointing_program_track_table[0]
+    assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
