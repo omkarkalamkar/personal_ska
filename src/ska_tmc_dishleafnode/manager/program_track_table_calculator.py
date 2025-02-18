@@ -100,11 +100,7 @@ class ProgramTrackTableCalculator:
             return program_track_table
 
         except Exception as exception:
-            message = (
-                "Exception occurred while calculating track table: "
-                + str(exception)
-            )
-            self.logger.error(message)
+            self.logger.error(exception)
             raise Exception(message) from exception
 
     def _is_elevation_within_mechanical_limits(
