@@ -101,7 +101,7 @@ class ProgramTrackTableCalculator:
 
         except Exception as exception:
             self.logger.error(exception)
-            raise Exception(message) from exception
+            raise Exception(str(exception)) from exception
 
     def _is_elevation_within_mechanical_limits(
         self: ProgramTrackTableCalculator,
