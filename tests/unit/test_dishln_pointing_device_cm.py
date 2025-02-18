@@ -95,7 +95,7 @@ def test_dish_pointing_device_program_track_table_error(
     while not cm.current_track_table_error and timeout < 5:
         time.sleep(1)
         timeout += 1
-    assert "exception" in cm.current_track_table_error.lower()
+    assert "unknown *special* body" in cm.current_track_table_error.lower()
 
 
 def test_dish_pointing_device_multi_command_scenarios(
