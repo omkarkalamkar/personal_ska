@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import operator
 from logging import Logger
 from typing import List, Union
 
@@ -38,6 +39,10 @@ class ProgramTrackTableCalculator:
         self.component_manager = component_manager
         self.logger = logger
         self.track_table_time_stamp: datetime.datetime | None = None
+        self.pointing_calculation_period: float = operator.truediv(
+            self.component_manager.track_table_update_rate,
+            PROGRAM_TRACK_TABLE_SIZE,
+        )
 
     def calculate_program_track_table(
         self: ProgramTrackTableCalculator,
@@ -95,12 +100,8 @@ class ProgramTrackTableCalculator:
             return program_track_table
 
         except Exception as exception:
-            message = (
-                "Exception occurred while calculating track table: "
-                + str(exception)
-            )
-            self.logger.error(message)
-            raise Exception(message) from exception
+            self.logger.error(exception)
+            raise Exception(str(exception)) from exception
 
     def _is_elevation_within_mechanical_limits(
         self: ProgramTrackTableCalculator,
@@ -153,9 +154,7 @@ class ProgramTrackTableCalculator:
                 self.track_table_time_stamp = (
                     self.track_table_time_stamp
                     + datetime.timedelta(
-                        seconds=(
-                            self.component_manager.pointing_calculation_period
-                        )
+                        seconds=(self.pointing_calculation_period)
                     )
                 )
 

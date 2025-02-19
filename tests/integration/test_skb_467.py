@@ -115,15 +115,18 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.skip("Enable test for non_sidereal_tracking as part of SAH-1627")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("json_to_use", ["dishleafnode_configure"])
+@pytest.mark.parametrize(
+    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
+)
 def test_reconfigure_command(
-    tango_context, group_callback, json_factory, json_to_use
+    tango_context, group_callback, json_factory, json_to_use, cm_pointig_device
 ):
     if json_to_use == "non_sidereal_tracking":
-        json_to_use = get_non_sidereal_json_for_now(json_factory(json_to_use))
+        json_to_use = get_non_sidereal_json_for_now(
+            json_factory(json_to_use), cm_pointig_device
+        )
         configure_dish_leaf_node(
             tango_context,
             DISH_LEAF_NODE_DEVICE,

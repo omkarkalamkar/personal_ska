@@ -217,9 +217,8 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     expected_message = (
-        "Exception occurred while starting programTrackTable calculation: "
-        + "Target description 'Pluto, special' contains unknown *special* "
-        + "body 'Pluto'"
+        "Target description 'Pluto, special' contains unknown"
+        + " *special* body 'Pluto'"
     )
 
     track_table_error = dish_leaf_node.trackTableErrors
@@ -250,7 +249,6 @@ def configure_dish_leaf_node_unknown_source(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.xfail(reason="This test will be fixed as part of SAH-1627")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
