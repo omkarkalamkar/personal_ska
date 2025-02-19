@@ -110,12 +110,10 @@ class AzElConverter:
 
         except ValueError as value_error:
             message = str(value_error)
-            logger.error(message)
             raise Exception(message) from value_error
 
         except Exception as exception:
             message = str(exception)
-            logger.error(message)
             raise Exception(message) from exception
         return refraction_corrected_azel
 
