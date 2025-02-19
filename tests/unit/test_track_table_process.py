@@ -41,10 +41,14 @@ def test_error_in_point_method(cm_without_er_lp):
         az_el_convarter.point("0", "0", "0")
 
 
-def test_error_in_calculate_program_track_table(cm_without_er_lp):
+def test_error_in_calculate_program_track_table(
+    cm_without_er_lp, cm_pointig_device
+):
     cm = cm_without_er_lp
     az_el_convarter = AzElConverter(cm)
-    track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
+    track_table_calculator = ProgramTrackTableCalculator(
+        cm_pointig_device, cm_pointig_device.logger
+    )
     with pytest.raises(Exception):
         track_table_calculator.track_table_time_stamp = (
             datetime.datetime.utcnow()
@@ -54,8 +58,8 @@ def test_error_in_calculate_program_track_table(cm_without_er_lp):
         )
 
 
-def test_timestamp_error_in_track_table_point_method(cm_without_er_lp):
-    cm = cm_without_er_lp
+def test_timestamp_error_in_track_table_point_method(cm_pointig_device):
+    cm = cm_pointig_device
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
     with pytest.raises(Exception):
@@ -93,8 +97,8 @@ def test_error_in_track_table_point_method(tango_context, cm_pointig_device):
     assert result is not None
 
 
-def test_error_in_utc_to_tai_method(cm_without_er_lp):
-    cm = cm_without_er_lp
+def test_error_in_utc_to_tai_method(cm_pointig_device):
+    cm = cm_pointig_device
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     with pytest.raises(Exception):
         track_table_calculator.convert_utc_to_tai(0.0)

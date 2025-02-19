@@ -109,19 +109,11 @@ class AzElConverter:
             refraction_corrected_azel = self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
-            message = (
-                "Exception occurred while starting programTrackTable "
-                "calculation: " + str(value_error)
-            )
-            logger.error(message)
+            message = str(value_error)
             raise Exception(message) from value_error
 
         except Exception as exception:
-            message = (
-                "Exception occurred while starting programTrackTable "
-                "calculation: " + str(exception)
-            )
-            logger.error(message)
+            message = str(exception)
             raise Exception(message) from exception
         return refraction_corrected_azel
 
@@ -254,20 +246,12 @@ class AzElConverter:
             refraction_corrected_azel = self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
-            message = (
-                "Exception occurred while starting programTrackTable "
-                + "calculation: "
-                + str(value_error)
-            )
+            message = str(value_error)
             logger.error(message)
             raise Exception(message) from value_error
 
         except Exception as exception:
-            message = (
-                "Exception occurred while starting programTrackTable "
-                + "calculation: "
-                + str(exception)
-            )
+            message = str(exception)
             logger.error(message)
             raise Exception(message) from exception
 

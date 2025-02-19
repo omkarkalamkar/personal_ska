@@ -76,9 +76,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.observer = None
         self.track_table_update_rate: float = track_table_update_rate
-        self.pointing_calculation_period: float = operator.truediv(
-            self.track_table_update_rate, PROGRAM_TRACK_TABLE_SIZE
-        )
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name
         self.logger.info(
@@ -233,11 +230,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     + " New thread will not be hosted."
                 )
         except Exception as exception:
-            self.logger.error(
-                "Exception occurred while starting programTrackTable "
-                "calculation: %s",
-                str(exception),
-            )
+            self.logger.error(str(exception))
 
     def create_track_table_thread(self) -> None:
         """This creates thread for track table calculation."""
@@ -246,11 +239,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 target=self.track_thread
             )
         except Exception as exception:
-            self.logger.error(
-                "Exception occurred while starting programTrackTable "
-                "calculation: %s",
-                str(exception),
-            )
+            self.logger.error(str(exception))
 
     def track_thread(
         self: DishlnPointingDataComponentManager,
@@ -367,7 +356,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug("Program Track Table Calculation stopped.")
 
         except Exception as value_error:
-            self.logger.error("Exception is: %s", str(value_error))
+            self.logger.error(str(value_error))
             self.update_program_track_table_error_callback(str(value_error))
             self.current_track_table_error = str(value_error)
 

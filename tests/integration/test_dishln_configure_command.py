@@ -126,19 +126,18 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# TO-Do - Enable non_sidereal_tracking once Error propogation is enabled.
-# We need to handle exception "Source is not visible currently" in test case.
-# @pytest.mark.parametrize(
-#     "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
-# )
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("json_to_use", ["dishleafnode_configure"])
+@pytest.mark.parametrize(
+    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
+)
 def test_configure_command(
-    tango_context, group_callback, json_factory, json_to_use
+    tango_context, group_callback, json_factory, json_to_use, cm_pointig_device
 ):
     if json_to_use == "non_sidereal_tracking":
-        json_to_use = get_non_sidereal_json_for_now(json_factory(json_to_use))
+        json_to_use = get_non_sidereal_json_for_now(
+            json_factory(json_to_use), cm_pointig_device
+        )
         configure_dish_leaf_node(
             tango_context,
             DISH_LEAF_NODE_DEVICE,

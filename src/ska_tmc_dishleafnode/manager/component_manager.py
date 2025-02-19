@@ -113,7 +113,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param proxy_timeout: allows to specify a client side timeout
             for sub-devices in milliseconds used by the liveliness probe
         :param event_subscription_check_period: (int) Time in seconds for sleep
-            intervals in the event subsription thread.
+            intervals in the event subscription thread.
         :param liveliness_check_period: (int) Period for the liveliness probe
             to monitor each device in a loop
         :param adapter_timeout: (int) Timeout for the adapter creation
