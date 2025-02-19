@@ -56,13 +56,13 @@ deviceServers:
     enabled: true
     instances: ["01", "02"]
     file: "data/mockdevices.yaml"
-    family: dish-manager
+    family: "dish-manager"
   dishln:
     enabled: true
     instances: ["01", "02"]
     family: "leaf-node-dish"
     prefix_member : "SKA"
-    pointing_family : dish-pointing
+    pointing_family : "dish-pointing"
     MaxTrackTableRetry: 3
     TrackTableRetryDuration: 0.2
     file: "data/dishleafnode.yaml"
@@ -81,7 +81,6 @@ deviceServers:
     instances: ["01", "02"]
     TrackTableUpdateRate: 50
     TrackTableInAdvance: 6
-    prefix_member : "SKA"
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
     TrackTableInAdvance: 7
