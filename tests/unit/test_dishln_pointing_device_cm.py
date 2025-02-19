@@ -197,7 +197,7 @@ def test_track_table_min_frequency(cm_pointig_device, json_factory):
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
     cm.target_data = configure_data
-    cm.track_table_update_rate = 10
+    cm.track_table_update_rate = 2.5
     generate_program_track_table = GenerateProgramTrackTable(
         logger=logger, component_manager=cm
     )
@@ -206,7 +206,7 @@ def test_track_table_min_frequency(cm_pointig_device, json_factory):
         time.sleep(1)
         timeout += 1
     tracktable1_time = cm.pointing_program_track_table[0]
-    time.sleep(11)
+    time.sleep(3)
     tracktable2_time = cm.pointing_program_track_table[0]
     assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
 

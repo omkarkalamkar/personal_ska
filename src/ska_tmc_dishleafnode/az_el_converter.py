@@ -64,12 +64,12 @@ class AzElConverter:
                 self.weather_data["temperature"] * u.deg_C,
                 self.weather_data["humidity"],
             )
-            # logger.debug(
-            #     "The Azimuth value is: %s and the Elevation is %s : after "
-            #     "forward transform.",
-            #     refraction_corrected_azel.az.deg,
-            #     refraction_corrected_azel.alt.deg,
-            # )
+            logger.debug(
+                "The Azimuth value is: %s and the Elevation is %s : after "
+                "forward transform.",
+                refraction_corrected_azel.az.deg,
+                refraction_corrected_azel.alt.deg,
+            )
         except Exception as exception:
             message = (
                 "Exception occurred while applying refraction correction: "
