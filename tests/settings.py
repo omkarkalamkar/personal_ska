@@ -26,11 +26,11 @@ SLEEP_TIME = 0.5
 TIMEOUT = 100
 NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
-DISH_MASTER_DEVICE = "mid-dish/dish-manager/SKA001"
-DISH_LEAF_NODE_DEVICE = "mid-tmc/leaf-node-dish/SKA001"
+DISH_MASTER_DEVICE = "mid-dish/dish-manager/ska001"
+DISH_LEAF_NODE_DEVICE = "mid-tmc/leaf-node-dish/ska001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
 SDP_QUEUE_CONNECTOR_DEVICE2 = "mid-sdp/queueconnector/02"
-DISHLN_POINTING_DEVICE = "mid-tmc/dish-pointing/SKA001"
+DISHLN_POINTING_DEVICE = "mid-tmc/dish-pointing/ska001"
 COMMAND_COMPLETED = json.dumps([ResultCode.OK, "Command Completed"])
 COMMAND_FAILED = json.dumps(
     [ResultCode.FAILED, "Exception occured, command failed."]
