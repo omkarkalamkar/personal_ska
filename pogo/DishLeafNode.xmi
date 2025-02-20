@@ -22,7 +22,7 @@
       <type xsi:type="pogoDsl:StringVectorType"/>
       <status abstract="false" inherited="true" concrete="true"/>
     </deviceProperties>
-    <deviceProperties name="MidDishControl" description="FQDN of the Dish Master TANGO Device Server. &#xA;Value of this property &#x2192; tango://mid-dsh-nnnn-tango:10000/mid_d[0001..0133]/elt/master">
+    <deviceProperties name="DishMasterFQDN" description="FQDN of the Dish Master TANGO Device Server. &#xA;Value of this property &#x2192; tango://mid-dsh-nnnn-tango:10000/mid_d[0001..0133]/elt/master">
       <type xsi:type="pogoDsl:StringType"/>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </deviceProperties>
