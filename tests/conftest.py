@@ -33,6 +33,7 @@ from tests.settings import (
     DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE2,
+    DISH_LEAF_NODE_DEVICE
 )
 
 configure_logging()
@@ -81,7 +82,7 @@ def devices_to_load():
             "class": MidTmcLeafNodeDish,
             "devices": [
                 {
-                    "name": "mid-tmc/leaf-node-dish/SKA001",
+                    "name": DISH_LEAF_NODE_DEVICE,
                     "properties": {
                         "MidDishControl": DISH_MASTER_DEVICE,
                         "MidPointingDevice": DISHLN_POINTING_DEVICE,
@@ -142,7 +143,7 @@ def dishln_device(request):
     if not true_context:
         with DeviceTestContext(
             MidTmcLeafNodeDish,
-            device_name="mid-tmc/leaf-node-dish/SKA001",
+            device_name=DISH_LEAF_NODE_DEVICE,
             properties={
                 "MidDishControl": DISH_MASTER_DEVICE,
                 "MidPointingDevice": DISHLN_POINTING_DEVICE,
