@@ -29,11 +29,11 @@ from ska_tmc_dishleafnode import MidTmcLeafNodeDish
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE2,
-    DISH_LEAF_NODE_DEVICE
 )
 
 configure_logging()
