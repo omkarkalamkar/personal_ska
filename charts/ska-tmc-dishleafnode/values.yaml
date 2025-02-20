@@ -14,6 +14,8 @@ labels:
 global:
   minikube: true
   tango_host: databaseds-tango-base-test:10000
+  domain: mid-tmc
+  domain_dish: mid-dish
   retry:
   - "--tries=10"
   - "--sleep=5"
@@ -41,7 +43,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.19.7
+    tag: 0.20.0
     pullPolicy: IfNotPresent
 
 resources:
@@ -54,9 +56,13 @@ deviceServers:
     enabled: true
     instances: ["01", "02"]
     file: "data/mockdevices.yaml"
+    family: "dish-manager"
   dishln:
     enabled: true
     instances: ["01", "02"]
+    family: "leaf-node-dish"
+    prefix_member : "ska"
+    pointing_family : "dish-pointing"
     MaxTrackTableRetry: 3
     TrackTableRetryDuration: 0.2
     file: "data/dishleafnode.yaml"
@@ -75,6 +81,9 @@ deviceServers:
     instances: ["01", "02"]
     TrackTableUpdateRate: 50
     TrackTableInAdvance: 6
+    TrackTableEntries: 50
+    PointingCalculationPeriod: 50
+    TrackTableInAdvance: 7
     Elevation: 30.0
     Azimuth: 0.0
     ElevationMaxLimit: 90.0

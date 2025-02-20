@@ -11,6 +11,12 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $CommandTimeOut := .Values.deviceServers.dishln.CommandTimeOut }}
 {{- $AdapterTimeOut := .Values.deviceServers.dishln.AdapterTimeOut }}
 {{- $DishAvailabilityCheckTimeout := .Values.deviceServers.dishln.DishAvailabilityCheckTimeout }}
+{{- $domainDish := .Values.global.domain_dish }}
+{{- $dishFamily := .Values.deviceServers.mocks.family }}
+{{- $prefixMember := .Values.deviceServers.dishln.prefix_member}}
+{{- $dishlnDomain := .Values.global.domain }}
+{{- $dishlnFamily := .Values.deviceServers.dishln.family }}
+{{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
 
 server:
   name: "dish_leaf_node"
@@ -18,16 +24,16 @@ server:
   {{- range  .Values.deviceServers.dishln.instances }}
     - name: "{{ . }}"
       classes:
-      - name: "DishLeafNode"
+      - name: "MidTmcLeafNodeDish"
         devices:
-        - name: "ska_mid/tm_leaf_node/d{{ printf "%04s" . }}"
+        - name: "{{ $dishlnDomain }}/{{ $dishlnFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
           properties:
-          - name: "DishMasterFQDN"
+          - name: "MidDishControl"
             values:
-              - "mid-dish/dish-manager/SKA{{ printf "%03s" . }}"
-          - name: "DishlnPointingDeviceFQDN"
+              - "{{ $domainDish }}/{{ $dishFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
+          - name: "MidPointingDevice"
             values:
-              - "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+              - "{{ $dishlnDomain }}/{{ $dishlnPointingFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
           - name: "SkaLevel"
             values:
               - "3"
@@ -69,4 +75,3 @@ image:
   image: "{{.Values.dishleafnode.image.image}}"
   tag: "{{.Values.dishleafnode.image.tag}}"
   pullPolicy: "{{.Values.dishleafnode.image.pullPolicy}}"
-

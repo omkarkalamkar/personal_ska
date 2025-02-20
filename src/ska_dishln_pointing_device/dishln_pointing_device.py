@@ -27,7 +27,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     :Device Properties:
     :Device Attributes:
     :commandExecuted: Stores command executed on the device.
-    :DishlnPointingDeviceFQDN: Stores Dish leaf node pointing device name.
+    :MidPointingDevice: Stores Dish leaf node pointing device name.
     """
 
     # Dish Track command properties
@@ -85,7 +85,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         dformat=AttrDataFormat.SCALAR,
         access=AttrWriteType.READ,
     )
-    def dishlnPointingDeviceFqdn(self) -> str:
+    def MidPointingDevice(self) -> str:
         """
         This attribute is used for storing the FQDN of Dish leaf node pointing
         device.

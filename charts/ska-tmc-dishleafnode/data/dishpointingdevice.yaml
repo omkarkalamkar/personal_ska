@@ -11,6 +11,9 @@ entrypoints:
 {{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
 {{- $AzimuthMinLimit := .Values.deviceServers.dishpointingdevice.AzimuthMinLimit }}
 {{- $AzimuthMaxLimit := .Values.deviceServers.dishpointingdevice.AzimuthMaxLimit }}
+{{- $dishlnDomain := .Values.global.domain }}{{- $Domain := .Values.global.domain }}
+{{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
+{{- $prefixMember := .Values.deviceServers.dishln.prefix_member}}
 
 server:
   name: "dishpointing"
@@ -20,7 +23,7 @@ server:
       classes:
       - name: "DishPointingDevice"
         devices:
-        - name: "mid-tmc/dish-pointing/d{{ printf "%04s" . }}"
+        - name: "{{ $dishlnDomain }}/{{ $dishlnPointingFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
           properties:
             - name: "TrackTableUpdateRate"
               values:

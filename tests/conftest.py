@@ -25,10 +25,11 @@ from ska_dishln_pointing_device import DishlnPointingDataComponentManager
 from ska_dishln_pointing_device.dishln_pointing_device import (
     DishPointingDevice,
 )
-from ska_tmc_dishleafnode import DishLeafNode
+from ska_tmc_dishleafnode import MidTmcLeafNodeDish
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 from tests.settings import (
+    DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
@@ -78,13 +79,13 @@ def devices_to_load():
     """Returns helper state devices."""
     return (
         {
-            "class": DishLeafNode,
+            "class": MidTmcLeafNodeDish,
             "devices": [
                 {
-                    "name": "ska_mid/tm_leaf_node/d0001",
+                    "name": DISH_LEAF_NODE_DEVICE,
                     "properties": {
-                        "DishMasterFQDN": DISH_MASTER_DEVICE,
-                        "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
+                        "MidDishControl": DISH_MASTER_DEVICE,
+                        "MidPointingDevice": DISHLN_POINTING_DEVICE,
                     },
                 },
             ],
@@ -141,11 +142,11 @@ def dishln_device(request):
     true_context = request.config.getoption("--true-context")
     if not true_context:
         with DeviceTestContext(
-            DishLeafNode,
-            device_name="ska_mid/tm_leaf_node/d0001",
+            MidTmcLeafNodeDish,
+            device_name=DISH_LEAF_NODE_DEVICE,
             properties={
-                "DishMasterFQDN": DISH_MASTER_DEVICE,
-                "DishlnPointingDeviceFQDN": DISHLN_POINTING_DEVICE,
+                "MidDishControl": DISH_MASTER_DEVICE,
+                "MidPointingDevice": DISHLN_POINTING_DEVICE,
                 "DishAvailabilityCheckTimeout": 5,
             },
             process=True,
@@ -154,7 +155,9 @@ def dishln_device(request):
             yield proxy
     else:
         database = tango.Database()
-        instance_list = database.get_device_exported_for_class("DishLeafNode")
+        instance_list = database.get_device_exported_for_class(
+            "MidTmcLeafNodeDish"
+        )
         for instance in instance_list.value_string:
             yield tango.DeviceProxy(instance)
             break
