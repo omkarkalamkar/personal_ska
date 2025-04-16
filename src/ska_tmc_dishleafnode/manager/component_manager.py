@@ -1655,9 +1655,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 excption,
             )
 
-    def update_program_track_table_helper(
+    def update_program_track_table_help(
         self: DishLNComponentManager, program_track_table_json: json
     ) -> None:
+        """
+        This method is used as a helper to update the programTrackTable
+        attribute on dish master device. It is used to convert the
+        programTrackTable JSON string to a list of TAI time, Az and El
+        for expected number of TAI times (TrackTableEntries) and
+        then calls the update_program_track_table method.
+        :param program_track_table_json: JSON string containing the
+        programTrackTable.
+        :type program_track_table_json: str
+        """
         self.update_program_track_table(json.loads(program_track_table_json))
 
     def update_program_track_table(
@@ -2400,7 +2410,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "dishMode": self.update_device_dish_mode,
             "pointingState": self.update_device_pointing_state,
             "configuredBand": self.update_device_configured_band,
-            "pointingProgramTrackTable": self.update_program_track_table_helper,
+            "pointingProgramTrackTable": self.update_program_track_table_help,
         }
 
         return {**attributes}
