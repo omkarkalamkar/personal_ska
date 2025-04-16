@@ -10,12 +10,7 @@ from time import sleep
 from typing import Any, Callable, List
 
 import tango
-from ska_tmc_common import (
-    DishDeviceInfo,
-    DishMode,
-    PointingState,
-    SdpQueueConnectorDeviceInfo,
-)
+from ska_tmc_common import DishDeviceInfo, SdpQueueConnectorDeviceInfo
 from ska_tmc_common.v1.event_receiver import EventReceiver
 
 
@@ -207,9 +202,6 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
@@ -229,16 +221,9 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
-        new_value = event_flag.attr_value.value
         self._component_manager.update_dish_mode_event(event_flag)
-        self._logger.info(
-            "DishMode value updated to %s", DishMode(new_value).name
-        )
 
     def handle_pointing_state_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -253,17 +238,9 @@ class DishLNEventReceiver(EventReceiver):
         """
 
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
-        new_value = event_flag.attr_value.value
         self._component_manager.event_queues["pointingState"].put(event_flag)
-        # self._component_manager.update_device_pointing_state(new_value)
-        self._logger.info(
-            "PointingState value updated to %s", PointingState(new_value).name
-        )
 
     def handle_configured_band_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -278,15 +255,9 @@ class DishLNEventReceiver(EventReceiver):
         """
 
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
-        new_value = event_flag.attr_value.value
         self._component_manager.event_queues["configuredBand"].put(event_flag)
-        # self._component_manager.update_device_configured_band(new_value)
-        self._logger.info("ConfiguredBand value updated to %s", new_value)
 
     def handle_achieved_pointing_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -302,9 +273,6 @@ class DishLNEventReceiver(EventReceiver):
         """
 
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
@@ -377,9 +345,6 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
         self._component_manager.event_queues["pointingProgramTrackTable"].put(
@@ -399,19 +364,11 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
-        self._logger.debug("New value is %s", new_value)
         if new_value:
-            self._logger.debug("updating track table error value")
             self._component_manager.current_track_table_error = new_value
-        self._logger.debug(
-            "pointingProgramTrackTable error updated to %s", new_value
-        )
 
     def handle_dishlnpd_healthState_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -429,14 +386,7 @@ class DishLNEventReceiver(EventReceiver):
         """
 
         if event_flag.err:
-            error = event_flag.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
             self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
         self._component_manager._update_health_state_callback(new_value)
-        self._logger.debug(
-            "DishLeaf Node pointing device healthState updated to %s",
-            new_value,
-        )

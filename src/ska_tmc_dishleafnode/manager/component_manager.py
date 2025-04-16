@@ -1,7 +1,6 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
-
 from __future__ import annotations
 
 import datetime
@@ -13,7 +12,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import tango
@@ -1656,8 +1655,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 excption,
             )
 
-    def update_program_track_table(
+    def update_program_track_table_helper(
         self: DishLNComponentManager, program_track_table_json: json
+    ) -> None:
+        self.update_program_track_table(json.loads(program_track_table_json))
+
+    def update_program_track_table(
+        self: DishLNComponentManager, program_track_table: List
     ) -> None:
         """
         This method writes the programTrackTable attribute on dish master
@@ -1665,11 +1669,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param program_track_table: It a list of TAI time, Az and El for
             expected number of TAI times (TrackTableEntries).
-        :type program_track_table_json: json
+        :type program_track_table: list
         :return: None
         :rtype: None
         """
-        program_track_table = json.loads(program_track_table_json)
         if len(program_track_table) == 0:
             self.logger.info("TrackTable is empty.")
             return
@@ -1780,7 +1783,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return
 
         try:
-            command_name = unique_id.split("_")[-1]
+            command_name = unique_id.split('_')[-1]
 
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
@@ -2076,7 +2079,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         is_all_float = all(isinstance(element, float) for element in lst)
         if not is_all_float:
             raise ValueError(
-                f"The data {lst} received is not in expected format."
+                f"The data {lst}" " received is not in expected format."
             )
         return True
 
@@ -2397,7 +2400,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "dishMode": self.update_device_dish_mode,
             "pointingState": self.update_device_pointing_state,
             "configuredBand": self.update_device_configured_band,
-            "pointingProgramTrackTable": self.update_program_track_table,
+            "pointingProgramTrackTable": self.update_program_track_table_helper,
         }
 
         return {**attributes}
