@@ -13,7 +13,6 @@ from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import TimeKeeper
-from ska_tmc_common.enum import PointingState
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
@@ -164,7 +163,7 @@ class Abort(DishLNCommand):
                 return result_code[0], message[0]
 
         # call stop_tracking_thread to stop live thread
-        result_code, message = self.stop_dish_tracking()
+        result_code, message = self.stop_program_track_table()
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
@@ -175,28 +174,14 @@ class Abort(DishLNCommand):
         )
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
-    def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
-        """Method to invoke track stop when abort command is invoked
+    def stop_program_track_table(self) -> Tuple[ResultCode, str]:
+        """Method to invoke StopProgramTrackTable() when abort command is
+            invoked.
 
         rtype:
             (ResultCode, str)
         """
         result_code, message = [ResultCode.OK], ""
-        pointing_state = self.component_manager.pointingState
-        # Check Pointing State is track before calling track stop.
-        if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
-            result_code, msg = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "TrackStop"
-            )
-            if result_code[0] in [
-                ResultCode.FAILED,
-                ResultCode.REJECTED,
-                ResultCode.NOT_ALLOWED,
-            ]:
-                message = (
-                    f"TrackStop result code: {result_code[0]} "
-                    + f"and message: {msg[0]}"
-                )
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()

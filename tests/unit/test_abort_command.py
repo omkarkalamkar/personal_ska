@@ -1,3 +1,4 @@
+"""Unit tests for Abort command"""
 from unittest import mock
 
 from ska_tango_base.commands import ResultCode
@@ -18,7 +19,7 @@ def test_abort_command(cm_without_er_lp):
     dishMock = mock.Mock(**attrs)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
     adapter_factory = mock.Mock(**factory_attrs)
-    abort_command = Abort(cm, logger=logger)
+    abort_command = Abort(cm, cm.op_state_model, cm.adapter_factory, logger)
     abort_command._adapter_factory = adapter_factory
     result_code, message = abort_command.do()
     assert result_code == ResultCode.OK
