@@ -1,6 +1,7 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
 """
+
 from __future__ import annotations
 
 import datetime
@@ -12,7 +13,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, Tuple
 
 import numpy as np
 import tango
@@ -146,12 +147,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             else None
         )
         self.dish_pointing_model_param: Dict[str, str] = {
-            "band1pointingmodelparams": "",
-            "band2pointingmodelparams": "",
-            "band3pointingmodelparams": "",
-            "band4pointingmodelparams": "",
-            "band5apointingmodelparams": "",
-            "band5bpointingmodelparams": "",
+            "band1PointingModelParams": "",
+            "band2PointingModelParams": "",
+            "band3PointingModelParams": "",
+            "band4PointingModelParams": "",
+            "band5aPointingModelParams": "",
+            "band5bPointingModelParams": "",
         }
         self.receiver_band = None
         self.partial_configure_lrcr = ResultCode.UNKNOWN
@@ -231,9 +232,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 logger,
                 proxy_timeout=proxy_timeout,
                 event_subscription_check_period=evt_subscription_check_period,
+                attribute_list=list(self.get_attribute_dict().keys()),
             )
             self.event_receiver_object.start()
-
         if _liveliness_probe != LivelinessProbeType.NONE:
             self.start_liveliness_probe(_liveliness_probe)
 
@@ -255,6 +256,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
         self.command_unique_id_dict = {}
+        self.event_processing_methods = self.get_attribute_dict()
+        self.start_event_processing_threads()
 
     @property
     def configure_track_lrcr(self):
@@ -1654,7 +1657,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
     def update_program_track_table(
-        self: DishLNComponentManager, program_track_table: List
+        self: DishLNComponentManager, program_track_table_json: json
     ) -> None:
         """
         This method writes the programTrackTable attribute on dish master
@@ -1662,10 +1665,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param program_track_table: It a list of TAI time, Az and El for
             expected number of TAI times (TrackTableEntries).
-        :type program_track_table: list
+        :type program_track_table_json: json
         :return: None
         :rtype: None
         """
+        program_track_table = json.loads(program_track_table_json)
         if len(program_track_table) == 0:
             self.logger.info("TrackTable is empty.")
             return
@@ -1752,22 +1756,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
-    def update_device_long_running_command_result(
-        self: DishLNComponentManager,
-        device_name: str,
-        lrc_result: Tuple[str, str],
-    ) -> None:
-        """
-        Method to update task callback based on long running command result
-        event data.
-
-        :param lrc_result: longRunningCommandResult attribute event data
-        :type: (Tuple[List[str], List[str]])
-        """
-        self.update_command_result(device_name, lrc_result)
-
-    def update_command_result(self, device_name: str, value) -> None:
+    def update_command_result(self, value) -> None:
         """Updates the long running command result callback"""
+        device_name = self.get_device()
         self.logger.info(
             "Received longRunningCommandResult event for device: %s, "
             + "with value: %s",
@@ -1789,7 +1780,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return
 
         try:
-            command_name = unique_id.split('_')[-1]
+            command_name = unique_id.split("_")[-1]
 
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
@@ -2085,7 +2076,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         is_all_float = all(isinstance(element, float) for element in lst)
         if not is_all_float:
             raise ValueError(
-                f"The data {lst}" " received is not in expected format."
+                f"The data {lst} received is not in expected format."
             )
         return True
 
@@ -2395,3 +2386,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
         )
+
+    def get_attribute_dict(self) -> dict:
+        """
+        :return: Dictionary of attributes to be handled by the EventReceiver.
+        """
+
+        attributes = {
+            "longRunningCommandResult": self.update_command_result,
+            "dishMode": self.update_device_dish_mode,
+            "pointingState": self.update_device_pointing_state,
+            "configuredBand": self.update_device_configured_band,
+            "pointingProgramTrackTable": self.update_program_track_table,
+        }
+
+        return {**attributes}
+
+    def update_dish_mode_event(self, event: tango.EventData):
+        """Updates dish mode event  in respective queue"""
+        self.event_queues["dishMode"].put(event)

@@ -10,7 +10,6 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common.enum import PointingState
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
@@ -128,7 +127,7 @@ class AbortCommands(DishLNCommand):
             ]:
                 return result_code[0], message[0]
 
-        # call stop_tracking_thread to stop live thread
+        # call stop_tracking_thread to stop Program Track Table
         result_code, message = self.stop_dish_tracking()
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
@@ -148,21 +147,6 @@ class AbortCommands(DishLNCommand):
             (ResultCode, str)
         """
         result_code, message = [ResultCode.OK], ""
-        pointing_state = self.component_manager.pointingState
-        # Check Pointing State is track before calling track stop.
-        if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
-            result_code, msg = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "TrackStop"
-            )
-            if result_code[0] in [
-                ResultCode.FAILED,
-                ResultCode.REJECTED,
-                ResultCode.NOT_ALLOWED,
-            ]:
-                message = (
-                    f"TrackStop result code: {result_code[0]} "
-                    + f"and message: {msg[0]}"
-                )
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()

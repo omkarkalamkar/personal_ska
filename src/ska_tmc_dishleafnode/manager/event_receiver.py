@@ -33,14 +33,14 @@ class DishLNEventReceiver(EventReceiver):
         self: DishLNEventReceiver,
         component_manager,
         logger: Logger,
-        attribute_dict: dict[str, Callable[..., Any]] | None = None,
+        attribute_list: dict[str, Callable[..., Any]] | None = None,
         proxy_timeout: int = 500,
         event_subscription_check_period: int = 1,
     ):
         super().__init__(
             component_manager=component_manager,
             logger=logger,
-            attribute_dict=attribute_dict,
+            attribute_list=attribute_list,
             proxy_timeout=proxy_timeout,
             event_subscription_check_period=event_subscription_check_period,
         )
@@ -111,7 +111,7 @@ class DishLNEventReceiver(EventReceiver):
                 dish_dev_proxy.subscribe_event(
                     "longRunningCommandResult",
                     tango.EventType.CHANGE_EVENT,
-                    self.handle_long_running_command_result,
+                    self.handle_command_result_event,
                     stateless=True,
                 )
                 for attr_name in pointing_model_params_attrs:
@@ -210,15 +210,13 @@ class DishLNEventReceiver(EventReceiver):
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
+        # self._component_manager.event_queues[band_name].put(event_flag)
         self._component_manager.update_dish_pointing_model_param(
             json.dumps(new_value.tolist()), event_flag.attr_value.name
         )
-        self.log_event_exit("handle_dish_mode_event")
 
     def handle_dish_mode_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -230,18 +228,14 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        self.log_event_data(event_flag, "handle_dish_mode_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
-        self._component_manager.update_device_dish_mode(new_value)
-        self.log_event_exit("handle_dish_mode_event")
+        self._component_manager.update_dish_mode_event(event_flag)
         self._logger.info(
             "DishMode value updated to %s", DishMode(new_value).name
         )
@@ -258,18 +252,15 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        self.log_event_data(event_flag, "handle_pointing_state_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
-        self._component_manager.update_device_pointing_state(new_value)
-        self.log_event_exit("handle_pointing_state_event")
+        self._component_manager.event_queues["pointingState"].put(event_flag)
+        # self._component_manager.update_device_pointing_state(new_value)
         self._logger.info(
             "PointingState value updated to %s", PointingState(new_value).name
         )
@@ -285,17 +276,16 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        self.log_event_data(event_flag, "handle_configured_band_event")
+
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
-        self._component_manager.update_device_configured_band(new_value)
+        self._component_manager.event_queues["configuredBand"].put(event_flag)
+        # self._component_manager.update_device_configured_band(new_value)
         self._logger.info("ConfiguredBand value updated to %s", new_value)
 
     def handle_achieved_pointing_event(
@@ -311,43 +301,14 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        self.log_event_data(event_flag, "handle_achieved_pointing_event")
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
         self._component_manager.achieved_pointing_data.put(new_value)
-        self.log_event_exit("handle_achieved_pointing_event")
-
-    def handle_long_running_command_result(
-        self: DishLNEventReceiver, event_data: tango.EventData
-    ) -> None:
-        """Method to handle and update the latest value of
-        longRunningCommandResult attribute.
-
-        :parameter event_flag: To flag the change in event.
-        :type event_flag: tango.EventType.CHANGE_EVENT
-        :return: None
-        :rtype: NoneType
-        """
-        self.log_event_data(event_data, "handle_long_running_command_result")
-        if event_data.err:
-            error = event_data.errors[0]
-            error_msg = f"{error.reason},{error.desc}"
-            self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_data.device.dev_name()
-            )
-            return
-        new_value = event_data.attr_value.value
-        self._component_manager.update_device_long_running_command_result(
-            event_data.device.dev_name(), new_value
-        )
 
     def subscribe_sdpqc_attribute(
         self: DishLNEventReceiver,
@@ -403,43 +364,6 @@ class DishLNEventReceiver(EventReceiver):
             )
             self._logger.exception(log_msg)
 
-    def log_event_data(
-        self, event_data: tango.EventData, callback_name: str
-    ) -> None:
-        """Log the event data for later use."""
-        if event_data.attr_value:
-            attribute_name = event_data.attr_value.name
-            attribute_value = event_data.attr_value.value
-            reception_time: datetime = event_data.attr_value.time.todatetime()
-            current_time = datetime.utcnow()
-            self._event_enter_exit_time.append(current_time)
-            current_time = current_time.strftime("%d/%m/%Y %H:%M:%S:%f")
-            self._logger.info(
-                "Enter time for the callback: %s is %s. Event data is - "
-                + "Attribute: %s, Value: %s, Reception time: %s",
-                callback_name,
-                current_time,
-                attribute_name,
-                attribute_value,
-                reception_time.strftime("%d/%m/%Y %H:%M:%S:%f"),
-            )
-
-    def log_event_exit(self, callback_name: str) -> None:
-        """Log the time of exiting the event."""
-        self._event_enter_exit_time.append(datetime.utcnow())
-        if len(self._event_enter_exit_time) == 2:
-            time_diff = (
-                self._event_enter_exit_time[1] - self._event_enter_exit_time[0]
-            ).total_seconds()
-        else:
-            time_diff = datetime.utcnow().strftime("%d/%m/%Y %H:%M:%S:%f")
-        self._event_enter_exit_time.clear()
-        self._logger.info(
-            "Exit time for the callback: %s is %s",
-            callback_name,
-            time_diff,
-        )
-
     def handle_pointing_program_track_table_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
     ) -> None:
@@ -452,22 +376,15 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        self.log_event_data(
-            event_flag, "handle_pointing_program_track_table_event"
-        )
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
-        new_value = event_flag.attr_value.value
-        self._component_manager.update_program_track_table(
-            json.loads(new_value)
+        self._component_manager.event_queues["pointingProgramTrackTable"].put(
+            event_flag
         )
-        self.log_event_exit("handle_pointing_program_track_table_event")
 
     def handle_program_track_table_error_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -481,23 +398,17 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        self.log_event_data(
-            event_flag, "handle_pointing_program_track_table_event"
-        )
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
         self._logger.debug("New value is %s", new_value)
         if new_value:
             self._logger.debug("updating track table error value")
             self._component_manager.current_track_table_error = new_value
-        self.log_event_exit("handle_pointing_program_track_table_event")
         self._logger.debug(
             "pointingProgramTrackTable error updated to %s", new_value
         )
@@ -516,20 +427,15 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        self.log_event_data(
-            event_flag, "handle_pointing_program_track_table_event"
-        )
+
         if event_flag.err:
             error = event_flag.errors[0]
             error_msg = f"{error.reason},{error.desc}"
             self._logger.error(error_msg)
-            self._component_manager.update_event_failure(
-                event_flag.device.dev_name()
-            )
+            self._component_manager.update_event_failure()
             return
         new_value = event_flag.attr_value.value
         self._component_manager._update_health_state_callback(new_value)
-        self.log_event_exit("handle_pointing_device_healthState_event")
         self._logger.debug(
             "DishLeaf Node pointing device healthState updated to %s",
             new_value,
