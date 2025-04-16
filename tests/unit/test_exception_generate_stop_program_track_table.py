@@ -103,7 +103,7 @@ def test_error_propagation_stop_program_track_table(
     attrs = {
         'StopProgramTrackTable.side_effect': (Exception("error")),
         'TrackStop.return_value': ([ResultCode.OK], ["Command Completed"]),
-        'AbortCommands.return_value': (
+        'Abort.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
         ),
@@ -144,7 +144,7 @@ def test_error_propagation_abort_stop_program_track_table(
 ):
     attrs = {
         'StopProgramTrackTable.side_effect': (Exception("error")),
-        'AbortCommands.return_value': (
+        'Abort.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
         ),

@@ -33,14 +33,14 @@ class DishLNEventReceiver(EventReceiver):
         self: DishLNEventReceiver,
         component_manager,
         logger: Logger,
-        attribute_dict: dict[str, Callable[..., Any]] | None = None,
+        attribute_list: dict[str, Callable[..., Any]] | None = None,
         proxy_timeout: int = 500,
         event_subscription_check_period: int = 1,
     ):
         super().__init__(
             component_manager=component_manager,
             logger=logger,
-            attribute_dict=attribute_dict,
+            attribute_list=attribute_list,
             proxy_timeout=proxy_timeout,
             event_subscription_check_period=event_subscription_check_period,
         )

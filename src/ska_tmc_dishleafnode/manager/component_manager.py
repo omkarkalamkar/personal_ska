@@ -40,7 +40,7 @@ from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
-    AbortCommands,
+    Abort,
     ApplyPointingModel,
     Configure,
     ConfigureBand,
@@ -221,6 +221,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Scan",
             "TrackLoadStaticOff",
             "TrackStop",
+            "Abort",
         )
 
         # Event Receiver
@@ -309,6 +310,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "status": None,
             }
             self.end_scan_result = {
+                "result_code": None,
+                "message": None,
+                "exception": None,
+                "status": None,
+            }
+            self.abort_result = {
                 "result_code": None,
                 "message": None,
                 "exception": None,
@@ -1169,23 +1176,96 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
-    # pylint: disable=arguments-differ
-    def abort_commands(
-        self, task_callback: TaskCallbackType
-    ) -> Tuple[TaskStatus, str]:
+    def abort(self, task_callback: TaskCallbackType) -> Tuple:
         """
-        Invokes Abort command on Dish manager.
+        Abort the Dish.
+
+        :return: a result code and message
         """
-        abort_command = AbortCommands(
-            self,
-            adapter_factory=self.adapter_factory,
-            logger=self.logger,
-        )
-        task_status, response = self.submit_task(
-            abort_command.invoke_abort,
-            task_callback=task_callback,
-        )
-        return task_status, response
+        # base classes set and clear immediately, so we set to
+        # clear ongoing observers and timers.
+        self.abort_event.set()
+        self.observable.notify_observers(attribute_value_change=True)
+        self.abort_event.clear()
+
+        def _invoke_abort_callback(
+            status=None,
+            progress=None,
+            result=None,
+            exception=None,
+        ):
+            """
+            Method for invoking abort callback
+
+            :param status: Status of the task
+            :type status: TaskStatus
+            :param progress: progress of the task
+            :type progress: int
+            :param result: JSON serializable result of the task
+            :type result: Any
+            :param exception : exception raised from the task
+            :type exception: Exception
+
+            :return: None
+
+            """
+            if progress is not None:
+                task_callback(progress=50 + progress / 2)
+
+            if status == TaskStatus.FAILED:
+                task_callback(
+                    status=status, exception=exception, result=result
+                )
+            elif status == TaskStatus.COMPLETED:
+                task_callback(status=status, progress=100, result=result)
+
+        # pylint: disable=unused-argument
+        def _abort_commands_callback(
+            status=None,
+            progress=None,
+            result=None,
+            exception=None,
+        ):
+            """
+            Method for abort command callback
+
+            :param status: Status of the task
+            :type status: TaskStatus
+            :param progress: progress of the task
+            :type progress: int
+            :param result: JSON serializable result of the task
+            :type result: Any
+            :param exception : exception raised from the task
+            :type exception: Exception
+
+            :return: None
+            """
+
+            if progress is not None:
+                task_callback(progress=progress / 2)
+            if status == TaskStatus.FAILED:
+                task_callback(
+                    status=status, exception="Failed to abort commands"
+                )
+            elif status == TaskStatus.COMPLETED:
+                task_callback(
+                    progress=50,
+                )
+                abort_command = Abort(
+                    self,
+                    self.op_state_model,
+                    self.adapter_factory,
+                    logger=self.logger,
+                )
+                # Send dummy task_abort_event
+                abort_command.invoke_abort(
+                    task_callback=_invoke_abort_callback,
+                    task_abort_event=threading.Event(),
+                )
+
+        # pylint: enable=unused-argument
+        self.command_in_progress = "Abort"
+        return self.abort_tasks(task_callback=_abort_commands_callback)
 
     def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the command TrackLoadStaticOff is allowed.
@@ -1593,7 +1673,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             0
         ]  # station names in the layout json are in capital
 
-    def is_abortcommands_allowed(self: DishLNComponentManager) -> bool:
+    def is_abort_allowed(self: DishLNComponentManager) -> bool:
         """
         Checks whether this command is allowed
         It checks that the device is in the right state
@@ -1603,7 +1683,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: True if this command is allowed
         :rtype: boolean
         """
-        # dish manager allows abortcommands in all the dish modes
+        # dish manager allows abort in all the dish modes
         # and pointing states
         # TO DO: DishMode/s & pointing state/s decision
 
@@ -2262,6 +2342,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.command_result_update_lock:
             return self.set_operate_mode_result
+
+    def get_abort_result_dict(self: DishLNComponentManager) -> dict:
+        """
+        Return the dictinary containing SetOperateMode command execution status
+
+        :return: abort_result dictionary
+        :rtype: dict
+        """
+        with self.command_result_update_lock:
+            return self.abort_result
 
     def get_track_result_code(self: DishLNComponentManager):
         """

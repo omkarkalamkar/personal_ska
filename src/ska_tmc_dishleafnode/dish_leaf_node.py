@@ -62,7 +62,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         dtype="DevUShort", default_value=3
     )
     CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
-    IsDishAbortCommandsEnabled = device_property(
+    IsDishAbortEnabled = device_property(
         dtype="DevBoolean", default_value=False
     )
 
@@ -828,7 +828,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_trackloadstaticoff_allowed()
 
-    def is_AbortCommands_allowed(self: MidTmcLeafNodeDish) -> bool:
+    def is_Abort_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -838,14 +838,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_abortcommands_allowed()
+        return self.component_manager.is_abort_allowed()
 
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def AbortCommands(self: MidTmcLeafNodeDish):
-        """Invokes AbortCommands command on the DishMaster."""
+    def Abort(self: MidTmcLeafNodeDish):
+        """Invokes Abort command on the DishMaster."""
 
-        handler = self.get_command_object("AbortCommands")
+        handler = self.get_command_object("Abort")
         result_code, unique_id = handler()
         return [result_code], [unique_id]
 
@@ -983,7 +983,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,
             command_timeout=self.CommandTimeOut,
-            is_dish_abort_commands_enabled=self.IsDishAbortCommandsEnabled,
+            is_dish_abort_commands_enabled=self.IsDishAbortEnabled,
             _update_availablity_callback=self.update_availablity_callback,
             _update_source_offset_callback=self.update_source_offset_callback,
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
@@ -1014,7 +1014,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ("Scan", "scan"),
             ("EndScan", "endscan"),
             ("ApplyPointingModel", "apply_pointing_model"),
-            ("AbortCommands", "abort_commands"),
         ]:
             self.register_command_object(
                 command_name,
@@ -1026,6 +1025,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     logger=self.logger,
                 ),
             )
+
+        # as per base classes implementation, for SKABaseDevice
+        # Abort is registered as AbortCommand
+        self.register_command_object(
+            "Abort",
+            self.AbortCommand(
+                self._command_tracker,
+                self.component_manager,
+                None,
+                self.logger,
+            ),
+        )
+
         self.register_command_object(
             "SetKValue",
             SetKValue(self.component_manager, logger=self.logger),

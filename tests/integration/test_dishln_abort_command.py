@@ -23,7 +23,7 @@ def abort_on_dish_leaf_node(
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    result_fp, _ = dish_leaf_node.AbortCommands()
+    result_fp, _ = dish_leaf_node.Abort()
     assert result_fp[0] == ResultCode.QUEUED
 
 
@@ -93,7 +93,7 @@ def abort_when_configured(
         lookahead=6,
     )
 
-    result_abort, unique_id_abort = dish_leaf_node.AbortCommands()
+    result_abort, unique_id_abort = dish_leaf_node.Abort()
     logger.info(
         f"Command ID: {unique_id_abort} Returned result: {result_abort}"
     )
@@ -176,7 +176,7 @@ def abort_while_configuring(
         lookahead=6,
     )
 
-    result_abort, unique_id_abort = dish_leaf_node.AbortCommands()
+    result_abort, unique_id_abort = dish_leaf_node.Abort()
     logger.info(
         f"Command ID: {unique_id_abort} Returned result: {result_abort}"
     )

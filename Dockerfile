@@ -10,6 +10,7 @@ FROM $BASE_IMAGE
 USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 RUN poetry config virtualenvs.create false
+RUN apt-get update && apt-get install git -y
 WORKDIR /app
 COPY --chown=tango:tango . /app
 # Install runtime dependencies and the app
