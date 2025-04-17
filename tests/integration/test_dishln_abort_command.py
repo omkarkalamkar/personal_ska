@@ -191,7 +191,7 @@ def abort_while_configuring(
         f"Command ID: {unique_id_abort} Returned result: {result_abort}"
     )
 
-    assert result_abort == ResultCode.QUEUED
+    assert result_abort == ResultCode.STARTED
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
