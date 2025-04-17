@@ -1968,6 +1968,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
+                    elif "Abort" in unique_id:
+                        self.abort_result["result_code"] = result_code
+                        self.abort_result["message"] = message
+                        self.logger.debug(
+                            "Abort result: %s",
+                            self.abort_result,
+                        )
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
 
             if result_code in [
                 ResultCode.FAILED,
@@ -2343,9 +2353,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.command_result_update_lock:
             return self.set_operate_mode_result
 
+    def get_abort_result_code(self: DishLNComponentManager):
+        """
+        Return the result of the Abort command execution
+
+        :return: ResultCode from the set_abort_result
+        :rtype: ResultCode
+        """
+        with self.command_result_update_lock:
+            return self.abort_result["result_code"]
+
     def get_abort_result_dict(self: DishLNComponentManager) -> dict:
         """
-        Return the dictinary containing SetOperateMode command execution status
+        Return the dictinary containing Abort command execution status
 
         :return: abort_result dictionary
         :rtype: dict

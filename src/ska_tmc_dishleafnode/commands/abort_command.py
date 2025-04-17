@@ -51,7 +51,7 @@ class Abort(DishLNCommand):
 
     # pylint: disable=unused-argument
     @timeout_tracker
-    @error_propagation_tracker("get_abort_result_dict", [ResultCode.OK])
+    @error_propagation_tracker("get_abort_result_code", [ResultCode.OK])
     def invoke_abort(
         self,
         task_callback: TaskCallbackType = task_callback_default,
@@ -149,6 +149,8 @@ class Abort(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Abort"
             )
+            # Append command unique id
+            self.component_manager.command_unique_id_dict["Abort"] = message[0]
             self.logger.info(
                 "Abort() command has been invoked, the result code"
                 + " is %s and the message is %s",

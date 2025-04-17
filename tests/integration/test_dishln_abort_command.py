@@ -23,8 +23,18 @@ def abort_on_dish_leaf_node(
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    result_fp, _ = dish_leaf_node.Abort()
-    assert result_fp[0] == ResultCode.QUEUED
+    result_code, unique_id = dish_leaf_node.Abort()
+    assert result_code[0] == ResultCode.STARTED
+    lrcr_event_id = dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id[0], COMMAND_COMPLETED),
+        lookahead=7,
+    )
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
 
 def abort_when_configured(
