@@ -108,7 +108,7 @@ def abort_when_configured(
         f"Command ID: {unique_id_abort} Returned result: {result_abort}"
     )
 
-    assert result_abort == ResultCode.QUEUED
+    assert result_abort == ResultCode.STARTED
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
