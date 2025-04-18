@@ -274,10 +274,6 @@ def tear_down(
         group_callback["pointingState"],
     )
 
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.NONE),
-        lookahead=12,
-    )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=12,

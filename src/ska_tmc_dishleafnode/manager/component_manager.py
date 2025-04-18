@@ -1560,9 +1560,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
             )
+
+            # It was observed that DishMaster sends Track pointingState
+            # after configure command is completed on TMC Subarray which
+            # causes issues in aggregation of Subarray Node.
+            # In order to avoid same below filtering criteria has been applied.
+
+            if self.is_configure_command or self.command_in_progress:
+                if self._update_pointingstate_callback:
+                    self._update_pointingstate_callback(pointingState)
+            else:
+                self.logger.debug("pointingState event not pushed")
+
             self.observable.notify_observers(attribute_value_change=True)
-            if self._update_pointingstate_callback:
-                self._update_pointingstate_callback(pointingState)
 
     def update_device_configured_band(
         self: DishLNComponentManager, configured_band: Band
