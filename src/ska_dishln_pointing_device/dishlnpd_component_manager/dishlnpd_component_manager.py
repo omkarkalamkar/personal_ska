@@ -65,7 +65,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.target: list | str | None = None
         self._current_track_table_error = ""
-        self.__target_data: str = ""
+        self.__target_data: dict = {}
         # This event can be used by on going process to change the offset
         # and clear the event for next usage.
         self.mapping_scan_event = threading.Event()
@@ -96,14 +96,66 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
         self.track_table_thread = None
+        self._wrap_sector: int
+        self._wrap_sector_key: bool = False
 
     @property
-    def target_data(self):
-        """This method is used to view target data."""
+    def wrap_sector_key(self: DishlnPointingDataComponentManager) -> bool:
+        """Get the pointing key type
+            True => ['pointing']['groups'] as per ADR-106
+            False => ['pointing']['target'] old or deprecated
+
+        Returns:
+            boolean value.
+        """
+        return self._wrap_sector_key
+
+    @wrap_sector_key.setter
+    def wrap_sector_key(
+        self: DishlnPointingDataComponentManager, value: bool
+    ) -> None:
+        """
+        Set the pointing key type
+            True => ['pointing']['groups'] as per ADR-106
+            False => ['pointing']['target'] old or deprecated
+
+        :param value:
+        :type value: boolean
+        :return: None
+        :rtype: None
+        """
+        self._wrap_sector_key = value
+
+    @property
+    def wrap_sector(self: DishlnPointingDataComponentManager) -> int:
+        """Get the wrap sector value
+        :return: wrap sector value
+        :rtype: int
+        """
+        return self._wrap_sector
+
+    @wrap_sector.setter
+    def wrap_sector(
+        self: DishlnPointingDataComponentManager, wrap_sector: int
+    ) -> None:
+        """Set the wrap sector
+        :param wrap_sector:
+        :type wrap_sector: int
+        :return: None
+        :rtype: None
+        """
+        self._wrap_sector = wrap_sector
+
+    @property
+    def target_data(self: DishlnPointingDataComponentManager) -> dict:
+        """This method is used to view target data.
+        Returns:
+            Dictionary of configure data
+        """
         return self.__target_data
 
     @target_data.setter
-    def target_data(self, data: str):
+    def target_data(self: DishlnPointingDataComponentManager, data: dict):
         """This method is used to update target data.
 
         Args:
@@ -132,6 +184,32 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._current_track_table_error = value
+
+    def is_fixed_mapping_scan(self) -> bool:
+        """Method to check is current scan is fixed mapping scan
+        :return: True/False
+        :rtype: boolean
+        """
+        if self.target_data["pointing"]["trajectory"][
+            "name"
+        ] == "fixed" and all(
+            self.target_data["pointing"]["trajectory"]["attrs"][k] == 0.0
+            for k in ("x", "y")
+        ):
+            return True
+        return False
+
+    def set_wrap_sector(self) -> None:
+        """
+        Set the wrap sector for the observation
+
+        Returns:
+            None
+        """
+        if "wrap_sector" in self.target_data["pointing"]:
+            self.wrap_sector_key = True
+            self.wrap_sector = self.target_data["pointing"]["wrap_sector"]
+            self.logger.debug("Wrap sector set to: %s", self.wrap_sector)
 
     def download_antenna_and_iers_data(self):
         """Method that downloads antenna and iers data"""
@@ -255,6 +333,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
+            # Set the wrap key
+            self.set_wrap_sector()
             self.logger.debug(
                 "Starting ProgramTrackTable calculation.",
             )

@@ -78,12 +78,12 @@ class ProgramTrackTableCalculator:
                         + ("Source is not visible currently.")
                     )
                     raise Exception(message)
-
-                if not (
-                    self.component_manager.azimuth_min_limit
-                    < result[0]
-                    < self.component_manager.azimuth_max_limit
-                ):
+                if self.component_manager.wrap_sector_key:
+                    result[0] = (
+                        result[0] + 360 * self.component_manager.wrap_sector
+                    )
+                else:
+                    # To support deprecated target key.
                     result[0] = self.fit_azimuth_in_observable_range(result[0])
 
                 program_track_table.append(tai_timestamp_list.pop(0))
