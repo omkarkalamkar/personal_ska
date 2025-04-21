@@ -402,6 +402,8 @@ def configure_with_wrap_sector(
 
 
 @pytest.mark.post_deployment
+@pytest.mark.SKA_mid_test
+@pytest.mark.repeat(5)
 @pytest.mark.parametrize("wrap_sector", [0, -1])
 def test_configure_command_with_wrap_sector(
     tango_context,

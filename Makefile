@@ -87,7 +87,7 @@ CLUSTER_DOMAIN ?= cluster.local
 
 CLUSTER_DOMAIN ?= cluster.local
 
-PYTHON_VARS_AFTER_PYTEST ?= -m '$(MARK)' $(ADD_ARGS) $(FILE)
+PYTHON_VARS_AFTER_PYTEST ?= -m SKA_mid_test $(ADD_ARGS) $(FILE)
 
 K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set global.tango_host=$(TANGO_HOST) \
