@@ -12,7 +12,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import tango
@@ -1657,7 +1657,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
     def update_program_track_table(
-        self: DishLNComponentManager, program_track_table_str: str
+        self: DishLNComponentManager, program_track_table: List
     ) -> None:
         """
         This method writes the programTrackTable attribute on dish master
@@ -1665,11 +1665,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param program_track_table: It a list of TAI time, Az and El for
             expected number of TAI times (TrackTableEntries).
-        :type program_track_table_str: str
+        :type program_track_table: list
         :return: None
         :rtype: None
         """
-        program_track_table = json.loads(program_track_table_str)
         if len(program_track_table) == 0:
             self.logger.info("TrackTable is empty.")
             return
