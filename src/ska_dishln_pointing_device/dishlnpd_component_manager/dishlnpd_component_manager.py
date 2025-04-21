@@ -201,6 +201,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+        # program_track_table = json.loads(program_track_table)
+        self.logger.info("update_program_track_table called")
 
         try:
             self.pointing_program_track_table = program_track_table
@@ -219,6 +221,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """This method creates and starts a thread for the programTrackTable
         calculation."""
         try:
+            self.logger.info("start_track_table_calculation start1")
             if (
                 not self.track_table_thread
                 or not self.track_table_thread.is_alive()
@@ -226,9 +229,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 with self.track_thread_lock:
                     self.create_track_table_thread()
                     self.track_table_thread.start()
-                    self.logger.debug("Started trackTable thread.")
+                    self.logger.info("Started trackTable thread.")
             else:
-                self.logger.debug(
+                self.logger.info(
                     "programTrackTable calculation is already going on."
                     + " New thread will not be hosted."
                 )
@@ -255,7 +258,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            self.logger.debug(
+            self.logger.info(
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
@@ -336,7 +339,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     scheduled_time
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
-                self.logger.debug("actual_time_human %s", actual_time_readable)
+                self.logger.info("actual_time_human %s", actual_time_readable)
                 self.logger.debug(
                     "scheduled_time_human  %s", scheduled_time_readable
                 )

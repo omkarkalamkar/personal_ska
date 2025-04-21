@@ -2404,8 +2404,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band2PointingModelParams": self.update_dish_pointing_model_param,
             "band3PointingModelParams": self.update_dish_pointing_model_param,
             "band4PointingModelParams": self.update_dish_pointing_model_param,
-            "band5APointingModelParams": self.update_dish_pointing_model_param,
-            "band5BPointingModelParams": self.update_dish_pointing_model_param,
+            "band5aPointingModelParams": self.update_dish_pointing_model_param,
+            "band5bPointingModelParams": self.update_dish_pointing_model_param,
         }
 
         return {**attributes}
@@ -2430,7 +2430,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def update_achieved_pointing_event(self, event: tango.EventData):
         """Updates achieved pointing event in respective queue"""
-        self.achieved_pointing_data.put(event.ettr_value.value)
+        self.achieved_pointing_data.put(event.attr_value.value)
 
     def update_pointing_program_track_table_event(
         self, event: tango.EventData

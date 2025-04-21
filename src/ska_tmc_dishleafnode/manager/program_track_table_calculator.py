@@ -57,6 +57,7 @@ class ProgramTrackTableCalculator:
             El2,,,,,,TAIn, Azn, Eln].
         :rtype: list
         """
+        self.logger.info("calculate_program_track_table")
         if isinstance(target_data, str):
             self.target_name = target_data
         else:
