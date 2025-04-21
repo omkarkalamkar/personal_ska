@@ -190,12 +190,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: True/False
         :rtype: boolean
         """
-        if self.target_data["pointing"]["trajectory"][
-            "name"
-        ] == "Fixed" and all(
-            self.target_data["pointing"]["trajectory"]["attrs"][k] == 0.0
-            for k in ("x", "y")
-        ):
+        if self.target_data["pointing"]["trajectory"]["name"] == "Fixed":
             return True
         return False
 

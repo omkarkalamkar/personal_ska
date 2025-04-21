@@ -55,7 +55,11 @@ class GenerateProgramTrackTable(FastCommand):
                         logger=self.logger,
                     )
                 )
-
+                self.logger.info(
+                    "setting offsets with target %s",
+                    self.component_manager.target_data,
+                )
+                self.component_manager.current_mapping_scan_obj.set_offsets()
             current_scan_obj = self.component_manager.current_mapping_scan_obj
             current_scan_obj.set_target_and_start_process()
         except Exception as exception:

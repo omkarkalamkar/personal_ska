@@ -187,6 +187,7 @@ class Configure(DishLNCommand):
             if (
                 "tmc" in input_argin
                 and "target" not in input_argin["pointing"]
+                and "trajectory" not in input_argin["pointing"]
             ):
                 return (
                     ResultCode.FAILED,
@@ -265,7 +266,9 @@ class Configure(DishLNCommand):
                 ]:
                     return result_code, message
 
-            if json_argument.get("tmc"):
+            if json_argument.get(
+                "tmc"
+            ) and "trajectory" not in json_argument.get("pointing"):
                 return self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=reset_offset
                 )

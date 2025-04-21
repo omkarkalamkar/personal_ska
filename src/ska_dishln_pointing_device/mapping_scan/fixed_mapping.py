@@ -4,6 +4,8 @@ from logging import Logger
 from typing import Tuple
 
 import katpoint
+from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.utils import iers
 from numpy import nan
 
@@ -35,6 +37,19 @@ class FixedMappingScan(BaseScanMapping):
         self.x_offset = 0.0
         self.y_offset = 0.0
 
+    def set_offsets(self):
+        """Set x and y Offset provided in target data"""
+        if "trajectory" in self.component_manager.target_data["pointing"]:
+            trajectory = self.component_manager.target_data["pointing"][
+                "trajectory"
+            ]
+            x = float(trajectory['attrs']['x'])
+            y = float(trajectory['attrs']['y'])
+            self.x_offset, self.y_offset = (
+                Angle(x, u.deg).rad,
+                Angle(y, u.deg).rad,
+            )
+
     def set_target_and_start_process(self):
         """
         Generate program track table for fixed mapping scans.
@@ -49,8 +64,9 @@ class FixedMappingScan(BaseScanMapping):
             #  fixed offsets scanning in
             # mapping scans i.e x=0.0 and y=0.0 and projection as SIN
             # with projection alignment as ICRS
-            self.extract_target_from_config()
-            self.setup_observation_target()
+            if "field" in self.component_manager.target_data["pointing"]:
+                self.extract_target_from_config()
+                self.setup_observation_target()
             self.component_manager.target = (
                 self.get_radec_from_plane_to_sphere()
             )
@@ -75,6 +91,11 @@ class FixedMappingScan(BaseScanMapping):
             az = nan
             el = nan
             projection_name, projection_alignment = self.get_projection()
+            self.logger.info(
+                "Calling plane to sphere with %s and %s",
+                self.x_offset,
+                self.y_offset,
+            )
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
