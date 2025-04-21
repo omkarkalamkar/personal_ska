@@ -19,7 +19,7 @@ def test_wrap_sector_key(cm_pointig_device, json_factory):
     configure_data = json_factory("dishleafnode_configure_adr106")
     configure_data = json.loads(configure_data)
     cm.target_data = configure_data
-    cm.set_wrap_sector()
+    cm.set_wrap_sector_data()
     assert cm.wrap_sector_key
     assert cm.wrap_sector == -1
     cm.wrap_sector_key = False

@@ -199,7 +199,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             return True
         return False
 
-    def set_wrap_sector(self) -> None:
+    def set_wrap_sector_data(self) -> None:
         """
         Set the wrap sector for the observation
 
@@ -298,7 +298,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         calculation."""
         try:
             # Set the wrap key
-            self.set_wrap_sector()
+            self.set_wrap_sector_data()
             if (
                 not self.track_table_thread
                 or not self.track_table_thread.is_alive()
