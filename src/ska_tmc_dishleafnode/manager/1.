@@ -1,0 +1,460 @@
+1|2025-04-21T09:40:17.442Z|INFO|MainThread|set_logging_level|base_device.py#854|tango-device:mid-tmc/leaf-node-dish/ska001|Logging level set to LoggingLevel.DEBUG on Python and Tango loggers
+1|2025-04-21T09:40:17.443Z|INFO|MainThread|update_logging_handlers|logging.py#380|tango-device:mid-tmc/leaf-node-dish/ska001|Logging targets set to ['tango::logger']
+1|2025-04-21T09:40:17.446Z|DEBUG|MainThread|_init_logging|base_device.py#165|tango-device:mid-tmc/leaf-node-dish/ska001|Logger initialised
+1|2025-04-21T09:40:17.474Z|INFO|MainThread|reset_command_result_values|component_manager.py#319|tango-device:mid-tmc/leaf-node-dish/ska001|Cleared the command result dictionaries.
+1|2025-04-21T09:40:17.502Z|DEBUG|Thread-2 (run)|device_task|liveliness_probe.py#87|tango-device:mid-tmc/leaf-node-dish/ska001|Device is not yet exported, liveliness probe will retry to connect with device: mid-dish/dish-manager/ska001
+1|2025-04-21T09:40:17.507Z|INFO|MainThread|process_actual_pointing|component_manager.py#665|tango-device:mid-tmc/leaf-node-dish/ska001|Main Process ID: 1
+1|2025-04-21T09:40:17.510Z|INFO|MainThread|process_actual_pointing|component_manager.py#666|tango-device:mid-tmc/leaf-node-dish/ska001|Sub-Process ID: 44
+1|2025-04-21T09:40:17.506Z|DEBUG|longRunningCommandResult|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for longRunningCommandResult
+1|2025-04-21T09:40:17.507Z|DEBUG|dishMode|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for dishMode
+1|2025-04-21T09:40:17.507Z|DEBUG|pointingState|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for pointingState
+1|2025-04-21T09:40:17.508Z|DEBUG|configuredBand|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for configuredBand
+1|2025-04-21T09:40:17.509Z|DEBUG|pointingProgramTrackTable|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for pointingProgramTrackTable
+1|2025-04-21T09:40:17.509Z|DEBUG|programTrackTableError|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for programTrackTableError
+1|2025-04-21T09:40:17.510Z|DEBUG|healthState|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for healthState
+1|2025-04-21T09:40:17.510Z|DEBUG|band1PointingModelParams|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for band1PointingModelParams
+1|2025-04-21T09:40:17.510Z|DEBUG|band2PointingModelParams|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for band2PointingModelParams
+1|2025-04-21T09:40:17.511Z|DEBUG|band3PointingModelParams|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for band3PointingModelParams
+1|2025-04-21T09:40:17.511Z|DEBUG|band4PointingModelParams|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for band4PointingModelParams
+1|2025-04-21T09:40:17.511Z|DEBUG|band5APointingModelParams|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for band5APointingModelParams
+1|2025-04-21T09:40:17.512Z|DEBUG|band5BPointingModelParams|process_event|tmc_component_manager.py#720|tango-device:mid-tmc/leaf-node-dish/ska001|Process started for band5BPointingModelParams
+1|2025-04-21T09:40:17.514Z|DEBUG|MainThread|init_device|base_device.py#373|tango-device:mid-tmc/leaf-node-dish/ska001|Groups definitions: None
+1|2025-04-21T09:40:17.521Z|DEBUG|MainThread|init_device|base_device.py#377|tango-device:mid-tmc/leaf-node-dish/ska001|No Groups loaded for device: mid-tmc/leaf-node-dish/ska001
+1|2025-04-21T09:40:17.523Z|INFO|MainThread|exit|core.py#137||Finished processing state _UNINITIALISED exit callbacks.
+1|2025-04-21T09:40:17.523Z|INFO|MainThread|enter|core.py#131||Finished processing state INIT_DISABLE enter callbacks.
+1|2025-04-21T09:40:17.523Z|INFO|MainThread|callbacks|core.py#1175||Executed callback '<bound method _OpStateMachine._state_changed of <ska_control_model.op_state._OpStateMachine object at 0x7f3ab7375a80>>'
+1|2025-04-21T09:40:17.524Z|INFO|MainThread|exit|core.py#137||Finished processing state INIT_DISABLE exit callbacks.
+1|2025-04-21T09:40:17.524Z|INFO|MainThread|enter|core.py#131||Finished processing state DISABLE enter callbacks.
+1|2025-04-21T09:40:17.524Z|INFO|MainThread|callbacks|core.py#1175||Executed callback '<bound method _OpStateMachine._state_changed of <ska_control_model.op_state._OpStateMachine object at 0x7f3ab7375a80>>'
+push_event generated the following python exception:
+Traceback (most recent call last):
+1|2025-04-21T09:40:17.522Z|ERROR|dishMode|check_event_error|tmc_component_manager.py#752|tango-device:mid-tmc/leaf-node-dish/ska001|Error occurred on dishMode_Callback for device: mid-dish/dish-manager/ska001 - API_CantConnectToDevice, Can't subscribe to event for device tango://tango-databaseds.ci-ska-tmc-dishleafnode-16b764e0.svc.techops.internal.skao.int:10000/mid-dish/dish-manager/ska001
+Check that device server is running...
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 260, in handle_achieved_pointing_event
+    self._component_manager.update_achieved_pointing_event(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2434, in update_achieved_pointing_event
+    self.achieved_pointing_data.put(event.attr_value.value)
+AttributeError: 'NoneType' object has no attribute 'value'
+1|2025-04-21T09:40:17.524Z|INFO|MainThread|do|base_device.py#101|tango-device:mid-tmc/leaf-node-dish/ska001|SKABaseDevice Init command completed OK
+1|2025-04-21T09:40:17.529Z|INFO|MainThread|exit|core.py#137||Finished processing state DISABLE exit callbacks.
+1|2025-04-21T09:40:17.529Z|INFO|MainThread|enter|core.py#131||Finished processing state ON enter callbacks.
+1|2025-04-21T09:40:17.529Z|INFO|MainThread|callbacks|core.py#1175||Executed callback '<bound method _OpStateMachine._state_changed of <ska_control_model.op_state._OpStateMachine object at 0x7f3ab7375a80>>'
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+1|2025-04-21T09:40:17.526Z|ERROR|pointingState|check_event_error|tmc_component_manager.py#752|tango-device:mid-tmc/leaf-node-dish/ska001|Error occurred on pointingState_Callback for device: mid-dish/dish-manager/ska001 - API_CantConnectToDevice, Can't subscribe to event for device tango://tango-databaseds.ci-ska-tmc-dishleafnode-16b764e0.svc.techops.internal.skao.int:10000/mid-dish/dish-manager/ska001
+Check that device server is running...
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+AttributeError: 'NoneType' object has no attribute 'name'
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+1|2025-04-21T09:40:17.528Z|ERROR|configuredBand|check_event_error|tmc_component_manager.py#752|tango-device:mid-tmc/leaf-node-dish/ska001|Error occurred on configuredBand_Callback for device: mid-dish/dish-manager/ska001 - API_CantConnectToDevice, Can't subscribe to event for device tango://tango-databaseds.ci-ska-tmc-dishleafnode-16b764e0.svc.techops.internal.skao.int:10000/mid-dish/dish-manager/ska001
+Check that device server is running...
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+AttributeError: 'NoneType' object has no attribute 'name'
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+1|2025-04-21T09:40:17.529Z|WARNING|MainThread|__init__|base_device.py#1683|tango-device:mid-tmc/leaf-node-dish/ska001|'abort_commands' is deprecated and will be removed in the next major release. Either rename 'abort_commands' in your component manager to 'abort_tasks' or override the 'SKABaseDevice.Abort' command instead.
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+AttributeError: 'NoneType' object has no attribute 'name'
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+1|2025-04-21T09:40:17.529Z|ERROR|longRunningCommandResult|check_event_error|tmc_component_manager.py#752|tango-device:mid-tmc/leaf-node-dish/ska001|Error occurred on longRunningCommandResult_Callback for device: mid-dish/dish-manager/ska001 - API_CantConnectToDevice, Can't subscribe to event for device tango://tango-databaseds.ci-ska-tmc-dishleafnode-16b764e0.svc.techops.internal.skao.int:10000/mid-dish/dish-manager/ska001
+Check that device server is running...
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+AttributeError: 'NoneType' object has no attribute 'name'
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+AttributeError: 'NoneType' object has no attribute 'name'
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+AttributeError: 'NoneType' object has no attribute 'name'
+1|2025-04-21T09:40:17.732Z|INFO|MainThread|_load_data|backend.py#793||gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata: Loading Nexus tarball...
+1|2025-04-21T09:40:17.942Z|DEBUG|MainThread|create_converter_obj_and_antenna_obj|component_manager.py#334|tango-device:mid-tmc/leaf-node-dish/ska001|Antenna object created
+Ready to accept request
+1|2025-04-21T09:40:18.553Z|ERROR|pointingProgramTrackTable|check_event_error|tmc_component_manager.py#752|tango-device:mid-tmc/leaf-node-dish/ska001|Error occurred on pointingProgramTrackTable_Callback for device: mid-tmc/dish-pointing/ska001 - API_CantConnectToDevice, Can't subscribe to event for device tango://tango-databaseds.ci-ska-tmc-dishleafnode-16b764e0.svc.techops.internal.skao.int:10000/mid-tmc/dish-pointing/ska001
+Check that device server is running...
+1|2025-04-21T09:40:18.554Z|ERROR|programTrackTableError|check_event_error|tmc_component_manager.py#752|tango-device:mid-tmc/leaf-node-dish/ska001|Error occurred on programTrackTableError_Callback for device: mid-tmc/dish-pointing/ska001 - API_CantConnectToDevice, Can't subscribe to event for device tango://tango-databaseds.ci-ska-tmc-dishleafnode-16b764e0.svc.techops.internal.skao.int:10000/mid-tmc/dish-pointing/ska001
+Check that device server is running...
+1|2025-04-21T09:40:18.555Z|ERROR|healthState|check_event_error|tmc_component_manager.py#752|tango-device:mid-tmc/leaf-node-dish/ska001|Error occurred on healthState_Callback for device: mid-tmc/dish-pointing/ska001 - API_CantConnectToDevice, Can't subscribe to event for device tango://tango-databaseds.ci-ska-tmc-dishleafnode-16b764e0.svc.techops.internal.skao.int:10000/mid-tmc/dish-pointing/ska001
+Check that device server is running...
+1|2025-04-21T09:40:20.798Z|INFO|MainThread|download_iers_data|component_manager.py#590|tango-device:mid-tmc/leaf-node-dish/ska001|IERS data download completed.
+1|2025-04-21T09:40:22.519Z|INFO|Thread-3|validate_dish_kvalue|dish_kvalue_validation_manager.py#68|tango-device:mid-tmc/leaf-node-dish/ska001|Dish Manager k-value: 0
+1|2025-04-21T09:40:22.520Z|INFO|Thread-3|validate_dish_kvalue|dish_kvalue_validation_manager.py#69|tango-device:mid-tmc/leaf-node-dish/ska001|Dish Leaf Node k-value: 0
+1|2025-04-21T09:40:22.520Z|INFO|Thread-3|validate_dish_kvalue|dish_kvalue_validation_manager.py#72|tango-device:mid-tmc/leaf-node-dish/ska001|kvalue not set
+1|2025-04-21T09:40:22.521Z|INFO|Thread-3|kvalue_validation_callback|dish_leaf_node.py#275|tango-device:mid-tmc/leaf-node-dish/ska001|k-value validation result: ResultCode.UNKNOWN
+1|2025-04-21T09:40:29.512Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to STANDBY_LP
+1|2025-04-21T09:40:29.514Z|INFO|pointingState|update_device_pointing_state|component_manager.py#1562|tango-device:mid-tmc/leaf-node-dish/ska001|PointingState value updated to NONE
+1|2025-04-21T09:40:29.524Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('', '')
+1|2025-04-21T09:40:29.526Z|ERROR|band1PointingModelParams|update_dish_pointing_model_param|component_manager.py#1534|tango-device:mid-tmc/leaf-node-dish/ska001|Band name 'band1PointingModelParams' not found in parameters.
+1|2025-04-21T09:40:29.529Z|ERROR|band2PointingModelParams|update_dish_pointing_model_param|component_manager.py#1534|tango-device:mid-tmc/leaf-node-dish/ska001|Band name 'band2PointingModelParams' not found in parameters.
+1|2025-04-21T09:40:29.531Z|ERROR|band3PointingModelParams|update_dish_pointing_model_param|component_manager.py#1534|tango-device:mid-tmc/leaf-node-dish/ska001|Band name 'band3PointingModelParams' not found in parameters.
+1|2025-04-21T09:40:29.534Z|ERROR|band4PointingModelParams|update_dish_pointing_model_param|component_manager.py#1534|tango-device:mid-tmc/leaf-node-dish/ska001|Band name 'band4PointingModelParams' not found in parameters.
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+KeyError: 'band5aPointingModelParams'
+push_event generated the following python exception:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 249, in greener
+    return executor.submit(fn, *args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 107, in submit
+    return fn(*args, **kwargs)
+  File "/app/src/ska_tmc_dishleafnode/manager/event_receiver.py", line 204, in handle_pointing_model_params
+    self._component_manager.update_dish_pointing_model_params(event_flag)
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 2422, in update_dish_pointing_model_params
+    self.event_queues[event.attr_value.name].put(event)
+KeyError: 'band5bPointingModelParams'
+1|2025-04-21T09:40:29.547Z|INFO|pointingProgramTrackTable|update_program_track_table|component_manager.py#1674|tango-device:mid-tmc/leaf-node-dish/ska001|TrackTable is empty.
+1|2025-04-21T09:40:29.650Z|DEBUG|MainThread|actual_pointing|component_manager.py#514|tango-device:mid-tmc/leaf-node-dish/ska001|The updated actual pointing values are: ['2025-04-21 09:40:18', '1:36:10.04', '-88:59:11.29']
+1|2025-04-21T09:40:51.552Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to STANDBY_LP
+1|2025-04-21T09:40:51.590Z|DEBUG|Dummy-5|_debug_patch|base_device.py#175|tango-device:mid-tmc/leaf-node-dish/ska001|-> MidTmcLeafNodeDish.SetStandbyFPMode()
+1|2025-04-21T09:40:51.599Z|INFO|Dummy-5|setstandbyfpmode|component_manager.py#781|tango-device:mid-tmc/leaf-node-dish/ska001|SetStandbyFPMode command queued for execution
+1|2025-04-21T09:40:51.600Z|DEBUG|Dummy-5|_debug_patch|base_device.py#175|tango-device:mid-tmc/leaf-node-dish/ska001|<- MidTmcLeafNodeDish.SetStandbyFPMode()
+1|2025-04-21T09:40:51.601Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#66|tango-device:mid-tmc/leaf-node-dish/ska001|Dish master adapter created successfully
+1|2025-04-21T09:40:51.604Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|DISHLN pointing device adapter created successfully
+1|2025-04-21T09:40:51.604Z|INFO|ThreadPoolExecutor-0_0|call_adapter_method|tmc_command.py#606|tango-device:mid-tmc/leaf-node-dish/ska001|Invoking  SetStandbyFPMode command on device: mid-dish/dish-manager/ska001
+1|2025-04-21T09:40:51.608Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to STANDBY_FP
+1|2025-04-21T09:40:51.609Z|WARNING|Dummy-5|longRunningCommandResult|base_device.py#1376|tango-device:mid-tmc/leaf-node-dish/ska001|'longRunningCommandResult' is deprecated in ska-tango-base 0.20.0 and will be removed in the 2.0.0 major release. The client should check for the result of a command in the 'lrcFinished' attribute instead.
+1|2025-04-21T09:40:51.609Z|INFO|ThreadPoolExecutor-0_0|set_standby_fp_mode|setstandbyfpmode.py#49|tango-device:mid-tmc/leaf-node-dish/ska001|1745228451.607606_SetStandbyFPMode
+1|2025-04-21T09:40:51.610Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228451.607606_SetStandbyFPMode', '[0, "Command Completed"]')
+1|2025-04-21T09:40:51.611Z|INFO|ThreadPoolExecutor-0_0|set_standby_fp_mode|setstandbyfpmode.py#57|tango-device:mid-tmc/leaf-node-dish/ska001|The SetStandbyFPMode command is invoked successfully on mid-dish/dish-manager/ska001
+1|2025-04-21T09:40:51.611Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1777|tango-device:mid-tmc/leaf-node-dish/ska001|LRCR event for id 1745228451.607606_SetStandbyFPMode will be ignored
+1|2025-04-21T09:40:51.774Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to STANDBY_FP
+1|2025-04-21T09:40:51.805Z|DEBUG|Dummy-5|_debug_patch|base_device.py#175|tango-device:mid-tmc/leaf-node-dish/ska001|-> MidTmcLeafNodeDish.SetOperateMode()
+1|2025-04-21T09:40:51.811Z|INFO|Dummy-5|setoperatemode|component_manager.py#1065|tango-device:mid-tmc/leaf-node-dish/ska001|SetOperateMode command queued for execution
+1|2025-04-21T09:40:51.812Z|INFO|ThreadPoolExecutor-0_0|start_timer|timekeeper.py#42|tango-device:mid-tmc/leaf-node-dish/ska001|Starting timer for id : 1745228451.8117476_SetOperateMode
+1|2025-04-21T09:40:51.812Z|DEBUG|Dummy-5|_debug_patch|base_device.py#175|tango-device:mid-tmc/leaf-node-dish/ska001|<- MidTmcLeafNodeDish.SetOperateMode()
+1|2025-04-21T09:40:51.813Z|DEBUG|ThreadPoolExecutor-0_0|wrapper|error_propagation_tracker.py#126|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID:  | Args: (<ska_tmc_dishleafnode.commands.setoperatemode.SetOperateMode object at 0x7f3ae33a4f10>, <Logger mid-tmc/leaf-node-dish/ska001 (DEBUG)>)
+{
+  "task_callback": "functools.partial(<bound method CommandTracker.update_command_info of <ska_tango_base.base.command_tracker.CommandTracker object at 0x7f3ab7376cb0>>, '1745228451.80619_39078433003124_SetOperateMode')",
+  "task_abort_event": "<threading.Event object at 0x7f3ab7374670>"
+}
+1|2025-04-21T09:40:51.815Z|INFO|ThreadPoolExecutor-0_0|setup_data|error_propagation_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228451.8151236-SetOperateMode | Abort Event set
+/usr/local/lib/python3.10/dist-packages/ska_tango_base/base/command_tracker.py:329: FutureWarning: '1745228451.80619_39078433003124_SetOperateMode' command's status is transitioning from IN_PROGRESS to IN_PROGRESS, which is not a valid TaskStatus transition. Only valid status transitions may be allowed in the future, which will break your device code.
+  warn(
+1|2025-04-21T09:40:51.816Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#66|tango-device:mid-tmc/leaf-node-dish/ska001|Dish master adapter created successfully
+1|2025-04-21T09:40:51.816Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|DISHLN pointing device adapter created successfully
+1|2025-04-21T09:40:51.817Z|DEBUG|ThreadPoolExecutor-0_0|do|setoperatemode.py#106|tango-device:mid-tmc/leaf-node-dish/ska001|Acquired  tango lock
+1|2025-04-21T09:40:51.817Z|INFO|ThreadPoolExecutor-0_0|call_adapter_method|tmc_command.py#606|tango-device:mid-tmc/leaf-node-dish/ska001|Invoking  SetOperateMode command on device: mid-dish/dish-manager/ska001
+1|2025-04-21T09:40:51.820Z|INFO|pointingState|update_device_pointing_state|component_manager.py#1562|tango-device:mid-tmc/leaf-node-dish/ska001|PointingState value updated to READY
+1|2025-04-21T09:40:51.821Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to OPERATE
+1|2025-04-21T09:40:51.821Z|WARNING|Dummy-5|longRunningCommandResult|base_device.py#1376|tango-device:mid-tmc/leaf-node-dish/ska001|'longRunningCommandResult' is deprecated in ska-tango-base 0.20.0 and will be removed in the 2.0.0 major release. The client should check for the result of a command in the 'lrcFinished' attribute instead.
+1|2025-04-21T09:40:51.823Z|DEBUG|ThreadPoolExecutor-0_0|do|setoperatemode.py#115|tango-device:mid-tmc/leaf-node-dish/ska001|SetOperateCode command returned ResultCode: [2], message: ['1745228451.81933_SetOperateMode']
+1|2025-04-21T09:40:51.824Z|DEBUG|ThreadPoolExecutor-0_0|do|setoperatemode.py#120|tango-device:mid-tmc/leaf-node-dish/ska001|Released tango lock
+1|2025-04-21T09:40:51.824Z|DEBUG|ThreadPoolExecutor-0_0|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228451.8160088-SetOperateMode | Abort event is False
+1|2025-04-21T09:40:51.825Z|ERROR|ThreadPoolExecutor-0_0|update_attr_value_change|command_callback_tracker.py#135|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228451.8160088-SetOperateMode | Error occurred while attribute update None is not a valid ObsState
+1|2025-04-21T09:40:52.056Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228451.8208237_SPF_SetOperateMode', '[0, "None"]')
+1|2025-04-21T09:40:52.056Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1777|tango-device:mid-tmc/leaf-node-dish/ska001|LRCR event for id 1745228451.8208237_SPF_SetOperateMode will be ignored
+1|2025-04-21T09:40:52.256Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228451.81933_SetOperateMode', '[0, "SetOperateMode completed"]')
+1|2025-04-21T09:40:52.257Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1788|tango-device:mid-tmc/leaf-node-dish/ska001|Checking unique_id- 1745228451.81933_SetOperateMode
+1|2025-04-21T09:40:52.257Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1805|tango-device:mid-tmc/leaf-node-dish/ska001|SetOperateMode result: {'result_code': 0, 'message': 'SetOperateMode completed', 'exception': None, 'status': None}
+1|2025-04-21T09:40:52.257Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1817|tango-device:mid-tmc/leaf-node-dish/ska001|Number of observer [(<ska_tmc_dishleafnode.commands.setoperatemode.SetOperateMode object at 0x7f3ae33a4f10>, '1745228451.8160088-SetOperateMode'), (<ska_tmc_dishleafnode.commands.setoperatemode.SetOperateMode object at 0x7f3ae33a4f10>, '1745228451.8160088-SetOperateMode')]
+1|2025-04-21T09:40:52.258Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228451.8160088-SetOperateMode | Abort event is False
+1|2025-04-21T09:40:52.258Z|INFO|longRunningCommandResult|stop_timer|timekeeper.py#72|tango-device:mid-tmc/leaf-node-dish/ska001|Stopping timer <Timer(Thread-7, started daemon 139888544437824)>
+1|2025-04-21T09:40:52.259Z|DEBUG|longRunningCommandResult|clean_up|command_callback_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228451.8160088-SetOperateMode | Deregistering observer
+1|2025-04-21T09:40:52.259Z|DEBUG|longRunningCommandResult|remove_data|lrcr_callback.py#93|tango-device:mid-tmc/leaf-node-dish/ska001|Removed command data None
+1|2025-04-21T09:40:52.260Z|INFO|longRunningCommandResult|update_task_status|dish_ln_command.py#193|tango-device:mid-tmc/leaf-node-dish/ska001|Result, status, message: (<ResultCode.OK: 0>, 'Command Completed'), TaskStatus.COMPLETED, None
+1|2025-04-21T09:40:52.261Z|INFO|longRunningCommandResult|reset_command_result_values|component_manager.py#319|tango-device:mid-tmc/leaf-node-dish/ska001|Cleared the command result dictionaries.
+1|2025-04-21T09:40:52.476Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to STANDBY_FP
+1|2025-04-21T09:40:52.509Z|DEBUG|Dummy-5|_debug_patch|base_device.py#175|tango-device:mid-tmc/leaf-node-dish/ska001|-> MidTmcLeafNodeDish.Configure()
+1|2025-04-21T09:40:52.517Z|INFO|Dummy-5|configure|component_manager.py#1116|tango-device:mid-tmc/leaf-node-dish/ska001|Configure command queued for execution
+1|2025-04-21T09:40:52.517Z|INFO|ThreadPoolExecutor-0_0|start_timer|timekeeper.py#42|tango-device:mid-tmc/leaf-node-dish/ska001|Starting timer for id : 1745228452.5171962_DishLNCommand
+1|2025-04-21T09:40:52.518Z|DEBUG|Dummy-5|_debug_patch|base_device.py#175|tango-device:mid-tmc/leaf-node-dish/ska001|<- MidTmcLeafNodeDish.Configure()
+1|2025-04-21T09:40:52.519Z|DEBUG|ThreadPoolExecutor-0_0|wrapper|error_propagation_tracker.py#126|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID: 1745228451.8160088-SetOperateMode | Args: (<ska_tmc_dishleafnode.commands.configure_command.Configure object at 0x7f3ae33d3e50>,)
+{
+  "task_callback": "functools.partial(<bound method CommandTracker.update_command_info of <ska_tango_base.base.command_tracker.CommandTracker object at 0x7f3ab7376cb0>>, '1745228452.5100074_276372097012287_Configure')",
+  "task_abort_event": "<threading.Event object at 0x7f3ab7374670>",
+  "argin": {
+    "pointing": {
+      "target": {
+        "reference_frame": "ICRS",
+        "target_name": "Polaris Australis",
+        "ra": "21:08:47.92",
+        "dec": "-88:57:22.9"
+      },
+      "correction": "UPDATE"
+    },
+    "dish": {
+      "receiver_band": "2"
+    }
+  }
+}
+1|2025-04-21T09:40:52.520Z|INFO|ThreadPoolExecutor-0_0|setup_data|error_propagation_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5203683-Configure | Abort Event set
+/usr/local/lib/python3.10/dist-packages/ska_tango_base/base/command_tracker.py:329: FutureWarning: '1745228452.5100074_276372097012287_Configure' command's status is transitioning from IN_PROGRESS to IN_PROGRESS, which is not a valid TaskStatus transition. Only valid status transitions may be allowed in the future, which will break your device code.
+  warn(
+1|2025-04-21T09:40:52.521Z|DEBUG|ThreadPoolExecutor-0_0|invoke_configure|configure_command.py#104|tango-device:mid-tmc/leaf-node-dish/ska001|Set receiver_band to 2
+1|2025-04-21T09:40:52.521Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#66|tango-device:mid-tmc/leaf-node-dish/ska001|Dish master adapter created successfully
+1|2025-04-21T09:40:52.522Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|DISHLN pointing device adapter created successfully
+1|2025-04-21T09:40:52.524Z|DEBUG|ThreadPoolExecutor-0_0|trackTableLoadMode|component_manager.py#1651|tango-device:mid-tmc/leaf-node-dish/ska001|Updated trackTableLoadMode to TrackTableLoadMode.NEW
+1|2025-04-21T09:40:52.528Z|WARNING|Dummy-5|longRunningCommandResult|base_device.py#1376|tango-device:mid-tmc/leaf-node-dish/ska001|'longRunningCommandResult' is deprecated in ska-tango-base 0.20.0 and will be removed in the 2.0.0 major release. The client should check for the result of a command in the 'lrcFinished' attribute instead.
+1|2025-04-21T09:40:52.529Z|DEBUG|ThreadPoolExecutor-0_0|do|configure_command.py#281|tango-device:mid-tmc/leaf-node-dish/ska001|Calling GenerateProgramTrackTable()
+1|2025-04-21T09:40:52.537Z|INFO|ThreadPoolExecutor-0_0|update_health_state_callback|dish_leaf_node.py#194|tango-device:mid-tmc/leaf-node-dish/ska001|HealthState updated to value: HealthState.OK
+1|2025-04-21T09:40:52.543Z|INFO|ThreadPoolExecutor-0_0|start_timer|timekeeper.py#42|tango-device:mid-tmc/leaf-node-dish/ska001|Starting timer for id : 1745228452.5431902_ConfigureBand
+1|2025-04-21T09:40:52.544Z|DEBUG|ThreadPoolExecutor-0_0|wrapper|error_propagation_tracker.py#126|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID: 1745228452.5171962_DishLNCommand | Args: (<ska_tmc_dishleafnode.commands.configure_band_command.ConfigureBand object at 0x7f3ae33d1540>,)
+{
+  "argin": 2,
+  "logger": "<Logger mid-tmc/leaf-node-dish/ska001 (DEBUG)>",
+  "task_callback": "<function Configure.invoke_configure_band_on_dish.<locals>._invoke_configure_band_callback at 0x7f3ae33c7370>",
+  "task_abort_event": "<threading.Event object at 0x7f3ab7374670>"
+}
+1|2025-04-21T09:40:52.544Z|DEBUG|ThreadPoolExecutor-0_0|_invoke_configure_band_callback|configure_command.py#340|tango-device:mid-tmc/leaf-node-dish/ska001|Received result for configure band None and None and None
+1|2025-04-21T09:40:52.545Z|INFO|ThreadPoolExecutor-0_0|setup_data|error_propagation_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5452292-ConfigureBand | Abort Event set
+1|2025-04-21T09:40:52.545Z|DEBUG|ThreadPoolExecutor-0_0|_invoke_configure_band_callback|configure_command.py#340|tango-device:mid-tmc/leaf-node-dish/ska001|Received result for configure band None and None and None
+1|2025-04-21T09:40:52.546Z|DEBUG|ThreadPoolExecutor-0_0|do|configure_band_command.py#103|tango-device:mid-tmc/leaf-node-dish/ska001|Input argument for ConfigureBand command is: 2
+1|2025-04-21T09:40:52.547Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#66|tango-device:mid-tmc/leaf-node-dish/ska001|Dish master adapter created successfully
+1|2025-04-21T09:40:52.547Z|DEBUG|ThreadPoolExecutor-0_0|init_adapter|dish_ln_command.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|DISHLN pointing device adapter created successfully
+1|2025-04-21T09:40:52.548Z|INFO|ThreadPoolExecutor-0_0|do|configure_band_command.py#115|tango-device:mid-tmc/leaf-node-dish/ska001|command_name: ConfigureBand2
+1|2025-04-21T09:40:52.549Z|INFO|ThreadPoolExecutor-0_0|do|configure_band_command.py#116|tango-device:mid-tmc/leaf-node-dish/ska001|ConfigureBand2 command will be executed shortly.
+1|2025-04-21T09:40:52.549Z|DEBUG|ThreadPoolExecutor-0_0|do|configure_band_command.py#118|tango-device:mid-tmc/leaf-node-dish/ska001|Acquired  tango lock
+1|2025-04-21T09:40:52.550Z|INFO|ThreadPoolExecutor-0_0|call_adapter_method|tmc_command.py#606|tango-device:mid-tmc/leaf-node-dish/ska001|Invoking  ConfigureBand2 command on device: mid-dish/dish-manager/ska001
+1|2025-04-21T09:40:52.553Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to CONFIG
+1|2025-04-21T09:40:52.559Z|DEBUG|ThreadPoolExecutor-0_0|do|configure_band_command.py#130|tango-device:mid-tmc/leaf-node-dish/ska001|ConfigureBand2 command returned ResultCode: [2] and message: ['1745228452.552605_ConfigureBand2']
+1|2025-04-21T09:40:52.559Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to STANDBY_FP
+1|2025-04-21T09:40:52.560Z|DEBUG|ThreadPoolExecutor-0_0|do|configure_band_command.py#136|tango-device:mid-tmc/leaf-node-dish/ska001|Released tango lock
+1|2025-04-21T09:40:52.561Z|DEBUG|ThreadPoolExecutor-0_0|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5431902_ConfigureBand | Abort event is False
+1|2025-04-21T09:40:52.562Z|ERROR|ThreadPoolExecutor-0_0|update_attr_value_change|command_callback_tracker.py#135|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5431902_ConfigureBand | Error occurred while attribute update None is not a valid ObsState
+1|2025-04-21T09:40:52.562Z|DEBUG|ThreadPoolExecutor-0_0|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:52.563Z|DEBUG|ThreadPoolExecutor-0_0|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:52.856Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228452.5557256_DS_SetIndexPosition', '[0, "Command Completed"]')
+1|2025-04-21T09:40:52.857Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1777|tango-device:mid-tmc/leaf-node-dish/ska001|LRCR event for id 1745228452.5557256_DS_SetIndexPosition will be ignored
+1|2025-04-21T09:40:53.056Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228452.5569715_SPFRX_ConfigureBand2', '[0, "None"]')
+1|2025-04-21T09:40:53.056Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1777|tango-device:mid-tmc/leaf-node-dish/ska001|LRCR event for id 1745228452.5569715_SPFRX_ConfigureBand2 will be ignored
+1|2025-04-21T09:40:53.256Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228452.552605_ConfigureBand2', '[0, "ConfigureBand2 completed"]')
+1|2025-04-21T09:40:53.257Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1788|tango-device:mid-tmc/leaf-node-dish/ska001|Checking unique_id- 1745228452.552605_ConfigureBand2
+1|2025-04-21T09:40:53.257Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1793|tango-device:mid-tmc/leaf-node-dish/ska001|ConfigureBand result: {'result_code': 0, 'message': 'ConfigureBand2 completed', 'exception': None, 'status': None}
+1|2025-04-21T09:40:53.257Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5431902_ConfigureBand | Abort event is False
+1|2025-04-21T09:40:53.258Z|INFO|longRunningCommandResult|stop_timer|timekeeper.py#72|tango-device:mid-tmc/leaf-node-dish/ska001|Stopping timer <Timer(Thread-10, started daemon 139888527652416)>
+1|2025-04-21T09:40:53.258Z|DEBUG|longRunningCommandResult|clean_up|command_callback_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5431902_ConfigureBand | Deregistering observer
+1|2025-04-21T09:40:53.259Z|DEBUG|longRunningCommandResult|remove_data|lrcr_callback.py#93|tango-device:mid-tmc/leaf-node-dish/ska001|Removed command data None
+1|2025-04-21T09:40:53.259Z|INFO|longRunningCommandResult|update_task_status|dish_ln_command.py#193|tango-device:mid-tmc/leaf-node-dish/ska001|Result, status, message: (<ResultCode.OK: 0>, 'Command Completed'), TaskStatus.COMPLETED, None
+1|2025-04-21T09:40:53.259Z|DEBUG|longRunningCommandResult|_invoke_configure_band_callback|configure_command.py#340|tango-device:mid-tmc/leaf-node-dish/ska001|Received result for configure band (<ResultCode.OK: 0>, 'Command Completed') and None and None
+1|2025-04-21T09:40:53.260Z|INFO|longRunningCommandResult|ensure_dish_in_right_dish_mode|configure_command.py#557|tango-device:mid-tmc/leaf-node-dish/ska001|SetOperateMode command will be executed shortly.
+1|2025-04-21T09:40:53.266Z|INFO|longRunningCommandResult|start_timer|timekeeper.py#42|tango-device:mid-tmc/leaf-node-dish/ska001|Starting timer for id : 1745228453.2660098_SetOperateMode
+1|2025-04-21T09:40:53.267Z|DEBUG|longRunningCommandResult|wrapper|error_propagation_tracker.py#126|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID: 1745228452.5628827-Configure | Args: (<ska_tmc_dishleafnode.commands.setoperatemode.SetOperateMode object at 0x7f3ae33d0280>,)
+{
+  "logger": "<Logger mid-tmc/leaf-node-dish/ska001 (DEBUG)>",
+  "task_callback": "<function Configure.ensure_dish_in_right_dish_mode.<locals>._invoke_setoperatemode_callback at 0x7f3ae3333910>",
+  "task_abort_event": "<threading.Event object at 0x7f3ab7374670>"
+}
+1|2025-04-21T09:40:53.267Z|INFO|longRunningCommandResult|_invoke_setoperatemode_callback|configure_command.py#569|tango-device:mid-tmc/leaf-node-dish/ska001|Received Setoperate mode result None
+1|2025-04-21T09:40:53.268Z|INFO|longRunningCommandResult|setup_data|error_propagation_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228453.268233-SetOperateMode | Abort Event set
+1|2025-04-21T09:40:53.268Z|INFO|longRunningCommandResult|_invoke_setoperatemode_callback|configure_command.py#569|tango-device:mid-tmc/leaf-node-dish/ska001|Received Setoperate mode result None
+1|2025-04-21T09:40:53.269Z|DEBUG|longRunningCommandResult|init_adapter|dish_ln_command.py#66|tango-device:mid-tmc/leaf-node-dish/ska001|Dish master adapter created successfully
+1|2025-04-21T09:40:53.269Z|DEBUG|longRunningCommandResult|init_adapter|dish_ln_command.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|DISHLN pointing device adapter created successfully
+1|2025-04-21T09:40:53.270Z|DEBUG|longRunningCommandResult|do|setoperatemode.py#106|tango-device:mid-tmc/leaf-node-dish/ska001|Acquired  tango lock
+1|2025-04-21T09:40:53.271Z|INFO|longRunningCommandResult|call_adapter_method|tmc_command.py#606|tango-device:mid-tmc/leaf-node-dish/ska001|Invoking  SetOperateMode command on device: mid-dish/dish-manager/ska001
+1|2025-04-21T09:40:53.274Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to OPERATE
+1|2025-04-21T09:40:53.274Z|DEBUG|dishMode|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:53.275Z|DEBUG|dishMode|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:53.276Z|DEBUG|longRunningCommandResult|do|setoperatemode.py#115|tango-device:mid-tmc/leaf-node-dish/ska001|SetOperateCode command returned ResultCode: [2], message: ['1745228453.2729552_SetOperateMode']
+1|2025-04-21T09:40:53.277Z|DEBUG|longRunningCommandResult|do|setoperatemode.py#120|tango-device:mid-tmc/leaf-node-dish/ska001|Released tango lock
+1|2025-04-21T09:40:53.278Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228453.2660098_SetOperateMode | Abort event is False
+1|2025-04-21T09:40:53.278Z|ERROR|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#135|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228453.2660098_SetOperateMode | Error occurred while attribute update None is not a valid ObsState
+1|2025-04-21T09:40:53.279Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:53.279Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:53.557Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228453.2745957_SPF_SetOperateMode', '[0, "None"]')
+1|2025-04-21T09:40:53.557Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1777|tango-device:mid-tmc/leaf-node-dish/ska001|LRCR event for id 1745228453.2745957_SPF_SetOperateMode will be ignored
+1|2025-04-21T09:40:53.756Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228453.2729552_SetOperateMode', '[0, "SetOperateMode completed"]')
+1|2025-04-21T09:40:53.756Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1788|tango-device:mid-tmc/leaf-node-dish/ska001|Checking unique_id- 1745228453.2729552_SetOperateMode
+1|2025-04-21T09:40:53.757Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1805|tango-device:mid-tmc/leaf-node-dish/ska001|SetOperateMode result: {'result_code': 0, 'message': 'SetOperateMode completed', 'exception': None, 'status': None}
+1|2025-04-21T09:40:53.757Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1817|tango-device:mid-tmc/leaf-node-dish/ska001|Number of observer [(<ska_tmc_dishleafnode.commands.configure_command.Configure object at 0x7f3ae33d3e50>, '1745228452.5628827-Configure'), (<ska_tmc_dishleafnode.commands.configure_command.Configure object at 0x7f3ae33d3e50>, '1745228452.5628827-Configure'), (<ska_tmc_dishleafnode.commands.setoperatemode.SetOperateMode object at 0x7f3ae33d0280>, '1745228453.2660098_SetOperateMode'), (<ska_tmc_dishleafnode.commands.setoperatemode.SetOperateMode object at 0x7f3ae33d0280>, '1745228453.2660098_SetOperateMode')]
+1|2025-04-21T09:40:53.757Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:53.758Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:53.758Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228453.2660098_SetOperateMode | Abort event is False
+1|2025-04-21T09:40:53.759Z|INFO|longRunningCommandResult|stop_timer|timekeeper.py#72|tango-device:mid-tmc/leaf-node-dish/ska001|Stopping timer <Timer(Thread-11, started 139888527652416)>
+1|2025-04-21T09:40:53.759Z|DEBUG|longRunningCommandResult|clean_up|command_callback_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228453.2660098_SetOperateMode | Deregistering observer
+1|2025-04-21T09:40:53.760Z|DEBUG|longRunningCommandResult|remove_data|lrcr_callback.py#93|tango-device:mid-tmc/leaf-node-dish/ska001|Removed command data None
+1|2025-04-21T09:40:53.760Z|INFO|longRunningCommandResult|update_task_status|dish_ln_command.py#193|tango-device:mid-tmc/leaf-node-dish/ska001|Result, status, message: (<ResultCode.OK: 0>, 'Command Completed'), TaskStatus.COMPLETED, None
+1|2025-04-21T09:40:53.761Z|INFO|longRunningCommandResult|_invoke_setoperatemode_callback|configure_command.py#569|tango-device:mid-tmc/leaf-node-dish/ska001|Received Setoperate mode result (<ResultCode.OK: 0>, 'Command Completed')
+1|2025-04-21T09:40:54.224Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1677|tango-device:mid-tmc/leaf-node-dish/ska001|ProgramTrackTable will be updated, will acquire tango lock for same
+1|2025-04-21T09:40:54.225Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1683|tango-device:mid-tmc/leaf-node-dish/ska001|Acquired  tango lock
+1|2025-04-21T09:40:54.225Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1685|tango-device:mid-tmc/leaf-node-dish/ska001|Retry is: 0
+1|2025-04-21T09:40:54.230Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1689|tango-device:mid-tmc/leaf-node-dish/ska001|ProgramTrackTable Updated
+1|2025-04-21T09:40:54.235Z|DEBUG|pointingProgramTrackTable|trackTableLoadMode|component_manager.py#1651|tango-device:mid-tmc/leaf-node-dish/ska001|Updated trackTableLoadMode to TrackTableLoadMode.APPEND
+1|2025-04-21T09:40:54.235Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1711|tango-device:mid-tmc/leaf-node-dish/ska001|ProgramTrackTable: [798543696.7353201, 181.095739960576, 31.408602007961, 798543697.7353201, 181.095796961497, 31.408533365155, 798543698.7353201, 181.095853956467, 31.408464718781, 798543699.7353201, 181.095910945485, 31.408396068838, 798543700.7353201, 181.095967928552, 31.408327415326, 798543701.7353201, 181.096024905667, 31.408258758246, 798543702.7353201, 181.096081876829, 31.408190097599, 798543703.7353201, 181.09613884204, 31.408121433384, 798543704.7353201, 181.096195801297, 31.408052765602, 798543705.7353201, 181.096252754602, 31.407984094254, 798543706.7353201, 181.096309701953, 31.407915419339, 798543707.7353201, 181.09636664335, 31.407846740858, 798543708.7353201, 181.096423578794, 31.407778058812, 798543709.7353201, 181.096480508283, 31.407709373201, 798543710.7353201, 181.096537431818, 31.407640684025, 798543711.7353201, 181.096594349398, 31.407571991285, 798543712.7353201, 181.096651261023, 31.407503294981, 798543713.7353201, 181.096708166692, 31.407434595113, 798543714.7353201, 181.096765066406, 31.407365891682, 798543715.7353201, 181.096821960164, 31.407297184688, 798543716.7353201, 181.096878847965, 31.407228474131, 798543717.7353201, 181.09693572981, 31.407159760013, 798543718.7353201, 181.096992605698, 31.407091042332, 798543719.7353201, 181.097049475629, 31.407022321091, 798543720.7353201, 181.097106339602, 31.406953596288, 798543721.7353201, 181.097163197617, 31.406884867924, 798543722.7353201, 181.097220049675, 31.406816136001, 798543723.7353201, 181.097276895774, 31.406747400517, 798543724.7353201, 181.097333735914, 31.406678661474, 798543725.7353201, 181.097390570095, 31.406609918872, 798543726.7353201, 181.097447398318, 31.406541172711, 798543727.7353201, 181.09750422058, 31.406472422992, 798543728.7353201, 181.097561036883, 31.406403669715, 798543729.7353201, 181.097617847225, 31.40633491288, 798543730.7353201, 181.097674651608, 31.406266152487, 798543731.7353201, 181.097731450029, 31.406197388538, 798543732.7353201, 181.097788242489, 31.406128621032, 798543733.7353201, 181.097845028988, 31.406059849971, 798543734.7353201, 181.097901809526, 31.405991075353, 798543735.7353201, 181.097958584101, 31.40592229718, 798543736.7353201, 181.098015352715, 31.405853515452, 798543737.7353201, 181.098072115366, 31.405784730169, 798543738.7353201, 181.098128872053, 31.405715941332, 798543739.7353201, 181.098185622778, 31.405647148941, 798543740.7353201, 181.09824236754, 31.405578352997, 798543741.7353201, 181.098299106338, 31.405509553499, 798543742.7353201, 181.098355839172, 31.405440750449, 798543743.7353201, 181.098412566041, 31.405371943846, 798543744.7353201, 181.098469286946, 31.405303133691, 798543745.7353201, 181.098526001886, 31.405234319984]
+1|2025-04-21T09:40:54.244Z|DEBUG|MainThread|actual_pointing|component_manager.py#514|tango-device:mid-tmc/leaf-node-dish/ska001|The updated actual pointing values are: ['2025-04-21 09:40:59', '21:08:47.11', '-88:57:22.88']
+1|2025-04-21T09:40:54.268Z|INFO|Thread-12 (is_tracktable_provided)|start_timer|timekeeper.py#42|tango-device:mid-tmc/leaf-node-dish/ska001|Starting timer for id : 1745228454.2688074_Track
+1|2025-04-21T09:40:54.269Z|DEBUG|Thread-12 (is_tracktable_provided)|wrapper|error_propagation_tracker.py#126|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID: 1745228453.2660098_SetOperateMode | Args: (<ska_tmc_dishleafnode.commands.track_command.Track object at 0x7f3ae33d2a70>,)
+{
+  "argin": {
+    "pointing": {
+      "target": {
+        "reference_frame": "ICRS",
+        "target_name": "Polaris Australis",
+        "ra": "21:08:47.92",
+        "dec": "-88:57:22.9"
+      },
+      "correction": "UPDATE"
+    },
+    "dish": {
+      "receiver_band": "2"
+    }
+  },
+  "logger": "<Logger mid-tmc/leaf-node-dish/ska001 (DEBUG)>",
+  "task_callback": "<function Configure.invoke_track_command_on_dish.<locals>._invoke_track_callback at 0x7f3ae33c4550>",
+  "task_abort_event": "<threading.Event object at 0x7f3ab7374670>"
+}
+1|2025-04-21T09:40:54.270Z|INFO|Thread-12 (is_tracktable_provided)|setup_data|error_propagation_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Abort Event set
+1|2025-04-21T09:40:54.270Z|DEBUG|Thread-12 (is_tracktable_provided)|init_adapter|dish_ln_command.py#66|tango-device:mid-tmc/leaf-node-dish/ska001|Dish master adapter created successfully
+1|2025-04-21T09:40:54.271Z|DEBUG|Thread-12 (is_tracktable_provided)|init_adapter|dish_ln_command.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|DISHLN pointing device adapter created successfully
+1|2025-04-21T09:40:54.271Z|DEBUG|Thread-12 (is_tracktable_provided)|do|track_command.py#120|tango-device:mid-tmc/leaf-node-dish/ska001|Acquired  tango lock
+1|2025-04-21T09:40:54.272Z|INFO|Thread-12 (is_tracktable_provided)|call_adapter_method|tmc_command.py#606|tango-device:mid-tmc/leaf-node-dish/ska001|Invoking  Track command on device: mid-dish/dish-manager/ska001
+1|2025-04-21T09:40:54.275Z|INFO|pointingState|update_device_pointing_state|component_manager.py#1562|tango-device:mid-tmc/leaf-node-dish/ska001|PointingState value updated to SLEW
+1|2025-04-21T09:40:54.275Z|DEBUG|pointingState|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:54.275Z|DEBUG|Thread-12 (is_tracktable_provided)|do|track_command.py#129|tango-device:mid-tmc/leaf-node-dish/ska001|Track command returned ResultCode: [2], message: ['1745228454.2740064_Track']
+1|2025-04-21T09:40:54.276Z|DEBUG|pointingState|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:54.277Z|DEBUG|Thread-12 (is_tracktable_provided)|do|track_command.py#134|tango-device:mid-tmc/leaf-node-dish/ska001|Released tango lock
+1|2025-04-21T09:40:54.278Z|DEBUG|Thread-12 (is_tracktable_provided)|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Abort event is False
+1|2025-04-21T09:40:54.278Z|INFO|Thread-12 (is_tracktable_provided)|get_track_result_code|component_manager.py#2267|tango-device:mid-tmc/leaf-node-dish/ska001|Current Value of result_code - None
+1|2025-04-21T09:40:54.279Z|ERROR|Thread-12 (is_tracktable_provided)|update_attr_value_change|command_callback_tracker.py#135|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Error occurred while attribute update None is not a valid ObsState
+1|2025-04-21T09:40:54.279Z|INFO|Thread-12 (is_tracktable_provided)|get_track_result_code|component_manager.py#2267|tango-device:mid-tmc/leaf-node-dish/ska001|Current Value of result_code - None
+1|2025-04-21T09:40:54.280Z|DEBUG|Thread-12 (is_tracktable_provided)|is_tracktable_provided|configure_command.py#743|tango-device:mid-tmc/leaf-node-dish/ska001|Exited the loop that waits to supply the tracktable before invoking the Track command.
+1|2025-04-21T09:40:56.278Z|INFO|pointingState|update_device_pointing_state|component_manager.py#1562|tango-device:mid-tmc/leaf-node-dish/ska001|PointingState value updated to TRACK
+1|2025-04-21T09:40:56.279Z|DEBUG|pointingState|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:56.279Z|DEBUG|pointingState|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:56.280Z|DEBUG|pointingState|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Abort event is False
+1|2025-04-21T09:40:56.280Z|INFO|pointingState|get_track_result_code|component_manager.py#2267|tango-device:mid-tmc/leaf-node-dish/ska001|Current Value of result_code - None
+1|2025-04-21T09:40:56.280Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1763|tango-device:mid-tmc/leaf-node-dish/ska001|Received longRunningCommandResult event for device: <ska_tmc_common.device_info.DishDeviceInfo object at 0x7f3ab732eef0>, with value: ('1745228454.2740064_Track', '[0, "Track command has been executed on DS. Monitor the achievedTargetLock attribute to determine when the dish is on source."]')
+1|2025-04-21T09:40:56.281Z|ERROR|pointingState|update_attr_value_change|command_callback_tracker.py#135|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Error occurred while attribute update None is not a valid ObsState
+1|2025-04-21T09:40:56.281Z|INFO|longRunningCommandResult|update_command_result|component_manager.py#1788|tango-device:mid-tmc/leaf-node-dish/ska001|Checking unique_id- 1745228454.2740064_Track
+1|2025-04-21T09:40:56.282Z|INFO|dishMode|update_device_dish_mode|component_manager.py#1503|tango-device:mid-tmc/leaf-node-dish/ska001|dishMode value updated to OPERATE
+1|2025-04-21T09:40:56.282Z|DEBUG|longRunningCommandResult|update_command_result|component_manager.py#1876|tango-device:mid-tmc/leaf-node-dish/ska001|Track result: {'result_code': 0, 'message': 'Track command has been executed on DS. Monitor the achievedTargetLock attribute to determine when the dish is on source.', 'exception': None, 'status': None}
+1|2025-04-21T09:40:56.284Z|DEBUG|dishMode|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:56.285Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Abort event is False
+1|2025-04-21T09:40:56.286Z|DEBUG|dishMode|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:56.286Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#111|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228452.5628827-Configure | Attribute values waiting for: [True] and received: EMPTY
+1|2025-04-21T09:40:56.288Z|DEBUG|dishMode|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Abort event is False
+1|2025-04-21T09:40:56.288Z|DEBUG|longRunningCommandResult|update_attr_value_change|command_callback_tracker.py#100|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Abort event is False
+1|2025-04-21T09:40:56.289Z|INFO|longRunningCommandResult|get_track_result_code|component_manager.py#2267|tango-device:mid-tmc/leaf-node-dish/ska001|Current Value of result_code - 0
+1|2025-04-21T09:40:56.290Z|INFO|longRunningCommandResult|stop_timer|timekeeper.py#72|tango-device:mid-tmc/leaf-node-dish/ska001|Stopping timer <Timer(Thread-14, started 139888510867008)>
+1|2025-04-21T09:40:56.290Z|DEBUG|longRunningCommandResult|clean_up|command_callback_tracker.py#184|tango-device:mid-tmc/leaf-node-dish/ska001|Command ID : 1745228454.270291-Track | Deregistering observer
+1|2025-04-21T09:41:22.519Z|INFO|Thread-9|timeout_handler|timekeeper.py#65|tango-device:mid-tmc/leaf-node-dish/ska001|Timeout occurred for id : 1745228452.5171962_DishLNCommand
+1|2025-04-21T09:41:22.520Z|INFO|Thread-9|update_task_status|configure_command.py#119|tango-device:mid-tmc/leaf-node-dish/ska001|result: (<ResultCode.FAILED: 3>, 'Timeout has occurred, command failed') status: TaskStatus.COMPLETED message: Timeout has occurred, command failed
+1|2025-04-21T09:41:22.521Z|DEBUG|Thread-9|update_task_status|configure_command.py#137|tango-device:mid-tmc/leaf-node-dish/ska001|Stopping tracktable calculation
+1|2025-04-21T09:41:23.353Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1677|tango-device:mid-tmc/leaf-node-dish/ska001|ProgramTrackTable will be updated, will acquire tango lock for same
+1|2025-04-21T09:41:23.353Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1683|tango-device:mid-tmc/leaf-node-dish/ska001|Acquired  tango lock
+1|2025-04-21T09:41:23.354Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1685|tango-device:mid-tmc/leaf-node-dish/ska001|Retry is: 0
+1|2025-04-21T09:41:23.354Z|WARNING|Thread-9|_log_command_exception|base_device.py#785|tango-device:mid-tmc/leaf-node-dish/ska001|command_exception is not an Exception. Found 'Timeout has occurred, command failed'.
+1|2025-04-21T09:41:23.356Z|ERROR|pointingProgramTrackTable|update_program_track_table|component_manager.py#1702|tango-device:mid-tmc/leaf-node-dish/ska001|Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+Traceback (most recent call last):
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 1687, in update_program_track_table
+    self.dish_adapter.programTrackTable = program_track_table
+  File "/usr/local/lib/python3.10/dist-packages/ska_tmc_common/adapters.py", line 741, in programTrackTable
+    self._proxy.write_attribute(
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 234, in greener
+    return executor.run(fn, args, kwargs, wait=wait, timeout=timeout)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 124, in run
+    return fn(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/device_proxy.py", line 1688, in __DeviceProxy__write_attribute
+    return self._write_attribute(*args, **kwargs)
+TypeError: No registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+1|2025-04-21T09:41:23.356Z|ERROR|Thread-9|_log_command_exception|base_device.py#791|tango-device:mid-tmc/leaf-node-dish/ska001|Command '1745228452.5100074_276372097012287_Configure' failed: Timeout has occurred, command failed
+Stack (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 973, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 1378, in run
+    self.function(*self.args, **self.kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/ska_tmc_common/timekeeper.py", line 66, in timeout_handler
+    timeout_callback(
+  File "/usr/local/lib/python3.10/dist-packages/ska_tmc_common/timeout_callback.py", line 64, in __call__
+    self.command_callback_tracker.update_timeout_occurred()
+  File "/usr/local/lib/python3.10/dist-packages/ska_tmc_common/command_callback_tracker.py", line 87, in update_timeout_occurred
+    self.command_class_instance.update_task_status(
+  File "/app/src/ska_tmc_dishleafnode/commands/configure_command.py", line 139, in update_task_status
+    self.task_callback(
+  File "/usr/local/lib/python3.10/dist-packages/ska_tango_base/base/command_tracker.py", line 201, in update_command_info
+    self._exception_callback(command_id, exception)
+  File "/usr/local/lib/python3.10/dist-packages/ska_tango_base/base/base_device.py", line 791, in _log_command_exception
+    self.logger.error(message, exc_info=exc_info, stack_info=True)
+1|2025-04-21T09:41:23.358Z|DEBUG|Thread-9|update_task_status|configure_command.py#146|tango-device:mid-tmc/leaf-node-dish/ska001|Performing configure command cleanup.
+1|2025-04-21T09:41:23.558Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1685|tango-device:mid-tmc/leaf-node-dish/ska001|Retry is: 1
+1|2025-04-21T09:41:23.559Z|ERROR|pointingProgramTrackTable|update_program_track_table|component_manager.py#1702|tango-device:mid-tmc/leaf-node-dish/ska001|Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+Traceback (most recent call last):
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 1687, in update_program_track_table
+    self.dish_adapter.programTrackTable = program_track_table
+  File "/usr/local/lib/python3.10/dist-packages/ska_tmc_common/adapters.py", line 741, in programTrackTable
+    self._proxy.write_attribute(
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 234, in greener
+    return executor.run(fn, args, kwargs, wait=wait, timeout=timeout)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 124, in run
+    return fn(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/device_proxy.py", line 1688, in __DeviceProxy__write_attribute
+    return self._write_attribute(*args, **kwargs)
+TypeError: No registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+1|2025-04-21T09:41:23.760Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1685|tango-device:mid-tmc/leaf-node-dish/ska001|Retry is: 2
+1|2025-04-21T09:41:23.762Z|ERROR|pointingProgramTrackTable|update_program_track_table|component_manager.py#1702|tango-device:mid-tmc/leaf-node-dish/ska001|Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+Traceback (most recent call last):
+  File "/app/src/ska_tmc_dishleafnode/manager/component_manager.py", line 1687, in update_program_track_table
+    self.dish_adapter.programTrackTable = program_track_table
+  File "/usr/local/lib/python3.10/dist-packages/ska_tmc_common/adapters.py", line 741, in programTrackTable
+    self._proxy.write_attribute(
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 234, in greener
+    return executor.run(fn, args, kwargs, wait=wait, timeout=timeout)
+  File "/usr/local/lib/python3.10/dist-packages/tango/green.py", line 124, in run
+    return fn(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/tango/device_proxy.py", line 1688, in __DeviceProxy__write_attribute
+    return self._write_attribute(*args, **kwargs)
+TypeError: No registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+1|2025-04-21T09:41:23.762Z|DEBUG|pointingProgramTrackTable|current_track_table_error|component_manager.py#536|tango-device:mid-tmc/leaf-node-dish/ska001|Value is: Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+1|2025-04-21T09:41:23.763Z|DEBUG|pointingProgramTrackTable|current_track_table_error|component_manager.py#539|tango-device:mid-tmc/leaf-node-dish/ska001|Value is: Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+1|2025-04-21T09:41:23.763Z|DEBUG|pointingProgramTrackTable|current_track_table_error|component_manager.py#543|tango-device:mid-tmc/leaf-node-dish/ska001|Time added message: 2025-04-21 09:41:23: Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str
+1|2025-04-21T09:41:23.763Z|DEBUG|pointingProgramTrackTable|update_track_table_errors_callback|dish_leaf_node.py#240|tango-device:mid-tmc/leaf-node-dish/ska001|Track Table errors to be reported: ['2025-04-21 09:41:23: Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str']
+1|2025-04-21T09:41:23.764Z|DEBUG|pointingProgramTrackTable|update_track_table_errors_callback|dish_leaf_node.py#245|tango-device:mid-tmc/leaf-node-dish/ska001|Pushed the trackTableErrors event: ['2025-04-21 09:41:23: Exception while writing tracktable: %sNo registered converter was able to produce a C++ rvalue of type double from this Python object of type str']
+1|2025-04-21T09:41:23.965Z|DEBUG|pointingProgramTrackTable|update_program_track_table|component_manager.py#1711|tango-device:mid-tmc/leaf-node-dish/ska001|ProgramTrackTable: []
