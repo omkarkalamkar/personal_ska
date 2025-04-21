@@ -1,5 +1,4 @@
 import json
-import time
 
 import pytest
 import tango
@@ -13,7 +12,6 @@ from tests.settings import (
     COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
-    TIMEOUT,
     logger,
     tear_down,
 )
@@ -121,6 +119,10 @@ def abort_when_configured(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_abort[0], COMMAND_COMPLETED),
+        lookahead=7,
+    )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
@@ -201,7 +203,10 @@ def abort_while_configuring(
         lookahead=6,
     )
 
-    assert is_configure_aborted(dish_leaf_node, unique_id_config[0])
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_abort[0], COMMAND_COMPLETED),
+        lookahead=5,
+    )
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
@@ -244,24 +249,6 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
         group_callback,
         json_factory("dishleafnode_configure"),
     )
-
-
-def is_configure_aborted(dish_leaf_node, unique_id_config) -> bool:
-    """
-    This method checks if Configure command is Aborted for given command id.
-    """
-    start_time = time.time()
-    elapsed_time = 0
-    while elapsed_time < TIMEOUT:
-        lrcs_value = dish_leaf_node.longRunningCommandStatus
-        lrcs_iterator = iter(lrcs_value)
-        for value in lrcs_iterator:
-            if value == unique_id_config:
-                if next(lrcs_iterator) == "ABORTED":
-                    return True
-        time.sleep(0.1)
-        elapsed_time = time.time() - start_time
-    return False
 
 
 @pytest.mark.post_deployment

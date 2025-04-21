@@ -727,7 +727,7 @@ class Configure(DishLNCommand):
         ):
             if self.component_manager.abort_event.is_set():
                 self.logger.info(
-                    "Abort() command is invoked while" + " configuring dish."
+                    "Abort() command is invoked while configuring dish."
                 )
                 track_table_status = CommandResult.ABORTED
                 break
