@@ -8,6 +8,7 @@ from logging import Logger
 from typing import List, Union
 
 from astropy.time import Time
+from numpy import nan
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
@@ -249,7 +250,7 @@ class ProgramTrackTableCalculator:
         :returns: Azimuth in degrees
         :rtype: float
         """
-        azimuth: float
+        azimuth = nan
         try:
             if calculated_azimuth > self.component_manager.azimuth_max_limit:
                 azimuth = calculated_azimuth - 360

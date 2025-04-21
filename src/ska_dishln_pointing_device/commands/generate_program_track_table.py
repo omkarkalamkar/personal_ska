@@ -50,7 +50,7 @@ class GenerateProgramTrackTable(FastCommand):
             elif self.component_manager.is_fixed_mapping_scan():
                 self.component_manager.current_mapping_scan_obj = (
                     FixedMappingScan(
-                        pattern_name="fixed",
+                        pattern_name="Fixed",
                         component_manager=self.component_manager,
                         logger=self.logger,
                     )

@@ -192,7 +192,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         if self.target_data["pointing"]["trajectory"][
             "name"
-        ] == "fixed" and all(
+        ] == "Fixed" and all(
             self.target_data["pointing"]["trajectory"]["attrs"][k] == 0.0
             for k in ("x", "y")
         ):

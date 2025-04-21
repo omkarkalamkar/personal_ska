@@ -5,6 +5,7 @@ from typing import Tuple
 
 import katpoint
 from astropy.utils import iers
+from numpy import nan
 
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
 
@@ -36,14 +37,7 @@ class FixedMappingScan(BaseScanMapping):
 
     def set_target_and_start_process(self):
         """
-        Generate program track table for normal scans.
-
-        Args:
-            scan_parameters (dict): A dictionary containing scan parameters.
-            scan_id (str): A string representing the scan ID.
-
-        Returns:
-            dict: A dictionary containing the program track table.
+        Generate program track table for fixed mapping scans.
         """
         # The below if checks the presence of target key in dish configure
         # input, if its present it checks what kind of reference frame
@@ -71,14 +65,15 @@ class FixedMappingScan(BaseScanMapping):
 
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
         """Convert plane coordinates to RA/Dec using spherical projection.
+
         Returns:
-        List[str]: A list containing the calculated RA and Dec
-                   coordinates in string.
+            List[str]: A list containing the calculated RA and Dec
+            coordinates in string.
         """
         try:
             timestamp = katpoint.Timestamp()
-            az = None
-            el = None
+            az = nan
+            el = nan
             projection_name, projection_alignment = self.get_projection()
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a

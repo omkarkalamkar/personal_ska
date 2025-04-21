@@ -14,7 +14,7 @@
         },
         "trajectory": 
         {
-            "name": "fixed", 
+            "name": "Fixed", 
             "attrs": 
             {
                 "x": 0.0, 
