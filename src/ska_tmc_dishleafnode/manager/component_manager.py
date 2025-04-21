@@ -2377,6 +2377,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
+
+        self.logger.info(f"self.dishMode {self.dishMode} ")
+        self.logger.info(f"self.pointingState {self.pointingState} ")
+        self.logger.info(f"self.dishConfiguredBand {self.dishConfiguredBand} ")
+        self.logger.info(
+            f" self.configure_band_lrcr {self.configure_band_lrcr} "
+        )
+        self.logger.info(
+            f" self.configure_setoperate_mode_lrcr "
+            f"{self.configure_setoperate_mode_lrcr} "
+        )
+        self.logger.info(
+            f" self.configure_track_lrcr {self.configure_track_lrcr}"
+        )
+
         if self.partial_configure:
             return self.partial_configure_lrcr == ResultCode.OK
         return (
