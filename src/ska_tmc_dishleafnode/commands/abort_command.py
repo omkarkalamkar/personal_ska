@@ -98,6 +98,7 @@ class Abort(DishLNCommand):
                 self.command_uniq_id
             ]
             self.command_uniq_id = ""
+        self.component_manager.clear_configure_command_events_flags()
 
     # pylint: disable=arguments-differ
 
