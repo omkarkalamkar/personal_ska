@@ -68,7 +68,7 @@ class AbortCommands(DishLNCommand):
     # pylint: disable=arguments-differ
     def do(self) -> Tuple[ResultCode, str]:
         """
-        Invokes AbortCommands command on the DishMaster.
+        Invokes Abort command on the DishMaster.
 
         param argin:
             None
@@ -112,10 +112,10 @@ class AbortCommands(DishLNCommand):
 
         if self.component_manager.is_dish_abort_commands_enabled:
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "AbortCommands"
+                "Dish Master", self.dish_master_adapter, "Abort"
             )
             self.logger.info(
-                "AbortCommands() command has been invoked, the result code"
+                "Abort() command has been invoked, the result code"
                 + " is %s and the message is %s",
                 result_code[0],
                 message[0],
@@ -135,13 +135,12 @@ class AbortCommands(DishLNCommand):
         self.component_manager.clear_track_table_errors()
 
         self.logger.debug(
-            "AbortCommands command executed successfully on"
-            + " the DishLeafNode."
+            "Abort command executed successfully on" + " the DishLeafNode."
         )
         return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
 
     def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
-        """Method to invoke track stop when abortcommands command is invoked
+        """Method to invoke track stop when abort command is invoked
 
         rtype:
             (ResultCode, str)

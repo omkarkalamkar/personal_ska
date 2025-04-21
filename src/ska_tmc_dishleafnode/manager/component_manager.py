@@ -12,7 +12,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, Tuple
 
 import numpy as np
 import tango
@@ -1519,6 +1519,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param band_name: Name of the band to update.
         :type band_name: str
         """
+        dish_param = json.dumps(dish_param.tolist())
         with self.lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
@@ -1655,23 +1656,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 excption,
             )
 
-    def update_program_track_table_help(
-        self: DishLNComponentManager, program_track_table_json: json
-    ) -> None:
-        """
-        This method is used as a helper to update the programTrackTable
-        attribute on dish master device. It is used to convert the
-        programTrackTable JSON string to a list of TAI time, Az and El
-        for expected number of TAI times (TrackTableEntries) and
-        then calls the update_program_track_table method.
-        :param program_track_table_json: JSON string containing the
-        programTrackTable.
-        :type program_track_table_json: str
-        """
-        self.update_program_track_table(json.loads(program_track_table_json))
-
     def update_program_track_table(
-        self: DishLNComponentManager, program_track_table: List
+        self: DishLNComponentManager, program_track_table_str: str
     ) -> None:
         """
         This method writes the programTrackTable attribute on dish master
@@ -1679,10 +1665,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param program_track_table: It a list of TAI time, Az and El for
             expected number of TAI times (TrackTableEntries).
-        :type program_track_table: list
+        :type program_track_table: str
         :return: None
         :rtype: None
         """
+        program_track_table = json.loads(program_track_table_str)
         if len(program_track_table) == 0:
             self.logger.info("TrackTable is empty.")
             return
@@ -2410,7 +2397,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "dishMode": self.update_device_dish_mode,
             "pointingState": self.update_device_pointing_state,
             "configuredBand": self.update_device_configured_band,
-            "pointingProgramTrackTable": self.update_program_track_table_help,
+            "pointingProgramTrackTable": self.update_program_track_table,
+            "programTrackTableError": self.update_program_track_table_error,
+            "healthState": self.update_device_health_state,
+            "band1PointingModelParams": self.update_dish_pointing_model_param,
+            "band2PointingModelParams": self.update_dish_pointing_model_param,
+            "band3PointingModelParams": self.update_dish_pointing_model_param,
+            "band4PointingModelParams": self.update_dish_pointing_model_param,
+            "band5APointingModelParams": self.update_dish_pointing_model_param,
+            "band5BPointingModelParams": self.update_dish_pointing_model_param,
         }
 
         return {**attributes}
@@ -2418,3 +2413,36 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_dish_mode_event(self, event: tango.EventData):
         """Updates dish mode event  in respective queue"""
         self.event_queues["dishMode"].put(event)
+
+    def update_dish_pointing_model_params(self, event: tango.EventData):
+        """
+        Updates dish pointing model param event in respective queue
+        """
+        self.event_queues[event.attr_value.name].put(event)
+
+    def update_pointing_state_event(self, event: tango.EventData):
+        """Updates pointing state event in respective queue"""
+        self.event_queues["pointingState"].put(event)
+
+    def update_configured_band_event(self, event: tango.EventData):
+        """Updates configured band event in respective queue"""
+        self.event_queues["configuredBand"].put(event)
+
+    def update_achieved_pointing_event(self, event: tango.EventData):
+        """Updates achieved pointing event in respective queue"""
+        self.achieved_pointing_data.put(event.ettr_value.value)
+
+    def update_pointing_program_track_table_event(
+        self, event: tango.EventData
+    ):
+        """Updates pointing program track table event in respective queue"""
+        self.event_queues["pointingProgramTrackTable"].put(event)
+
+    def update_program_track_table_error_event(self, event: tango.EventData):
+        """Updates program track table error event in respective queue"""
+        self.event_queues["programTrackTableError"].put(event)
+
+    def update_program_track_table_error(self, value) -> None:
+        """Updates program track table error"""
+        if value:
+            self.current_track_table_error = value

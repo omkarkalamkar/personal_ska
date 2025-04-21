@@ -3,7 +3,6 @@ Event Receiver for Dish Leaf Node
 """
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from logging import Logger
 from time import sleep
@@ -201,14 +200,8 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
-        new_value = event_flag.attr_value.value
-        # self._component_manager.event_queues[band_name].put(event_flag)
-        self._component_manager.update_dish_pointing_model_param(
-            json.dumps(new_value.tolist()), event_flag.attr_value.name
-        )
+
+        self._component_manager.update_dish_pointing_model_params(event_flag)
 
     def handle_dish_mode_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -220,9 +213,7 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
+
         self._component_manager.update_dish_mode_event(event_flag)
 
     def handle_pointing_state_event(
@@ -237,10 +228,7 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
-        self._component_manager.event_queues["pointingState"].put(event_flag)
+        self._component_manager.update_pointing_state_event(event_flag)
 
     def handle_configured_band_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -254,10 +242,7 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
-        self._component_manager.event_queues["configuredBand"].put(event_flag)
+        self._component_manager.update_configured_band_event(event_flag)
 
     def handle_achieved_pointing_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -272,11 +257,7 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
-        new_value = event_flag.attr_value.value
-        self._component_manager.achieved_pointing_data.put(new_value)
+        self._component_manager.update_achieved_pointing_event(event_flag)
 
     def subscribe_sdpqc_attribute(
         self: DishLNEventReceiver,
@@ -344,10 +325,8 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
-        self._component_manager.event_queues["pointingProgramTrackTable"].put(
+
+        self._component_manager.update_pointing_program_track_table_event(
             event_flag
         )
 
@@ -363,12 +342,10 @@ class DishLNEventReceiver(EventReceiver):
         :return: None
         :rtype: NoneType
         """
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
-        new_value = event_flag.attr_value.value
-        if new_value:
-            self._component_manager.current_track_table_error = new_value
+
+        self._component_manager.update_program_track_table_error_event(
+            event_flag
+        )
 
     def handle_dishlnpd_healthState_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
@@ -385,8 +362,4 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        if event_flag.err:
-            self._component_manager.update_event_failure()
-            return
-        new_value = event_flag.attr_value.value
-        self._component_manager._update_health_state_callback(new_value)
+        self._component_manager.update_health_state_event(event_flag)
