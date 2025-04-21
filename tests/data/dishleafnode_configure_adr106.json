@@ -1,0 +1,33 @@
+{
+    "pointing": 
+    {
+        "wrap_sector": -1,
+        "field": 
+        {
+            "reference_frame": "icrs",
+            "target_name": "Cen-A",
+            "attrs": 
+            {
+                "c1": 317.19966666666666, 
+                "c2": -88.95636111111111
+            }
+        },
+        "trajectory": 
+        {
+            "name": "Fixed", 
+            "attrs": 
+            {
+                "x": 0.0, 
+                "y": 0.0
+            }
+        },
+        "projection": 
+        {
+            "name": "SIN", 
+            "alignment": "ICRS"
+        }
+    },
+    "dish": {"receiver_band": "1"},
+    "interface": "https://schema.skao.int/ska-tmc-configure/4.2",
+    "transaction_id": "txn-....-00001"
+}

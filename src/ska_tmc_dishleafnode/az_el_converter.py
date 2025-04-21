@@ -154,8 +154,8 @@ class AzElConverter:
 
     def azel_to_radec(
         self: AzElConverter,
-        az_value: str,
-        el_value: str,
+        az_value: float,
+        el_value: float,
         timestamp: str,
     ) -> List[str | Any]:
         """This method converts given Azimuth/Elevation to RA/Dec after

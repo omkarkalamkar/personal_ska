@@ -7,6 +7,9 @@ from ska_tango_base.commands import FastCommand, ResultCode
 from ska_dishln_pointing_device.dishlnpd_component_manager import (
     dishlnpd_component_manager as manager,
 )
+from ska_dishln_pointing_device.mapping_scan.fixed_mapping import (
+    FixedMappingScan,
+)
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
     PointMappingScan,
 )
@@ -36,11 +39,7 @@ class GenerateProgramTrackTable(FastCommand):
             self.logger.debug("Executing GenerateProgramTrackTable command.")
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.clear()
-            if (
-                self.component_manager.target_data
-                and "trajectory"
-                not in self.component_manager.target_data["pointing"]
-            ):
+            if self.component_manager.target_data["pointing"].get("target"):
                 self.component_manager.current_mapping_scan_obj = (
                     PointMappingScan(
                         pattern_name="point",
@@ -48,10 +47,17 @@ class GenerateProgramTrackTable(FastCommand):
                         logger=self.logger,
                     )
                 )
-                current_scan_obj = (
-                    self.component_manager.current_mapping_scan_obj
+            elif self.component_manager.is_fixed_mapping_scan():
+                self.component_manager.current_mapping_scan_obj = (
+                    FixedMappingScan(
+                        pattern_name="Fixed",
+                        component_manager=self.component_manager,
+                        logger=self.logger,
+                    )
                 )
-                current_scan_obj.set_target_and_start_process()
+
+            current_scan_obj = self.component_manager.current_mapping_scan_obj
+            current_scan_obj.set_target_and_start_process()
         except Exception as exception:
             self.logger.error(
                 "Exception occurred in  GenerateProgramTrackTable"
