@@ -146,12 +146,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             else None
         )
         self.dish_pointing_model_param: Dict[str, str] = {
-            "band1PointingModelParams": "",
-            "band2PointingModelParams": "",
-            "band3PointingModelParams": "",
-            "band4PointingModelParams": "",
-            "band5aPointingModelParams": "",
-            "band5bPointingModelParams": "",
+            "band1pointingmodelparams": "",
+            "band2pointingmodelparams": "",
+            "band3pointingmodelparams": "",
+            "band4pointingmodelparams": "",
+            "band5apointingmodelparams": "",
+            "band5bpointingmodelparams": "",
         }
         self.receiver_band = None
         self.partial_configure_lrcr = ResultCode.UNKNOWN
@@ -1665,7 +1665,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param program_track_table: It a list of TAI time, Az and El for
             expected number of TAI times (TrackTableEntries).
-        :type program_track_table: str
+        :type program_track_table_str: str
         :return: None
         :rtype: None
         """
@@ -1678,6 +1678,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "ProgramTrackTable will be updated, "
             "will acquire tango lock for same"
         )
+
         with self.tango_operation_execution_lock:
             self.logger.debug("Acquired  tango lock")
             for retry in range(0, self.max_track_table_retry):
@@ -2404,8 +2405,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band2PointingModelParams": self.update_dish_pointing_model_param,
             "band3PointingModelParams": self.update_dish_pointing_model_param,
             "band4PointingModelParams": self.update_dish_pointing_model_param,
-            "band5aPointingModelParams": self.update_dish_pointing_model_param,
-            "band5bPointingModelParams": self.update_dish_pointing_model_param,
+            "band5APointingModelParams": self.update_dish_pointing_model_param,
+            "band5BPointingModelParams": self.update_dish_pointing_model_param,
         }
 
         return {**attributes}
