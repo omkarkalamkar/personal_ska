@@ -12,7 +12,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, Tuple
 
 import numpy as np
 import tango
@@ -1657,7 +1657,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
     def update_program_track_table(
-        self: DishLNComponentManager, program_track_table: List
+        self: DishLNComponentManager, event_data
     ) -> None:
         """
         This method writes the programTrackTable attribute on dish master
@@ -1669,11 +1669,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
+
+        self.logger.info("Received program_track_table event %s ", event_data)
+        program_track_table = json.loads(event_data)
         if len(program_track_table) == 0:
             self.logger.info("TrackTable is empty.")
             return
 
-        self.logger.debug(
+        self.logger.info(
             "ProgramTrackTable will be updated, "
             "will acquire tango lock for same"
         )

@@ -202,7 +202,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         # program_track_table = json.loads(program_track_table)
-        self.logger.info("update_program_track_table called")
+        self.logger.info("update_pointing_program_track_table called")
 
         try:
             self.pointing_program_track_table = program_track_table
@@ -213,7 +213,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             message = "Exception while writing tracktable: %s" + str(exception)
             self.logger.exception(message)
             raise Exception(message) from exception
-        self.logger.debug(
+        self.logger.info(
             "Calculated ProgramTrackTable: %s", program_track_table
         )
 
