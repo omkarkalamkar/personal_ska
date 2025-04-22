@@ -1,4 +1,4 @@
-"""This module provides base class for the mappings/patterns"""
+"""This module provides class for the fixed mapping scan"""
 
 from logging import Logger
 from typing import Tuple
