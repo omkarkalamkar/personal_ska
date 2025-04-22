@@ -39,7 +39,6 @@ def test_abort_command(cm_without_er_lp, task_callback):
     )
 
 
-
 def test_cm_abort(cm_without_er_lp, task_callback):
     task_status, message = cm_without_er_lp.abort(task_callback=task_callback)
     assert task_status == TaskStatus.IN_PROGRESS
