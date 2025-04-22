@@ -13,6 +13,7 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
+from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
 
@@ -144,10 +145,6 @@ def test_error_propagation_abort_stop_program_track_table(
 ):
     attrs = {
         'StopProgramTrackTable.side_effect': (Exception("error")),
-        'Abort.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
     }
     dishMock = mock.Mock(
         programTrackTable=[
@@ -160,23 +157,12 @@ def test_error_propagation_abort_stop_program_track_table(
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
     adapter_factory = mock.Mock(**factory_attrs)
     cm = cm_without_er_lp
-    cm.adapter_factory = adapter_factory
-    cm.abort_commands(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    )
-    message = (
+    abort_command = Abort(cm, cm.op_state_model, adapter_factory, logger)
+    result_code, return_message = abort_command.do()
+    exception_message = (
         " StopProgramTrackTable: "
         + "There was an error while stopping the generation of "
         + "program track table: error"
     )
-    task_callback.assert_against_call(
-        call_kwargs={
-            "status": TaskStatus.COMPLETED,
-            "result": (ResultCode.FAILED, message),
-            "exception": message,
-        }
-    )
+    assert result_code == ResultCode.FAILED
+    assert return_message == exception_message
