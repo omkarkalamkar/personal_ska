@@ -4,13 +4,10 @@ ARG BASE_IMAGE="artefact.skao.int/ska-tango-images-pytango-runtime:9.5.0"
 FROM $BUILD_IMAGE AS buildenv
 FROM $BASE_IMAGE
 
-
-
 # Install Poetry
 USER root
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 RUN poetry config virtualenvs.create false
-RUN apt-get update && apt-get install git -y
 WORKDIR /app
 COPY --chown=tango:tango . /app
 # Install runtime dependencies and the app
