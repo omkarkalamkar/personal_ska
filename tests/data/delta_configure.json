@@ -10,7 +10,7 @@
       }
     },
     "projection": {
-      "name": "SSN",
+      "name": "SIN",
       "alignment": "ICRS"
     }
   },

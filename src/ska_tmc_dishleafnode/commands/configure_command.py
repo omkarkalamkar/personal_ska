@@ -282,7 +282,14 @@ class Configure(DishLNCommand):
                     {"pointing": pointing_device_conf_json["pointing"]}
                 )
                 self.logger.debug("Calling GenerateProgramTrackTable()")
-                self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
+                result_code, _ = self.invoke_generate_program_track_table()
+                if self.is_delta_configure(json_argument):
+                    # In case of delta configure stop configure
+                    # after generate program track table command called
+                    if result_code == ResultCode.STARTED:
+                        self.component_manager.partial_configure_lrcr = (
+                            ResultCode.OK
+                        )
                 if self.component_manager._update_health_state_callback:
                     self.component_manager._update_health_state_callback(
                         HealthState.OK
@@ -334,6 +341,16 @@ class Configure(DishLNCommand):
         ):
             return True
         return False
+
+    def invoke_generate_program_track_table(self):
+        """Invoke Generate program track table on
+        dish pointing device
+        """
+        (
+            result_code,
+            msg,
+        ) = self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
+        return result_code, msg
 
     def invoke_configure_band_on_dish(self, json_argument):
         """Invoke Configure band on Dish
