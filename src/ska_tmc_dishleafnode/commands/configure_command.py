@@ -94,7 +94,9 @@ class Configure(DishLNCommand):
         self.component_manager.command_in_progress = "Configure"
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
-        if json_argument.get("tmc"):
+        if json_argument.get("tmc") and json_argument["tmc"].get(
+            "partial_configuration", False
+        ):
             self.component_manager.partial_configure = True
 
         if not self.component_manager.partial_configure:
@@ -336,7 +338,7 @@ class Configure(DishLNCommand):
             [
                 "trajectory" in config_json["pointing"],
                 "field" not in config_json["pointing"],
-                "tmc" in config_json,
+                config_json.get("tmc", {}).get("partial_configuration", False),
             ]
         ):
             return True
