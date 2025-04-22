@@ -111,6 +111,11 @@ class BaseScanMapping:
         projection_alignment = self.component_manager.target_data['pointing'][
             'projection'
         ]['alignment']
+
+        if projection_alignment.lower() == "icrs":
+            projection_alignment = "radec"
+        else:
+            projection_alignment = "azel"
         return [projection_name, projection_alignment]
 
     def azel_to_radec(

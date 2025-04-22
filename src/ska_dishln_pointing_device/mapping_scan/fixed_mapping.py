@@ -7,7 +7,6 @@ import katpoint
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.utils import iers
-from numpy import nan
 
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
 
@@ -99,8 +98,6 @@ class FixedMappingScan(BaseScanMapping):
         """
         try:
             timestamp = katpoint.Timestamp()
-            az = nan
-            el = nan
             projection_name, projection_alignment = self.get_projection()
             self.logger.info(
                 "Calling plane to sphere with %s and %s",
@@ -110,14 +107,23 @@ class FixedMappingScan(BaseScanMapping):
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
-                az, el = self.ra_dec_target.plane_to_sphere(
+                ra, dec = self.ra_dec_target.plane_to_sphere(
                     self.x_offset,
                     self.y_offset,
                     timestamp,
                     projection_type=projection_name.upper(),
-                    coord_system=projection_alignment.upper(),
+                    coord_system=projection_alignment,
                 )
-            return self.azel_to_radec(az, el, timestamp.to_string())
+            updated_ra = Angle(ra, u.rad).deg
+            updated_dec = Angle(dec, u.rad).deg
+            self.logger.debug(
+                "Updated ra %s and dec %s and ra %s and dec %s",
+                updated_ra,
+                updated_dec,
+                ra,
+                dec,
+            )
+            return updated_ra, updated_dec
         except Exception as exception:
             self.logger.exception("Exception: %s", exception)
             raise Exception(
