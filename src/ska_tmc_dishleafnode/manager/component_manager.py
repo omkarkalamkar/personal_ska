@@ -704,8 +704,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             timestamp = self.convert_timestamp(timestamp_tai_ska_epoch)
             if timestamp:
                 right_ascension, declination = self.converter.azel_to_radec(
-                    str(azimuth),
-                    str(elevation),
+                    azimuth,
+                    elevation,
                     timestamp,
                 )
                 self.actual_pointing = [

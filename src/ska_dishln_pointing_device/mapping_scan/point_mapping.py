@@ -9,7 +9,7 @@ from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
 
 class PointMappingScan(BaseScanMapping):
     """
-     PointMappingScan class inherits from BaseScanMapping class.
+    PointMappingScan class inherits from BaseScanMapping class.
     It is used to generate program track table for normal scans.
     """
 
