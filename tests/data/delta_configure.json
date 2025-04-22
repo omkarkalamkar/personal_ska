@@ -1,0 +1,21 @@
+{
+  "interface": "https://schema.skao.int/ska-tmc-configure/2.1",
+  "transaction_id": "txn-....-00002",
+  "pointing": {
+    "trajectory": {
+      "name": "Fixed",
+      "attrs": {
+        "x": 0.0,
+        "y": 5.0
+      }
+    },
+    "projection": {
+      "name": "SSN",
+      "alignment": "ICRS"
+    }
+  },
+  "tmc": {
+    "partial_configuration": true,
+    "scan_duration": 10.0
+  }
+}
