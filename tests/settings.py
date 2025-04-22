@@ -438,7 +438,7 @@ def simulate_track_table_event(
 ):
     """Simulate an event for tracktable."""
     cm.update_program_track_table(
-        "[775853423.2247269, 178.758613204265, 31.165682681453,]"
+        json.dumps("[775853423.2247269, 178.758613204265, 31.165682681453,]")
     )
 
 

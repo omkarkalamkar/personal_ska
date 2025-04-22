@@ -2743,8 +2743,8 @@ typing_extensions = "*"
 [package.source]
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
-reference = "sah-1690"
-resolved_reference = "21bd3a90a0b085d08cdee59919241335e94d0cb0"
+reference = "sah-1693"
+resolved_reference = "e6ad627773e073519cf7d833b8f19c737bb3dc8d"
 
 [[package]]
 name = "smmap"
@@ -3349,4 +3349,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "9892cd78f35f415978c3faa69e77212339de018906b81184e24f4cd112c838f6"
+content-hash = "f78fe496b91f30ce7ca822cac22f20ff68e977b0778000acbdaefa53bd1f73d4"
