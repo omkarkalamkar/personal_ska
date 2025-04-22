@@ -307,7 +307,7 @@ class Configure(DishLNCommand):
                         exception,
                     ),
                 )
-            if not reset_offset:
+            if not reset_offset and not self.is_delta_configure(json_argument):
                 return self.invoke_configure_band_on_dish(json_argument)
 
         except Exception as exception:
@@ -322,6 +322,18 @@ class Configure(DishLNCommand):
                 + f" Dish Master: {exception}",
             )
         return ResultCode.QUEUED, ""
+
+    def is_delta_configure(self, config_json) -> bool:
+        """Return if given json is delta configure"""
+        if all(
+            [
+                "trajectory" in config_json["pointing"],
+                "field" not in config_json["pointing"],
+                "tmc" in config_json,
+            ]
+        ):
+            return True
+        return False
 
     def invoke_configure_band_on_dish(self, json_argument):
         """Invoke Configure band on Dish

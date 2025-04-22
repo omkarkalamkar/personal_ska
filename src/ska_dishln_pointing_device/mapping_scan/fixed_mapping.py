@@ -49,6 +49,12 @@ class FixedMappingScan(BaseScanMapping):
                 Angle(x, u.deg).rad,
                 Angle(y, u.deg).rad,
             )
+            self.logger.info("X %s and Y %s ", x, y)
+            self.logger.info(
+                "x offset %s and y offset %s updated",
+                self.x_offset,
+                self.y_offset,
+            )
 
     def set_target_and_start_process(self):
         """
@@ -67,6 +73,11 @@ class FixedMappingScan(BaseScanMapping):
             if "field" in self.component_manager.target_data["pointing"]:
                 self.extract_target_from_config()
                 self.setup_observation_target()
+            self.logger.info(
+                "main ra %s and main dec %s",
+                self.main_target_ra,
+                self.main_target_dec,
+            )
             self.component_manager.target = (
                 self.get_radec_from_plane_to_sphere()
             )
