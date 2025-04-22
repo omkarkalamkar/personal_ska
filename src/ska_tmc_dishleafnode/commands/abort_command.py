@@ -1,75 +1,110 @@
 """
-AbortCommands command class for DishLeafNode.
+Abort command class for DishLeafNode.
 """
+from __future__ import annotations
 
 import logging
-from typing import Tuple
+import threading
+from typing import Dict, Optional, Tuple, Union
 
 from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common.enum import PointingState
+from ska_tmc_common import TimeKeeper
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
+)
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
-from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.commands.dish_ln_command import (
+    DishLNCommand,
+    task_callback_default,
+)
+from ska_tmc_dishleafnode.constants import COMMAND_STARTED_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
 
-class AbortCommands(DishLNCommand):
+class Abort(DishLNCommand):
     """
-    A class for DishLeafNode's AbortCommands() command.
+    A class for DishLeafNode's Abort() command.
     Command to abort the Dish Master and bring it to its ABORTED state.
     """
 
     def __init__(
-        self,
+        self: Abort,
         component_manager,
-        op_state_model=None,
+        op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
-    ) -> None:
+    ):
         super().__init__(
-            component_manager=component_manager,
-            op_state_model=op_state_model,
-            adapter_factory=adapter_factory,
-            logger=logger,
+            component_manager, op_state_model, adapter_factory, logger
         )
-        self._name = "AbortCommands"
+        self.timekeeper = TimeKeeper(
+            self.component_manager.command_timeout, logger
+        )
+        self.command_uniq_id: str = ""
 
     # pylint: disable=unused-argument
-    def invoke_abort(self, task_callback: TaskCallbackType, task_abort_event):
-        """This method calls do for DishLeafNode Abort command"""
-        self.task_callback = task_callback
-        self.task_callback(status=TaskStatus.IN_PROGRESS)
-        self.component_manager.command_in_progress = "AbortCommands"
+    @timeout_tracker
+    @error_propagation_tracker("get_abort_result_code", [ResultCode.OK])
+    def invoke_abort(
+        self,
+        task_callback: TaskCallbackType = task_callback_default,
+        task_abort_event: Optional[threading.Event] = None,
+    ):
+        """This method calls do for Abort command"""
+        self.component_manager.command_in_progress = "Abort"
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.do()
+            return result_code, message
 
-        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=message,
-            )
-        else:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-            )
-            self.logger.info(
-                "The AbortCommands command invoked successfully %s",
-                self.dish_master_adapter.dev_name,
-            )
+    # pylint: enable=unused-argument
+
+    def update_task_status(
+        self,
+        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+    ) -> None:
+        """
+        Update the status of a task.
+
+        Args:
+            **kwargs: Keyword arguments for task status update.
+        """
+        result = kwargs.get("result")
+        status = kwargs.get("status", TaskStatus.COMPLETED)
+        message = kwargs.get("exception")
+
+        self.logger.debug("Result of Abort execution: %s", result[0])
+        self.logger.debug("Abort command execution status: %s", status)
+        self.logger.debug("Abort command execution message: %s", message)
+
+        if result:
+            if result[0] == ResultCode.OK and status == TaskStatus.COMPLETED:
+                self.task_callback(status=status, result=result)
+            else:
+                self.task_callback(
+                    status=status, result=result, exception=message
+                )
         self.component_manager.command_in_progress = ""
+        if self.component_manager.command_unique_id_dict.get(
+            self.command_uniq_id
+        ):
+            del self.component_manager.command_unique_id_dict[
+                self.command_uniq_id
+            ]
+            self.command_uniq_id = ""
+        self.component_manager.clear_configure_command_events_flags()
 
     # pylint: disable=arguments-differ
+
     def do(self) -> Tuple[ResultCode, str]:
         """
-        Invokes AbortCommands command on the DishMaster.
+        Invokes Abort command on the DishMaster.
 
         param argin:
             None
@@ -113,10 +148,12 @@ class AbortCommands(DishLNCommand):
 
         if self.component_manager.is_dish_abort_commands_enabled:
             result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "AbortCommands"
+                "Dish Master", self.dish_master_adapter, "Abort"
             )
+            # Append command unique id
+            self.component_manager.command_unique_id_dict["Abort"] = message[0]
             self.logger.info(
-                "AbortCommands() command has been invoked, the result code"
+                "Abort() command has been invoked, the result code"
                 + " is %s and the message is %s",
                 result_code[0],
                 message[0],
@@ -129,40 +166,25 @@ class AbortCommands(DishLNCommand):
                 return result_code[0], message[0]
 
         # call stop_tracking_thread to stop live thread
-        result_code, message = self.stop_dish_tracking()
+        result_code, message = self.stop_program_track_table()
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
         self.component_manager.clear_track_table_errors()
 
         self.logger.debug(
-            "AbortCommands command executed successfully on"
-            + " the DishLeafNode."
+            "Abort command executed successfully on" + " the DishLeafNode."
         )
-        return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
+        return ResultCode.STARTED, COMMAND_STARTED_MESSAGE
 
-    def stop_dish_tracking(self) -> Tuple[ResultCode, str]:
-        """Method to invoke track stop when abortcommands command is invoked
+    def stop_program_track_table(self) -> Tuple[ResultCode, str]:
+        """Method to invoke StopProgramTrackTable() when abort command is
+            invoked.
 
         rtype:
             (ResultCode, str)
         """
         result_code, message = [ResultCode.OK], ""
-        pointing_state = self.component_manager.pointingState
-        # Check Pointing State is track before calling track stop.
-        if pointing_state in [PointingState.TRACK, PointingState.SLEW]:
-            result_code, msg = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "TrackStop"
-            )
-            if result_code[0] in [
-                ResultCode.FAILED,
-                ResultCode.REJECTED,
-                ResultCode.NOT_ALLOWED,
-            ]:
-                message = (
-                    f"TrackStop result code: {result_code[0]} "
-                    + f"and message: {msg[0]}"
-                )
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
