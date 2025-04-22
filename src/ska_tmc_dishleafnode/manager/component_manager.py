@@ -1787,6 +1787,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
+                self.logger.info("acquired command_result_update_lock")
                 self.logger.info("Checking unique_id- %s", unique_id)
                 if self.command_unique_id_dict[command_name] == unique_id:
                     if "ConfigureBand" in unique_id:
@@ -1882,6 +1883,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.observable.notify_observers(
                             attribute_value_change=True
                         )
+                        self.logger.info("Done Track update")
+
+            self.logger.info("Released command_result_update_lock")
 
             if result_code in [
                 ResultCode.FAILED,
@@ -2244,7 +2248,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: ResultCode from the set_operate_mode_result
         :rtype: ResultCode
         """
+
         with self.command_result_update_lock:
+            self.logger.info("acquired command_result_update_lock")
             return self.set_operate_mode_result["result_code"]
 
     def get_set_operate_mode_result_dict(self: DishLNComponentManager):
@@ -2266,6 +2272,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         with self.command_result_update_lock:
+            self.logger.info("acquired command_result_update_lock")
             return self.track_result["result_code"]
 
     def get_track_result_dict(self: DishLNComponentManager):
