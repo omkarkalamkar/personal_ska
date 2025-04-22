@@ -188,7 +188,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
             self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
-    def update_program_track_table(
+    def update_pointing_program_track_table(
         self: DishlnPointingDataComponentManager, program_track_table: List
     ) -> None:
         """
@@ -349,7 +349,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         track_table_scheduler.enterabs(
                             scheduled_time,
                             event_priority,
-                            self.update_program_track_table,
+                            self.update_pointing_program_track_table,
                             argument=(program_track_table,),
                         )
 
