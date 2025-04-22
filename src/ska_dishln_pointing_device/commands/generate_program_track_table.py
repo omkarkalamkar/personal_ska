@@ -48,17 +48,21 @@ class GenerateProgramTrackTable(FastCommand):
                     )
                 )
             elif self.component_manager.is_fixed_mapping_scan():
-                self.component_manager.current_mapping_scan_obj = (
-                    FixedMappingScan(
-                        pattern_name="Fixed",
-                        component_manager=self.component_manager,
-                        logger=self.logger,
+                # Create new Object when full configure is provided
+                if "field" in self.component_manager.target_data["pointing"]:
+                    self.component_manager.current_mapping_scan_obj = (
+                        FixedMappingScan(
+                            pattern_name="Fixed",
+                            component_manager=self.component_manager,
+                            logger=self.logger,
+                        )
                     )
-                )
                 self.logger.info(
                     "setting offsets with target %s",
                     self.component_manager.target_data,
                 )
+                if not self.component_manager.current_mapping_scan_obj:
+                    return ResultCode.FAILED, "Provide Full Configure first"
                 self.component_manager.current_mapping_scan_obj.set_offsets()
             current_scan_obj = self.component_manager.current_mapping_scan_obj
             current_scan_obj.set_target_and_start_process()
