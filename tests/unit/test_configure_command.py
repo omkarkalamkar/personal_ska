@@ -43,6 +43,7 @@ def test_configure_command_completed(
             [ResultCode.OK],
             ["Command Completed"],
         ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(**attr)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}

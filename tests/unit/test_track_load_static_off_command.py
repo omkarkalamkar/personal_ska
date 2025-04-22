@@ -111,6 +111,7 @@ def test_configure_command_completed_with_correction_key_reset(
             [ResultCode.OK],
             ["Command Completed"],
         ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(
         programTrackTable=[
