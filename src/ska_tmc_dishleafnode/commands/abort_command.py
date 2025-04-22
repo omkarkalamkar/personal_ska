@@ -22,7 +22,7 @@ from ska_tmc_dishleafnode.commands.dish_ln_command import (
     DishLNCommand,
     task_callback_default,
 )
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.constants import COMMAND_STARTED_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -175,7 +175,7 @@ class Abort(DishLNCommand):
         self.logger.debug(
             "Abort command executed successfully on" + " the DishLeafNode."
         )
-        return ResultCode.OK, COMMAND_COMPLETION_MESSAGE
+        return ResultCode.STARTED, COMMAND_STARTED_MESSAGE
 
     def stop_program_track_table(self) -> Tuple[ResultCode, str]:
         """Method to invoke StopProgramTrackTable() when abort command is

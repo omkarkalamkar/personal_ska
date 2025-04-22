@@ -1209,8 +1209,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             :return: None
 
             """
+            # progress completed in the base class is assumed to be 50%
+            progress_completed = 50
             if progress is not None:
-                task_callback(progress=50 + progress / 2)
+                task_callback(progress=progress_completed + progress / 2)
 
             if status == TaskStatus.FAILED:
                 task_callback(
@@ -2353,7 +2355,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.command_result_update_lock:
             return self.set_operate_mode_result
 
-    def get_abort_result_code(self: DishLNComponentManager):
+    def get_abort_result_code(self: DishLNComponentManager) -> ResultCode:
         """
         Return the result of the Abort command execution
 
