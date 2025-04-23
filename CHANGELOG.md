@@ -121,8 +121,8 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
-[0.20.1]
-* Resolved skb-517b by filtering Track event when command is not in progress 
+[0.22.1]
+* Resolved skb-517 by filtering Track event when command is not in progress 
 
 [0.20.0]
 * Updated the FQDN's as per ADR-9.
