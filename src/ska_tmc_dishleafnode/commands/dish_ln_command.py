@@ -24,6 +24,37 @@ if TYPE_CHECKING:
     from ..manager.component_manager import DishLNComponentManager
 
 
+def task_callback_default(
+    **kwargs,
+) -> None:
+    """
+    Default method if the taskcallback is not passed
+
+    :param status: status of the task.
+    :param progress: progress of the task.
+    :param result: result of the task.
+    :param exception: an exception raised from the task.
+    """
+    result = kwargs.get("result", None)
+    status = kwargs.get("status", TaskStatus.COMPLETED)
+    message = kwargs.get("message") or kwargs.get("exception", None)
+    progress = kwargs.get("progress") or kwargs.get("exception", None)
+
+    LOGGER.warning(
+        "This is default task callback."
+        + "There is no action taken under this callback."
+        + "Please provide task callback."
+    )
+    LOGGER.info(
+        "long running command status: %s, progress: %s ,result:%s ,"
+        + "exception %s",
+        status,
+        progress,
+        result,
+        message,
+    )
+
+
 class DishLNCommand(TmcLeafNodeCommand):
     """A base command class for DishLeafNode with the methods and parameters
     common across all the commands."""

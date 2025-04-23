@@ -1,5 +1,5 @@
 """This is init module for DishLeafNode commands."""
-from .abort_command import AbortCommands
+from .abort_command import Abort
 from .apply_pointing_model import ApplyPointingModel
 from .configure_band_command import ConfigureBand
 from .configure_command import Configure
@@ -28,7 +28,7 @@ __all__ = [
     "ConfigureBand",
     "Track",
     "TrackStop",
-    "AbortCommands",
+    "Abort",
     "DishLNCommand",
     "TrackLoadStaticOff",
     "SetKValue",

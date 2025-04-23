@@ -3,7 +3,7 @@ function: telescope-monitoring
 domain: general-monitoring
 instances: ["01"]
 command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
-{{- $IsDishAbortCommandsEnabled := .Values.deviceServers.dishln.IsDishAbortCommandsEnabled }}
+{{- $IsDishAbortEnabled := .Values.deviceServers.dishln.IsDishAbortEnabled }}
 {{- $MaxTrackTableRetry := .Values.deviceServers.dishln.MaxTrackTableRetry }}
 {{- $TrackTableRetryDuration := .Values.deviceServers.dishln.TrackTableRetryDuration }}
 {{- $LivelinessCheckPeriod := .Values.deviceServers.dishln.LivelinessCheckPeriod }}
@@ -43,9 +43,9 @@ server:
           - name: "LoggingLevelDefault"
             values:
               - "5"
-          - name: "IsDishAbortCommandsEnabled"
+          - name: "IsDishAbortEnabled"
             values:
-              - "{{ $IsDishAbortCommandsEnabled }}"
+              - "{{ $IsDishAbortEnabled }}"
           - name: "MaxTrackTableRetry"
             values:
               - "{{ $MaxTrackTableRetry }}"

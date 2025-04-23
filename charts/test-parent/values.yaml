@@ -33,7 +33,7 @@ tmc-dishleafnode:
       enabled: true
     dishln:
       enabled: true
-      IsDishAbortCommandsEnabled: True
+      IsDishAbortEnabled: True
       MaxTrackTableRetry: 3
       TrackTableRetryDuration: 0.2
     dishpointingdevice:
