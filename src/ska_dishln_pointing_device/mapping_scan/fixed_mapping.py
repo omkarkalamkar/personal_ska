@@ -33,7 +33,6 @@ class FixedMappingScan(BaseScanMapping):
         self.main_target_dec = None
         self.main_target_ra = None
         self.ra_dec_target = None
-        self.traj = None
 
     def set_target_and_start_process(self):
         """

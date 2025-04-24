@@ -62,7 +62,7 @@ class GenerateProgramTrackTable(FastCommand):
                     self.component_manager.target_data,
                 )
                 if not self.component_manager.current_mapping_scan_obj:
-                    return ResultCode.FAILED, "Provide Full Configure first"
+                    return ResultCode.FAILED, "Provide Full Configure First"
             current_scan_obj = self.component_manager.current_mapping_scan_obj
             current_scan_obj.set_target_and_start_process()
         except Exception as exception:
