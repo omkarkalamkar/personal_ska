@@ -271,6 +271,7 @@ class Configure(DishLNCommand):
             if json_argument.get(
                 "tmc"
             ) and "trajectory" not in json_argument.get("pointing"):
+                # Invoke track load static off only in case of calibration scan
                 return self.invoke_trackloadstaticoff(
                     json_argument, reset_offset=reset_offset
                 )
@@ -281,7 +282,7 @@ class Configure(DishLNCommand):
                     pointing_device_conf_json["pointing"].pop("correction")
 
                 self.dishln_pointing_device_adapter.targetData = json.dumps(
-                    {"pointing": pointing_device_conf_json["pointing"]}
+                    pointing_device_conf_json
                 )
                 self.logger.debug("Calling GenerateProgramTrackTable()")
                 result_code, _ = self.invoke_generate_program_track_table()

@@ -29,5 +29,8 @@
     },
     "dish": {"receiver_band": "1"},
     "interface": "https://schema.skao.int/ska-tmc-configure/4.2",
-    "transaction_id": "txn-....-00001"
+    "transaction_id": "txn-....-00001",
+    "tmc": {
+        "scan_duration": 5
+    }
 }

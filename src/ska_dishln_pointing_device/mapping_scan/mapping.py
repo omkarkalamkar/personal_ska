@@ -7,6 +7,7 @@ from astropy import units as u
 from astropy.coordinates import AltAz, Angle
 from astropy.utils import iers
 from katpoint import Target
+from ska_trajectory.trajectory import TrajectoryName
 
 
 class BaseScanMapping:
@@ -25,6 +26,7 @@ class BaseScanMapping:
         self.main_target_ra = None
         self.main_target_dec = None
         self.ra_dec_target = None
+        self.traj = None
 
     def set_target_and_start_process(self):
         """
@@ -117,6 +119,20 @@ class BaseScanMapping:
         else:
             projection_alignment = "azel"
         return [projection_name, projection_alignment]
+
+    def set_trajectory_and_duration(self):
+        """Create Trajectory Object and set duration"""
+
+        trajectory = self.component_manager.target_data["pointing"][
+            "trajectory"
+        ]
+        self.traj = TrajectoryName[trajectory["name"].capitalize()](
+            **trajectory["attrs"]
+        )
+        scan_duration = self.component_manager.target_data["tmc"][
+            "scan_duration"
+        ]
+        self.traj.set_scan_duration(scan_duration)
 
     def azel_to_radec(
         self,

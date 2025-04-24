@@ -33,27 +33,7 @@ class FixedMappingScan(BaseScanMapping):
         self.main_target_dec = None
         self.main_target_ra = None
         self.ra_dec_target = None
-        self.x_offset = 0.0
-        self.y_offset = 0.0
-
-    def set_offsets(self):
-        """Set x and y Offset provided in target data"""
-        if "trajectory" in self.component_manager.target_data["pointing"]:
-            trajectory = self.component_manager.target_data["pointing"][
-                "trajectory"
-            ]
-            x = float(trajectory['attrs']['x'])
-            y = float(trajectory['attrs']['y'])
-            self.x_offset, self.y_offset = (
-                Angle(x, u.deg).rad,
-                Angle(y, u.deg).rad,
-            )
-            self.logger.info("X %s and Y %s ", x, y)
-            self.logger.info(
-                "x offset %s and y offset %s updated",
-                self.x_offset,
-                self.y_offset,
-            )
+        self.traj = None
 
     def set_target_and_start_process(self):
         """
@@ -89,6 +69,10 @@ class FixedMappingScan(BaseScanMapping):
                 f" {exception}"
             ) from exception
 
+    def get_offset_in_rad(self, x, y):
+        """Get Offset in radians"""
+        return Angle(x, u.deg).rad, Angle(y, u.deg).rad
+
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
         """Convert plane coordinates to RA/Dec using spherical projection.
 
@@ -99,17 +83,20 @@ class FixedMappingScan(BaseScanMapping):
         try:
             timestamp = katpoint.Timestamp()
             projection_name, projection_alignment = self.get_projection()
+            self.set_trajectory_and_duration()
+            x, y, _, _, _ = self.traj.posn(self.traj.start)
+            x_rad, y_rad = self.get_offset_in_rad(x, y)
             self.logger.info(
                 "Calling plane to sphere with %s and %s",
-                self.x_offset,
-                self.y_offset,
+                x_rad,
+                y_rad,
             )
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
                 ra, dec = self.ra_dec_target.plane_to_sphere(
-                    self.x_offset,
-                    self.y_offset,
+                    x_rad,
+                    y_rad,
                     timestamp,
                     projection_type=projection_name.upper(),
                     coord_system=projection_alignment,
