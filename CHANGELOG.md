@@ -121,6 +121,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.22.1]
+* Fixed NaN azimuth values issue in programTrackTable generation.
+
 [0.20.0]
 * Updated the FQDN's as per ADR-9.
 
