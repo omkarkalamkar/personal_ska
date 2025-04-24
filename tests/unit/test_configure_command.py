@@ -118,6 +118,39 @@ def test_configure_command_completed_partial_config(
     )
 
 
+def test_delta_configure_command_completed(
+    cm_without_er_lp, task_callback, json_factory
+):
+    """Test that delta configure command completed"""
+    cm = cm_without_er_lp
+    attr = {
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+    }
+    dishMock = mock.Mock(**attr)
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    assert wait_for_dish_mode(cm, DishMode.OPERATE)
+    assert cm.is_configure_allowed()
+    configure_input_str = json_factory("delta_configure")
+
+    cm.configure(configure_input_str, task_callback=task_callback)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=6,
+    )
+
+
 def test_configure_command_completed_partial_config_missing_key(
     cm_without_er_lp, task_callback, json_factory
 ):

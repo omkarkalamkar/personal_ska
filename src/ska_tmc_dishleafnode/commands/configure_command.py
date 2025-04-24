@@ -193,7 +193,8 @@ class Configure(DishLNCommand):
             ):
                 return (
                     ResultCode.FAILED,
-                    "target key is not present in the input json argument.",
+                    "target or trajectory key is not present in the input "
+                    "json argument.",
                 )
         else:
             if "dish" not in input_argin:
