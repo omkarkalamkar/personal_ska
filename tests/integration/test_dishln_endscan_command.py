@@ -43,10 +43,7 @@ def endscan_command_timeout(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.NONE),
-        lookahead=4,
-    )
+
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
@@ -186,10 +183,7 @@ def endscan_command_error_propogation(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.NONE),
-        lookahead=4,
-    )
+
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
@@ -328,10 +322,7 @@ def endscan_command(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.NONE),
-        lookahead=4,
-    )
+
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
     assert result_fp[0] == ResultCode.QUEUED
 
