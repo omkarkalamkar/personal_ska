@@ -2270,7 +2270,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: ResultCode from the track_result
         :rtype: ResultCode
         """
-
+        self.logger.info("will need command_result_update_lock")
         with self.command_result_update_lock:
             self.logger.info("acquired command_result_update_lock")
             return self.track_result["result_code"]
