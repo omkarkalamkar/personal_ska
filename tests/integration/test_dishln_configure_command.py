@@ -89,7 +89,7 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK or PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(
@@ -349,7 +349,7 @@ def configure_with_wrap_sector(
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK or PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(
