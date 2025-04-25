@@ -1787,6 +1787,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
+                notify = False
                 self.logger.info("acquired command_result_update_lock")
                 self.logger.info("Checking unique_id- %s", unique_id)
                 if self.command_unique_id_dict[command_name] == unique_id:
@@ -1797,9 +1798,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "ConfigureBand result: %s",
                             self.configure_band_result,
                         )
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                        notify = True
+
                     elif "SetOperateMode" in unique_id:
                         self.set_operate_mode_result[
                             "result_code"
@@ -1820,9 +1820,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.logger.info(
                             "Number of observer %s", observer_cmd_instance
                         )
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                        notify = True
                     elif "EndScan" in unique_id:
                         self.end_scan_result["result_code"] = result_code
                         self.end_scan_result["message"] = message
@@ -1830,9 +1828,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "EndScan result: %s",
                             self.end_scan_result,
                         )
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                        notify = True
+
                     elif "Scan" in unique_id:
                         self.scan_result["result_code"] = result_code
                         self.scan_result["message"] = message
@@ -1840,9 +1837,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "Scan result: %s",
                             self.scan_result,
                         )
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                        notify = True
+
                     elif "TrackLoadStaticOff" in unique_id:
                         self.track_load_static_off_result[
                             "result_code"
@@ -1856,13 +1852,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.command_in_progress != "Configure"
                             or self.partial_configure
                         ):
-                            self.observable.notify_observers(
-                                attribute_value_change=True
-                            )
+                            notify = True
                         elif self.correction_key == CORRECTION_KEY.RESET.value:
-                            self.observable.notify_observers(
-                                attribute_value_change=True
-                            )
+                            notify = True
                     elif "TrackStop" in unique_id:
                         self.track_stop_result["result_code"] = result_code
                         self.track_stop_result["message"] = message
@@ -1870,9 +1862,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "TrackStop result: %s",
                             self.track_stop_result,
                         )
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                        notify = True
                     elif "Track" in unique_id:
                         self.track_result["result_code"] = result_code
                         self.track_result["message"] = message
@@ -1880,12 +1870,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "Track result: %s",
                             self.track_result,
                         )
-                        self.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                        notify = True
                         self.logger.info("Done Track update")
 
             self.logger.info("Released command_result_update_lock")
+            if notify:
+                self.logger.info("Calling notify")
+                self.observable.notify_observers(attribute_value_change=True)
+            else:
+                self.logger.info("Notify not set")
 
             if result_code in [
                 ResultCode.FAILED,

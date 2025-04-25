@@ -2744,7 +2744,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "sah-1693"
-resolved_reference = "4f00c8cd3e68c6122dd3c0986856f4ca446c354d"
+resolved_reference = "01e75dfdb41978fcd7cb1c9bf0e0ea2cbe12749b"
 
 [[package]]
 name = "smmap"
