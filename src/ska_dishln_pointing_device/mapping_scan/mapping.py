@@ -126,7 +126,7 @@ class BaseScanMapping:
         trajectory = self.component_manager.target_data["pointing"][
             "trajectory"
         ]
-        self.traj = TrajectoryName[trajectory["name"].capitalize()](
+        self.traj = TrajectoryName[trajectory["name"].lower()](
             **trajectory["attrs"]
         )
         scan_duration = self.component_manager.target_data["tmc"][

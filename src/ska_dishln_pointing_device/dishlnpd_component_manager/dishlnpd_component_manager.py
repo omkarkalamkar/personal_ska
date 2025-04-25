@@ -193,8 +193,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         if (
             self.target_data.get("pointing", {})
             .get("trajectory", {})
-            .get("name")
-            == "Fixed"
+            .get("name", "").lower()
+            == "fixed"
         ):
             return True
         return False

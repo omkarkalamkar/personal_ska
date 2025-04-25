@@ -2863,14 +2863,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-trajectory"
-version = "0.1.0"
+version = "0.2.0"
 description = "Trajectory classes for SKA telescope"
 optional = false
 python-versions = ">=3.10,<4.0.0"
 groups = ["main"]
 files = [
-    {file = "ska_trajectory-0.1.0-py3-none-any.whl", hash = "sha256:2da3c0fb7c9844860d978ff880b27577e701ed98d89f2c63bbd0864e846e50c8"},
-    {file = "ska_trajectory-0.1.0.tar.gz", hash = "sha256:032a3018e56d19e2e39bcd0a762e2a6d5b25c2d0bd252999d2c8c3172f646dd4"},
+    {file = "ska_trajectory-0.2.0-py3-none-any.whl", hash = "sha256:9dbdff466d02f2e49c9ea2744f5a27f92be7c8e3e7297f22dca351492313835f"},
+    {file = "ska_trajectory-0.2.0.tar.gz", hash = "sha256:52a0e201e4b2be8e0d7a9bc8ba0d09f66666cdf4c979fbd665b8a4686dfb9a45"},
 ]
 
 [package.source]
@@ -3507,4 +3507,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "57d8afbace7eb1a34f7d4d4775436c4339c5b1ffc635b867569e3c09a34c1dca"
+content-hash = "6e352349ae5df2e6ad65ecd1cfcaed66f46248c07b0fc6f17f33621b667493ba"
