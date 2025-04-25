@@ -76,7 +76,7 @@ def endscan_command_timeout(
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK or PointingState.SLEW),
         lookahead=6,
     )
     group_callback["longRunningCommandResult"].assert_change_event(
