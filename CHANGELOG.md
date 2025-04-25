@@ -124,6 +124,9 @@ Fixed
 [0.22.1]
 * Resolved skb-517 by filtering Track event when command is not in progress 
 
+[0.21.1]
+* Fixed NaN azimuth values issue in programTrackTable generation.
+
 [0.20.0]
 * Updated the FQDN's as per ADR-9.
 
