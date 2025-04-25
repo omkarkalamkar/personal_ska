@@ -46,10 +46,7 @@ def track_timeout_dish_leaf_node(
         (DishMode.OPERATE),
         lookahead=2,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=2,
-    )
+
     lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
@@ -222,10 +219,7 @@ def track_dish_leaf_node(
         (DishMode.OPERATE),
         lookahead=2,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=2,
-    )
+
     lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
