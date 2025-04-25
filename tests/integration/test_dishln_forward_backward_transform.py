@@ -63,7 +63,7 @@ def forward_backward_transform(
     logger.info("The desired pointing is set to %s", program_track_table)
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK, PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(

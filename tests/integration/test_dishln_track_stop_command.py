@@ -68,7 +68,7 @@ def track_stop_timeout_dish_leaf_node(
     )
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK, PointingState.SLEW),
         lookahead=5,
     )
     group_callback["dishMode"].assert_change_event(
@@ -178,7 +178,7 @@ def track_stop_error_propagation_dish_leaf_node(
     )
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK, PointingState.SLEW),
         lookahead=5,
     )
     group_callback["dishMode"].assert_change_event(

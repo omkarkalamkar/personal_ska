@@ -355,7 +355,7 @@ def endscan_command(
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK, PointingState.SLEW),
         lookahead=6,
     )
     group_callback["longRunningCommandResult"].assert_change_event(

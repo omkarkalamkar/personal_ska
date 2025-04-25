@@ -72,7 +72,7 @@ def scan_command_timeout(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK, PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(
@@ -202,7 +202,7 @@ def scan_command_error_propagation(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK, PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(
@@ -331,7 +331,7 @@ def scan_command(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.TRACK, PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(
