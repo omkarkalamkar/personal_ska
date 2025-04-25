@@ -52,7 +52,7 @@ class FixedMappingScan(BaseScanMapping):
                 self.extract_target_from_config()
                 self.setup_observation_target()
             self.logger.info(
-                "main ra %s and main dec %s",
+                "Provided Ra and Dec are %s, %s",
                 self.main_target_ra,
                 self.main_target_dec,
             )
@@ -68,8 +68,8 @@ class FixedMappingScan(BaseScanMapping):
                 f" {exception}"
             ) from exception
 
-    def get_offset_in_rad(self, x, y):
-        """Get Offset in radians"""
+    def get_offset_in_rad(self, x: float, y: float) -> tuple:
+        """Return the offset in radian"""
         return Angle(x, u.deg).rad, Angle(y, u.deg).rad
 
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
@@ -103,11 +103,9 @@ class FixedMappingScan(BaseScanMapping):
             updated_ra = Angle(ra, u.rad).deg
             updated_dec = Angle(dec, u.rad).deg
             self.logger.debug(
-                "Updated ra %s and dec %s and ra %s and dec %s",
+                "Updated ra and dec after plane to sphere %s, %s",
                 updated_ra,
                 updated_dec,
-                ra,
-                dec,
             )
             return updated_ra, updated_dec
         except Exception as exception:
