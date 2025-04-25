@@ -52,7 +52,7 @@ class GenerateProgramTrackTable(FastCommand):
                 if "field" in self.component_manager.target_data["pointing"]:
                     self.component_manager.current_mapping_scan_obj = (
                         FixedMappingScan(
-                            pattern_name="Fixed",
+                            pattern_name="fixed",
                             component_manager=self.component_manager,
                             logger=self.logger,
                         )
