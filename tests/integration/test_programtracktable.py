@@ -70,7 +70,7 @@ def check_track_table(
             lookahead=6,
         )
         group_callback["pointingState"].assert_change_event(
-            (PointingState.TRACK, PointingState.SLEW),
+            (PointingState.SLEW),
             lookahead=6,
         )
 

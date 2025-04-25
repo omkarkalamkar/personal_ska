@@ -87,7 +87,7 @@ def abort_when_configured(
         configure_input_str
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK or PointingState.SLEW),
+        (PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(

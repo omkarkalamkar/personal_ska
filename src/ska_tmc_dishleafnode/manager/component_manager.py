@@ -1981,7 +1981,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             else:
                 self.logger.info("Notify not set")
 
-                self.observable.notify_observers(attribute_value_change=True)
+                # self.observable.notify_observers(attribute_value_change=True)
 
             if result_code in [
                 ResultCode.FAILED,
