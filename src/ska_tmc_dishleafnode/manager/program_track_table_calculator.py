@@ -8,6 +8,7 @@ from logging import Logger
 from typing import List, Union
 
 from astropy.time import Time
+from numpy import nan
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
@@ -79,12 +80,12 @@ class ProgramTrackTableCalculator:
                         + ("Source is not visible currently.")
                     )
                     raise Exception(message)
-
-                if not (
-                    self.component_manager.azimuth_min_limit
-                    < result[0]
-                    < self.component_manager.azimuth_max_limit
-                ):
+                if self.component_manager.wrap_sector_key:
+                    result[0] = (
+                        result[0] + 360 * self.component_manager.wrap_sector
+                    )
+                else:
+                    # To support deprecated target key.
                     result[0] = self.fit_azimuth_in_observable_range(result[0])
 
                 program_track_table.append(tai_timestamp_list.pop(0))
@@ -250,7 +251,7 @@ class ProgramTrackTableCalculator:
         :returns: Azimuth in degrees
         :rtype: float
         """
-        azimuth: float
+        azimuth = nan
         try:
             if calculated_azimuth > self.component_manager.azimuth_max_limit:
                 azimuth = calculated_azimuth - 360

@@ -5,6 +5,18 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+## [0.22.0]
+***********
+## Added
+* Updated ska-tmc-dishleafnode repository to use ska-tango-base v1.2.
+* Renamed AbortCommands to Abort.
+* Implemented error propagation and timeout handling for Abort command.
+* DishLeafNode will catch exceptions thrown by DishManager and report on its LRCR for Abort commands.
+
+[0.21.0]
+********
+* Updated dish leaf node to handle wrap_sector key.
+
 [0.19.5]
 ********
 * Update lock placement with skb-525 changes.
@@ -109,6 +121,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.22.1]
+* Resolved skb-517 by filtering Track event when command is not in progress 
+
 [0.20.0]
 * Updated the FQDN's as per ADR-9.
 

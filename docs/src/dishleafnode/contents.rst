@@ -44,4 +44,10 @@ Subpackages
 
    ska_dishln_pointing_device.commands
 
+.. toctree::
+   :maxdepth: 4
+   :caption: ska_dishln_pointing_device.mapping_scan
+
+   ska_dishln_pointing_device.mapping_scan
+
 

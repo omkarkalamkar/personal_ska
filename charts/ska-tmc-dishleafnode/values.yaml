@@ -43,7 +43,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.20.0
+    tag: 0.22.1
     pullPolicy: IfNotPresent
 
 resources:
@@ -66,7 +66,7 @@ deviceServers:
     MaxTrackTableRetry: 3
     TrackTableRetryDuration: 0.2
     file: "data/dishleafnode.yaml"
-    IsDishAbortCommandsEnabled: False
+    IsDishAbortEnabled: False
     LivelinessCheckPeriod: 1.0
     EventSubscriptionCheckPeriod: 1.0
     CommandTimeOut: 30.0
@@ -80,7 +80,6 @@ deviceServers:
     enabled: true
     instances: ["01", "02"]
     TrackTableUpdateRate: 50
-    TrackTableInAdvance: 6
     TrackTableEntries: 50
     PointingCalculationPeriod: 50
     TrackTableInAdvance: 7
