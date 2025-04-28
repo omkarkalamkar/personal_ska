@@ -2537,12 +2537,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "pointingProgramTrackTable": self.update_program_track_table,
             "programTrackTableError": self.update_program_track_table_error,
             "healthState": self.update_device_health_state,
-            "band1PointingModelParams": self.update_dish_pointing_model_param,
-            "band2PointingModelParams": self.update_dish_pointing_model_param,
-            "band3PointingModelParams": self.update_dish_pointing_model_param,
-            "band4PointingModelParams": self.update_dish_pointing_model_param,
-            "band5APointingModelParams": self.update_dish_pointing_model_param,
-            "band5BPointingModelParams": self.update_dish_pointing_model_param,
+            "band1pointingmodelparams": self.update_dish_pointing_model_param,
+            "band2pointingmodelparams": self.update_dish_pointing_model_param,
+            "band3pointingmodelparams": self.update_dish_pointing_model_param,
+            "band4pointingmodelparams": self.update_dish_pointing_model_param,
+            "band5apointingmodelparams": self.update_dish_pointing_model_param,
+            "band5bpointingmodelparams": self.update_dish_pointing_model_param,
         }
 
         return {**attributes}
