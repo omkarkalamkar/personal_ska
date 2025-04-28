@@ -57,7 +57,11 @@ class FixedMappingScan(BaseScanMapping):
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
-            self.logger.exception("Exception: %s", exception)
+            self.logger.exception(
+                "Failed to configure fixed mapping scan "
+                + "due to exception: %s",
+                exception,
+            )
             raise Exception(
                 "Exception while configuring fixed mapping scan:"
                 f" {exception}"

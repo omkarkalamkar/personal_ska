@@ -36,7 +36,7 @@ class GenerateProgramTrackTable(FastCommand):
     def do(self, *args, **kwargs) -> None:
         """This method generates program track table."""
         try:
-            self.logger.debug("Executing GenerateProgramTrackTable command.")
+            self.logger.info("Executing GenerateProgramTrackTable command.")
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.clear()
             if self.component_manager.target_data["pointing"].get("target"):
@@ -59,9 +59,9 @@ class GenerateProgramTrackTable(FastCommand):
             current_scan_obj = self.component_manager.current_mapping_scan_obj
             current_scan_obj.set_target_and_start_process()
         except Exception as exception:
-            self.logger.error(
+            self.logger.exception(
                 "Exception occurred in  GenerateProgramTrackTable"
-                "command : %s",
+                + "command : %s",
                 exception,
             )
             raise exception

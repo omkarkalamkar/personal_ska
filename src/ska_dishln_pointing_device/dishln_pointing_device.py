@@ -207,7 +207,9 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        self.logger.debug("Command invoked with argin %s", argin)
+        self.logger.info(
+            "ChangePointingData Command " + "invoked with argin %s", argin
+        )
         return ([ResultCode.OK], ["offset change event set"])
 
     def create_component_manager(self) -> DishlnPointingDataComponentManager:

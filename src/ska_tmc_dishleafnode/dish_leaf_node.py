@@ -192,7 +192,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._health_state = healthState
         self.push_change_archive_events("healthState", self._health_state)
         self.logger.info(
-            "HealthState updated to value: %s", self._health_state
+            "Update HealthState of %s is: %s",
+            self._dishln_name,
+            self._health_state,
         )
 
     def update_source_offset_callback(self, source_offset: List) -> None:
@@ -200,7 +202,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._sourceOffset = source_offset
         self.push_change_archive_events("sourceOffset", self._sourceOffset)
         self.logger.info(
-            "sourceOffset updated to value: %s", self._sourceOffset
+            "Updated sourceOffset of %s is: %s",
+            self._dishln_name,
+            self._sourceOffset,
         )
 
     def update_last_pointing_data_cb(self, last_pointing_data: List) -> None:
@@ -218,7 +222,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "lastPointingData", self._lastPointingData
         )
         self.logger.info(
-            "lastPointingData updated to value: %s", last_pointing_data
+            "Update lastPointingData of %s is: %s ",
+            self._dishln_name,
+            last_pointing_data,
         )
 
     def update_availablity_callback(self, availability):
@@ -273,7 +279,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             str(int(self.component_manager.kValueValidationResult)),
         )
         self.logger.info(
-            "k-value validation result: ResultCode.%s",
+            "k-value validation result for %s is : ResultCode.%s",
+            self._dishln_name,
             ResultCode(self.component_manager.kValueValidationResult).name,
         )
 
@@ -284,7 +291,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             int(self.component_manager.kValue),
         )
         self.logger.info(
-            "k-value : %s",
+            "K-value for %s updated to: %s",
+            self._dishln_name,
             self.component_manager.kValue,
         )
 
@@ -753,7 +761,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: boolean
         """
-        self.logger.info("Checking if ConfigureBand is allowed")
+        self.logger.debug("Checking if ConfigureBand is allowed")
         return self.component_manager.is_configureband_allowed()
 
     @command(
@@ -924,7 +932,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             value = db.get_device_attribute_property(
                 self._dishln_name, "kValue"
             )
-            self.logger.info("k-value memorized successfully: %s", value)
+            self.logger.info(
+                "K-value for %s memorized successfully: %s",
+                self._dishln_name,
+                value,
+            )
             self.kvalue_validation_callback()
             self.update_kvalue_callback()
         return [result_code], [unique_id]
