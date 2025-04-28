@@ -149,7 +149,7 @@ def ApplyPointingModel_with_invalid_json(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid12skip
+@pytest.mark.SKA_mid12
 def test_apply_pointing_model(tango_context, group_callback, json_factory):
     """Test to check ApplyPointingModel command with valid TM path"""
     apply_pointing_model(
