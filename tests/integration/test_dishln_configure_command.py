@@ -273,6 +273,7 @@ def delta_configure_dish_leaf_node(
     group_callback,
     configure_input_str,
     delta_config_str,
+    is_default_offset,
 ):
     """Delta configure flow for dish leaf node."""
     dev_factory = DevFactory()
@@ -320,8 +321,14 @@ def delta_configure_dish_leaf_node(
         (DishMode.STANDBY_FP),
         lookahead=6,
     )
+    configure_input = json.loads(configure_input_str)
+    if not is_default_offset:
+        configure_input["pointing"]["trajectory"]["attrs"] = {
+            "x": 1.0,
+            "y": 2.0,
+        }
     result_config, unique_id_config = dish_leaf_node.Configure(
-        configure_input_str
+        json.dumps(configure_input)
     )
     assert result_config[0] == ResultCode.QUEUED
 
@@ -396,6 +403,23 @@ def test_delta_configure_command(tango_context, group_callback, json_factory):
         group_callback,
         json_factory("dishleafnode_configure_adr106"),
         json_factory("delta_configure"),
+        is_default_offset=True,
+    )
+
+
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_delta_configure_command_with_different_offset(
+    tango_context, group_callback, json_factory
+):
+    """Test delta configure functionality on Dish Leaf Node."""
+    delta_configure_dish_leaf_node(
+        tango_context,
+        DISH_LEAF_NODE_DEVICE,
+        group_callback,
+        json_factory("dishleafnode_configure_adr106"),
+        json_factory("delta_configure"),
+        is_default_offset=False,
     )
 
 
