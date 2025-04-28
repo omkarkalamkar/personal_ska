@@ -426,6 +426,7 @@ def simulate_result_code_event(
             ]
         ),
     )
+    time.sleep(0.2)
     cm.update_command_result(command_result)
 
 

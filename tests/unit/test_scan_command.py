@@ -9,6 +9,7 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
+@pytest.mark.ut1
 def test_scan_command(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     attrs = {

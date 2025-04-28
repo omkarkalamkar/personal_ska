@@ -173,6 +173,8 @@ def abort_while_configuring(
         lookahead=5,
     )
 
+    assert dish_leaf_node.pointingState == PointingState.READY
+
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
@@ -185,7 +187,7 @@ def abort_while_configuring(
     #         (PointingState.READY),
     #         lookahead=6,
     #     )
-    assert dish_leaf_node.pointingState == PointingState.READY
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=6,
@@ -241,7 +243,7 @@ def test_abort_after_configure(tango_context, group_callback, json_factory):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid12
+@pytest.mark.SKA_mid
 def test_abort_while_configuring(tango_context, group_callback, json_factory):
     abort_while_configuring(
         tango_context,
