@@ -74,8 +74,7 @@ endif
 K8S_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),k8s-test)
 ADD_ARGS += --true-context --count=$(K8S_TEST_COUNT)
-#MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
-MARK=SKA_mid12
+MARK = $(shell echo $(TELESCOPE) | sed s/-/_/) and (post_deployment or acceptance)
 endif
 
 # Applying exit at fail for k8s tests only
