@@ -132,12 +132,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
-        self.configured_band_lock = threading.RLock()
-        self.dish_pointing_lock = threading.RLock()
-        self.dish_mode_lock = threading.RLock()
-        self.pointing_state_lock = threading.RLock()
-        self.health_state_lock = threading.RLock()
-        self.source_offset_lock = threading.RLock()
+        self.configured_band_lock = threading.Lock()
+        self.dish_pointing_lock = threading.Lock()
+        self.dish_mode_lock = threading.Lock()
+        self.pointing_state_lock = threading.Lock()
+        self.health_state_lock = threading.Lock()
+        self.source_offset_lock = threading.Lock()
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         self.adapter_factory = AdapterFactory()
@@ -165,7 +165,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.configure_band_lrcr = ResultCode.UNKNOWN
         self.configure_setoperate_mode_lrcr = ResultCode.UNKNOWN
         self.partial_configure: bool = False
-        self.command_result_update_lock = threading.RLock()
+        self.command_result_update_lock = threading.Lock()
         self.tango_operation_execution_lock = threading.RLock()
         self.dish_number = None
         self.is_configure_event = threading.Event()
