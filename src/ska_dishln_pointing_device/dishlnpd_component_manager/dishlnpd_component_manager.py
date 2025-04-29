@@ -279,8 +279,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        # program_track_table = json.loads(program_track_table)
-        self.logger.info("update_pointing_program_track_table called")
 
         try:
             self.pointing_program_track_table = program_track_table
@@ -291,7 +289,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             message = "Exception while writing tracktable: %s" + str(exception)
             self.logger.exception(message)
             raise Exception(message) from exception
-        self.logger.info(
+        self.logger.debug(
             "Calculated ProgramTrackTable: %s", program_track_table
         )
 
@@ -299,8 +297,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """This method creates and starts a thread for the programTrackTable
         calculation."""
         try:
-            self.logger.info("start_track_table_calculation start1")
-
             # Set the wrap key
             self.set_wrap_sector_data()
 
@@ -340,7 +336,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            self.logger.info(
+            self.logger.debug(
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
@@ -421,7 +417,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     scheduled_time
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
-                self.logger.info("actual_time_human %s", actual_time_readable)
+                self.logger.debug("actual_time_human %s", actual_time_readable)
                 self.logger.debug(
                     "scheduled_time_human  %s", scheduled_time_readable
                 )

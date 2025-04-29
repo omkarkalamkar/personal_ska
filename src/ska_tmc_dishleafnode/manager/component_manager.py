@@ -20,6 +20,7 @@ from astropy.time import Time
 from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
+from ska_tango_base.control_model import HealthState
 from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     AdapterFactory,
@@ -131,6 +132,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
+        self.configured_band_lock = threading.RLock()
+        self.dish_pointing_lock = threading.RLock()
+        self.dish_mode_lock = threading.RLock()
+        self.pointing_state_lock = threading.RLock()
+        self.health_state_lock = threading.RLock()
+        self.source_offset_lock = threading.RLock()
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         self.adapter_factory = AdapterFactory()
@@ -574,7 +581,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self: DishLNComponentManager, source_offset: list
     ) -> None:
         """Method to update the sourceOffset attribute"""
-        with self.lock:
+        with self.source_offset_lock:
             if self._update_source_offset_callback:
                 self._update_source_offset_callback(source_offset)
 
@@ -1577,7 +1584,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param dishMode: Dish mode of the device
         :type dishMode: DishMode
         """
-        with self.lock:
+        with self.dish_mode_lock:
             dev_info = self.get_device()
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
@@ -1602,7 +1609,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type band_name: str
         """
         dish_param = json.dumps(dish_param.tolist())
-        with self.lock:
+        with self.dish_pointing_lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
@@ -1636,7 +1643,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        with self.lock:
+        with self.pointing_state_lock:
             dev_info = self.get_device()
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
@@ -1669,7 +1676,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param configured_band: Configured band of the dish device
         :type configured_band: Band
         """
-        with self.lock:
+        with self.configured_band_lock:
             dev_info = self.get_device()
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
@@ -1762,13 +1769,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
 
-        self.logger.info("Received program_track_table event %s ", event_data)
         program_track_table = json.loads(event_data)
         if len(program_track_table) == 0:
             self.logger.info("TrackTable is empty.")
             return
 
-        self.logger.info(
+        self.logger.debug(
             "ProgramTrackTable will be updated, "
             "will acquire tango lock for same"
         )
@@ -1880,7 +1886,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
                 notify = False
-                self.logger.info("acquired command_result_update_lock")
+
                 self.logger.info("Checking unique_id- %s", unique_id)
                 if self.command_unique_id_dict[command_name] == unique_id:
                     if "ConfigureBand" in unique_id:
@@ -1962,9 +1968,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "Track result: %s",
                             self.track_result,
                         )
-
                         notify = True
-                        self.logger.info("Done Track update")
+
                     elif "Abort" in unique_id:
                         self.abort_result["result_code"] = result_code
                         self.abort_result["message"] = message
@@ -1974,14 +1979,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         )
                         notify = True
 
-            self.logger.info("Released command_result_update_lock")
             if notify:
-                self.logger.info("Calling notify")
                 self.observable.notify_observers(attribute_value_change=True)
-            else:
-                self.logger.info("Notify not set")
-
-                # self.observable.notify_observers(attribute_value_change=True)
 
             if result_code in [
                 ResultCode.FAILED,
@@ -2346,7 +2345,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         with self.command_result_update_lock:
-            self.logger.info("acquired command_result_update_lock")
             return self.set_operate_mode_result["result_code"]
 
     def get_set_operate_mode_result_dict(self: DishLNComponentManager):
@@ -2386,9 +2384,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: ResultCode from the track_result
         :rtype: ResultCode
         """
-        self.logger.info("will need command_result_update_lock")
+
         with self.command_result_update_lock:
-            self.logger.info("acquired command_result_update_lock")
             return self.track_result["result_code"]
 
     def get_track_result_dict(self: DishLNComponentManager):
@@ -2499,20 +2496,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: boolean value indicating if the state change occurred or not
         """
 
-        self.logger.info(f"self.dishMode {self.dishMode} ")
-        self.logger.info(f"self.pointingState {self.pointingState} ")
-        self.logger.info(f"self.dishConfiguredBand {self.dishConfiguredBand} ")
-        self.logger.info(
-            f" self.configure_band_lrcr {self.configure_band_lrcr} "
-        )
-        self.logger.info(
-            f" self.configure_setoperate_mode_lrcr "
-            f"{self.configure_setoperate_mode_lrcr} "
-        )
-        self.logger.info(
-            f" self.configure_track_lrcr {self.configure_track_lrcr}"
-        )
-
         if self.partial_configure:
             return self.partial_configure_lrcr == ResultCode.OK
         return (
@@ -2583,3 +2566,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Updates program track table error"""
         if value:
             self.current_track_table_error = value
+
+    def update_device_health_state(self, health_state: HealthState) -> None:
+        """
+        Update a monitored device health state
+        aggregate the health states available
+
+        :param health_state: health state of the device
+        :type health_state: HealthState
+        """
+        with self.health_state_lock:
+            self._device.health_state = health_state
+            self._device.last_event_arrived = time.time()

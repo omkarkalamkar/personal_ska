@@ -182,7 +182,6 @@ class Abort(DishLNCommand):
         """Method to invoke StopProgramTrackTable() when abort command is
             invoked.
 
-
         rtype:
             (ResultCode, str)
         """
