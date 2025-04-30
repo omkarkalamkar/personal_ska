@@ -307,7 +307,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 with self.track_thread_lock:
                     self.create_track_table_thread()
                     self.track_table_thread.start()
-                    self.logger.info("Started trackTable thread.")
+                    self.logger.debug("Started trackTable thread.")
             else:
                 self.logger.info(
                     "programTrackTable calculation is already going on."
