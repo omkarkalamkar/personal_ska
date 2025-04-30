@@ -1756,7 +1756,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
     def update_program_track_table(
-        self: DishLNComponentManager, event: tango.EventData
+        self: DishLNComponentManager,
+        program_track_table_event_data: tango.EventData,
     ) -> None:
         """
         This method writes the programTrackTable attribute on dish master
@@ -1769,7 +1770,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
 
-        program_track_table = json.loads(event)
+        program_track_table = json.loads(program_track_table_event_data)
         if len(program_track_table) == 0:
             self.logger.info("TrackTable is empty.")
             return
