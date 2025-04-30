@@ -2194,6 +2194,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         if self.event_receiver:
             self.stop_event_receiver()
+            self._stop_thread = True
 
         if self.liveliness_probe_object:
             self.stop_liveliness_probe()
