@@ -505,7 +505,7 @@ class Configure(DishLNCommand):
                     ",Correction Key: %s ,"
                     "Partial Configure: %s",
                     self.component_manager.command_id,
-                    ResultCode(result_code[0]).name,
+                    result_code,
                     self.component_manager.correction_key,
                     self.component_manager.partial_configure,
                 )
