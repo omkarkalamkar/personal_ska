@@ -150,7 +150,7 @@ class ConfigureBand(DishLNCommand):
                 self.component_manager.command_id,
                 command_name,
                 self.component_manager.dish_dev_name,
-                result_code,
+                ResultCode(result_code[0]).name,
                 message,
             )
 

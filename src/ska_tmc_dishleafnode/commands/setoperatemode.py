@@ -117,5 +117,8 @@ class SetOperateMode(DishLNCommand):
                     "SetOperateMode"
                 ] = message[0]
 
-            self.logger.debug("Released tango lock")
+            self.logger.debug(
+                "Command ID: %s |" + "Released tango lock",
+                self.component_manager.command_id,
+            )
         return result_code[0], message[0]

@@ -81,7 +81,7 @@ class Abort(DishLNCommand):
 
         self.logger.info(
             "Command ID: %s | Updating task status with Result: %s",
-            self.command_uniq_id,
+            self.component_manager.command_id,
             kwargs,
         )
 
@@ -122,14 +122,14 @@ class Abort(DishLNCommand):
         """
         self.logger.debug(
             "Command ID: %s | Command in progress: %s" + " on : %s",
-            self.command_uniq_id,
+            self.component_manager.command_id,
             self.component_manager.command_in_progress,
             self.component_manager.dish_dev_name,
         )
         self.component_manager.abort_event.set()
         self.logger.debug(
             "Command ID: %s | Abort event set for : %s",
-            self.command_uniq_id,
+            self.component_manager.command_id,
             self.component_manager.dish_dev_name,
         )
         with self.component_manager.command_result_update_lock:
@@ -168,7 +168,7 @@ class Abort(DishLNCommand):
                 "Command ID: %s | "
                 + "Abort() command has been invoked, the result code"
                 + " is %s and the message is %s",
-                self.command_uniq_id,
+                self.component_manager.command_id,
                 result_code[0],
                 message[0],
             )

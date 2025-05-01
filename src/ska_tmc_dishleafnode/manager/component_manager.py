@@ -338,7 +338,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.converter.create_antenna_obj()
             self.logger.debug("Antenna object created")
         except Exception as exp:
-            self.logger.exception("Error while creating antenna obj %s", exp)
+            self.logger.exception(
+                "Error while creating antenna obj ," + "Error: %s", exp
+            )
 
     def is_command_allowed_callable(
         self: DishLNComponentManager, command_name: str
@@ -756,7 +758,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             args=[self.logger],
             task_callback=task_callback,
         )
-        self.logger.info("Off command queued for execution")
+        self.logger.info(
+            "Off command queued for execution on %s", self.dish_dev_name
+        )
         return task_status, response
 
     def setstandbyfpmode(
@@ -783,7 +787,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ),
             task_callback=task_callback,
         )
-        self.logger.info("SetStandbyFPMode command queued for execution")
+        self.logger.info(
+            "SetStandbyFPMode command queued " + "for execution on %s",
+            self.dish_dev_name,
+        )
         return task_status, response
 
     def setstandbylpmode(
@@ -811,7 +818,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ),
             task_callback=task_callback,
         )
-        self.logger.info("SetStandbyLPMode command queued for execution")
+        self.logger.info(
+            "SetStandbyLPMode command " + "queued for execution on %s",
+            self.dish_dev_name,
+        )
         return task_status, response
 
     def setstowmode(
@@ -837,7 +847,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_command_allowed_callable("SetStowMode"),
             task_callback=task_callback,
         )
-        self.logger.info("SetStowMode command queued for execution")
+        self.logger.info(
+            "SetStowMode command queued " + "for execution on %s",
+            self.dish_dev_name,
+        )
         return task_status, response
 
     def scan(
@@ -867,7 +880,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_command_allowed_callable("Scan"),
             task_callback=task_callback,
         )
-        self.logger.info("Scan command queued for execution")
+        self.logger.info(
+            "Scan command queued for execution on %s", self.dish_dev_name
+        )
         return task_status, response
 
     def endscan(
@@ -891,7 +906,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_command_allowed_callable("EndScan"),
             task_callback=task_callback,
         )
-        self.logger.info("EndScan command queued for execution")
+        self.logger.info(
+            "EndScan command queued for execution on %s", self.dish_dev_name
+        )
         return task_status, response
 
     def is_track_allowed(self: DishLNComponentManager) -> bool:
@@ -964,7 +981,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
-        self.logger.info("Track command queued for execution")
+        self.logger.info(
+            "Track command queued for execution on %s", self.dish_dev_name
+        )
         return task_status, response
 
     def is_trackstop_allowed(self: DishLNComponentManager) -> bool:
@@ -1009,7 +1028,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
             task_callback=task_callback,
         )
-        self.logger.info("TrackStop command queued for execution")
+        self.logger.info(
+            "TrackStop command queued for execution on %s", self.dish_dev_name
+        )
         return task_status, response
 
     def configureband(
@@ -1040,7 +1061,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_command_allowed_callable("ConfigureBand"),
             task_callback=task_callback,
         )
-        self.logger.info("ConfigureBand command queued for execution")
+        self.logger.info(
+            "ConfigureBand command queued for execution on %s",
+            self.dish_dev_name,
+        )
         return task_status, response
 
     def setoperatemode(
@@ -1067,7 +1091,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_command_allowed_callable("SetOperateMode"),
             task_callback=task_callback,
         )
-        self.logger.info("SetOperateMode command queued for execution")
+        self.logger.info(
+            "SetOperateMode command queued for execution on %s",
+            self.dish_dev_name,
+        )
         return task_status, response
 
     def configure(
@@ -1118,7 +1145,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             is_cmd_allowed=self.is_command_allowed_callable("Configure"),
             task_callback=task_callback,
         )
-        self.logger.info("Configure command queued for execution")
+        self.logger.info(
+            "Configure command queued for execution on %s", self.dish_dev_name
+        )
         return task_status, response
 
     def track_load_static_off(
@@ -1171,8 +1200,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info(
-            "TrackLoadStaticOff command queued for execution with argin: %s",
+            "TrackLoadStaticOff command queued for "
+            + "execution with argin: %s on %s",
             argin,
+            self.dish_dev_name,
         )
         return task_status, response
 
@@ -1309,8 +1340,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.logger.info(
-            "ApplyPointingModel command queued for execution with argin: %s",
+            "ApplyPointingModel command queued for "
+            + "execution with argin: %s on %s",
             argin,
+            self.dish_dev_name,
         )
         return task_status, response
 

@@ -192,7 +192,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._health_state = healthState
         self.push_change_archive_events("healthState", self._health_state)
         self.logger.info(
-            "Update HealthState of %s is: %s",
+            "Updated HealthState of %s is: %s",
             self._dishln_name,
             self._health_state,
         )
@@ -222,7 +222,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "lastPointingData", self._lastPointingData
         )
         self.logger.info(
-            "Update lastPointingData of %s is: %s ",
+            "Updated lastPointingData of %s is: %s ",
             self._dishln_name,
             last_pointing_data,
         )

@@ -503,11 +503,11 @@ class Configure(DishLNCommand):
                 self.component_manager.partial_configure_lrcr = result_code
                 self.logger.info(
                     "Command ID: %s | "
-                    "Result code for track load "
-                    "Result: %s ,Correction Key: %s ,"
+                    "Result code for track load: %s  "
+                    ",Correction Key: %s ,"
                     "Partial Configure: %s",
                     self.component_manager.command_id,
-                    ResultCode(result_code).name,
+                    result_code,
                     self.component_manager.correction_key,
                     self.component_manager.partial_configure,
                 )
