@@ -165,7 +165,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.__target_data = data
         except Exception as exception:
             self.logger.exception(
-                "Failed to update target data due to exception: %s", exception
+                "Command ID: %s |"
+                + "Failed to update target data due to exception: %s",
+                self.command_id,
+                exception,
             )
 
     @property
@@ -209,7 +212,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         if "wrap_sector" in self.target_data["pointing"]:
             self.wrap_sector_key = True
             self.wrap_sector = self.target_data["pointing"]["wrap_sector"]
-            self.logger.debug("Wrap sector set to: %s", self.wrap_sector)
+            self.logger.debug(
+                "Command ID: %s | Wrap sector set to: %s",
+                self.command_id,
+                self.wrap_sector,
+            )
 
     def download_antenna_and_iers_data(self):
         """Method that downloads antenna and iers data"""
@@ -222,7 +229,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """Create AzElConverter Object and antenna object"""
 
         self.converter.create_antenna_obj()
-        self.logger.debug("Antenna object created")
+        self.logger.debug(
+            "Antenna object created for %s %s",
+            self.dishln_pointing_device_name,
+        )
 
     def download_iers_data(self: DishlnPointingDataComponentManager) -> None:
         """Downloads and initialises the IERS file.
@@ -290,7 +300,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(message)
             raise Exception(message) from exception
         self.logger.debug(
-            "Calculated ProgramTrackTable: %s", program_track_table
+            "Command ID : %s | Calculated ProgramTrackTable: %s",
+            self.command_id,
+            program_track_table,
         )
 
     def start_track_table_calculation(self) -> None:
@@ -306,11 +318,16 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 with self.track_thread_lock:
                     self.create_track_table_thread()
                     self.track_table_thread.start()
-                    self.logger.debug("Started trackTable thread.")
+                    self.logger.debug(
+                        "Command ID: %s | Started trackTable thread.",
+                        self.command_id,
+                    )
             else:
                 self.logger.debug(
-                    "ProgramTrackTable calculation is already going on."
-                    + " New thread will not be hosted."
+                    "Command ID: %s | "
+                    + "ProgramTrackTable calculation is already going on."
+                    + " New thread will not be hosted.",
+                    self.command_id,
                 )
         except Exception as exception:
             self.logger.exception(

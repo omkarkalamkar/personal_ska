@@ -208,7 +208,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :rtype: Tuple[List[ResultCode], List[str]]
         """
         self.logger.info(
-            "ChangePointingData Command " + "invoked with argin %s", argin
+            "ChangePointingData Command invoked with argin %s", argin
         )
         return ([ResultCode.OK], ["offset change event set"])
 

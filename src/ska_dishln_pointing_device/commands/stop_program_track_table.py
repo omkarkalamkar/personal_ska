@@ -31,7 +31,13 @@ class StopProgramTrackTable(FastCommand):
     def do(self, *args, **kwargs) -> None:
         """This method stops program track table generation."""
         try:
-            self.logger.debug("Executing StopProgramTrackTable command.")
+            self.logger.debug(
+                "Command ID: %s | "
+                + "Executing StopProgramTrackTable command."
+                + " on %s",
+                self.component_manager.command_id,
+                self.component_manager.dishln_pointing_device_name,
+            )
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.set()
             if (
@@ -41,11 +47,19 @@ class StopProgramTrackTable(FastCommand):
                 self.component_manager.track_table_thread.join()
             self.component_manager.update_program_track_table([])
             self.logger.info(
-                "StopProgramTrackTable command executed successfully"
+                "Command ID: %s |"
+                + "StopProgramTrackTable command executed successfully"
+                + " on %s",
+                self.component_manager.command_id,
+                self.component_manager.dishln_pointing_device_name,
             )
         except Exception as exception:
             self.logger.error(
-                "Exception occurred in StopProgramTrackTable command : %s",
+                "Command ID: %s |"
+                + "Exception occurred in StopProgramTrackTable command "
+                "on %s Exception: %s",
+                self.component_manager.command_id,
+                self.component_manager.dishln_pointing_device_name,
                 exception,
             )
             raise exception

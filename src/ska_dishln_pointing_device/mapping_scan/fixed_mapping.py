@@ -58,8 +58,9 @@ class FixedMappingScan(BaseScanMapping):
 
         except Exception as exception:
             self.logger.exception(
-                "Failed to configure fixed mapping scan "
+                "Failed to configure fixed mapping scan on dish %s"
                 + "due to exception: %s",
+                self.component_manager.dishln_pointing_device_name,
                 exception,
             )
             raise Exception(
@@ -91,7 +92,13 @@ class FixedMappingScan(BaseScanMapping):
                 )
             return self.azel_to_radec(az, el, timestamp.to_string())
         except Exception as exception:
-            self.logger.exception("Exception: %s", exception)
+            self.logger.exception(
+                "Exception occured while setting "
+                + "Ra and Dec for mapping scan for %s "
+                + "Exception: %s",
+                self.component_manager.dishln_pointing_device_name,
+                exception,
+            )
             raise Exception(
                 "Exception while setting Ra and Dec for mapping scan:"
                 f" {exception}"
