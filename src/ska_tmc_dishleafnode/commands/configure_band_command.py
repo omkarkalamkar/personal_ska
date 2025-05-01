@@ -142,14 +142,18 @@ class ConfigureBand(DishLNCommand):
                 self.component_manager.command_unique_id_dict[
                     command_name
                 ] = message[0]
+
             self.logger.info(
-                "Command ID: %s | Command: %s "
-                + "returned result: %s, message: %s ",
+                "Command ID: %s |"
+                + " %s Command executed on %s "
+                + "Result: %s, Message: %s",
                 self.component_manager.command_id,
                 command_name,
+                self.component_manager.dish_dev_name,
                 result_code,
                 message,
             )
+
             self.logger.debug(
                 "Command ID: %s | Released tango lock",
                 self.component_manager.command_id,

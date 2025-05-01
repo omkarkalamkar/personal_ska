@@ -80,7 +80,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name
         self.logger.info(
-            "Dish leaf node pointing device name is %s",
+            "Dish leaf node pointing device name is: %s",
             self.dishln_pointing_device_name,
         )
         self.dish_id = re.findall(
@@ -165,9 +165,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.__target_data = data
         except Exception as exception:
             self.logger.exception(
-                "Command ID: %s |"
-                + "Failed to update target data due to exception: %s",
-                self.command_id,
+                "Failed to update target data due to exception: %s",
                 exception,
             )
 
@@ -213,8 +211,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.wrap_sector_key = True
             self.wrap_sector = self.target_data["pointing"]["wrap_sector"]
             self.logger.debug(
-                "Command ID: %s | Wrap sector set to: %s",
-                self.command_id,
+                "Wrap sector set to: %s",
                 self.wrap_sector,
             )
 
@@ -300,7 +297,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(message)
             raise Exception(message) from exception
         self.logger.debug(
-            "Command ID : %s | Calculated ProgramTrackTable: %s",
+            "Calculated ProgramTrackTable: %s",
             self.command_id,
             program_track_table,
         )
@@ -319,15 +316,13 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     self.create_track_table_thread()
                     self.track_table_thread.start()
                     self.logger.debug(
-                        "Command ID: %s | Started trackTable thread.",
+                        "Started trackTable thread.",
                         self.command_id,
                     )
             else:
                 self.logger.debug(
-                    "Command ID: %s | "
-                    + "ProgramTrackTable calculation is already going on."
+                    "ProgramTrackTable calculation is already going on."
                     + " New thread will not be hosted.",
-                    self.command_id,
                 )
         except Exception as exception:
             self.logger.exception(
@@ -465,7 +460,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
         except Exception as value_error:
             self.logger.error(
-                "Error occured during" + "track thread execution: %s",
+                "Error occured during track thread execution: %s",
                 str(value_error),
             )
             self.update_program_track_table_error_callback(str(value_error))

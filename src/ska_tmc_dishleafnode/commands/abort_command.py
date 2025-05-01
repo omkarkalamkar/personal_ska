@@ -165,8 +165,10 @@ class Abort(DishLNCommand):
             # Append command unique id
             self.component_manager.command_unique_id_dict["Abort"] = message[0]
             self.logger.info(
-                "Abort() command has been invoked, the result code"
+                "Command ID: %s | "
+                + "Abort() command has been invoked, the result code"
                 + " is %s and the message is %s",
+                self.command_uniq_id,
                 result_code[0],
                 message[0],
             )
@@ -185,7 +187,7 @@ class Abort(DishLNCommand):
         self.component_manager.clear_track_table_errors()
 
         self.logger.debug(
-            "Abort command executed successfully on" + " the DishLeafNode."
+            "Abort command executed successfully on the DishLeafNode."
         )
         return ResultCode.STARTED, COMMAND_STARTED_MESSAGE
 

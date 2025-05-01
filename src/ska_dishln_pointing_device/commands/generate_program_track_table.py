@@ -65,10 +65,9 @@ class GenerateProgramTrackTable(FastCommand):
             current_scan_obj.set_target_and_start_process()
         except Exception as exception:
             self.logger.exception(
-                "Command ID: %s | Exception occurred "
+                " Exception occurred "
                 + "in GenerateProgramTrackTable command on %s ,"
                 + "Exception: %s",
-                self.component_manager.command_id,
                 self.component_manager.dishln_pointing_device_name,
                 exception,
             )

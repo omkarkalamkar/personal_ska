@@ -97,9 +97,7 @@ class ApplyPointingModel(DishLNCommand):
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
             logger.info(
-                "Command ID: %s | ApplyPointingModel command "
-                + "invoked successfully on %s",
-                getattr(self.component_manager, "command_id", "not_set"),
+                "ApplyPointingModel command invoked successfully on %s",
                 self.dish_master_adapter.dev_name,
             )
 
@@ -136,12 +134,12 @@ class ApplyPointingModel(DishLNCommand):
                 result, message = data[tm_data_filepath].get_dict(), ""
             except json.JSONDecodeError as json_error:
                 self.logger.exception(
-                    "Failed to parse JSON" + " Error: %s", json_error
+                    "Failed to parse JSON Error: %s", json_error
                 )
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
-                    "Exception in Loading global pointing data "
+                    "Exception occured in Loading global pointing data "
                     + "JSON file. Exception: %s",
                     exception,
                 )

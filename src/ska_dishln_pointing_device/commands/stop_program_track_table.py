@@ -32,10 +32,7 @@ class StopProgramTrackTable(FastCommand):
         """This method stops program track table generation."""
         try:
             self.logger.debug(
-                "Command ID: %s | "
-                + "Executing StopProgramTrackTable command."
-                + " on %s",
-                self.component_manager.command_id,
+                "Executing StopProgramTrackTable command." + " on %s",
                 self.component_manager.dishln_pointing_device_name,
             )
             with self.component_manager.track_thread_lock:
@@ -55,10 +52,8 @@ class StopProgramTrackTable(FastCommand):
             )
         except Exception as exception:
             self.logger.error(
-                "Command ID: %s |"
-                + "Exception occurred in StopProgramTrackTable command "
+                "Exception occurred in StopProgramTrackTable command "
                 "on %s Exception: %s",
-                self.component_manager.command_id,
                 self.component_manager.dishln_pointing_device_name,
                 exception,
             )

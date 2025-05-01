@@ -111,13 +111,17 @@ class Track(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device : %s is not found",
+                "Command ID: %s |" + "Adapter for: %s is not found",
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
 
         with self.component_manager.tango_operation_execution_lock:
-            self.logger.debug("Acquired  tango lock")
+            self.logger.debug(
+                "Command ID: %s |" + " Acquired  tango lock",
+                self.component_manager.command_id,
+            )
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
@@ -127,11 +131,18 @@ class Track(DishLNCommand):
                     "Track"
                 ] = message[0]
             self.logger.debug(
-                "Track command returned ResultCode: %s, message: %s",
+                "Command ID: %s | "
+                + "Track command executed on %s "
+                + "ResultCode: %s, message: %s",
+                self.component_manager.command_id,
+                self.component_manager.dish_dev_name,
                 result_code,
                 message,
             )
-            self.logger.debug("Released tango lock")
+            self.logger.debug(
+                "Command ID: %s |" + " Released tango lock",
+                self.component_manager.command_id,
+            )
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
