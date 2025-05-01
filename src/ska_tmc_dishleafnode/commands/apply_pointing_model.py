@@ -97,7 +97,9 @@ class ApplyPointingModel(DishLNCommand):
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
             logger.info(
-                "The ApplyPointingModel command invoked successfully %s",
+                "Command ID: %s | ApplyPointingModel command "
+                + "invoked successfully on %s",
+                getattr(self.component_manager, "command_id", "not_set"),
                 self.dish_master_adapter.dev_name,
             )
 
@@ -133,11 +135,14 @@ class ApplyPointingModel(DishLNCommand):
                 data = TMData(tm_data_sources, update=True)
                 result, message = data[tm_data_filepath].get_dict(), ""
             except json.JSONDecodeError as json_error:
-                self.logger.exception("JSON Error: %s", json_error)
+                self.logger.exception(
+                    "Failed to parse JSON" + " Error: %s", json_error
+                )
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
-                    "Error in Loading global pointing data json file %s",
+                    "Exception in Loading global pointing data "
+                    + "JSON file. Exception: %s",
                     exception,
                 )
                 result, message = (
@@ -183,8 +188,9 @@ class ApplyPointingModel(DishLNCommand):
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found", self.component_manager.dish_dev_name
+            self.logger.debug(
+                "Failed to find adapter for device: %s",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 

@@ -101,21 +101,36 @@ class ConfigureBand(DishLNCommand):
             (ResultCode, str)
         """
         self.logger.debug(
-            "Input argument for ConfigureBand command is: %s", argin
+            "Command ID: %s | Input argument for ConfigureBand command is: %s",
+            self.component_manager.command_id,
+            argin,
         )
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device : %s is not found",
+                "Command ID: %s | Failed to find adapter for device: %s",
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
 
         command_name: str = f"ConfigureBand{argin}"
-        self.logger.info("command_name: %s", command_name)
-        self.logger.info("%s command will be executed shortly.", command_name)
+        self.logger.debug(
+            "Command ID: %s | Preparing to execute command: %s",
+            self.component_manager.command_id,
+            command_name,
+        )
+        self.logger.debug(
+            "Command ID: %s | Command: %s will be executed on %s",
+            self.component_manager.command_id,
+            command_name,
+            self.component_manager.dish_dev_name,
+        )
         with self.component_manager.tango_operation_execution_lock:
-            self.logger.debug("Acquired  tango lock")
+            self.logger.debug(
+                "Command ID: %s | Acquired tango lock",
+                self.component_manager.command_id,
+            )
             result_code, message = self.call_adapter_method(
                 "Dish Master",
                 self.dish_master_adapter,
@@ -127,13 +142,18 @@ class ConfigureBand(DishLNCommand):
                 self.component_manager.command_unique_id_dict[
                     command_name
                 ] = message[0]
-            self.logger.debug(
-                "%s command returned ResultCode: %s and message: %s",
+            self.logger.info(
+                "Command ID: %s | Command: %s "
+                + "returned result: %s, message: %s ",
+                self.component_manager.command_id,
                 command_name,
                 result_code,
                 message,
             )
-            self.logger.debug("Released tango lock")
+            self.logger.debug(
+                "Command ID: %s | Released tango lock",
+                self.component_manager.command_id,
+            )
 
         if result_code[0] == ResultCode.FAILED:
             return result_code[0], message[0]
