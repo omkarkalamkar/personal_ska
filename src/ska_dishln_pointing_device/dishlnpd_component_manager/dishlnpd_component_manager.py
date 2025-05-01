@@ -298,7 +298,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             raise Exception(message) from exception
         self.logger.debug(
             "Calculated ProgramTrackTable: %s",
-            self.command_id,
             program_track_table,
         )
 
@@ -317,7 +316,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     self.track_table_thread.start()
                     self.logger.debug(
                         "Started trackTable thread.",
-                        self.command_id,
                     )
             else:
                 self.logger.debug(

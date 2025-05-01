@@ -119,7 +119,7 @@ class Track(DishLNCommand):
 
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug(
-                "Command ID: %s |" + " Acquired  tango lock",
+                "Command ID: %s | Acquired  tango lock",
                 self.component_manager.command_id,
             )
             result_code, message = self.call_adapter_method(
@@ -136,11 +136,11 @@ class Track(DishLNCommand):
                 + "ResultCode: %s, message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
-                result_code,
+                ResultCode(result_code[0]).name,
                 message,
             )
             self.logger.debug(
-                "Command ID: %s |" + " Released tango lock",
+                "Command ID: %s | Released tango lock",
                 self.component_manager.command_id,
             )
 

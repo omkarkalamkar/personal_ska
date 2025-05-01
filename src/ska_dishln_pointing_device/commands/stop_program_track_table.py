@@ -44,10 +44,8 @@ class StopProgramTrackTable(FastCommand):
                 self.component_manager.track_table_thread.join()
             self.component_manager.update_program_track_table([])
             self.logger.info(
-                "Command ID: %s |"
-                + "StopProgramTrackTable command executed successfully"
+                "StopProgramTrackTable command executed successfully"
                 + " on %s",
-                self.component_manager.command_id,
                 self.component_manager.dishln_pointing_device_name,
             )
         except Exception as exception:

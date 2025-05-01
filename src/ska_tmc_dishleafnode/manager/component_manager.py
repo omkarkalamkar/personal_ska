@@ -339,7 +339,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug("Antenna object created")
         except Exception as exp:
             self.logger.exception(
-                "Error while creating antenna obj ," + "Error: %s", exp
+                "Error while creating antenna obj , Exception: %s", exp
             )
 
     def is_command_allowed_callable(
@@ -540,10 +540,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         self._current_track_table_error = value
-        self.logger.debug("Value is: %s", value)
+        self.logger.debug("Track table error set to: %s", value)
         # Ensure that the value is not empty string
         if value:
-            self.logger.debug("Value is: %s", value)
+            self.logger.debug("Track table error is: %s", value)
             now = datetime.datetime.now()
             current_time = now.strftime("%Y-%m-%d %H:%M:%S")
             time_added_message = current_time + ": " + value
@@ -680,13 +680,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         self.achieved_pointing_data.get(block=True).tolist()
                     )
                 except ValueError as value_error:
-                    self.logger.exception(
+                    self.logger.error(
                         "Value error occurred in actual pointing process: %s",
                         value_error,
                     )
                 except Exception as exception:
                     self.logger.exception(
-                        "Error in actual pointing process: %s", exception
+                        "Exception occured in actual pointing process: %s",
+                        exception,
                     )
 
     def perform_reverse_transform(self: DishLNComponentManager, value_list):
@@ -718,7 +719,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(
                 "No values on achievedPointing dish master attribute,"
-                "the device will continue with its normal operation.: %s",
+                + "the device will continue with its normal operation. "
+                + "Exception: %s",
                 exception,
             )
 
@@ -788,7 +790,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info(
-            "SetStandbyFPMode command queued " + "for execution on %s",
+            "SetStandbyFPMode command queued for execution on %s",
             self.dish_dev_name,
         )
         return task_status, response
@@ -819,7 +821,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info(
-            "SetStandbyLPMode command " + "queued for execution on %s",
+            "SetStandbyLPMode command queued for execution on %s",
             self.dish_dev_name,
         )
         return task_status, response
@@ -848,7 +850,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info(
-            "SetStowMode command queued " + "for execution on %s",
+            "SetStowMode command queued for execution on %s",
             self.dish_dev_name,
         )
         return task_status, response
@@ -1640,7 +1642,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if band_name in self.dish_pointing_model_param:
                 self.dish_pointing_model_param[band_name] = dish_param
                 self.logger.info(
-                    f"Dish parameter: {band_name} updated to {dish_param}."
+                    "Dish parameter: %s updated to %s.", band_name, dish_param
                 )
             else:
                 self.logger.error(
@@ -1772,7 +1774,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.dish_adapter.trackTableLoadMode = load_mode
             self.logger.debug("Updated trackTableLoadMode to %s", load_mode)
         except (tango.DevFailed, Exception) as excption:
-            self.logger.error(
+            self.logger.exception(
                 "Exception occured while setting trackTableLoadMode on"
                 " the dish: %s",
                 excption,
@@ -1947,7 +1949,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             )
                             for observer in self.observable.observers
                         ]
-                        self.logger.info(
+                        self.logger.debug(
                             "Number of observer %s", observer_cmd_instance
                         )
                         self.observable.notify_observers(
@@ -2032,7 +2034,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 # If the Configure command is executed, below LRCR callback
                 # for the commands ConfigureBand, SetOperateMode and
                 # TrackLoadStaticOff is set via is invoke_configure method.
-                self.logger.info(
+                self.logger.debug(
                     "Observer %s",
                     [
                         observer.command_callback_tracker.command_id
@@ -2172,8 +2174,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 message,
                             ) = track_load_static_off_command.do(offsets)
                             self.logger.debug(
-                                f"result code : {result_code}"
-                                + f"message : {message}"
+                                "Result code: %s , Message: %s",
+                                ResultCode(result_code).name,
+                                message,
                             )
 
                             self.logger.debug(
@@ -2244,7 +2247,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.actual_pointing_process.terminate()
             self.actual_pointing_process.join()
             if self.actual_pointing_process.is_alive():
-                self.logger.info(
+                self.logger.debug(
                     "Actual pointing process is still alive,"
                     "killing it forcefully"
                 )
@@ -2255,7 +2258,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _ = self.achieved_pointing_data.get(block=True)
         del self.achieved_pointing_data
         self.process_manager.shutdown()
-        self.logger.info("stop_executors_and_cleanup_memory successful")
+        self.logger.debug("stop_executors_and_cleanup_memory successful")
 
     def get_dish_state(
         self,

@@ -37,9 +37,7 @@ class GenerateProgramTrackTable(FastCommand):
         """This method generates program track table."""
         try:
             self.logger.info(
-                "Command ID: %s | "
-                + "Executing GenerateProgramTrackTable command on %s",
-                self.component_manager.command_id,
+                "Executing GenerateProgramTrackTable command on %s",
                 self.component_manager.dishln_pointing_device_name,
             )
             with self.component_manager.track_thread_lock:

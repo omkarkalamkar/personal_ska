@@ -101,7 +101,11 @@ class ProgramTrackTableCalculator:
             return program_track_table
 
         except Exception as exception:
-            self.logger.error(exception)
+            self.logger.error(
+                "Exception occured to calculate "
+                + "program track table , Exception: %s",
+                exception,
+            )
             raise Exception(str(exception)) from exception
 
     def _is_elevation_within_mechanical_limits(
@@ -172,7 +176,7 @@ class ProgramTrackTableCalculator:
                 "Exception occurred while calculating timestamp list: "
                 + str(exception)
             )
-            self.logger.error(message)
+            self.logger.exception(message)
             raise Exception(message) from exception
 
         return time_stamp_list, tai_timestamp_list
@@ -203,7 +207,9 @@ class ProgramTrackTableCalculator:
             )
             return result
         except Exception as exception:
-            self.logger.error(exception)
+            self.logger.exception(
+                "Failed to convert coordinates to AzEl: %s", exception
+            )
             raise Exception(str(exception)) from exception
 
     def convert_utc_to_tai(
@@ -234,7 +240,7 @@ class ProgramTrackTableCalculator:
                 "Exception occurred while converting utc time to tai format: "
                 + str(exception)
             )
-            self.logger.error(message)
+            self.logger.exception(message)
             raise Exception(message) from exception
 
         return tai_time

@@ -250,14 +250,14 @@ class AzElConverter:
         except ValueError as value_error:
             message = str(value_error)
             logger.error(
-                "Invalid RA/Dec values " + "provided, Exception: %s ", message
+                "Invalid RA/Dec values provided, Exception: %s ", message
             )
             raise Exception(message) from value_error
 
         except Exception as exception:
             message = str(exception)
             logger.exception(
-                "Failed to convert RA/Dec " + "to Az/El, Exception: %s ",
+                "Failed to convert RA/Dec to Az/El, Exception: %s ",
                 message,
             )
             raise Exception(message) from exception

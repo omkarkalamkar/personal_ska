@@ -176,7 +176,7 @@ class Configure(DishLNCommand):
                 self.component_manager.correction_key = ""
             self.component_manager.clear_configure_command_events_flags()
             self.component_manager.command_unique_id_dict.clear()
-            self.logger.info("Configure command cleanup completed.")
+            self.logger.debug("Configure command cleanup completed.")
 
         except Exception as e:
             self.logger.exception(
@@ -299,9 +299,7 @@ class Configure(DishLNCommand):
                     {"pointing": pointing_device_conf_json["pointing"]}
                 )
                 self.logger.debug(
-                    "Command ID: %s |"
                     "Calling GenerateProgramTrackTable() on %s",
-                    self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
                 )
                 self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
@@ -507,7 +505,7 @@ class Configure(DishLNCommand):
                     ",Correction Key: %s ,"
                     "Partial Configure: %s",
                     self.component_manager.command_id,
-                    result_code,
+                    ResultCode(result_code[0]).name,
                     self.component_manager.correction_key,
                     self.component_manager.partial_configure,
                 )
@@ -588,7 +586,7 @@ class Configure(DishLNCommand):
                 ResultCode.OK
             )
             self.logger.debug(
-                "Command ID: %s | " + "SetOperateMode Result: %s",
+                "Command ID: %s | SetOperateMode Result: %s",
                 self.component_manager.command_id,
                 self.component_manager.set_operate_mode_result,
             )
@@ -618,7 +616,7 @@ class Configure(DishLNCommand):
             Method for invoking setoperatemode callback
             """
             self.logger.info(
-                "Command ID: %s | Received SetOperate mode " + ", Result: %s",
+                "Command ID: %s | Received SetOperate mode , Result: %s",
                 self.component_manager.command_id,
                 result,
             )

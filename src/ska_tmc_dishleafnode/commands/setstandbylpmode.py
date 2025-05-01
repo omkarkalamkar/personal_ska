@@ -56,7 +56,7 @@ class SetStandbyLPMode(DishLNCommand):
         else:
             logger.info(
                 "Command ID: %s | "
-                "The SetStandbyLPMode command is invoked successfully on %s",
+                "SetStandbyLPMode command is invoked successfully on %s",
                 message,
                 self.dish_master_adapter.dev_name,
             )

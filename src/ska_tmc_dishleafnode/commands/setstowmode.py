@@ -57,7 +57,7 @@ class SetStowMode(DishLNCommand):
         else:
             logger.info(
                 "Command ID: %s | "
-                "The SetStowMode command is invoked successfully on %s",
+                "SetStowMode command is invoked successfully on %s",
                 message,
                 self.dish_master_adapter.dev_name,
             )

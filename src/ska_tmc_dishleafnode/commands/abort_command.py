@@ -169,7 +169,7 @@ class Abort(DishLNCommand):
                 + "Abort() command has been invoked, the result code"
                 + " is %s and the message is %s",
                 self.component_manager.command_id,
-                result_code[0],
+                ResultCode(result_code[0]).name,
                 message[0],
             )
             if result_code[0] in [

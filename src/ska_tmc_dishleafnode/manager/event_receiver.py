@@ -393,7 +393,7 @@ class DishLNEventReceiver(EventReceiver):
                 dev_info.event_id = 0
                 dev_info.subscribed_to_attribute = False
                 self._logger.info(
-                    "Unsubscribed %s Sdp queuue connector attribute event.",
+                    "Unsubscribed %s Sdp queue connector attribute event.",
                     dev_info.dev_name,
                 )
         except Exception as exception:
@@ -495,7 +495,7 @@ class DishLNEventReceiver(EventReceiver):
         new_value = event_flag.attr_value.value
         self._logger.debug("New value is %s", new_value)
         if new_value:
-            self._logger.debug("updating track table error value")
+            self._logger.debug("Updating track table error value")
             self._component_manager.current_track_table_error = new_value
         self.log_event_exit("handle_pointing_program_track_table_event")
         self._logger.debug(

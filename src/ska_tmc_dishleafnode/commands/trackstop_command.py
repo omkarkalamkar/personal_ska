@@ -88,8 +88,8 @@ class TrackStop(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Command ID: %s |" + "Adapter for : %s is not found",
-                self.command_uniq_id,
+                "Command ID: %s | Adapter for : %s is not found",
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
@@ -97,7 +97,7 @@ class TrackStop(DishLNCommand):
         result_code, message = [ResultCode.OK], ""
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug(
-                "Command ID: %s |" + "Acquired  tango lock",
+                "Command ID: %s | Acquired  tango lock",
                 self.component_manager.command_id,
             )
             result_code, msg = self.call_adapter_method(
@@ -115,7 +115,7 @@ class TrackStop(DishLNCommand):
                 + "ResultCode: %s, message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
-                result_code,
+                ResultCode(result_code[0]).name,
                 msg,
             )
             if result_code[0] in [
@@ -128,7 +128,7 @@ class TrackStop(DishLNCommand):
                     + f"and message: {msg[0]}"
                 )
             self.logger.debug(
-                "Command ID: %s |" + " Released tango lock",
+                "Command ID: %s | Released tango lock",
                 self.component_manager.command_id,
             )
 
@@ -136,7 +136,7 @@ class TrackStop(DishLNCommand):
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
         except Exception as exception:
             self.logger.exception(
-                "Command ID: %s | " + "Unable to stop programTrackTable: %s",
+                "Command ID: %s | Unable to stop programTrackTable: %s",
                 self.component_manager.command_id,
                 exception,
             )
