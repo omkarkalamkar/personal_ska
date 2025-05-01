@@ -79,9 +79,11 @@ class Abort(DishLNCommand):
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
 
-        self.logger.debug("Result of Abort execution: %s", result[0])
-        self.logger.debug("Abort command execution status: %s", status)
-        self.logger.debug("Abort command execution message: %s", message)
+        self.logger.info(
+            "Command ID: %s | Updating task status with Result: %s",
+            self.command_uniq_id,
+            kwargs,
+        )
 
         if result:
             if result[0] == ResultCode.OK and status == TaskStatus.COMPLETED:

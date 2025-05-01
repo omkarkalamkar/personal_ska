@@ -230,7 +230,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
         self.converter.create_antenna_obj()
         self.logger.debug(
-            "Antenna object created for %s %s",
+            "Antenna object created for %s",
             self.dishln_pointing_device_name,
         )
 
