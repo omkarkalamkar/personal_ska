@@ -1642,7 +1642,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if band_name in self.dish_pointing_model_param:
                 self.dish_pointing_model_param[band_name] = dish_param
                 self.logger.info(
-                    "Dish parameter: %s updated to %s.", band_name, dish_param
+                    f"Dish parameter: {band_name} updated to {dish_param}."
                 )
             else:
                 self.logger.error(
@@ -2174,9 +2174,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 message,
                             ) = track_load_static_off_command.do(offsets)
                             self.logger.debug(
-                                "Result code: %s , Message: %s",
-                                result_code,
-                                message,
+                                f"result code : {result_code}"
+                                + f"message : {message}"
                             )
 
                             self.logger.debug(
