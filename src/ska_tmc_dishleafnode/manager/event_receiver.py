@@ -257,7 +257,18 @@ class DishLNEventReceiver(EventReceiver):
         :rtype: NoneType
         """
 
-        self._component_manager.update_achieved_pointing_event(event_flag)
+        # self._component_manager.update_achieved_pointing_event(event_flag)
+
+        if event_flag.err:
+            error = event_flag.errors[0]
+            error_msg = f"{error.reason},{error.desc}"
+            self._logger.error(error_msg)
+            self._component_manager.update_event_failure(
+                event_flag.device.dev_name()
+            )
+            return
+        new_value = event_flag.attr_value.value
+        self._component_manager.achieved_pointing_data.put(new_value)
 
     def subscribe_sdpqc_attribute(
         self: DishLNEventReceiver,

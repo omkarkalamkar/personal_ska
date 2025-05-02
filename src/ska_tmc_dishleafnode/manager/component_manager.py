@@ -1584,6 +1584,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param dishMode: Dish mode of the device
         :type dishMode: DishMode
         """
+
         with self.dish_mode_lock:
             dev_info = self.get_device()
             dev_info.dish_mode = dish_mode
@@ -2586,17 +2587,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.event_queues["configuredBand"].put(event)
 
-    def update_achieved_pointing_event(self, event: tango.EventData) -> None:
-        """
-        Updates achieved pointing event in respective queue
-        :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
-
-        """
-        self.achieved_pointing_data.put(event.attr_value.value)
+    # def update_achieved_pointing_event(self, event: tango.EventData) -> None:
+    #     """
+    #     Updates achieved pointing event in respective queue
+    #     :param event: It is the Tango Event Data object
+    #         which contains the event data, dishMode Event in this case.
+    #     :type event: tango.EventData
+    #     :return: None
+    #     :rtype: None
+    #
+    #     """
+    #     self.achieved_pointing_data.put(event.attr_value.value)
 
     def update_pointing_program_track_table_event(
         self, event: tango.EventData
