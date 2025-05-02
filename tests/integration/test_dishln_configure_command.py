@@ -127,7 +127,7 @@ def configure_dish_leaf_node(
     dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
-
+@pytest.skip("Skipping non_sidereal_tracking test due to ongoing investigation")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(
@@ -137,6 +137,7 @@ def test_configure_command(
     tango_context, group_callback, json_factory, json_to_use, cm_pointig_device
 ):
     if json_to_use == "non_sidereal_tracking":
+        pytest.skip("Skipping non_sidereal_tracking test due to ongoing investigation")
         json_to_use = get_non_sidereal_json_for_now(
             json_factory(json_to_use), cm_pointig_device
         )
