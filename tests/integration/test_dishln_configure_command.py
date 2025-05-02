@@ -137,9 +137,6 @@ def test_configure_command(
     tango_context, group_callback, json_factory, json_to_use, cm_pointig_device
 ):
     if json_to_use == "non_sidereal_tracking":
-        pytest.skip(
-            "Skipping non_sidereal_tracking test due to ongoing investigation"
-        )
         json_to_use = get_non_sidereal_json_for_now(
             json_factory(json_to_use), cm_pointig_device
         )
