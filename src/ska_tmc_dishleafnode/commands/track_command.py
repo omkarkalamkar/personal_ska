@@ -136,7 +136,7 @@ class Track(DishLNCommand):
                 + "ResultCode: %s, message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
-                ResultCode(result_code[0]).name,
+                ResultCode(result_code[0]),
                 message,
             )
             self.logger.debug(
