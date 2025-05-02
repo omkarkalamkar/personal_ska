@@ -128,7 +128,7 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.skip(
+@pytest.mark.skip(
     "Skipping non_sidereal_tracking test due to ongoing investigation"
 )
 @pytest.mark.post_deployment
