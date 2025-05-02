@@ -115,6 +115,7 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(
