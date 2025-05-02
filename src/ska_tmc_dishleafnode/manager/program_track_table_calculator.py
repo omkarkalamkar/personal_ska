@@ -107,10 +107,10 @@ class ProgramTrackTableCalculator:
             return program_track_table
 
         except Exception as exception:
-            self.logger.error(
+            self.logger.exception(
                 "Exception occured to calculate "
                 + "program track table , Exception: %s",
-                exception,
+                str(exception),
             )
             raise Exception(str(exception)) from exception
 
@@ -214,7 +214,7 @@ class ProgramTrackTableCalculator:
             return result
         except Exception as exception:
             self.logger.exception(
-                "Failed to convert coordinates to AzEl: %s", exception
+                "Failed to convert coordinates to AzEl: %s", str(exception)
             )
             raise Exception(str(exception)) from exception
 

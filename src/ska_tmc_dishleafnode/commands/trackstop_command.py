@@ -138,7 +138,7 @@ class TrackStop(DishLNCommand):
             self.logger.exception(
                 "Command ID: %s | Unable to stop programTrackTable: %s",
                 self.component_manager.command_id,
-                exception,
+                str(exception),
             )
             self.component_manager.current_track_table_error = (
                 f"Exception while stopping programTrackTable {exception}"

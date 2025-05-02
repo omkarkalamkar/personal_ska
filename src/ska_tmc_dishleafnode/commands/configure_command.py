@@ -117,7 +117,7 @@ class Configure(DishLNCommand):
             result = kwargs.get("result")
             status = kwargs.get("status", TaskStatus.COMPLETED)
             message = kwargs.get("exception") or kwargs.get("message")
-            self.logger.info(
+            self.logger.debug(
                 "Command ID: %s | Updating task status with Result: %s",
                 self.component_manager.command_id,
                 kwargs,
@@ -183,7 +183,7 @@ class Configure(DishLNCommand):
                 "Command ID: %s | Failed to update "
                 + "task status ,Exception: %s",
                 self.component_manager.command_id,
-                e,
+                str(e),
             )
 
     # pylint: enable=unused-argument
@@ -313,7 +313,7 @@ class Configure(DishLNCommand):
                     + "program track table on %s Exception: %s",
                     self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
-                    exception,
+                    str(exception),
                 )
                 self.component_manager.current_track_table_error = (
                     f"Exception while generating programTrackTable {exception}"
@@ -339,7 +339,7 @@ class Configure(DishLNCommand):
                 + "Exception: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
-                exception,
+                str(exception),
             )
 
             return (
@@ -375,7 +375,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_id,
                 result,
                 progress,
-                exception,
+                str(exception),
             )
             if result is None:
                 pass
@@ -395,7 +395,7 @@ class Configure(DishLNCommand):
                         "Command ID: %s | "
                         + "ResultCode: %s for configure band command",
                         self.component_manager.command_id,
-                        result_code,
+                        str(result_code),
                     )
                     # If timed out has occurred for configure band then update
                     # exception message for configure command
@@ -505,7 +505,7 @@ class Configure(DishLNCommand):
                     ",Correction Key: %s ,"
                     "Partial Configure: %s",
                     self.component_manager.command_id,
-                    result_code,
+                    str(result_code),
                     self.component_manager.correction_key,
                     self.component_manager.partial_configure,
                 )
@@ -597,7 +597,7 @@ class Configure(DishLNCommand):
 
         return: None
         """
-        self.logger.info(
+        self.logger.debug(
             "Command ID: %s | "
             "SetOperateMode command will be executed "
             "shortly on %s",
@@ -618,7 +618,7 @@ class Configure(DishLNCommand):
             self.logger.info(
                 "Command ID: %s | Received SetOperate mode , Result: %s",
                 self.component_manager.command_id,
-                result,
+                str(result),
             )
             if result is None:
                 pass
@@ -682,7 +682,7 @@ class Configure(DishLNCommand):
             PointingState.TRACK,
             PointingState.SLEW,
         ]:
-            self.logger.info(
+            self.logger.debug(
                 "Command ID: %s | Dish is already tracking/slewing. "
                 + "Track() command is not invoked on %s",
                 self.component_manager.command_id,
@@ -692,7 +692,7 @@ class Configure(DishLNCommand):
             self.component_manager.set_track_result_dict(
                 ResultCode.OK, message
             )
-            self.logger.debug(
+            self.logger.info(
                 "Command ID: %s | Track command Result: %s",
                 self.component_manager.command_id,
                 self.component_manager.track_result,
@@ -723,9 +723,9 @@ class Configure(DishLNCommand):
                 pass
             else:
                 self.logger.info(
-                    "Command ID: %s | " + "Track result: %s and %s",
+                    "Command ID: %s | Track result: %s and %s",
                     self.component_manager.command_id,
-                    result,
+                    str(result),
                     progress,
                 )
                 result_code, message = result

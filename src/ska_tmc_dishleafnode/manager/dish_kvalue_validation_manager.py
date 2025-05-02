@@ -44,7 +44,9 @@ class DishkValueValidationManager:
             count += 1
             time.sleep(1)
         if exception:
-            self.logger.exception("Dish manager is unresponsive %s", exception)
+            self.logger.exception(
+                "Dish manager is unresponsive %s", str(exception)
+            )
         return False
 
     def get_dish_manager_kvalue(self: DishkValueValidationManager) -> int:
@@ -69,7 +71,7 @@ class DishkValueValidationManager:
         self.logger.info("Dish Leaf Node k-value: %s", dish_ln_kvalue)
 
         if not dish_manager_kvalue or not dish_ln_kvalue:
-            self.logger.info("kValue not set")
+            self.logger.debug("kValue not set")
             self.component_manager.kValueValidationResult = ResultCode.UNKNOWN
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()

@@ -79,7 +79,7 @@ class SetStandbyLPMode(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
+            self.logger.debug(
                 "Command ID: %s |" + "Adapter for : %s is not found ",
                 message,
                 self.component_manager.dish_dev_name,

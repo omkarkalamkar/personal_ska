@@ -137,7 +137,7 @@ class TrackLoadStaticOff(DishLNCommand):
                 + " Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
-                result_code,
+                ResultCode(result_code[0]),
                 message,
             )
         return result_code[0], message[0]

@@ -133,15 +133,15 @@ class ApplyPointingModel(DishLNCommand):
                 data = TMData(tm_data_sources, update=True)
                 result, message = data[tm_data_filepath].get_dict(), ""
             except json.JSONDecodeError as json_error:
-                self.logger.exception(
-                    "Failed to parse JSON Error: %s", json_error
+                self.logger.error(
+                    "Failed to parse JSON ,Error: %s", json_error
                 )
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
                     "Exception occured in Loading global pointing data "
                     + "JSON file. Exception: %s",
-                    exception,
+                    str(exception),
                 )
                 result, message = (
                     {},

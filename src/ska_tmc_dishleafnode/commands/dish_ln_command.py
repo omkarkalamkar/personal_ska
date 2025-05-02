@@ -95,7 +95,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
                 self.dish_master_adapter.proxy.set_timeout_millis(5000)
                 self.logger.debug(
-                    "Dish master adapter for reated successfully",
+                    "Dish master adapter for created successfully",
                 )
                 self.component_manager.set_dish_adapter(
                     self.dish_master_adapter
@@ -225,7 +225,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         result = kwargs.get("result")
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
-        self.logger.info(
+        self.logger.debug(
             "Task result: %s, Status: %s, Message: %s",
             result,
             status,

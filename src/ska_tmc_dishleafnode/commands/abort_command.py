@@ -79,7 +79,7 @@ class Abort(DishLNCommand):
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
 
-        self.logger.info(
+        self.logger.debug(
             "Command ID: %s | Updating task status with Result: %s",
             self.component_manager.command_id,
             kwargs,
@@ -121,13 +121,13 @@ class Abort(DishLNCommand):
 
         """
         self.logger.debug(
-            "Command ID: %s | Command in progress: %s" + " on : %s",
+            "Command ID: %s | Command in progress: %s on : %s",
             self.component_manager.command_id,
             self.component_manager.command_in_progress,
             self.component_manager.dish_dev_name,
         )
         self.component_manager.abort_event.set()
-        self.logger.debug(
+        self.logger.info(
             "Command ID: %s | Abort event set for : %s",
             self.component_manager.command_id,
             self.component_manager.dish_dev_name,
@@ -141,7 +141,7 @@ class Abort(DishLNCommand):
             self.component_manager.abort_event.clear()
             self.logger.debug(
                 "Command ID: %s | Cleared abort event for: %s",
-                self.command_uniq_id,
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
 
@@ -153,7 +153,7 @@ class Abort(DishLNCommand):
             )
             return result_code, message
 
-        self.logger.info(
+        self.logger.debug(
             "Dish Abort commands device property is: %s",
             self.component_manager.is_dish_abort_commands_enabled,
         )
@@ -205,7 +205,7 @@ class Abort(DishLNCommand):
         except Exception as exception:
             self.logger.exception(
                 "Unable to stop programTrackTable: %s",
-                exception,
+                str(exception),
             )
             self.component_manager.current_track_table_error = (
                 f"Exception while stopping programTrackTable {exception}"

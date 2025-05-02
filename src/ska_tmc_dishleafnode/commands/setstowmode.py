@@ -81,7 +81,7 @@ class SetStowMode(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Command ID: %s | " + "Adapter for : %s is not found ",
+                "Command ID: %s | Adapter for : %s is not found ",
                 message,
                 self.component_manager.dish_dev_name,
             )

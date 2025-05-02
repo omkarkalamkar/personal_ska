@@ -68,7 +68,7 @@ class BaseScanMapping:
                 "Failed to configure scan target "
                 + "and start track table calculation due "
                 + "to exception : %s",
-                exception,
+                str(exception),
             )
 
     def extract_target_from_config(self):
@@ -88,7 +88,7 @@ class BaseScanMapping:
             self.logger.exception(
                 " Failed to set target for fixed/mosaic mapping "
                 + "scan due to exception: %s",
-                exp,
+                str(exp),
             )
             raise exp
 

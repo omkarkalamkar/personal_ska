@@ -166,7 +166,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(
                 "Failed to update target data due to exception: %s",
-                exception,
+                str(exception),
             )
 
     @property
@@ -210,7 +210,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         if "wrap_sector" in self.target_data["pointing"]:
             self.wrap_sector_key = True
             self.wrap_sector = self.target_data["pointing"]["wrap_sector"]
-            self.logger.debug(
+            self.logger.info(
                 "Wrap sector set to: %s",
                 self.wrap_sector,
             )
@@ -244,7 +244,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(
                 "Failed to download IERS_A data due to exception: %s."
                 + "Trying with a different source.",
-                exception,
+                str(exception),
             )
             self.download_iers_data_from_a_different_source()
         self.logger.info("IERS data download completed.")
@@ -269,7 +269,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(
                 "Failed to download IERS_A data due to exception: %s."
                 + " Will use the locally stored data.",
-                exception,
+                str(exception),
             )
             self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
