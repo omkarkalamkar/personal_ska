@@ -223,27 +223,6 @@ class Configure(DishLNCommand):
                 "pointing key is not present in the configure input json.",
             )
 
-        # if "tmc" in input_argin and input_argin["tmc"].get(
-        #     "partial_configuration"
-        # ):
-        #     # If partial configuration then check if required key provided
-        #     if (
-        #         "target" not in input_argin["pointing"]
-        #         and "trajectory" not in input_argin["pointing"]
-        #         and "ca_offset_arcsec" not in input_argin["pointing"]
-        #         and "ie_offset_arcsec" not in input_argin["pointing"]
-        #     ):
-        #         return (ResultCode.FAILED, "Invalid Partial Configure Json")
-        #     if "projection" in input_argin["pointing"]:
-        #         if (
-        #             input_argin["pointing"]["projection"]["alignment"].upper()
-        #             != "ICRS"
-        #         ):
-        #             return (
-        #                 ResultCode.FAILED,
-        #                 "At Present TMC supports projection alignment ICRS",
-        #             )
-        # else:
         if "dish" not in input_argin:
             return (
                 ResultCode.REJECTED,
