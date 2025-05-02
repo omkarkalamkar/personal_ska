@@ -15,7 +15,7 @@
     }
   },
   "tmc": {
-    "partial_configuration": true,
+    "delta_configuration": true,
     "scan_duration": 10.0
   }
 }

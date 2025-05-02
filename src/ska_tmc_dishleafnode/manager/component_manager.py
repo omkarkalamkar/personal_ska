@@ -256,6 +256,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
         self.command_unique_id_dict = {}
+        self._primary_configuration: dict = {}
 
     @property
     def configure_track_lrcr(self):
@@ -267,6 +268,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Set configure track lrcr"""
         with self.command_result_update_lock:
             self._configure_track_lrcr = value
+
+    @property
+    def primary_configuration(self) -> dict:
+        """Return primary configuration"""
+        return self._primary_configuration
+
+    @primary_configuration.setter
+    def primary_configuration(self, config: dict):
+        """Set Primary configuration"""
+        self._primary_configuration = config
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
@@ -1083,7 +1094,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             input_json = json.loads(argin)
-
+            is_delta_configure = input_json.get("tmc", {}).get(
+                "delta_configuration"
+            )
         except json.JSONDecodeError as exception:
             self.logger.exception(
                 "Exception occured while loading the input json: %s", exception
@@ -1102,14 +1115,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.dish_adapter = configure_command.dish_master_adapter
 
-        # validate the JSON argument
-        (
-            validation_result,
-            message,
-        ) = configure_command.validate_json_argument(input_json)
-        if validation_result != ResultCode.OK:
-            return validation_result, message
-        if "correction" in input_json["pointing"]:
+        # validate the JSON argument for main configuration
+        if not is_delta_configure:
+            (
+                validation_result,
+                message,
+            ) = configure_command.validate_json_argument(input_json)
+            if validation_result != ResultCode.OK:
+                return validation_result, message
+        if "correction" in input_json.get("pointing", {}):
             self.correction_key = input_json["pointing"]["correction"]
         # submit the command to the queue
         task_status, response = self.submit_task(

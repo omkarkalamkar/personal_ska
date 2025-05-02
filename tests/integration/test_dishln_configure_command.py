@@ -274,6 +274,7 @@ def delta_configure_dish_leaf_node(
     configure_input_str,
     delta_config_str,
     is_default_offset,
+    delta_only_once=False,
 ):
     """Delta configure flow for dish leaf node."""
     dev_factory = DevFactory()
@@ -336,23 +337,34 @@ def delta_configure_dish_leaf_node(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-
-    delta_configurations = build_delta_configure_data(
-        delta_config=delta_config_str,
-        x_offsets=[-5.0, 5.0, 3.0, 2.0, 1.0, 2.0],
-        y_offsets=[5.0, 1.0, 3.0, 2.0, -2.0, -1.0],
-    )
-    count = 0
-    for input_str in delta_configurations:
-        # Give a pause before invoking next configuration
-        sleep(3)
-        result_config, unique_id_config = dish_leaf_node.Configure(input_str)
+    if not delta_only_once:
+        delta_configurations = build_delta_configure_data(
+            delta_config=delta_config_str,
+            x_offsets=[-5.0, 5.0, 3.0, 2.0, 1.0, 2.0],
+            y_offsets=[5.0, 1.0, 3.0, 2.0, -2.0, -1.0],
+        )
+        count = 0
+        for input_str in delta_configurations:
+            # Give a pause before invoking next configuration
+            sleep(3)
+            result_config, unique_id_config = dish_leaf_node.Configure(
+                input_str
+            )
+            assert result_config[0] == ResultCode.QUEUED
+            group_callback["longRunningCommandResult"].assert_change_event(
+                (unique_id_config[0], COMMAND_COMPLETED),
+                lookahead=8,
+            )
+            count += 1
+    else:
+        result_config, unique_id_config = dish_leaf_node.Configure(
+            delta_config_str
+        )
         assert result_config[0] == ResultCode.QUEUED
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], COMMAND_COMPLETED),
             lookahead=8,
         )
-        count += 1
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
@@ -404,6 +416,54 @@ def test_delta_configure_command(tango_context, group_callback, json_factory):
         json_factory("dishleafnode_configure_adr106"),
         json_factory("delta_configure"),
         is_default_offset=True,
+    )
+
+
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+@pytest.mark.parametrize(
+    "delta_configure_type",
+    [
+        "only_trajectory",
+        "only_receiver_band",
+        "trajectory_receiver_band",
+        "only_projection",
+        "field_trajectory",
+    ],
+)
+def test_delta_configure_with_possible_json(
+    tango_context, group_callback, json_factory, delta_configure_type
+):
+    """Test delta configure json with all possible combination"""
+    delta_configure = json.loads(json_factory("delta_configure"))
+    if delta_configure_type == "only_trajectory":
+        delta_configure["pointing"].pop("projection")
+    elif delta_configure_type == "only_receiver_band":
+        delta_configure.pop("pointing")
+        delta_configure["dish"] = {}
+        delta_configure["dish"]["receiver_band"] = "2"
+    elif delta_configure_type == "trajectory_receiver_band":
+        delta_configure["pointing"].pop("projection")
+        delta_configure["dish"] = {}
+        delta_configure["dish"]["receiver_band"] = "2"
+    elif delta_configure_type == "only_projection":
+        delta_configure["pointing"].pop("trajectory")
+    elif delta_configure_type == "field_trajectory":
+        delta_configure["pointing"].pop("trajectory")
+        delta_configure["pointing"]["field"] = {
+            "reference_frame": "icrs",
+            "target_name": "Cen-A",
+            "attrs": {"c1": 317.19966666666666, "c2": -88.95636111111111},
+        }
+
+    delta_configure_dish_leaf_node(
+        tango_context,
+        DISH_LEAF_NODE_DEVICE,
+        group_callback,
+        json_factory("dishleafnode_configure_adr106"),
+        json.dumps(delta_configure),
+        is_default_offset=True,
+        delta_only_once=True,
     )
 
 
