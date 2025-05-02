@@ -79,9 +79,11 @@ class Abort(DishLNCommand):
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
 
-        self.logger.debug("Result of Abort execution: %s", result[0])
-        self.logger.debug("Abort command execution status: %s", status)
-        self.logger.debug("Abort command execution message: %s", message)
+        self.logger.info(
+            "Command ID: %s | Updating task status with Result: %s",
+            self.component_manager.command_id,
+            kwargs,
+        )
 
         if result:
             if result[0] == ResultCode.OK and status == TaskStatus.COMPLETED:
@@ -119,11 +121,17 @@ class Abort(DishLNCommand):
 
         """
         self.logger.debug(
-            "Command in progress: %s",
+            "Command ID: %s | Command in progress: %s" + " on : %s",
+            self.component_manager.command_id,
             self.component_manager.command_in_progress,
+            self.component_manager.dish_dev_name,
         )
         self.component_manager.abort_event.set()
-        self.logger.debug("Abort event is set.")
+        self.logger.debug(
+            "Command ID: %s | Abort event set for : %s",
+            self.component_manager.command_id,
+            self.component_manager.dish_dev_name,
+        )
         with self.component_manager.command_result_update_lock:
             self.component_manager.observable.notify_observers(
                 attribute_value_change=True
@@ -131,7 +139,11 @@ class Abort(DishLNCommand):
         self.component_manager.abort_event.clear()
         if not self.component_manager.command_in_progress:
             self.component_manager.abort_event.clear()
-            self.logger.info("Abort event is cleared")
+            self.logger.debug(
+                "Command ID: %s | Cleared abort event for: %s",
+                self.command_uniq_id,
+                self.component_manager.dish_dev_name,
+            )
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
@@ -153,8 +165,10 @@ class Abort(DishLNCommand):
             # Append command unique id
             self.component_manager.command_unique_id_dict["Abort"] = message[0]
             self.logger.info(
-                "Abort() command has been invoked, the result code"
+                "Command ID: %s | "
+                + "Abort() command has been invoked, the result code"
                 + " is %s and the message is %s",
+                self.component_manager.command_id,
                 result_code[0],
                 message[0],
             )
@@ -173,7 +187,7 @@ class Abort(DishLNCommand):
         self.component_manager.clear_track_table_errors()
 
         self.logger.debug(
-            "Abort command executed successfully on" + " the DishLeafNode."
+            "Abort command executed successfully on the DishLeafNode."
         )
         return ResultCode.STARTED, COMMAND_STARTED_MESSAGE
 

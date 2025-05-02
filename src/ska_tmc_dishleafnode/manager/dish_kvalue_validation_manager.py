@@ -44,7 +44,7 @@ class DishkValueValidationManager:
             count += 1
             time.sleep(1)
         if exception:
-            self.logger.error("Dish manager is unresponsive %s", exception)
+            self.logger.exception("Dish manager is unresponsive %s", exception)
         return False
 
     def get_dish_manager_kvalue(self: DishkValueValidationManager) -> int:
@@ -69,20 +69,20 @@ class DishkValueValidationManager:
         self.logger.info("Dish Leaf Node k-value: %s", dish_ln_kvalue)
 
         if not dish_manager_kvalue or not dish_ln_kvalue:
-            self.logger.info("kvalue not set")
+            self.logger.info("kValue not set")
             self.component_manager.kValueValidationResult = ResultCode.UNKNOWN
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         elif dish_manager_kvalue == dish_ln_kvalue:
             self.logger.info(
-                "kvalues are identical on dish manager and dish leaf node."
+                "kValues are identical on dish manager and dish leaf node."
             )
             self.component_manager.kValueValidationResult = ResultCode.OK
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         else:
             self.logger.error(
-                "kvalue not identical on dish manager and dish leaf node."
+                "kValue not identical on dish manager and dish leaf node."
             )
             self.component_manager.kValueValidationResult = ResultCode.FAILED
             if self.component_manager.kvalue_validation_callback:

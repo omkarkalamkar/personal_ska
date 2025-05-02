@@ -76,8 +76,9 @@ class Off(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
-                "Adapter for device : %s is not found ",
+            self.logger.debug(
+                "Command ID: %s | " + "Adapter for : %s is not found ",
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
@@ -91,9 +92,9 @@ class Off(DishLNCommand):
             )
             result: str = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if result == "NOT_ACHIEVED":
-                self.logger.error(
+                self.logger.debug(
                     "Timeout occurred while processing"
-                    + " the SetStandbyFPMode "
+                    + "the SetStandbyFPMode "
                     + "command.",
                 )
                 return (

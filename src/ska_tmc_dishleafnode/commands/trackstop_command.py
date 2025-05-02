@@ -88,14 +88,18 @@ class TrackStop(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device : %s is not found",
+                "Command ID: %s | Adapter for : %s is not found",
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
         # Stop the thread which started when Track command was invoked
         result_code, message = [ResultCode.OK], ""
         with self.component_manager.tango_operation_execution_lock:
-            self.logger.debug("Acquired  tango lock")
+            self.logger.debug(
+                "Command ID: %s | Acquired  tango lock",
+                self.component_manager.command_id,
+            )
             result_code, msg = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "TrackStop"
             )
@@ -105,9 +109,13 @@ class TrackStop(DishLNCommand):
                     "TrackStop"
                 ] = msg[0]
                 self.command_uniq_id = msg[0]
-            self.logger.debug(
-                "TrackStop command returned ResultCode: %s, message: %s",
-                result_code,
+            self.logger.info(
+                "Command ID: %s |"
+                + "TrackStop command executed on %s ,"
+                + "ResultCode: %s, message: %s",
+                self.component_manager.command_id,
+                self.component_manager.dish_dev_name,
+                ResultCode(result_code[0]),
                 msg,
             )
             if result_code[0] in [
@@ -119,13 +127,17 @@ class TrackStop(DishLNCommand):
                     f"TrackStop result code: {result_code[0]} "
                     + f"and message: {msg[0]}"
                 )
-            self.logger.debug("Released tango lock")
+            self.logger.debug(
+                "Command ID: %s | Released tango lock",
+                self.component_manager.command_id,
+            )
 
         try:
             self.dishln_pointing_device_adapter.StopProgramTrackTable()
         except Exception as exception:
             self.logger.exception(
-                "Unable to stop programTrackTable: %s",
+                "Command ID: %s | Unable to stop programTrackTable: %s",
+                self.component_manager.command_id,
                 exception,
             )
             self.component_manager.current_track_table_error = (
