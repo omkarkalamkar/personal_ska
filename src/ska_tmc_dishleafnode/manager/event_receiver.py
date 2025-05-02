@@ -16,6 +16,7 @@ from ska_tmc_common import (
     PointingState,
     SdpQueueConnectorDeviceInfo,
 )
+from ska_tmc_common.log_manager import LogManager
 from ska_tmc_common.v1.event_receiver import EventReceiver
 
 
@@ -47,6 +48,7 @@ class DishLNEventReceiver(EventReceiver):
         self.dish_master_subscribed: bool = False
         self.dislnpd_subscribed: bool = False
         self._event_enter_exit_time: List[datetime] = []
+        self.log_manager = LogManager()
 
     def run(self: DishLNEventReceiver) -> None:
         while not self.dish_master_subscribed:
@@ -127,7 +129,10 @@ class DishLNEventReceiver(EventReceiver):
                     "Event not working for "
                     f"device {dev_info.dev_name}/{exception}"
                 )
-                self._logger.exception(log_msg)
+                if self.log_manager.is_logging_allowed(
+                    "event_receiver_exception"
+                ):
+                    self._logger.exception(log_msg)
             else:
                 self.dish_master_subscribed = True
 
