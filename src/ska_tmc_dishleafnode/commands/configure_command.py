@@ -223,18 +223,27 @@ class Configure(DishLNCommand):
                 "pointing key is not present in the configure input json.",
             )
 
-        if "dish" not in input_argin:
-            return (
-                ResultCode.REJECTED,
-                "dish key is not present in the input json argument.",
-            )
+        if "tmc" in input_argin and input_argin["tmc"].get(
+            "partial_configuration"
+        ):
+            if "target" not in input_argin["pointing"]:
+                return (
+                    ResultCode.REJECTED,
+                    "target key is not present in the input json argument.",
+                )
+        else:
+            if "dish" not in input_argin:
+                return (
+                    ResultCode.REJECTED,
+                    "dish key is not present in the input json argument.",
+                )
 
-        if "receiver_band" not in input_argin["dish"]:
-            return (
-                ResultCode.REJECTED,
-                "receiverBand key is not present in the input json "
-                + "argument.",
-            )
+            if "receiver_band" not in input_argin["dish"]:
+                return (
+                    ResultCode.REJECTED,
+                    "receiverBand key is not present in the input json "
+                    + "argument.",
+                )
 
         return (ResultCode.OK, "")
 
@@ -286,10 +295,14 @@ class Configure(DishLNCommand):
                 and not self.component_manager.partial_configure
             ):
                 self.component_manager.primary_configuration = json_argument
-            elif self.is_delta_configure:
+                json_argument = self.component_manager.primary_configuration
+            elif (
+                self.is_delta_configure
+                and not self.component_manager.partial_configure
+            ):
                 self.update_primary_configuration(json_argument)
+                json_argument = self.component_manager.primary_configuration
 
-            json_argument = self.component_manager.primary_configuration
             self.logger.info("Primary config is %s", json_argument)
             reset_offset = (
                 self.component_manager.correction_key
@@ -312,7 +325,7 @@ class Configure(DishLNCommand):
             ) and "trajectory" not in json_argument.get("pointing"):
                 # Invoke track load static off only in case of calibration scan
                 return self.invoke_trackloadstaticoff(
-                    self.component_manager, reset_offset=reset_offset
+                    json_argument, reset_offset=reset_offset
                 )
 
             try:
