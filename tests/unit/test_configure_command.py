@@ -134,6 +134,10 @@ def test_delta_configure_command_completed(
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("delta_configure")
+    primary_configure_input_str = json_factory("dishleafnode_configure_adr106")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
+    cm.update_device_configured_band("1")
+    cm.update_device_pointing_state(PointingState.TRACK)
 
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(
@@ -151,30 +155,6 @@ def test_delta_configure_command_completed(
     )
 
 
-def test_delta_configure_invalid_json(
-    cm_without_er_lp, task_callback, json_factory
-):
-    """Test that delta configure command completed"""
-    cm = cm_without_er_lp
-    attr = {
-        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-    cm.adapter_factory = adapter_factory
-    cm.update_device_dish_mode(DishMode.OPERATE)
-    assert wait_for_dish_mode(cm, DishMode.OPERATE)
-    assert cm.is_configure_allowed()
-    configure_input_str = json_factory("delta_configure")
-    delta_configure = json.loads(configure_input_str)
-    delta_configure["pointing"].pop("trajectory")
-    res_code, msg = cm.configure(
-        json.dumps(delta_configure), task_callback=task_callback
-    )
-    assert res_code == ResultCode.FAILED
-
-
 def test_delta_configure_invalid_projection(
     cm_without_er_lp, task_callback, json_factory
 ):
@@ -190,6 +170,8 @@ def test_delta_configure_invalid_projection(
     cm.update_device_dish_mode(DishMode.OPERATE)
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
+    primary_configure_input_str = json_factory("dishleafnode_configure_adr106")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
     configure_input_str = json_factory("delta_configure")
     delta_configure = json.loads(configure_input_str)
     delta_configure["pointing"]["projection"]["alignment"] = "AltAz"

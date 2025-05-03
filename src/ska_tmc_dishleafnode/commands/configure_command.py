@@ -323,7 +323,7 @@ class Configure(DishLNCommand):
                 self.dishln_pointing_device_adapter.targetData = json.dumps(
                     {
                         "pointing": pointing_device_conf_json["pointing"],
-                        "tmc": pointing_device_conf_json["tmc"],
+                        "tmc": pointing_device_conf_json.get("tmc", {}),
                     }
                 )
                 self.logger.debug("Calling GenerateProgramTrackTable()")
