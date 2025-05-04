@@ -314,9 +314,12 @@ def configure_dish_leaf_node_timeout(
 
     # Set defect on DishMaster
     dish_master.SetDefective(TIMEOUT_DEFECT)
-
+    # Set different configure band to enable dish leaf node
+    # invoke configure band command
+    config_json = json.loads(configure_input_str)
+    config_json["dish"]["receiver_band"] = "1"
     result_config, unique_id_config = dish_leaf_node.Configure(
-        configure_input_str
+        json.dumps(config_json)
     )
     assert result_config[0] == ResultCode.QUEUED
     # Wait for the command timeout to be occurred. The command timeout is set

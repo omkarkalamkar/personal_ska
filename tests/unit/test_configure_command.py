@@ -205,10 +205,7 @@ def test_configure_command_completed_partial_config_missing_key(
     del config_json["pointing"]["target"]["ca_offset_arcsec"]
     configure_input_str = json.dumps(config_json)
 
-    result_code, msg = cm.configure(
-        configure_input_str, task_callback=task_callback
-    )
-    logger.info("Result code %s and msg %s", result_code, msg)
+    cm.configure(configure_input_str, task_callback=task_callback)
 
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
