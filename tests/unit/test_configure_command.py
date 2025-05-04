@@ -170,7 +170,8 @@ def test_delta_configure_command_completed(
 #     cm.update_device_dish_mode(DishMode.OPERATE)
 #     assert wait_for_dish_mode(cm, DishMode.OPERATE)
 #     assert cm.is_configure_allowed()
-#     primary_configure_input_str = json_factory("dishleafnode_configure_adr106")
+#     primary_configure_input_str = json_factory("dishleafnode_configure_
+#     adr106")
 #     cm.primary_configuration = json.loads(primary_configure_input_str)
 #     configure_input_str = json_factory("delta_configure")
 #     delta_configure = json.loads(configure_input_str)
