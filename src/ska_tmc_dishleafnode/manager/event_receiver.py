@@ -194,7 +194,10 @@ class DishLNEventReceiver(EventReceiver):
                     "Event not working for "
                     f"device {dlnPointingDev_name}/{exception}"
                 )
-                self._logger.exception(log_msg)
+                if self.log_manager.is_logging_allowed(
+                    "event_receiver_exception"
+                ):
+                    self._logger.exception(log_msg)
             else:
                 self.dislnpd_subscribed = True
 
