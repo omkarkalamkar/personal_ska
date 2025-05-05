@@ -167,6 +167,7 @@ class Abort(DishLNCommand):
 
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_program_track_table()
+
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 

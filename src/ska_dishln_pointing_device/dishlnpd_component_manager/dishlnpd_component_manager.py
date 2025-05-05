@@ -266,7 +266,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
             self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
-    def update_program_track_table(
+    def update_pointing_program_track_table(
         self: DishlnPointingDataComponentManager, program_track_table: List
     ) -> None:
         """
@@ -299,6 +299,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         try:
             # Set the wrap key
             self.set_wrap_sector_data()
+
             if (
                 not self.track_table_thread
                 or not self.track_table_thread.is_alive()
@@ -308,7 +309,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     self.track_table_thread.start()
                     self.logger.debug("Started trackTable thread.")
             else:
-                self.logger.debug(
+                self.logger.info(
                     "programTrackTable calculation is already going on."
                     + " New thread will not be hosted."
                 )
@@ -426,7 +427,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         track_table_scheduler.enterabs(
                             scheduled_time,
                             event_priority,
-                            self.update_program_track_table,
+                            self.update_pointing_program_track_table,
                             argument=(program_track_table,),
                         )
 

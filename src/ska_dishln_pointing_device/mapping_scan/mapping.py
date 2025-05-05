@@ -63,6 +63,7 @@ class BaseScanMapping:
                     ],
                 ]
             self.component_manager.start_track_table_calculation()
+
         except Exception as exception:
             self.logger.error("Exception: %s", exception)
 

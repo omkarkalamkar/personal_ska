@@ -414,7 +414,6 @@ def simulate_result_code_event(
 ):
     """Simulate LRCR event from given device for given result."""
     command_id = ""
-    device_name = DISH_MASTER_DEVICE
     command_id = f"{time.time()}_{command_name}"
     cm.command_unique_id_dict[command_name] = command_id
     logging.info("command_id  is: %s", command_id)
@@ -427,7 +426,8 @@ def simulate_result_code_event(
             ]
         ),
     )
-    cm.update_device_long_running_command_result(device_name, command_result)
+    time.sleep(0.2)
+    cm.update_command_result(command_result)
 
 
 def simulate_track_table_event(
@@ -435,11 +435,7 @@ def simulate_track_table_event(
 ):
     """Simulate an event for tracktable."""
     cm.update_program_track_table(
-        [
-            775853423.2247269,
-            178.758613204265,
-            31.165682681453,
-        ]
+        json.dumps("[775853423.2247269, 178.758613204265, 31.165682681453,]")
     )
 
 
