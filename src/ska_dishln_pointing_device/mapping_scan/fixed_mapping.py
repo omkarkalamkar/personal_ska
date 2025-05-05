@@ -61,7 +61,7 @@ class FixedMappingScan(BaseScanMapping):
                 "Failed to configure fixed mapping scan on dish %s"
                 + "due to exception: %s",
                 self.component_manager.dishln_pointing_device_name,
-                exception,
+                str(exception),
             )
             raise Exception(
                 "Exception while configuring fixed mapping scan:"
@@ -97,7 +97,7 @@ class FixedMappingScan(BaseScanMapping):
                 + "Ra and Dec for mapping scan for %s "
                 + "Exception: %s",
                 self.component_manager.dishln_pointing_device_name,
-                exception,
+                str(exception),
             )
             raise Exception(
                 "Exception while setting Ra and Dec for mapping scan:"

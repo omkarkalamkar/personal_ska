@@ -19,7 +19,7 @@ PYTHON_LINE_LENGTH=79
 # using Helm.  If this does not already exist it will be created
 KUBE_NAMESPACE ?= ska-tmc-dishleafnode
 
-SKA_TANGO_OPERATOR = true
+SKA_TANGO_OPERATOR = false
 # HELM_RELEASE is the release that all Kubernetes resources will be labelled
 # with
 HELM_RELEASE ?= test

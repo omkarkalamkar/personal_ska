@@ -62,7 +62,7 @@ class SetKValue(DishLNCommand, FastCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
+            self.logger.debug(
                 "Command ID: %s | Adapter for : %s is not found ",
                 self.component_manager.command_unique_id,
                 self.component_manager.dish_dev_name,
@@ -82,7 +82,7 @@ class SetKValue(DishLNCommand, FastCommand):
             + "ResultCode: %s, Message: %s",
             self.component_manager.command_id,
             self.component_manager.dish_dev_name,
-            result_code,
+            ResultCode(result_code[0]),
             message,
         )
 

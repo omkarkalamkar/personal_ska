@@ -45,7 +45,7 @@ class DishkValueValidationManager:
             time.sleep(1)
         if exception:
             self.logger.exception(
-                "Dish manager is unresponsive %s", str(exception)
+                "Dish manager is unresponsive , Exception: %s", str(exception)
             )
         return False
 

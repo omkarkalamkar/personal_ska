@@ -109,7 +109,7 @@ class TrackLoadStaticOff(DishLNCommand):
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
+            self.logger.debug(
                 "Command ID: %s | Adapter for : %s is not found",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
@@ -132,8 +132,8 @@ class TrackLoadStaticOff(DishLNCommand):
                 self.command_uniq_id = message[0]
             self.logger.info(
                 "Command ID: %s | "
-                "TrackLoadStaticOff command "
-                + "executed on %s ResultCode: %s,"
+                + "TrackLoadStaticOff command "
+                + "executed on %s with ResultCode: %s,"
                 + " Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,

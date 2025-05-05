@@ -279,7 +279,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             str(int(self.component_manager.kValueValidationResult)),
         )
         self.logger.info(
-            "k-value validation result for %s is : ResultCode.%s",
+            "k-value validation Result for %s is : %s",
             self._dishln_name,
             ResultCode(self.component_manager.kValueValidationResult).name,
         )
@@ -291,7 +291,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             int(self.component_manager.kValue),
         )
         self.logger.info(
-            "K-value for %s updated to: %s",
+            "k-value for %s is updated to: %s",
             self._dishln_name,
             self.component_manager.kValue,
         )
@@ -933,7 +933,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 self._dishln_name, "kValue"
             )
             self.logger.info(
-                "K-value for %s memorized successfully: %s",
+                "k-value for %s is memorized successfully: %s",
                 self._dishln_name,
                 value,
             )

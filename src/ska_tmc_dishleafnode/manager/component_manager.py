@@ -339,7 +339,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug("Antenna object created")
         except Exception as exp:
             self.logger.exception(
-                "Error while creating antenna obj , Exception: %s", exp
+                "Error while creating antenna obj , Exception: %s", str(exp)
             )
 
     def is_command_allowed_callable(
@@ -591,7 +591,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(
                 "Failed to download IERS_A data: %s. Trying with a different"
                 + " source.",
-                exception,
+                str(exception),
             )
             self.download_iers_data_from_a_different_source()
         self.logger.info("IERS data download completed.")
@@ -611,7 +611,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(
                 "Failed to download IERS_A data: %s. Will use the locally "
                 + "stored data.",
-                exception,
+                str(exception),
             )
             self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
@@ -659,7 +659,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "Received invalid achieved pointing timestamp %s from dish."
                 "Exception: %s",
                 timestamp_tai_ska_epoch,
-                e,
+                str(e),
             )
             return None
 
@@ -687,7 +687,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 except Exception as exception:
                     self.logger.exception(
                         "Exception occured in actual pointing process: %s",
-                        exception,
+                        str(exception),
                     )
 
     def perform_reverse_transform(self: DishLNComponentManager, value_list):
@@ -721,7 +721,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "No values on achievedPointing dish master attribute,"
                 + "the device will continue with its normal operation. "
                 + "Exception: %s",
-                exception,
+                str(exception),
             )
 
     def stop_event_receiver(self: DishLNComponentManager) -> None:
@@ -790,7 +790,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info(
-            "SetStandbyFPMode command queued for execution on %s",
+            "Command ID: %s |SetStandbyFPMode command "
+            + "queued for execution on %s",
+            self.command_id,
             self.dish_dev_name,
         )
         return task_status, response
@@ -956,7 +958,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             input_json = json.loads(argin)
         except json.JSONDecodeError as exception:
             self.logger.exception(
-                "Exception occured while loading the input json: %s", exception
+                "Exception occured while loading the input json: %s",
+                str(exception),
             )
             return (
                 ResultCode.FAILED,
@@ -1178,7 +1181,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(
                 "Exception occured while validating the argin for "
                 + "TrackLoadStaticOff command: %s",
-                exception,
+                str(exception),
             )
             return (
                 TaskStatus.REJECTED,
@@ -1641,7 +1644,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             if band_name in self.dish_pointing_model_param:
                 self.dish_pointing_model_param[band_name] = dish_param
-                self.logger.info(
+                self.logger.debug(
                     f"Dish parameter: {band_name} updated to {dish_param}."
                 )
             else:
@@ -1673,7 +1676,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             dev_info.update_unresponsive(False)
-            self.logger.info(
+            self.logger.debug(
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
             )
@@ -1773,11 +1776,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             self.dish_adapter.trackTableLoadMode = load_mode
             self.logger.debug("Updated trackTableLoadMode to %s", load_mode)
-        except (tango.DevFailed, Exception) as excption:
+        except (tango.DevFailed, Exception) as exception:
             self.logger.exception(
                 "Exception occured while setting trackTableLoadMode on"
                 " the dish: %s",
-                excption,
+                str(exception),
             )
 
     def update_program_track_table(
@@ -1794,7 +1797,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         if len(program_track_table) == 0:
-            self.logger.info("TrackTable is empty.")
+            self.logger.debug("TrackTable is empty.")
             return
 
         self.logger.debug(
@@ -1920,7 +1923,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             result_code, message = json.loads(result_code_message)
             with self.command_result_update_lock:
-                self.logger.info("Checking unique_id- %s", unique_id)
+                self.logger.info("Checking unique_id: %s", unique_id)
                 if self.command_unique_id_dict[command_name] == unique_id:
                     if "ConfigureBand" in unique_id:
                         self.configure_band_result["result_code"] = result_code
@@ -2047,7 +2050,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         or ("SetOperateMode" in unique_id)
                         or ("TrackLoadStaticOff" in unique_id)
                     ):
-                        self.logger.info(
+                        self.logger.debug(
                             "LRCR Callback is: %s",
                             self.long_running_result_callback,
                         )
@@ -2074,7 +2077,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(
                 "Exception has occurred while processing"
                 "long running command result event: %s",
-                exception,
+                str(exception),
             )
             self.observable.notify_observers(command_exception=True)
 
@@ -2112,7 +2115,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.queue_connector_device_info.attribute_name = (
                     attribute_name
                 )
-                self.logger.info(
+                self.logger.debug(
                     "Subscribed to %s of %s.",
                     self.queue_connector_device_info.attribute_name,
                     self.queue_connector_device_info.dev_name,
@@ -2429,7 +2432,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         with self.command_result_update_lock:
-            self.logger.info(
+            self.logger.debug(
                 "Current Value of result_code - %s",
                 self.track_result["result_code"],
             )

@@ -46,7 +46,13 @@ class SetStandbyLPMode(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
 
         result_code, message = self.do()
-        logger.info(message)
+        self.logger.debug(
+            "Command ID: %s | Updating task status with Result: %s"
+            + " Message: %s",
+            self.component_manager.command_id,
+            result_code,
+            message,
+        )
         if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,

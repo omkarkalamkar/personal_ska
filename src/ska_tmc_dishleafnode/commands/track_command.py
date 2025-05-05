@@ -110,7 +110,7 @@ class Track(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
+            self.logger.debug(
                 "Command ID: %s | Adapter for: %s is not found",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
@@ -130,10 +130,10 @@ class Track(DishLNCommand):
                 self.component_manager.command_unique_id_dict[
                     "Track"
                 ] = message[0]
-            self.logger.debug(
+            self.logger.info(
                 "Command ID: %s | "
                 + "Track command executed on %s "
-                + "ResultCode: %s, message: %s",
+                + "with ResultCode: %s, message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
                 ResultCode(result_code[0]),

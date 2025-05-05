@@ -80,7 +80,7 @@ class Abort(DishLNCommand):
         message = kwargs.get("exception")
 
         self.logger.debug(
-            "Command ID: %s | Updating task status with Result: %s",
+            "Command ID: %s | Updating Task status with Result: %s",
             self.component_manager.command_id,
             kwargs,
         )
@@ -121,7 +121,7 @@ class Abort(DishLNCommand):
 
         """
         self.logger.debug(
-            "Command ID: %s | Command in progress: %s on : %s",
+            "Command ID: %s | Command in progress: %s on %s",
             self.component_manager.command_id,
             self.component_manager.command_in_progress,
             self.component_manager.dish_dev_name,
@@ -166,8 +166,8 @@ class Abort(DishLNCommand):
             self.component_manager.command_unique_id_dict["Abort"] = message[0]
             self.logger.info(
                 "Command ID: %s | "
-                + "Abort() command has been invoked, the result code"
-                + " is %s and the message is %s",
+                + "Abort() command has been invoked with ResultCode:"
+                + " %s ,Message: %s",
                 self.component_manager.command_id,
                 result_code[0],
                 message[0],
@@ -186,7 +186,7 @@ class Abort(DishLNCommand):
 
         self.component_manager.clear_track_table_errors()
 
-        self.logger.debug(
+        self.logger.info(
             "Abort command executed successfully on the DishLeafNode."
         )
         return ResultCode.STARTED, COMMAND_STARTED_MESSAGE

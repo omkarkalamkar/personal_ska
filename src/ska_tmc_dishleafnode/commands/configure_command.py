@@ -370,7 +370,7 @@ class Configure(DishLNCommand):
             # command
             self.logger.debug(
                 "Command ID: %s | "
-                + "Received result for configure band command"
+                + "Received result for ConfigureBand command"
                 + " Result: %s , Progress: %s ,Exception: %s",
                 self.component_manager.command_id,
                 result,
@@ -585,7 +585,7 @@ class Configure(DishLNCommand):
             self.component_manager.configure_setoperate_mode_lrcr = (
                 ResultCode.OK
             )
-            self.logger.debug(
+            self.logger.info(
                 "Command ID: %s | SetOperateMode Result: %s",
                 self.component_manager.command_id,
                 self.component_manager.set_operate_mode_result,
@@ -615,7 +615,7 @@ class Configure(DishLNCommand):
             """
             Method for invoking setoperatemode callback
             """
-            self.logger.info(
+            self.logger.debug(
                 "Command ID: %s | Received SetOperate mode , Result: %s",
                 self.component_manager.command_id,
                 str(result),
@@ -692,7 +692,7 @@ class Configure(DishLNCommand):
             self.component_manager.set_track_result_dict(
                 ResultCode.OK, message
             )
-            self.logger.info(
+            self.logger.debug(
                 "Command ID: %s | Track command Result: %s",
                 self.component_manager.command_id,
                 self.component_manager.track_result,
@@ -787,7 +787,7 @@ class Configure(DishLNCommand):
             < self.component_manager.command_timeout - ADJUST_TIMEOUT
         ):
             if self.component_manager.abort_event.is_set():
-                self.logger.info(
+                self.logger.debug(
                     "Command ID: %s | "
                     + "Abort() command is invoked while configuring dish.",
                     self.component_manager.command_id,
@@ -810,7 +810,7 @@ class Configure(DishLNCommand):
         )
         if not self.component_manager.is_tracktable_provided.is_set():
             # Set Failure for configure
-            self.logger.info(
+            self.logger.debug(
                 "Command ID: %s | Timed out occurred for track table",
                 self.component_manager.command_id,
             )
