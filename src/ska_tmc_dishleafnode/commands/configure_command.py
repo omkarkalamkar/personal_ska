@@ -308,22 +308,10 @@ class Configure(DishLNCommand):
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value
             )
-            # if reset_offset and "tmc" not in json_argument:
-            #     result_code, message = self.invoke_trackloadstaticoff(
-            #         json_argument, [0.0, 0.0]
-            #     )
-            #     self.component_manager.command_in_progress = "Configure"
-            #     if result_code in [
-            #         ResultCode.FAILED,
-            #         ResultCode.REJECTED,
-            #         ResultCode.NOT_ALLOWED,
-            #     ]:
-            #         return result_code, message
 
-            # if self.component_manager.partial_configure:
             # Invoke track load static off only in case of calibration scan
             collimation_offsets = self.get_ie_ca_offsets_if_provided(
-                json_argument, reset_offset
+                json.loads(argin), reset_offset
             )
             if collimation_offsets:
                 self.invoke_trackloadstaticoff(
