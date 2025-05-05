@@ -1,5 +1,6 @@
 """
 This module provides an implementation of the Dish Leaf Node ComponentManager.
+
 """
 from __future__ import annotations
 
@@ -67,6 +68,7 @@ from .event_receiver import DishLNEventReceiver
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
+
     """
 
     # pylint: disable=unused-argument
@@ -2541,7 +2543,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Updates dish mode event  in respective queue
         :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
+        which contains the event data, dishMode Event in this case.
         :type event: tango.EventData
         :return: None
         :rtype: None
@@ -2579,25 +2581,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Updates configured band event in respective queue
         :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
+        which contains the event data, dishMode Event in this case.
         :type event: tango.EventData
         :return: None
         :rtype: None
-
         """
         self.event_queues["configuredBand"].put(event)
-
-    # def update_achieved_pointing_event(self, event: tango.EventData) -> None:
-    #     """
-    #     Updates achieved pointing event in respective queue
-    #     :param event: It is the Tango Event Data object
-    #         which contains the event data, dishMode Event in this case.
-    #     :type event: tango.EventData
-    #     :return: None
-    #     :rtype: None
-    #
-    #     """
-    #     self.achieved_pointing_data.put(event.attr_value.value)
 
     def update_pointing_program_track_table_event(
         self, event: tango.EventData
@@ -2605,7 +2594,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Updates pointing program track table event in respective queue
         :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
+        which contains the event data, dishMode Event in this case.
         :type event: tango.EventData
         :return: None
         :rtype: None
@@ -2619,7 +2608,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Updates program track table error event in respective queue
         :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
+        which contains the event data, dishMode Event in this case.
         :type event: tango.EventData
         :return: None
         :rtype: None
@@ -2631,7 +2620,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Updates program track table error
         :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
+        which contains the event data, dishMode Event in this case.
         :type event: tango.EventData
         :return: None
         :rtype: None
