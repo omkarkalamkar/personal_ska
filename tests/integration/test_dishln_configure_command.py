@@ -365,6 +365,19 @@ def delta_configure_dish_leaf_node(
             (unique_id_config[0], COMMAND_COMPLETED),
             lookahead=8,
         )
+    # if collimation offsets provided then validate source offset
+    delta_json = json.loads(delta_config_str)
+    if "ie_offset_arcsec" in delta_json.get(
+        "pointing", {}
+    ) or "ca_offset_arcsec" in delta_json.get("pointing", {}):
+        collimation_offsets = [
+            delta_json["pointing"].get("ca_offset_arcsec", 0.0),
+            delta_json["pointing"].get("ie_offset_arcsec", 0.0),
+        ]
+        group_callback["sourceOffset"].assert_change_event(
+            collimation_offsets,
+            lookahead=2,
+        )
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
@@ -429,6 +442,7 @@ def test_delta_configure_command(tango_context, group_callback, json_factory):
         "trajectory_receiver_band",
         "only_projection",
         "field_trajectory",
+        "only_collimation_offsets",
     ],
 )
 def test_delta_configure_with_possible_json(
@@ -454,6 +468,13 @@ def test_delta_configure_with_possible_json(
             "reference_frame": "icrs",
             "target_name": "Cen-A",
             "attrs": {"c1": 317.19966666666666, "c2": -88.95636111111111},
+        }
+    elif delta_configure_type == "only_collimation_offsets":
+        delta_configure["pointing"].pop("trajectory")
+        delta_configure["pointing"].pop("projection")
+        delta_configure["pointing"] = {
+            "ca_offset_arcsec": 0.0,
+            "ie_offset_arcsec": 5.0,
         }
 
     delta_configure_dish_leaf_node(

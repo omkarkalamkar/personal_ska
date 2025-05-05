@@ -149,17 +149,6 @@ class Configure(DishLNCommand):
                 "receiver_band"
             ] = new_receiver_band
 
-        if (
-            "ca_offset_arcsec" in pointing_data
-            or "ie_offset_arcsec" in pointing_data
-        ):
-            self.component_manager.primary_configuration["pointing"][
-                "ca_offset_arcsec"
-            ] = pointing_data.get("ca_offset_arcsec", 0.0)
-            self.component_manager.primary_configuration["pointing"][
-                "ie_offset_arcsec"
-            ] = pointing_data.get("ie_offset_arcsec", 0.0)
-
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
         if any."""

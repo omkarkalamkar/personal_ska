@@ -1963,17 +1963,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "TrackLoadStaticOff result: %s",
                             self.track_load_static_off_result,
                         )
-                        if (
-                            self.command_in_progress != "Configure"
-                            or self.partial_configure
-                        ):
-                            self.observable.notify_observers(
-                                attribute_value_change=True
-                            )
-                        elif self.correction_key == CORRECTION_KEY.RESET.value:
-                            self.observable.notify_observers(
-                                attribute_value_change=True
-                            )
+                        self.observable.notify_observers(
+                            attribute_value_change=True
+                        )
                     elif "TrackStop" in unique_id:
                         self.track_stop_result["result_code"] = result_code
                         self.track_stop_result["message"] = message
