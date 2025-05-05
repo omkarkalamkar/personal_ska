@@ -121,6 +121,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.22.3]
+* Added changes in the logs as per Logging Guidelines 
+* Added Command ID in logs and fixed logging levels .
+
 [0.22.2]
 * Fixed NaN azimuth values issue in programTrackTable generation.
 

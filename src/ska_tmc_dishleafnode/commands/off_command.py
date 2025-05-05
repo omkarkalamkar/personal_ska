@@ -48,10 +48,8 @@ class Off(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do()
         self.logger.debug(
-            "Command ID: %s | Updating task status with Result: %s"
-            + " Message: %s",
-            self.component_manager.command_id,
-            return_code,
+            "Updating task status with Result: %s" + " Message: %s",
+            ResultCode(return_code),
             message,
         )
         if return_code == ResultCode.FAILED:
@@ -84,7 +82,6 @@ class Off(DishLNCommand):
         if result_code == ResultCode.FAILED:
             self.logger.debug(
                 "Adapter for : %s is not found ",
-                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message

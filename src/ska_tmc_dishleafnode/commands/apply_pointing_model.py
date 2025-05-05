@@ -98,7 +98,7 @@ class ApplyPointingModel(DishLNCommand):
             )
             logger.info(
                 "ApplyPointingModel command invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
+                self.component_manager.dish_dev_name,
             )
 
     def get_global_pointing_data_json(

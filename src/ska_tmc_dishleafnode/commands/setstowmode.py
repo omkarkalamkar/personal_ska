@@ -50,8 +50,8 @@ class SetStowMode(DishLNCommand):
         self.logger.debug(
             "Command ID: %s | Updating task status with Result: %s"
             + " Message: %s",
-            self.component_manager.command_id,
-            result_code,
+            str(self.component_manager.command_id),
+            ResultCode(result_code),
             message,
         )
         if result_code == ResultCode.FAILED:
@@ -64,7 +64,7 @@ class SetStowMode(DishLNCommand):
             logger.info(
                 "Command ID: %s | "
                 "SetStowMode command is invoked successfully on %s",
-                message,
+                str(self.component_manager.command_id),
                 self.dish_master_adapter.dev_name,
             )
             task_callback(
@@ -88,7 +88,7 @@ class SetStowMode(DishLNCommand):
         if result_code == ResultCode.FAILED:
             self.logger.debug(
                 "Command ID: %s | Adapter for : %s is not found ",
-                message,
+                str(self.component_manager.command_id),
                 self.component_manager.dish_dev_name,
             )
             return result_code, message

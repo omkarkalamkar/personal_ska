@@ -1035,6 +1035,7 @@ description = "Fork of https://github.com/kyrus/python-junit-xml that has tarbal
 optional = false
 python-versions = "*"
 files = [
+    {file = "junit-xml-2-1.9.tar.gz", hash = "sha256:3b8d9635c5215f754c7807104f6493e3ea3bc9481e2d33db294560da3a1b00f7"},
     {file = "junit_xml_2-1.9-py2.py3-none-any.whl", hash = "sha256:05093d75fe11120ccd51293884b5ee334ff3bc4b5106647c2bcc928486600588"},
 ]
 
@@ -1781,13 +1782,13 @@ reference = "PyPI-public"
 
 [[package]]
 name = "pylint"
-version = "3.3.6"
+version = "3.3.7"
 description = "python code static checker"
 optional = false
 python-versions = ">=3.9.0"
 files = [
-    {file = "pylint-3.3.6-py3-none-any.whl", hash = "sha256:8b7c2d3e86ae3f94fb27703d521dd0b9b6b378775991f504d7c3a6275aa0a6a6"},
-    {file = "pylint-3.3.6.tar.gz", hash = "sha256:b634a041aac33706d56a0d217e6587228c66427e20ec21a019bc4cdee48c040a"},
+    {file = "pylint-3.3.7-py3-none-any.whl", hash = "sha256:43860aafefce92fca4cf6b61fe199cdc5ae54ea28f9bf4cd49de267b5195803d"},
+    {file = "pylint-3.3.7.tar.gz", hash = "sha256:2b11de8bde49f9c5059452e0c310c079c746a0a8eeaa789e5aa966ecc23e4559"},
 ]
 
 [package.dependencies]
@@ -2423,13 +2424,13 @@ reference = "PyPI-public"
 
 [[package]]
 name = "setuptools"
-version = "80.1.0"
+version = "80.3.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "setuptools-80.1.0-py3-none-any.whl", hash = "sha256:ea0e7655c05b74819f82e76e11a85b31779fee7c4969e82f72bab0664e8317e4"},
-    {file = "setuptools-80.1.0.tar.gz", hash = "sha256:2e308396e1d83de287ada2c2fd6e64286008fe6aca5008e0b6a8cb0e2c86eedd"},
+    {file = "setuptools-80.3.1-py3-none-any.whl", hash = "sha256:ea8e00d7992054c4c592aeb892f6ad51fe1b4d90cc6947cc45c45717c40ec537"},
+    {file = "setuptools-80.3.1.tar.gz", hash = "sha256:31e2c58dbb67c99c289f51c16d899afedae292b978f8051efaf6262d8212f927"},
 ]
 
 [package.extras]
@@ -2661,13 +2662,13 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-telmodel"
-version = "1.20.1"
+version = "1.21.0"
 description = "SKA telescope model library"
 optional = false
 python-versions = ">=3.10.0,<4.0.0"
 files = [
-    {file = "ska_telmodel-1.20.1-py3-none-any.whl", hash = "sha256:8258d74d5c75e0fdaad8802d3ce44bb80329a0cb1af69ab6963664546698382a"},
-    {file = "ska_telmodel-1.20.1.tar.gz", hash = "sha256:72edc7b9bfc0834835531afbce265ddc3fbeb4610c82faf9007f0f1e583d8a50"},
+    {file = "ska_telmodel-1.21.0-py3-none-any.whl", hash = "sha256:23a3662390bd3283d74ef0e72c711302fe413975e599840b5f24c5331d269d89"},
+    {file = "ska_telmodel-1.21.0.tar.gz", hash = "sha256:0eccc657cc3212d323e90d8c23979ba4d89a173543da63195fcb28c6f808cfc0"},
 ]
 
 [package.dependencies]
@@ -2714,13 +2715,13 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-common"
-version = "0.26.5"
+version = "0.27.3"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "ska_tmc_common-0.26.5-py3-none-any.whl", hash = "sha256:dc54279289854ca049b2adfd6817bc11d47d6858a73889fb52aa5eb0d7df7359"},
-    {file = "ska_tmc_common-0.26.5.tar.gz", hash = "sha256:99f9316bfcd726658a9ddc72bbe8104a9d67bf130a4ee961d73f14dc1b0da3cd"},
+    {file = "ska_tmc_common-0.27.3-py3-none-any.whl", hash = "sha256:e31f31dd9d733eb9738f0691c5e2bceae7940c22bd7a0288e9c240f44729bcd5"},
+    {file = "ska_tmc_common-0.27.3.tar.gz", hash = "sha256:0a0f6ee38b7ff8633c0e999f2fa4528dc2fe800e1ff4a93de50a4aee1c7c1544"},
 ]
 
 [package.dependencies]
@@ -3350,4 +3351,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "c7b1b94487f5e315923ed8380fc68f1bbca32656ffbeb6f07f52c200911d38f0"
+content-hash = "40432ca6bedf7b6ec2f568172b5b1708cd23ee40d98648c94edc67b77791e53d"

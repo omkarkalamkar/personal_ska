@@ -790,9 +790,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
         )
         self.logger.info(
-            "Command ID: %s |SetStandbyFPMode command "
-            + "queued for execution on %s",
-            self.command_id,
+            "SetStandbyFPMode command " + "queued for execution on %s",
             self.dish_dev_name,
         )
         return task_status, response

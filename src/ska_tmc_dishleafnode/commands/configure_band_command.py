@@ -102,14 +102,14 @@ class ConfigureBand(DishLNCommand):
         """
         self.logger.debug(
             "Command ID: %s | Input argument for ConfigureBand command is: %s",
-            self.component_manager.command_id,
+            str(self.component_manager.command_id),
             argin,
         )
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.debug(
                 "Command ID: %s | Failed to find adapter for device: %s",
-                self.component_manager.command_id,
+                str(self.component_manager.command_id),
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
@@ -117,19 +117,19 @@ class ConfigureBand(DishLNCommand):
         command_name: str = f"ConfigureBand{argin}"
         self.logger.debug(
             "Command ID: %s | Preparing to execute command: %s",
-            self.component_manager.command_id,
+            str(self.component_manager.command_id),
             command_name,
         )
         self.logger.debug(
             "Command ID: %s | Command: %s will be executed on %s",
-            self.component_manager.command_id,
+            str(self.component_manager.command_id),
             command_name,
             self.component_manager.dish_dev_name,
         )
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug(
                 "Command ID: %s | Acquired tango lock",
-                self.component_manager.command_id,
+                str(self.component_manager.command_id),
             )
             result_code, message = self.call_adapter_method(
                 "Dish Master",
@@ -147,7 +147,7 @@ class ConfigureBand(DishLNCommand):
                 "Command ID: %s |"
                 + " %s Command executed on %s "
                 + "with Result: %s, Message: %s",
-                self.component_manager.command_id,
+                str(self.component_manager.command_id),
                 command_name,
                 self.component_manager.dish_dev_name,
                 ResultCode(result_code[0]),
@@ -156,7 +156,7 @@ class ConfigureBand(DishLNCommand):
 
             self.logger.debug(
                 "Command ID: %s | Released tango lock",
-                self.component_manager.command_id,
+                str(self.component_manager.command_id),
             )
 
         if result_code[0] == ResultCode.FAILED:
