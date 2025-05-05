@@ -1862,7 +1862,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.update_availablity_callback(True)
 
     def update_command_result(self, value) -> None:
-        """Updates the long running command result callback"""
+        """
+        Method to update task callback based on long running command result
+                event data.
+
+        :param value: longRunningCommandResult attribute event data
+        :type: (Tuple[List[str], List[str]])
+        """
+
         device_name = self.get_device()
         self.logger.info(
             "Received longRunningCommandResult event for device: %s, "
@@ -2556,8 +2563,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> None:
         """
         Updates dish pointing model param event in respective queue
-         :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
+        :param event: It is the Tango Event Data object
+        which contains the event data, dishMode Event in this case.
         :type event: tango.EventData
         :return: None
         :rtype: None
@@ -2568,8 +2575,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
         Updates pointing state event in respective queue
-         :param event: It is the Tango Event Data object
-            which contains the event data, dishMode Event in this case.
+        :param event: It is the Tango Event Data object
+        which contains the event data, dishMode Event in this case.
         :type event: tango.EventData
         :return: None
         :rtype: None
