@@ -13,6 +13,7 @@ import threading
 import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
+from queue import Queue
 from typing import Callable, Dict, Tuple
 
 import numpy as np
@@ -266,6 +267,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.is_tracktable_provided = threading.Event()
         self.command_unique_id_dict = {}
         self.event_processing_methods = self.get_attribute_dict()
+        self.event_threads: list[threading.Thread] = []
+        self._stop_thread = False
         self.start_event_processing_threads()
 
     @property
@@ -2245,6 +2248,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.liveliness_probe_object:
             self.stop_liveliness_probe()
 
+        self.stop_event_processing_threads()
+
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.terminate()
@@ -2681,3 +2686,41 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.health_state_lock:
             self._device.health_state = health_state
             self._device.last_event_arrived = time.time()
+
+    def start_event_processing_threads(self) -> None:
+        """Start all the event processing threads."""
+        # reset flag and any previous threads
+        self._stop_thread = False
+        self.event_threads.clear()
+
+        for attribute, _ in self.event_processing_methods.items():
+            self.event_queues[attribute] = Queue()
+            thread = threading.Thread(
+                target=self.process_event,
+                args=[attribute],
+                name=f"evt_{attribute}",
+            )
+            self.event_threads.append(thread)
+            thread.start()
+
+    def stop_event_processing_threads(self) -> None:
+        """
+        Stop all event-processing threads:
+        1) Signal them to exit their loops.
+        2) Wait (join) until each thread has terminated.
+        3) Clean up queues and thread list.
+        """
+        # signal all threads to stop
+        self._stop_thread = True
+
+        # join each thread so we wait for their clean exit
+        for thread in self.event_threads:
+            if thread.is_alive():
+                thread.join()
+
+        # optionally clear queues and thread references
+        self.event_queues.clear()
+        self.event_threads.clear()
+
+        # reset flag so you can restart later if needed
+        self._stop_thread = False
