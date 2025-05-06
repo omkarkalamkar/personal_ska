@@ -65,7 +65,7 @@ class SetStowMode(DishLNCommand):
                 "Command ID: %s | "
                 "SetStowMode command is invoked successfully on %s",
                 self.component_manager.command_id,
-                self.dish_master_adapter.dev_name,
+                self.component_manager.dish_dev_name,
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
@@ -89,7 +89,7 @@ class SetStowMode(DishLNCommand):
             self.logger.debug(
                 "Command ID: %s | Adapter for : %s is not found ",
                 self.component_manager.command_id,
-                self.dish_master_adapter.dev_name,
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
         with self.component_manager.tango_operation_execution_lock:

@@ -98,7 +98,7 @@ class ApplyPointingModel(DishLNCommand):
             )
             logger.info(
                 "ApplyPointingModel command invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
+                self.component_manager.dish_dev_name,
             )
 
     def get_global_pointing_data_json(
@@ -188,7 +188,7 @@ class ApplyPointingModel(DishLNCommand):
         if result_code == ResultCode.FAILED:
             self.logger.debug(
                 "Failed to find adapter for device: %s",
-                self.dish_master_adapter.dev_name,
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
@@ -214,7 +214,7 @@ class ApplyPointingModel(DishLNCommand):
             return result_code[0], message[0]
         self.logger.debug(
             "ApplyPointingModel command invoked on %s",
-            self.dish_master_adapter.dev_name,
+            self.component_manager.dish_dev_name,
         )
 
         return result_code, message

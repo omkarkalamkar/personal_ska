@@ -60,7 +60,7 @@ class SetStandbyFPMode(DishLNCommand):
         else:
             logger.info(
                 "SetStandbyFPMode command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
+                self.component_manager.dish_dev_name,
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
@@ -83,7 +83,7 @@ class SetStandbyFPMode(DishLNCommand):
         if result_code == ResultCode.FAILED:
             self.logger.debug(
                 "Adapter for: %s is not found ",
-                self.dish_master_adapter.dev_name,
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
