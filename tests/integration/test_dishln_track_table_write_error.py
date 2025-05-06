@@ -84,7 +84,7 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.SLEW),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(

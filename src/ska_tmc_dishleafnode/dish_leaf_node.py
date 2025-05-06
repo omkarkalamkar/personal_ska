@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import List, Tuple, Union
 
+import tango
 from numpy import isnan
 from numpy import nan as NaN
 from ska_control_model import HealthState
@@ -190,7 +191,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def update_health_state_callback(self, healthState: HealthState) -> None:
         """Change event callback for sourceOffset attribute"""
         self._health_state = healthState
-        self.push_change_archive_events("healthState", self._health_state)
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events("healthState", self._health_state)
         self.logger.info(
             "Updated HealthState of %s is: %s",
             self._dishln_name,
@@ -200,7 +202,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
         self._sourceOffset = source_offset
-        self.push_change_archive_events("sourceOffset", self._sourceOffset)
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events("sourceOffset", self._sourceOffset)
         self.logger.info(
             "Updated sourceOffset of %s is: %s",
             self._dishln_name,
@@ -218,9 +221,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 AttrQuality, "ATTR_VALID"
             )
         self._lastPointingData = json.dumps(last_pointing_data.tolist())
-        self.push_change_archive_events(
-            "lastPointingData", self._lastPointingData
-        )
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "lastPointingData", self._lastPointingData
+            )
         self.logger.info(
             "Updated lastPointingData of %s is: %s ",
             self._dishln_name,
@@ -231,15 +235,17 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Change event callback for isSubsystemAvailable"""
         if self._isSubsystemAvailable != availability:
             self._isSubsystemAvailable = availability
-            self.push_change_archive_events(
-                "isSubsystemAvailable", availability
-            )
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events(
+                    "isSubsystemAvailable", availability
+                )
 
     def pointing_callback(self, actual_pointing: list) -> None:
         """Push an event for the actualPointing attribute."""
-        self.push_change_archive_events(
-            "actualPointing", json.dumps(actual_pointing)
-        )
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "actualPointing", json.dumps(actual_pointing)
+            )
 
     def update_track_table_errors_callback(self, value: list) -> None:
         """Push an event for the trackTableErrors attribute."""
@@ -247,7 +253,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "Track Table errors to be reported: %s",
             self.component_manager.errors_to_be_reported,
         )
-        self.push_change_archive_events("trackTableErrors", value)
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events("trackTableErrors", value)
         self.logger.debug("Pushed the trackTableErrors event: %s", value)
 
     def update_global_pointing_param_callback(
@@ -255,29 +262,36 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     ) -> None:
         """Push an event for the change of dishMode attribute."""
         self._global_pointing_model_params = global_pointing_model_params
-        self.push_change_archive_events(
-            "globalPointingModelParams",
-            json.dumps(self._global_pointing_model_params),
-        )
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "globalPointingModelParams",
+                json.dumps(self._global_pointing_model_params),
+            )
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
         self._dishMode = dish_mode
-        self.push_change_archive_events("dishMode", self._dishMode)
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events("dishMode", self._dishMode)
 
     def update_pointingstate_callback(
         self, pointing_state: PointingState
     ) -> None:
         """Push an event for change of pointingState attribute."""
         self._pointingState = pointing_state
-        self.push_change_archive_events("pointingState", self._pointingState)
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "pointingState", self._pointingState
+            )
 
     def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""
-        self.push_change_archive_events(
-            "kValueValidationResult",
-            str(int(self.component_manager.kValueValidationResult)),
-        )
+
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "kValueValidationResult",
+                str(int(self.component_manager.kValueValidationResult)),
+            )
         self.logger.info(
             "k-value validation Result for %s is : %s",
             self._dishln_name,
@@ -286,10 +300,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
-        self.push_change_archive_events(
-            "kValue",
-            int(self.component_manager.kValue),
-        )
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "kValue",
+                int(self.component_manager.kValue),
+            )
         self.logger.info(
             "k-value for %s is updated to: %s",
             self._dishln_name,
