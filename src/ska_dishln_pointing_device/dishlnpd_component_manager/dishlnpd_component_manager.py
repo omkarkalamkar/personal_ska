@@ -166,7 +166,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(
                 "Failed to update target data due to exception: %s",
-                str(exception),
+                exception,
             )
 
     @property
