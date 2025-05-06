@@ -298,8 +298,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """This method creates and starts a thread for the programTrackTable
         calculation."""
         try:
-            # Set the wrap key
-            self.set_wrap_sector_data()
             if (
                 not self.track_table_thread
                 or not self.track_table_thread.is_alive()
@@ -394,7 +392,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         self.target, self.converter
                     )
                 )
-
                 first_entry_timestamp: float = program_track_table[0]
 
                 # advance_time is subtracted to provide programTrackTable few
@@ -430,7 +427,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             self.update_program_track_table,
                             argument=(program_track_table,),
                         )
-
                         self.logger.debug(
                             "Scheduled tracktable write operation"
                         )
