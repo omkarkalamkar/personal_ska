@@ -116,6 +116,6 @@ class Scan(DishLNCommand):
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
                 ResultCode(result_code[0]),
-                message,
+                message[0],
             )
         return result_code[0], message[0]

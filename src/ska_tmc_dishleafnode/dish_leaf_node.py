@@ -250,7 +250,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def update_track_table_errors_callback(self, value: list) -> None:
         """Push an event for the trackTableErrors attribute."""
         self.logger.debug(
-            "Track Table errors to be reported: %s",
+            "TrackTable errors to be reported: %s",
             self.component_manager.errors_to_be_reported,
         )
         with tango.EnsureOmniThread():

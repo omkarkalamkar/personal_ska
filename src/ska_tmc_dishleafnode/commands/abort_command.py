@@ -121,16 +121,14 @@ class Abort(DishLNCommand):
 
         """
         self.logger.debug(
-            "Command ID: %s | Command in progress: %s on %s",
+            "Command ID: %s | Command in progress: %s ",
             self.component_manager.command_id,
             self.component_manager.command_in_progress,
-            self.component_manager.dish_dev_name,
         )
         self.component_manager.abort_event.set()
         self.logger.info(
-            "Command ID: %s | Abort event set for : %s",
+            "Command ID: %s | Abort event set",
             self.component_manager.command_id,
-            self.component_manager.dish_dev_name,
         )
         with self.component_manager.command_result_update_lock:
             self.component_manager.observable.notify_observers(
@@ -140,9 +138,8 @@ class Abort(DishLNCommand):
         if not self.component_manager.command_in_progress:
             self.component_manager.abort_event.clear()
             self.logger.debug(
-                "Command ID: %s | Cleared abort event for: %s",
+                "Command ID: %s | Cleared abort event ",
                 self.component_manager.command_id,
-                self.component_manager.dish_dev_name,
             )
 
         result_code, message = self.init_adapter()
@@ -167,7 +164,7 @@ class Abort(DishLNCommand):
             self.logger.info(
                 "Command ID: %s | "
                 + "Abort() command has been invoked with ResultCode:"
-                + " %s ,Message: %s",
+                + " %s, Message: %s",
                 self.component_manager.command_id,
                 result_code[0],
                 message[0],

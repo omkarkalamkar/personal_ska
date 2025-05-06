@@ -155,8 +155,8 @@ class BaseScanMapping:
             dec = Angle(ra_dec.dec, u.rad).deg
 
         self.logger.debug(
-            "Converted plane to sphere: The Right Ascension is : %s"
-            " and the Declination is : %s ",
+            "Converted plane to sphere: Value of Ra is : %s"
+            " and the value of Dec is : %s ",
             ra,
             dec,
         )

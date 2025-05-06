@@ -51,7 +51,7 @@ class StopProgramTrackTable(FastCommand):
         except Exception as exception:
             self.logger.exception(
                 "Exception occurred in StopProgramTrackTable command "
-                "on %s , Exception: %s",
+                "on %s, Exception: %s",
                 self.component_manager.dishln_pointing_device_name,
                 str(exception),
             )

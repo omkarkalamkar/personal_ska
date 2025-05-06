@@ -95,7 +95,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
                 self.dish_master_adapter.proxy.set_timeout_millis(5000)
                 self.logger.debug(
-                    "Dish master adapter for created successfully",
+                    "Dish Master adapter created successfully",
                 )
                 self.component_manager.set_dish_adapter(
                     self.dish_master_adapter
@@ -142,9 +142,8 @@ class DishLNCommand(TmcLeafNodeCommand):
                     5000
                 )
                 self.logger.debug(
-                    "Adapter for Dishleafnode pointing device %s"
+                    "Adapter for Dishleafnode pointing device"
                     + " created successfully",
-                    self.component_manager.dishln_pointing_dev_name,
                 )
                 self.component_manager.set_dishln_pointing_device_adapter(
                     self.dishln_pointing_device_adapter

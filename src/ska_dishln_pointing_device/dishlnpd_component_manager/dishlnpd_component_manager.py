@@ -243,7 +243,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(
                 "Failed to download IERS_A data due to exception: %s."
-                + "Trying with a different source.",
+                + "Trying with Mirror link",
                 str(exception),
             )
             self.download_iers_data_from_a_different_source()
@@ -268,7 +268,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         except Exception as exception:
             self.logger.exception(
                 "Failed to download IERS_A data due to exception: %s."
-                + " Will use the locally stored data.",
+                + " Use local or mirror IERS file",
                 str(exception),
             )
             self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
@@ -293,7 +293,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self.pointing_program_track_table
             )
         except BaseException as exception:
-            message = "Exception while writing tracktable: %s" + str(exception)
+            message = "Exception while writing trackTable: %s" + str(exception)
             self.logger.exception(message)
             raise Exception(message) from exception
         self.logger.debug(
@@ -320,13 +320,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     )
             else:
                 self.logger.debug(
-                    "ProgramTrackTable calculation is already going on."
-                    + " New thread will not be hosted.",
+                    "ProgramTrackTable calculation is in progress."
+                    + " New thread will not be spawned",
                 )
         except Exception as exception:
             self.logger.exception(
-                "Failed to start track table thread"
-                + " due to exception : %s",
+                "Failed to start trackTable thread" + " due to exception: %s",
                 str(exception),
             )
 
@@ -338,8 +337,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
         except Exception as exception:
             self.logger.exception(
-                "Failed to create tracktable thread "
-                + " due to exception : %s ",
+                "Failed to create trackTable thread "
+                + " due to exception: %s ",
                 str(exception),
             )
 
@@ -402,7 +401,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     "Current Thread ID: %s", threading.get_native_id()
                 )
                 self.logger.debug(
-                    "Target used to calculate tracktable: %s", self.target
+                    "Target used to calculate trackTable: %s", self.target
                 )
 
                 with self.track_thread_lock:
@@ -450,16 +449,16 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         )
 
                         self.logger.debug(
-                            "Scheduled tracktable write operation"
+                            "Scheduled trackTable write operation"
                         )
                         track_table_scheduler.run(blocking=False)
                         self.logger.debug("Schedular execution completed")
 
-            self.logger.debug("Program Track Table Calculation stopped.")
+            self.logger.debug("Program TrackTable Calculation stopped.")
 
         except Exception as value_error:
             self.logger.error(
-                "Error occured during track thread execution: %s",
+                "Error occured during track_thread execution: %s",
                 str(value_error),
             )
             self.update_program_track_table_error_callback(str(value_error))

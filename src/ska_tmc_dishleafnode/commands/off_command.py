@@ -48,7 +48,7 @@ class Off(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do()
         self.logger.debug(
-            "Updating task status with Result: %s" + " Message: %s",
+            "Updating Task status with Result: %s ,Message: %s",
             ResultCode(return_code),
             message,
         )

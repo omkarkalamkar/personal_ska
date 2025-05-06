@@ -119,7 +119,7 @@ class Configure(DishLNCommand):
             message = kwargs.get("exception") or kwargs.get("message")
             self.logger.debug(
                 "Command ID: %s | Updating task status with Result: %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 kwargs,
             )
             if status == TaskStatus.ABORTED:
@@ -127,9 +127,8 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = ""
                 self.logger.info(
                     "Command ID: %s | "
-                    + "Configure command execution aborted on %s",
-                    str(self.component_manager.command_id),
-                    self.dish_master_adapter.dev_name,
+                    + "Configure command execution aborted ",
+                    self.component_manager.command_id,
                 )
             elif result[0] == ResultCode.OK:
                 self.component_manager.command_in_progress = ""
@@ -137,16 +136,15 @@ class Configure(DishLNCommand):
                 self.logger.info(
                     "Command ID: %s | "
                     + "Successfully executed Configure command on %s",
-                    str(self.component_manager.command_id),
-                    self.dish_master_adapter.dev_name,
+                    self.component_manager.command_id,
+                    self.component_manager.dish_dev_name,
                 )
             else:
                 # Stop tracktable calculation if Configure command execution
                 # is not completed successfully.
                 self.logger.debug(
-                    "Command ID: %s | Stopping track table calculation on %s",
-                    str(self.component_manager.command_id),
-                    self.component_manager.dish_dev_name,
+                    "Command ID: %s | Stopping trackTable calculation ",
+                    self.component_manager.command_id,
                 )
                 self.dishln_pointing_device_adapter.StopProgramTrackTable()
                 self.task_callback(
@@ -158,7 +156,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_in_progress = ""
             self.logger.debug(
                 "Command ID: %s | Performing Configure command cleanup",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
             )
             self.component_manager.command_id = ""
             self.component_manager.receiver_band = ""
@@ -182,7 +180,7 @@ class Configure(DishLNCommand):
             self.logger.exception(
                 "Command ID: %s | Failed to update "
                 + "task status ,Exception: %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 str(e),
             )
 
@@ -259,7 +257,7 @@ class Configure(DishLNCommand):
             if result_code == ResultCode.FAILED:
                 self.logger.error(
                     "Command ID: %s | Failed to find adapter for device: %s",
-                    str(self.component_manager.command_id),
+                    self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message
@@ -299,8 +297,7 @@ class Configure(DishLNCommand):
                     {"pointing": pointing_device_conf_json["pointing"]}
                 )
                 self.logger.debug(
-                    "Calling GenerateProgramTrackTable() on %s",
-                    self.component_manager.dish_dev_name,
+                    "Calling GenerateProgramTrackTable() ",
                 )
                 self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
                 if self.component_manager._update_health_state_callback:
@@ -310,8 +307,8 @@ class Configure(DishLNCommand):
             except Exception as exception:
                 self.logger.exception(
                     "Command ID: %s | Failed to generate "
-                    + "program track table on %s , Exception: %s",
-                    str(self.component_manager.command_id),
+                    + "program track table for %s , Exception: %s",
+                    self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
                     str(exception),
                 )
@@ -337,7 +334,7 @@ class Configure(DishLNCommand):
             self.logger.exception(
                 "Command ID: %s | Failed to invoke Configure command on %s"
                 + "Exception: %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
                 str(exception),
             )
@@ -372,7 +369,7 @@ class Configure(DishLNCommand):
                 "Command ID: %s | "
                 + "Received result for ConfigureBand command"
                 + " Result: %s , Progress: %s ,Exception: %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 result,
                 progress,
                 str(exception),
@@ -394,7 +391,7 @@ class Configure(DishLNCommand):
                     self.logger.info(
                         "Command ID: %s | "
                         + "ResultCode: %s for configure band command",
-                        str(self.component_manager.command_id),
+                        self.component_manager.command_id,
                         str(result_code),
                     )
                     # If timed out has occurred for configure band then update
@@ -405,6 +402,8 @@ class Configure(DishLNCommand):
                             "configuredBand command to be completed in "
                             "Configure command."
                         )
+                        self.logger.exception(exception_message)
+
                         self.set_failure_for_configure(exception_message)
                     else:
                         self.component_manager.observable.notify_observers(
@@ -467,7 +466,7 @@ class Configure(DishLNCommand):
                 "Command ID: %s | "
                 "Pointing offsets have been reset to [0.0, 0.0] "
                 "and correction key set to %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 CORRECTION_KEY.RESET.value,
             )
         else:
@@ -501,10 +500,10 @@ class Configure(DishLNCommand):
                 self.component_manager.partial_configure_lrcr = result_code
                 self.logger.info(
                     "Command ID: %s | "
-                    "Result code for track load: %s  "
+                    "Result code for Track load: %s  "
                     ",Correction Key: %s ,"
                     "Partial Configure: %s",
-                    str(self.component_manager.command_id),
+                    self.component_manager.command_id,
                     str(result_code),
                     self.component_manager.correction_key,
                     self.component_manager.partial_configure,
@@ -533,6 +532,7 @@ class Configure(DishLNCommand):
                             " to be completed in Configure command."
                         )
                         self.set_failure_for_configure(exception_message)
+                        self.logger.exception(exception_message)
                     else:
                         self.component_manager.observable.notify_observers(
                             command_exception=True
@@ -587,7 +587,7 @@ class Configure(DishLNCommand):
             )
             self.logger.info(
                 "Command ID: %s | SetOperateMode Result: %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 self.component_manager.set_operate_mode_result,
             )
             self.invoke_track_command(json_argument)
@@ -601,7 +601,7 @@ class Configure(DishLNCommand):
             "Command ID: %s | "
             "SetOperateMode command will be executed "
             "shortly on %s",
-            str(self.component_manager.command_id),
+            self.component_manager.command_id,
             self.component_manager.dish_dev_name,
         )
 
@@ -616,9 +616,8 @@ class Configure(DishLNCommand):
             Method for invoking setoperatemode callback
             """
             self.logger.debug(
-                "Command ID: %s | Result code for track load mode "
-                + ", Result: %s",
-                str(self.component_manager.command_id),
+                "Command ID: %s | Result code for track load mode: %s",
+                self.component_manager.command_id,
                 str(result),
             )
             if result is None:
@@ -646,6 +645,7 @@ class Configure(DishLNCommand):
                             " be completed in Configure command."
                         )
                         self.set_failure_for_configure(exception_message)
+                        self.logger.exception(exception_message)
                     else:
                         self.component_manager.observable.notify_observers(
                             command_exception=True
@@ -686,7 +686,7 @@ class Configure(DishLNCommand):
             self.logger.debug(
                 "Command ID: %s | Dish is already tracking/slewing. "
                 + "Track() command is not invoked on %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             message = "Dish is already tracking/slewing."
@@ -695,7 +695,7 @@ class Configure(DishLNCommand):
             )
             self.logger.debug(
                 "Command ID: %s | Track command Result: %s",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
                 self.component_manager.track_result,
             )
             self.component_manager.configure_track_lrcr = ResultCode.OK
@@ -724,8 +724,9 @@ class Configure(DishLNCommand):
                 pass
             else:
                 self.logger.info(
-                    "Command ID: %s | Track result: %s and %s",
-                    str(self.component_manager.command_id),
+                    "Command ID: %s | Track Command Result: %s "
+                    + "and Progress: %s",
+                    self.component_manager.command_id,
                     str(result),
                     progress,
                 )
@@ -750,6 +751,7 @@ class Configure(DishLNCommand):
                             " be completed in Configure command."
                         )
                         self.set_failure_for_configure(exception_message)
+                        self.logger.exception(exception_message)
                     else:
                         self.component_manager.observable.notify_observers(
                             command_exception=True
@@ -791,7 +793,7 @@ class Configure(DishLNCommand):
                 self.logger.debug(
                     "Command ID: %s | "
                     + "Abort() command is invoked while configuring dish.",
-                    str(self.component_manager.command_id),
+                    self.component_manager.command_id,
                 )
                 track_table_status = CommandResult.ABORTED
                 break
@@ -807,13 +809,13 @@ class Configure(DishLNCommand):
             "Command ID: %s | "
             + "Exited the loop that waits to supply the tracktable before"
             + " invoking the Track command.",
-            str(self.component_manager.command_id),
+            self.component_manager.command_id,
         )
         if not self.component_manager.is_tracktable_provided.is_set():
             # Set Failure for configure
             self.logger.debug(
                 "Command ID: %s | Timed out occurred for track table",
-                str(self.component_manager.command_id),
+                self.component_manager.command_id,
             )
             self.set_failure_for_configure(
                 "Dish manager did not receive TrackTable. "

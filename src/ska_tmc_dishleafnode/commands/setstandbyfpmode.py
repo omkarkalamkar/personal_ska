@@ -47,7 +47,7 @@ class SetStandbyFPMode(DishLNCommand):
 
         result_code, message = self.do()
         self.logger.debug(
-            "Updating task status with Result: %s" + " Message: %s",
+            "Updating task status with Result: %s, Message: %s",
             ResultCode(result_code),
             message,
         )
@@ -82,8 +82,8 @@ class SetStandbyFPMode(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.debug(
-                "Adapter for : %s is not found ",
-                self.component_manager.dish_dev_name,
+                "Adapter for: %s is not found ",
+                self.dish_master_adapter.dev_name,
             )
             return result_code, message
 

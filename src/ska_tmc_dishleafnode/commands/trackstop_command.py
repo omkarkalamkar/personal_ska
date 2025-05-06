@@ -97,7 +97,7 @@ class TrackStop(DishLNCommand):
         result_code, message = [ResultCode.OK], ""
         with self.component_manager.tango_operation_execution_lock:
             self.logger.debug(
-                "Command ID: %s | Acquired  tango lock",
+                "Command ID: %s | Acquired tango lock",
                 self.component_manager.command_id,
             )
             result_code, msg = self.call_adapter_method(

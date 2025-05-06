@@ -65,7 +65,7 @@ class AzElConverter:
                 self.weather_data["humidity"],
             )
             logger.debug(
-                "The Azimuth value is: %s and the Elevation is %s : after "
+                "The Az value is: %s and the El is %s : after "
                 "forward transform.",
                 refraction_corrected_azel.az.deg,
                 refraction_corrected_azel.alt.deg,
@@ -199,7 +199,7 @@ class AzElConverter:
             ra_dec.dec, unit=u.deg, precision=2, show_unit=False
         )
         logger.debug(
-            "The Right Ascension is : %s and the Declination is : %s after "
+            "The Ra value is : %s and the Dec value is : %s after "
             "backward transform",
             ra,
             dec,

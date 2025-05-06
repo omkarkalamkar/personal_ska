@@ -79,10 +79,10 @@ class SetKValue(DishLNCommand, FastCommand):
             "Command ID: %s |"
             + " SetKValue command executed on %s "
             + "ResultCode: %s, Message: %s",
-            str(self.component_manager.command_id),
+            self.component_manager.command_id,
             self.component_manager.dish_dev_name,
-            result_code,
-            message,
+            ResultCode(result_code[0]),
+            message[0],
         )
 
         return result_code[0], message[0]

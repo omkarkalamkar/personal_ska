@@ -60,7 +60,7 @@ class SetStandbyLPMode(DishLNCommand):
         else:
             logger.info(
                 "SetStandbyLPMode command is invoked successfully on %s",
-                self.component_manager.dish_dev_name,
+                self.dish_master_adapter.dev_name,
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
@@ -83,7 +83,7 @@ class SetStandbyLPMode(DishLNCommand):
         if result_code == ResultCode.FAILED:
             self.logger.debug(
                 "Adapter for : %s is not found ",
-                self.component_manager.dish_dev_name,
+                self.dish_master_adapter.dev_name,
             )
             return result_code, message
 

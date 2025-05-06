@@ -133,7 +133,7 @@ class Track(DishLNCommand):
             self.logger.info(
                 "Command ID: %s | "
                 + "Track command executed on %s "
-                + "with ResultCode: %s, message: %s",
+                + "with ResultCode: %s, Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
                 ResultCode(result_code[0]),

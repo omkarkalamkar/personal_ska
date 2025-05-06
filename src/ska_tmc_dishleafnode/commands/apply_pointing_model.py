@@ -98,7 +98,7 @@ class ApplyPointingModel(DishLNCommand):
             )
             logger.info(
                 "ApplyPointingModel command invoked successfully on %s",
-                self.component_manager.dish_dev_name,
+                self.dish_master_adapter.dev_name,
             )
 
     def get_global_pointing_data_json(
@@ -134,7 +134,7 @@ class ApplyPointingModel(DishLNCommand):
                 result, message = data[tm_data_filepath].get_dict(), ""
             except json.JSONDecodeError as json_error:
                 self.logger.error(
-                    "Failed to parse JSON ,Error: %s", json_error
+                    "Failed to parse JSON ,Error: %s", str(json_error)
                 )
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
@@ -188,7 +188,7 @@ class ApplyPointingModel(DishLNCommand):
         if result_code == ResultCode.FAILED:
             self.logger.debug(
                 "Failed to find adapter for device: %s",
-                self.component_manager.dish_dev_name,
+                self.dish_master_adapter.dev_name,
             )
             return result_code, message
 
@@ -212,5 +212,9 @@ class ApplyPointingModel(DishLNCommand):
                 argin=json.dumps(global_pointing_data_json),
             )
             return result_code[0], message[0]
+        self.logger.debug(
+            "ApplyPointingModel command invoked on %s",
+            self.dish_master_adapter.dev_name,
+        )
 
         return result_code, message
