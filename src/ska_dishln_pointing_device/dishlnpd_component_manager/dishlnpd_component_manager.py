@@ -209,7 +209,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         Returns:
             None
         """
-        if "wrap_sector" in self.target_data["pointing"]:
+        if "wrap_sector" in self.target_data.get("pointing", {}):
             self.wrap_sector_key = True
             self.wrap_sector = self.target_data["pointing"]["wrap_sector"]
             self.logger.debug("Wrap sector set to: %s", self.wrap_sector)
@@ -298,23 +298,24 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Calculated ProgramTrackTable: %s", program_track_table
         )
 
+    def stop_track_table_thread(self):
+        """Stop the track table thread if it is running"""
+        with self.track_thread_lock:
+            self.mapping_scan_event.set()
+        if self.track_table_thread and self.track_table_thread.is_alive():
+            self.track_table_thread.join()
+            self.logger.info("Track Table thread stopped")
+
     def start_track_table_calculation(self) -> None:
         """This method creates and starts a thread for the programTrackTable
         calculation."""
         try:
-            if (
-                not self.track_table_thread
-                or not self.track_table_thread.is_alive()
-            ):
-                with self.track_thread_lock:
-                    self.create_track_table_thread()
-                    self.track_table_thread.start()
-                    self.logger.debug("Started trackTable thread.")
-            else:
-                self.logger.debug(
-                    "programTrackTable calculation is already going on."
-                    + " New thread will not be hosted."
-                )
+            self.stop_track_table_thread()
+            with self.track_thread_lock:
+                self.mapping_scan_event.clear()
+                self.create_track_table_thread()
+                self.track_table_thread.start()
+                self.logger.debug("Started trackTable thread.")
         except Exception as exception:
             self.logger.error(str(exception))
 

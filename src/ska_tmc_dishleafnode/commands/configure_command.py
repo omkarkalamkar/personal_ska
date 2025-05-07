@@ -326,7 +326,6 @@ class Configure(DishLNCommand):
             try:
                 # If a old partial configure contain wrap_sector key
                 if self.component_manager.partial_configure:
-                    target_data = ""
                     if "wrap_sector" in json_argument["pointing"]:
                         target_data = json.loads(
                             self.dishln_pointing_device_adapter.targetData
@@ -335,9 +334,9 @@ class Configure(DishLNCommand):
                         target_data["pointing"]["wrap_sector"] = json_argument[
                             "pointing"
                         ]["wrap_sector"]
-                    self.dishln_pointing_device_adapter.targetData = (
-                        json.dumps(target_data)
-                    )
+                        self.dishln_pointing_device_adapter.targetData = (
+                            json.dumps(target_data)
+                        )
                 if not self.component_manager.partial_configure:
                     pointing_device_conf_json = copy.deepcopy(json_argument)
                     if "correction" in pointing_device_conf_json["pointing"]:
