@@ -96,14 +96,18 @@ class SetOperateMode(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
-                "Adapter for device : %s is not found",
+            self.logger.debug(
+                "Command ID: %s | Adapter for : %s is not found",
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
 
         with self.component_manager.tango_operation_execution_lock:
-            self.logger.debug("Acquired  tango lock")
+            self.logger.debug(
+                "Command ID: %s | Acquired  tango lock",
+                self.component_manager.command_id,
+            )
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "SetOperateMode"
             )
@@ -112,10 +116,9 @@ class SetOperateMode(DishLNCommand):
                 self.component_manager.command_unique_id_dict[
                     "SetOperateMode"
                 ] = message[0]
+
             self.logger.debug(
-                "SetOperateCode command returned ResultCode: %s, message: %s",
-                result_code,
-                message,
+                "Command ID: %s | Released tango lock",
+                self.component_manager.command_id,
             )
-            self.logger.debug("Released tango lock")
         return result_code[0], message[0]

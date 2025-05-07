@@ -97,8 +97,8 @@ class ApplyPointingModel(DishLNCommand):
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
             logger.info(
-                "The ApplyPointingModel command invoked successfully %s",
-                self.dish_master_adapter.dev_name,
+                "ApplyPointingModel command invoked successfully on %s",
+                self.component_manager.dish_dev_name,
             )
 
     def get_global_pointing_data_json(
@@ -133,12 +133,15 @@ class ApplyPointingModel(DishLNCommand):
                 data = TMData(tm_data_sources, update=True)
                 result, message = data[tm_data_filepath].get_dict(), ""
             except json.JSONDecodeError as json_error:
-                self.logger.exception("JSON Error: %s", json_error)
+                self.logger.error(
+                    "Failed to parse JSON ,Error: %s", str(json_error)
+                )
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
-                    "Error in Loading global pointing data json file %s",
-                    exception,
+                    "Exception occured in Loading global pointing data "
+                    + "JSON file. Exception: %s",
+                    str(exception),
                 )
                 result, message = (
                     {},
@@ -183,8 +186,9 @@ class ApplyPointingModel(DishLNCommand):
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.info(
-                "%s adapter not found", self.component_manager.dish_dev_name
+            self.logger.debug(
+                "Failed to find adapter for device: %s",
+                self.component_manager.dish_dev_name,
             )
             return result_code, message
 
@@ -208,5 +212,9 @@ class ApplyPointingModel(DishLNCommand):
                 argin=json.dumps(global_pointing_data_json),
             )
             return result_code[0], message[0]
+        self.logger.debug(
+            "ApplyPointingModel command invoked on %s",
+            self.component_manager.dish_dev_name,
+        )
 
         return result_code, message

@@ -65,7 +65,7 @@ class AzElConverter:
                 self.weather_data["humidity"],
             )
             logger.debug(
-                "The Azimuth value is: %s and the Elevation is %s : after "
+                "The Az value is: %s and the El is %s : after "
                 "forward transform.",
                 refraction_corrected_azel.az.deg,
                 refraction_corrected_azel.alt.deg,
@@ -75,7 +75,7 @@ class AzElConverter:
                 "Exception occurred while applying refraction correction: "
                 + str(exception)
             )
-            logger.error(message)
+            logger.exception(message)
             raise Exception(message) from exception
 
         return [
@@ -98,7 +98,9 @@ class AzElConverter:
         refraction_corrected_azel = []
         try:
             non_sidereal_target = Target(f"{target_name}, special")
-            logger.debug("non_sidereal_target - %s", non_sidereal_target)
+            logger.debug(
+                "Created non-sidereal target: %s", non_sidereal_target
+            )
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
@@ -148,7 +150,7 @@ class AzElConverter:
                 "Exception occurred while converting RaDec to AzEl: "
                 + str(exception)
             )
-            logger.error(message)
+            logger.exception(message)
             raise Exception(message) from exception
         return az_el_coordinates
 
@@ -197,7 +199,7 @@ class AzElConverter:
             ra_dec.dec, unit=u.deg, precision=2, show_unit=False
         )
         logger.debug(
-            "The Right Ascension is : %s and the Declination is : %s after "
+            "The Ra value is : %s and the Dec value is : %s after "
             "backward transform",
             ra,
             dec,
@@ -247,12 +249,15 @@ class AzElConverter:
 
         except ValueError as value_error:
             message = str(value_error)
-            logger.error(message)
+            logger.error("Invalid RA/Dec values provided, Error: %s ", message)
             raise Exception(message) from value_error
 
         except Exception as exception:
             message = str(exception)
-            logger.error(message)
+            logger.exception(
+                "Failed to convert RA/Dec to Az/El, Exception: %s ",
+                message,
+            )
             raise Exception(message) from exception
 
         return refraction_corrected_azel
