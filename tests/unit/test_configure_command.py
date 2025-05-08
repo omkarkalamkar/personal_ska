@@ -208,7 +208,6 @@ def test_configure_command_completed_partial_config_missing_key(
     assert cm.is_configure_allowed()
     primary_configure_input_str = json_factory("dishleafnode_configure")
     cm.primary_configuration = json.loads(primary_configure_input_str)
-    configure_input_str = json_factory("partial_configure")
     cm.update_device_configured_band("2")
     cm.update_device_pointing_state(PointingState.TRACK)
 
