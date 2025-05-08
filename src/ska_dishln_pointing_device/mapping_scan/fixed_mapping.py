@@ -1,12 +1,6 @@
 """This module provides class for the fixed mapping scan"""
 
 from logging import Logger
-from typing import Tuple
-
-import katpoint
-from astropy import units as u
-from astropy.coordinates import Angle
-from astropy.utils import iers
 
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
 
@@ -65,52 +59,5 @@ class FixedMappingScan(BaseScanMapping):
             self.logger.exception("Exception: %s", exception)
             raise Exception(
                 "Exception while configuring fixed mapping scan:"
-                f" {exception}"
-            ) from exception
-
-    def get_offset_in_rad(self, x: float, y: float) -> tuple:
-        """Return the offset in radian"""
-        return Angle(x, u.deg).rad, Angle(y, u.deg).rad
-
-    def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
-        """Convert plane coordinates to RA/Dec using spherical projection.
-
-        Returns:
-            List[str]: A list containing the calculated RA and Dec
-            coordinates in string.
-        """
-        try:
-            timestamp = katpoint.Timestamp()
-            projection_name, projection_alignment = self.get_projection()
-            self.set_trajectory_and_duration()
-            x, y, _, _, _ = self.traj.posn(self.traj.start)
-            x_rad, y_rad = self.get_offset_in_rad(x, y)
-            self.logger.info(
-                "Calling plane to sphere with %s and %s",
-                x_rad,
-                y_rad,
-            )
-            with iers.earth_orientation_table.set(
-                self.component_manager.iers_a
-            ):
-                ra, dec = self.ra_dec_target.plane_to_sphere(
-                    x_rad,
-                    y_rad,
-                    timestamp,
-                    projection_type=projection_name.upper(),
-                    coord_system=projection_alignment,
-                )
-            updated_ra = Angle(ra, u.rad).deg
-            updated_dec = Angle(dec, u.rad).deg
-            self.logger.debug(
-                "Updated ra and dec after plane to sphere %s, %s",
-                updated_ra,
-                updated_dec,
-            )
-            return updated_ra, updated_dec
-        except Exception as exception:
-            self.logger.exception("Exception: %s", exception)
-            raise Exception(
-                "Exception while setting Ra and Dec for mapping scan:"
                 f" {exception}"
             ) from exception
