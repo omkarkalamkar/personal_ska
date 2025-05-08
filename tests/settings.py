@@ -150,7 +150,6 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_dishmode_callback=dish_mode_callback,
         _update_dish_pointing_model_param=(pointing_model_param_callaback),
         _update_pointingstate_callback=pointing_state_callback,
-        _update_internal_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
         component_state_callback=communication_state_callback,
         pointing_callback=pointing_callback,
