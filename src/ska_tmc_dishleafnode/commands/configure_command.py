@@ -70,7 +70,6 @@ class Configure(DishLNCommand):
         self.component_manager.configure_command_timer_list.append(
             self.timekeeper
         )
-        self.is_delta_configure: bool = False
 
     # pylint: disable=unused-argument
     @timeout_tracker
@@ -95,8 +94,6 @@ class Configure(DishLNCommand):
         self.component_manager.command_in_progress = "Configure"
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
-        if json_argument.get("tmc", {}).get("delta_configuration"):
-            self.is_delta_configure = True
 
         if json_argument.get("tmc") and json_argument["tmc"].get(
             "partial_configuration", False
