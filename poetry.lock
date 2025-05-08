@@ -2765,13 +2765,13 @@ reference = "PyPI-public"
 
 [[package]]
 name = "snowballstemmer"
-version = "3.0.0"
-description = "This package provides 32 stemmers for 30 languages generated from Snowball algorithms."
+version = "2.2.0"
+description = "This package provides 29 stemmers for 28 languages generated from Snowball algorithms."
 optional = false
-python-versions = "!=3.0.*, !=3.1.*, !=3.2.*"
+python-versions = "*"
 files = [
-    {file = "snowballstemmer-3.0.0-py3-none-any.whl", hash = "sha256:b69afb07b71b3fe769b7cc01b9b2ddf3a3ed83c12bb53d34c1b2c589a330efa6"},
-    {file = "snowballstemmer-3.0.0.tar.gz", hash = "sha256:3b6fbff97e1629e9f4a0c8b45b56f3d2226ca8cd15d5b5024148e398e1ad0113"},
+    {file = "snowballstemmer-2.2.0-py2.py3-none-any.whl", hash = "sha256:c8e1716e83cc398ae16824e5572ae04e0d9fc2c6b985fb0f900f5f0c96ecba1a"},
+    {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
 ]
 
 [package.source]
@@ -3350,4 +3350,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "40432ca6bedf7b6ec2f568172b5b1708cd23ee40d98648c94edc67b77791e53d"
+content-hash = "8ee2a1f5d44915578fde43242776dca6047c0a606796735facfed4bdc44bb63a"
