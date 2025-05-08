@@ -135,8 +135,8 @@ def test_dish_pointing_device_multi_command_scenarios(
 ):
     """
     This test tests following scenarios:
-    1. Ensure same thread is used for tracktable calculation in following
-    command sequence:
+    1. Ensure same thread is not used for tracktable calculation
+    in following command sequence:
     GenerateProgramTrackTable -> GenerateProgramTrackTable
 
     2. Ensure same thread is not are used in following command sequence:
@@ -180,7 +180,7 @@ def test_dish_pointing_device_multi_command_scenarios(
     )
     track_table_thread2 = cm.track_table_thread
 
-    assert track_table_thread1 is track_table_thread2
+    assert track_table_thread1 is not track_table_thread2
 
     stop_program_track_table = StopProgramTrackTable(
         logger=logger, component_manager=cm

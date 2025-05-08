@@ -334,32 +334,32 @@ class Configure(DishLNCommand):
                         target_data["pointing"]["wrap_sector"] = json_argument[
                             "pointing"
                         ]["wrap_sector"]
-                        self.dishln_pointing_device_adapter.targetData = (
-                            json.dumps(target_data)
+                        target_data = json.dumps(target_data)
+                        self.logger.debug(
+                            "Partial Config: "
+                            "Calling GenerateProgramTrackTable()"
                         )
-                if not self.component_manager.partial_configure:
+                        (
+                            result_code,
+                            _,
+                        ) = self.invoke_generate_program_track_table(
+                            target_data
+                        )
+                else:
                     pointing_device_conf_json = copy.deepcopy(json_argument)
-                    if "correction" in pointing_device_conf_json["pointing"]:
-                        pointing_device_conf_json["pointing"].pop("correction")
-
-                    self.dishln_pointing_device_adapter.targetData = (
-                        json.dumps(
-                            {
-                                "pointing": pointing_device_conf_json[
-                                    "pointing"
-                                ],
-                                "tmc": pointing_device_conf_json.get(
-                                    "tmc", {}
-                                ),
-                            }
-                        )
+                    target_data = json.dumps(
+                        {
+                            "pointing": pointing_device_conf_json["pointing"],
+                            "tmc": pointing_device_conf_json.get("tmc", {}),
+                        }
                     )
-                    self.logger.debug("Calling GenerateProgramTrackTable()")
-                    result_code, _ = self.invoke_generate_program_track_table()
-                    if self.component_manager._update_health_state_callback:
-                        self.component_manager._update_health_state_callback(
-                            HealthState.OK
-                        )
+                    self.logger.debug(
+                        "Main/Delta Config:"
+                        " Calling GenerateProgramTrackTable()"
+                    )
+                    result_code, _ = self.invoke_generate_program_track_table(
+                        target_data
+                    )
             except Exception as exception:
                 self.logger.exception(
                     "Unable to generate programTrackTable: %s",
@@ -396,14 +396,19 @@ class Configure(DishLNCommand):
             )
         return ResultCode.QUEUED, ""
 
-    def invoke_generate_program_track_table(self):
+    def invoke_generate_program_track_table(self, target_data: str):
         """Invoke Generate program track table on
         dish pointing device
         """
+        self.dishln_pointing_device_adapter.targetData = target_data
         (
             result_code,
             msg,
         ) = self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
+        if self.component_manager._update_health_state_callback:
+            self.component_manager._update_health_state_callback(
+                HealthState.OK
+            )
         return result_code, msg
 
     def invoke_configure_band_on_dish(self, json_argument):

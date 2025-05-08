@@ -510,6 +510,7 @@ def configure_with_wrap_sector(
     group_callback,
     configure_input_str,
     wrap_sector,
+    partial_or_delta_configure,
 ):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
@@ -579,6 +580,26 @@ def configure_with_wrap_sector(
         (DishMode.OPERATE),
         lookahead=6,
     )
+    # Main configure
+    actualPointing = json.loads(dish_leaf_node.actualPointing)
+    ra = actualPointing[1]
+    dec = actualPointing[2]
+
+    ra = Angle(ra, u.hour).deg
+    dec = Angle(dec, u.deg).deg
+    field = json.loads(configure_input_str)["pointing"].get("field", {})
+    if field:
+        c1 = configure_input['pointing']['field']['attrs']['c1']
+        c2 = configure_input['pointing']['field']['attrs']['c2']
+    else:
+        c1 = configure_input["pointing"]["target"]["ra"]
+        c2 = configure_input["pointing"]["target"]["dec"]
+        c1 = Angle(c1, u.hour).deg
+        c2 = Angle(c2, u.deg).deg
+
+    # Assert ra and dec is consistent with wrap_sector key change
+    assert round(ra, 2) == round(c1, 2)
+    assert round(dec, 2) == round(c2, 2)
 
     # Validate number of program track table entries is 150
     assert (
@@ -586,24 +607,111 @@ def configure_with_wrap_sector(
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
 
+    # Verify wrap_sector set on dish pointing device.
+    assert (
+        wrap_sector
+        == json.loads(dishln_pointing_device.targetdata)["pointing"][
+            "wrap_sector"
+        ]
+    )
+
+    # Safe check: Allow some time to generate PTT
+    sleep(2)
+    program_track_table = json.loads(
+        dishln_pointing_device.pointingprogramtracktable
+    )
+    # Verify that program track table gets affected with main configure
+    if not wrap_sector:
+        # When wrap_sector = 0
+        assert program_track_table[1] > 0
+    else:
+        # When wrap sector = -1
+        assert program_track_table[1] < 0
+
+    # Delta/Partial configure
+    partial_or_delta_configure_json = json.loads(partial_or_delta_configure)
+    old_partial_configure = (
+        partial_or_delta_configure_json.get("pointing")
+        .get("target", {})
+        .get("ca_offset_arcsec", None)
+    )
+    if old_partial_configure:
+        # Invoke old partial configure json with wrap sector key
+        # Update the wrap sector value, different from main configure
+        if not wrap_sector:
+            wrap_sector = -1
+        else:
+            wrap_sector = 0
+        partial_or_delta_configure_json["pointing"][
+            "wrap_sector"
+        ] = wrap_sector
+        result_config, unique_id_config = dish_leaf_node.Configure(
+            json.dumps(partial_or_delta_configure_json)
+        )
+        assert result_config[0] == ResultCode.QUEUED
+        load_conf = json.loads(partial_or_delta_configure)
+        ca_offset = load_conf["pointing"]["target"]["ca_offset_arcsec"]
+        ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id_config[0], COMMAND_COMPLETED),
+            lookahead=8,
+        )
+        group_callback["sourceOffset"].assert_change_event(
+            [ca_offset, ie_offset],
+            lookahead=2,
+        )
+    else:
+        # Delete unnecessary keys from adr-106 delta conf json
+        if "trajectory" in partial_or_delta_configure_json["pointing"]:
+            del partial_or_delta_configure_json["pointing"]["trajectory"]
+        if "projection" in partial_or_delta_configure_json["pointing"]:
+            del partial_or_delta_configure_json["pointing"]["projection"]
+        if "field" in partial_or_delta_configure_json["pointing"]:
+            del partial_or_delta_configure_json["pointing"]["field"]
+
+        if not wrap_sector:
+            wrap_sector = -1
+        else:
+            wrap_sector = 0
+        partial_or_delta_configure_json["pointing"][
+            "wrap_sector"
+        ] = wrap_sector
+        result_config, unique_id_config = dish_leaf_node.Configure(
+            json.dumps(partial_or_delta_configure_json)
+        )
+        assert result_config[0] == ResultCode.QUEUED
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id_config[0], COMMAND_COMPLETED),
+            lookahead=8,
+        )
+
+    # Verify wrap_sector set on dish pointing device
+    assert (
+        wrap_sector
+        == json.loads(dishln_pointing_device.targetdata)["pointing"][
+            "wrap_sector"
+        ]
+    )
+
+    # Safe check:Allow some time to generate PTT after delta/partial configure
+    sleep(3)
+
+    program_track_table = json.loads(
+        dishln_pointing_device.pointingprogramtracktable
+    )
+    # Verify that PTT gets affected with partial or delta configure
+    if not wrap_sector:
+        # When wrap_sector = 0
+        assert program_track_table[1] > 0
+    else:
+        # When wrap sector = -1
+        assert program_track_table[1] < 0
+
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-
-    actualPointing = json.loads(dish_leaf_node.actualPointing)
-    ra = actualPointing[1]
-    dec = actualPointing[2]
-
-    ra = Angle(ra, u.hour).deg
-    dec = Angle(dec, u.deg).deg
-    c1 = configure_input['pointing']['field']['attrs']['c1']
-    c2 = configure_input['pointing']['field']['attrs']['c2']
-
-    # Assert ra and dec is consistent with wrap_sector key change
-    assert round(ra, 2) == round(c1, 2)
-    assert round(dec, 2) == round(c2, 2)
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
@@ -626,17 +734,32 @@ def configure_with_wrap_sector(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("wrap_sector", [0, -1])
+@pytest.mark.t1
+@pytest.mark.parametrize(
+    "wrap_sector, json_to_use, partial_or_delta_conf",
+    [
+        (wrap_sector, main_conf_type, partial_conf_type)
+        for wrap_sector in [0, -1]
+        for main_conf_type in [
+            "dishleafnode_configure",
+            "dishleafnode_configure_adr106",
+        ]
+        for partial_conf_type in ["partial_configure", "delta_configure"]
+    ],
+)
 def test_configure_command_with_wrap_sector(
     tango_context,
     group_callback,
     json_factory,
     wrap_sector,
+    json_to_use,
+    partial_or_delta_conf,
 ):
     configure_with_wrap_sector(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
-        json_factory("dishleafnode_configure_adr106"),
+        json_factory(json_to_use),
         wrap_sector,
+        json_factory(partial_or_delta_conf),
     )

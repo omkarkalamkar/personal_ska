@@ -118,8 +118,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
             target_data (str): _description_
         """
         self.component_manager.target_data = json.loads(target_data)
-        # Set the wrap key
-        self.component_manager.set_wrap_sector_data()
 
     @attribute(
         dtype=ArgType.DevString,

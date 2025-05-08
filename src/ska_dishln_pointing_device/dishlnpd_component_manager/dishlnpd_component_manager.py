@@ -98,7 +98,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.track_table_thread = None
         self._wrap_sector: int
         self._wrap_sector_key: bool = False
-        self._is_new_target_provided: bool = False
 
     @property
     def wrap_sector_key(self: DishlnPointingDataComponentManager) -> bool:
@@ -164,7 +163,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.__target_data = data
-            self._is_new_target_provided = True
+            # Set the wrap key
+            self.set_wrap_sector_data()
         except Exception as exception:
             self.logger.error(
                 "Writing of target data failed due to : %s", exception
@@ -383,14 +383,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_scheduler = sched.scheduler(time.time, time.sleep)
             event_priority: int = 1
             while not is_track_thread_stop:
-                if self._is_new_target_provided:
-                    for event in list(track_table_scheduler.queue):
-                        self.logger.info("Cancelling event %s", event)
-                        track_table_scheduler.cancel(event)
-                    self._is_new_target_provided = False
-                    track_table_scheduler = sched.scheduler(
-                        time.time, time.sleep
-                    )
                 self.logger.debug(
                     "Current Thread ID: %s", threading.get_native_id()
                 )
@@ -434,7 +426,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
                 with self.track_thread_lock:
                     if not self.mapping_scan_event.is_set():
-                        self.logger.info("PPPPP %s", program_track_table)
                         track_table_scheduler.enterabs(
                             scheduled_time,
                             event_priority,

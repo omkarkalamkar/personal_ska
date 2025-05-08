@@ -38,7 +38,7 @@ def test_fixed_mapping_scan(cm_pointig_device, json_factory):
     ra = configure_data['pointing']['field']['attrs']['c1']
     dec = configure_data['pointing']['field']['attrs']['c2']
     cm.target_data = configure_data
-    fms_obj = FixedMappingScan("Fixed", cm, logger=logger)
+    fms_obj = FixedMappingScan("fixed", cm, logger=logger)
     fms_obj.extract_target_from_config()
     fms_obj.main_target_ra == ra
     fms_obj.main_target_dec == dec

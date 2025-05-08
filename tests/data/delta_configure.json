@@ -3,7 +3,7 @@
   "transaction_id": "txn-....-00002",
   "pointing": {
     "trajectory": {
-      "name": "Fixed",
+      "name": "fixed",
       "attrs": {
         "x": 0.0,
         "y": 5.0

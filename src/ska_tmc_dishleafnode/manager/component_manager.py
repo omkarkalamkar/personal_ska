@@ -1809,8 +1809,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 retry += 1
                 time.sleep(self.track_table_retry_duration)
 
-        self.logger.debug("ProgramTrackTable: %s", program_track_table)
-
     def clear_track_table_errors(self: DishLNComponentManager):
         """
         This method clears the variables that include track table errors
