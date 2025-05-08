@@ -278,11 +278,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self, pointing_state: PointingState
     ) -> None:
         """Push an event for change of pointingState attribute."""
+
+        # It was observed that DishMaster sends Track pointingState
+        # after configure command is completed on TMC Subarray which
+        # causes issues in aggregation of Subarray Node.
+        # In order to avoid same below filtering criteria has been applied.
+
         self._pointingState = pointing_state
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "pointingState", self._pointingState
-            )
+        if (
+            self.component_manager.is_configure_command
+            or self.component_manager.command_in_progress
+        ):
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events(
+                    "pointingState", self._pointingState
+                )
 
     def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""

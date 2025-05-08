@@ -15,6 +15,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     tear_down,
+    wait_and_validate_attribute_value_available,
     wait_for_attribute_value,
 )
 
@@ -75,6 +76,11 @@ def scan_command_timeout(
         (PointingState.SLEW),
         lookahead=6,
     )
+
+    wait_and_validate_attribute_value_available(
+        dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
+    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=6,
@@ -205,6 +211,11 @@ def scan_command_error_propagation(
         (PointingState.SLEW),
         lookahead=6,
     )
+
+    wait_and_validate_attribute_value_available(
+        dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
+    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=6,
@@ -333,6 +344,9 @@ def scan_command(
     group_callback["pointingState"].assert_change_event(
         (PointingState.SLEW),
         lookahead=6,
+    )
+    wait_and_validate_attribute_value_available(
+        dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),

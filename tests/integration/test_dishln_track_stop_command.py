@@ -17,6 +17,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     tear_down,
+    wait_and_validate_attribute_value_available,
 )
 
 
@@ -70,6 +71,9 @@ def track_stop_timeout_dish_leaf_node(
     group_callback["pointingState"].assert_change_event(
         (PointingState.SLEW),
         lookahead=5,
+    )
+    wait_and_validate_attribute_value_available(
+        dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
@@ -181,6 +185,11 @@ def track_stop_error_propagation_dish_leaf_node(
         (PointingState.SLEW),
         lookahead=5,
     )
+
+    wait_and_validate_attribute_value_available(
+        dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
+    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=5,

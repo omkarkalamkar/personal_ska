@@ -125,6 +125,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.22.5]
+* Updated internal pointing State if command is not in progress. 
+
 [0.22.4]
 * Added changes in the logs as per Logging Guidelines 
 * Added Command ID in logs and fixed logging levels .
