@@ -80,6 +80,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_dishmode_callback: Callable,
         _update_dish_pointing_model_param: Callable,
         _update_pointingstate_callback: Callable,
+        _update_internal_pointingstate_callback: Callable,
         communication_state_callback: Callable,
         component_state_callback: Callable,
         pointing_callback: Callable,
@@ -182,6 +183,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_dish_pointing_model_param
         )
         self._update_pointingstate_callback = _update_pointingstate_callback
+        self._update_internal_pointingstate_callback = (
+            _update_internal_pointingstate_callback
+        )
         self._update_track_table_errors_callback = (
             _update_track_table_errors_callback
         )
@@ -1665,7 +1669,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 if self._update_pointingstate_callback:
                     self._update_pointingstate_callback(pointingState)
             else:
-                self.logger.debug("pointingState event not pushed")
+                self._update_internal_pointingstate_callback(pointingState)
 
             self.observable.notify_observers(attribute_value_change=True)
 

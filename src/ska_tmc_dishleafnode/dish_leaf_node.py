@@ -278,6 +278,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 "pointingState", self._pointingState
             )
 
+    def update_internal_pointingstate_callback(
+        self, pointing_state: PointingState
+    ) -> None:
+        """Update internal pointingState attribute."""
+        self._pointingState = pointing_state
+        self.logger.debug("pointingState event will not be pushed")
+
     def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""
 
@@ -992,7 +999,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_dish_pointing_model_param=(
                 self.update_global_pointing_param_callback
             ),
-            _update_pointingstate_callback=self.update_pointingstate_callback,
+            _update_pointingstate_callback=(
+                self.update_pointingstate_callback
+            ),
+            _update_internal_pointingstate_callback=(
+                self.update_internal_pointingstate_callback
+            ),
             event_subscription_check_period=self.EventSubscriptionCheckPeriod,
             liveliness_check_period=self.LivelinessCheckPeriod,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
