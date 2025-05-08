@@ -70,7 +70,6 @@ class Configure(DishLNCommand):
         self.component_manager.configure_command_timer_list.append(
             self.timekeeper
         )
-        self.is_delta_configure: bool = False
 
     # pylint: disable=unused-argument
     @timeout_tracker
@@ -95,8 +94,6 @@ class Configure(DishLNCommand):
         self.component_manager.command_in_progress = "Configure"
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
-        if json_argument.get("tmc", {}).get("delta_configuration"):
-            self.is_delta_configure = True
 
         if json_argument.get("tmc") and json_argument["tmc"].get(
             "partial_configuration", False
@@ -192,6 +189,7 @@ class Configure(DishLNCommand):
             self.component_manager.command_id = ""
             self.component_manager.receiver_band = ""
             self.component_manager.partial_configure = False
+            self.component_manager.is_trackloadstatic_off = False
             self.component_manager.configure_band_lrcr = ResultCode.UNKNOWN
             self.component_manager.configure_setoperate_mode = (
                 ResultCode.UNKNOWN
@@ -288,23 +286,17 @@ class Configure(DishLNCommand):
                 )
                 return result_code, message
 
-            if not self.is_delta_configure:
+            if not self.component_manager.partial_configure:
                 self.component_manager.trackTableLoadMode = (
                     TrackTableLoadMode.NEW
                 )
                 self.component_manager.is_tracktable_provided.clear()
 
             json_argument = json.loads(argin)
-            if (
-                not self.is_delta_configure
-                and not self.component_manager.partial_configure
-            ):
+            if not self.component_manager.partial_configure:
                 self.component_manager.primary_configuration = json_argument
                 json_argument = self.component_manager.primary_configuration
-            elif (
-                self.is_delta_configure
-                and not self.component_manager.partial_configure
-            ):
+            else:
                 self.update_primary_configuration(json_argument)
                 json_argument = self.component_manager.primary_configuration
 
@@ -319,47 +311,50 @@ class Configure(DishLNCommand):
                 json.loads(argin), reset_offset
             )
             if collimation_offsets:
+                self.component_manager.is_trackloadstatic_off = True
                 self.invoke_trackloadstaticoff(
                     json_argument, collimation_offsets
                 )
 
             try:
                 # If a old partial configure contain wrap_sector key
-                if self.component_manager.partial_configure:
-                    if "wrap_sector" in json_argument["pointing"]:
-                        target_data = json.loads(
-                            self.dishln_pointing_device_adapter.targetData
-                        )
-                        # Update wrap_sector for programTrackTable
-                        target_data["pointing"]["wrap_sector"] = json_argument[
-                            "pointing"
-                        ]["wrap_sector"]
-                        target_data = json.dumps(target_data)
-                        self.logger.debug(
-                            "Partial Config: "
-                            "Calling GenerateProgramTrackTable()"
-                        )
-                        (
-                            result_code,
-                            _,
-                        ) = self.invoke_generate_program_track_table(
-                            target_data
-                        )
-                else:
-                    pointing_device_conf_json = copy.deepcopy(json_argument)
-                    target_data = json.dumps(
-                        {
-                            "pointing": pointing_device_conf_json["pointing"],
-                            "tmc": pointing_device_conf_json.get("tmc", {}),
-                        }
-                    )
-                    self.logger.debug(
-                        "Main/Delta Config:"
-                        " Calling GenerateProgramTrackTable()"
-                    )
-                    result_code, _ = self.invoke_generate_program_track_table(
-                        target_data
-                    )
+                # if self.component_manager.partial_configure:
+                #     if "wrap_sector" in json_argument["pointing"]:
+                #         target_data = json.loads(
+                #             self.dishln_pointing_device_adapter.targetData
+                #         )
+                #         # Update wrap_sector for programTrackTable
+                #         target_data["pointing"]["wrap_sector"] =
+                #         json_argument[
+                #             "pointing"
+                #         ]["wrap_sector"]
+                #         target_data = json.dumps(target_data)
+                #         self.logger.debug(
+                #             "Partial Config: "
+                #             "Calling GenerateProgramTrackTable()"
+                #         )
+                #         (
+                #             result_code,
+                #             _,
+                #         ) = self.invoke_generate_program_track_table(
+                #             target_data
+                #         )
+                # else:
+                pointing_device_conf_json = copy.deepcopy(json_argument)
+                target_data = json.dumps(
+                    {
+                        "pointing": pointing_device_conf_json["pointing"],
+                        "tmc": pointing_device_conf_json.get("tmc", {}),
+                    }
+                )
+                self.logger.debug(
+                    "Main/Delta Config:"
+                    " Calling "
+                    "GenerateProgramTrackTable()"
+                )
+                result_code, _ = self.invoke_generate_program_track_table(
+                    target_data
+                )
             except Exception as exception:
                 self.logger.exception(
                     "Unable to generate programTrackTable: %s",
@@ -580,16 +575,16 @@ class Configure(DishLNCommand):
                 if self.component_manager.abort_event.is_set():
                     return
                 if result_code == ResultCode.OK:
-                    if (
-                        self.component_manager.correction_key
-                        == CORRECTION_KEY.RESET.value
-                        and not self.component_manager.partial_configure
-                    ) or self.is_delta_configure:
-                        self.invoke_configure_band_on_dish(input_json)
-                    else:
-                        self.component_manager.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                    # if (
+                    #     self.component_manager.correction_key
+                    #     == CORRECTION_KEY.RESET.value
+                    #     and not self.component_manager.partial_configure
+                    # ) or self.is_delta_configure:
+                    self.invoke_configure_band_on_dish(input_json)
+                    # else:
+                    #     self.component_manager.observable.notify_observers(
+                    #         attribute_value_change=True
+                    #     )
                 elif result_code == ResultCode.FAILED:
                     # If timed out has occurred for trackload
                     # static off then update

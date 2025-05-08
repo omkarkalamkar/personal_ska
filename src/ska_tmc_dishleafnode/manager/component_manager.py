@@ -257,6 +257,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.is_tracktable_provided = threading.Event()
         self.command_unique_id_dict = {}
         self._primary_configuration: dict = {}
+        self.is_trackloadstatic_off: bool = False
 
     @property
     def configure_track_lrcr(self):
@@ -1094,8 +1095,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             input_json = json.loads(argin)
-            is_delta_configure = input_json.get("tmc", {}).get(
-                "delta_configuration"
+            is_partial_configure = input_json.get("tmc", {}).get(
+                "partial_configuration"
             )
         except json.JSONDecodeError as exception:
             self.logger.exception(
@@ -1116,7 +1117,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.dish_adapter = configure_command.dish_master_adapter
 
         # validate the JSON argument for main configuration
-        if not is_delta_configure:
+        if not is_partial_configure:
             (
                 validation_result,
                 message,
@@ -2511,8 +2512,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
-        if self.partial_configure:
-            return self.partial_configure_lrcr == ResultCode.OK
+        # if self.partial_configure:
+        #     return self.partial_configure_lrcr == ResultCode.OK
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
@@ -2520,4 +2521,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             and self.configure_band_lrcr == ResultCode.OK
             and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
+            and (
+                self.partial_configure_lrcr == ResultCode.OK
+                if self.is_trackloadstatic_off
+                else True
+            )
         )

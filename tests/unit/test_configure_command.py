@@ -90,7 +90,8 @@ def test_configure_command_completed_partial_config(
         'TrackLoadStaticOff.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
-        )
+        ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(**attr)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
@@ -99,7 +100,11 @@ def test_configure_command_completed_partial_config(
     cm.update_device_dish_mode(DishMode.OPERATE)
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
+    primary_configure_input_str = json_factory("dishleafnode_configure")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
     configure_input_str = json_factory("partial_configure")
+    cm.update_device_configured_band("2")
+    cm.update_device_pointing_state(PointingState.TRACK)
 
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(
@@ -191,7 +196,8 @@ def test_configure_command_completed_partial_config_missing_key(
         'TrackLoadStaticOff.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
-        )
+        ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(**attr)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
@@ -200,6 +206,11 @@ def test_configure_command_completed_partial_config_missing_key(
     cm.update_device_dish_mode(DishMode.OPERATE)
     wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
+    primary_configure_input_str = json_factory("dishleafnode_configure")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
+    cm.update_device_configured_band("2")
+    cm.update_device_pointing_state(PointingState.TRACK)
+
     configure_input_str = json_factory("partial_configure")
     config_json = json.loads(configure_input_str)
     del config_json["pointing"]["target"]["ca_offset_arcsec"]
