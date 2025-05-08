@@ -46,8 +46,8 @@ def task_callback_default(
         + "Please provide task callback."
     )
     LOGGER.info(
-        "long running command status: %s, progress: %s ,result:%s ,"
-        + "exception %s",
+        "Long running command status: %s, Progress: %s ,Result:%s ,"
+        + "Exception %s",
         status,
         progress,
         result,
@@ -94,7 +94,9 @@ class DishLNCommand(TmcLeafNodeCommand):
                     )
                 )
                 self.dish_master_adapter.proxy.set_timeout_millis(5000)
-                self.logger.debug("Dish master adapter created successfully")
+                self.logger.debug(
+                    "Dish Master adapter created successfully",
+                )
                 self.component_manager.set_dish_adapter(
                     self.dish_master_adapter
                 )
@@ -140,7 +142,8 @@ class DishLNCommand(TmcLeafNodeCommand):
                     5000
                 )
                 self.logger.debug(
-                    "DISHLN pointing device adapter created successfully"
+                    "Adapter for Dishleafnode pointing device"
+                    + " created successfully",
                 )
                 self.component_manager.set_dishln_pointing_device_adapter(
                     self.dishln_pointing_device_adapter
@@ -221,8 +224,8 @@ class DishLNCommand(TmcLeafNodeCommand):
         result = kwargs.get("result")
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
-        self.logger.info(
-            "Result, status, message: %s, %s, %s",
+        self.logger.debug(
+            "Task result: %s, Status: %s, Message: %s",
             result,
             status,
             message,

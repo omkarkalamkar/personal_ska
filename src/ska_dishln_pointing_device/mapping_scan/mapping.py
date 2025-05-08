@@ -65,7 +65,12 @@ class BaseScanMapping:
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
-            self.logger.error("Exception: %s", exception)
+            self.logger.exception(
+                "Failed to configure scan target "
+                + "and start track table calculation due "
+                + "to exception : %s",
+                str(exception),
+            )
 
     def extract_target_from_config(self):
         """
@@ -82,9 +87,9 @@ class BaseScanMapping:
             ]["field"]["attrs"]["c2"]
         except Exception as exp:
             self.logger.exception(
-                "Exception while setting target for fixed/mosaic"
-                " mapping scan %s",
-                exp,
+                " Failed to set target for fixed/mosaic mapping "
+                + "scan due to exception: %s",
+                str(exp),
             )
             raise exp
 
@@ -150,8 +155,8 @@ class BaseScanMapping:
             dec = Angle(ra_dec.dec, u.rad).deg
 
         self.logger.debug(
-            "After plane to sphere: The Right Ascension is : %s"
-            " and the Declination is : %s ",
+            "Converted plane to sphere: Value of Ra is : %s"
+            " and the value of Dec is : %s ",
             ra,
             dec,
         )

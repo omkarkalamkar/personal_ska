@@ -10,6 +10,7 @@ from typing import Any, Callable, List
 
 import tango
 from ska_tmc_common import DishDeviceInfo, SdpQueueConnectorDeviceInfo
+from ska_tmc_common.log_manager import LogManager
 from ska_tmc_common.v1.event_receiver import EventReceiver
 
 
@@ -41,6 +42,7 @@ class DishLNEventReceiver(EventReceiver):
         self.dish_master_subscribed: bool = False
         self.dislnpd_subscribed: bool = False
         self._event_enter_exit_time: List[datetime] = []
+        self.log_manager = LogManager()
 
     def run(self: DishLNEventReceiver) -> None:
         while not self.dish_master_subscribed:
@@ -121,7 +123,10 @@ class DishLNEventReceiver(EventReceiver):
                     "Event not working for "
                     f"device {dev_info.dev_name}/{exception}"
                 )
-                self._logger.exception(log_msg)
+                if self.log_manager.is_logging_allowed(
+                    "event_receiver_exception"
+                ):
+                    self._logger.exception(log_msg)
             else:
                 self.dish_master_subscribed = True
 
@@ -183,7 +188,10 @@ class DishLNEventReceiver(EventReceiver):
                     "Event not working for "
                     f"device {dlnPointingDev_name}/{exception}"
                 )
-                self._logger.exception(log_msg)
+                if self.log_manager.is_logging_allowed(
+                    "event_receiver_exception"
+                ):
+                    self._logger.exception(log_msg)
             else:
                 self.dislnpd_subscribed = True
 
@@ -314,7 +322,7 @@ class DishLNEventReceiver(EventReceiver):
                 dev_info.event_id = 0
                 dev_info.subscribed_to_attribute = False
                 self._logger.info(
-                    "Unsubscribed %s Sdp queuue connector attribute event.",
+                    "Unsubscribed %s Sdp queue connector attribute event.",
                     dev_info.dev_name,
                 )
         except Exception as exception:

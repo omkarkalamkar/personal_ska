@@ -47,7 +47,13 @@ class SetStowMode(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
 
         result_code, message = self.do()
-        logger.info(message)
+        self.logger.debug(
+            "Command ID: %s | Updating task status with Result: %s"
+            + " Message: %s",
+            self.component_manager.command_id,
+            ResultCode(result_code),
+            message,
+        )
         if result_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
@@ -56,8 +62,10 @@ class SetStowMode(DishLNCommand):
             )
         else:
             logger.info(
-                "The SetStowMode command is invoked successfully on %s",
-                self.dish_master_adapter.dev_name,
+                "Command ID: %s | "
+                "SetStowMode command is invoked successfully on %s",
+                self.component_manager.command_id,
+                self.component_manager.dish_dev_name,
             )
             task_callback(
                 status=TaskStatus.COMPLETED,
@@ -78,8 +86,9 @@ class SetStowMode(DishLNCommand):
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
-                "Adapter for device : %s is not found ",
+            self.logger.debug(
+                "Command ID: %s | Adapter for : %s is not found ",
+                self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
