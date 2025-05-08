@@ -1,4 +1,6 @@
 {
+    "interface": "https://schema.skao.int/ska-tmc-configure/2.1",
+    "transaction_id": "txn-....-00002",
     "pointing": {
         "target": {
             "reference_frame": "ICRS",
@@ -9,5 +11,8 @@
     },
     "dish": {
         "receiver_band": "2"
+    },
+    "tmc": {
+        "scan_duration": 5
     }
 }

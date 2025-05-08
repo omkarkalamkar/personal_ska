@@ -3,9 +3,9 @@
 from .dishlnpd_component_manager.dishlnpd_component_manager import (
     DishlnPointingDataComponentManager,
 )
-from .mapping_scan.point_mapping import PointMappingScan
+from .mapping_scan.point_mapping import FixedMappingScan
 
 __all__ = [
     "DishlnPointingDataComponentManager",
-    "PointMappingScan",
+    "FixedMappingScan",
 ]

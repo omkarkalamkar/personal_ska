@@ -7,9 +7,9 @@ from logging import Logger
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
 
 
-class PointMappingScan(BaseScanMapping):
+class FixedMappingScan(BaseScanMapping):
     """
-    PointMappingScan class inherits from BaseScanMapping class.
+    FixedMappingScan class inherits from BaseScanMapping class.
     It is used to generate program track table for normal scans.
     """
 
@@ -20,7 +20,7 @@ class PointMappingScan(BaseScanMapping):
         logger: Logger,
     ):
         """
-        Initialize the PointMappingScan object.
+        Initialize the FixedMappingScan object.
         :param dish_node (object): An object representing the dish node.
         :param logger (object, optional): An object for logging.
         """

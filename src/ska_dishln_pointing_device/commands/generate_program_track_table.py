@@ -7,11 +7,8 @@ from ska_tango_base.commands import FastCommand, ResultCode
 from ska_dishln_pointing_device.dishlnpd_component_manager import (
     dishlnpd_component_manager as manager,
 )
-from ska_dishln_pointing_device.mapping_scan.fixed_mapping import (
-    FixedMappingScan,
-)
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
-    PointMappingScan,
+    FixedMappingScan,
 )
 
 
@@ -39,30 +36,14 @@ class GenerateProgramTrackTable(FastCommand):
             self.logger.debug("Executing GenerateProgramTrackTable command.")
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.clear()
-            if self.component_manager.target_data["pointing"].get("target"):
+                self.component_manager.stop_track_table_thread()
                 self.component_manager.current_mapping_scan_obj = (
-                    PointMappingScan(
-                        pattern_name="point",
+                    FixedMappingScan(
+                        pattern_name="fixed",
                         component_manager=self.component_manager,
                         logger=self.logger,
                     )
                 )
-            elif self.component_manager.is_fixed_mapping_scan():
-                # Create new Object when full configure is provided
-                if "field" in self.component_manager.target_data["pointing"]:
-                    self.component_manager.current_mapping_scan_obj = (
-                        FixedMappingScan(
-                            pattern_name="fixed",
-                            component_manager=self.component_manager,
-                            logger=self.logger,
-                        )
-                    )
-                self.logger.info(
-                    "setting offsets with target %s",
-                    self.component_manager.target_data,
-                )
-                if not self.component_manager.current_mapping_scan_obj:
-                    return ResultCode.FAILED, "Provide Full Configure First"
             current_scan_obj = self.component_manager.current_mapping_scan_obj
             current_scan_obj.set_target_and_start_process()
         except Exception as exception:

@@ -7,9 +7,6 @@ import pytest
 from ska_dishln_pointing_device.mapping_scan.fixed_mapping import (
     FixedMappingScan,
 )
-from ska_dishln_pointing_device.mapping_scan.point_mapping import (
-    PointMappingScan,
-)
 from tests.settings import logger
 
 
@@ -72,6 +69,6 @@ def test_wrap_key_set_with_pointing_scan(cm_pointig_device, json_factory):
     # Add wrap sector key to normal configure
     configure_data['pointing']['wrap_sector'] = -1
     cm.target_data = configure_data
-    pointing_scan_obj = PointMappingScan("point", cm, logger=logger)
+    pointing_scan_obj = FixedMappingScan("point", cm, logger=logger)
     pointing_scan_obj.set_target_and_start_process()
     assert cm.wrap_sector == -1

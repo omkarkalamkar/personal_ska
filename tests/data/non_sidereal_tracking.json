@@ -1,10 +1,14 @@
 {
+    "interface": "https://schema.skao.int/ska-tmc-configure/2.1",
+    "transaction_id": "txn-....-00002",
     "pointing": {
         "target": {
             "reference_frame": "special",
             "target_name": "Mars"
         }
     },
-    
-    "dish": {"receiver_band": "1"}
+    "dish": {"receiver_band": "1"},
+    "tmc": {
+        "scan_duration": 5
+    }
 }

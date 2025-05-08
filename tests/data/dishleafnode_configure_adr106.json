@@ -1,4 +1,6 @@
 {
+    "interface": "https://schema.skao.int/ska-tmc-configure/2.1",
+    "transaction_id": "txn-....-00002",
     "pointing": 
     {
         "wrap_sector": -1,
