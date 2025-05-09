@@ -56,7 +56,12 @@ class FixedMappingScan(BaseScanMapping):
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
-            self.logger.exception("Exception: %s", exception)
+            self.logger.exception(
+                "Failed to configure fixed mapping scan on dish %s"
+                + "due to exception: %s",
+                self.component_manager.dishln_pointing_device_name,
+                str(exception),
+            )
             raise Exception(
                 "Exception while configuring fixed mapping scan:"
                 f" {exception}"

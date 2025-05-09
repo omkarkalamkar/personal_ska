@@ -15,6 +15,7 @@ from tests.settings import (
     SKA_EPOCH,
     logger,
     tear_down,
+    wait_and_validate_attribute_value_available,
     wait_for_attribute_value,
 )
 
@@ -63,9 +64,14 @@ def forward_backward_transform(
     logger.info("The desired pointing is set to %s", program_track_table)
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.SLEW),
         lookahead=6,
     )
+
+    wait_and_validate_attribute_value_available(
+        dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
+    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=6,

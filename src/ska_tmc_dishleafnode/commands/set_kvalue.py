@@ -62,8 +62,8 @@ class SetKValue(DishLNCommand, FastCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
-                "Adapter for device : %s is not found ",
+            self.logger.debug(
+                "Adapter for : %s is not found ",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
@@ -74,8 +74,15 @@ class SetKValue(DishLNCommand, FastCommand):
         if result_code[0] == ResultCode.OK:
             self.component_manager.kValue = argin
             self.component_manager.kValueValidationResult = ResultCode.OK
+
         self.logger.info(
-            f"SetKValue command invoked, Result code is {result_code}"
-            + f" and Message is {message}"
+            "Command ID: %s |"
+            + " SetKValue command executed on %s "
+            + "ResultCode: %s, Message: %s",
+            self.component_manager.command_id,
+            self.component_manager.dish_dev_name,
+            ResultCode(result_code[0]),
+            message[0],
         )
+
         return result_code[0], message[0]

@@ -5,6 +5,10 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.22.3]
+********
+* Improved Dish Event Handler Callbacks by removing processing.
+
 ## [0.22.0]
 ***********
 ## Added
@@ -121,6 +125,17 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.22.5]
+* Updated internal pointing State if command is not in progress. 
+
+[0.22.4]
+* Added changes in the logs as per Logging Guidelines 
+* Added Command ID in logs and fixed logging levels .
+* Modifies the log messages to make them readable
+
+[0.22.2]
+* Fixed NaN azimuth values issue in programTrackTable generation.
+
 [0.22.1]
 * Resolved skb-517 by filtering Track event when command is not in progress 
 

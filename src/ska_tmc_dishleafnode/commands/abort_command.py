@@ -79,9 +79,11 @@ class Abort(DishLNCommand):
         status = kwargs.get("status", TaskStatus.COMPLETED)
         message = kwargs.get("exception")
 
-        self.logger.debug("Result of Abort execution: %s", result[0])
-        self.logger.debug("Abort command execution status: %s", status)
-        self.logger.debug("Abort command execution message: %s", message)
+        self.logger.debug(
+            "Command ID: %s | Updating Task status with Result: %s",
+            self.component_manager.command_id,
+            kwargs,
+        )
 
         if result:
             if result[0] == ResultCode.OK and status == TaskStatus.COMPLETED:
@@ -119,11 +121,15 @@ class Abort(DishLNCommand):
 
         """
         self.logger.debug(
-            "Command in progress: %s",
+            "Command ID: %s | Command in progress: %s ",
+            self.component_manager.command_id,
             self.component_manager.command_in_progress,
         )
         self.component_manager.abort_event.set()
-        self.logger.debug("Abort event is set.")
+        self.logger.info(
+            "Command ID: %s | Abort event set",
+            self.component_manager.command_id,
+        )
         with self.component_manager.command_result_update_lock:
             self.component_manager.observable.notify_observers(
                 attribute_value_change=True
@@ -131,7 +137,10 @@ class Abort(DishLNCommand):
         self.component_manager.abort_event.clear()
         if not self.component_manager.command_in_progress:
             self.component_manager.abort_event.clear()
-            self.logger.info("Abort event is cleared")
+            self.logger.debug(
+                "Command ID: %s | Cleared abort event ",
+                self.component_manager.command_id,
+            )
 
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
@@ -141,7 +150,7 @@ class Abort(DishLNCommand):
             )
             return result_code, message
 
-        self.logger.info(
+        self.logger.debug(
             "Dish Abort commands device property is: %s",
             self.component_manager.is_dish_abort_commands_enabled,
         )
@@ -153,8 +162,10 @@ class Abort(DishLNCommand):
             # Append command unique id
             self.component_manager.command_unique_id_dict["Abort"] = message[0]
             self.logger.info(
-                "Abort() command has been invoked, the result code"
-                + " is %s and the message is %s",
+                "Command ID: %s | "
+                + "Abort() command has been invoked with ResultCode:"
+                + " %s, Message: %s",
+                self.component_manager.command_id,
                 result_code[0],
                 message[0],
             )
@@ -167,13 +178,14 @@ class Abort(DishLNCommand):
 
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_program_track_table()
+
         if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
             return result_code, message
 
         self.component_manager.clear_track_table_errors()
 
-        self.logger.debug(
-            "Abort command executed successfully on" + " the DishLeafNode."
+        self.logger.info(
+            "Abort command executed successfully on the DishLeafNode."
         )
         return ResultCode.STARTED, COMMAND_STARTED_MESSAGE
 
@@ -191,7 +203,7 @@ class Abort(DishLNCommand):
         except Exception as exception:
             self.logger.exception(
                 "Unable to stop programTrackTable: %s",
-                exception,
+                str(exception),
             )
             self.component_manager.current_track_table_error = (
                 f"Exception while stopping programTrackTable {exception}"

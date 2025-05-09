@@ -57,6 +57,7 @@ class BaseScanMapping:
                     self.get_radec_from_plane_to_sphere()
                 )
             self.component_manager.start_track_table_calculation()
+
         except Exception as exception:
             self.logger.error("Exception: %s", exception)
             raise exception
@@ -89,9 +90,9 @@ class BaseScanMapping:
                 raise InvalidTargetDataError()
         except Exception as exp:
             self.logger.exception(
-                "Exception while setting target for fixed/mosaic"
-                " mapping scan %s",
-                exp,
+                " Failed to set target for fixed/mosaic mapping "
+                + "scan due to exception: %s",
+                str(exp),
             )
             raise exp
 

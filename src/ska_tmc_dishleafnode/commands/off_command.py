@@ -47,7 +47,11 @@ class Off(DishLNCommand):
         # Indicate that the task has started
         task_callback(status=TaskStatus.IN_PROGRESS)
         return_code, message = self.do()
-        logger.info(message)
+        self.logger.debug(
+            "Updating Task status with Result: %s ,Message: %s",
+            ResultCode(return_code),
+            message,
+        )
         if return_code == ResultCode.FAILED:
             task_callback(
                 status=TaskStatus.COMPLETED,
@@ -76,8 +80,8 @@ class Off(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.error(
-                "Adapter for device : %s is not found ",
+            self.logger.debug(
+                "Adapter for : %s is not found ",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
@@ -91,9 +95,9 @@ class Off(DishLNCommand):
             )
             result: str = self.set_wait_for_dishmode(DishMode.STANDBY_FP)
             if result == "NOT_ACHIEVED":
-                self.logger.error(
+                self.logger.debug(
                     "Timeout occurred while processing"
-                    + " the SetStandbyFPMode "
+                    + "the SetStandbyFPMode "
                     + "command.",
                 )
                 return (

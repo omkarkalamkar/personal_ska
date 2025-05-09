@@ -80,7 +80,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name
         self.logger.info(
-            "Dish leaf node pointing device name is %s",
+            "Dish leaf node pointing device name is: %s",
             self.dishln_pointing_device_name,
         )
         self.dish_id = re.findall(
@@ -166,8 +166,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             # Set the wrap key
             self.set_wrap_sector_data()
         except Exception as exception:
-            self.logger.error(
-                "Writing of target data failed due to : %s", exception
+            self.logger.exception(
+                "Failed to update target data due to exception: %s",
+                exception,
             )
 
     @property
@@ -212,7 +213,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         if "wrap_sector" in self.target_data.get("pointing", {}):
             self.wrap_sector_key = True
             self.wrap_sector = self.target_data["pointing"]["wrap_sector"]
-            self.logger.debug("Wrap sector set to: %s", self.wrap_sector)
+            self.logger.info(
+                "Wrap sector set to: %s",
+                self.wrap_sector,
+            )
 
     def download_antenna_and_iers_data(self):
         """Method that downloads antenna and iers data"""
@@ -225,7 +229,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """Create AzElConverter Object and antenna object"""
 
         self.converter.create_antenna_obj()
-        self.logger.debug("Antenna object created")
+        self.logger.debug(
+            "Antenna object created for %s",
+            self.dishln_pointing_device_name,
+        )
 
     def download_iers_data(self: DishlnPointingDataComponentManager) -> None:
         """Downloads and initialises the IERS file.
@@ -238,9 +245,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL)
         except Exception as exception:
             self.logger.exception(
-                "Failed to download IERS_A data: %s. Trying with a different"
-                + " source.",
-                exception,
+                "Failed to download IERS_A data due to exception: %s."
+                + "Trying with Mirror link",
+                str(exception),
             )
             self.download_iers_data_from_a_different_source()
         self.logger.info("IERS data download completed.")
@@ -263,13 +270,13 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
         except Exception as exception:
             self.logger.exception(
-                "Failed to download IERS_A data: %s. Will use the locally "
-                + "stored data.",
-                exception,
+                "Failed to download IERS_A data due to exception: %s."
+                + " Use local or mirror IERS file",
+                str(exception),
             )
             self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
-    def update_program_track_table(
+    def update_pointing_program_track_table(
         self: DishlnPointingDataComponentManager, program_track_table: List
     ) -> None:
         """
@@ -291,11 +298,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self.pointing_program_track_table
             )
         except BaseException as exception:
-            message = "Exception while writing tracktable: %s" + str(exception)
+            message = "Exception while writing trackTable: %s" + str(exception)
             self.logger.exception(message)
             raise Exception(message) from exception
         self.logger.debug(
-            "Calculated ProgramTrackTable: %s", program_track_table
+            "Calculated ProgramTrackTable: %s",
+            program_track_table,
         )
 
     def stop_track_table_thread(self):
@@ -317,7 +325,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self.track_table_thread.start()
                 self.logger.debug("Started trackTable thread.")
         except Exception as exception:
-            self.logger.error(str(exception))
+            self.logger.exception(
+                "Failed to start trackTable thread" + " due to exception: %s",
+                str(exception),
+            )
 
     def create_track_table_thread(self) -> None:
         """This creates thread for track table calculation."""
@@ -326,7 +337,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 target=self.track_thread
             )
         except Exception as exception:
-            self.logger.error(str(exception))
+            self.logger.exception(
+                "Failed to create trackTable thread "
+                + " due to exception: %s ",
+                str(exception),
+            )
 
     def track_thread(
         self: DishlnPointingDataComponentManager,
@@ -387,7 +402,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     "Current Thread ID: %s", threading.get_native_id()
                 )
                 self.logger.debug(
-                    "Target used to calculate tracktable: %s", self.target
+                    "Target used to calculate trackTable: %s", self.target
                 )
 
                 with self.track_thread_lock:
@@ -419,9 +434,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     scheduled_time
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
-                self.logger.debug("actual_time_human %s", actual_time_readable)
+                self.logger.debug("Actual Time: %s", actual_time_readable)
                 self.logger.debug(
-                    "scheduled_time_human  %s", scheduled_time_readable
+                    "Scheduled time: %s", scheduled_time_readable
                 )
 
                 with self.track_thread_lock:
@@ -429,24 +444,27 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         track_table_scheduler.enterabs(
                             scheduled_time,
                             event_priority,
-                            self.update_program_track_table,
+                            self.update_pointing_program_track_table,
                             argument=(program_track_table,),
                         )
                         self.logger.debug(
-                            "Scheduled tracktable write operation"
+                            "Scheduled trackTable write operation"
                         )
                         track_table_scheduler.run(blocking=False)
-                        self.logger.debug("Schedular execution done")
+                        self.logger.debug("Schedular execution completed")
 
-            self.logger.debug("Program Track Table Calculation stopped.")
+            self.logger.debug("Program TrackTable Calculation stopped.")
 
         except Exception as value_error:
-            self.logger.error(str(value_error))
+            self.logger.error(
+                "Error occured during track_thread execution: %s",
+                str(value_error),
+            )
             self.update_program_track_table_error_callback(str(value_error))
             self.current_track_table_error = str(value_error)
 
         except BaseException as exception:
-            self.logger.error(
+            self.logger.exception(
                 "Exception occurred during track_thread :%s",
                 str(exception),
             )

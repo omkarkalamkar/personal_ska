@@ -12,6 +12,7 @@ from tests.settings import (
     get_non_sidereal_json_for_now,
     logger,
     tear_down,
+    wait_and_validate_attribute_value_available,
 )
 
 OFFSET = 5.0
@@ -77,8 +78,12 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
     group_callback["pointingState"].assert_change_event(
-        (PointingState.TRACK),
+        (PointingState.SLEW),
         lookahead=6,
+    )
+
+    wait_and_validate_attribute_value_available(
+        dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
