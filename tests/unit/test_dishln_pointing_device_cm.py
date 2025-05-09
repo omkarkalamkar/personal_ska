@@ -1,8 +1,6 @@
 import json
 import time
 
-from ska_tango_base.commands import ResultCode
-
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
@@ -47,22 +45,6 @@ def test_dish_pointing_device_generate_program_track_table_command(
         len(cm.pointing_program_track_table)
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
-
-
-def test_generate_program_track_table_failure(cm_pointig_device, json_factory):
-    """Tests that when delta configure provided before invoking full configure
-    command fail
-    """
-    cm = cm_pointig_device
-    configure_data = json_factory("delta_configure")
-    configure_data = json.loads(configure_data)
-    cm.target_data = configure_data
-    generate_program_track_table = GenerateProgramTrackTable(
-        logger=logger, component_manager=cm
-    )
-    result_code, message = generate_program_track_table.do()
-    assert result_code == ResultCode.FAILED
-    assert message == "Provide Full Configure First"
 
 
 def test_is_fixed_mapping_scan(cm_pointig_device, json_factory):

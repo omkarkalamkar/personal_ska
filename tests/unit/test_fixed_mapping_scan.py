@@ -64,7 +64,7 @@ def test_fixed_mapping_scan(cm_pointig_device, json_factory):
 def test_wrap_key_set_with_pointing_scan(cm_pointig_device, json_factory):
     """Test to check wrap sector also gets set with normal configure"""
     cm = cm_pointig_device
-    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json_factory("dishleafnode_configure_adr106")
     configure_data = json.loads(configure_data)
     # Add wrap sector key to normal configure
     configure_data['pointing']['wrap_sector'] = -1

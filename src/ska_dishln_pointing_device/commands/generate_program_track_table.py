@@ -36,14 +36,13 @@ class GenerateProgramTrackTable(FastCommand):
             self.logger.debug("Executing GenerateProgramTrackTable command.")
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.clear()
-                self.component_manager.stop_track_table_thread()
-                self.component_manager.current_mapping_scan_obj = (
-                    FixedMappingScan(
-                        pattern_name="fixed",
-                        component_manager=self.component_manager,
-                        logger=self.logger,
-                    )
+            self.component_manager.current_mapping_scan_obj = (
+                FixedMappingScan(
+                    pattern_name="fixed",
+                    component_manager=self.component_manager,
+                    logger=self.logger,
                 )
+            )
             current_scan_obj = self.component_manager.current_mapping_scan_obj
             current_scan_obj.set_target_and_start_process()
         except Exception as exception:

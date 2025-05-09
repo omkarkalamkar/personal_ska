@@ -11,6 +11,10 @@ from katpoint import Target
 from numpy import isnan, nan
 from ska_trajectory.trajectory import TrajectoryName
 
+from ska_dishln_pointing_device.mapping_scan.utils import (
+    InvalidTargetDataError,
+)
+
 
 class BaseScanMapping:
     """Base class for all scan mappings/patterns"""
@@ -55,6 +59,7 @@ class BaseScanMapping:
             self.component_manager.start_track_table_calculation()
         except Exception as exception:
             self.logger.error("Exception: %s", exception)
+            raise exception
 
     def extract_target_from_config(self):
         """
@@ -73,11 +78,15 @@ class BaseScanMapping:
             c1, c2 = field_dict.get("c1", nan), field_dict.get("c2", nan)
 
             # Set target using the first non-empty value
-            self.component_manager.target = (
+            target = (
                 ([ra, dec] if ra != "" and dec != "" else [])
                 or ([c1, c2] if not (isnan(c1) or isnan(c2)) else [])
                 or (target_dict.get("target_name"))
             )
+            if target:
+                self.component_manager.target = target
+            else:
+                raise InvalidTargetDataError()
         except Exception as exp:
             self.logger.exception(
                 "Exception while setting target for fixed/mosaic"
@@ -124,7 +133,7 @@ class BaseScanMapping:
         trajectory = self.component_manager.target_data.get(
             'pointing', {}
         ).get("trajectory", {})
-        trajectory_name = trajectory.get("name", "fixed")
+        trajectory_name = trajectory.get("name", "fixed").lower()
         trajectory_attrs = trajectory.get("attrs", {}) or {'x': 0.0, 'y': 0.0}
 
         self.traj = TrajectoryName[trajectory_name](**trajectory_attrs)
