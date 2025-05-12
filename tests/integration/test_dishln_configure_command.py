@@ -742,7 +742,6 @@ def configure_with_wrap_sector(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.t1
 @pytest.mark.parametrize(
     "wrap_sector, json_to_use, partial_or_delta_conf",
     [

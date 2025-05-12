@@ -315,6 +315,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """This method creates and starts a thread for the programTrackTable
         calculation."""
         try:
+            # Stop existing thread if alive
             self.stop_track_table_thread()
             with self.track_thread_lock:
                 self.mapping_scan_event.clear()
