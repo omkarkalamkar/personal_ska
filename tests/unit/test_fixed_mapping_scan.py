@@ -4,7 +4,7 @@ import time
 import katpoint
 import pytest
 
-from ska_dishln_pointing_device.mapping_scan.fixed_mapping import (
+from ska_dishln_pointing_device.mapping_scan.point_mapping import (
     FixedMappingScan,
 )
 from tests.settings import logger
@@ -56,6 +56,7 @@ def test_fixed_mapping_scan(cm_pointig_device, json_factory):
     assert cm.pointing_program_track_table
     assert cm.wrap_sector == -1
     del configure_data['pointing']['field']['attrs']['c1']
+    del configure_data["pointing"]["field"]["target_name"]
     cm.target_data = configure_data
     with pytest.raises(Exception):
         fms_obj.extract_target_from_config()
