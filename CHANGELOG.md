@@ -125,6 +125,11 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 Fixed
 ======
+[0.23.0]
+* Partial Configure updated such that it can be provided with any one of the keys of main configure and dish leaf node update only that specific data in configuration.
+* Wrap sector is handled in partial configure.
+* Offsets provided in fixed trajectory is used to adjust target used in track table calculation.
+
 [0.22.5]
 * Updated internal pointing State if command is not in progress. 
 
