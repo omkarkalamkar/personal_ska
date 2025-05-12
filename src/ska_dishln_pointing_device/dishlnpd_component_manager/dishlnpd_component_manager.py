@@ -289,9 +289,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        self.logger.debug(
-            "Calculated ProgramTrackTable: %s", program_track_table
-        )
         try:
             self.pointing_program_track_table = program_track_table
             self.update_pointing_program_track_table_callback(
