@@ -83,6 +83,7 @@ class BaseScanMapping:
                 ([ra, dec] if ra != "" and dec != "" else [])
                 or ([c1, c2] if not (isnan(c1) or isnan(c2)) else [])
                 or (target_dict.get("target_name"))
+                or (target_data.get("field", {}).get("target_name", ""))
             )
             if target:
                 self.component_manager.target = target
