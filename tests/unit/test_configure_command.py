@@ -160,33 +160,6 @@ def test_delta_configure_command_completed(
     )
 
 
-# def test_delta_configure_invalid_projection(
-#     cm_without_er_lp, task_callback, json_factory
-# ):
-#     """Test that delta configure command completed"""
-#     cm = cm_without_er_lp
-#     attr = {
-#         "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
-#     }
-#     dishMock = mock.Mock(**attr)
-#     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-#     adapter_factory = mock.Mock(**factory_attrs)
-#     cm.adapter_factory = adapter_factory
-#     cm.update_device_dish_mode(DishMode.OPERATE)
-#     assert wait_for_dish_mode(cm, DishMode.OPERATE)
-#     assert cm.is_configure_allowed()
-#     primary_configure_input_str = json_factory("dishleafnode_configure_
-#     adr106")
-#     cm.primary_configuration = json.loads(primary_configure_input_str)
-#     configure_input_str = json_factory("delta_configure")
-#     delta_configure = json.loads(configure_input_str)
-#     delta_configure["pointing"]["projection"]["alignment"] = "AltAz"
-#     res_code, msg = cm.configure(
-#         json.dumps(delta_configure), task_callback=task_callback
-#     )
-#     assert res_code == ResultCode.REJECTED
-
-
 def test_configure_command_completed_partial_config_missing_key(
     cm_without_er_lp, task_callback, json_factory
 ):
