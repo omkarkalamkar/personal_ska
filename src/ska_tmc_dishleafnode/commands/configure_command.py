@@ -323,11 +323,11 @@ class Configure(DishLNCommand):
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value
             )
-
-            # Invoke track load static off only in case of calibration scan
             collimation_offsets = self.get_ie_ca_offsets_if_provided(
                 json.loads(argin), reset_offset
             )
+            # Invoke track load static off when collimation offsets
+            # provided and correction key is provided as RESET
             if collimation_offsets:
                 self.component_manager.is_trackloadstatic_off = True
                 self.invoke_trackloadstaticoff(
