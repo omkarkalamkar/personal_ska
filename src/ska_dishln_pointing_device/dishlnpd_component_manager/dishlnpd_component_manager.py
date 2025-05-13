@@ -309,7 +309,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.mapping_scan_event.set()
         if self.track_table_thread and self.track_table_thread.is_alive():
             self.track_table_thread.join()
-            self.logger.info("Track Table thread stopped")
+            self.logger.debug("Track Table thread stopped")
 
     def start_track_table_calculation(self) -> None:
         """This method creates and starts a thread for the programTrackTable
@@ -318,6 +318,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             # Stop existing thread if alive
             self.stop_track_table_thread()
             with self.track_thread_lock:
+                # clear mapping scan event to start new thread
                 self.mapping_scan_event.clear()
                 self.create_track_table_thread()
                 self.track_table_thread.start()
