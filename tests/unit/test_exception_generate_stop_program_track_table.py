@@ -13,6 +13,9 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
+from ska_dishln_pointing_device.mapping_scan.utils import (
+    InvalidTargetDataError,
+)
 from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
@@ -23,7 +26,7 @@ def test_generate_program_track_table(cm_pointig_device):
         logging, cm_pointig_device
     )
     cm_pointig_device.target_data = {"1": 1}  # invalid target data
-    with pytest.raises(KeyError, match="pointing"):
+    with pytest.raises(InvalidTargetDataError):
         generate_program_track_table.do()
     cm_pointig_device.target_data = {"pointing": [1, 2]}  # invalid target data
     with pytest.raises(Exception):

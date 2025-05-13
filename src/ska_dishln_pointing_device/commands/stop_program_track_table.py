@@ -43,6 +43,7 @@ class StopProgramTrackTable(FastCommand):
             ):
                 self.component_manager.track_table_thread.join()
             self.component_manager.update_pointing_program_track_table([])
+            self.component_manager.current_mapping_scan_obj = None
             self.logger.info(
                 "StopProgramTrackTable command executed successfully"
                 + " on %s",

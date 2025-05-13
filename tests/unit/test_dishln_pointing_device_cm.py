@@ -47,6 +47,20 @@ def test_dish_pointing_device_generate_program_track_table_command(
     )
 
 
+def test_is_fixed_mapping_scan(cm_pointig_device, json_factory):
+    """Tests that is fixed mapping scan return true or false
+    based on target data set
+    """
+    cm = cm_pointig_device
+    configure_data = json_factory("delta_configure")
+    configure_data = json.loads(configure_data)
+    cm.target_data = configure_data
+    assert cm.is_fixed_mapping_scan()
+    configure_data = json_factory("partial_configure")
+    cm.target_data = json.loads(configure_data)
+    assert not cm.is_fixed_mapping_scan()
+
+
 def test_dish_pointing_device_stop_program_track_table_command(
     cm_pointig_device, json_factory
 ):
@@ -103,8 +117,8 @@ def test_dish_pointing_device_multi_command_scenarios(
 ):
     """
     This test tests following scenarios:
-    1. Ensure same thread is used for tracktable calculation in following
-    command sequence:
+    1. Ensure same thread is not used for tracktable calculation
+    in following command sequence:
     GenerateProgramTrackTable -> GenerateProgramTrackTable
 
     2. Ensure same thread is not are used in following command sequence:
@@ -148,7 +162,7 @@ def test_dish_pointing_device_multi_command_scenarios(
     )
     track_table_thread2 = cm.track_table_thread
 
-    assert track_table_thread1 is track_table_thread2
+    assert track_table_thread1 is not track_table_thread2
 
     stop_program_track_table = StopProgramTrackTable(
         logger=logger, component_manager=cm

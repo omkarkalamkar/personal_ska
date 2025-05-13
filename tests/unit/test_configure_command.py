@@ -43,6 +43,7 @@ def test_configure_command_completed(
             [ResultCode.OK],
             ["Command Completed"],
         ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(**attr)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
@@ -89,7 +90,8 @@ def test_configure_command_completed_partial_config(
         'TrackLoadStaticOff.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
-        )
+        ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(**attr)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
@@ -98,7 +100,11 @@ def test_configure_command_completed_partial_config(
     cm.update_device_dish_mode(DishMode.OPERATE)
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
+    primary_configure_input_str = json_factory("dishleafnode_configure")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
     configure_input_str = json_factory("partial_configure")
+    cm.update_device_configured_band("2")
+    cm.update_device_pointing_state(PointingState.TRACK)
 
     cm.configure(configure_input_str, task_callback=task_callback)
     task_callback.assert_against_call(
@@ -117,6 +123,43 @@ def test_configure_command_completed_partial_config(
     )
 
 
+def test_delta_configure_command_completed(
+    cm_without_er_lp, task_callback, json_factory
+):
+    """Test that delta configure command completed"""
+    cm = cm_without_er_lp
+    attr = {
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+    }
+    dishMock = mock.Mock(**attr)
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    assert wait_for_dish_mode(cm, DishMode.OPERATE)
+    assert cm.is_configure_allowed()
+    configure_input_str = json_factory("delta_configure")
+    primary_configure_input_str = json_factory("dishleafnode_configure_adr106")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
+    cm.update_device_configured_band("1")
+    cm.update_device_pointing_state(PointingState.TRACK)
+
+    cm.configure(configure_input_str, task_callback=task_callback)
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=6,
+    )
+
+
 def test_configure_command_completed_partial_config_missing_key(
     cm_without_er_lp, task_callback, json_factory
 ):
@@ -126,7 +169,8 @@ def test_configure_command_completed_partial_config_missing_key(
         'TrackLoadStaticOff.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
-        )
+        ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(**attr)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
@@ -135,6 +179,11 @@ def test_configure_command_completed_partial_config_missing_key(
     cm.update_device_dish_mode(DishMode.OPERATE)
     wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
+    primary_configure_input_str = json_factory("dishleafnode_configure")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
+    cm.update_device_configured_band("2")
+    cm.update_device_pointing_state(PointingState.TRACK)
+
     configure_input_str = json_factory("partial_configure")
     config_json = json.loads(configure_input_str)
     del config_json["pointing"]["target"]["ca_offset_arcsec"]
@@ -193,7 +242,7 @@ def test_json_validation(task_callback, cm, json_factory, key):
     result, message = cm.configure(
         configure_input_str, task_callback=task_callback
     )
-    assert result == ResultCode.FAILED
+    assert result == ResultCode.REJECTED
     assert f"{key} key is not present" in message
 
 

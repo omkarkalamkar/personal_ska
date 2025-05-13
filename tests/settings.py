@@ -310,6 +310,18 @@ def build_partial_configure_data(
     return configurations
 
 
+def build_delta_configure_data(
+    delta_config: str, x_offsets: list, y_offsets: list
+) -> List[str]:
+    """Build and return the jsons for delta configuration in a list."""
+    configurations = []
+    delta_config = json.loads(delta_config)
+    for x, y in zip(x_offsets, y_offsets):
+        delta_config["pointing"]["trajectory"]["attrs"] = {"x": x, "y": y}
+        configurations.append(json.dumps(delta_config))
+    return configurations
+
+
 def wait_and_validate_attribute_value_available(
     device: DeviceProxy,
     attribute_name: str,

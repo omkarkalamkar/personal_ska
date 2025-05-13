@@ -163,6 +163,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.__target_data = data
+            # Set the wrap key
+            self.set_wrap_sector_data()
         except Exception as exception:
             self.logger.exception(
                 "Failed to update target data due to exception: %s",
@@ -191,11 +193,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: True/False
         :rtype: boolean
         """
-        if self.target_data["pointing"]["trajectory"][
-            "name"
-        ] == "Fixed" and all(
-            self.target_data["pointing"]["trajectory"]["attrs"][k] == 0.0
-            for k in ("x", "y")
+        if (
+            self.target_data.get("pointing", {})
+            .get("trajectory", {})
+            .get("name", "")
+            .lower()
+            == "fixed"
         ):
             return True
         return False
@@ -207,7 +210,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         Returns:
             None
         """
-        if "wrap_sector" in self.target_data["pointing"]:
+        if "wrap_sector" in self.target_data.get("pointing", {}):
             self.wrap_sector_key = True
             self.wrap_sector = self.target_data["pointing"]["wrap_sector"]
             self.logger.info(
@@ -286,7 +289,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-
         try:
             self.pointing_program_track_table = program_track_table
             self.update_pointing_program_track_table_callback(
@@ -301,28 +303,26 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             program_track_table,
         )
 
+    def stop_track_table_thread(self):
+        """Stop the track table thread if it is running"""
+        with self.track_thread_lock:
+            self.mapping_scan_event.set()
+        if self.track_table_thread and self.track_table_thread.is_alive():
+            self.track_table_thread.join()
+            self.logger.debug("Track Table thread stopped")
+
     def start_track_table_calculation(self) -> None:
         """This method creates and starts a thread for the programTrackTable
         calculation."""
         try:
-            # Set the wrap key
-            self.set_wrap_sector_data()
-
-            if (
-                not self.track_table_thread
-                or not self.track_table_thread.is_alive()
-            ):
-                with self.track_thread_lock:
-                    self.create_track_table_thread()
-                    self.track_table_thread.start()
-                    self.logger.debug(
-                        "Started trackTable thread.",
-                    )
-            else:
-                self.logger.debug(
-                    "ProgramTrackTable calculation is in progress."
-                    + " New thread will not be spawned",
-                )
+            # Stop existing thread if alive
+            self.stop_track_table_thread()
+            with self.track_thread_lock:
+                # clear mapping scan event to start new thread
+                self.mapping_scan_event.clear()
+                self.create_track_table_thread()
+                self.track_table_thread.start()
+                self.logger.debug("Started trackTable thread.")
         except Exception as exception:
             self.logger.exception(
                 "Failed to start trackTable thread" + " due to exception: %s",
@@ -411,7 +411,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         self.target, self.converter
                     )
                 )
-
                 first_entry_timestamp: float = program_track_table[0]
 
                 # advance_time is subtracted to provide programTrackTable few
@@ -447,7 +446,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             self.update_pointing_program_track_table,
                             argument=(program_track_table,),
                         )
-
                         self.logger.debug(
                             "Scheduled trackTable write operation"
                         )

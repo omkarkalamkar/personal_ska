@@ -111,6 +111,7 @@ def test_configure_command_completed_with_correction_key_reset(
             [ResultCode.OK],
             ["Command Completed"],
         ),
+        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
     }
     dishMock = mock.Mock(
         programTrackTable=[
@@ -221,6 +222,14 @@ def test_correction_key_reset_partial_config(
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    wait_for_dish_mode(cm, DishMode.OPERATE)
+    assert cm.is_configure_allowed()
+    primary_configure_input_str = json_factory("dishleafnode_configure")
+    cm.primary_configuration = json.loads(primary_configure_input_str)
+    cm.update_device_configured_band("2")
+    cm.update_device_pointing_state(PointingState.TRACK)
+
     configure_input_str = json_factory("partial_configure")
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "RESET"

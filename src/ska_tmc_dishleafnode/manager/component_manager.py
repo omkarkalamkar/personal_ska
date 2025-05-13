@@ -65,7 +65,7 @@ from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
 
 
-# pylint: disable = too-many-public-methods
+# pylint: disable = too-many-public-methods,too-many-instance-attributes
 class DishLNComponentManager(TmcLeafNodeComponentManager):
     """
     A component manager for The Dish Leaf Node component.
@@ -266,6 +266,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
         self.command_unique_id_dict = {}
+        self._primary_configuration: dict = {}
+        self.is_trackloadstatic_off: bool = False
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
@@ -281,6 +283,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Set configure track lrcr"""
         with self.command_result_update_lock:
             self._configure_track_lrcr = value
+
+    @property
+    def primary_configuration(self) -> dict:
+        """Return primary configuration"""
+        return self._primary_configuration
+
+    @primary_configuration.setter
+    def primary_configuration(self, config: dict):
+        """Set Primary configuration"""
+        self._primary_configuration = config
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
@@ -1127,7 +1139,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             input_json = json.loads(argin)
-
+            is_partial_configure = input_json.get("tmc", {}).get(
+                "partial_configuration"
+            )
         except json.JSONDecodeError as exception:
             self.logger.exception(
                 "Exception occured while loading the input json: %s", exception
@@ -1146,14 +1160,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.dish_adapter = configure_command.dish_master_adapter
 
-        # validate the JSON argument
-        (
-            validation_result,
-            message,
-        ) = configure_command.validate_json_argument(input_json)
-        if validation_result != ResultCode.OK:
-            return validation_result, message
-        if "correction" in input_json["pointing"]:
+        # validate the JSON argument for main configuration
+        if not is_partial_configure:
+            (
+                validation_result,
+                message,
+            ) = configure_command.validate_json_argument(input_json)
+            if validation_result != ResultCode.OK:
+                return validation_result, message
+        if "correction" in input_json.get("pointing", {}):
             self.correction_key = input_json["pointing"]["correction"]
         # submit the command to the queue
         task_status, response = self.submit_task(
@@ -1841,8 +1856,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 retry += 1
                 time.sleep(self.track_table_retry_duration)
 
-        self.logger.debug("ProgramTrackTable: %s", program_track_table)
-
     def clear_track_table_errors(self: DishLNComponentManager):
         """
         This method clears the variables that include track table errors
@@ -1986,13 +1999,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             "TrackLoadStaticOff result: %s",
                             self.track_load_static_off_result,
                         )
-                        if (
-                            self.command_in_progress != "Configure"
-                            or self.partial_configure
-                        ):
-                            is_notify_observer = True
-                        elif self.correction_key == CORRECTION_KEY.RESET.value:
-                            is_notify_observer = True
+                        is_notify_observer = True
                     elif "TrackStop" in unique_id:
                         self.track_stop_result["result_code"] = result_code
                         self.track_stop_result["message"] = message
@@ -2538,9 +2545,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
-
-        if self.partial_configure:
-            return self.partial_configure_lrcr == ResultCode.OK
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
@@ -2548,6 +2552,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             and self.configure_band_lrcr == ResultCode.OK
             and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
+            and (
+                self.partial_configure_lrcr == ResultCode.OK
+                if self.is_trackloadstatic_off
+                else True
+            )
         )
 
     def get_attribute_dict(self) -> dict:

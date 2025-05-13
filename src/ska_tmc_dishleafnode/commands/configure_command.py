@@ -94,21 +94,63 @@ class Configure(DishLNCommand):
         self.component_manager.command_in_progress = "Configure"
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
-        if json_argument.get("tmc"):
+
+        if json_argument.get("tmc") and json_argument["tmc"].get(
+            "partial_configuration", False
+        ):
             self.component_manager.partial_configure = True
 
-        if not self.component_manager.partial_configure:
-            self.component_manager.receiver_band = json_argument["dish"][
-                "receiver_band"
-            ]
+        receiver_band = json_argument.get("dish", {}).get("receiver_band", "")
+        if receiver_band:
+            self.component_manager.receiver_band = receiver_band
             self.logger.debug(
                 "Set receiver band to: %s",
                 self.component_manager.receiver_band,
+            )
+        else:
+            self.component_manager.receiver_band = (
+                self.component_manager.dishConfiguredBand
             )
 
         result_code, message = self.do(argin)
         self.set_command_id(__class__.__name__)
         return result_code, message
+
+    def update_primary_configuration(self, new_configuration):
+        """Update data provided in new configuration with primary
+        configuration
+        """
+        pointing_data = new_configuration.get("pointing", {})
+        # Update field
+        if "field" in pointing_data:
+            field = pointing_data["field"]
+            self.component_manager.primary_configuration["pointing"][
+                "field"
+            ] = field
+        # Update trajectory
+        if "trajectory" in pointing_data:
+            trajectory = pointing_data["trajectory"]
+            self.component_manager.primary_configuration["pointing"][
+                "trajectory"
+            ] = trajectory
+        # update projection
+        if "projection" in pointing_data:
+            projection = pointing_data["projection"]
+            self.component_manager.primary_configuration["pointing"][
+                "projection"
+            ] = projection
+        # Update wrap_sector key
+        if "wrap_sector" in pointing_data:
+            self.component_manager.primary_configuration["pointing"][
+                "wrap_sector"
+            ] = pointing_data["wrap_sector"]
+        # Update receiver band
+        dish_data = new_configuration.get("dish", {})
+        if "receiver_band" in dish_data:
+            new_receiver_band = dish_data["receiver_band"]
+            self.component_manager.primary_configuration["dish"][
+                "receiver_band"
+            ] = new_receiver_band
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -161,6 +203,7 @@ class Configure(DishLNCommand):
             self.component_manager.command_id = ""
             self.component_manager.receiver_band = ""
             self.component_manager.partial_configure = False
+            self.component_manager.is_trackloadstatic_off = False
             self.component_manager.configure_band_lrcr = ResultCode.UNKNOWN
             self.component_manager.configure_setoperate_mode = (
                 ResultCode.UNKNOWN
@@ -196,29 +239,28 @@ class Configure(DishLNCommand):
 
         if "pointing" not in input_argin:
             return (
-                ResultCode.FAILED,
+                ResultCode.REJECTED,
                 "pointing key is not present in the configure input json.",
             )
 
-        if "tmc" in input_argin:
-            if (
-                "tmc" in input_argin
-                and "target" not in input_argin["pointing"]
-            ):
+        if "tmc" in input_argin and input_argin["tmc"].get(
+            "partial_configuration"
+        ):
+            if "target" not in input_argin["pointing"]:
                 return (
-                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
                     "target key is not present in the input json argument.",
                 )
         else:
             if "dish" not in input_argin:
                 return (
-                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
                     "dish key is not present in the input json argument.",
                 )
 
             if "receiver_band" not in input_argin["dish"]:
                 return (
-                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
                     "receiverBand key is not present in the input json "
                     + "argument.",
                 )
@@ -262,48 +304,52 @@ class Configure(DishLNCommand):
                 )
                 return result_code, message
 
-            self.component_manager.trackTableLoadMode = TrackTableLoadMode.NEW
-            self.component_manager.is_tracktable_provided.clear()
+            if not self.component_manager.partial_configure:
+                self.component_manager.trackTableLoadMode = (
+                    TrackTableLoadMode.NEW
+                )
+                self.component_manager.is_tracktable_provided.clear()
 
             json_argument = json.loads(argin)
+            if not self.component_manager.partial_configure:
+                self.component_manager.primary_configuration = json_argument
+                json_argument = self.component_manager.primary_configuration
+            else:
+                self.update_primary_configuration(json_argument)
+                json_argument = self.component_manager.primary_configuration
 
+            self.logger.info("Primary config is %s", json_argument)
             reset_offset = (
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value
             )
-            if reset_offset and "tmc" not in json_argument:
-                result_code, message = self.invoke_trackloadstaticoff(
-                    json_argument, reset_offset=True
-                )
-                self.component_manager.command_in_progress = "Configure"
-                if result_code in [
-                    ResultCode.FAILED,
-                    ResultCode.REJECTED,
-                    ResultCode.NOT_ALLOWED,
-                ]:
-                    return result_code, message
-
-            if json_argument.get("tmc"):
-                return self.invoke_trackloadstaticoff(
-                    json_argument, reset_offset=reset_offset
+            collimation_offsets = self.get_ie_ca_offsets_if_provided(
+                json.loads(argin), reset_offset
+            )
+            # Invoke track load static off when collimation offsets
+            # provided and correction key is provided as RESET
+            if collimation_offsets:
+                self.component_manager.is_trackloadstatic_off = True
+                self.invoke_trackloadstaticoff(
+                    json_argument, collimation_offsets
                 )
 
             try:
                 pointing_device_conf_json = copy.deepcopy(json_argument)
-                if "correction" in pointing_device_conf_json["pointing"]:
-                    pointing_device_conf_json["pointing"].pop("correction")
-
-                self.dishln_pointing_device_adapter.targetData = json.dumps(
-                    {"pointing": pointing_device_conf_json["pointing"]}
+                target_data = json.dumps(
+                    {
+                        "pointing": pointing_device_conf_json["pointing"],
+                        "tmc": pointing_device_conf_json.get("tmc", {}),
+                    }
                 )
                 self.logger.debug(
-                    "Calling GenerateProgramTrackTable() ",
+                    "Main/Delta Config:"
+                    " Calling "
+                    "GenerateProgramTrackTable()"
                 )
-                self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
-                if self.component_manager._update_health_state_callback:
-                    self.component_manager._update_health_state_callback(
-                        HealthState.OK
-                    )
+                result_code, _ = self.invoke_generate_program_track_table(
+                    target_data
+                )
             except Exception as exception:
                 self.logger.exception(
                     "Command ID: %s | Failed to generate "
@@ -327,7 +373,7 @@ class Configure(DishLNCommand):
                         exception,
                     ),
                 )
-            if not reset_offset:
+            if not reset_offset and not collimation_offsets:
                 return self.invoke_configure_band_on_dish(json_argument)
 
         except Exception as exception:
@@ -348,11 +394,28 @@ class Configure(DishLNCommand):
             )
         return ResultCode.QUEUED, ""
 
+    def invoke_generate_program_track_table(self, target_data: str):
+        """Invoke Generate program track table on
+        dish pointing device
+        """
+        self.dishln_pointing_device_adapter.targetData = target_data
+        (
+            result_code,
+            msg,
+        ) = self.dishln_pointing_device_adapter.GenerateProgramTrackTable()
+        if self.component_manager._update_health_state_callback:
+            self.component_manager._update_health_state_callback(
+                HealthState.OK
+            )
+        return result_code, msg
+
     def invoke_configure_band_on_dish(self, json_argument):
         """Invoke Configure band on Dish
         :param json_argument: Input json
         :type json_argument: dict
         """
+        receiver_band = json_argument.get("dish", {}).get("receiver_band", "")
+        self.logger.info("Receiver band is %s", receiver_band)
 
         def _invoke_configure_band_callback(
             status=None,
@@ -411,31 +474,69 @@ class Configure(DishLNCommand):
                         )
 
         # pylint: enable=unused-argument
-        configure_band_command = ConfigureBand(
-            self.component_manager,
-            self.op_state_model,
-            self._adapter_factory,
-            logger=self.logger,
-            is_configure_command=True,
+        self.logger.info(
+            "Existing band is %s", self.component_manager.dishConfiguredBand
         )
-        configure_band_command.configure_band(
-            argin=self.component_manager.receiver_band,
-            logger=self.logger,
-            task_callback=_invoke_configure_band_callback,
-            task_abort_event=self.component_manager.abort_event,
-        )
-
-        if (
-            self.component_manager.get_configure_band_result_code()
-            == ResultCode.FAILED
-        ):
-            return (
-                self.component_manager.get_configure_band_result_code(),
-                self.component_manager.get_configure_band_result_dict()[
-                    "exception"
-                ],
+        if receiver_band != self.component_manager.dishConfiguredBand:
+            configure_band_command = ConfigureBand(
+                self.component_manager,
+                self.op_state_model,
+                self._adapter_factory,
+                logger=self.logger,
+                is_configure_command=True,
             )
+            configure_band_command.configure_band(
+                argin=self.component_manager.receiver_band,
+                logger=self.logger,
+                task_callback=_invoke_configure_band_callback,
+                task_abort_event=self.component_manager.abort_event,
+            )
+
+            if (
+                self.component_manager.get_configure_band_result_code()
+                == ResultCode.FAILED
+            ):
+                return (
+                    self.component_manager.get_configure_band_result_code(),
+                    self.component_manager.get_configure_band_result_dict()[
+                        "exception"
+                    ],
+                )
+        else:
+            self.component_manager.configure_band_lrcr = ResultCode.OK
+            self.invoke_setopermode_command(json_argument)
         return ResultCode.QUEUED, ""
+
+    def get_ie_ca_offsets_if_provided(
+        self, config_json: dict, reset_offset: bool
+    ) -> list:
+        """This check if ca_offset_arcsec or ie_offset_arcsec provided
+        in config json and return offsets
+        :param config_json: Configuration json
+        :type config_json: dict
+        :param reset_offset: Bool value
+        :type reset_offset: bool
+        :return: Offset list
+        """
+        if reset_offset:
+            return RESET_OFFSETS
+        offsets = []
+        pointing_data = config_json.get("pointing", {})
+        if pointing_data:
+            target_data = pointing_data.get("target", {})
+            if (
+                "ca_offset_arcsec" in target_data
+                or "ie_offset_arcsec" in target_data
+            ):
+                offsets.append(target_data.get("ca_offset_arcsec", 0.0))
+                offsets.append(target_data.get("ie_offset_arcsec", 0.0))
+            elif (
+                "ca_offset_arcsec" in pointing_data
+                or "ie_offset_arcsec" in pointing_data
+            ):
+                offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+                offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+        return offsets
 
     def invoke_setopermode_command(self, json_argument: dict):
         """Invoke Set Operate mode command"""
@@ -445,7 +546,7 @@ class Configure(DishLNCommand):
     def invoke_trackloadstaticoff(
         self: Configure,
         input_json: dict,
-        reset_offset: bool = False,
+        collimation_offsets: list,
     ) -> Tuple[ResultCode, str]:
         """Extracts the offsets from input json and invokes the
         TrackLoadStaticOff command on DishMaster device.
@@ -455,30 +556,7 @@ class Configure(DishLNCommand):
 
         :returns: Tuple[ResultCode, str]
         """
-        offsets_argin = []
-
-        # Extracting and setting cross elevation offset. Considering
-        # 0.0 if the key is omitted
-
-        if reset_offset:
-            offsets_argin = RESET_OFFSETS
-            self.logger.debug(
-                "Command ID: %s | "
-                "Pointing offsets have been reset to [0.0, 0.0] "
-                "and correction key set to %s",
-                self.component_manager.command_id,
-                CORRECTION_KEY.RESET.value,
-            )
-        else:
-            offsets_argin.append(
-                input_json["pointing"]["target"].get("ca_offset_arcsec") or 0.0
-            )
-
-            # Extracting and setting elevation offset. Considering 0.0 if
-            # the key is omitted
-            offsets_argin.append(
-                input_json["pointing"]["target"].get("ie_offset_arcsec") or 0.0
-            )
+        offsets_argin = collimation_offsets
 
         # pylint: disable=unused-argument
         def _invoke_trackstaticloadoff_callback(
@@ -511,16 +589,7 @@ class Configure(DishLNCommand):
                 if self.component_manager.abort_event.is_set():
                     return
                 if result_code == ResultCode.OK:
-                    if (
-                        self.component_manager.correction_key
-                        == CORRECTION_KEY.RESET.value
-                        and not self.component_manager.partial_configure
-                    ):
-                        self.invoke_configure_band_on_dish(input_json)
-                    else:
-                        self.component_manager.observable.notify_observers(
-                            attribute_value_change=True
-                        )
+                    self.invoke_configure_band_on_dish(input_json)
                 elif result_code == ResultCode.FAILED:
                     # If timed out has occurred for trackload
                     # static off then update
