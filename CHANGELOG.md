@@ -5,6 +5,12 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+
+## [0.23.1]
+***********
+## Fixed
+* Updated Abort command completion check to include pointing state and dish mode.
+
 ## [0.23.0]
 ***********
 ## Fixed
