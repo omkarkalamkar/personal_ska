@@ -96,7 +96,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         event_subscription_check_period: int = 1,
         liveliness_check_period: int = 1,
         dish_availability_check_timeout: int = 40,
-        command_timeout: int = 15,
+        command_timeout: int = 30,
         is_dish_abort_commands_enabled: bool = False,
         adapter_timeout: int = 2,
         max_track_table_retry: int = 3,
