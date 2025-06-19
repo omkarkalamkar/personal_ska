@@ -2417,6 +2417,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.command_result_update_lock:
             return self.abort_result["result_code"]
 
+    def is_abort_completed(self: DishLNComponentManager) -> bool:
+        """
+        Waits for expected state with or without
+        transitional state. On expected state occurrence,
+        it sets ResultCode to OK and stops the tracker thread.
+
+        :return: boolean value indicating if the state change occurred or not
+        """
+        return (
+            self.dishMode == DishMode.STANDBY_FP
+            and self.pointingState in (PointingState.READY)
+            and self.abort_result["result_code"] == ResultCode.OK
+        )
+
     def get_abort_result_dict(self: DishLNComponentManager) -> dict:
         """
         Return the dictinary containing Abort command execution status
