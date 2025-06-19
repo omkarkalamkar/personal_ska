@@ -3,18 +3,18 @@ ska\_dishln\_pointing\_device.mapping_scan
 
 Submodules
 ==========
-point\_mapping
+mapping
 -----------------------------------------------------
 
-.. automodule:: ska_dishln_pointing_device.mapping_scan.point_mapping
+.. automodule:: ska_dishln_pointing_device.mapping_scan.mapping
    :members:
    :undoc-members:
    :show-inheritance:
 
-fixed\_mapping
+point\_mapping
 -----------------------------------------------------
 
-.. automodule:: ska_dishln_pointing_device.mapping_scan.fixed_mapping
+.. automodule:: ska_dishln_pointing_device.mapping_scan.point_mapping
    :members:
    :undoc-members:
    :show-inheritance:

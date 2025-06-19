@@ -40,7 +40,8 @@ autodoc_mock_imports = [
     "ska_ser_logging",
     "ska_telmodel",
     "ska_ser_log_transactions",
-    "load_dish_cfg_command"
+    "load_dish_cfg_command",
+    "ska_trajectory"
 ]
 
 
