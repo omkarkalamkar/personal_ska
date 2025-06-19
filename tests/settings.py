@@ -180,7 +180,8 @@ def event_remover(group_callback, attributes: List[str]) -> None:
         attributes (List[str]): List of attribute names.
 
     :return: None
-    :rtype: None"""
+    :rtype: None
+    """
     for attribute in attributes:
         try:
             iterable = group_callback._mock_consumer_group._views[
@@ -457,6 +458,14 @@ def simulate_dish_mode_event(
 ):
     """Simulate Dish mode event from dish master."""
     cm.update_device_dish_mode(dishmode)
+
+
+def simulate_pointing_state_event(
+    cm: DishLNComponentManager,
+    pointing_state: PointingState,
+):
+    """Simulate PointingState event from dish master."""
+    cm.update_device_pointing_state(pointing_state)
 
 
 def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
