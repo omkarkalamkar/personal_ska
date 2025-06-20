@@ -96,7 +96,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         event_subscription_check_period: int = 1,
         liveliness_check_period: int = 1,
         dish_availability_check_timeout: int = 40,
-        command_timeout: int = 15,
+        command_timeout: int = 30,
         is_dish_abort_commands_enabled: bool = False,
         adapter_timeout: int = 2,
         max_track_table_retry: int = 3,
@@ -2416,6 +2416,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.command_result_update_lock:
             return self.abort_result["result_code"]
+
+    def is_abort_completed(self: DishLNComponentManager) -> bool:
+        """
+        Waits for expected state with or without
+        transitional state. On expected state occurrence,
+        it sets ResultCode to OK and stops the tracker thread.
+
+        :return: boolean value indicating if the state change occurred or not
+        """
+        return (
+            self.dishMode == DishMode.STANDBY_FP
+            and self.pointingState == PointingState.READY
+            and self.abort_result["result_code"] == ResultCode.OK
+        )
 
     def get_abort_result_dict(self: DishLNComponentManager) -> dict:
         """

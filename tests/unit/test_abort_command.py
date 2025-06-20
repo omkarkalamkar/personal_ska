@@ -4,10 +4,16 @@ from unittest import mock
 
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import DishMode, PointingState
 
 from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-from tests.settings import logger, simulate_result_code_event
+from tests.settings import (
+    logger,
+    simulate_dish_mode_event,
+    simulate_pointing_state_event,
+    simulate_result_code_event,
+)
 
 
 def test_abort_command(cm_without_er_lp, task_callback):
@@ -25,6 +31,8 @@ def test_abort_command(cm_without_er_lp, task_callback):
     abort_command.invoke_abort(
         task_callback=task_callback, task_abort_event=threading.Event()
     )
+    simulate_pointing_state_event(cm, PointingState.READY)
+    simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
     simulate_result_code_event(cm, "Abort", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
