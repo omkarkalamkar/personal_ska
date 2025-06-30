@@ -15,7 +15,6 @@ from ska_dishln_pointing_device.mapping_scan.point_mapping import (
 
 # from ska_tango_base.commands import ResultCode, SlowCommand, TaskStatus
 
-
 class GenerateProgramTrackTable:
     """Long-running version of GenerateProgramTrackTable."""
 
