@@ -521,9 +521,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.info(command_name)
             self.logger.info(allowed_modes)
             return (
-                True
-                # command_name == "GenerateProgramTrackTable"
-                # and current_mode in allowed_modes
+                # True
+                command_name == "GenerateProgramTrackTable"
+                and current_mode in allowed_modes
             )
 
         return check_dish_mode
