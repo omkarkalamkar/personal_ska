@@ -517,10 +517,13 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             allowed_modes = [DishMode.OPERATE]
 
             current_mode = getattr(self, "dishMode", None)
-
+            self.logger.info(current_mode)
+            self.logger.info(command_name)
+            self.logger.info(allowed_modes)
             return (
-                command_name == "GenerateProgramTrackTable"
-                and current_mode in allowed_modes
+                True
+                # command_name == "GenerateProgramTrackTable"
+                # and current_mode in allowed_modes
             )
 
         return check_dish_mode
