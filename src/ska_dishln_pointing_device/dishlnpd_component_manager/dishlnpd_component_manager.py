@@ -514,12 +514,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             """Determine if the command is allowed based on
             current dish state."""
 
-            allowed_modes = [DishMode.OPERATE]
+            allowed_modes = [DishMode.OPERATE , DishMode.STANDBY_FP]
 
             current_mode = getattr(self, "dishMode", None)
-            self.logger.info(current_mode)
-            self.logger.info(command_name)
-            self.logger.info(allowed_modes)
+            # self.logger.info(current_mode)
+            # self.logger.info(command_name)
+            # self.logger.info(allowed_modes)
             return (
                 # True
                 command_name == "GenerateProgramTrackTable"
