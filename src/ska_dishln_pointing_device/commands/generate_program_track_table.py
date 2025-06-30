@@ -8,9 +8,10 @@ from ska_tango_base.commands import ResultCode, TaskStatus
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
     FixedMappingScan,
 )
-from ska_dishln_pointing_device.mapping_scan.utils import (
-    InvalidTargetDataError,
-)
+
+# from ska_dishln_pointing_device.mapping_scan.utils import (
+#     InvalidTargetDataError,
+# )
 
 # from ska_tango_base.commands import ResultCode, SlowCommand, TaskStatus
 
@@ -28,7 +29,6 @@ class GenerateProgramTrackTable:
 
     def generate_program_track_table(
         self,
-        *args,
         **kwargs,
     ) -> Tuple[ResultCode, str]:
         """
@@ -78,15 +78,13 @@ class GenerateProgramTrackTable:
             current_scan_obj = self.component_manager.current_mapping_scan_obj
             current_scan_obj.set_target_and_start_process()
 
-        # except Exception as e:
-        #     self.logger.exception("Exception GenerateProgramTrackTable")
-
-        #     return ResultCode.FAILED, str(e)
-        except InvalidTargetDataError:
-            self.logger.exception("Invalid target data encountered.")
-            raise  # <-- Let test catch it
-        except Exception as e:
-            self.logger.exception("Exception GenerateProgramTrackTable")
-            return ResultCode.FAILED, str(e)
-
-        return ResultCode.OK, "ProgramTrackTable generation completed."
+        except Exception as exception:
+            self.logger.exception(
+                " Exception occurred "
+                + "in GenerateProgramTrackTable command on %s ,"
+                + "Exception: %s",
+                self.component_manager.dishln_pointing_device_name,
+                exception,
+            )
+            raise exception
+        return ResultCode.STARTED, "ProgramTrackTable generation started"
