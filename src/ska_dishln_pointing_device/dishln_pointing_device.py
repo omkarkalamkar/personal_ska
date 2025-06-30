@@ -259,7 +259,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 self._command_tracker,
                 self.component_manager,
                 method_name="generate_program_track_table",
-                logger=None,
+                logger=self.logger,
             ),
         )
         self.register_command_object(
