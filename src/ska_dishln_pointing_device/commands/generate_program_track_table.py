@@ -87,4 +87,4 @@ class GenerateProgramTrackTable:
                 exception,
             )
             raise exception
-        return ResultCode.STARTED, "ProgramTrackTable generation started"
+        return [ResultCode.OK], ["Command Completed"]
