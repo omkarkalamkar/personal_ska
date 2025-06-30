@@ -495,6 +495,40 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     #     return check_dish_mode
 
+    # def is_command_allowed_callable(
+    #     self: DishlnPointingDataComponentManager, command_name: str
+    # ):
+    #     """
+    #     Returns a callable that determines whether the given
+    # command is allowed
+    #     based on the component manager's internal state.
+
+    #     Args:
+    #         command_name (str): Name of the command to check.
+
+    #     Returns:
+    #         Callable[[], bool]: A function that returns True if the
+    #         command is allowed.
+    #     """
+
+    #     def check_dish_mode() -> bool:
+    #         """Determine if the command is allowed based on
+    #         current dish state."""
+
+    #         allowed_modes = [DishMode.OPERATE,DishMode.STANDBY_FP]
+
+    #         current_mode = getattr(self, "dishMode", None)
+    #         # self.logger.info(current_mode)
+    #         # self.logger.info(command_name)
+    #         # self.logger.info(allowed_modes)
+    #         return (
+    #             # True
+    #             command_name == "GenerateProgramTrackTable"
+    #             and current_mode in allowed_modes
+    #         )
+
+    #     return check_dish_mode
+
     def is_command_allowed_callable(
         self: DishlnPointingDataComponentManager, command_name: str
     ):
@@ -514,17 +548,25 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             """Determine if the command is allowed based on
             current dish state."""
 
-            allowed_modes = [DishMode.OPERATE , DishMode.STANDBY_FP]
+            # Only GenerateProgramTrackTable command is being checked for now
+            command_mode_map = {
+                "GenerateProgramTrackTable": [
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_FP,
+                ],
+            }
 
+            allowed_modes = command_mode_map.get(command_name, [])
             current_mode = getattr(self, "dishMode", None)
-            # self.logger.info(current_mode)
-            # self.logger.info(command_name)
-            # self.logger.info(allowed_modes)
-            return (
-                # True
-                command_name == "GenerateProgramTrackTable"
-                and current_mode in allowed_modes
+
+            self.logger.debug(
+                "command '%s' is allowed in mode '%s' (allowed: %s)",
+                command_name,
+                current_mode,
+                allowed_modes,
             )
+
+            return current_mode in allowed_modes
 
         return check_dish_mode
 
