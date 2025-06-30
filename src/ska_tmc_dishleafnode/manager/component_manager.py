@@ -41,6 +41,9 @@ from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
 from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
+# from ska_dishln_pointing_device.commands.generate_program_track_table import(
+#     GenerateProgramTrackTable,
+# )
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     Abort,
@@ -2737,3 +2740,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # reset flag so you can restart later if needed
         self._stop_thread = False
+
+    # def generate_program_track_table(
+    #     self, task_callback: Optional[Callable] = None
+    # ) -> Tuple[TaskStatus, str]:
+    #     """
+    #     Submit GenerateProgramTrackTable as a long-running background task.
+
+    #     :param task_callback: Callback for tracking status
+    #     :return: TaskStatus and message
+    #     """
+    #     self.logger.info(
+    #         "Submitting GenerateProgramTrackTable as slow command"
+    #     )
+
+    #     command = GenerateProgramTrackTable(
+    #         component_manager=self,
+    #         logger=self.logger,
+    #     )
+
+    #     return self.submit_task(
+    #         command.generate_program_track_table,
+    #         task_callback=task_callback,
+    #         is_cmd_allowed=self.is_command_allowed_callable(
+    #             "GenerateProgramTrackTable"
+    #         ),
+    #     )
