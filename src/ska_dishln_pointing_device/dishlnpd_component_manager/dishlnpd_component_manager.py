@@ -16,7 +16,7 @@ from typing import Callable, List, Optional, Tuple
 from astropy.time import Time
 from astropy.utils import iers
 from ska_tango_base.commands import TaskStatus
-from ska_tmc_common import DeviceUnresponsive, DishMode
+from ska_tmc_common import DishMode
 from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
@@ -495,13 +495,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     #     return check_dish_mode
 
-    def check_device_responsive(
-        self: DishlnPointingDataComponentManager,
-    ) -> None:
-        """Checks if dish master device is responsive."""
-        if self._device is None or self._device.unresponsive:
-            raise DeviceUnresponsive("not available")
-
     def is_command_allowed_callable(
         self: DishlnPointingDataComponentManager, command_name: str
     ):
@@ -516,7 +509,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             Callable[[], bool]: A function that returns True if the
             command is allowed.
         """
-        self.check_device_responsive()
 
         def check_dish_mode() -> bool:
             """Determine if the command is allowed based on
