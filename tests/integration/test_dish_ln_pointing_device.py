@@ -17,7 +17,7 @@ def test_dishln_pointing_device():
     assert dishln_pointing_device.HealthState == HealthState.OK
     assert dishln_pointing_device.MidPointingDevice == DISHLN_POINTING_DEVICE
     result_code, message = dishln_pointing_device.GenerateProgramTrackTable()
-    assert result_code == [ResultCode.QUEUED]
+    assert result_code == ResultCode.QUEUED
     assert message == ['ProgramTrackTable generation started']
 
     result_code, message = dishln_pointing_device.StopProgramTrackTable()
