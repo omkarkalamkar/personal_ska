@@ -16,7 +16,6 @@ from typing import Callable, List, Optional, Tuple
 from astropy.time import Time
 from astropy.utils import iers
 from ska_tango_base.commands import TaskStatus
-from ska_tmc_common import DishMode
 from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
@@ -475,60 +474,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.update_program_track_table_error_callback(str(exception))
             self.current_track_table_error = str(exception)
 
-    # def is_command_allowed_callable(
-    #     self: DishlnPointingDataComponentManager, command_name: str
-    # ):
-    #     """
-    #     Args:
-    #         command_name (str): Name for the command for which the is_allowed
-    #             check need to be applied.
-    #     """
-    #     self.check_device_responsive()
-
-    #     def check_dish_mode():
-    #         """Return whether the command may be called in the current state.
-
-    #         Returns:
-    #             bool: whether the command may be called in the current device
-    #             state
-    #         """
-
-    #     return check_dish_mode
-
-    def is_command_allowed_callable(
-        self: DishlnPointingDataComponentManager, command_name: str
-    ):
-        """
-        Returns a callable that determines whether the given
-        command is allowed
-        based on the component manager's internal state.
-
-        Args:
-            command_name (str): Name of the command to check.
-
-        Returns:
-            Callable[[], bool]: A function that returns True if the
-            command is allowed.
-        """
-
-        def check_dish_mode() -> bool:
-            """Determine if the command is allowed based on
-            current dish state."""
-
-            allowed_modes = [DishMode.OPERATE]
-
-            current_mode = getattr(self, "dishMode", None)
-            self.logger.info(current_mode)
-            self.logger.info(command_name)
-            self.logger.info(allowed_modes)
-            return (
-                True
-                # command_name == "GenerateProgramTrackTable"
-                # and current_mode in allowed_modes
-            )
-
-        return check_dish_mode
-
     def generate_program_track_table(
         self, task_callback: Optional[Callable] = None
     ) -> Tuple[TaskStatus, str]:
@@ -550,7 +495,4 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         return self.submit_task(
             command.generate_program_track_table,
             task_callback=task_callback,
-            is_cmd_allowed=self.is_command_allowed_callable(
-                "GenerateProgramTrackTable"
-            ),
         )

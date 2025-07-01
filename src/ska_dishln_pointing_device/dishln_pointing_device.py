@@ -247,11 +247,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
         """
         super().init_command_objects()
 
-        # self.register_command_object(
-        #     "GenerateProgramTrackTable",
-        #     GenerateProgramTrackTable(self.logger, self.component_manager),
-        # )
-
         self.register_command_object(
             "GenerateProgramTrackTable",
             SubmittedSlowCommand(
