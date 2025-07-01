@@ -21,7 +21,6 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
 
 
-@pytest.mark.test_generate_program_track_table
 def test_generate_program_track_table(cm_pointig_device):
     generate_program_track_table = GenerateProgramTrackTable(
         component_manager=cm_pointig_device,
@@ -33,11 +32,6 @@ def test_generate_program_track_table(cm_pointig_device):
     cm_pointig_device.target_data = {"pointing": [1, 2]}  # invalid target data
     with pytest.raises(Exception):
         generate_program_track_table.do()
-
-    # with pytest.raises(Exception) as exc_info:
-    #     generate_program_track_table.do()
-
-    # assert "Invalid target data provided" in str(exc_info.value)
 
 
 def test_stop_program_track_table():

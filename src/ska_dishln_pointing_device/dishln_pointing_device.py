@@ -11,11 +11,6 @@ from tango import ArgType, AttrDataFormat, AttrWriteType, DevState
 from tango.server import attribute, command, device_property, run
 
 from ska_dishln_pointing_device import DishlnPointingDataComponentManager
-
-# from ska_dishln_pointing_device.commands.generate_program_track_table
-# import (
-#     GenerateProgramTrackTable,
-# )
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )

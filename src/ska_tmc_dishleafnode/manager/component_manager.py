@@ -41,9 +41,6 @@ from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
 from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
-# from ska_dishln_pointing_device.commands.generate_program_track_table import(
-#     GenerateProgramTrackTable,
-# )
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     Abort,
