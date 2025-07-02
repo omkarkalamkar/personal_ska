@@ -14,10 +14,10 @@ from ska_dishln_pointing_device.mapping_scan.point_mapping import (
 
 # pylint: disable=unused-argument
 def task_callback_default(
-    status: TaskStatus | None = None,
-    progress: int | None = None,
+    status: Optional[TaskStatus] = None,
+    progress: Optional[int] = None,
     result: Any = None,
-    exception: Exception | None = None,
+    exception: Optional[Exception] = None,
 ) -> None:
     # pylint: enable=unused-argument
     """
