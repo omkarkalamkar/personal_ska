@@ -3,6 +3,7 @@
 import logging
 from typing import Tuple
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode, TaskStatus
 
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
@@ -19,16 +20,14 @@ class GenerateProgramTrackTable:
 
     def generate_program_track_table(
         self,
-        **kwargs,
+        task_callback: TaskCallbackType,
     ) -> Tuple[ResultCode, str]:
         """
         This is a long running method for GenerateProgramTrackTable command,
         executes do hook, invokes command asynchronously.
         """
-        task_callback = kwargs.get("task_callback")
 
-        if task_callback:
-            task_callback(status=TaskStatus.IN_PROGRESS)
+        task_callback(status=TaskStatus.IN_PROGRESS)
 
         try:
             return_code, message = self.do()
