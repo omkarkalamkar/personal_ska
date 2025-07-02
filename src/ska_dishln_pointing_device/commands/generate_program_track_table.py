@@ -1,8 +1,10 @@
 """ This module contains GenerateProgramTrackTable implementation. """
 
 import logging
-from typing import Callable, Tuple
+import threading
+from typing import Any, Optional, Tuple
 
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode, TaskStatus
 
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
@@ -10,22 +12,44 @@ from ska_dishln_pointing_device.mapping_scan.point_mapping import (
 )
 
 
+# pylint: disable=unused-argument
+def task_callback_default(
+    status: TaskStatus | None = None,
+    progress: int | None = None,
+    result: Any = None,
+    exception: Exception | None = None,
+) -> None:
+    # pylint: enable=unused-argument
+    """
+    Default method if the taskcallback is not passed
+
+    :param status: status of the task.
+    :param progress: progress of the task.
+    :param result: result of the task.
+    :param exception: an exception raised from the task.
+    """
+
+
 class GenerateProgramTrackTable:
     """Long-running version of GenerateProgramTrackTable."""
 
     def __init__(self, component_manager, logger):
         self.logger: logging.Logger = logger
-        self.task_callback: Callable
         self.component_manager = component_manager
+        self.task_callback: TaskCallbackType = task_callback_default
 
+    # pylint: disable=unused-argument
     def generate_program_track_table(
         self,
+        task_callback: TaskCallbackType,
+        task_abort_event: Optional[threading.Event] = None,
     ) -> Tuple[ResultCode, str]:
+        # pylint: enable=unused-argument
         """
         This is a long running method for GenerateProgramTrackTable command,
         executes do hook, invokes command asynchronously.
         """
-
+        self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
 
         try:
