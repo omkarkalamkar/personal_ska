@@ -1,7 +1,7 @@
 """ This module contains GenerateProgramTrackTable implementation. """
 
 import logging
-from typing import Callable, Optional, Tuple
+from typing import Tuple
 
 from ska_tango_base.commands import ResultCode, TaskStatus
 
@@ -13,8 +13,8 @@ from ska_dishln_pointing_device.mapping_scan.point_mapping import (
 class GenerateProgramTrackTable:
     """Long-running version of GenerateProgramTrackTable."""
 
-    def __init__(self, component_manager, logger: logging.Logger = None):
-        self.logger = logger or logging.getLogger(__name__)
+    def __init__(self, component_manager, logger):
+        self.logger: logging.Logger = logger
         self.component_manager = component_manager
 
     def generate_program_track_table(
@@ -25,7 +25,7 @@ class GenerateProgramTrackTable:
         This is a long running method for GenerateProgramTrackTable command,
         executes do hook, invokes command asynchronously.
         """
-        task_callback: Optional[Callable] = kwargs.get("task_callback")
+        task_callback = kwargs.get("task_callback")
 
         if task_callback:
             task_callback(status=TaskStatus.IN_PROGRESS)

@@ -11,10 +11,11 @@ import sched
 import threading
 import time
 from logging import Logger
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Tuple
 
 from astropy.time import Time
 from astropy.utils import iers
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import TaskStatus
 from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
 
@@ -475,13 +476,18 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.current_track_table_error = str(exception)
 
     def generate_program_track_table(
-        self, task_callback: Optional[Callable] = None
+        self, task_callback: TaskCallbackType
     ) -> Tuple[TaskStatus, str]:
         """
         Submit GenerateProgramTrackTable as a long-running background task.
 
-        :param task_callback: Callback for tracking status
-        :return: TaskStatus and message
+        Args:
+            task_callback (TaskCallbackType): A callback used to monitor
+            or update task progress.
+
+        Returns:
+            Tuple[TaskStatus, str]: The final status of the
+            task and a status message.
         """
         self.logger.info(
             "Submitting GenerateProgramTrackTable as slow command"
