@@ -1,14 +1,15 @@
 import pytest
+import tango
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory
 
-from tests.settings import DISHLN_POINTING_DEVICE
+from tests.settings import COMMAND_COMPLETED, DISHLN_POINTING_DEVICE
 
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_dishln_pointing_device():
+def test_dishln_pointing_device(group_callback):
     """Test the dishln pointing device is up and pingable"""
 
     dishln_pointing_device = DevFactory().get_device(DISHLN_POINTING_DEVICE)
@@ -16,9 +17,18 @@ def test_dishln_pointing_device():
     assert dishln_pointing_device.ping() > 0
     assert dishln_pointing_device.HealthState == HealthState.OK
     assert dishln_pointing_device.MidPointingDevice == DISHLN_POINTING_DEVICE
-    result_code, message = dishln_pointing_device.GenerateProgramTrackTable()
-    assert result_code == [ResultCode.STARTED]
-    assert message == ['ProgramTrackTable generation started']
+    result_code, unique_id = dishln_pointing_device.GenerateProgramTrackTable()
+    assert result_code == ResultCode.QUEUED
+
+    dishln_pointing_device.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id[0], COMMAND_COMPLETED),
+        lookahead=7,
+    )
 
     result_code, message = dishln_pointing_device.StopProgramTrackTable()
     assert result_code == [ResultCode.OK]

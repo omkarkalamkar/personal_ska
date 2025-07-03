@@ -1,58 +1,104 @@
-"""This module contains GenerateProgramTrackTable implementation.
-"""
+""" This module contains GenerateProgramTrackTable implementation. """
+
 import logging
+import threading
+from typing import Any, Optional, Tuple
 
-from ska_tango_base.commands import FastCommand, ResultCode
+from ska_tango_base.base import TaskCallbackType
+from ska_tango_base.commands import ResultCode, TaskStatus
 
-from ska_dishln_pointing_device.dishlnpd_component_manager import (
-    dishlnpd_component_manager as manager,
-)
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
     FixedMappingScan,
 )
 
 
-class GenerateProgramTrackTable(FastCommand):
-    """This class contains GenerateProgramTrackTrable implementation"""
+# pylint: disable=unused-argument
+def task_callback_default(
+    status: Optional[TaskStatus] = None,
+    progress: Optional[int] = None,
+    result: Any = None,
+    exception: Optional[Exception] = None,
+) -> None:
+    # pylint: enable=unused-argument
+    """
+    Default method if the taskcallback is not passed
 
-    def __init__(
-        self,
-        logger: logging.Logger,
-        component_manager: manager.DishlnPointingDataComponentManager,
-    ):
-        """Initialization.
+    :param status: status of the task.
+    :param progress: progress of the task.
+    :param result: result of the task.
+    :param exception: an exception raised from the task.
+    """
 
-        Args:
-            logger (logging.Logger): Used for logging.
-            component_manager (DishlnPointingDataComponentManager): Instance of
-            DishlnPointingDataComponentManager.
-        """
-        super().__init__(logger)
+
+class GenerateProgramTrackTable:
+    """Long-running version of GenerateProgramTrackTable."""
+
+    def __init__(self, component_manager, logger):
+        self.logger: logging.Logger = logger
         self.component_manager = component_manager
+        self.task_callback: TaskCallbackType = task_callback_default
 
-    def do(self, *args, **kwargs) -> None:
-        """This method generates program track table."""
+    # pylint: disable=unused-argument
+    def generate_program_track_table(
+        self,
+        task_callback: TaskCallbackType,
+        task_abort_event: Optional[threading.Event] = None,
+    ) -> Tuple[ResultCode, str]:
+        # pylint: enable=unused-argument
+        """
+        This is a long running method for GenerateProgramTrackTable command,
+        executes do hook, invokes command asynchronously.
+        """
+        self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
+
         try:
-            self.logger.info(
-                "Executing GenerateProgramTrackTable command on %s",
-                self.component_manager.dishln_pointing_device_name,
-            )
-            with self.component_manager.track_thread_lock:
-                self.component_manager.mapping_scan_event.clear()
-            self.component_manager.current_mapping_scan_obj = FixedMappingScan(
-                pattern_name="fixed",
-                component_manager=self.component_manager,
-                logger=self.logger,
-            )
-            current_scan_obj = self.component_manager.current_mapping_scan_obj
-            current_scan_obj.set_target_and_start_process()
-        except Exception as exception:
+            return_code, message = self.do()
+        except Exception as ex:
             self.logger.exception(
-                " Exception occurred "
-                + "in GenerateProgramTrackTable command on %s ,"
-                + "Exception: %s",
+                "Exception occurred in GenerateProgramTrackTable on %s: %s",
                 self.component_manager.dishln_pointing_device_name,
-                exception,
+                ex,
             )
-            raise exception
-        return ResultCode.STARTED, "ProgramTrackTable generation started"
+            self.task_callback(
+                status=TaskStatus.COMPLETED,
+                result=(ResultCode.FAILED, str(ex)),
+                exception=ex,
+            )
+            return ResultCode.FAILED, str(ex)
+
+        self.logger.debug(
+            "Updating Task status with Result: %s , Message: %s",
+            return_code,
+            message,
+        )
+
+        self.task_callback(
+            status=TaskStatus.COMPLETED,
+            result=(ResultCode.OK, message),
+        )
+
+        return ResultCode.OK, message
+
+    def do(self) -> Tuple[ResultCode, str]:
+        """
+        Executes the GenerateProgramTrackTable command logic.
+        """
+        self.logger.info(
+            "Executing GenerateProgramTrackTable command on %s",
+            self.component_manager.dishln_pointing_device_name,
+        )
+
+        with self.component_manager.track_thread_lock:
+            self.component_manager.mapping_scan_event.clear()
+
+        self.component_manager.current_mapping_scan_obj = FixedMappingScan(
+            pattern_name="fixed",
+            component_manager=self.component_manager,
+            logger=self.logger,
+        )
+
+        current_scan_obj = self.component_manager.current_mapping_scan_obj
+        current_scan_obj.set_target_and_start_process()
+
+        return ResultCode.OK, "Command Completed"

@@ -23,7 +23,8 @@ from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
 
 def test_generate_program_track_table(cm_pointig_device):
     generate_program_track_table = GenerateProgramTrackTable(
-        logging, cm_pointig_device
+        component_manager=cm_pointig_device,
+        logger=logger,
     )
     cm_pointig_device.target_data = {"1": 1}  # invalid target data
     with pytest.raises(InvalidTargetDataError):

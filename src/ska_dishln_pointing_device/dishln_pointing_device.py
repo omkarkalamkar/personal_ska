@@ -4,16 +4,13 @@ import json
 from typing import List, Tuple
 
 from ska_tango_base.base.base_device import SKABaseDevice
-from ska_tango_base.commands import ResultCode
+from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
 from ska_tango_base.control_model import HealthState
 from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import ArgType, AttrDataFormat, AttrWriteType, DevState
 from tango.server import attribute, command, device_property, run
 
 from ska_dishln_pointing_device import DishlnPointingDataComponentManager
-from ska_dishln_pointing_device.commands.generate_program_track_table import (
-    GenerateProgramTrackTable,
-)
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
@@ -247,7 +244,13 @@ class DishPointingDevice(TMCBaseLeafDevice):
 
         self.register_command_object(
             "GenerateProgramTrackTable",
-            GenerateProgramTrackTable(self.logger, self.component_manager),
+            SubmittedSlowCommand(
+                "GenerateProgramTrackTable",
+                self._command_tracker,
+                self.component_manager,
+                method_name="generate_program_track_table",
+                logger=self.logger,
+            ),
         )
         self.register_command_object(
             "StopProgramTrackTable",
