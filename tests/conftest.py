@@ -26,7 +26,6 @@ from ska_dishln_pointing_device.dishln_pointing_device import (
     DishPointingDevice,
 )
 from ska_tmc_dishleafnode import MidTmcLeafNodeDish
-from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
@@ -419,5 +418,7 @@ def cm_pointig_device() -> (
         track_table_advance_sec=7,
     )
     cm.converter.create_antenna_obj()
-    cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
+    cm.iers_a = iers.IERS_A.open(
+        join(dirname(__file__), "data", "iers_file.all")
+    )
     yield cm
