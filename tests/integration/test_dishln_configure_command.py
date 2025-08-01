@@ -6,6 +6,7 @@ import tango
 from astropy import units as u
 from astropy.coordinates import Angle
 from ska_tango_base.commands import ResultCode
+from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
@@ -622,11 +623,14 @@ def configure_with_wrap_sector(
             "wrap_sector"
         ]
     )
-
-    # Safe check: Allow some time to generate PTT
-    sleep(2)
+    program_track_table_event = group_callback[
+        "pointingProgramTrackTable"
+    ].assert_change_event(
+        Anything,
+        lookahead=6,
+    )
     program_track_table = json.loads(
-        dishln_pointing_device.pointingprogramtracktable
+        program_track_table_event["attribute_value"]
     )
     # Verify that program track table gets affected with main configure
     if not wrap_sector:
@@ -710,6 +714,7 @@ def configure_with_wrap_sector(
     # Verify that PTT gets affected with partial or delta configure
     if not wrap_sector:
         # When wrap_sector = 0
+
         assert program_track_table[1] > 0
     else:
         # When wrap sector = -1
