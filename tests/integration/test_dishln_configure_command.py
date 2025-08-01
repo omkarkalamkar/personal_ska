@@ -629,6 +629,13 @@ def configure_with_wrap_sector(
         Anything,
         lookahead=6,
     )
+    while not json.loads(program_track_table_event["attribute_value"]):
+        program_track_table_event = group_callback[
+            "pointingProgramTrackTable"
+        ].assert_change_event(
+            Anything,
+            lookahead=6,
+        )
     program_track_table = json.loads(
         program_track_table_event["attribute_value"]
     )
