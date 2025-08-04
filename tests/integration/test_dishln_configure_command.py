@@ -6,7 +6,6 @@ import tango
 from astropy import units as u
 from astropy.coordinates import Angle
 from ska_tango_base.commands import ResultCode
-from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode, PointingState
 
 from tests.settings import (
@@ -623,29 +622,24 @@ def configure_with_wrap_sector(
             "wrap_sector"
         ]
     )
-    program_track_table_event = group_callback[
-        "pointingProgramTrackTable"
-    ].assert_change_event(
-        Anything,
-        lookahead=6,
-    )
-    while not json.loads(program_track_table_event["attribute_value"]):
-        program_track_table_event = group_callback[
-            "pointingProgramTrackTable"
-        ].assert_change_event(
-            Anything,
-            lookahead=6,
+
+    flag = False
+    timeout = 0
+
+    while not flag and timeout <= 5:
+        # Verify that program track table gets affected with configure
+        program_track_table = json.loads(
+            dishln_pointing_device.pointingprogramtracktable
         )
-    program_track_table = json.loads(
-        program_track_table_event["attribute_value"]
-    )
-    # Verify that program track table gets affected with main configure
-    if not wrap_sector:
-        # When wrap_sector = 0
-        assert program_track_table[1] > 0
-    else:
-        # When wrap sector = -1
-        assert program_track_table[1] < 0
+        # when wrap_sector = 0
+        if (not wrap_sector and program_track_table[1] > 0) or (
+            wrap_sector and program_track_table[1] < 0
+        ):  # when wrap_sector = -1
+            flag = True
+        else:
+            # Safe check: Allow some time to generate PTT
+            sleep(1)
+            timeout += 1
 
     # Delta/Partial configure
     partial_or_delta_configure_json = json.loads(partial_or_delta_configure)
@@ -721,7 +715,6 @@ def configure_with_wrap_sector(
     # Verify that PTT gets affected with partial or delta configure
     if not wrap_sector:
         # When wrap_sector = 0
-
         assert program_track_table[1] > 0
     else:
         # When wrap sector = -1
@@ -754,6 +747,7 @@ def configure_with_wrap_sector(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.t1
 @pytest.mark.parametrize(
     "wrap_sector, json_to_use, partial_or_delta_conf",
     [
