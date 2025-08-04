@@ -707,7 +707,6 @@ def configure_with_wrap_sector(
         ]
     )
 
-    # Safe check:Allow some time to generate PTT after delta/partial configure
     flag = False
     timeout = 0
 
