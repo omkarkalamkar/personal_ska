@@ -623,19 +623,25 @@ def configure_with_wrap_sector(
         ]
     )
 
-    # Safe check: Allow some time to generate PTT
-    sleep(2)
-    program_track_table = json.loads(
-        dishln_pointing_device.pointingprogramtracktable
-    )
-    # Verify that program track table gets affected with main configure
-    if not wrap_sector:
-        # When wrap_sector = 0
-        assert program_track_table[1] > 0
-    else:
-        # When wrap sector = -1
-        assert program_track_table[1] < 0
+    flag = False
+    timeout = 0
 
+    while not flag and timeout <= 5:
+        # Verify that program track table gets affected with main configure
+        program_track_table = json.loads(
+            dishln_pointing_device.pointingprogramtracktable
+        )
+        # when wrap_sector = 0
+        if (not wrap_sector and program_track_table[1] > 0) or (
+            wrap_sector and program_track_table[1] < 0
+        ):  # when wrap_sector = -1
+            flag = True
+        else:
+            # Safe check: Allow some time to generate PTT
+            sleep(1)
+            timeout += 1
+
+    assert flag  # Verify PTT updated.
     # Delta/Partial configure
     partial_or_delta_configure_json = json.loads(partial_or_delta_configure)
     old_partial_configure = (
@@ -701,19 +707,26 @@ def configure_with_wrap_sector(
         ]
     )
 
-    # Safe check:Allow some time to generate PTT after delta/partial configure
-    sleep(3)
+    flag = False
+    timeout = 0
 
-    program_track_table = json.loads(
-        dishln_pointing_device.pointingprogramtracktable
-    )
-    # Verify that PTT gets affected with partial or delta configure
-    if not wrap_sector:
-        # When wrap_sector = 0
-        assert program_track_table[1] > 0
-    else:
-        # When wrap sector = -1
-        assert program_track_table[1] < 0
+    while not flag and timeout <= 5:
+        # Verify that program track table gets affected with
+        # partial/delta configure
+        program_track_table = json.loads(
+            dishln_pointing_device.pointingprogramtracktable
+        )
+        # when wrap_sector = 0
+        if (not wrap_sector and program_track_table[1] > 0) or (
+            wrap_sector and program_track_table[1] < 0
+        ):  # when wrap_sector = -1
+            flag = True
+        else:
+            # Safe check: Allow some time to generate PTT
+            sleep(1)
+            timeout += 1
+
+    assert flag  # Verify PTT updated.
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
