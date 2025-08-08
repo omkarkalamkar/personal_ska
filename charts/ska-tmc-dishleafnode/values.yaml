@@ -69,7 +69,7 @@ deviceServers:
     IsDishAbortEnabled: False
     LivelinessCheckPeriod: 1.0
     EventSubscriptionCheckPeriod: 1.0
-    CommandTimeOut: 30.0
+    CommandTimeOutDefault: 30.0
     AdapterTimeOut: 2.0
     DishAvailabilityCheckTimeout: 3
   sdpqc:

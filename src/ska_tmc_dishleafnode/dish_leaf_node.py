@@ -62,7 +62,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     DishAvailabilityCheckTimeout = device_property(
         dtype="DevUShort", default_value=3
     )
-    CommandTimeOut = device_property(dtype="DevFloat", default_value=30)
+    CommandTimeOutDefault = device_property(dtype="DevFloat", default_value=30)
     IsDishAbortEnabled = device_property(
         dtype="DevBoolean", default_value=False
     )
@@ -82,6 +82,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     # ----------
     # Attributes
     # ----------
+
+    @attribute(
+        dtype="DevUShort",
+        access=AttrWriteType.READ_WRITE,
+        doc="Command execution time limit.",
+        label="Command Time",
+    )
+    def commandTimeOut(self) -> str:
+        """Get the version of the commandTimeOut"""
+        return self.component_manager.command_timeout
+
+    @commandTimeOut.write
+    def commandTimeOut_write(self, timeout_value: int) -> None:
+        """Set or update the commandTimeOut"""
+        self.component_manager.command_timeout = timeout_value
 
     dishMasterDevName = attribute(
         dtype="DevString",
@@ -1019,7 +1034,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             liveliness_check_period=self.LivelinessCheckPeriod,
             dish_availability_check_timeout=self.DishAvailabilityCheckTimeout,
             adapter_timeout=self.AdapterTimeOut,
-            command_timeout=self.CommandTimeOut,
+            command_timeout=self.CommandTimeOutDefault,
             is_dish_abort_commands_enabled=self.IsDishAbortEnabled,
             _update_availablity_callback=self.update_availablity_callback,
             _update_source_offset_callback=self.update_source_offset_callback,
