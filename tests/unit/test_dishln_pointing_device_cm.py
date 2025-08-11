@@ -1,5 +1,7 @@
 import json
+import sched
 import time
+from unittest.mock import patch
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
@@ -244,3 +246,51 @@ def test_track_table_max_frequency(cm_pointig_device, json_factory):
     time.sleep(51)
     tracktable2_time = cm.pointing_program_track_table[0]
     assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
+
+
+def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
+    """Test to check programTrackTable generation and scheduler queue length
+    on dish leaf node pointing device."""
+    timeout = 0
+    cm = cm_pointig_device
+    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json.loads(configure_data)
+    del configure_data["dish"]
+    cm.target_data = configure_data
+    real_scheduler = sched.scheduler(time.time, time.sleep)
+    with patch(
+        "ska_dishln_pointing_device.dishlnpd_component_manager."
+        "dishlnpd_component_manager.sched.scheduler",
+        return_value=real_scheduler,
+    ):
+        generate_program_track_table = GenerateProgramTrackTable(
+            logger=logger, component_manager=cm
+        )
+        stop_program_track_table = StopProgramTrackTable(
+            logger=logger, component_manager=cm
+        )
+        generate_program_track_table.do()
+        while not cm.pointing_program_track_table and timeout < 5:
+            time.sleep(1)
+            timeout += 1
+        time.sleep(2)
+        assert len(real_scheduler.queue) == 5
+        assert (
+            len(cm.pointing_program_track_table)
+            == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+        )
+        stop_program_track_table.do()
+        time.sleep(1)
+
+        # Clear the queue
+        for event in list(real_scheduler.queue):
+            real_scheduler.cancel(event)
+
+        # Update track table entries in schedular
+        # test that the schedular contains that number of PTT entries only
+        cm.entries_tt_schedular_queue = 3
+        generate_program_track_table.do()
+        while not cm.pointing_program_track_table and timeout < 5:
+            time.sleep(1)
+            timeout += 1
+        assert len(real_scheduler.queue) == 3

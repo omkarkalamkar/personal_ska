@@ -43,6 +43,8 @@ class ProgramTrackTableCalculator:
             self.component_manager.track_table_update_rate,
             PROGRAM_TRACK_TABLE_SIZE,
         )
+        self.ptt_buffer_set = False
+        self.track_table_scheduler = None
 
     def calculate_program_track_table(
         self: ProgramTrackTableCalculator,
@@ -98,8 +100,11 @@ class ProgramTrackTableCalculator:
                 program_track_table.extend(
                     [round(result[0], 12), round(result[1], 12)]
                 )
-
-                if self.component_manager.mapping_scan_event.is_set():
+                self.track_table_scheduler.run(blocking=False)
+                if (
+                    self.ptt_buffer_set
+                    and self.component_manager.mapping_scan_event.wait(1)
+                ):
                     self.logger.debug(
                         "Stopping the ProgramTrackTable calculation."
                     )
