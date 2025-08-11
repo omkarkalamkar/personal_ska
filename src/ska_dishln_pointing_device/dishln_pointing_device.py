@@ -53,7 +53,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         doc="Maximum value of Azimuth where dish can point",
     )
 
-    SchedulerQueuePreEntries = device_property(
+    SchedularQueuePreEntries = device_property(
         dtype="DevLong",
         default_value=5,
         doc="Advanced program track tables entries in track table schedular",
@@ -238,7 +238,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
                 track_table_advance_sec=self.TrackTableInAdvance,
                 azimuth_min_limit=self.AzimuthMinLimit,
                 azimuth_max_limit=self.AzimuthMaxLimit,
-                entries_tt_schedular_queue=self.SchedulerQueuePreEntries,
+                entries_tt_schedular_queue=self.SchedularQueuePreEntries,
             )
         )
         return dish_pointing_device_component_manager

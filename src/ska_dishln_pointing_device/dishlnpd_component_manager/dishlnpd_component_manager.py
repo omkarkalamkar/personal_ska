@@ -50,7 +50,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         track_table_advance_sec: int = 6,
         azimuth_min_limit: float = -270.0,
         azimuth_max_limit: float = 270.0,
-        entries_tt_schedular_queue=5,
+        entries_tt_schedular_queue= 5,
     ):
         """
         Initialise a new ComponentManager instance.
