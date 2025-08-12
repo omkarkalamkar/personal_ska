@@ -90,12 +90,20 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         label="Command Time",
     )
     def commandTimeOut(self) -> str:
-        """Get the version of the commandTimeOut"""
+        """Get the command timeout value.
+
+        Returns:
+            str: Current command timeout value.
+        """
         return self.component_manager.command_timeout
 
     @commandTimeOut.write
     def commandTimeOut_write(self, timeout_value: int) -> None:
-        """Set or update the commandTimeOut"""
+        """Set or update the command timeout value.
+
+        Args:
+            timeout_value (int): New timeout value to set for command execution
+        """
         self.component_manager.command_timeout = timeout_value
 
     dishMasterDevName = attribute(
