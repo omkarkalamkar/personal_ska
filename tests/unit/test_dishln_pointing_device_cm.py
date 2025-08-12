@@ -3,6 +3,8 @@ import sched
 import time
 from unittest.mock import patch
 
+import pytest
+
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
@@ -248,6 +250,7 @@ def test_track_table_max_frequency(cm_pointig_device, json_factory):
     assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
 
 
+@pytest.mark.repeat(50)
 def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
     """Test to check programTrackTable generation and scheduler queue length
     on dish leaf node pointing device."""
@@ -290,7 +293,12 @@ def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
         # test that the schedular contains that number of PTT entries only
         cm.entries_tt_schedular_queue = 3
         generate_program_track_table.do()
-        while not cm.pointing_program_track_table and timeout < 5:
+        while (
+            len(real_scheduler.queue) != cm.entries_tt_schedular_queue
+            and timeout < 5
+        ):
             time.sleep(1)
             timeout += 1
+        # Added extra time to check the schedular length increases or not
+        time.sleep(1)
         assert len(real_scheduler.queue) == 3
