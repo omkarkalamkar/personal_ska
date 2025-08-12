@@ -62,8 +62,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     DishAvailabilityCheckTimeout = device_property(
         dtype="DevUShort", default_value=3
     )
-    # CommandTimeOutDefault =
-    # device_property(dtype="DevFloat", default_value=30)
     IsDishAbortEnabled = device_property(
         dtype="DevBoolean", default_value=False
     )
@@ -83,29 +81,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     # ----------
     # Attributes
     # ----------
-
-    # @attribute(
-    #     dtype="DevUShort",
-    #     access=AttrWriteType.READ_WRITE,
-    #     doc="Command execution time limit.",
-    #     label="Command Time",
-    # )
-    # def commandTimeOut(self) -> str:
-    #     """Get the command timeout value.
-
-    #     Returns:
-    #         str: Current command timeout value.
-    #     """
-    #     return self.component_manager.command_timeout
-
-    # @commandTimeOut.write
-    # def commandTimeOut_write(self, timeout_value: int) -> None:
-    #     """Set or update the command timeout value.
-
-    #     Args:
-    #     timeout_value (int): New timeout value to set for command execution
-    #     """
-    #     self.component_manager.command_timeout = timeout_value
 
     dishMasterDevName = attribute(
         dtype="DevString",
