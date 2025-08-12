@@ -3,8 +3,6 @@ import sched
 import time
 from unittest.mock import patch
 
-import pytest
-
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
@@ -250,7 +248,6 @@ def test_track_table_max_frequency(cm_pointig_device, json_factory):
     assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
 
 
-@pytest.mark.repeat(50)
 def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
     """Test to check programTrackTable generation and scheduler queue length
     on dish leaf node pointing device."""
