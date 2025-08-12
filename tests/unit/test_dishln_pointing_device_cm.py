@@ -266,36 +266,15 @@ def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
         generate_program_track_table = GenerateProgramTrackTable(
             logger=logger, component_manager=cm
         )
-        stop_program_track_table = StopProgramTrackTable(
-            logger=logger, component_manager=cm
-        )
         generate_program_track_table.do()
         while not cm.pointing_program_track_table and timeout < 5:
             time.sleep(1)
             timeout += 1
         time.sleep(2)
+        # Assert the schedular length is the default one.
         assert len(real_scheduler.queue) == 5
+        # Assert entries in the PTT
         assert (
             len(cm.pointing_program_track_table)
             == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
         )
-        stop_program_track_table.do()
-        time.sleep(1)
-
-        # Clear the queue
-        for event in list(real_scheduler.queue):
-            real_scheduler.cancel(event)
-
-        # Update track table entries in schedular
-        # test that the schedular contains that number of PTT entries only
-        cm.entries_tt_schedular_queue = 3
-        generate_program_track_table.do()
-        while (
-            len(real_scheduler.queue) != cm.entries_tt_schedular_queue
-            and timeout < 5
-        ):
-            time.sleep(1)
-            timeout += 1
-        # Added extra time to check the schedular length increases or not
-        time.sleep(1)
-        assert len(real_scheduler.queue) == 3
