@@ -11,7 +11,7 @@ entrypoints:
 {{- $ElevationMinLimit := .Values.deviceServers.dishpointingdevice.ElevationMinLimit }}
 {{- $AzimuthMinLimit := .Values.deviceServers.dishpointingdevice.AzimuthMinLimit }}
 {{- $AzimuthMaxLimit := .Values.deviceServers.dishpointingdevice.AzimuthMaxLimit }}
-{{- $SchedulerQueuePreEntries := .Values.deviceServers.dishpointingdevice.SchedulerQueuePreEntries }}
+{{- $SchedularQueuePreEntries := .Values.deviceServers.dishpointingdevice.SchedularQueuePreEntries }}
 {{- $dishlnDomain := .Values.global.domain }}{{- $Domain := .Values.global.domain }}
 {{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
 {{- $prefixMember := .Values.deviceServers.dishln.prefix_member}}
@@ -59,9 +59,9 @@ server:
             - name: "AzimuthMaxLimit"
               values:
                 - "{{ $AzimuthMaxLimit }}"
-            - name: "SchedulerQueuePreEntries"
+            - name: "SchedularQueuePreEntries"
               values:
-                - "{{ $SchedulerQueuePreEntries }}"
+                - "{{ $SchedularQueuePreEntries }}"
   {{- end }}
 
 depends_on:
