@@ -26,10 +26,13 @@ def test_wrap_sector_key(cm_pointig_device, json_factory):
     assert cm.is_fixed_mapping_scan()
 
 
+@pytest.mark.t1
+@pytest.mark.repeat(20)
 def test_fixed_mapping_scan(cm_pointig_device, json_factory):
     """Test to check all the functions and variables implemented
     in FixedMappingScan class"""
     cm = cm_pointig_device
+    cm.entries_tt_schedular_queue = 20
     configure_data = json_factory("dishleafnode_configure_adr106")
     configure_data = json.loads(configure_data)
     ra = configure_data['pointing']['field']['attrs']['c1']
