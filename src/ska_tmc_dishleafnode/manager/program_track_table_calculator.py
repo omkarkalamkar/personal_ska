@@ -103,7 +103,9 @@ class ProgramTrackTableCalculator:
                 self.track_table_scheduler.run(blocking=False)
                 if (
                     self.ptt_buffer_set
-                    and self.component_manager.mapping_scan_event.wait(1)
+                    and self.component_manager.mapping_scan_event.wait(
+                        self.pointing_calculation_period
+                    )
                 ):
                     self.logger.debug(
                         "Stopping the ProgramTrackTable calculation."
