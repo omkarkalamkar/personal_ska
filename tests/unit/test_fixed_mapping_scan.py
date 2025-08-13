@@ -26,7 +26,6 @@ def test_wrap_sector_key(cm_pointig_device, json_factory):
     assert cm.is_fixed_mapping_scan()
 
 
-@pytest.mark.t1
 def test_fixed_mapping_scan(cm_pointig_device, json_factory):
     """Test to check all the functions and variables implemented
     in FixedMappingScan class"""
