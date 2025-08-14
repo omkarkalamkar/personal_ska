@@ -5,6 +5,11 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+## [0.23.3]
+***********
+## Fixed
+* Improved resource utilization by program track table thread in dish pointing device.
+
 ## [0.23.2]
 ***********
 ## Fixed
