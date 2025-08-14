@@ -47,6 +47,8 @@ Properties in Dish Pointing Device
 +-------------------------------+---------------+--------------------------------------------------------------------------------+
 | AzimuthMinLimit               | DevFloat      | Minimum value of Azimuth to which dish can point                               |
 +-------------------------------+---------------+--------------------------------------------------------------------------------+
+| AzimuthMaxLimit               | DevFloat      | Maximum value of Azimuth to which dish can point                               |
++-------------------------------+---------------+--------------------------------------------------------------------------------+
 | SchedularQueuePreEntries      | DevLong       | ProgramTrackTable entries queued ahead in the track thread scheduler,          |
 |                               |               | primarily for developer-side debugging.                                        |
 +-------------------------------+---------------+--------------------------------------------------------------------------------+
