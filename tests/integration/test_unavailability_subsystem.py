@@ -78,3 +78,17 @@ def device_unavailability(tango_context, dishln_name, group_callback):
 @pytest.mark.SKA_mid
 def test_device_unavailability(tango_context, group_callback):
     device_unavailability(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)
+
+
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
+def test_dish_leafnode_command_timeout_low(
+    tango_context, change_event_callbacks
+):
+    """Test Dish Leaf Node command timeout for Low."""
+    logger.info("%s", tango_context)
+    dev_factory = DevFactory()
+    dish_leafnode_low = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+
+    dish_leafnode_low.commandTimeOut = 200
+    assert dish_leafnode_low.commandTimeOut == 200
