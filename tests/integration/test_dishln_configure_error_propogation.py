@@ -260,6 +260,9 @@ def configure_dish_leaf_node_timeout(
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     sleep(1)
+    commandTimeOut = 30
+    dish_leaf_node.commandTimeOut = 15
+    assert dish_leaf_node.commandTimeOut == 15
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -321,15 +324,22 @@ def configure_dish_leaf_node_timeout(
     result_config, unique_id_config = dish_leaf_node.Configure(
         json.dumps(config_json)
     )
+    timeout = 0
     assert result_config[0] == ResultCode.QUEUED
     # Wait for the command timeout to be occurred. The command timeout is set
     # to 15 sec.
-    sleep(18)
+    while timeout <= 15:
+        timeout += 1
+        sleep(1)
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_CONFIGURE_BAND_TIMEOUT),
         lookahead=8,
     )
+    assert timeout >= 15
+    assert timeout < 20
+    dish_leaf_node.commandTimeOut = commandTimeOut
+    assert dish_leaf_node.commandTimeOut == commandTimeOut
 
     RESET_DEFECT = json.dumps(
         {
@@ -348,6 +358,7 @@ def configure_dish_leaf_node_timeout(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.test1
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_configure_error_timeout(tango_context, group_callback, json_factory):
