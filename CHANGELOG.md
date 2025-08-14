@@ -11,7 +11,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 ### Added
 * CommandTimeout attribute is introduced which can help to update timeout without redeployment.
 * CommandTimeOutDefault property is introduced which 
-  can be used to set default value at the time of deployment.
+can be used to set default value at the time of deployment.
+* Utilized the latest tag of ska-tmc-common (0.30.0).
+
 
 ## [0.23.2]
 ***********

@@ -42,7 +42,7 @@ Properties in Dish Leaf Node
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | AdapterTimeOut                | DevFloat      | Timeout for the adapter creation. This property is for internal use.           |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
-| CommandTimeOutDefault         | DevFloat      | Timeout for the command execution                                              |
+| CommandTimeOutDefault         | DevFloat      | Default Timeout for the command execution                                      |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | DishAvailabilityCheckTimeout  | DevFloat      | Timeout for the dish availability check during intialisation. This property is |
 |                               |               | for internal use.                                                              |
