@@ -50,6 +50,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         track_table_advance_sec: int = 6,
         azimuth_min_limit: float = -270.0,
         azimuth_max_limit: float = 270.0,
+        entries_tt_schedular_queue=5,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -93,6 +94,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.dishln_pointing_device_name,
             flags=re.IGNORECASE,
         )[0]
+
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
         self.data_download_thread = threading.Thread(
@@ -103,6 +105,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.track_table_thread = None
         self._wrap_sector: int
         self._wrap_sector_key: bool = False
+        self.entries_tt_schedular_queue = entries_tt_schedular_queue
 
     @property
     def wrap_sector_key(self: DishlnPointingDataComponentManager) -> bool:
@@ -358,6 +361,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
+            pre_entries_of_ptt_in_schedular = self.entries_tt_schedular_queue
             self.logger.debug(
                 "Starting ProgramTrackTable calculation.",
             )
@@ -401,6 +405,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
             track_table_scheduler = sched.scheduler(time.time, time.sleep)
             event_priority: int = 1
+            track_table_calculator.track_table_scheduler = (
+                track_table_scheduler
+            )
             while not is_track_thread_stop:
                 self.logger.debug(
                     "Current Thread ID: %s", threading.get_native_id()
@@ -445,6 +452,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
                 with self.track_thread_lock:
                     if not self.mapping_scan_event.is_set():
+                        if pre_entries_of_ptt_in_schedular > 0:
+                            pre_entries_of_ptt_in_schedular -= 1
+                        else:
+                            track_table_calculator.ptt_buffer_set = True
                         track_table_scheduler.enterabs(
                             scheduled_time,
                             event_priority,
@@ -454,11 +465,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         self.logger.debug(
                             "Scheduled trackTable write operation"
                         )
-                        track_table_scheduler.run(blocking=False)
-                        self.logger.debug("Schedular execution completed")
+                        self.logger.debug(
+                            "Scheduler Length: %s",
+                            len(track_table_scheduler.queue),
+                        )
 
             self.logger.debug("Program TrackTable Calculation stopped.")
-
         except Exception as value_error:
             self.logger.error(
                 "Error occured during track_thread execution: %s",

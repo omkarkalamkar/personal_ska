@@ -40,9 +40,6 @@ Properties in Dish Pointing Device
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | TrackTableEntries             | DevShort      | Number of entries in programTrackTable                                         |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
-| PointingCalculationPeriod     | DevShort      | Time difference between two consecutive entries of programTrackTable in        |
-|                               |               | milliseconds                                                                   |
-+-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | TrackTableInAdvance           | DevShort      | programTrackTable in advance in seconds                                        |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | TrackTableUpdateRate          | DevFloat      | The rate at which a tracktable is provided. It is one tracktable per specified |
@@ -51,4 +48,7 @@ Properties in Dish Pointing Device
 | AzimuthMinLimit               | DevFloat      | Minimum value of Azimuth to which dish can point                               |
 +-------------------------------+---------------+--------------------------------------------------------------------------------+
 | AzimuthMaxLimit               | DevFloat      | Maximum value of Azimuth to which dish can point                               |
++-------------------------------+---------------+--------------------------------------------------------------------------------+
+| SchedularQueuePreEntries      | DevLong       | ProgramTrackTable entries queued ahead in the track thread scheduler,          |
+|                               |               | primarily for developer-side debugging.                                        |
 +-------------------------------+---------------+--------------------------------------------------------------------------------+

@@ -14,6 +14,10 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 can be used to set default value at the time of deployment.
 * Utilized the latest tag of ska-tmc-common (0.30.0).
 
+## [0.23.3]
+***********
+## Fixed
+* Improved resource utilization by program track table thread in dish pointing device.
 
 ## [0.23.2]
 ***********

@@ -89,6 +89,7 @@ deviceServers:
     ElevationMinLimit: 15.0
     AzimuthMinLimit: -270.0
     AzimuthMaxLimit: 270.0
+    SchedularQueuePreEntries: 5
 
     file: "data/dishpointingdevice.yaml"
 

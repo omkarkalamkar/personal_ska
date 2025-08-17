@@ -1,4 +1,5 @@
 import datetime
+import sched
 import time
 
 import pytest
@@ -29,6 +30,9 @@ def test_calculate_program_track_table(cm_pointig_device):
     azel_converter = AzElConverter(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
+    track_table_calculator.track_table_scheduler = sched.scheduler(
+        time.time, time.sleep
+    )
 
     retry = 0
     while retry <= 3:
