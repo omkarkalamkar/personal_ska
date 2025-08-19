@@ -88,11 +88,9 @@ class SetOperateMode(DishLNCommand):
         """
         Method to invoke SetOperateMode command on DishMaster.
 
-        param argin:
-            None
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
-        return:
-            (ResultCode, str)
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:

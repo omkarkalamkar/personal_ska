@@ -25,6 +25,7 @@ class DishkValueValidationManager:
 
     def is_dish_manager_ready(self: DishkValueValidationManager) -> bool:
         """Wait and check if dish manager is ready
+
         :return: bool
         """
         exception = ""
@@ -51,18 +52,21 @@ class DishkValueValidationManager:
 
     def get_dish_manager_kvalue(self: DishkValueValidationManager) -> int:
         """Get kValue attribute value of dish manager
+
         :return: int
         """
         return self.dish_manager_kvalue
 
     def get_dish_ln_memorized_kvalue(self: DishkValueValidationManager) -> int:
         """Return memorized kvalue dish leaf node
+
         :return: int
         """
         return self.component_manager.kValue
 
     def validate_dish_kvalue(self: DishkValueValidationManager) -> None:
         """Validate kvalue of dish leaf node and dish manager
+
         :return: None
         """
         dish_manager_kvalue = self.get_dish_manager_kvalue()

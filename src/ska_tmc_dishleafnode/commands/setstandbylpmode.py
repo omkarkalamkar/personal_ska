@@ -39,8 +39,6 @@ class SetStandbyLPMode(DishLNCommand):
         :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
-        :return: : None
-        :rtype: None
         """
 
         task_callback(status=TaskStatus.IN_PROGRESS)
@@ -73,11 +71,9 @@ class SetStandbyLPMode(DishLNCommand):
         Method to invoke SetStandbyLPMode (Low power mode) command on
         DishMaster.
 
-        param argin:
-            None
+        Return:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
-        return:
-            (ResultCode, str)
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:

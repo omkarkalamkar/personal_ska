@@ -85,7 +85,15 @@ class Track(DishLNCommand):
         return self.do(argin)
 
     def validate_json_argument(self: Track, input_argin: dict) -> tuple:
-        """Validates the json argument"""
+        """
+        Validates the json argument
+
+        Args:
+            input_argin (dict): input json to be validated.
+
+        Returns:
+            tuple: Tuple of ResultCode and message.
+        """
         target = input_argin.get("pointing", {}).get("target", {})
         ra_value = target.get("ra")
         dec_value = target.get("dec")
@@ -103,10 +111,12 @@ class Track(DishLNCommand):
         """
         Method to invoke Track command on Dish Master.
 
-        param argin: dict
+        Args:
+            argin (dict): Optional argument
 
-        return:
-            (ResultCode, str)
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
+
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:

@@ -18,29 +18,29 @@ This project is structured to use k8s for development and testing so that the bu
 Install minikube
 ^^^^^^^^^^^^^^^^
 
-You will need to install `minikube` or equivalent k8s installation in order to set up your test environment. You can follow the instruction `here <https://gitlab.com/ska-telescope/sdi/deploy-minikube/>`__:
-::
-git clone git@gitlab.com:ska-telescope/sdi/deploy-minikube.git
-cd deploy-minikube
-make all
-eval $(minikube docker-env)
+You will need to install `minikube` or equivalent k8s installation in order to set up your test environment. You can follow the instruction `here <https://gitlab.com/ska-telescope/sdi/deploy-minikube/>`__::
+
+    git clone git@gitlab.com:ska-telescope/sdi/deploy-minikube.git
+    cd deploy-minikube
+    make all
+    eval $(minikube docker-env)
 
 *Please note that the command `eval $(minikube docker-env)` will point your local docker client at the docker-in-docker for minikube. Use this only for building the docker image and another shell for other work.*
 
 How to Use
 ^^^^^^^^^^
 
-Clone this repo:
-::
-git clone https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-dishleafnode
-cd ska-tmc-dishleafnode
+Clone this repo::
 
-Install dependencies
-::
-apt update
-apt install -y curl git build-essential libboost-python-dev libtango-dev 
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
-source $HOME/.poetry/env
+    git clone https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-dishleafnode
+    cd ska-tmc-dishleafnode
+
+Install dependencies::
+
+    apt update
+    apt install -y curl git build-essential libboost-python-dev libtango-dev 
+    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+    source $HOME/.poetry/env
 
 Please note that:
  * the `libtango-dev` will install an old version of the TANGO-controls framework (9.2.5);
@@ -49,63 +49,63 @@ Please note that:
 
 *During this step, `libtango-dev` instalation can ask for the Tango Server IP:PORT. Just accept the default proposed value.*
 
-Install python requirements for linting and unit testing:
-::
-$ poetry install
+Install python requirements for linting and unit testing::
 
-Activate the poetry environment:
-::
-$ source $(poetry env info --path)/bin/activate
+    $ poetry install
 
-Follow the steps till installation of dependencies then run below command:
-::
-$ virtualenv cn_venv
-$ source cn_venv/bin/activate
-$ make requirements
+Activate the poetry environment::
 
-Run python-test:
-::
-$ make python-test
-PyTango 9.4.2 
-PyTango compiled with:
-Python : 3.10,3.11
-Numpy  : 1.23.0
-Tango  : 9.4.2
+    $ source $(poetry env info --path)/bin/activate
 
+Follow the steps till installation of dependencies then run below command::
 
-PyTango runtime is:
-Python : 3.10,3.11
-Numpy  : None
-Tango  : 9.4.2
+    $ virtualenv cn_venv
+    $ source cn_venv/bin/activate
+    $ make requirements
 
-PyTango running on:
-uname_result(system='Linux', node='LAPTOP-5LBGJH83', release='4.19.128-microsoft-standard', version='#1 SMP Tue Jun 23 12:58:10 UTC 2020', machine='x86_64', processor='x86_64')
+Run python-test::
 
-============================= test session starts ==============================
-platform linux -- Python 3.8.5, pytest-5.4.3, py-1.10.0, pluggy-0.13.1 -- /home/
-[....]
-
---------------------------------- JSON report ----------------------------------
-JSON report written to: build/reports/report.json (165946 bytes)
-
------------ coverage: platform linux, python 3.8.5-final-0 -----------
-Coverage HTML written to dir build/htmlcov
-Coverage XML written to file build/reports/code-coverage.xml
-
-======================== 48 passed, 5 deselected in 42.42s ========================
+    $ make python-test
+    PyTango 9.4.2 
+    PyTango compiled with:
+    Python : 3.10,3.11
+    Numpy  : 1.23.0
+    Tango  : 9.4.2
 
 
-Formatting the code:
-::
-$ make python-format
-[...]
---------------------------------------------------------------------
-Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+    PyTango runtime is:
+    Python : 3.10,3.11
+    Numpy  : None
+    Tango  : 9.4.2
+
+    PyTango running on:
+    uname_result(system='Linux', node='LAPTOP-5LBGJH83', release='4.19.128-microsoft-standard', version='#1 SMP Tue Jun 23 12:58:10 UTC 2020', machine='x86_64', processor='x86_64')
+
+    ============================= test session starts ==============================
+    platform linux -- Python 3.8.5, pytest-5.4.3, py-1.10.0, pluggy-0.13.1 -- /home/
+    [....]
+
+    --------------------------------- JSON report ----------------------------------
+    JSON report written to: build/reports/report.json (165946 bytes)
+
+    ----------- coverage: platform linux, python 3.8.5-final-0 -----------
+    Coverage HTML written to dir build/htmlcov
+    Coverage XML written to file build/reports/code-coverage.xml
+
+    ======================== 48 passed, 5 deselected in 42.42s ========================
 
 
-Python linting:
-::
-$ make python-lint
-[...]
---------------------------------------------------------------------
-Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+Formatting the code::
+
+    $ make python-format
+    [...]
+    --------------------------------------------------------------------
+    Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+
+
+Python linting::
+
+    $ make python-lint
+    [...]
+    --------------------------------------------------------------------
+    Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)

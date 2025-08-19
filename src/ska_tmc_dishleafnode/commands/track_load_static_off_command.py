@@ -101,10 +101,12 @@ class TrackLoadStaticOff(DishLNCommand):
         """
         Method to invoke TrackLoadStaticOff command on DishMaster.
 
-        param argin: String containing cross elevation and elevation offsets
+        Args:
+            argin (str): String containing cross elevation
+                and elevation offsets.
 
-        return:
-            (ResultCode, str)
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
         """
 
         result_code, message = self.init_adapter()

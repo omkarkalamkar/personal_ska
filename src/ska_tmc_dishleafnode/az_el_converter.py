@@ -129,6 +129,7 @@ class AzElConverter:
         to the AzEl coordinates.It is called continuously
         from Track command (in a thread) at interval
         of 50ms till the StopTrack command is invoked.
+
         Args:
             ra_value (str): RA value in hours:minutes:sec
             dec_value (str): Dec Value in degree:arc_minutes:arc_sec
@@ -164,13 +165,17 @@ class AzElConverter:
         reversing the refraction correction and performing the topocentric and
         geocentric conversions.
 
-        :param az_value: The Azimuth value of Actual Pointing.
-        :dtype: Degrees.
-        :param el_value: The Elevation value of Actual Pointing.
-        :dtype: Degrees.
+        Args:
+            az_value (float): The Azimuth value of
+                Actual Pointing in degrees.
+            el_value (float): The Elevation value of
+                Actual Pointing in degrees.
+            timestamp (str): time Stamp
 
-        :return: List of RA and Dec values in Hours Minutes Seconds and Degree
-                 Minutes Seconds respectively.
+        Returns:
+            List[str | Any]: List of RA and Dec values in Hours Minutes Seconds
+            and Degree Minutes Seconds respectively.
+
         """
 
         azel = AltAz(az=Angle(az_value, u.deg), alt=Angle(el_value, u.deg))
@@ -220,11 +225,12 @@ class AzElConverter:
         Forward Transform ie: Geocentric conversion then topocentric and then
         refraction correction.
 
-        :param right_ascension: Right Ascension value
-        :dtype: string in hours:minutes:seconds form
-        :param declination: Declination value.
-        :dtype: string in the form of "degree:minutes:seconds"
-            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
+        Args:
+            right_ascension (str | float): Right Ascension value.
+                String in hours:minutes:seconds form.
+            declination (str | float): Declination value.
+                String in the form of "degree:minutes:seconds"
+            timestamp (str): Time stamp
 
         Return:
             az_el_coordinates (list[degrees])

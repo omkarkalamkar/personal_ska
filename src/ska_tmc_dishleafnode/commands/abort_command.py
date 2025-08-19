@@ -111,16 +111,11 @@ class Abort(DishLNCommand):
         """
         Invokes Abort command on the DishMaster.
 
-        param argin:
-            None
-
-        return:
+        Returns:
+            Tuple[ResultCode, str]:
             A tuple containing a return code and a
             string message indicating status.
             The message is for information purpose only.
-
-        rtype:
-            (ResultCode, str)
 
         """
         self.logger.debug(
@@ -194,10 +189,10 @@ class Abort(DishLNCommand):
 
     def stop_program_track_table(self) -> Tuple[ResultCode, str]:
         """Method to invoke StopProgramTrackTable() when abort command is
-            invoked.
+        invoked.
 
-        rtype:
-            (ResultCode, str)
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
         """
         result_code, message = [ResultCode.OK], ""
 

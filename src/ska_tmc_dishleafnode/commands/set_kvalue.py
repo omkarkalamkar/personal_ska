@@ -47,17 +47,13 @@ class SetKValue(DishLNCommand, FastCommand):
         """
         Invokes SetKValue command on the DishMaster.
 
-        :param argin:
-            Accepts input k value that is in range [1-2222]
-        :dtype: int
+        Args:
+            argin (int): Accepts input k value that is in range [1-2222].
 
-        return:
-            A tuple containing a return code and a
-            string message indicating status.
+        Returns:
+            Tuple[ResultCode, str]: A tuple containing a return code
+            and a string message indicating status.
             The message is for information purpose only.
-
-        rtype:
-            (ResultCode, str)
 
         """
         result_code, message = self.init_adapter()

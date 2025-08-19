@@ -95,10 +95,11 @@ class ConfigureBand(DishLNCommand):
         """
         Method to invoke ConfigureBand command on Dish Master.
 
-        param argin: str
+        Args:
+            argin (str): Input Argument.
 
-        return:
-            (ResultCode, str)
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
         """
         self.logger.debug(
             "Command ID: %s | Input argument for ConfigureBand command is: %s",

@@ -92,6 +92,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         """
         This attribute is used for storing the FQDN of Dish leaf node pointing
         device.
+
         :return: str
         """
         return self.dev_name
@@ -101,6 +102,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         """
         This attribute is used for storing error
         occurred during program track table calculation
+
         :return: str
         """
         return self.program_track_table_error
@@ -109,6 +111,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     def targetData(self) -> str:
         """
         This attribute is used for storing the target data.
+
         :return: str
         """
         return json.dumps(self.component_manager.target_data)
@@ -130,6 +133,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     def pointingProgramTrackTable(self) -> str:
         """
         This attribute is used for storing calculated tracktable.
+
         :return: str
         """
         return json.dumps(self.pointing_program_track_table)
@@ -152,6 +156,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         self, program_track_table_error: str
     ) -> None:
         """This method helps in pushing event of program track table error.
+
         :param program_track_table_error: program track table error.
         """
         self.program_track_table_error = program_track_table_error
@@ -219,6 +224,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     def create_component_manager(self) -> DishlnPointingDataComponentManager:
         """
         Creates an instance of DishlnPointingDataComponentManager
+
         :return: component manager instance
         :rtype: DishlnPointingDataComponentManager
         """
@@ -268,11 +274,11 @@ class DishPointingDevice(TMCBaseLeafDevice):
 def main(args=None, **kwargs):
     """
     Runs the DishPointingDevice Tango device.
+
     :param args: Arguments internal to TANGO
-
     :param kwargs: Arguments internal to TANGO
-
-    :return: integer. Exit code of the run method.
+    :return: Exit code of the run method.
+    :rtype: Integer
     """
     return run((DishPointingDevice,), args=args, **kwargs)
 

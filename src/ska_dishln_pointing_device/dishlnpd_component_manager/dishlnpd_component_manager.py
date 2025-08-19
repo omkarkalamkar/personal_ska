@@ -110,11 +110,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     @property
     def wrap_sector_key(self: DishlnPointingDataComponentManager) -> bool:
         """Get the pointing key type
-            True => ['pointing']['groups'] as per ADR-106
-            False => ['pointing']['target'] old or deprecated
 
         Returns:
-            boolean value.
+            bool:
+                - True => ['pointing']['groups'] as per ADR-106
+                - False => ['pointing']['target'] old or deprecated
         """
         return self._wrap_sector_key
 
@@ -137,6 +137,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     @property
     def wrap_sector(self: DishlnPointingDataComponentManager) -> int:
         """Get the wrap sector value
+
         :return: wrap sector value
         :rtype: int
         """
@@ -157,8 +158,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     @property
     def target_data(self: DishlnPointingDataComponentManager) -> dict:
         """This method is used to view target data.
+
         Returns:
-            Dictionary of configure data
+            dict: Dictionary of configure data
         """
         return self.__target_data
 
@@ -180,8 +182,14 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
 
     @property
-    def current_track_table_error(self: DishlnPointingDataComponentManager):
-        """Returns the trackTableError of the dish leaf node."""
+    def current_track_table_error(
+        self: DishlnPointingDataComponentManager,
+    ) -> str:
+        """Gets the trackTableError of the dish leaf node.
+
+        Returns:
+            str: trackTableError of the dish leaf node.
+        """
         return self._current_track_table_error
 
     @current_track_table_error.setter
@@ -189,6 +197,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self: DishlnPointingDataComponentManager, value: str
     ) -> None:
         """Update the trackTableError of the dish leaf node
+
         :param value: Error observed in track table calculation
         :value dtype: str
         :return: None
@@ -198,6 +207,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     def is_fixed_mapping_scan(self) -> bool:
         """Method to check is current scan is fixed mapping scan
+
         :return: True/False
         :rtype: boolean
         """

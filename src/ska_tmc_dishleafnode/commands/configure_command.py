@@ -116,9 +116,13 @@ class Configure(DishLNCommand):
         self.set_command_id(__class__.__name__)
         return result_code, message
 
-    def update_primary_configuration(self, new_configuration):
+    def update_primary_configuration(self, new_configuration: dict):
         """Update data provided in new configuration with primary
         configuration
+
+        Args:
+            new_configuration (dict): json argument in dict format
+                for updating primary configuration.
         """
         pointing_data = new_configuration.get("pointing", {})
         # Update field
@@ -154,7 +158,16 @@ class Configure(DishLNCommand):
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
-        if any."""
+        if any.
+
+        Args:
+            kwargs: Keyword arguments. Specifically:
+
+                - result
+                - status
+                - exception/message
+
+        """
         try:
             result = kwargs.get("result")
             status = kwargs.get("status", TaskStatus.COMPLETED)
@@ -233,8 +246,12 @@ class Configure(DishLNCommand):
     ) -> Tuple[ResultCode, str]:
         """Validates the json argument
 
-        :return: Resulcode and message
-        :rtype: tuple
+        Args:
+            input_argin (dict): input json to be validated.
+
+        Returns:
+            Tuple[ResultCode, str]: Resultcode and message.
+
         """
 
         if "pointing" not in input_argin:
@@ -273,25 +290,25 @@ class Configure(DishLNCommand):
         """
         Method to invoke Configure command on dish.
 
-        :param argin:
-            A String in a JSON format that includes pointing parameters
-            of Dish- Azimuth and
-            Elevation Angle.
+        Args:
+            argin (str): A String in a JSON format
+                that includes pointing parameters
+                of Dish- Azimuth and Elevation Angle.
 
-                Example:
-                {"pointing":{"target":{"refrence_frame":"ICRS",
-                "target_name":"Polaris Australis",
-                "ra":"21:08:47.92",
-                "dec":"-88:57:22.9"}},
-                "dish":{"receiver_band":"1"}}
+        .. literalinclude:: ../../../tests/data/dishleafnode_configure.json
+            :language: json
+            :caption: Example JSON for Configure
 
-        :return: Resulcode and message
-        :rtype: tuple
+        Note:
+            Enter input json without spaces.
 
-        raises:
-            DevFailed If error occurs while invoking ConfigureBand<> command
-            on DishMaster or
-            if the json string contains invalid data.
+        Returns:
+            Tuple[ResultCode, str]: Resultcode and message
+
+        Raises:
+            DevFailed: If error occurs while invoking ConfigureBand<> command
+                on DishMaster or
+                if the json string contains invalid data.
 
         """
         try:
@@ -394,9 +411,18 @@ class Configure(DishLNCommand):
             )
         return ResultCode.QUEUED, ""
 
-    def invoke_generate_program_track_table(self, target_data: str):
+    def invoke_generate_program_track_table(
+        self, target_data: str
+    ) -> Tuple[ResultCode, str]:
         """Invoke Generate program track table on
         dish pointing device
+
+        Args:
+            target_data (str): targetData
+
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
+
         """
         self.dishln_pointing_device_adapter.targetData = target_data
         (
@@ -409,10 +435,17 @@ class Configure(DishLNCommand):
             )
         return result_code, msg
 
-    def invoke_configure_band_on_dish(self, json_argument):
+    def invoke_configure_band_on_dish(
+        self, json_argument
+    ) -> Tuple[ResultCode, str]:
         """Invoke Configure band on Dish
-        :param json_argument: Input json
-        :type json_argument: dict
+
+        Args:
+            json_argument (dict): Input json
+
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
+
         """
         receiver_band = json_argument.get("dish", {}).get("receiver_band", "")
         self.logger.info("Receiver band is %s", receiver_band)
@@ -512,6 +545,7 @@ class Configure(DishLNCommand):
     ) -> list:
         """This check if ca_offset_arcsec or ie_offset_arcsec provided
         in config json and return offsets
+
         :param config_json: Configuration json
         :type config_json: dict
         :param reset_offset: Bool value
@@ -539,7 +573,12 @@ class Configure(DishLNCommand):
         return offsets
 
     def invoke_setopermode_command(self, json_argument: dict):
-        """Invoke Set Operate mode command"""
+        """Invoke Set Operate mode command
+
+        Args:
+            json_argument (dict): json_argument for starting dish tracking.
+
+        """
         if self.component_manager.dishMode != DishMode.STOW:
             self.start_dish_tracking(json_argument)
 
@@ -637,13 +676,14 @@ class Configure(DishLNCommand):
         self.component_manager.update_source_offset_callback(offsets_argin)
         return ResultCode.QUEUED, ""
 
-    def start_dish_tracking(self: Configure, json_argument):
+    def start_dish_tracking(self: Configure, json_argument: dict):
         """
         Invoke Track after waiting for DishMode to Operate
 
-        Args: None
+        Args:
+            json_argument (dict): json argument.
 
-        return: None"""
+        """
         if self.component_manager.dishMode != DishMode.OPERATE:
             self.ensure_dish_in_right_dish_mode(json_argument)
         else:
@@ -664,7 +704,8 @@ class Configure(DishLNCommand):
     def ensure_dish_in_right_dish_mode(self: Configure, json_argument: dict):
         """This method set dish to Operate Mode
 
-        return: None
+        Args:
+            json_argument (dict): json argument for invoking track_command.
         """
         self.logger.debug(
             "Command ID: %s | "
@@ -742,10 +783,12 @@ class Configure(DishLNCommand):
                 command_exception=True
             )
 
-    def invoke_track_command(self: Configure, json_argument):
+    def invoke_track_command(self: Configure, json_argument: dict):
         """Invoke Track command on dish
 
-        :return: None
+        Args:
+            json_argument (dict): json argument.
+
         """
 
         if self.component_manager.pointingState in [
@@ -777,8 +820,13 @@ class Configure(DishLNCommand):
             )
             track_table_provided_thread.start()
 
-    def invoke_track_command_on_dish(self, json_argument):
-        """Invoke Track command on dish"""
+    def invoke_track_command_on_dish(self, json_argument: dict):
+        """Invoke Track command on dish
+
+        Args:
+            json_argument (dict): json argument for invoking track command.
+
+        """
 
         def _invoke_track_callback(
             status=None,
@@ -846,9 +894,18 @@ class Configure(DishLNCommand):
                 command_exception=True
             )
 
-    def is_tracktable_provided(self, json_argument):
+    def is_tracktable_provided(self, json_argument: str) -> CommandResult:
         """
         Returns enum ACHIEVED if programTrackTable is provided to dish.
+
+        Args:
+            json_argument (str): json argument.
+
+        Returns:
+            CommandResult: Enum ACHIEVED if programTrackTable
+            is provided to dish, NOT_ACHIEVED if it is not provided
+            and ABORTED if Abort() is called while configuring dish.
+
         """
         track_table_status = CommandResult.NOT_ACHIEVED
 
@@ -892,8 +949,13 @@ class Configure(DishLNCommand):
             )
         return track_table_status
 
-    def set_failure_for_configure(self, message):
-        """Set failure for configure"""
+    def set_failure_for_configure(self, message: str):
+        """Set failure for configure
+
+        Args:
+            message (str): Exception message
+
+        """
         # pylint: disable=no-member
         if hasattr(self, "ct"):
             self.component_manager.long_running_result_callback(

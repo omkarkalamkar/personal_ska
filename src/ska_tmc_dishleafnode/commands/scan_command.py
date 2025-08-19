@@ -80,15 +80,15 @@ class Scan(DishLNCommand):
         return self.do(argin)
 
     # pylint: disable=signature-differs
-    def do(self: Scan, argin: str):
+    def do(self: Scan, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke Scan command on Dish Master.
 
-        param argin:
-            str
+        Args:
+            argin (str): json string for Scan command.
 
-        return:
-            (ResultCode, str)
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:

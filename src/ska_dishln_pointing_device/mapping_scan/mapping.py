@@ -110,6 +110,7 @@ class BaseScanMapping:
     def get_projection(self) -> List[str | Any]:
         """This method returns the projection name and projection
         alignment
+
         :return: projection name, projection alignment
         :rtype: List
         """
@@ -145,7 +146,11 @@ class BaseScanMapping:
         self.traj.set_scan_duration(scan_duration)
 
     def get_offset_in_rad(self, x: float, y: float) -> tuple:
-        """Return the offset in radian"""
+        """Get the offset in radian
+
+        Returns:
+            tuple: offset in radian.
+        """
         return Angle(x, u.deg).rad, Angle(y, u.deg).rad
 
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:

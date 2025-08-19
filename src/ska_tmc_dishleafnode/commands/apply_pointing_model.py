@@ -167,21 +167,20 @@ class ApplyPointingModel(DishLNCommand):
     def do(self: ApplyPointingModel, argin: str) -> Tuple[ResultCode, str]:
         """
         Method to invoke ApplyPointingModel command on DishMaster.
-        Example JSON:
-        {
-        "interface":
-        "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0",
-        "tm_data_sources":
-        ["car://gitlab.com/ska-telescope/ska-tmc/
-        ska-tmc-simulators?main#tmdata"],
-        "tm_data_filepath":
-        "instrument/ska_mid1/global_pointing_model_data/
-        global_pointing_model.json"
-        }
 
-        param argin: Global pointing model data JSON
+        Args:
+            argin (str): Global pointing model data JSON
 
-        return:(ResultCode, str)
+        .. literalinclude:: ../../../tests/data/global_pointing_model.json
+            :language: json
+            :caption: Example JSON for ApplyPointingModel
+
+        Note:
+            Enter input json without spaces.
+
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
+
         """
 
         result_code, message = self.init_adapter()

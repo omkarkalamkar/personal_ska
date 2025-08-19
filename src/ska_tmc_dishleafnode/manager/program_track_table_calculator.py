@@ -231,7 +231,8 @@ class ProgramTrackTableCalculator:
     ) -> float:
         """
         This method converts utc time to tai format time.
-        :param: utc_time: time in utc (seconds)
+
+        :param utc_time: time in utc (seconds)
         :type utc_time: float
         :returns: Time in TAI format (seconds)
         :rtype: float
@@ -265,7 +266,8 @@ class ProgramTrackTableCalculator:
         """
         This method fits the calculated azimuth to the dish's observable
         azimuth range.
-        :param: calculated_azimuth: Azimuth in degrees
+
+        :param calculated_azimuth: Azimuth in degrees
         :type calculated_azimuth: float
         :returns: Azimuth in degrees
         :rtype: float
