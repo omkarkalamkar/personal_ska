@@ -1,5 +1,7 @@
-ska\_tmc\_dishleafnode.commands 
+ska\_tmc\_dishleafnode.commands
 ================================
+
+Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
 Submodules
 ==========
@@ -19,7 +21,7 @@ configure_band\_command
    :undoc-members:
    :show-inheritance:
 
-configure\_command 
+configure\_command
 ---------------------------------------------------------
 
 .. automodule:: ska_tmc_dishleafnode.commands.configure_command
@@ -91,7 +93,7 @@ setstandbylpmode
    :undoc-members:
    :show-inheritance:
 
-setstowmode 
+setstowmode
 -----------------------------------------------------------
 
 .. automodule:: ska_tmc_dishleafnode.commands.setstowmode
@@ -99,7 +101,7 @@ setstowmode
    :undoc-members:
    :show-inheritance:
 
-track\_command 
+track\_command
 -----------------------------------------------------
 
 .. automodule:: ska_tmc_dishleafnode.commands.track_command

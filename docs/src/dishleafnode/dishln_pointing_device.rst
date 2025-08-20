@@ -1,6 +1,7 @@
 ska\_dishln\_pointing\_device.dishln\_pointing\_device module
 ===================================================================
 
+Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
 .. automodule:: ska_dishln_pointing_device.dishln_pointing_device
    :members:

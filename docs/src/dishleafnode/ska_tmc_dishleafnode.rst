@@ -1,6 +1,7 @@
 ska\_tmc\_dishleafnode.dish_leaf_node module
 ==============================================
 
+Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
 .. automodule:: ska_tmc_dishleafnode.dish_leaf_node
    :members:
@@ -42,7 +43,7 @@ Properties in Dish Leaf Node
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | AdapterTimeOut                | DevFloat      | Timeout for the adapter creation. This property is for internal use.           |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
-| CommandTimeOut                | DevFloat      | Timeout for the command execution                                              |
+| CommandTimeOutDefault         | DevFloat      | Default Timeout for the command execution                                      |
 +-------------------------------+---------------+----------------------+---------------------------------------------------------+
 | DishAvailabilityCheckTimeout  | DevFloat      | Timeout for the dish availability check during intialisation. This property is |
 |                               |               | for internal use.                                                              |

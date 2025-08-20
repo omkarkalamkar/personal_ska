@@ -1,5 +1,7 @@
-ska\_tmc\_dishleafnode.manager 
+ska\_tmc\_dishleafnode.manager
 ===========================================
+
+Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
 Submodules
 ==========
@@ -34,3 +36,25 @@ ska\_tmc\_dishleafnode.manager.dish\_kvalue\_validation\_manager module
    :members:
    :undoc-members:
    :show-inheritance:
+
+Command Timeout
+===============
+
+The ``CommandTimeout`` attribute is introduced to allow updating the timeout value
+for commands without requiring a redeployment. This provides flexibility in tuning
+the timeout dynamically at runtime based on operational needs.
+
+The ``CommandTimeOutDefault`` property is also introduced, which can be used to set
+a default timeout value during the deployment phase. This ensures that an initial
+timeout value is preconfigured when the component starts for the first time.
+
+Usage
+-----
+
+* **CommandTimeout attribute**
+  - Can be updated at runtime without redeployment.
+  - Helps in adapting to varying command execution times.
+
+* **CommandTimeOutDefault property**
+  - Configurable in the deployment configuration (e.g., ``values.yaml``).
+  - Sets the initial timeout value at startup.

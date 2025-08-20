@@ -8,7 +8,7 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $TrackTableRetryDuration := .Values.deviceServers.dishln.TrackTableRetryDuration }}
 {{- $LivelinessCheckPeriod := .Values.deviceServers.dishln.LivelinessCheckPeriod }}
 {{- $EventSubscriptionCheckPeriod := .Values.deviceServers.dishln.EventSubscriptionCheckPeriod }}
-{{- $CommandTimeOut := .Values.deviceServers.dishln.CommandTimeOut }}
+{{- $CommandTimeOutDefault := .Values.deviceServers.dishln.CommandTimeOutDefault }}
 {{- $AdapterTimeOut := .Values.deviceServers.dishln.AdapterTimeOut }}
 {{- $DishAvailabilityCheckTimeout := .Values.deviceServers.dishln.DishAvailabilityCheckTimeout }}
 {{- $domainDish := .Values.global.domain_dish }}
@@ -61,9 +61,9 @@ server:
           - name: "AdapterTimeOut"
             values:
               - "{{ $AdapterTimeOut }}"
-          - name: "CommandTimeOut"
+          - name: "CommandTimeOutDefault"
             values:
-              - "{{ $CommandTimeOut }}"
+              - "{{ $CommandTimeOutDefault }}"
           - name: "DishAvailabilityCheckTimeout"
             values:
               - "{{ $DishAvailabilityCheckTimeout }}"
