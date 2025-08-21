@@ -1,11 +1,14 @@
 Modules
 --------
+
+Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
+
 .. toctree::
    :maxdepth: 4
    :caption: AzElConverter
 
    az_el_converter
-   
+
 .. toctree::
    :maxdepth: 4
    :caption: Dish Leaf Node

@@ -41,7 +41,7 @@ class Off(DishLNCommand):
         :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
-        :return: : None
+        :return: None
         :rtype: None
         """
         # Indicate that the task has started
@@ -72,11 +72,10 @@ class Off(DishLNCommand):
         completion of SetStandbyFPMode command, then invokes and waits for
         completion of SetStandbyLPMode command.
 
-        param argin:
-            None
 
-        return:
-            (ResultCode, str)
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
+
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:

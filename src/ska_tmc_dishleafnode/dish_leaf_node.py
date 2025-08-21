@@ -162,12 +162,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             Initializes the attributes and properties of the
             MidTmcLeafNodeDish.
 
-            return:
-                A tuple containing a return code and a string message
+            Returns:
+                tuple: A tuple containing a return code and a string message
                 indicating status. The message is for information purpose only.
 
-            rtype:
-                (ResultCode, str)
             """
             super().do()
             device = self._device
@@ -179,7 +177,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             device.op_state_model.perform_action("component_on")
             return (ResultCode.OK, "")
 
-    def delete_device(self):
+    def delete_device(self) -> None:
         # if the init is called more than once
         # I need to stop all threads
         if hasattr(self, "component_manager"):
@@ -324,7 +322,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     # Attributes methods
     # ------------------
     def read_dishMasterDevName(self) -> str:
-        """Returns the dishMasterDevName attribute value."""
+        """Reads the dishMasterDevName attribute value.
+
+        Returns:
+            str: dishMasterDevName attribute value.
+        """
         return self.component_manager.dish_dev_name
 
     def write_dishMasterDevName(self, value: str) -> None:
@@ -332,23 +334,39 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self.component_manager.dish_dev_name = value
 
     def read_dishlnPointingDevName(self) -> str:
-        """Returns the dishlnPointingDevName attribute value."""
+        """Reads the dishlnPointingDevName attribute value.
+
+        Returns:
+            dishlnPointingDevName attribute value.
+        """
         return self.component_manager.dish_pointing_dev_name
 
     def write_dishlnPointingDevName(self, value: str) -> None:
         """Set the dishlnPointingDevName attribute."""
         self.component_manager.dish_pointing_dev_name = value
 
-    def read_trackTableErrors(self):
-        """Read method for trackTableErrors"""
+    def read_trackTableErrors(self) -> list:
+        """Read method for trackTableErrors
+
+        Returns:
+            list: List of trackTableErrors.
+        """
         return self.component_manager.errors_to_be_reported
 
     def read_isSubsystemAvailable(self) -> bool:
-        """Read method for isSubsystemAvailable"""
+        """Read method for isSubsystemAvailable
+
+        Returns:
+            bool: value of isSubsystemAvailable.
+        """
         return self._isSubsystemAvailable
 
     def read_actualPointing(self) -> str:
-        """Returns the actualPointing attribute value."""
+        """Gets the actualPointing attribute value.
+
+        Returns:
+            str: actualPointing attribute value.
+        """
         return json.dumps(self.component_manager.actual_pointing)
 
     def read_dishMode(self) -> DishMode:
@@ -388,12 +406,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ,
     )
     def globalPointingModelParams(self: MidTmcLeafNodeDish) -> str:
-        """Returns the globalpointingModelparam attribute value."""
+        """
+        Gets the globalpointingModelparam attribute value.
+
+        Returns:
+            str: globalpointingModelparam attribute value.
+        """
         return json.dumps(self._global_pointing_model_params)
 
     @kValue.write
     def kValue(self: MidTmcLeafNodeDish, k_value: int) -> None:
-        """Set the dish k-value."""
+        """Set the dish k-value.
+
+        Args:
+            k_value (int): k-value to be set.
+        """
         self.component_manager.kValue = k_value
 
     @attribute(
@@ -401,7 +428,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ,
     )
     def kValueValidationResult(self: MidTmcLeafNodeDish) -> str:
-        """Read method to get the k-value validation result"""
+        """Read method to get the k-value validation result
+
+        Returns:
+            str: k-value validation result.
+        """
         return str(int(self.component_manager.kValueValidationResult))
 
     @attribute(
@@ -426,6 +457,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         This Method is used to get the SDP queue connector FQDN from
         subarray node and then Dish Leaf Node have to subscribe to its
         respective pointing_cal attribute on queue connector device.
+
+        Args:
+            sdpqc_fqdn (str): sdpQueueConnectorFqdn
+
         """
 
         self._sdpQueueConnectorFqdn = sdpqc_fqdn
@@ -449,11 +484,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         delta/partial configuration values like ca_offset_arcsec
         and ie_offset_arcsec are provided in the partial configuration
         json.
+
         source offset example:
         [cross_elevation_offset, elevation_offset]
         [0, .5]
         [.5, 0]
         [0, -.5], etc
+
         :return: list[float]
         """
         return self._sourceOffset
@@ -467,6 +504,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         This attribute is used to store the recent
         pointing data received in calibration scan
+
         :return: str
         """
         if self._last_pointing_data_attr_quality is AttrQuality.ATTR_VALID:
@@ -997,7 +1035,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_ApplyPointingModel_allowed()
 
-    def create_component_manager(self: MidTmcLeafNodeDish):
+    def create_component_manager(
+        self: MidTmcLeafNodeDish,
+    ) -> DishLNComponentManager:
+        """
+        Creates component manger instance.
+
+        Returns:
+            DishLNComponentManager: Instance of DishLNComponentManager.
+        """
         update_track_err_cb = self.update_track_table_errors_callback
         cm = DishLNComponentManager(
             dish_dev_name=self.MidDishControl,

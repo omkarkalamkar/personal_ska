@@ -39,8 +39,7 @@ class SetStandbyFPMode(DishLNCommand):
         :type task_callback: TaskCallbackType, optional
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
-        :return: : None
-        :rtype: None
+
         """
 
         task_callback(status=TaskStatus.IN_PROGRESS)
@@ -72,11 +71,9 @@ class SetStandbyFPMode(DishLNCommand):
         """
         Method to invoke SetStandbyFPMode command on DishMaster.
 
-        param argin:
-            None
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
-        return:
-            (ResultCode, str)
         """
 
         result_code, message = self.init_adapter()

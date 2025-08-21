@@ -274,8 +274,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.start_event_processing_threads()
 
     @property
-    def configure_track_lrcr(self):
-        """Configure track lrcr"""
+    def configure_track_lrcr(self) -> ResultCode:
+        """Configure track lrcr
+
+        Returns:
+            ResultCode: Configure track lrcr ResultCode.
+        """
         return self._configure_track_lrcr
 
     @configure_track_lrcr.setter
@@ -286,7 +290,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @property
     def primary_configuration(self) -> dict:
-        """Return primary configuration"""
+        """Return primary configuration
+
+        Returns:
+            dict: primary configuration.
+        """
         return self._primary_configuration
 
     @primary_configuration.setter
@@ -370,11 +378,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def is_command_allowed_callable(
         self: DishLNComponentManager, command_name: str
-    ):
+    ) -> bool:
         """
         Args:
             command_name (str): Name for the command for which the is_allowed
                 check need to be applied.
+
+        Returns:
+            bool: True if command is allowed in current device state,
+            False otherwise.
         """
         self.check_device_responsive()
 
@@ -448,8 +460,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         return check_dish_mode
 
-    def is_track_and_trackstop_command_allowed(self: DishLNComponentManager):
-        """checks if track command is allowed"""
+    def is_track_and_trackstop_command_allowed(
+        self: DishLNComponentManager,
+    ) -> bool:
+        """checks if track command is allowed
+
+        Returns:
+            bool: True if command is allowed, False otherwise.
+        """
         if self.dishMode == DishMode.OPERATE and self.pointingState not in (
             PointingState.NONE,
             PointingState.UNKNOWN,
@@ -477,7 +495,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @property
     def kValue(self: DishLNComponentManager) -> int:
-        """Returns the k-value"""
+        """Returns the k-value
+
+        Returns:
+            int: k-value.
+        """
         return self._kvalue
 
     @kValue.setter
@@ -488,30 +510,47 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @property
     def dishMode(self: DishLNComponentManager) -> DishMode:
-        """Returns the dishMode of dish master device"""
+        """Returns the dishMode of dish master device
+
+        Returns:
+            DishMode: dishMode of dish master device.
+        """
         return self._device.dish_mode
 
     @property
     def pointingState(self: DishLNComponentManager) -> PointingState:
-        """Returns the pointingState of dish master device"""
+        """Returns the pointingState of dish master device
+
+        Returns:
+            PointingState: pointingState of dish master device.
+        """
         return self._device.pointing_state
 
     @property
     def dishConfiguredBand(self: DishLNComponentManager) -> str:
-        """Returns the dishConfiguredBand of dish device"""
+        """Returns the dishConfiguredBand of dish device
+
+        Returns:
+            str: dishConfiguredBand of dish device.
+        """
         return str(self._device.configured_band)
 
     @property
     def actual_pointing(self: DishLNComponentManager) -> list:
-        """Returns the actualPointing of the dish device."""
+        """Gets the actualPointing of the dish device.
+
+        Returns:
+            list: list of the actualPointing of the dish.
+        """
         return list(self._actual_pointing)
 
     @property
     def command_in_progress(self: DishLNComponentManager) -> str:
         """Method to get value of current command in progress
 
-        return: command in progress variable data
-        rtype: str
+        Returns:
+            str: command in progress variable data.
+
         """
         return self.__command_in_progress
 
@@ -519,7 +558,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def queue_connector_device_info(
         self: DishLNComponentManager,
     ) -> SdpQueueConnectorDeviceInfo:
-        """Get the queue connector device object"""
+        """Get the queue connector device object
+
+        Returns:
+            SdpQueueConnectorDeviceInfo:
+            queue connector device object.
+        """
         return self._queue_connector_device_info
 
     @command_in_progress.setter
@@ -551,8 +595,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.pointing_callback(list(self._actual_pointing))
 
     @property
-    def current_track_table_error(self: DishLNComponentManager):
-        """Returns the trackTableError of the dish leaf node."""
+    def current_track_table_error(self: DishLNComponentManager) -> str:
+        """Returns the trackTableError of the dish leaf node.
+
+        Returns:
+            str: trackTableError of the dish leaf node.
+        """
         return self._current_track_table_error
 
     @current_track_table_error.setter
@@ -582,8 +630,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 )
 
     @property
-    def last_pointing_data(self: DishLNComponentManager):
-        """Property for last pointing data"""
+    def last_pointing_data(self: DishLNComponentManager) -> np.array:
+        """Property for last pointing data
+
+        Returns:
+            numpy.array: Array of lap pointing data.
+        """
         return self._last_pointing_data
 
     @last_pointing_data.setter
@@ -599,7 +651,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_source_offset_callback(
         self: DishLNComponentManager, source_offset: list
     ) -> None:
-        """Method to update the sourceOffset attribute"""
+        """Method to update the sourceOffset attribute
+
+        Returns:
+            list: source_offset list to be updated.
+        """
         with self.source_offset_lock:
             if self._update_source_offset_callback:
                 self._update_source_offset_callback(source_offset)
@@ -716,17 +772,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         str(exception),
                     )
 
-    def perform_reverse_transform(self: DishLNComponentManager, value_list):
+    def perform_reverse_transform(
+        self: DishLNComponentManager, value_list
+    ) -> None:
         """
         Performs the reverse transform and publishes it on the actualPointing
         attribute.
 
-        :param value_list: A list containing timestamp in milliseconds,azimuth,
-            and elevation.
+        :param value_list: A list containing timestamp in
+            milliseconds,azimuth, and elevation.
         :type value_list: (List[float])
 
-        :return: None
-        :rtype: None
         """
         try:
             timestamp_tai_ska_epoch, azimuth, elevation = value_list
@@ -773,7 +829,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> Tuple[TaskStatus, str]:
         """Submits the Off command for execution.
 
-        :rtype: Tuple
+        Args:
+            task_callback (TaskCallbackType): TaskCallback for off.
+
+        Returns:
+            Tuple[TaskStatus, str]
         """
         off_command = Off(
             self,
@@ -797,9 +857,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Initializes the attributes and properties of the DishLeafNode.
 
-        :return: A tuple containing a return code and a string message
-            indicating status. The message is for information purpose
-            only.
+        Args:
+            task_callback (TaskCallbackType): TaskCallback for
+                setstandbyfpmode.
+
+        Returns:
+            Tuple[TaskStatus, str]: A tuple containing a return code
+            and a string message indicating status.
+            The message is for information purpose only.
         """
         setstandbyfpmode_command = SetStandbyFPMode(
             self,
@@ -889,9 +954,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Submits the Scan command for execution.
 
         :param argin: JSON string containing offsets in the form of param.
-        :type: str
+        :type argin: str
         :param task_callback: Callback function to handle task status.
-        :type: TaskCallbackType
+        :type task_callback: TaskCallbackType
 
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
@@ -971,9 +1036,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
 
         :param argin: JSON string containing offsets in the form of param.
-        :type: str
+        :type argin: str
         :param task_callback: Callback function to handle task status.
-        :type: TaskCallbackType
+        :type task_callback: TaskCallbackType
 
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
@@ -1070,9 +1135,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Submits the ConfigureBand command for execution.
 
         :param argin: String containing receiver band.
-        :type: str
+        :type argin: str
         :param task_callback: Callback function to handle task status.
-        :type: TaskCallbackType
+        :type task_callback: TaskCallbackType
 
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
@@ -1102,7 +1167,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Submits the SetOperateMode command for execution.
 
         :param task_callback: Callback function to handle task status.
-        :type: TaskCallbackType
+        :type task_callback: TaskCallbackType
 
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
@@ -1134,8 +1199,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Submit the Configure command in queue.
 
-        :return: a result code and message
-        :rtype: Tuple
+        Args:
+            argin (str):
+                configure json in string.
+            task_callback (TaskCallbackType):
+                TaskCallback for Configure.
+
+        Returns:
+            tuple: a result code and message
+
         """
         try:
             input_json = json.loads(argin)
@@ -1190,9 +1262,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Submits the TrackLoadStaticOff command for execution
 
         :param argin: JSON string containing offsets in the form of param.
-        :type: str
+        :type argin: str
         :task_callback: Callback function to handle task status.
-        :type: TaskCallbackType
+        :type task_callback: TaskCallbackType
 
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
@@ -1243,7 +1315,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Abort the Dish.
 
-        :return: a result code and message
+        Args:
+            task_callback (TaskCallbackType): TaskCallback for Abort.
+
+        Returns:
+            Tuple of result code and message
         """
         # base classes set and clear immediately, so we set to
         # clear ongoing observers and timers.
@@ -1351,9 +1427,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Submits the ApplyPointingModel command for execution
 
         :param argin: String giving TelModel URI.
-        :type: str
-        :task_callback: Callback function to handle task status.
-        :type: TaskCallbackType
+        :type argin: str
+        :param task_callback: Callback function to handle task status.
+        :type task_callback: TaskCallbackType
 
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
@@ -1626,7 +1702,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
     def check_device_responsive(self: DishLNComponentManager) -> None:
-        """Checks if dish master device is responsive."""
+        """Checks if dish master device is responsive.
+
+        Raises:
+            DeviceUnresponsive: If dish master is unresponsive.
+
+        """
         if self._device is None or self._device.unresponsive:
             raise DeviceUnresponsive(f"{self.dish_dev_name} not available")
 
@@ -1735,6 +1816,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Find out dish number from MidDishControl
         property e.g. mid-dish/dish-manager/SKA001
         Here, SKA001 is the dish number.
+
+        Args:
+            dish_master_fqdn (str): dish master
         """
         self.dish_id = re.findall(
             "\\b(?:SKA|MKT)\\d{3}\\b", dish_master_fqdn, flags=re.IGNORECASE
@@ -1864,14 +1948,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.errors_to_be_reported = []
 
     def set_dish_adapter(self, dish_adapter: DishAdapter) -> None:
-        """Sets dish adapter, used to write programTrackTable on the dish."""
+        """Sets dish adapter, used to write programTrackTable on the dish.
+
+        Args:
+            dish_adapter (DishAdapter): dish Adapter to be set,
+                used to write programTrackTable on the dish.
+        """
         self.dish_adapter = dish_adapter
 
     def set_dishln_pointing_device_adapter(
         self, dishln_pointing_device_adapter: DishlnPointingDeviceAdapter
     ) -> None:
         """Sets dishln pointing device adapter,
-        used to write programTrackTable on the dish."""
+        used to write programTrackTable on the dish.
+
+        Args:
+            dishln_pointing_device_adapter (DishlnPointingDeviceAdapter):
+                dishln pointing device adapter,
+                used to write programTrackTable on the dish.
+        """
         self.dishln_pointing_device_adapter = dishln_pointing_device_adapter
 
     # pylint: disable=arguments-differ
@@ -1883,8 +1978,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param device_info: a device info
         :type device_info: DeviceInfo
         :param exception: an exception
-        :type: Exception
-        :rtype: None
+        :type exception: Exception
+
         """
         with self.rlock:
             device_info.update_unresponsive(True, exception)
@@ -1906,10 +2001,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_command_result(self, value) -> None:
         """
         Method to update task callback based on long running command result
-                event data.
+        event data.
 
         :param value: longRunningCommandResult attribute event data
-        :type: (Tuple[List[str], List[str]])
+        :type value: (Tuple[List[str], List[str]])
         """
 
         device_name = self.get_device()
@@ -2083,9 +2178,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def process_sqpqc_attribute_fqdn(self, sdpqc_fqdn: str) -> None:
         """Method to subscribe to SDP queue connector attribute.
-        :type attribute_name: str
-        :return: None
-        :rtype: None
+
+        Args:
+            sdpqc_fqdn (str): SDP queue connector attribute
+                to be subscribed.
+
         """
         dev_name = sdpqc_fqdn.rsplit("/", 1)[0]
         # Return if same FQDN exists
@@ -2133,6 +2230,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> None:
         """Method to process pointing offsets received
         from SDP queue connector device
+
+        Args:
+            event_data (tango.EventData): Event data of pointing calibration.
         """
         try:
             if self.correction_key == CORRECTION_KEY.UPDATE.value:
@@ -2211,10 +2311,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> bool:
         """Method to check the list in valid format
 
-        :type lst: list
-        :type: number_of_values: int
-        :return: bool
-        :rtype: bool
+        Args:
+            lst (list): list to be validated.
+            number_of_values (int): number of values in the list.
+
+        Returns:
+            bool: True if length of list is equal to number_of_values
+            and all values are float, Else raises ValueError.
+
+        Raises:
+            ValueError: When value are not in expected format
+                or list is incomplete.
+
         """
         if len(lst) != number_of_values:
             raise ValueError(
@@ -2275,7 +2383,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         pointing state, band and the result code of the specified commands.
 
         Returns:
-            A tuple containing:
+            Tuple: A tuple containing-
                 - DishMode: The current operational mode of the dish.
                 - PointingState: The current pointing state of the dish.
                 - Band: The dish configured band
@@ -2324,15 +2432,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Set the dictionary containing TrackLoadStaticOff command execution
         status
 
-        :param result_code: ResultCode to be set in
-            track_load_static_off_result
-        :type result_code: ResultCode
-        :param: message to be set in track_load_static_off_result
-        :type: str
-        :param: exception to be set in track_load_static_off_result
-        :type: str
-        :param: status to be set in track_load_static_off_result
-        :type: str
+        Args:
+            result_code (ResultCode): ResultCode to be set in
+                track_load_static_off_result.
+            message (str): message to be set in track_load_static_off_result.
+            exception (str): exception to be set in
+                track_load_static_off_result.
+            status (str): status to be set in track_load_static_off_result.
         """
         with self.command_result_update_lock:
             self.track_load_static_off_result["result_code"] = result_code
@@ -2371,14 +2477,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Set the dictionary containing ConfigureBand command execution status
 
-        :param result_code: ResultCode to be set in configure_band_result
-        :type result_code: ResultCode
-        :param: message to be set in configure_band_result
-        :type: str
-        :param: exception to be set in configure_band_result
-        :type: str
-        :param: status to be set in configure_band_result
-        :type: str
+        Args:
+            result_code (ResultCode): ResultCode to be set in
+                configure_band_result.
+            message (str): message to be set in configure_band_result.
+            exception (str): exception to be set in configure_band_result.
+            status (str): status to be set in configure_band_result.
         """
         with self.command_result_update_lock:
             self.configure_band_result["result_code"] = result_code
@@ -2472,14 +2576,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Set the dictionary containing SetOperateMode command execution status
 
-        :param result_code: ResultCode to be set in set_operate_mode_result
-        :type result_code: ResultCode
-        :param: message to be set in set_operate_mode_result
-        :type: str
-        :param: exception to be set in set_operate_mode_result
-        :type: str
-        :param: status to be set in set_operate_mode_result
-        :type: str
+        Args:
+            result_code (ResultCode): ResultCode to be set in
+                set_operate_mode_result.
+            message (str): message to be set in set_operate_mode_result.
+            exception (str): exception to be set in set_operate_mode_result.
+            status (str): status to be set in set_operate_mode_result.
         """
         with self.command_result_update_lock:
             self.set_operate_mode_result["result_code"] = result_code
@@ -2497,14 +2599,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Set the dictionary containing Track command execution status
 
-        :param result_code: ResultCode to be set in track_result
-        :type result_code: ResultCode
-        :param: message to be set in track_result
-        :type: str
-        :param: exception to be set in track_result
-        :type: str
-        :param: status to be set in track_result
-        :type: str
+        Args:
+            result_code (ResultCode): ResultCode to be set in track_result.
+            message (str): message to be set in track_result.
+            exception (str): exception to be set in track_result.
+            status (str): status to be set in track_result.
+
         """
         with self.command_result_update_lock:
             self.track_result["result_code"] = result_code
@@ -2579,6 +2679,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         be subscribed by TMC Dish Leaf Node.
         It will contain mapping of attribute with function which will
         process event data in TMC
+
         :return: Dictionary of attributes to be handled by the EventReceiver.
         """
 
@@ -2603,11 +2704,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_dish_mode_event(self, event: tango.EventData) -> None:
         """
         Updates dish mode event  in respective queue
-        :param event: It is the Tango Event Data object
-        which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
 
         """
         self.event_queues["dishMode"].put(event)
@@ -2617,11 +2717,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> None:
         """
         Updates dish pointing model param event in respective queue
-        :param event: It is the Tango Event Data object
-        which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
 
         """
         self.event_queues[event.attr_value.name].put(event)
@@ -2629,11 +2728,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
         Updates pointing state event in respective queue
-        :param event: It is the Tango Event Data object
-        which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
 
         """
         self.event_queues["pointingState"].put(event)
@@ -2641,11 +2739,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_configured_band_event(self, event: tango.EventData) -> None:
         """
         Updates configured band event in respective queue
-        :param event: It is the Tango Event Data object
-        which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
+
         """
         self.event_queues["configuredBand"].put(event)
 
@@ -2654,11 +2752,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> None:
         """
         Updates pointing program track table event in respective queue
-        :param event: It is the Tango Event Data object
-        which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
 
         """
         self.event_queues["pointingProgramTrackTable"].put(event)
@@ -2668,11 +2765,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> None:
         """
         Updates program track table error event in respective queue
-        :param event: It is the Tango Event Data object
-        which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
 
         """
         self.event_queues["programTrackTableError"].put(event)
@@ -2680,11 +2776,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def update_program_track_table_error(self, event: tango.EventData) -> None:
         """
         Updates program track table error
-        :param event: It is the Tango Event Data object
-        which contains the event data, dishMode Event in this case.
-        :type event: tango.EventData
-        :return: None
-        :rtype: None
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
         """
         if event:
             self.current_track_table_error = event

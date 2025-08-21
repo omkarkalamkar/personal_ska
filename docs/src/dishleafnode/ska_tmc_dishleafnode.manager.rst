@@ -1,5 +1,7 @@
-ska\_tmc\_dishleafnode.manager 
+ska\_tmc\_dishleafnode.manager
 ===========================================
+
+Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
 Submodules
 ==========
@@ -49,10 +51,10 @@ timeout value is preconfigured when the component starts for the first time.
 Usage
 -----
 
-* **CommandTimeout attribute**  
+* **CommandTimeout attribute**
   - Can be updated at runtime without redeployment.
   - Helps in adapting to varying command execution times.
 
-* **CommandTimeOutDefault property**  
+* **CommandTimeOutDefault property**
   - Configurable in the deployment configuration (e.g., ``values.yaml``).
   - Sets the initial timeout value at startup.

@@ -177,9 +177,15 @@ class DishLNCommand(TmcLeafNodeCommand):
     def set_wait_for_dishmode(self: DishLNCommand, dishmode: DishMode) -> str:
         """Waits for transition of DishMode to the correct state.
 
-        :return: True if the DishMode transitions to the correct state within
-            the timeout period,False otherwise.
-        :rtype: boolean
+        Args:
+            dishmode (DishMode): DishMode value to wait for.
+
+        Returns:
+            str: `ACHIEVED` if the DishMode transitions to the correct state
+            within the timeout period,
+            `NOT_ACHIEVED` if it doest not transition within
+            timeout or `ABORTED` if abort cammand is called while execution.
+
         """
         start_time = time.time()
         elapsed_time = 0

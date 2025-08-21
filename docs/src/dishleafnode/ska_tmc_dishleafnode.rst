@@ -1,6 +1,7 @@
 ska\_tmc\_dishleafnode.dish_leaf_node module
 ==============================================
 
+Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
 .. automodule:: ska_tmc_dishleafnode.dish_leaf_node
    :members:

@@ -81,8 +81,10 @@ class TrackStop(DishLNCommand):
     def do(self: TrackStop) -> Tuple[ResultCode, str]:
         """
         Method to invoke TrackStop command on Dish Master.
-        return:
-            (ResultCode, str)
+
+        Returns:
+            Tuple[ResultCode, str]: Tuple of ResultCode and message.
+
         """
 
         result_code, message = self.init_adapter()

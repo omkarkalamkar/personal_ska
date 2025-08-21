@@ -283,7 +283,13 @@ class DishLNEventReceiver(EventReceiver):
         dev_info: SdpQueueConnectorDeviceInfo,
         attribute_name: str,
     ) -> None:
-        """Subscribe to the given SDP queue connector attribute"""
+        """Subscribe to the given SDP queue connector attribute
+
+        Args:
+            dev_info (SdpQueueConnectorDeviceInfo): device info.
+            attribute_name (str): Attribute name to be subscribed.
+
+        """
         # Initialized to avoid linting issue.
         TIMEOUT = 120
         elapsed_time = 0
@@ -312,7 +318,11 @@ class DishLNEventReceiver(EventReceiver):
     def unsubscribe_sdpqc_attribute(
         self: DishLNEventReceiver, dev_info: SdpQueueConnectorDeviceInfo
     ) -> None:
-        """Subscribe to the given SDP queue connector attribute"""
+        """UnSubscribe to the given SDP queue connector attribute
+
+        Args:
+            dev_info (SdpQueueConnectorDeviceInfo): device info.
+        """
         try:
             if dev_info.event_id:
                 sdp_queue_connector_proxy = self._dev_factory.get_device(
