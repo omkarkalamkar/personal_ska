@@ -11,7 +11,7 @@
     "correction": "UPDATE"
     },
     "dish": {
-        "receiver_band": "2"
+        "receiver_band": "5b"
     },
     "tmc": {
         "scan_duration": 5

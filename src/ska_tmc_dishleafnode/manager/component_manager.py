@@ -2659,10 +2659,39 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
+
+        def _normalize_band(band: object) -> str:
+            """Convert band into a comparable string."""
+            if band is None:
+                return "NONE"
+            if isinstance(band, str):
+                # Map Dish values 5 and 6 to 5a and 5b
+                if int(band) == 5:
+                    return "5a"
+                if int(band) == 6:
+                    return "5b"
+                return str(band)
+            if hasattr(band, "name"):  # Band enum
+                return band.name.lower()
+            return str(band).lower()
+
+        dish_band = _normalize_band(self.dishConfiguredBand)
+        recv_band = self.receiver_band
+        self.logger.info(
+            "check the value of dishConfiguredBand (%s)  receiverband (%s)",
+            dish_band,
+            recv_band,
+        )
+
+        self.logger.info(
+            "Checking dishConfiguredBand (%s)  receiver_band (%s)",
+            self.dishConfiguredBand,
+            self.receiver_band,
+        )
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
-            and self.dishConfiguredBand == self.receiver_band
+            and dish_band == recv_band
             and self.configure_band_lrcr == ResultCode.OK
             and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
