@@ -2670,17 +2670,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     return "5a"
                 if int(band) == 6:
                     return "5b"
-                return str(band)
+                return band
             if hasattr(band, "name"):  # Band enum
                 return band.name.lower()
             return str(band).lower()
 
         dish_band = _normalize_band(self.dishConfiguredBand)
-        recv_band = self.receiver_band
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
-            and dish_band == recv_band
+            and dish_band == self.receiver_band
             and self.configure_band_lrcr == ResultCode.OK
             and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
