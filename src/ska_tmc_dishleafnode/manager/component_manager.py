@@ -2677,17 +2677,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         dish_band = _normalize_band(self.dishConfiguredBand)
         recv_band = self.receiver_band
-        self.logger.info(
-            "check the value of dishConfiguredBand (%s)  receiverband (%s)",
-            dish_band,
-            recv_band,
-        )
-
-        self.logger.info(
-            "Checking dishConfiguredBand (%s)  receiver_band (%s)",
-            self.dishConfiguredBand,
-            self.receiver_band,
-        )
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
