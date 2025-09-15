@@ -2671,27 +2671,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 str: Normalized band string (e.g., "5a", "5b", "none").
             """
             mapping = {5: "5a", 6: "5b"}
-
+            normalized = "none"  # default value
             if band is None:
-                return "none"
-
-            if isinstance(band, str) and band.isdigit():
-                return mapping.get(int(band), band.lower())
-
-            if isinstance(band, int):
-                return mapping.get(band, str(band).lower())
-
-            if hasattr(band, "name"):  # Band enum
-                return band.name.lower()
-
-            return str(band).lower()
+                normalized = "none"
+            elif isinstance(band, str) and band.isdigit():
+                normalized = mapping.get(int(band), band.lower())
+            elif isinstance(band, int):
+                normalized = mapping.get(band, str(band).lower())
+            elif hasattr(band, "name"):  # Band enum
+                normalized = band.name.lower()
+            else:
+                normalized = str(band).lower()
+            return normalized
 
         dish_band = _normalize_band(self.dishConfiguredBand)
-        self.logger.info(
-            "check the value of dishConfiguredBand (%s)  receiverband (%s)",
-            dish_band,
-            self.receiver_band,
-        )
 
         return (
             self.dishMode == DishMode.OPERATE
