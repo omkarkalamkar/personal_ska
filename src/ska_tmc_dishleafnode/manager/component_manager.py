@@ -2661,21 +2661,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         def _normalize_band(band: object) -> str:
-            """Convert band into a comparable string."""
+            """Normalize a band value into a comparable string.
+
+            Args:
+                band (object): Band input, can be None, int, digit string,
+                    or an Enum with a 'name' attribute.
+
+            Returns:
+                str: Normalized band string (e.g., "5a", "5b", "none").
+            """
+            mapping = {5: "5a", 6: "5b"}
+
             if band is None:
-                return "NONE"
-            if isinstance(band, str):
-                # Map Dish values 5 and 6 to 5a and 5b
-                if int(band) == 5:
-                    return "5a"
-                if int(band) == 6:
-                    return "5b"
-                return band
+                return "none"
+
+            if isinstance(band, str) and band.isdigit():
+                return mapping.get(int(band), band.lower())
+
+            if isinstance(band, int):
+                return mapping.get(band, str(band).lower())
+
             if hasattr(band, "name"):  # Band enum
                 return band.name.lower()
+
             return str(band).lower()
 
         dish_band = _normalize_band(self.dishConfiguredBand)
+        self.logger.info(
+            "check the value of dishConfiguredBand (%s)  receiverband (%s)",
+            dish_band,
+            self.receiver_band,
+        )
+
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
