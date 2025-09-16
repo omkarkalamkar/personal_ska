@@ -57,9 +57,9 @@ COMMAND_COMPLETION_MESSAGE = "Command Completed"
 # this json is stored remotely so needs to hardcode this here
 GPM_JSON = (
     '{"band1pointingmodelparams": "", "band2pointingmodelparams": "['
-    + '-492.4139911342723, -42.856993577220535, 2.0968290502897826, '
-    + '2.7931609425833335, 0.0, 12.250730784549765, 0.0, 0.0, 0.0, '
-    + '0.0, 0.0, 1466.1575921441813, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]", '
+    + '-492.41400146484375, -42.85699462890625, 2.0968289375305176, '
+    + '2.793160915374756, 0.0, 12.250730514526367, 0.0, 0.0, 0.0, '
+    + '0.0, 0.0, 1466.1575927734375, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]", '
     + '"band3pointingmodelparams": "", "band4pointingmodelparams": "", '
     + '"band5apointingmodelparams": "", "band5bpointingmodelparams": ""}'
 )
