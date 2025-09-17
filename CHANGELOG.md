@@ -5,6 +5,11 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.24.2]
+********
+Fixed
+-----
+* Updated DishLeafNode band mapping to normalize Band 5A and Band 5B, fixing the band mapping error
 
 [0.24.1]
 ********
