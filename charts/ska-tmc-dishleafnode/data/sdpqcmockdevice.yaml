@@ -3,7 +3,7 @@ function: testing
 domain: sdp-queue-connector-mock
 instances: ["01"]
 entrypoints:
-  - name: "ska_tmc_common.test_helpers.helper_sdp_queue_connector_device.HelperSdpQueueConnector"
+  - name: "ska_tmc_simulators.helper_sdp_queue_connector_device.HelperSdpQueueConnector"
 server:
   name: "sdpqc"
   instances:

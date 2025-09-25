@@ -6,7 +6,7 @@ instances: ["01"]
 {{- $prefixMember := $.Values.deviceServers.dishln.prefix_member }}
 {{- $dishFamily := $.Values.deviceServers.mocks.family }}
 entrypoints:
-  - name: "ska_tmc_common.test_helpers.helper_dish_device.HelperDishDevice"
+  - name: "ska_tmc_simulators.helper_dish_device.HelperDishDevice"
 server:
   name: "mocks"
   instances:
