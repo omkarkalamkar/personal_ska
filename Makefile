@@ -68,6 +68,7 @@ PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS += --forked --count=$(PYTHON_TEST_COUNT)
 MARK = (not post_deployment and not acceptance)
+ADD_ARGS += -x
 endif
 
 K8S_TEST_COUNT ?= 1
