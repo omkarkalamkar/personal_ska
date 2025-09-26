@@ -15,6 +15,9 @@ from tests.settings import (
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
+@pytest.mark.xfail(
+    reason="Restarting device as of now is making the pod unstable"
+)
 def test_kvalue_when_dln_initialized(tango_context, group_callback):
     """Note: Its observed that frequent running of this test case makes the
     k8s pod unstable due to restart which results in test case failure."""
@@ -43,6 +46,9 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
+@pytest.mark.xfail(
+    reason="Restarting device as of now is making the pod unstable"
+)
 def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
     """Note: Its observed that frequent running of this test case makes the
     k8s pod unstable due to restart which results in test case failure."""
@@ -92,6 +98,9 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
+@pytest.mark.xfail(
+    reason="Restarting device as of now is making the pod unstable"
+)
 def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
     """Note: Its observed that frequent running of this test case makes the
     k8s pod unstable due to restart which results in test case failure."""
@@ -131,6 +140,9 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
+@pytest.mark.xfail(
+    reason="Restarting device as of now is making the pod unstable"
+)
 def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     """Note: Its observed that frequent running of this test case makes the
     k8s pod unstable due to restart which results in test case failure.

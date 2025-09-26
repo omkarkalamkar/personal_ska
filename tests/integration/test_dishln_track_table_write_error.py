@@ -190,6 +190,9 @@ def configure_dish_leaf_node(
 )
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
+@pytest.mark.xfail(
+    reason="Restarting device as of now is making the pod unstable"
+)
 def test_configure_command(tango_context, group_callback, json_factory):
     configure_dish_leaf_node(
         tango_context,
