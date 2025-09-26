@@ -267,10 +267,10 @@ def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
             logger=logger, component_manager=cm
         )
         generate_program_track_table.do()
-        while not cm.pointing_program_track_table and timeout < 5:
+        while not cm.pointing_program_track_table and timeout < 8:
             time.sleep(1)
             timeout += 1
-        time.sleep(5)
+        time.sleep(2)
         # Assert the schedular length is the default one.
         assert len(real_scheduler.queue) == 5
         # Assert entries in the PTT
