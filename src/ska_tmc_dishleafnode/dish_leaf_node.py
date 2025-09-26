@@ -199,7 +199,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         )
 
     def update_gpm_version_callback(self, gpm_version: str) -> None:
-        """Change event callback for sourceOffset attribute"""
+        """
+        Callback to update gpmVersion attribute with the provided
+        GPM version string. Stores the value in the device database,
+        triggers change/archive events, and logs the memorized GPM version.
+
+        Args:
+            gpm_version (str): New GPM version string to set for
+            the gpmVersion attribute.
+        """
         db = Database()
         value = {"gpmVersion": {"__value": [gpm_version]}}
         db.put_device_attribute_property(self._dishln_name, value)
