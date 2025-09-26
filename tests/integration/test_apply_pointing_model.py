@@ -185,9 +185,9 @@ def gpm_version_restart_scenario(
 
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     flag = True
-    band_name = None
-    band_version = None
-    # Initial DLN gpmversion assertion
+    band_name = 'Band_2'
+    band_version = 'main'
+    # Check band version is already set, if any
     for band, _ in gpm_version.items():
         if gpm_version[band] != 'UNKNOWN':
             band_name = band
