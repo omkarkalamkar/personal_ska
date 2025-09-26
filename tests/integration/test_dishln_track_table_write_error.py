@@ -185,11 +185,11 @@ def configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.skip(
+@pytest.mark.xfail(
     reason="Not able to connect to dishLeafNode once it is restarted."
 )
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.restart_device_server
 def test_configure_command(tango_context, group_callback, json_factory):
     configure_dish_leaf_node(
         tango_context,

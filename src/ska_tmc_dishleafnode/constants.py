@@ -12,3 +12,4 @@ IERS_DATA_STORAGE_PATH = join(
 )
 RESET_OFFSETS = [0.0, 0.0]
 ADJUST_TIMEOUT = 10
+ALLOWED_BANDS = ['1', '2', '3', '4', '5a', '5b']
