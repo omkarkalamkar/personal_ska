@@ -102,6 +102,12 @@ def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     # Verify NaN list is not processed by DLN
     assert not np.isnan(list(cm.received_pointing_data)[0].pointing_data).any()
     assert not np.isnan(cm.queue_connector_device_info.pointing_data).any()
+    timeout = 0
+    while (
+        timeout < 5 and not list(cm.received_pointing_data)[0].pointing_data[0]
+    ):
+        timeout += 1
+        sleep(0.5)
     assert np.array_equal(
         list(cm.received_pointing_data)[0].pointing_data, POINTING_CAL1
     )

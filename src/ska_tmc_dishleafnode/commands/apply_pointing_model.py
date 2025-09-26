@@ -11,6 +11,7 @@ import json
 import logging
 import re
 import threading
+import urllib
 from typing import TYPE_CHECKING, Dict, Tuple, Union
 
 from ska_ser_logging import configure_logging
@@ -328,15 +329,5 @@ class ApplyPointingModel(DishLNCommand):
         band = band_match.group()
         # Version from tm_data_sources
         sources = gpm_data.get("tm_data_sources", [])
-        if isinstance(sources, str):  # normalize to list
-            sources = [sources]
-        version = "UNKNOWN"
-        for src in sources:
-            if "?ref=" in src:
-                version = src.split("?ref=")[-1]
-                break
-            if "?" in src:  # e.g., ?0.0.8#tmdata
-                version = src.split("?")[-1].split("#")[0]
-                break
-
+        version = urllib.parse.urlparse(sources[0]).query
         return band, version

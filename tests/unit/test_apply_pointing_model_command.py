@@ -10,7 +10,7 @@ from tests.settings import COMMAND_COMPLETION_MESSAGE
 
 interface = "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0"
 data_sources = [
-    "car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators?main#tmdata"
+    "car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators?1.0.0#tmdata"
 ]
 file_path = (
     "instrument/ska_mid1/global_pointing_model_data/gpm-ska093-Band_2.json"
@@ -198,4 +198,4 @@ def test_apm_extract_band_version(cm_without_er_lp):
         gpm_data=gpm_json
     )
     assert band == 'Band_2'
-    assert band_version == 'main'
+    assert band_version == '1.0.0'
