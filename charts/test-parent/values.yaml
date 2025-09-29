@@ -32,9 +32,6 @@ ska-tango-base:
 
 tmc-dishleafnode:
   deviceServers:
-    mocks:
-      enabled: true
-      instances: ["01"]
     dishln:
       enabled: true
       IsDishAbortEnabled: True

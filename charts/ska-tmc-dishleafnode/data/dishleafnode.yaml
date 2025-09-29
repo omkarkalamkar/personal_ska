@@ -12,7 +12,6 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $AdapterTimeOut := .Values.deviceServers.dishln.AdapterTimeOut }}
 {{- $DishAvailabilityCheckTimeout := .Values.deviceServers.dishln.DishAvailabilityCheckTimeout }}
 {{- $domainDish := .Values.global.domain_dish }}
-{{- $dishFamily := .Values.deviceServers.mocks.family }}
 {{- $prefixMember := .Values.deviceServers.dishln.prefix_member}}
 {{- $dishlnDomain := .Values.global.domain }}
 {{- $dishlnFamily := .Values.deviceServers.dishln.family }}
