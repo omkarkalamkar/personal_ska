@@ -175,12 +175,16 @@ def gpm_version_restart_scenario(
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
-    dish1_leaf_admin_dev_name = dish_leaf_node.adm_name()
-    dish1_leaf_admin_dev_proxy = tango.DeviceProxy(dish1_leaf_admin_dev_name)
     dish_leaf_node.subscribe_event(
         "gpmVersion",
         tango.EventType.CHANGE_EVENT,
         group_callback["gpmVersion"],
+    )
+
+    dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
     )
 
     gpm_version = json.loads(dish_leaf_node.gpmversion)
@@ -204,8 +208,8 @@ def gpm_version_restart_scenario(
             (unique_id[0], COMMAND_COMPLETED),
             lookahead=8,
         )
-    else:
-        dish1_leaf_admin_dev_proxy.RestartServer()
+
+    dish_leaf_node.init()
 
     assert wait_and_validate_attribute_value_available(
         dish_leaf_node,
@@ -252,7 +256,6 @@ def test_ApplyPointingModel_invalid_tm_path(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 def test_apply_pointing_model_with_erroneous_json(
     tango_context, group_callback, json_factory
 ):
@@ -266,10 +269,7 @@ def test_apply_pointing_model_with_erroneous_json(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.restart_device_server
-@pytest.mark.xfail(
-    reason="Restarting device as of now is making the pod unstable"
-)
+@pytest.mark.SKA_mid
 def test_gpm_restart_scenario(tango_context, group_callback, json_factory):
     """Test to check GPM version memorization"""
     gpm_version_restart_scenario(
