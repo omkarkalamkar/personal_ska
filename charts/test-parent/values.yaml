@@ -14,6 +14,7 @@ global:
   dishes: ["SKA001", "SKA002"]
   mid_sdp_queueconnector: "mid-sdp/queueconnector/01"
   dish_manager_suffix: "mid-dish/dish-manager/ska"
+  instances: ["01"]
   DEBUG: 5678
 
 ska-tango-base:
