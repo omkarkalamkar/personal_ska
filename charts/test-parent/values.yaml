@@ -11,6 +11,9 @@ global:
   retry:
   - "--tries=10"
   - "--sleep=5"
+  dishes: ["SKA001", "SKA002"]
+  mid_sdp_queueconnector: "mid-sdp/queueconnector/01"
+  dish_manager_suffix: "mid-dish/dish-manager/ska"
   DEBUG: 5678
 
 ska-tango-base:
@@ -49,6 +52,13 @@ tmc-dishleafnode:
 
 ska-tmc-simulators:
   enabled: true
+  telescope: SKA-mid
+  deviceServers:
+    mocks:
+      enabled: true
+      mid:
+        is_simulated:
+          csp: false          
 
 ska-taranta:
   enabled: false
