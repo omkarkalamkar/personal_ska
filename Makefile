@@ -48,8 +48,7 @@ THIS_HOST := $(shell ip a 2> /dev/null | sed -En 's/127.0.0.1//;s/.*inet (addr:)
 DISPLAY ?= $(THIS_HOST):0
 JIVE ?= false# Enable jive
 TARANTA ?= false
-MINIKUBE ?= false ## Minikube or not
-FAKE_DEVICES ?= true ## Install fake devices or not
+MINIKUBE ?= false ## Minikube or not ## Install fake devices or not
 TANGO_HOST ?= tango-databaseds:10000## TANGO_HOST connection to the Tango DS
 
 ITANGO_DOCKER_IMAGE = $(CAR_OCI_REGISTRY_HOST)/ska-tango-images-tango-itango:9.3.9
@@ -95,7 +94,6 @@ K8S_CHART_PARAMS = --set global.minikube=$(MINIKUBE) \
 	--set ska-tango-base.xauthority=$(XAUTHORITY) \
 	--set ska-tango-base.jive.enabled=$(JIVE) \
 	--set tmc-dishleafnode.telescope=$(TELESCOPE) \
-	--set tmc-dishleafnode.deviceServers.mocks.enabled=$(FAKE_DEVICES) \
 	--set global.exposeAllDS=false \
 	--set global.operator=$(SKA_TANGO_OPERATOR) \
 	--set global.cluster_domain=$(CLUSTER_DOMAIN) \
