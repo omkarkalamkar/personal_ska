@@ -546,7 +546,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         hw_memorized=True,
     )
     def gpmVersion(self: MidTmcLeafNodeDish) -> str:
-        """Returns the bandwise GPM version set on dish"""
+        """
+        Returns the band-specific GPM version
+        (dictionary stored in component manager) as a JSON string.
+        Format: {"band": "version"}.
+
+        :return: JSON string of band-to-GPM version mapping
+        :rtype: str
+        """
         return json.dumps(self.component_manager._gpm_version)
 
     @gpmVersion.write

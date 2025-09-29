@@ -73,18 +73,23 @@ class ApplyPointingModel(DishLNCommand):
             **kwargs: Keyword arguments for task status update.
         """
 
-        if int(ResultCode.OK) == kwargs['result'][0]:
-            for key in self.component_manager.gpm_version:
-                if key.lower() == self.band.lower():
-                    self.component_manager.gpm_version[key] = self.band_version
-                    self.logger.debug(
-                        "Updating GPM version: %s",
-                        self.component_manager.gpm_version,
-                    )
-                    self.component_manager.handle_gpm_version_callback(
-                        json.dumps(self.component_manager.gpm_version)
-                    )
-                    break
+        try:
+            if int(ResultCode.OK) == kwargs['result'][0]:
+                for key in self.component_manager.gpm_version:
+                    if key.lower() == self.band.lower():
+                        self.component_manager.gpm_version[
+                            key
+                        ] = self.band_version
+                        self.logger.debug(
+                            "Updating GPM version: %s",
+                            self.component_manager.gpm_version,
+                        )
+                        self.component_manager.handle_gpm_version_callback(
+                            json.dumps(self.component_manager.gpm_version)
+                        )
+                        break
+        except Exception as e:
+            self.logger.exception("Error updating GPM version: %s", str(e))
         super().update_task_status(**kwargs)
         if self.component_manager.command_unique_id_dict.get(
             self.command_uniq_id
