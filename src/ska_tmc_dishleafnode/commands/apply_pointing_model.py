@@ -75,10 +75,10 @@ class ApplyPointingModel(DishLNCommand):
 
         try:
             if int(ResultCode.OK) == kwargs['result'][0]:
-                for key in self.component_manager.gpm_version:
-                    if key.lower() == self.band.lower():
+                for gpm_band in self.component_manager.gpm_version:
+                    if gpm_band.lower() == self.band.lower():
                         self.component_manager.gpm_version[
-                            key
+                            gpm_band
                         ] = self.band_version
                         self.logger.debug(
                             "Updating GPM version: %s",
@@ -171,6 +171,7 @@ class ApplyPointingModel(DishLNCommand):
 
         # Function to execute data retrieval within a thread
         def retrieve_data():
+            """Fetch JSON data from GPM repo and return as a dictionary."""
             nonlocal result, message
             try:
                 tmdata = TMData(tm_data_sources)
@@ -331,11 +332,21 @@ class ApplyPointingModel(DishLNCommand):
                 - band (str): The band extracted from the file path.
                 - version (str): The version extracted from the interface.
         """
-        # --- Band from filepath (support Band_1, Band_5a, Band_5b, etc.) ---
-        filepath = gpm_data.get("tm_data_filepath", "")
-        band_match = re.search(r"Band_[1-4]|Band_5[abAB]", filepath)
-        band = band_match.group()
-        # Version from tm_data_sources
-        sources = gpm_data.get("tm_data_sources", [])
-        version = urllib.parse.urlparse(sources[0]).query
+        band, version = "", ""
+        try:
+            # Band from filepath (support Band_1, Band_5a, Band_5b, etc.)
+            filepath = gpm_data.get("tm_data_filepath", "")
+            band_match = re.search(r"Band_[1-4]|Band_5[abAB]", filepath)
+            if band_match:
+                band = band_match.group()
+        except Exception as e:
+            self.logger.exception(f"Error extracting band: {e}")
+        try:
+            # Version from tm_data_sources
+            sources = gpm_data.get("tm_data_sources", [])
+            if isinstance(sources, str):
+                sources = [sources]
+            version = urllib.parse.urlparse(sources[0]).query
+        except Exception as e:
+            self.logger.exception(f"Error extracting version: {e}")
         return band, version

@@ -554,7 +554,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :return: JSON string of band-to-GPM version mapping
         :rtype: str
         """
-        return json.dumps(self.component_manager._gpm_version)
+        return json.dumps(self.component_manager.gpm_version)
 
     @gpmVersion.write
     def gpmVersion(self: MidTmcLeafNodeDish, gpm_version: str) -> None:
