@@ -166,6 +166,9 @@ class ApplyPointingModel(DishLNCommand):
         result = {}
         message = ""
 
+        if isinstance(tm_data_sources, str):
+            tm_data_sources = [tm_data_sources]
+
         # Function to execute data retrieval within a thread
         def retrieve_data():
             nonlocal result, message
