@@ -47,5 +47,8 @@ tmc-dishleafnode:
       AzimuthMaxLimit: 270.0
       SchedularQueuePreEntries: 5
 
+ska-tmc-simulators:
+  enabled: true
+
 ska-taranta:
   enabled: false
