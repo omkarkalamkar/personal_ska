@@ -101,13 +101,24 @@ class ApplyPointingModel(DishLNCommand):
         )
 
     def set_command_id(self, command_name):
+        """Generates unique command ID from timestamp and command name."""
+
         self.command_id = f"{time.time()}-{command_name}"
 
     def get_apply_pointing_model_result_code(self):
         """Get apply pointing model results"""
-        return self.component_manager.apply_pointing_model_result.get(
-            self.command_id
-        ).get("result_code")
+        try:
+            apm_result = self.component_manager.apply_pointing_model_result
+            self.logger.debug("Current APM result dictionary %s", apm_result)
+            command_id = apm_result.get(self.command_id, None)
+            self.logger.debug("APM command ID: %s", command_id)
+            if command_id:
+                result_code = command_id.get("result_code", None)
+                self.logger.debug("APM result code: %s", result_code)
+                if result_code is not None:
+                    return result_code
+        except Exception as e:
+            self.logger.exception("Exception occurred: %s", e)
 
     @timeout_tracker
     @error_propagation_tracker(

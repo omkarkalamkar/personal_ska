@@ -241,6 +241,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "TrackLoadStaticOff",
             "TrackStop",
             "Abort",
+            "ApplyPointingModel",
         )
 
         # Event Receiver
@@ -2064,7 +2065,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return
 
         unique_id, result_code_message = value
-
+        self.logger.debug(
+            "Current command unique dictionary: ", self.command_unique_id_dict
+        )
         if (unique_id not in self.command_unique_id_dict.values()) or (
             not unique_id.endswith(self.supported_commands)
         ):
@@ -2077,19 +2080,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         try:
             command_name = unique_id.split('_')[-1]
-            id_in_command_unique_id_dict = None
             result_code, message = json.loads(result_code_message)
 
             with self.command_result_update_lock:
                 is_notify_observer = False
                 self.logger.debug("Checking unique_id- %s", unique_id)
-                id_in_command_unique_id_dict = self.get_command_id(unique_id)
-                if (
-                    id_in_command_unique_id_dict
-                    and command_name == "ApplyPointingModel"
-                ):
+                if command_name == "ApplyPointingModel":
                     self.apply_pointing_model_result[
-                        id_in_command_unique_id_dict
+                        self.get_command_id(unique_id)
                     ] = {"result_code": result_code}
                     self.logger.debug(
                         "ApplyPointingModel LRC result: %s",
@@ -2221,7 +2219,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         device_name,
                     )
                     self.long_running_result_callback(
-                        id_in_command_unique_id_dict,
+                        self.get_command_id(unique_id),
                         ResultCode.FAILED,
                         exception_msg=message,
                     )

@@ -208,6 +208,10 @@ def gpm_version_restart_scenario(
             (unique_id[0], COMMAND_COMPLETED),
             lookahead=8,
         )
+        group_callback["gpmVersion"].assert_change_event(
+            Anything,
+            lookahead=2,
+        )
 
     dish_leaf_node.init()
 
@@ -217,12 +221,12 @@ def gpm_version_restart_scenario(
         'Not Set',
     )
 
-    group_callback["gpmVersion"].assert_change_event(
+    assertion_data = group_callback["gpmVersion"].assert_change_event(
         Anything,
         lookahead=2,
     )
-    gpm_version = json.loads(dish_leaf_node.gpmversion)
-    assert gpm_version[band_name] == band_version
+    gpm_version_data = json.loads(assertion_data["attribute_value"])
+    assert gpm_version_data[band_name] == band_version
 
 
 @pytest.mark.post_deployment
