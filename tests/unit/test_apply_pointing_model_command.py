@@ -1,4 +1,5 @@
 import json
+import time
 from unittest import mock
 
 from ska_tango_base.commands import ResultCode, TaskStatus
@@ -40,10 +41,16 @@ def test_apply_pointing_model_command(
         task_callback.assert_against_call(
             call_kwargs={"status": TaskStatus.IN_PROGRESS}
         )
-        cm.apply_pointing_model_result = {
-            "result_code": ResultCode.OK,
-            "message": [0, "Command Completed"],
-        }
+        timeout = 6
+        while not cm.command_unique_id_dict and timeout:
+            timeout -= 1
+            time.sleep(1)
+        cmd_id = ""
+        for command_id, _ in cm.command_unique_id_dict.items():
+            if command_id.endswith("ApplyPointingModel"):
+                cmd_id = command_id
+                break
+        cm.apply_pointing_model_result[cmd_id] = {"result_code": ResultCode.OK}
     mock_update_result.return_value = None
     cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
@@ -174,8 +181,6 @@ def test_apply_pointing_model_command_file_not_found(
 def test_apm_extract_band_version(cm_without_er_lp):
     """Test to check the extract band and version method"""
     cm = cm_without_er_lp
-    cm.apply_pointing_model_result["result_code"] = ResultCode.OK
-    assert cm.get_apply_pointing_model_result_code() == ResultCode.OK
     for band, _ in cm.gpm_version.items():
         assert cm.gpm_version[band] == "UNKNOWN"
     gpm_json = {
@@ -193,7 +198,12 @@ def test_apm_extract_band_version(cm_without_er_lp):
         adapter_factory=adapter_factory,
         logger=logger,
     )
-
+    apm_command.set_command_id("ApplyPointingModel")
+    assert apm_command.command_id
+    command_id = apm_command.command_id
+    cm.apply_pointing_model_result[command_id] = {}
+    cm.apply_pointing_model_result[command_id]["result_code"] = ResultCode.OK
+    assert ResultCode.OK == apm_command.get_apply_pointing_model_result_code()
     band, band_version = apm_command.extract_band_and_version(
         gpm_data=gpm_json
     )

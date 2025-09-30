@@ -278,6 +278,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
+        self.apply_pointing_model_result = {}
         self.start_event_processing_threads()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
@@ -379,7 +380,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "exception": None,
                 "status": None,
             }
-            self.apply_pointing_model_result = {}
         self.logger.info("Cleared the command result dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
@@ -2062,10 +2062,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         if value == ("", "") or not value:
             return
+
         unique_id, result_code_message = value
-        if (
-            unique_id not in self.command_unique_id_dict.values()
-            or not unique_id.endswith(self.supported_commands)
+
+        if (unique_id not in self.command_unique_id_dict.values()) or (
+            not unique_id.endswith(self.supported_commands)
         ):
             self.logger.info(
                 "LRCR event for id %s will be ignored %s",
@@ -2076,17 +2077,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         try:
             command_name = unique_id.split('_')[-1]
-
+            id_in_command_unique_id_dict = None
             result_code, message = json.loads(result_code_message)
 
             with self.command_result_update_lock:
                 is_notify_observer = False
-                self.logger.info("Checking unique_id- %s", unique_id)
-                if command_name == "ApplyPointingModel":
+                self.logger.debug("Checking unique_id- %s", unique_id)
+                id_in_command_unique_id_dict = self.get_command_id(unique_id)
+                if (
+                    id_in_command_unique_id_dict
+                    and command_name == "ApplyPointingModel"
+                ):
                     self.apply_pointing_model_result[
-                        self.get_command_id(unique_id)
+                        id_in_command_unique_id_dict
                     ] = {"result_code": result_code}
-                    self.logger.info(
+                    self.logger.debug(
                         "ApplyPointingModel LRC result: %s",
                         self.apply_pointing_model_result,
                     )
@@ -2216,7 +2221,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         device_name,
                     )
                     self.long_running_result_callback(
-                        self.get_command_id(unique_id),
+                        id_in_command_unique_id_dict,
                         ResultCode.FAILED,
                         exception_msg=message,
                     )

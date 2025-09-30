@@ -168,12 +168,13 @@ class ApplyPointingModel(DishLNCommand):
             try:
                 tmdata = TMData(tm_data_sources)
                 file_name = tm_data_filepath.split('/')[-1]
-                gpm_dir = tmdata['/'.join(tm_data_filepath.split('/')[:3])]
+                gpm_dir_path = tm_data_filepath.split('/')[:3]
+                gpm_dir = tmdata['/'.join(gpm_dir_path)]
                 self.logger.debug("Files found on GPM repo: %s", list(gpm_dir))
                 if gpm_dir and file_name not in list(gpm_dir):
                     message = (
                         f"{file_name} not found on "
-                        f"{tm_data_sources[0]}/{tm_data_filepath}"
+                        f"{tm_data_sources[0]}/{gpm_dir_path}"
                     )
                     self.logger.error("Error: %s", message)
                 else:
@@ -267,7 +268,7 @@ class ApplyPointingModel(DishLNCommand):
             )
 
             if return_message:
-                self.logger.debug(
+                self.logger.error(
                     "GPM error message: %s",
                     return_message,
                 )
