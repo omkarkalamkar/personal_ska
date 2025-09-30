@@ -20,9 +20,7 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
     k8s pod unstable due to restart which results in test case failure."""
     # Scenario 1: Start the device and check k-value when DLN initialized
     dev_factory = DevFactory()
-    dish_leaf_node_server = dev_factory.get_device(
-        "dserver/leaf-node-dish/ska001"
-    )
+    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_leaf_node.SetKValue(0)  # Set k-value to initialization value
     dish_leaf_node_server.RestartServer()
@@ -50,9 +48,7 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
     k8s pod unstable due to restart which results in test case failure."""
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    dish_leaf_node_server = dev_factory.get_device(
-        "dserver/leaf-node-dish/ska001"
-    )
+    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_code == ResultCode.OK
@@ -101,9 +97,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
     k8s pod unstable due to restart which results in test case failure."""
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    dish_leaf_node_server = dev_factory.get_device(
-        "dserver/leaf-node-dish/ska001"
-    )
+    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_code == ResultCode.OK
@@ -145,9 +139,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     dev_info = tango.DbDevInfo()
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-    dish_leaf_node_server = dev_factory.get_device(
-        "dserver/dish_leaf_node/ska001"
-    )
+    dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master_server = dev_factory.get_device("dserver/mocks/ska001")
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
