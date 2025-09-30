@@ -96,9 +96,18 @@ class ApplyPointingModel(DishLNCommand):
         self.component_manager.command_unique_id_dict.pop(
             self.command_id, None
         )
+        self.component_manager.apply_pointing_model_result.pop(
+            self.command_id, None
+        )
 
     def set_command_id(self, command_name):
         self.command_id = f"{time.time()}-{command_name}"
+
+    def get_apply_pointing_model_result_code(self):
+        """Get apply pointing model results"""
+        return self.component_manager.apply_pointing_model_result.get(
+            self.command_id
+        ).get("result_code")
 
     @timeout_tracker
     @error_propagation_tracker(

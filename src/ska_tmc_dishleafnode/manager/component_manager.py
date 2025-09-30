@@ -379,12 +379,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "exception": None,
                 "status": None,
             }
-            self.apply_pointing_model_result = {
-                "result_code": None,
-                "message": None,
-                "exception": None,
-                "status": None,
-            }
+            self.apply_pointing_model_result = {}
         self.logger.info("Cleared the command result dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
@@ -2087,9 +2082,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.info("Checking unique_id- %s", unique_id)
                 if command_name == "ApplyPointingModel":
                     self.apply_pointing_model_result[
-                        "result_code"
-                    ] = result_code
-                    self.apply_pointing_model_result["message"] = message
+                        self.get_command_id(unique_id)
+                    ] = {"result_code": result_code}
                     self.logger.info(
                         "ApplyPointingModel LRC result: %s",
                         self.apply_pointing_model_result,
@@ -2490,17 +2484,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.command_result_update_lock:
             return self.track_load_static_off_result
-
-    def get_apply_pointing_model_result_code(self: DishLNComponentManager):
-        """
-        Return the result code of the ApplyPointingModel command execution
-
-        :return: apply_pointing_model command result code
-        :rtype: ResultCode
-        """
-
-        with self.command_result_update_lock:
-            return self.apply_pointing_model_result["result_code"]
 
     def set_track_load_static_off_result_dict(
         self: DishLNComponentManager,
