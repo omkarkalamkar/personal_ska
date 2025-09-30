@@ -490,6 +490,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         return check_dish_mode
 
+    def get_command_id(self, unique_id):
+        """
+        Returns the command id mapped to the given unique_id.
+
+        Args:
+            unique_id: unique id of the command
+
+        Returns:
+            str: command id corresponding to unique_id
+        """
+        for cmd_id, uids in self.command_unique_id_dict.items():
+            if unique_id in uids:
+                return cmd_id
+        return None
+
     def is_track_and_trackstop_command_allowed(
         self: DishLNComponentManager,
     ) -> bool:
@@ -2066,10 +2081,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             command_name = unique_id.split('_')[-1]
 
             result_code, message = json.loads(result_code_message)
+
             with self.command_result_update_lock:
                 is_notify_observer = False
                 self.logger.info("Checking unique_id- %s", unique_id)
-                if self.command_unique_id_dict[command_name] == unique_id:
+                if command_name == "ApplyPointingModel":
+                    self.apply_pointing_model_result[
+                        "result_code"
+                    ] = result_code
+                    self.apply_pointing_model_result["message"] = message
+                    self.logger.info(
+                        "ApplyPointingModel LRC result: %s",
+                        self.apply_pointing_model_result,
+                    )
+                    is_notify_observer = True
+                elif self.command_unique_id_dict[command_name] == unique_id:
                     if "ConfigureBand" in unique_id:
                         self.configure_band_result["result_code"] = result_code
                         self.configure_band_result["message"] = message
@@ -2151,16 +2177,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.abort_result,
                         )
                         is_notify_observer = True
-                    elif "ApplyPointingModel" in unique_id:
-                        self.apply_pointing_model_result[
-                            "result_code"
-                        ] = result_code
-                        self.apply_pointing_model_result["message"] = message
-                        self.logger.info(
-                            "ApplyPointingModel LRC result: %s",
-                            self.apply_pointing_model_result,
-                        )
-                        is_notify_observer = True
 
             if is_notify_observer:
                 self.observable.notify_observers(attribute_value_change=True)
@@ -2195,6 +2211,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             ResultCode.FAILED,
                             exception_msg=message,
                         )
+                elif unique_id.endswith("ApplyPointingModel"):
+                    self.logger.info(
+                        "Updating LRCR Callback with value: %s for %s"
+                        + " for device: %s ",
+                        value,
+                        unique_id,
+                        device_name,
+                    )
+                    self.long_running_result_callback(
+                        self.get_command_id(unique_id),
+                        ResultCode.FAILED,
+                        exception_msg=message,
+                    )
                 else:
                     self.logger.info(
                         "Updating LRCR Callback with value: %s for %s"
