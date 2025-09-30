@@ -20,10 +20,12 @@ DISH_ID = "ska001"
 ATTRIBUTE_NAME = "pointing_cal_ska001"
 
 
-def test_sdpqc_fqdn_info_is_stored(tango_context, cm):
+def test_sdpqc_fqdn_info_is_stored(cm):
     """This test case checks the received SDP Queue connector
     information getting stored in component manager as expected."""
     cm.dish_id = DISH_ID
+    cm.queue_connector_device_info.event_id = 1
+    cm.queue_connector_device_info.subscribed_to_attribute = True
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     assert dev_name == cm.queue_connector_device_info.dev_name

@@ -15,13 +15,15 @@ Attributes in DishleafNode
 
 
 +--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
-| Attribute Name            | O/P Data Type      |    access/AttrWriteType       |             Description                                                   |
+| Attribute Name           | O/P Data Type      |    access/AttrWriteType      |               Description                                                   |
 +==========================+===================+===============================+=============================================================================+
-| dishMode                  |     DishMode       |         READ                  | This attribute gives the DISH dishMode                                    |
+| dishMode                 |     DishMode       |         READ                 |   This attribute gives the DISH dishMode                                    |
 +--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
-| pointingState             |     PointingState  |         READ                  | This attribute gives the DISH pointingState                               |
+| pointingState            |     PointingState  |         READ                 |   This attribute gives the DISH pointingState                               |
 +--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
-| trackTableErrors          |     DevStringArray |         READ                  | This attribute gives errors occurred in program track table calculation   |
+| trackTableErrors         |     DevStringArray |         READ                 |   This attribute gives errors occurred in program track table calculation   |
++--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
+| gpmVersion               |     DevStringArray |         Memorized            |   This attribute gives GPM version set for the bands on Dish.               |
 +--------------------------+-------------------+-------------------------------+-----------------------------------------------------------------------------+
 
 

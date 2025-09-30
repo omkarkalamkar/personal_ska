@@ -2053,14 +2053,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if value == ("", "") or not value:
             return
         unique_id, result_code_message = value
-        if unique_id not in self.command_unique_id_dict.values():
-            if not unique_id.endswith(self.supported_commands):
-                self.logger.info(
-                    "LRCR event for id %s will be ignored %s",
-                    unique_id,
-                    self.command_unique_id_dict,
-                )
-                return
+        if (
+            unique_id not in self.command_unique_id_dict.values()
+            or not unique_id.endswith(self.supported_commands)
+        ):
+            self.logger.info(
+                "LRCR event for id %s will be ignored %s",
+                unique_id,
+                self.command_unique_id_dict,
+            )
+            return
 
         try:
             command_name = unique_id.split('_')[-1]
