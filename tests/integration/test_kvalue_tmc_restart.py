@@ -140,7 +140,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
-    dish_master_server = dev_factory.get_device("dserver/mocks/ska001")
+    dish_master_server = dev_factory.get_device("dserver/mocks/001")
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_code == ResultCode.OK
@@ -172,7 +172,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     )
     dish_leaf_node.unsubscribe_event(KVALUE_ID)
     dev_info.name = DISH_MASTER_DEVICE
-    dev_info.server = "mocks/ska001"
+    dev_info.server = "mocks/001"
     dev_info._class = "HelperDishDevice"
     db.add_device(dev_info)
     dish_master_server.RestartServer()
