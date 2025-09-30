@@ -10,7 +10,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 ********
 Added
 -----
-* Added gpmVersion attribute to display the Global Pointing Model (GPM) version configured for the associated Dish Manager.
+* Added gpmVersion attribute to display the Global Pointing Model (GPM) version configured for the associated Dish Manager
 
 [0.24.2]
 ********
