@@ -11,6 +11,7 @@ import json
 import logging
 import re
 import threading
+import time
 import urllib
 from typing import TYPE_CHECKING, Dict, Tuple, Union
 
@@ -58,7 +59,7 @@ class ApplyPointingModel(DishLNCommand):
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
-        self.command_uniq_id: str = ""
+        self.command_id: str = ""
         self.band: str = None
         self.band_version: str = None
 
@@ -91,20 +92,28 @@ class ApplyPointingModel(DishLNCommand):
         except Exception as e:
             self.logger.exception("Error updating GPM version: %s", str(e))
         super().update_task_status(**kwargs)
-        if self.component_manager.command_unique_id_dict.get(
-            self.command_uniq_id
-        ):
-            del self.component_manager.command_unique_id_dict[
-                self.command_uniq_id
-            ]
-            self.command_uniq_id = ""
+        self.component_manager.command_in_progress = ""
+        self.component_manager.command_unique_id_dict.pop(
+            self.command_id, None
+        )
+        self.component_manager.apply_pointing_model_result.pop(
+            self.command_id, None
+        )
 
-        self.band = None
-        self.band_version = None
+    def set_command_id(self, command_name):
+        self.command_id = f"{time.time()}-{command_name}"
+
+    def get_apply_pointing_model_result_code(self):
+        """Get apply pointing model results"""
+        return self.component_manager.apply_pointing_model_result.get(
+            self.command_id
+        ).get("result_code")
 
     @timeout_tracker
     @error_propagation_tracker(
-        "get_apply_pointing_model_result_code", [ResultCode.OK]
+        "get_apply_pointing_model_result_code",
+        [ResultCode.OK],
+        use_command_class_id=True,
     )
     def invoke_apply_pointing_model(
         self: ApplyPointingModel,
@@ -131,24 +140,7 @@ class ApplyPointingModel(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "ApplyPointingModel"
 
-        result_code, message = self.do(argin)
-
-        if result_code not in [ResultCode.OK, ResultCode.QUEUED]:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=Exception(message),
-            )
-            self.component_manager.command_in_progress = ""
-            if self.component_manager.command_unique_id_dict.get(
-                self.command_uniq_id
-            ):
-                del self.component_manager.command_unique_id_dict[
-                    self.command_uniq_id
-                ]
-                self.command_uniq_id = ""
-
-        return result_code, message
+        return self.do(argin)
 
     def get_global_pointing_data_json(
         self: ApplyPointingModel, tm_data_sources, tm_data_filepath
@@ -292,9 +284,10 @@ class ApplyPointingModel(DishLNCommand):
                     "ApplyPointingModel",
                     argin=json.dumps(global_pointing_data_json),
                 )
-                self.component_manager.command_unique_id_dict[
-                    "ApplyPointingModel"
-                ] = message[0]
+                if result_code[0] in [ResultCode.OK, ResultCode.QUEUED]:
+                    self.component_manager.command_unique_id_dict[
+                        self.command_id
+                    ] = message[0]
 
                 self.band, self.band_version = self.extract_band_and_version(
                     gpm_json_data
@@ -306,7 +299,6 @@ class ApplyPointingModel(DishLNCommand):
                     self.band,
                     self.band_version,
                 )
-                self.command_uniq_id = message[0]
                 return result_code[0], message[0]
         except Exception as e:
             self.logger.exception(
