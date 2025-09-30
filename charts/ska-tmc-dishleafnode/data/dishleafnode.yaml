@@ -30,7 +30,7 @@ server:
           properties:
           - name: "MidDishControl"
             values:
-              - "{{ $domainDish }}/{{ $.Values.global.dish_manager_suffix }}{{ printf \"%03s\" . }}"
+              - "{{ $domainDish }}/{{ $.Values.global.dish_manager_suffix }}{{ printf "%03s" . }}"
           - name: "MidPointingDevice"
             values:
               - "{{ $dishlnDomain }}/{{ $dishlnPointingFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
