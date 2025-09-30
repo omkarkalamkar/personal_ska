@@ -105,6 +105,7 @@ class ApplyPointingModel(DishLNCommand):
 
         self.command_id = f"{time.time()}-{command_name}"
 
+    # pylint: disable=R1710
     def get_apply_pointing_model_result_code(self):
         """Get apply pointing model results"""
         try:
