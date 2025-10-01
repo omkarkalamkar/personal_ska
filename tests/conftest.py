@@ -191,6 +191,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "band2PointingModelParams",
         "pointingProgramTrackTable",
         "programTrackTableError",
+        "gpmVersion",
         timeout=80,
     )
     return group_callback
@@ -280,6 +281,11 @@ def update_program_track_table_error_callback(temp):
     logger.debug(temp)
 
 
+def update_gpm_version_callback(temp):
+    """An empty gpm version callback"""
+    logger.debug(temp)
+
+
 @pytest.fixture()
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
@@ -298,6 +304,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
+        _update_gpm_version_callback=update_gpm_version_callback,
         dish_availability_check_timeout=3,
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
@@ -340,6 +347,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
+        _update_gpm_version_callback=update_gpm_version_callback,
         dish_availability_check_timeout=3,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
@@ -373,6 +381,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
+        _update_gpm_version_callback=update_gpm_version_callback,
         dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
         _liveliness_probe=LivelinessProbeType.NONE,

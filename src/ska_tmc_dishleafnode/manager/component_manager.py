@@ -58,7 +58,11 @@ from ska_tmc_dishleafnode.commands import (
     TrackLoadStaticOff,
     TrackStop,
 )
-from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH, SKA_EPOCH
+from ska_tmc_dishleafnode.constants import (
+    ALLOWED_BANDS,
+    IERS_DATA_STORAGE_PATH,
+    SKA_EPOCH,
+)
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
@@ -90,6 +94,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_last_pointing_data_cb: Callable,
         _update_track_table_errors_callback: Callable,
         _update_health_state_callback: Callable,
+        _update_gpm_version_callback: Callable,
         _liveliness_probe=LivelinessProbeType.NONE,
         _event_receiver: bool = True,
         proxy_timeout: int = 500,
@@ -218,6 +223,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._configure_track_lrcr = ResultCode.UNKNOWN
         self.is_configure_command: bool = False
         self.configure_command_timer_list = []
+        self._gpm_version = {
+            f'Band_{band}': "UNKNOWN" for band in ALLOWED_BANDS
+        }
+        self.handle_gpm_version_callback = _update_gpm_version_callback
         self.supported_commands = (
             "ConfigureBand1",
             "ConfigureBand2",
@@ -232,6 +241,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "TrackLoadStaticOff",
             "TrackStop",
             "Abort",
+            "ApplyPointingModel",
         )
 
         # Event Receiver
@@ -260,8 +270,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             5, self.update_kvalue_validation_result
         )
         self.correction_key: str = CORRECTION_KEY.NOT_SET.value
-        self.kvalue_validation_thread.start()
-        self.actual_pointing_process.start()
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
@@ -271,7 +279,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
+        self.apply_pointing_model_result = {}
         self.start_event_processing_threads()
+        self.kvalue_validation_thread.start()
+        self.actual_pointing_process.start()
 
     @property
     def configure_track_lrcr(self) -> ResultCode:
@@ -296,6 +307,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dict: primary configuration.
         """
         return self._primary_configuration
+
+    @property
+    def gpm_version(self):
+        """
+        Dictionary mapping each allowed band to its GPM version status.
+
+        Returns:
+            dict: A mapping like
+            {'Band_1': 'UNKNOWN', 'Band_2': 'UNKNOWN', ...}
+            where each key corresponds to a band identifier
+            from ALLOWED_BANDS
+            and each value indicates the current version status
+            (default: 'UNKNOWN').
+        """
+        return self._gpm_version
 
     @primary_configuration.setter
     def primary_configuration(self, config: dict):
@@ -459,6 +485,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return self.dishMode in allowed_dish_modes
 
         return check_dish_mode
+
+    def get_command_id(self, unique_id):
+        """
+        Returns the command id mapped to the given unique_id.
+
+        Args:
+            unique_id: unique id of the command
+
+        Returns:
+            str: command id corresponding to unique_id
+        """
+        for cmd_id, uids in self.command_unique_id_dict.items():
+            if unique_id in uids:
+                return cmd_id
+        return None
 
     def is_track_and_trackstop_command_allowed(
         self: DishLNComponentManager,
@@ -1443,10 +1484,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         task_status, response = self.submit_task(
             apply_pointing_model_command.invoke_apply_pointing_model,
-            args=[argin, self.logger],
+            kwargs={"argin": argin},
+            is_cmd_allowed=self.is_apply_pointing_model_allowed,
             task_callback=task_callback,
         )
-
         self.logger.info(
             "ApplyPointingModel command queued for "
             + "execution with argin: %s on %s",
@@ -1454,17 +1495,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.dish_dev_name,
         )
         return task_status, response
-
-    def is_ApplyPointingModel_allowed(self: DishLNComponentManager) -> bool:
-        """Checks if the command ApplyPointingModel is allowed.
-
-        :return: True if the command 'ApplyPointingModel' is allowed,
-            False otherwise.
-        :rtype: boolean
-        """
-
-        self.check_device_responsive()
-        return True
 
     def is_configure_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
@@ -1700,6 +1730,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             + "The command has NOT been executed. "
             + "This device will continue with normal operation."
         )
+
+    def is_apply_pointing_model_allowed(
+        self: DishLNComponentManager,
+    ) -> bool:
+        """
+        Verifies the device is responsive before allowing command execution.
+
+        Raises:
+            DeviceUnresponsive: If the device is not available
+            for communication.
+
+        Returns:
+            bool: True if the device is responsive.
+        """
+
+        self.check_device_responsive()
+        return True
 
     def check_device_responsive(self: DishLNComponentManager) -> None:
         """Checks if dish master device is responsive.
@@ -2016,27 +2063,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         if value == ("", "") or not value:
             return
-        unique_id, result_code_message = value
 
-        if (
-            unique_id not in self.command_unique_id_dict.values()
-            or not unique_id.endswith(self.supported_commands)
+        unique_id, result_code_message = value
+        self.logger.debug(
+            "Current command unique dictionary: ", self.command_unique_id_dict
+        )
+        if (unique_id not in self.command_unique_id_dict.values()) or (
+            not unique_id.endswith(self.supported_commands)
         ):
-            self.logger.debug(
-                "LRCR event for id %s will be ignored",
+            self.logger.info(
+                "LRCR event for id %s will be ignored %s",
                 unique_id,
+                self.command_unique_id_dict,
             )
             return
 
         try:
             command_name = unique_id.split('_')[-1]
-
             result_code, message = json.loads(result_code_message)
+
             with self.command_result_update_lock:
                 is_notify_observer = False
-
-                self.logger.info("Checking unique_id- %s", unique_id)
-                if self.command_unique_id_dict[command_name] == unique_id:
+                self.logger.debug("Checking unique_id- %s", unique_id)
+                if command_name == "ApplyPointingModel":
+                    self.apply_pointing_model_result[
+                        self.get_command_id(unique_id)
+                    ] = {"result_code": result_code}
+                    self.logger.debug(
+                        "ApplyPointingModel LRC result: %s",
+                        self.apply_pointing_model_result,
+                    )
+                    is_notify_observer = True
+                elif self.command_unique_id_dict[command_name] == unique_id:
                     if "ConfigureBand" in unique_id:
                         self.configure_band_result["result_code"] = result_code
                         self.configure_band_result["message"] = message
@@ -2045,7 +2103,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.configure_band_result,
                         )
                         is_notify_observer = True
-
                     elif "SetOperateMode" in unique_id:
                         self.set_operate_mode_result[
                             "result_code"
@@ -2111,7 +2168,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.track_result,
                         )
                         is_notify_observer = True
-
                     elif "Abort" in unique_id:
                         self.abort_result["result_code"] = result_code
                         self.abort_result["message"] = message
@@ -2154,6 +2210,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             ResultCode.FAILED,
                             exception_msg=message,
                         )
+                elif unique_id.endswith("ApplyPointingModel"):
+                    self.logger.info(
+                        "Updating LRCR Callback with value: %s for %s"
+                        + " for device: %s ",
+                        value,
+                        unique_id,
+                        device_name,
+                    )
+                    self.long_running_result_callback(
+                        self.get_command_id(unique_id),
+                        ResultCode.FAILED,
+                        exception_msg=message,
+                    )
                 else:
                     self.logger.info(
                         "Updating LRCR Callback with value: %s for %s"

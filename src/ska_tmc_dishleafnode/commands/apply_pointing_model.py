@@ -9,18 +9,23 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import threading
-from logging import Logger
-from typing import TYPE_CHECKING, Tuple
+import time
+import urllib
+from typing import TYPE_CHECKING, Dict, Tuple, Union
 
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_telmodel.data import TMData
+from ska_tmc_common import TimeKeeper
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
+)
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -51,14 +56,80 @@ class ApplyPointingModel(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.task_callback = None
+        self.timekeeper = TimeKeeper(
+            self.component_manager.command_timeout, logger
+        )
+        self.command_id: str = ""
+        self.band: str = None
+        self.band_version: str = None
 
-    # pylint: disable=unused-argument
+    def update_task_status(
+        self,
+        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+    ) -> None:
+        """
+        Update the status of a task.
+
+        Args:
+            **kwargs: Keyword arguments for task status update.
+        """
+
+        try:
+            if int(ResultCode.OK) == kwargs['result'][0]:
+                for gpm_band in self.component_manager.gpm_version:
+                    if gpm_band.lower() == self.band.lower():
+                        self.component_manager.gpm_version[
+                            gpm_band
+                        ] = self.band_version
+                        self.logger.debug(
+                            "Updating GPM version: %s",
+                            self.component_manager.gpm_version,
+                        )
+                        self.component_manager.handle_gpm_version_callback(
+                            json.dumps(self.component_manager.gpm_version)
+                        )
+                        break
+        except Exception as e:
+            self.logger.exception("Error updating GPM version: %s", str(e))
+        super().update_task_status(**kwargs)
+        self.component_manager.command_in_progress = ""
+        self.component_manager.command_unique_id_dict.pop(
+            self.command_id, None
+        )
+        self.component_manager.apply_pointing_model_result.pop(
+            self.command_id, None
+        )
+
+    def set_command_id(self, command_name):
+        """Generates unique command ID from timestamp and command name."""
+
+        self.command_id = f"{time.time()}-{command_name}"
+
+    # pylint: disable=R1710
+    def get_apply_pointing_model_result_code(self):
+        """Get apply pointing model results"""
+        try:
+            apm_result = self.component_manager.apply_pointing_model_result
+            self.logger.debug("Current APM result dictionary %s", apm_result)
+            command_id = apm_result.get(self.command_id, None)
+            self.logger.debug("APM command ID: %s", command_id)
+            if command_id:
+                result_code = command_id.get("result_code", None)
+                self.logger.debug("APM result code: %s", result_code)
+                if result_code is not None:
+                    return result_code
+        except Exception as e:
+            self.logger.exception("Exception occurred: %s", e)
+
+    @timeout_tracker
+    @error_propagation_tracker(
+        "get_apply_pointing_model_result_code",
+        [ResultCode.OK],
+        use_command_class_id=True,
+    )
     def invoke_apply_pointing_model(
         self: ApplyPointingModel,
         argin: str,
-        logger: Logger,
-        task_callback: TaskCallbackType,
-        task_abort_event: threading.Event,
     ) -> None:
         # pylint: enable=unused-argument
         """A method to invoke the do method of the ApplyPointingModel command
@@ -78,31 +149,13 @@ class ApplyPointingModel(DishLNCommand):
         :rtype: None
         """
 
-        self.task_callback = task_callback
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "ApplyPointingModel"
 
-        result_code, message = self.do(argin)
-
-        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
-            self.task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=Exception(message),
-            )
-            self.component_manager.command_in_progress = ""
-        else:
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-            )
-            logger.info(
-                "ApplyPointingModel command invoked successfully on %s",
-                self.component_manager.dish_dev_name,
-            )
+        return self.do(argin)
 
     def get_global_pointing_data_json(
-        self: ApplyPointingModel, initial_params: dict
+        self: ApplyPointingModel, tm_data_sources, tm_data_filepath
     ) -> Tuple[dict, str]:
         """Get global pointing data json from initial params with a timeout.
         This method downloads the JSON, from the given TelModel path.
@@ -113,25 +166,32 @@ class ApplyPointingModel(DishLNCommand):
         :return: dictionary in downloaded JSON and message string if any
         :rtype: Tuple[dict, str]
         """
-        tm_data_sources = initial_params.get("tm_data_sources", None)
-        tm_data_filepath = initial_params.get("tm_data_filepath", None)
-
-        if not tm_data_sources or not tm_data_filepath:
-            return (
-                {},
-                "Provide both tm data sources and tm data filepath in input"
-                + " paramter",
-            )
 
         result = {}
         message = ""
 
+        if isinstance(tm_data_sources, str):
+            tm_data_sources = [tm_data_sources]
+
         # Function to execute data retrieval within a thread
         def retrieve_data():
+            """Fetch JSON data from GPM repo and return as a dictionary."""
             nonlocal result, message
             try:
-                data = TMData(tm_data_sources, update=True)
-                result, message = data[tm_data_filepath].get_dict(), ""
+                tmdata = TMData(tm_data_sources)
+                file_name = tm_data_filepath.split('/')[-1]
+                gpm_dir_path = tm_data_filepath.split('/')[:3]
+                gpm_dir = tmdata['/'.join(gpm_dir_path)]
+                self.logger.debug("Files found on GPM repo: %s", list(gpm_dir))
+                if gpm_dir and file_name not in list(gpm_dir):
+                    message = (
+                        f"{file_name} not found on "
+                        f"{tm_data_sources[0]}/{gpm_dir_path}"
+                    )
+                    self.logger.error("Error: %s", message)
+                else:
+                    gpm_file = tmdata[tm_data_filepath]
+                    result, message = gpm_file.get_dict(), ""
             except json.JSONDecodeError as json_error:
                 self.logger.error(
                     "Failed to parse JSON ,Error: %s", str(json_error)
@@ -139,14 +199,14 @@ class ApplyPointingModel(DishLNCommand):
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
-                    "Exception occured in Loading global pointing data "
+                    "Exception occured in loading global pointing data "
                     + "JSON file. Exception: %s",
                     str(exception),
                 )
                 result, message = (
                     {},
-                    "Error in Loading global pointing"
-                    + " data json file {exception}",
+                    "Error in loading global pointing"
+                    + f" data json file {str(exception)}",
                 )
 
         # Set up a thread for data retrieval
@@ -156,6 +216,7 @@ class ApplyPointingModel(DishLNCommand):
 
         # Check if the thread is still active after the timeout
         if data_thread.is_alive():
+            # Add tm_data_sources + file_path in message
             message = "URI not reachable (timeout)"
             result = {}
             data_thread.join()  # Optional cleanup, forcefully ends the thread
@@ -182,38 +243,115 @@ class ApplyPointingModel(DishLNCommand):
             Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
         """
+        try:
+            result_code = ResultCode.UNKNOWN
+            message = ""
+            gpm_json_data = json.loads(argin)
+            tm_data_sources = gpm_json_data.get("tm_data_sources", None)
+            tm_data_filepath = gpm_json_data.get("tm_data_filepath", None)
+            self.logger.info(
+                "GPM paths received -> tm_data_sources: %s "
+                "tm_data_filepath: %s",
+                tm_data_sources,
+                tm_data_filepath,
+            )
 
-        result_code, message = self.init_adapter()
-        if result_code == ResultCode.FAILED:
+            if not all([tm_data_sources, tm_data_filepath]):
+                return (
+                    ResultCode.FAILED,
+                    "Error: Found empty/None field in required keys "
+                    + f"tm_data sources: {tm_data_sources} and "
+                    + f"tm_data_filepath: {tm_data_filepath}",
+                )
+
+            result_code, message = self.init_adapter()
+            if result_code == ResultCode.FAILED:
+                self.logger.debug(
+                    "Failed to find adapter for device: %s",
+                    self.component_manager.dish_dev_name,
+                )
+                return result_code, message
+
+            (
+                global_pointing_data_json,
+                return_message,
+            ) = self.get_global_pointing_data_json(
+                tm_data_sources, tm_data_filepath
+            )
+
+            if return_message:
+                self.logger.error(
+                    "GPM error message: %s",
+                    return_message,
+                )
+                return ResultCode.FAILED, return_message
+
             self.logger.debug(
-                "Failed to find adapter for device: %s",
-                self.component_manager.dish_dev_name,
+                "Sending GPM json to dish: %s", global_pointing_data_json
             )
-            return result_code, message
 
-        (
-            global_pointing_data_json,
-            message,
-        ) = self.get_global_pointing_data_json(json.loads(argin))
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master",
+                    self.dish_master_adapter,
+                    "ApplyPointingModel",
+                    argin=json.dumps(global_pointing_data_json),
+                )
+                if result_code[0] in [ResultCode.OK, ResultCode.QUEUED]:
+                    self.component_manager.command_unique_id_dict[
+                        self.command_id
+                    ] = message[0]
 
-        if message:
-            return ResultCode.FAILED, message
-
-        self.logger.debug(
-            "Global pointing data JSON: %s", global_pointing_data_json
-        )
-
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master",
-                self.dish_master_adapter,
-                "ApplyPointingModel",
-                argin=json.dumps(global_pointing_data_json),
+                self.band, self.band_version = self.extract_band_and_version(
+                    gpm_json_data
+                )
+                self.logger.info(
+                    "ApplyPointingModel command invoked on %s"
+                    " for band: %s and band version: %s",
+                    self.component_manager.dish_dev_name,
+                    self.band,
+                    self.band_version,
+                )
+                return result_code[0], message[0]
+        except Exception as e:
+            self.logger.exception(
+                "Exception occurred while executing Apply Pointing Model"
+                + "on dish: %s",
+                str(e),
             )
-            return result_code[0], message[0]
-        self.logger.debug(
-            "ApplyPointingModel command invoked on %s",
-            self.component_manager.dish_dev_name,
-        )
-
+            result_code = ResultCode.FAILED
+            message = f"Exception occurred: {e}"
         return result_code, message
+
+    def extract_band_and_version(self, gpm_data: dict) -> Tuple[str, str]:
+        """
+        Extract the band and version from the GPM metadata JSON.
+
+        Args:
+            gpm_data (dict): The parsed GPM metadata JSON.
+            Expected to contain keys for the file path (to determine the band)
+            and the interface (to determine the version).
+
+        Returns:
+            Tuple[str, str]: A tuple containing:
+                - band (str): The band extracted from the file path.
+                - version (str): The version extracted from the interface.
+        """
+        band, version = "", ""
+        try:
+            # Band from filepath (support Band_1, Band_5a, Band_5b, etc.)
+            filepath = gpm_data.get("tm_data_filepath", "")
+            band_match = re.search(r"Band_[1-4]|Band_5[abAB]", filepath)
+            if band_match:
+                band = band_match.group()
+        except Exception as e:
+            self.logger.exception(f"Error extracting band: {e}")
+        try:
+            # Version from tm_data_sources
+            sources = gpm_data.get("tm_data_sources", [])
+            if isinstance(sources, str):
+                sources = [sources]
+            version = urllib.parse.urlparse(sources[0]).query
+        except Exception as e:
+            self.logger.exception(f"Error extracting version: {e}")
+        return band, version

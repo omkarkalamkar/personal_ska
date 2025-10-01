@@ -138,6 +138,11 @@ def update_health_state_callback(temp):
     logger.debug(temp)
 
 
+def update_gpm_version_callback(temp):
+    """An empty gpm version callback"""
+    logger.debug(temp)
+
+
 def create_cm(device: str) -> DishLNComponentManager:
     """Creates component manager for Dish Leaf Node."""
     cm = DishLNComponentManager(
@@ -156,6 +161,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         _update_health_state_callback=update_health_state_callback,
+        _update_gpm_version_callback=update_gpm_version_callback,
     )
     return cm
 

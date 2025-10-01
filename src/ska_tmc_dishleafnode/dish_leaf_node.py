@@ -59,6 +59,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         dtype="str",
         doc="FQDN of DishLeaf Node Pointing Device",
     )
+
     DishAvailabilityCheckTimeout = device_property(
         dtype="DevUShort", default_value=3
     )
@@ -147,6 +148,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "kValue",
             "trackTableErrors",
             "globalPointingModelParams",
+            "gpmVersion",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -194,6 +196,28 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "Updated HealthState of %s is: %s",
             self._dishln_name,
             self._health_state,
+        )
+
+    def update_gpm_version_callback(self, gpm_version: str) -> None:
+        """
+        Callback to update gpmVersion attribute with the provided
+        GPM version string. Stores the value in the device database,
+        triggers change/archive events, and logs the memorized GPM version.
+
+        Args:
+            gpm_version (str): New GPM version string to set for
+            the gpmVersion attribute.
+        """
+        db = Database()
+        value = {"gpmVersion": {"__value": [gpm_version]}}
+        db.put_device_attribute_property(self._dishln_name, value)
+        value = db.get_device_attribute_property(
+            self._dishln_name, "gpmVersion"
+        )
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events("gpmVersion", gpm_version)
+        self.logger.info(
+            "%s: Memorized GPM version %s", self._dishln_name, value
         )
 
     def update_source_offset_callback(self, source_offset: List) -> None:
@@ -401,6 +425,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
 
+    @kValue.write
+    def kValue(self: MidTmcLeafNodeDish, k_value: int) -> None:
+        """Set the dish k-value.
+
+        Args:
+            k_value (int): k-value to be set.
+        """
+        self.component_manager.kValue = k_value
+
     @attribute(
         dtype="str",
         access=AttrWriteType.READ,
@@ -413,15 +446,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             str: globalpointingModelparam attribute value.
         """
         return json.dumps(self._global_pointing_model_params)
-
-    @kValue.write
-    def kValue(self: MidTmcLeafNodeDish, k_value: int) -> None:
-        """Set the dish k-value.
-
-        Args:
-            k_value (int): k-value to be set.
-        """
-        self.component_manager.kValue = k_value
 
     @attribute(
         dtype="str",
@@ -514,6 +538,32 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             TimeVal.totime(TimeVal.now()),
             self._last_pointing_data_attr_quality,
         )
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ_WRITE,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def gpmVersion(self: MidTmcLeafNodeDish) -> str:
+        """
+        Returns the band-specific GPM version
+        (dictionary stored in component manager) as a JSON string.
+        Format: {"band": "version"}.
+
+        :return: JSON string of band-to-GPM version mapping
+        :rtype: str
+        """
+        return json.dumps(self.component_manager.gpm_version)
+
+    @gpmVersion.write
+    def gpmVersion(self: MidTmcLeafNodeDish, gpm_version: str) -> None:
+        """Set the GPM version.
+
+        Args:
+            gpm_version(str): string in json dumps format
+        """
+        self.component_manager._gpm_version = json.loads(gpm_version)
 
     # --------
     # Commands
@@ -1033,7 +1083,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: boolean
         """
-        return self.component_manager.is_ApplyPointingModel_allowed()
+        return self.component_manager.is_apply_pointing_model_allowed()
 
     def create_component_manager(
         self: MidTmcLeafNodeDish,
@@ -1071,6 +1121,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
             _update_track_table_errors_callback=update_track_err_cb,
             _update_health_state_callback=self.update_health_state_callback,
+            _update_gpm_version_callback=self.update_gpm_version_callback,
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
         )
