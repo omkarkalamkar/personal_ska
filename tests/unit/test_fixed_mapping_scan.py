@@ -53,7 +53,10 @@ def test_fixed_mapping_scan(cm_pointig_device, json_factory):
         assert cm.pointing_program_track_table
     configure_data['pointing']['projection']['name'] = "SIN"
     fms_obj.set_target_and_start_process()
-    time.sleep(2)
+    timeout = 0
+    while timeout < 10 and not cm.pointing_program_track_table:
+        timeout += 1
+        time.sleep(0.5)
     assert cm.pointing_program_track_table
     assert cm.wrap_sector == -1
     del configure_data['pointing']['field']['attrs']['c1']

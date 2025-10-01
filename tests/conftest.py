@@ -15,8 +15,8 @@ from ska_ser_logging.configuration import configure_logging
 from ska_tango_testing.mock import MockCallable
 from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common import DevFactory, LivelinessProbeType
-from ska_tmc_common.test_helpers.helper_dish_device import HelperDishDevice
-from ska_tmc_common.test_helpers.helper_sdp_queue_connector_device import (
+from ska_tmc_simulators.helper_dish_device import HelperDishDevice
+from ska_tmc_simulators.helper_sdp_queue_connector_device import (
     HelperSdpQueueConnector,
 )
 from tango.test_context import DeviceTestContext, MultiDeviceTestContext

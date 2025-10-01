@@ -43,7 +43,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.24.2
+    tag: 0.24.3
     pullPolicy: IfNotPresent
 
 resources:
@@ -52,14 +52,10 @@ resources:
     memory: 500Mi
 
 deviceServers:
-  mocks:
-    enabled: true
-    instances: ["01", "02"]
-    file: "data/mockdevices.yaml"
-    family: "dish-manager"
   dishln:
     enabled: true
     instances: ["01", "02"]
+    family: "dish-manager" 
     family: "leaf-node-dish"
     prefix_member : "ska"
     pointing_family : "dish-pointing"
@@ -72,10 +68,6 @@ deviceServers:
     CommandTimeOutDefault: 30.0
     AdapterTimeOut: 2.0
     DishAvailabilityCheckTimeout: 3
-  sdpqc:
-    enabled: true
-    instances: ["01"]
-    file: "data/sdpqcmockdevice.yaml"
   dishpointingdevice:
     enabled: true
     instances: ["01", "02"]

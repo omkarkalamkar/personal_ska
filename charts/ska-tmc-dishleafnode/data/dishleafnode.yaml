@@ -12,7 +12,7 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $AdapterTimeOut := .Values.deviceServers.dishln.AdapterTimeOut }}
 {{- $DishAvailabilityCheckTimeout := .Values.deviceServers.dishln.DishAvailabilityCheckTimeout }}
 {{- $domainDish := .Values.global.domain_dish }}
-{{- $dishFamily := .Values.deviceServers.mocks.family }}
+{{- $dishManagerSuffix := .Values.global.dish_manager_suffix }}
 {{- $prefixMember := .Values.deviceServers.dishln.prefix_member}}
 {{- $dishlnDomain := .Values.global.domain }}
 {{- $dishlnFamily := .Values.deviceServers.dishln.family }}
@@ -30,7 +30,7 @@ server:
           properties:
           - name: "MidDishControl"
             values:
-              - "{{ $domainDish }}/{{ $dishFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
+              - "{{ $.Values.global.dish_manager_suffix }}{{ printf "%03s" . }}"
           - name: "MidPointingDevice"
             values:
               - "{{ $dishlnDomain }}/{{ $dishlnPointingFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"

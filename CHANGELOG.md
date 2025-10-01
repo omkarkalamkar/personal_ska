@@ -5,6 +5,13 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.24.3]
+********
+Updated
+-------
+* Updated imports for the helper device to deploy from ska-tmc-simulators package v1.1.1.
+* Updated ska-tmc-common to v0.31.0.
+
 [0.24.2]
 ********
 Fixed
