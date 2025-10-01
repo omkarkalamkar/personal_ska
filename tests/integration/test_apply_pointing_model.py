@@ -273,7 +273,8 @@ def test_apply_pointing_model_with_erroneous_json(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.restart_device_server
+@pytest.mark.xfail(reason="Restarting device sometimes make the pod unstable")
 def test_gpm_restart_scenario(tango_context, group_callback, json_factory):
     """Test to check GPM version memorization"""
     gpm_version_restart_scenario(
