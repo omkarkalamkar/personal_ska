@@ -28,13 +28,12 @@ def test_apply_pointing_model_command(
     cm.apply_pointing_model(
         global_pointing_tm_data_path, task_callback=task_callback
     )
-
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    # )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -43,7 +42,6 @@ def test_apply_pointing_model_command(
                 "Successfully wrote the following values",
             ),
         },
-        lookahead=2,
     )
 
 
@@ -183,8 +181,6 @@ def test_apm_extract_band_version(cm_without_er_lp):
         adapter_factory=adapter_factory,
         logger=logger,
     )
-    apm_command.set_command_id("ApplyPointingModel")
-    assert apm_command.command_id
     band, band_version = apm_command.extract_band_and_version(
         gpm_data=gpm_json
     )

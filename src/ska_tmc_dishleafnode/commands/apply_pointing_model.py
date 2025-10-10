@@ -12,9 +12,10 @@ import logging
 import re
 import threading
 import urllib
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from ska_ser_logging import configure_logging
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_telmodel.data import TMData
@@ -53,19 +54,26 @@ class ApplyPointingModel(DishLNCommand):
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
-        self.task_callback = None
         self.command_id: str = ""
         self.band: str = None
         self.band_version: str = None
 
     def update_task_callback(
-        self, result_code: ResultCode, message: str
+        self,
+        result_code: ResultCode,
+        message: str,
+        task_callback: TaskCallbackType,
     ) -> None:
-        """
-        Update the status of a task.
+        """Updates task status and GPM version based on command result.
 
-        Args:
-            **kwargs: Keyword arguments for task status update.
+        Args
+        ----
+        result_code : ResultCode
+            Command result status code
+        message : str
+            Status description
+        task_callback : TaskCallbackType
+            Callback for task status updates
         """
 
         try:
@@ -75,7 +83,7 @@ class ApplyPointingModel(DishLNCommand):
                     self.component_manager.dish_dev_name,
                     message,
                 )
-                self.task_callback(
+                task_callback(
                     status=TaskStatus.COMPLETED,
                     result=(result_code, message),
                     exception=Exception(message),
@@ -102,7 +110,7 @@ class ApplyPointingModel(DishLNCommand):
                         self.component_manager.handle_gpm_version_callback(
                             json.dumps(self.component_manager.gpm_version)
                         )
-                        self.task_callback(
+                        task_callback(
                             status=TaskStatus.COMPLETED,
                             result=(ResultCode.OK, message),
                         )
@@ -111,11 +119,13 @@ class ApplyPointingModel(DishLNCommand):
             self.logger.exception("Error updating GPM version: %s", str(e))
         self.component_manager.command_in_progress = ""
 
+    # pylint: disable=unused-argument
     def invoke_apply_pointing_model(
         self: ApplyPointingModel,
         argin: str,
+        task_callback: TaskCallbackType,
+        task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-        # pylint: enable=unused-argument
         """A method to invoke the do method of the ApplyPointingModel command
         class. This method also updates the task callback according to command
         status.
@@ -127,16 +137,16 @@ class ApplyPointingModel(DishLNCommand):
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
         :type task_callback: TaskCallbackType
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
         :return: None
         :rtype: None
         """
 
-        self.task_callback(status=TaskStatus.IN_PROGRESS)
+        task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)
-        self.update_task_callback(result_code, message)
+        self.update_task_callback(result_code, message, task_callback)
+
+    # pylint: enable=unused-argument
 
     def get_global_pointing_data_json(
         self: ApplyPointingModel, tm_data_sources, tm_data_filepath
