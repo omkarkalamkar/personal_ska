@@ -10,7 +10,7 @@ from astropy.time import Time
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState
-from ska_tmc_simulators.helper_adapter_factory import HelperAdapterFactory
+from ska_tmc_common.adapters import AdapterFactory as HelperAdapterFactory
 from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.manager import DishLNComponentManager

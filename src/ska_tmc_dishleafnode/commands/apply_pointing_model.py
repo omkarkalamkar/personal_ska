@@ -11,19 +11,14 @@ import json
 import logging
 import re
 import threading
-import time
 import urllib
-from typing import TYPE_CHECKING, Dict, Tuple, Union
+from typing import TYPE_CHECKING, Tuple
 
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_telmodel.data import TMData
 from ska_tmc_common import TimeKeeper
-from ska_tmc_common.v1.error_propagation_tracker import (
-    error_propagation_tracker,
-)
-from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
@@ -55,17 +50,16 @@ class ApplyPointingModel(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.task_callback = None
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
+        self.task_callback = None
         self.command_id: str = ""
         self.band: str = None
         self.band_version: str = None
 
-    def update_task_status(
-        self,
-        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+    def update_task_callback(
+        self, result_code: ResultCode, message: str
     ) -> None:
         """
         Update the status of a task.
@@ -75,7 +69,27 @@ class ApplyPointingModel(DishLNCommand):
         """
 
         try:
-            if int(ResultCode.OK) == kwargs['result'][0]:
+            if result_code != int(ResultCode.OK):
+                self.logger.info(
+                    "ApplyPointingModel command failed on %s and message: %s",
+                    self.component_manager.dish_dev_name,
+                    message,
+                )
+                self.task_callback(
+                    status=TaskStatus.COMPLETED,
+                    result=(result_code, message),
+                    exception=Exception(message),
+                )
+            else:
+                self.logger.info(
+                    "ApplyPointingModel command invoked successfully"
+                    " on %s for band: %s, version: %s and "
+                    " message received is: %s",
+                    self.component_manager.dish_dev_name,
+                    self.band,
+                    self.band_version,
+                    message,
+                )
                 for gpm_band in self.component_manager.gpm_version:
                     if gpm_band.lower() == self.band.lower():
                         self.component_manager.gpm_version[
@@ -88,45 +102,15 @@ class ApplyPointingModel(DishLNCommand):
                         self.component_manager.handle_gpm_version_callback(
                             json.dumps(self.component_manager.gpm_version)
                         )
+                        self.task_callback(
+                            status=TaskStatus.COMPLETED,
+                            result=(ResultCode.OK, message),
+                        )
                         break
         except Exception as e:
             self.logger.exception("Error updating GPM version: %s", str(e))
-        super().update_task_status(**kwargs)
         self.component_manager.command_in_progress = ""
-        self.component_manager.command_unique_id_dict.pop(
-            self.command_id, None
-        )
-        self.component_manager.apply_pointing_model_result.pop(
-            self.command_id, None
-        )
 
-    def set_command_id(self, command_name):
-        """Generates unique command ID from timestamp and command name."""
-
-        self.command_id = f"{time.time()}-{command_name}"
-
-    # pylint: disable=R1710
-    def get_apply_pointing_model_result_code(self):
-        """Get apply pointing model results"""
-        try:
-            apm_result = self.component_manager.apply_pointing_model_result
-            self.logger.debug("Current APM result dictionary %s", apm_result)
-            command_id = apm_result.get(self.command_id, None)
-            self.logger.debug("APM command ID: %s", command_id)
-            if command_id:
-                result_code = command_id.get("result_code", None)
-                self.logger.debug("APM result code: %s", result_code)
-                if result_code is not None:
-                    return result_code
-        except Exception as e:
-            self.logger.exception("Exception occurred: %s", e)
-
-    @timeout_tracker
-    @error_propagation_tracker(
-        "get_apply_pointing_model_result_code",
-        [ResultCode.OK],
-        use_command_class_id=True,
-    )
     def invoke_apply_pointing_model(
         self: ApplyPointingModel,
         argin: str,
@@ -151,8 +135,8 @@ class ApplyPointingModel(DishLNCommand):
 
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "ApplyPointingModel"
-
-        return self.do(argin)
+        result_code, message = self.do(argin)
+        self.update_task_callback(result_code, message)
 
     def get_global_pointing_data_json(
         self: ApplyPointingModel, tm_data_sources, tm_data_filepath
@@ -291,26 +275,14 @@ class ApplyPointingModel(DishLNCommand):
             )
 
             with self.component_manager.tango_operation_execution_lock:
+                self.band, self.band_version = self.extract_band_and_version(
+                    gpm_json_data
+                )
                 result_code, message = self.call_adapter_method(
                     "Dish Master",
                     self.dish_master_adapter,
                     "ApplyPointingModel",
                     argin=json.dumps(global_pointing_data_json),
-                )
-                if result_code[0] in [ResultCode.OK, ResultCode.QUEUED]:
-                    self.component_manager.command_unique_id_dict[
-                        self.command_id
-                    ] = message[0]
-
-                self.band, self.band_version = self.extract_band_and_version(
-                    gpm_json_data
-                )
-                self.logger.info(
-                    "ApplyPointingModel command invoked on %s"
-                    " for band: %s and band version: %s",
-                    self.component_manager.dish_dev_name,
-                    self.band,
-                    self.band_version,
                 )
                 return result_code[0], message[0]
         except Exception as e:
