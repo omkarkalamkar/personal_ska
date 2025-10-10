@@ -145,6 +145,7 @@ class ApplyPointingModel(DishLNCommand):
         self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)
         self.update_task_callback(result_code, message, task_callback)
+        return result_code, message
 
     # pylint: enable=unused-argument
 
