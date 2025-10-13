@@ -416,6 +416,25 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         return self._pointingState
 
     @attribute(
+        dtype="str",
+        access=AttrWriteType.READ_WRITE,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def arrayLayout(self: MidTmcLeafNodeDish) -> str:
+        """Returns the array-layout attribute value."""
+        return self.component_manager.array_layout
+
+    @arrayLayout.write
+    def arrayLayout(self: MidTmcLeafNodeDish, array_layout: str) -> None:
+        """Set the dish array-layout.
+
+        Args:
+            array_layout (str): array layout to be set.
+        """
+        self.component_manager.array_layout = array_layout
+
+    @attribute(
         dtype="DevLong",
         access=AttrWriteType.READ_WRITE,
         memorized=True,

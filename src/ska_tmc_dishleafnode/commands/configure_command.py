@@ -95,6 +95,11 @@ class Configure(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
 
+        array_layout = json_argument.get("array_layout")
+        if array_layout is not None:
+            self.component_manager.array_layout = array_layout
+            self.logger.debug("Set array layout to: %s", array_layout)
+
         if json_argument.get("tmc") and json_argument["tmc"].get(
             "partial_configuration", False
         ):

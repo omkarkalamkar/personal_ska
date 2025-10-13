@@ -193,6 +193,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self._update_health_state_callback = _update_health_state_callback
         self._kvalue: int = 0
+        self._array_layout: str = ""
         self._current_track_table_error = ""
         self.errors_to_be_reported = []
         self._kValueValidationResult = ResultCode.STARTED
@@ -533,6 +534,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """Update the k-value validation result property."""
         if self._kValueValidationResult != result_code:
             self._kValueValidationResult = result_code
+
+    @property
+    def array_layout(self: DishLNComponentManager) -> str:
+        """Returns the array layout.
+
+        Returns:
+            str: The array layout.
+        """
+        return self._array_layout
+
+    @array_layout.setter
+    def array_layout(self: DishLNComponentManager, layout: str) -> None:
+        """Update the array layout property."""
+        if self._array_layout != layout:
+            self._array_layout = layout
 
     @property
     def kValue(self: DishLNComponentManager) -> int:
