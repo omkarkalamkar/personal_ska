@@ -85,8 +85,8 @@ class ApplyPointingModel(DishLNCommand):
                 )
                 task_callback(
                     status=TaskStatus.COMPLETED,
-                    result=(result_code, message),
-                    exception=Exception(message),
+                    result=(ResultCode(result_code), message),
+                    exception=message,
                 )
             else:
                 self.logger.info(
@@ -112,7 +112,7 @@ class ApplyPointingModel(DishLNCommand):
                         )
                         task_callback(
                             status=TaskStatus.COMPLETED,
-                            result=(ResultCode.OK, message),
+                            result=(ResultCode(result_code), message),
                         )
                         break
         except Exception as e:
@@ -144,8 +144,8 @@ class ApplyPointingModel(DishLNCommand):
         task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)
+        self.logger.info("ResultCode: %s Message: %s", result_code, message)
         self.update_task_callback(result_code, message, task_callback)
-        return result_code, message
 
     # pylint: enable=unused-argument
 

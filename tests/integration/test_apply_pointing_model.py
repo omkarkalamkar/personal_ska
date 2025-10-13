@@ -55,7 +55,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     assert result[0] == ResultCode.QUEUED
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id[0], '[0, "Successfully wrote the following values"]'),
+        (unique_id[0], '[0, "Successfully wrote the GPM values"]'),
         lookahead=8,
     )
     group_callback["globalPointingModelParams"].assert_change_event(

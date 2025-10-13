@@ -39,7 +39,7 @@ def test_apply_pointing_model_command(
             "status": TaskStatus.COMPLETED,
             "result": (
                 ResultCode.OK,
-                "Successfully wrote the following values",
+                "Successfully wrote the GPM values",
             ),
         },
     )
