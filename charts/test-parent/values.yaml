@@ -56,7 +56,7 @@ ska-tmc-simulators:
       enabled: true
       mid:
         is_simulated:
-          csp: false          
+          csp: false
 
 ska-taranta:
   enabled: false
