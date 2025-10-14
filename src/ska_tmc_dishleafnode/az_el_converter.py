@@ -13,7 +13,7 @@ from astropy.utils import iers
 from katpoint import Target, TroposphericRefraction
 from katpoint.conversion import angle_to_string
 from ska_ser_logging import configure_logging
-from ska_tmc_common.v3.dish_utils import DishHelper  
+from ska_tmc_common.v3.dish_utils import DishHelper
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -34,7 +34,6 @@ class AzElConverter:
         self.dish_helper: DishHelper | None = None
         self.refraction_correction = TroposphericRefraction()
         # The values for temperature, pressure and humidity are considered
-        # arbitrarily; actual data will be used when a weather station is available.
         self.weather_data = {
             "temperature": 30.0,
             "pressure": 900.0,
@@ -61,7 +60,10 @@ class AzElConverter:
 
         for antenna in antennas:
             if self.component_manager.dish_id:
-                if antenna.name.lower() == self.component_manager.dish_id.lower():
+                if (
+                    antenna.name.lower()
+                    == self.component_manager.dish_id.lower()
+                ):
                     self.component_manager.observer = antenna
                     logger.debug(
                         "Selected antenna %s for dish_id %s",
@@ -71,7 +73,7 @@ class AzElConverter:
                     break
         else:
             logger.warning(
-                "Dish ID %s not found in provided array_layout; observer unchanged.",
+                "Dish ID %s not found in provided array_layout",
                 self.component_manager.dish_id,
             )
 
@@ -116,8 +118,12 @@ class AzElConverter:
         refraction_corrected_azel = []
         try:
             non_sidereal_target = Target(f"{target_name}, special")
-            logger.debug("Created non-sidereal target: %s", non_sidereal_target)
-            with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            logger.debug(
+                "Created non-sidereal target: %s", non_sidereal_target
+            )
+            with iers.earth_orientation_table.set(
+                self.component_manager.iers_a
+            ):
                 azel = non_sidereal_target.azel(
                     timestamp, self.component_manager.observer
                 )
@@ -142,8 +148,8 @@ class AzElConverter:
         """Convert RA/Dec to Az/El and apply refraction.
 
         Args:
-            right_ascension: RA value (H:M:S string or float degrees per ADR-106)
-            declination: Dec value (D:M:S string or float degrees per ADR-106)
+            right_ascension: RA value (H:M:S string or float degrees )
+            declination: Dec value (D:M:S string or float degrees per )
             timestamp: UTC timestamp string
 
         Returns:
@@ -196,8 +202,12 @@ class AzElConverter:
                 timestamp=timestamp, antenna=self.component_manager.observer
             )
 
-        ra = angle_to_string(ra_dec.ra, unit=u.hour, precision=2, show_unit=False)
-        dec = angle_to_string(ra_dec.dec, unit=u.deg, precision=2, show_unit=False)
+        ra = angle_to_string(
+            ra_dec.ra, unit=u.hour, precision=2, show_unit=False
+        )
+        dec = angle_to_string(
+            ra_dec.dec, unit=u.deg, precision=2, show_unit=False
+        )
         logger.debug(
             "Converted Az/El to RA/Dec: RA=%s, Dec=%s",
             ra,
@@ -234,7 +244,9 @@ class AzElConverter:
             target = Target.from_radec(ra, dec)
 
             # Preload IERS A table for astropy
-            with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            with iers.earth_orientation_table.set(
+                self.component_manager.iers_a
+            ):
                 azel = target.azel(timestamp, self.component_manager.observer)
 
             return self.apply_refraction_correction(azel)
