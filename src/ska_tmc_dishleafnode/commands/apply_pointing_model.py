@@ -11,19 +11,15 @@ import json
 import logging
 import re
 import threading
-import time
 import urllib
-from typing import TYPE_CHECKING, Dict, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from ska_ser_logging import configure_logging
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
 from ska_telmodel.data import TMData
 from ska_tmc_common import TimeKeeper
-from ska_tmc_common.v1.error_propagation_tracker import (
-    error_propagation_tracker,
-)
-from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 
@@ -55,7 +51,6 @@ class ApplyPointingModel(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        self.task_callback = None
         self.timekeeper = TimeKeeper(
             self.component_manager.command_timeout, logger
         )
@@ -63,19 +58,46 @@ class ApplyPointingModel(DishLNCommand):
         self.band: str = None
         self.band_version: str = None
 
-    def update_task_status(
+    def update_task_callback(
         self,
-        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
+        result_code: ResultCode,
+        message: str,
+        task_callback: TaskCallbackType,
     ) -> None:
-        """
-        Update the status of a task.
+        """Updates task status and GPM version based on command result.
 
-        Args:
-            **kwargs: Keyword arguments for task status update.
+        Args
+        ----
+        result_code : ResultCode
+            Command result status code
+        message : str
+            Status description
+        task_callback : TaskCallbackType
+            Callback for task status updates
         """
 
         try:
-            if int(ResultCode.OK) == kwargs['result'][0]:
+            if result_code != int(ResultCode.OK):
+                self.logger.info(
+                    "ApplyPointingModel command failed on %s and message: %s",
+                    self.component_manager.dish_dev_name,
+                    message,
+                )
+                task_callback(
+                    status=TaskStatus.COMPLETED,
+                    result=(ResultCode(result_code), message),
+                    exception=message,
+                )
+            else:
+                self.logger.info(
+                    "ApplyPointingModel command invoked successfully"
+                    " on %s for band: %s, version: %s and "
+                    " message received is: %s",
+                    self.component_manager.dish_dev_name,
+                    self.band,
+                    self.band_version,
+                    message,
+                )
                 for gpm_band in self.component_manager.gpm_version:
                     if gpm_band.lower() == self.band.lower():
                         self.component_manager.gpm_version[
@@ -88,50 +110,22 @@ class ApplyPointingModel(DishLNCommand):
                         self.component_manager.handle_gpm_version_callback(
                             json.dumps(self.component_manager.gpm_version)
                         )
+                        task_callback(
+                            status=TaskStatus.COMPLETED,
+                            result=(ResultCode(result_code), message),
+                        )
                         break
         except Exception as e:
             self.logger.exception("Error updating GPM version: %s", str(e))
-        super().update_task_status(**kwargs)
         self.component_manager.command_in_progress = ""
-        self.component_manager.command_unique_id_dict.pop(
-            self.command_id, None
-        )
-        self.component_manager.apply_pointing_model_result.pop(
-            self.command_id, None
-        )
 
-    def set_command_id(self, command_name):
-        """Generates unique command ID from timestamp and command name."""
-
-        self.command_id = f"{time.time()}-{command_name}"
-
-    # pylint: disable=R1710
-    def get_apply_pointing_model_result_code(self):
-        """Get apply pointing model results"""
-        try:
-            apm_result = self.component_manager.apply_pointing_model_result
-            self.logger.debug("Current APM result dictionary %s", apm_result)
-            command_id = apm_result.get(self.command_id, None)
-            self.logger.debug("APM command ID: %s", command_id)
-            if command_id:
-                result_code = command_id.get("result_code", None)
-                self.logger.debug("APM result code: %s", result_code)
-                if result_code is not None:
-                    return result_code
-        except Exception as e:
-            self.logger.exception("Exception occurred: %s", e)
-
-    @timeout_tracker
-    @error_propagation_tracker(
-        "get_apply_pointing_model_result_code",
-        [ResultCode.OK],
-        use_command_class_id=True,
-    )
+    # pylint: disable=unused-argument
     def invoke_apply_pointing_model(
         self: ApplyPointingModel,
         argin: str,
+        task_callback: TaskCallbackType,
+        task_abort_event: Optional[threading.Event] = None,
     ) -> None:
-        # pylint: enable=unused-argument
         """A method to invoke the do method of the ApplyPointingModel command
         class. This method also updates the task callback according to command
         status.
@@ -143,16 +137,17 @@ class ApplyPointingModel(DishLNCommand):
         :type logger: logging.Logger
         :param task_callback: Update task state, defaults to None
         :type task_callback: TaskCallbackType
-        :param task_abort_event: Check for abort, defaults to None
-        :type task_abort_event: Event, optional
         :return: None
         :rtype: None
         """
 
-        self.task_callback(status=TaskStatus.IN_PROGRESS)
+        task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.command_in_progress = "ApplyPointingModel"
+        result_code, message = self.do(argin)
+        self.logger.info("ResultCode: %s Message: %s", result_code, message)
+        self.update_task_callback(result_code, message, task_callback)
 
-        return self.do(argin)
+    # pylint: enable=unused-argument
 
     def get_global_pointing_data_json(
         self: ApplyPointingModel, tm_data_sources, tm_data_filepath
@@ -291,26 +286,14 @@ class ApplyPointingModel(DishLNCommand):
             )
 
             with self.component_manager.tango_operation_execution_lock:
+                self.band, self.band_version = self.extract_band_and_version(
+                    gpm_json_data
+                )
                 result_code, message = self.call_adapter_method(
                     "Dish Master",
                     self.dish_master_adapter,
                     "ApplyPointingModel",
                     argin=json.dumps(global_pointing_data_json),
-                )
-                if result_code[0] in [ResultCode.OK, ResultCode.QUEUED]:
-                    self.component_manager.command_unique_id_dict[
-                        self.command_id
-                    ] = message[0]
-
-                self.band, self.band_version = self.extract_band_and_version(
-                    gpm_json_data
-                )
-                self.logger.info(
-                    "ApplyPointingModel command invoked on %s"
-                    " for band: %s and band version: %s",
-                    self.component_manager.dish_dev_name,
-                    self.band,
-                    self.band_version,
                 )
                 return result_code[0], message[0]
         except Exception as e:
