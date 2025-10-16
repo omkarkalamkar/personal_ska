@@ -29,7 +29,7 @@ class AzElConverter:
             component_manager (DishLNComponentManager): Dish LN component
         """
         self.component_manager = component_manager
-        # DishHelper now takes JSON string (e.g., json.dumps(...)).
+        # DishHelper now takes a dict via `antenna_data` (not JSON string).
         # Instantiate it lazily in create_antenna_obj to use the latest layout.
         self.dish_helper: DishHelper | None = None
         self.refraction_correction = TroposphericRefraction()
@@ -43,19 +43,18 @@ class AzElConverter:
     def create_antenna_obj(self: AzElConverter) -> None:
         """Select and set the katpoint Antenna object for this dish.
 
-        Uses the layout JSON string stored at component_manager.array_layout
-        (expected to be json.dumps(...)), per the refactored DishHelper.
+        Uses the dict stored at component_manager.array_layout.
         """
-        layout_json = getattr(self.component_manager, "array_layout", None)
-        if not layout_json:
+        layout = getattr(self.component_manager, "array_layout", None)
+        if not layout:
             logger.warning(
-                "No array_layout JSON found on component_manager; "
-                "observer will not be set."
+                "No array_layout found on component_manager; observer "
+                "will not be set."
             )
             return
 
-        # Create helper with the provided JSON string and build antenna list
-        self.dish_helper = DishHelper(layout_json=layout_json)
+        # Create helper with the provided dict and build antenna list
+        self.dish_helper = DishHelper(antenna_data=layout)
         antennas = self.dish_helper.get_dish_antennas_list()
 
         for antenna in antennas:
@@ -95,8 +94,8 @@ class AzElConverter:
             )
         except Exception as exception:
             message = (
-                "Exception occurred while applying refraction correction: "
-                + str(exception)
+                "Exception occurred while applying refraction "
+                f"correction: {exception}"
             )
             logger.exception(message)
             raise Exception(message) from exception
@@ -208,11 +207,7 @@ class AzElConverter:
         dec = angle_to_string(
             ra_dec.dec, unit=u.deg, precision=2, show_unit=False
         )
-        logger.debug(
-            "Converted Az/El to RA/Dec: RA=%s, Dec=%s",
-            ra,
-            dec,
-        )
+        logger.debug("Converted Az/El to RA/Dec: RA=%s, Dec=%s", ra, dec)
         return [ra, dec]
 
     def radec_to_azel(
@@ -259,7 +254,6 @@ class AzElConverter:
         except Exception as exception:
             message = str(exception)
             logger.exception(
-                "Failed to convert RA/Dec to Az/El, Exception: %s ",
-                message,
+                "Failed to convert RA/Dec to Az/El, Exception: %s ", message
             )
             raise Exception(message) from exception
