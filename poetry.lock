@@ -2988,7 +2988,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "hm-750"
-resolved_reference = "42b61158aa156ce94f6722dad0c2042d3a29d0b4"
+resolved_reference = "6ec50af696354ca196ea02004c51e601971c360a"
 
 [[package]]
 name = "ska-tmc-simulators"
