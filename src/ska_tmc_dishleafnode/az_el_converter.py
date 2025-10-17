@@ -54,7 +54,7 @@ class AzElConverter:
             return
 
         # Create helper with the provided dict and build antenna list
-        self.dish_helper = DishHelper(antenna_data=layout)
+        self.dish_helper = DishHelper(layout_data=layout)
         antennas = self.dish_helper.get_dish_antennas_list()
 
         for antenna in antennas:
