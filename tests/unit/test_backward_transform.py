@@ -7,6 +7,7 @@ from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import SKA_EPOCH, logger
 
 
+@pytest.mark.test
 @pytest.mark.parametrize(
     "timestamp, az, el, expected_ra, expected_dec",
     [
@@ -36,6 +37,7 @@ def test_azel_to_radec(
 ):
     """Test the backward transform method from AzElConverter."""
     cm = cm_without_er_lp
+    cm.observer = None
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:

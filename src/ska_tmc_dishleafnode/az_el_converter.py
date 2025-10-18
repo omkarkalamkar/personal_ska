@@ -55,8 +55,10 @@ class AzElConverter:
 
         # Create helper with the provided dict and build antenna list
         self.dish_helper = DishHelper(layout_data=layout)
+        logger.info(">>>>>>>>>>>")
         antennas = self.dish_helper.get_dish_antennas_list()
 
+        logger.info(antennas)
         for antenna in antennas:
             if self.component_manager.dish_id:
                 if (
