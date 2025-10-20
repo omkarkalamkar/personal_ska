@@ -46,19 +46,25 @@ class AzElConverter:
         Uses the dict stored at component_manager.array_layout.
         """
         layout = getattr(self.component_manager, "array_layout", None)
-        if not layout:
-            logger.warning(
-                "No array_layout found on component_manager; observer "
-                "will not be set."
-            )
+        if layout:
+            # Use the new path when array_layout is provided
+            self.dish_helper = DishHelper(layout_data=layout)
+            antenna = self.dish_helper.get_dish_antennas_data()
+            logger.info(antenna)
+            self.component_manager.observer = antenna
             return
 
-        # Create helper with the provided dict and build antenna list
-        self.dish_helper = DishHelper(layout_data=layout)
-
-        antenna = self.dish_helper.get_dish_antennas_data()
-        logger.info(antenna)
-        self.component_manager.observer = antenna
+        # Backward-compatibility: fall back to old list-based lookup
+        self.dish_helper = DishHelper(layout_data={})
+        antennas = self.dish_helper.get_dish_antennas_list()
+        for antenna in antennas:
+            if self.component_manager.dish_id:
+                if (
+                    antenna.name.lower()
+                    == self.component_manager.dish_id.lower()
+                ):
+                    self.component_manager.observer = antenna
+                    break
 
     def apply_refraction_correction(
         self: AzElConverter, azel: AltAz

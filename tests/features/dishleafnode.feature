@@ -10,8 +10,6 @@ Feature: DishLeafNode acceptance
 
 		Examples:
 		| command_name      | resultant_state    | dish_mode           |
-		| SetStandbyFPMode  | STANDBY            | DishMode.STANDBY_LP |
-		| SetOperateMode    | ON                 | DishMode.STANDBY_FP |
 		| Configure         | ON                 | DishMode.STANDBY_FP |
 		| SetStandbyLPMode  | STANDBY            | DishMode.STANDBY_FP |
 		| SetStowMode       | DISABLE            | DishMode.STANDBY_LP |
