@@ -95,7 +95,7 @@ class Configure(DishLNCommand):
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
 
-        array_layout = json_argument.get("array_layout")
+        array_layout = json_argument.get("layout_data")
         if array_layout is not None:
             self.component_manager.array_layout = array_layout
             self.logger.debug("Set array layout to: %s", array_layout)

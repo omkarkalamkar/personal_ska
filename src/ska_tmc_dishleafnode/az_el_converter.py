@@ -55,28 +55,11 @@ class AzElConverter:
 
         # Create helper with the provided dict and build antenna list
         self.dish_helper = DishHelper(layout_data=layout)
-        logger.info(">>>>>>>>>>>")
-        antennas = self.dish_helper.get_dish_antennas_list()
 
-        logger.info(antennas)
-        for antenna in antennas:
-            if self.component_manager.dish_id:
-                if (
-                    antenna.name.lower()
-                    == self.component_manager.dish_id.lower()
-                ):
-                    self.component_manager.observer = antenna
-                    logger.debug(
-                        "Selected antenna %s for dish_id %s",
-                        antenna.name,
-                        self.component_manager.dish_id,
-                    )
-                    break
-        else:
-            logger.warning(
-                "Dish ID %s not found in provided array_layout",
-                self.component_manager.dish_id,
-            )
+        antenna = self.dish_helper.get_dish_antennas_data()
+        logger.info(antenna)
+        self.component_manager.observer = antenna
+        
 
     def apply_refraction_correction(
         self: AzElConverter, azel: AltAz
