@@ -59,7 +59,6 @@ class AzElConverter:
         antenna = self.dish_helper.get_dish_antennas_data()
         logger.info(antenna)
         self.component_manager.observer = antenna
-        
 
     def apply_refraction_correction(
         self: AzElConverter, azel: AltAz
