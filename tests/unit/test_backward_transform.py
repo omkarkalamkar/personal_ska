@@ -2,9 +2,10 @@ import time
 
 import pytest
 from astropy.time import Time
+from ska_tmc_common.v3.dish_utils import DishHelper
 
 from ska_tmc_dishleafnode import AzElConverter
-from tests.settings import SKA_EPOCH, logger
+from tests.settings import ARRAY_LAYOUT, SKA_EPOCH, logger
 
 
 @pytest.mark.test
@@ -37,7 +38,8 @@ def test_azel_to_radec(
 ):
     """Test the backward transform method from AzElConverter."""
     cm = cm_without_er_lp
-    cm.observer = None
+    cm.array_layout = ARRAY_LAYOUT
+    cm.observer = DishHelper(cm.array_layout).get_dish_antennas_data()
     converter = AzElConverter(component_manager=cm)
     retry = 0
     while retry <= 3:

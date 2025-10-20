@@ -73,6 +73,57 @@ NON_SIDEREAL_OBJECTS = [
     "Neptune",
 ]
 
+ARRAY_LAYOUT = {
+    "layout_data": {
+        "interface": (
+            "https://schema.skao.int/ska-telmodel-layout-receptor/1.1"
+        ),
+        "diameter": 15.0,
+        "location": {
+            "interface": (
+                "https://schema.skao.int/ska-telmodel-layout-location/1.0"
+            ),
+            "geocentric": {
+                "interface": "https://schema.skao.int/"
+                "ska-telmodel-layout-geocentric/1.0",
+                "coordinate_frame": "ITRF",
+                "x": 5109058.062517257,
+                "y": 2007302.435599506,
+                "z": -3239167.000445203,
+            },
+            "geodetic": {
+                "interface": "https://schema.skao.int/"
+                "ska-telmodel-layout-geodetic/1.0",
+                "coordinate_frame": "WGS84",
+                "lat": -30.71329,
+                "lon": 21.449412,
+                "h": 1098.074,
+            },
+        },
+        "fixed_delays": [
+            {
+                "interface": "https://schema.skao.int/"
+                "ska-telmodel-layout-receptor-fixed-delay/0.0",
+                "fixed_delay_id": "FIX_H",
+                "polarisation": 0,
+                "units": "m",
+                "delay": 0.0,
+            },
+            {
+                "interface": "https://schema.skao.int/"
+                "ska-telmodel-layout-receptor-fixed-delay/0.0",
+                "fixed_delay_id": "FIX_V",
+                "polarisation": 0,
+                "units": "m",
+                "delay": 0.0,
+            },
+        ],
+        "niao": 0.0,
+        "station_label": "SKA001",
+        "station_id": 65,
+    }
+}
+
 
 def wait_for_ping(dishleafnode_cm):
     """Method waits for the device ping till timeout specified
