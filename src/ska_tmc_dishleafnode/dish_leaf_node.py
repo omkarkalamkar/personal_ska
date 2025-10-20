@@ -423,7 +423,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     )
     def arrayLayout(self: MidTmcLeafNodeDish) -> str:
         """Returns the array-layout attribute value."""
-        return self.component_manager.array_layout
+        return json.dumps(self.component_manager.array_layout)
 
     @arrayLayout.write
     def arrayLayout(self: MidTmcLeafNodeDish, array_layout: str) -> None:
@@ -432,7 +432,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         Args:
             array_layout (str): array layout to be set.
         """
-        self.component_manager.array_layout = array_layout
+        try:
+            layout = json.loads(array_layout)
+        except Exception as e:
+            self.logger.exception("arrayLayout must be valid JSON: %s", e)
+            raise
+        self.component_manager.array_layout = layout
 
     @attribute(
         dtype="DevLong",

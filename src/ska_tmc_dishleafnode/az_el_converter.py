@@ -40,31 +40,34 @@ class AzElConverter:
             "humidity": 0.10,  # Humidity is a fraction (0–1)
         }
 
-    def create_antenna_obj(self: AzElConverter) -> None:
-        """Select and set the katpoint Antenna object for this dish.
-
-        Uses the dict stored at component_manager.array_layout.
-        """
+    def create_antenna_obj(self) -> None:
+        """Create antenna object from array layout and set observer."""
         layout = getattr(self.component_manager, "array_layout", None)
-        if layout:
-            # Use the new path when array_layout is provided
-            self.dish_helper = DishHelper(layout_data=layout)
-            antenna = self.dish_helper.get_dish_antennas_data()
-            logger.info(antenna)
-            self.component_manager.observer = antenna
+        if not layout:
+            logger.warning("No array_layout found; observer will not be set.")
             return
 
-        # Backward-compatibility: fall back to old list-based lookup
-        self.dish_helper = DishHelper(layout_data={})
-        antennas = self.dish_helper.get_dish_antennas_list()
-        for antenna in antennas:
-            if self.component_manager.dish_id:
-                if (
-                    antenna.name.lower()
-                    == self.component_manager.dish_id.lower()
-                ):
-                    self.component_manager.observer = antenna
-                    break
+        # Pass the dict (or 1-item list[dict]) straight in
+        try:
+            self.dish_helper = DishHelper(antenna_data=layout)
+        except TypeError:
+            # old signature fallback, if needed
+            self.dish_helper = DishHelper(layout)
+
+        try:
+            antenna = (
+                self.dish_helper.get_dish_antenna()
+                if hasattr(self.dish_helper, "get_dish_antenna")
+                else self.dish_helper.get_dish_antennas_data()
+            )
+        except Exception as e:
+            logger.exception("Cannot build antenna from layout: %s", e)
+            return
+
+        self.component_manager.observer = antenna
+        logger.info(
+            "Observer set to %s", getattr(antenna, "name", "<antenna>")
+        )
 
     def apply_refraction_correction(
         self: AzElConverter, azel: AltAz
