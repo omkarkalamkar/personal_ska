@@ -58,7 +58,7 @@ class AzElConverter:
             antenna = (
                 self.dish_helper.get_dish_antenna()
                 if hasattr(self.dish_helper, "get_dish_antenna")
-                else self.dish_helper.get_dish_antennas_data()
+                else self.dish_helper.get_antenna_params()
             )
         except Exception as e:
             logger.exception("Cannot build antenna from layout: %s", e)
