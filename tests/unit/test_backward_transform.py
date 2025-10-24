@@ -39,8 +39,11 @@ def test_azel_to_radec(
     """Test the backward transform method from AzElConverter."""
     cm = cm_without_er_lp
     cm.array_layout = ARRAY_LAYOUT
-    cm.observer = DishHelper(cm.array_layout).get_dish_antenna()
+    dish_helper = DishHelper(antenna_data=ARRAY_LAYOUT)
+    cm.observer = dish_helper.get_dish_antenna()
     converter = AzElConverter(component_manager=cm)
+    converter.dish_helper = dish_helper
+    converter.create_antenna_obj()
     retry = 0
     while retry <= 3:
         try:
