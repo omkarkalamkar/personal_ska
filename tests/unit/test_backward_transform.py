@@ -60,6 +60,7 @@ def test_azel_to_radec(
     assert expected_ra == ra
     assert expected_dec == dec
 
+
 def test_actual_pointing(cm_without_er_lp):
     """Test to check actual pointing is getting updated"""
     cm = cm_without_er_lp
