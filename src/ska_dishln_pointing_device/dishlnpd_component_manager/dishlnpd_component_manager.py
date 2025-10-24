@@ -150,19 +150,30 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """Returns the array layout"""
         return dict(self._array_layout)
 
+    # DishlnPointingDataComponentManager.array_layout.setter
     @array_layout.setter
     def array_layout(self, layout: dict | str) -> None:
-        """Setter method for array_layout property"""
-        # accept JSON strings or dicts
+        """Sets the array layout
+        :param layout: The array layout to set
+        :type layout: dict | str
+        :return: None"""
         if isinstance(layout, str):
             layout = json.loads(layout)
-        # only update if different
         if dict(self._array_layout) != layout:
             self._array_layout.clear()
             self._array_layout.update(layout)
-            self.logger.info(
-                "array_layout updated and signalled to child process."
-            )
+            self.logger.info("array_layout updated.")
+            # NEW: (re)create antenna & set observer now that layout exists
+            try:
+                self.converter.create_antenna_obj()
+                if self.observer is None:
+                    self.logger.warning(
+                        "Observer is still None after layout update."
+                    )
+            except Exception as e:
+                self.logger.exception(
+                    "Failed to build observer from layout: %s", e
+                )
 
     @wrap_sector.setter
     def wrap_sector(

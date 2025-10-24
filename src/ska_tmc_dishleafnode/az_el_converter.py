@@ -111,9 +111,7 @@ class AzElConverter:
         refraction_corrected_azel = []
         try:
             non_sidereal_target = Target(f"{target_name}, special")
-            logger.debug(
-                "Created non-sidereal target: %s", non_sidereal_target
-            )
+            logger.debug(" %s", non_sidereal_target)
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
