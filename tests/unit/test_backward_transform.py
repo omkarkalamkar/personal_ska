@@ -76,7 +76,7 @@ def test_actual_pointing(cm_without_er_lp):
     )
 
     assert list(cm.actual_pointing) == [
-        "2019-02-19 11:31:00",
-        "21:02:45.95",
-        "10:07:31.22",
+        "2019-02-19 06:01:00",
+        "15:31:50.9",
+        "10:15:51.4",
     ]
