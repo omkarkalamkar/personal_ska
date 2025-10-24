@@ -5,6 +5,7 @@ pointing device component manager.
 from __future__ import annotations
 
 import datetime
+import json
 import operator
 import re
 import sched
@@ -78,6 +79,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.set_change_pointing_event = threading.Event()
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
+        self._array_layout = {}
         self.azimuth_min_limit = azimuth_min_limit
         self.azimuth_max_limit = azimuth_max_limit
         self.iers_a = None
@@ -142,6 +144,25 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: int
         """
         return self._wrap_sector
+
+    @property
+    def array_layout(self) -> dict:
+        """Returns the array layout"""
+        return dict(self._array_layout)
+
+    @array_layout.setter
+    def array_layout(self, layout: dict | str) -> None:
+        """Setter method for array_layout property"""
+        # accept JSON strings or dicts
+        if isinstance(layout, str):
+            layout = json.loads(layout)
+        # only update if different
+        if dict(self._array_layout) != layout:
+            self._array_layout.clear()
+            self._array_layout.update(layout)
+            self.logger.info(
+                "array_layout updated and signalled to child process."
+            )
 
     @wrap_sector.setter
     def wrap_sector(
