@@ -19,7 +19,7 @@ PYTHON_LINE_LENGTH=79
 # using Helm.  If this does not already exist it will be created
 KUBE_NAMESPACE ?= ska-tmc-dishleafnode
 
-SKA_TANGO_OPERATOR = false
+SKA_TANGO_OPERATOR = true
 # HELM_RELEASE is the release that all Kubernetes resources will be labelled
 # with
 HELM_RELEASE ?= test
@@ -48,7 +48,7 @@ THIS_HOST := $(shell ip a 2> /dev/null | sed -En 's/127.0.0.1//;s/.*inet (addr:)
 DISPLAY ?= $(THIS_HOST):0
 JIVE ?= false# Enable jive
 TARANTA ?= false
-MINIKUBE ?= true ## Minikube or not ## Install fake devices or not
+MINIKUBE ?= false ## Minikube or not ## Install fake devices or not
 TANGO_HOST ?= tango-databaseds:10000## TANGO_HOST connection to the Tango DS
 
 ITANGO_DOCKER_IMAGE = $(CAR_OCI_REGISTRY_HOST)/ska-tango-images-tango-itango:9.3.9
