@@ -358,12 +358,18 @@ class Configure(DishLNCommand):
 
             try:
                 pointing_device_conf_json = copy.deepcopy(json_argument)
-                target_data = json.dumps(
-                    {
-                        "pointing": pointing_device_conf_json["pointing"],
-                        "tmc": pointing_device_conf_json.get("tmc", {}),
-                    }
+                # Minimal change: include array_layout if available
+                array_layout = getattr(
+                    self.component_manager, "array_layout", None
                 )
+                target_payload = {
+                    "pointing": pointing_device_conf_json["pointing"],
+                    "tmc": pointing_device_conf_json.get("tmc", {}),
+                }
+                if array_layout is not None:
+                    target_payload["array_layout"] = array_layout
+                target_data = json.dumps(target_payload)
+
                 self.logger.debug(
                     "Main/Delta Config:"
                     " Calling "
@@ -381,7 +387,8 @@ class Configure(DishLNCommand):
                     str(exception),
                 )
                 self.component_manager.current_track_table_error = (
-                    f"Exception while generating programTrackTable {exception}"
+                    f"Exception while generating programTrackTable "
+                    f"{exception}"
                 )
                 if self.component_manager._update_health_state_callback:
                     self.component_manager._update_health_state_callback(
