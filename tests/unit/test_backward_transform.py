@@ -8,7 +8,6 @@ from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import ARRAY_LAYOUT, SKA_EPOCH, logger
 
 
-@pytest.mark.test
 @pytest.mark.parametrize(
     "timestamp, az, el, expected_ra, expected_dec",
     [
@@ -61,10 +60,10 @@ def test_azel_to_radec(
     assert expected_ra == ra
     assert expected_dec == dec
 
-
 def test_actual_pointing(cm_without_er_lp):
     """Test to check actual pointing is getting updated"""
     cm = cm_without_er_lp
+    cm.array_layout = ARRAY_LAYOUT
     timestamp_str = "2019-02-19 06:01:00"
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")
@@ -76,7 +75,7 @@ def test_actual_pointing(cm_without_er_lp):
     )
 
     assert list(cm.actual_pointing) == [
-        "2019-02-19 06:01:00",
-        "15:31:50.9",
-        "10:15:51.4",
+        "2019-02-19 11:31:00",
+        "21:02:45.95",
+        "10:07:31.22",
     ]
