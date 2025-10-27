@@ -528,7 +528,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     @array_layout.setter
     def array_layout(self, layout: dict | str) -> None:
-        """Setter method for array_layout property"""
+        """Setter method for array_layout property
+        :param layout: The array layout to be set.
+        :value dtype: dict or str
+        """
         # accept JSON strings or dicts
         if isinstance(layout, str):
             layout = json.loads(layout)
