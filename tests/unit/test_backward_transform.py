@@ -83,7 +83,6 @@ def test_actual_pointing(cm_without_er_lp):
     ]
 
 
-@pytest.mark.test
 def test_actual_pointing_matches_expected_strings_after_site_shift(
     cm_without_er_lp,
 ):
