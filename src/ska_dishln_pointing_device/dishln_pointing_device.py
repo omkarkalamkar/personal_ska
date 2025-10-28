@@ -124,6 +124,9 @@ class DishPointingDevice(TMCBaseLeafDevice):
             target_data (str): _description_
         """
         self.component_manager.target_data = json.loads(target_data)
+        self.component_manager.array_layout = (
+            self.component_manager.target_data.get("array_layout", {})
+        )
 
     @attribute(
         dtype=ArgType.DevString,
