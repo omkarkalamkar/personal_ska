@@ -1822,7 +1822,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
+            # dev_info.update_unresponsive(False)
             self.logger.info(
                 f"dishMode value updated to {DishMode(dish_mode).name}"
             )
@@ -1846,7 +1846,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.dish_pointing_lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
+            # dev_info.update_unresponsive(False)
 
             if band_name in self.dish_pointing_model_param:
                 self.dish_pointing_model_param[band_name] = dish_param
@@ -1881,7 +1881,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
+            # dev_info.update_unresponsive(False)
             self.logger.debug(
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
@@ -1904,7 +1904,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
+            # dev_info.update_unresponsive(False)
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
