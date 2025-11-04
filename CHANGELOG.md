@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 
+[0.25.1]
+********
+Fixed
+-----
+* Fixed issue with unresponsive flag update to resolve SKB-1074
+
 [0.25.0]
 ********
 Updated
