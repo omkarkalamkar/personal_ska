@@ -77,7 +77,7 @@ class AzElConverter:
         if still unavailable (typically due to missing/invalid array_layout).
         """
         if getattr(self.component_manager, "observer", None) is None:
-            logger.debug("Observer is None; attempting to create antenna obj.")
+            logger.info("Observer is None; attempting to create antenna obj.")
             self.create_antenna_obj()
         if getattr(self.component_manager, "observer", None) is None:
             raise RuntimeError(
