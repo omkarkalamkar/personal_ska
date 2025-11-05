@@ -202,6 +202,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
         self.iers_a = None
+        self.observer = None
         self.achieved_pointing_data = self.process_manager.Queue()
         self.actual_pointing_process_alive = Event()
         self._queue_connector_device_info: SdpQueueConnectorDeviceInfo = (

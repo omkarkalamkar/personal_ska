@@ -70,6 +70,21 @@ class AzElConverter:
             "Observer set to %s", getattr(antenna, "name", "<antenna>")
         )
 
+    def _ensure_observer(self) -> None:
+        """Ensure an observer (antenna) exists on the component manager.
+
+        Tries to lazily create it if missing, and raises a clear error
+        if still unavailable (typically due to missing/invalid array_layout).
+        """
+        if getattr(self.component_manager, "observer", None) is None:
+            logger.debug("Observer is None; attempting to create antenna obj.")
+            self.create_antenna_obj()
+        if getattr(self.component_manager, "observer", None) is None:
+            raise RuntimeError(
+                "Observer not initialised. Provide a valid array_layout and "
+                "call create_antenna_obj() before performing conversions."
+            )
+
     def apply_refraction_correction(
         self: AzElConverter, azel: AltAz
     ) -> List[float]:
@@ -112,6 +127,7 @@ class AzElConverter:
         try:
             non_sidereal_target = Target(f"{target_name}, special")
             logger.debug(" %s", non_sidereal_target)
+            self._ensure_observer()
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
@@ -174,6 +190,7 @@ class AzElConverter:
         timestamp: str,
     ) -> List[str | Any]:
         """Convert Az/El (deg) to RA/Dec (HMS/DMS), reversing refraction."""
+        self._ensure_observer()
         azel = AltAz(az=Angle(az_value, u.deg), alt=Angle(el_value, u.deg))
         refraction_removed_azel = self.refraction_correction.unrefract(
             azel,
@@ -228,6 +245,7 @@ class AzElConverter:
             dec = Angle(declination, unit=u.degree)
 
         try:
+            self._ensure_observer()
             target = Target.from_radec(ra, dec)
 
             # Preload IERS A table for astropy

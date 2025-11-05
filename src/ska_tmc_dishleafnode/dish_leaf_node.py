@@ -425,6 +425,30 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
 
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ_WRITE,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def arrayLayout(self: MidTmcLeafNodeDish) -> str:
+        """Returns the array-layout attribute value."""
+        return json.dumps(self.component_manager.array_layout)
+
+    @arrayLayout.write
+    def arrayLayout(self: MidTmcLeafNodeDish, array_layout: str) -> None:
+        """Set the dish array-layout.
+
+        Args:
+            array_layout (str): array layout to be set.
+        """
+        try:
+            layout = json.loads(array_layout)
+        except Exception as e:
+            self.logger.exception("arrayLayout must be valid JSON: %s", e)
+            raise
+        self.component_manager.array_layout = layout
+
     @kValue.write
     def kValue(self: MidTmcLeafNodeDish, k_value: int) -> None:
         """Set the dish k-value.
