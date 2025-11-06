@@ -78,7 +78,7 @@ class AzElConverter:
         """
         if getattr(self.component_manager, "observer", None) is None:
             logger.info("Observer is None; attempting to create antenna obj.")
-            self.create_antenna_obj()
+            
             raise RuntimeError(
                 "Observer not initialised. Provide a valid array_layout and "
                 "call create_antenna_obj() before performing conversions."
