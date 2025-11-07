@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 
+[0.26.0]
+********
+Updated
+-------
+* Disabled the configuredBand check in Configure command to enable Band 5 observation with real dish
+
 [0.24.5]
 ********
 Updated
