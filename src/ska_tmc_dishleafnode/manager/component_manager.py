@@ -2690,7 +2690,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
-        # The configuredBand check needs to be disbled for time being because
+        # The configuredBand check needs to be disabled for time being because
         # as part of ConfgureBand5b command, dish is internally invoking
         # ConfigureBand1 command. So the band is set to value 1 in this case.
 
