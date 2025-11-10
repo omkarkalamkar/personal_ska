@@ -193,6 +193,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         self._update_health_state_callback = _update_health_state_callback
         self._kvalue: int = 0
+        self.process_manager = Manager()
+        self._array_layout = self.process_manager.dict()
+        self.layout_updated = self.process_manager.Event()
         self._current_track_table_error = ""
         self.errors_to_be_reported = []
         self._kValueValidationResult = ResultCode.STARTED
@@ -519,6 +522,29 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self._kValueValidationResult = result_code
 
     @property
+    def array_layout(self) -> dict:
+        """Returns the array layout"""
+        return dict(self._array_layout)
+
+    @array_layout.setter
+    def array_layout(self, layout: dict | str) -> None:
+        """Setter method for array_layout property
+        :param layout: The array layout to be set.
+        :value dtype: dict or str
+        """
+        # accept JSON strings or dicts
+        if isinstance(layout, str):
+            layout = json.loads(layout)
+        # only update if different
+        if dict(self._array_layout) != layout:
+            self._array_layout.clear()
+            self._array_layout.update(layout)
+            self.layout_updated.set()
+            self.logger.info(
+                "array_layout updated and signalled to child process."
+            )
+
+    @property
     def kValue(self: DishLNComponentManager) -> int:
         """Returns the k-value
 
@@ -773,19 +799,53 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def process_actual_pointing(self: DishLNComponentManager) -> None:
         """Process the achieved pointing data to calculate actual pointing.
 
-        :return: None
-        :rtype: None
+        Runs in a child process. Rebuilds the observer when the parent updates
+        `array_layout` (signalled via `self.layout_updated`).
         """
+
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
-        self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
+
+        # Initial setup: build antenna/observer and IERS data once.
+        try:
+            self.create_converter_obj_and_antenna_obj()
+        except Exception as e:
+            self.logger.exception(
+                "Failed to create initial antenna object: %s", e
+            )
+
+        try:
+            self.download_iers_data()
+        except Exception as e:
+            self.logger.exception("Failed to download IERS data: %s", e)
         while self.actual_pointing_process_alive.is_set() is False:
+            try:
+                if (
+                    hasattr(self, "layout_updated")
+                    and self.layout_updated.is_set()
+                ):
+                    self.logger.debug(
+                        "array_layout update detected; rebuilding antenna."
+                    )
+                    try:
+                        self.create_converter_obj_and_antenna_obj()
+                    finally:
+                        # Always clear to avoid missing subsequent updates.
+                        self.layout_updated.clear()
+            except Exception as e:
+                self.logger.exception(
+                    "Error while handling layout update: %s", e
+                )
+
+            # Process any achieved-pointing samples waiting in the queue.
             if not self.achieved_pointing_data.empty():
                 try:
-                    self.perform_reverse_transform(
-                        self.achieved_pointing_data.get(block=True).tolist()
-                    )
+                    # Expecting [timestamp_tai_ska_epoch, azimuth_deg,
+                    # elevation_deg]
+                    value_list = self.achieved_pointing_data.get(
+                        block=True
+                    ).tolist()
+                    self.perform_reverse_transform(value_list)
                 except ValueError as value_error:
                     self.logger.error(
                         "Value error occurred in actual pointing process: %s",
@@ -793,9 +853,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
                 except Exception as exception:
                     self.logger.exception(
-                        "Exception occured in actual pointing process: %s",
+                        "Exception occurred in actual pointing process: %s",
                         str(exception),
                     )
+            else:
+                #  yield CPU a bit .
+                time.sleep(0.01)
+
+        self.logger.info("Actual pointing process exiting cleanly.")
 
     def perform_reverse_transform(
         self: DishLNComponentManager, value_list
@@ -1757,7 +1822,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
             self.logger.info(
                 f"dishMode value updated to {DishMode(dish_mode).name}"
             )
@@ -1781,7 +1845,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.dish_pointing_lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
 
             if band_name in self.dish_pointing_model_param:
                 self.dish_pointing_model_param[band_name] = dish_param
@@ -1816,7 +1879,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
             self.logger.debug(
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
@@ -1839,7 +1901,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str

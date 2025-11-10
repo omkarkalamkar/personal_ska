@@ -280,3 +280,77 @@ def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
             len(cm.pointing_program_track_table)
             == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
         )
+
+
+def test_array_layout_set_with_dict_updates_and_calls_converter(
+    cm_pointig_device, monkeypatch
+):
+    cm = cm_pointig_device
+    calls = {"n": 0}
+
+    def _fake_create_antenna_obj():
+        calls["n"] += 1
+
+    monkeypatch.setattr(
+        cm.converter, "create_antenna_obj", _fake_create_antenna_obj
+    )
+    layout = {"stations": {"SKA001": {"lat": 1.0, "lon": 2.0, "elev": 3.0}}}
+    cm.array_layout = layout
+    assert cm.array_layout == layout
+    assert calls["n"] == 1
+
+
+def test_array_layout_set_with_json_string_parses_and_updates(
+    cm_pointig_device, monkeypatch
+):
+    cm = cm_pointig_device
+    calls = {"n": 0}
+
+    def _fake_create_antenna_obj():
+        calls["n"] += 1
+
+    monkeypatch.setattr(
+        cm.converter, "create_antenna_obj", _fake_create_antenna_obj
+    )
+    layout_dict = {
+        "stations": {"SKA002": {"lat": -10.5, "lon": 45.0, "elev": 1000}}
+    }
+    layout_json = json.dumps(layout_dict)
+    cm.array_layout = layout_json
+    assert cm.array_layout == layout_dict
+    assert calls["n"] == 1
+
+
+def test_array_layout_idempotent_when_setting_same_value(
+    cm_pointig_device, monkeypatch
+):
+    cm = cm_pointig_device
+
+    calls = {"n": 0}
+
+    def _fake_create_antenna_obj():
+        calls["n"] += 1
+
+    monkeypatch.setattr(
+        cm.converter, "create_antenna_obj", _fake_create_antenna_obj
+    )
+    layout = {"stations": {"SKA003": {"lat": 0.0, "lon": 0.0, "elev": 0.0}}}
+    cm.array_layout = layout
+    assert calls["n"] == 1
+    cm.array_layout = layout
+    assert calls["n"] == 1
+
+
+def test_array_layout_getter_returns_top_level_copy(
+    cm_pointig_device, monkeypatch
+):
+    cm = cm_pointig_device
+    monkeypatch.setattr(cm.converter, "create_antenna_obj", lambda: None)
+    layout = {
+        "stations": {"SKA004": {"lat": 12.3, "lon": 45.6, "elev": 789.0}}
+    }
+    cm.array_layout = layout
+    view = cm.array_layout
+    view["new_top_level_key"] = 123
+    assert "new_top_level_key" not in cm._array_layout
+    assert cm._array_layout["stations"]["SKA004"]["lat"] == 12.3

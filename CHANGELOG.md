@@ -11,6 +11,20 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Updated
 -------
 * Disabled the configuredBand check in Configure command to enable Band 5 observation with real dish
+* This is a branch release.
+
+[0.25.1]
+********
+Fixed
+-----
+* Fixed issue with unresponsive flag update to resolve SKB-1074
+
+[0.25.0]
+********
+Updated
+-------
+* Updated ArrayLayout design so it can be changed from the configure command
+
 
 [0.24.5]
 ********

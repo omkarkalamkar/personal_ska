@@ -5,6 +5,7 @@ pointing device component manager.
 from __future__ import annotations
 
 import datetime
+import json
 import operator
 import re
 import sched
@@ -78,6 +79,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.set_change_pointing_event = threading.Event()
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
+        self._array_layout = {}
         self.azimuth_min_limit = azimuth_min_limit
         self.azimuth_max_limit = azimuth_max_limit
         self.iers_a = None
@@ -143,6 +145,36 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         return self._wrap_sector
 
+    @property
+    def array_layout(self) -> dict:
+        """Returns the array layout"""
+        return dict(self._array_layout)
+
+    # DishlnPointingDataComponentManager.array_layout.setter
+    @array_layout.setter
+    def array_layout(self, layout: dict | str) -> None:
+        """Sets the array layout
+        :param layout: The array layout to set
+        :type layout: dict | str
+        :return: None"""
+        if isinstance(layout, str):
+            layout = json.loads(layout)
+        if dict(self._array_layout) != layout:
+            self._array_layout.clear()
+            self._array_layout.update(layout)
+            self.logger.info("array_layout updated.")
+            # NEW: (re)create antenna & set observer now that layout exists
+            try:
+                self.converter.create_antenna_obj()
+                if self.observer is None:
+                    self.logger.warning(
+                        "Observer is still None after layout update."
+                    )
+            except Exception as e:
+                self.logger.exception(
+                    "Failed to build observer from layout: %s", e
+                )
+
     @wrap_sector.setter
     def wrap_sector(
         self: DishlnPointingDataComponentManager, wrap_sector: int
@@ -175,6 +207,20 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.__target_data = data
             # Set the wrap key
             self.set_wrap_sector_data()
+
+            # NEW: rebuild observer if layout is supplied
+            layout = self.__target_data.get("array_layout")
+            if layout is not None:
+                self.array_layout = layout
+                try:
+                    self.converter.create_antenna_obj()
+                    self.logger.info(
+                        "observer rebuilt from received array_layout."
+                    )
+                except Exception as exp:
+                    self.logger.exception(
+                        "Failed to rebuild observer: %s", str(exp)
+                    )
         except Exception as exception:
             self.logger.exception(
                 "Failed to update target data due to exception: %s",

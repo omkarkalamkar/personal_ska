@@ -5,7 +5,7 @@ from astropy.utils import iers
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
-from tests.settings import logger
+from tests.settings import ARRAY_LAYOUT, logger
 
 
 @pytest.mark.parametrize(
@@ -37,6 +37,7 @@ def test_radec_to_azel(
 ):
     """Function to test AzEl conversion"""
     cm = cm_without_er_lp
+    cm.array_layout = ARRAY_LAYOUT
     cm.get_device().update_unresponsive(False, "")
     cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
     converter = AzElConverter(component_manager=cm)

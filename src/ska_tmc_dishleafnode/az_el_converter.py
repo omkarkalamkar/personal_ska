@@ -13,7 +13,7 @@ from astropy.utils import iers
 from katpoint import Target, TroposphericRefraction
 from katpoint.conversion import angle_to_string
 from ska_ser_logging import configure_logging
-from ska_tmc_common.dish_utils import DishHelper
+from ska_tmc_common.v3.dish_utils import DishHelper
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -21,37 +21,54 @@ logger = logging.getLogger(__name__)
 
 class AzElConverter:
     """Class to convert Right ascension(Ra) and Declination(Dec)
-    values into Azimuth(Az) and Elevation(El)"""
+    values into Azimuth(Az) and Elevation(El)."""
 
     def __init__(self: AzElConverter, component_manager) -> None:
         """
         Args:
-            component_manager (DishLNComponent Manager): Dish LN component
+            component_manager (DishLNComponentManager): Dish LN component
         """
         self.component_manager = component_manager
-        self.dish_helper = DishHelper()
+        # DishHelper now takes a dict via `antenna_data` (not JSON string).
+        # Instantiate it lazily in create_antenna_obj to use the latest layout.
+        self.dish_helper: DishHelper | None = None
         self.refraction_correction = TroposphericRefraction()
         # The values for temperature, pressure and humidity are considered
-        # arbitarily, acutal data will be used when a weather station is
-        # available.
         self.weather_data = {
             "temperature": 30.0,
             "pressure": 900.0,
-            "humidity": 0.10,
-            # Humidity is now a fraction instead of percentage
+            "humidity": 0.10,  # Humidity is a fraction (0–1)
         }
 
-    def create_antenna_obj(self: AzElConverter) -> None:
-        """This method identifies the KATPoint.
-        Antenna object to be used from the Dish Number."""
-        antennas = self.dish_helper.get_dish_antennas_list()
-        for antenna in antennas:
-            if self.component_manager.dish_id:
-                if (
-                    antenna.name.lower()
-                    == self.component_manager.dish_id.lower()
-                ):
-                    self.component_manager.observer = antenna
+    def create_antenna_obj(self) -> None:
+        """Create antenna object from array layout and set observer."""
+        layout = getattr(self.component_manager, "array_layout", None)
+        logger.info(layout)
+        if not layout:
+            logger.warning("No array_layout found; observer will not be set.")
+            return
+
+        # Pass the dict (or 1-item list[dict]) straight in
+        try:
+            self.dish_helper = DishHelper(antenna_data=layout)
+        except TypeError:
+            # old signature fallback, if needed
+            self.dish_helper = DishHelper(layout)
+
+        try:
+            antenna = (
+                self.dish_helper.get_dish_antenna()
+                if hasattr(self.dish_helper, "get_dish_antenna")
+                else self.dish_helper.get_dish_antenna()
+            )
+        except Exception as e:
+            logger.exception("Cannot build antenna from layout: %s", e)
+            return
+
+        self.component_manager.observer = antenna
+        logger.info(
+            "Observer set to %s", getattr(antenna, "name", "<antenna>")
+        )
 
     def apply_refraction_correction(
         self: AzElConverter, azel: AltAz
@@ -65,15 +82,14 @@ class AzElConverter:
                 self.weather_data["humidity"],
             )
             logger.debug(
-                "The Az value is: %s and the El is %s : after "
-                "forward transform.",
+                "After refraction: Az=%s deg, El=%s deg",
                 refraction_corrected_azel.az.deg,
                 refraction_corrected_azel.alt.deg,
             )
         except Exception as exception:
             message = (
-                "Exception occurred while applying refraction correction: "
-                + str(exception)
+                "Exception occurred while applying refraction "
+                f"correction: {exception}"
             )
             logger.exception(message)
             raise Exception(message) from exception
@@ -87,20 +103,15 @@ class AzElConverter:
         self: AzElConverter, target_name: str, timestamp: str
     ) -> List[float]:
         """
-        This method calls the Katpoint API to get the Azimuth and Elevation for
-        a non sidereal object and applies the refraction correction to it.
+        Get Az/El for a non-sidereal object and apply refraction correction.
 
         :param target_name: Name of the non-sidereal body
-        :type target_name: str
         :param timestamp: Timestamp for observation
-        :type timestamp: str
         """
         refraction_corrected_azel = []
         try:
             non_sidereal_target = Target(f"{target_name}, special")
-            logger.debug(
-                "Created non-sidereal target: %s", non_sidereal_target
-            )
+            logger.debug(" %s", non_sidereal_target)
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
@@ -122,25 +133,26 @@ class AzElConverter:
     def point(
         self: AzElConverter,
         right_ascension: str | float,
-        declination: str,
+        declination: str | float,
         timestamp: str,
     ) -> list[float]:
-        """This method converts Target RaDec coordinates
-        to the AzEl coordinates.It is called continuously
-        from Track command (in a thread) at interval
-        of 50ms till the StopTrack command is invoked.
+        """Convert RA/Dec to Az/El and apply refraction.
 
         Args:
-            ra_value (str): RA value in hours:minutes:sec
-            dec_value (str): Dec Value in degree:arc_minutes:arc_sec
-            timestamp(str): utc timestamp in string format
-        return:
-            az_el_coordinates (list)
+            right_ascension: RA value (H:M:S string or float degrees )
+            declination: Dec value (D:M:S string or float degrees per )
+            timestamp: UTC timestamp string
+
+        Returns:
+            [Az deg, El deg]
         """
         az_el_coordinates = []
         try:
             logger.debug(
-                "Converting Target RaDec coordinates to the AzEl coordinates"
+                "Converting RA/Dec to Az/El. RA=%s, Dec=%s, ts=%s",
+                right_ascension,
+                declination,
+                timestamp,
             )
             az_el_coordinates = self.radec_to_azel(
                 right_ascension, declination, timestamp
@@ -161,23 +173,7 @@ class AzElConverter:
         el_value: float,
         timestamp: str,
     ) -> List[str | Any]:
-        """This method converts given Azimuth/Elevation to RA/Dec after
-        reversing the refraction correction and performing the topocentric and
-        geocentric conversions.
-
-        Args:
-            az_value (float): The Azimuth value of
-                Actual Pointing in degrees.
-            el_value (float): The Elevation value of
-                Actual Pointing in degrees.
-            timestamp (str): time Stamp
-
-        Returns:
-            List[str | Any]: List of RA and Dec values in Hours Minutes Seconds
-            and Degree Minutes Seconds respectively.
-
-        """
-
+        """Convert Az/El (deg) to RA/Dec (HMS/DMS), reversing refraction."""
         azel = AltAz(az=Angle(az_value, u.deg), alt=Angle(el_value, u.deg))
         refraction_removed_azel = self.refraction_correction.unrefract(
             azel,
@@ -191,7 +187,7 @@ class AzElConverter:
             refraction_removed_azel.alt,
         )
 
-        # Preloading the IERS A chart for Astrop's usage.
+        # Preload IERS A table for astropy
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
             ra_dec = target.radec(
                 timestamp=timestamp, antenna=self.component_manager.observer
@@ -203,37 +199,27 @@ class AzElConverter:
         dec = angle_to_string(
             ra_dec.dec, unit=u.deg, precision=2, show_unit=False
         )
-        logger.debug(
-            "The Ra value is : %s and the Dec value is : %s after "
-            "backward transform",
-            ra,
-            dec,
-        )
+        logger.debug("Converted Az/El to RA/Dec: RA=%s, Dec=%s", ra, dec)
         return [ra, dec]
 
     def radec_to_azel(
         self: AzElConverter,
-        # The ra/dec can str or float
-        # as per ADR-106 the c1 and c2 ie ra and dec
-        # are expressed in the form of float
+        # The ra/dec can be str or float
+        # as per ADR-106 the c1 and c2 (ra and dec)
+        # may be provided as float degrees
         right_ascension: str | float,
         declination: str | float,
         timestamp: str,
     ) -> List[float]:
-        """This method invokes the katpoint commands to do the forward
-        transform required for pointing a celestial object.
-        Forward Transform ie: Geocentric conversion then topocentric and then
-        refraction correction.
+        """Forward transform RA/Dec to Az/El and apply refraction.
 
         Args:
-            right_ascension (str | float): Right Ascension value.
-                String in hours:minutes:seconds form.
-            declination (str | float): Declination value.
-                String in the form of "degree:minutes:seconds"
-            timestamp (str): Time stamp
+            right_ascension: RA value (H:M:S string or float degrees)
+            declination: Dec value (D:M:S string or float degrees)
+            timestamp: UTC timestamp string
 
-        Return:
-            az_el_coordinates (list[degrees])
+        Returns:
+            [Az deg, El deg]
         """
         ra = right_ascension
         dec = declination
@@ -241,17 +227,16 @@ class AzElConverter:
             ra = Angle(right_ascension, unit=u.degree)
             dec = Angle(declination, unit=u.degree)
 
-        refraction_corrected_azel = []
         try:
             target = Target.from_radec(ra, dec)
 
-            # Preloading the IERS A chart for Astrop's usage.
+            # Preload IERS A table for astropy
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
                 azel = target.azel(timestamp, self.component_manager.observer)
 
-            refraction_corrected_azel = self.apply_refraction_correction(azel)
+            return self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
             message = str(value_error)
@@ -261,9 +246,6 @@ class AzElConverter:
         except Exception as exception:
             message = str(exception)
             logger.exception(
-                "Failed to convert RA/Dec to Az/El, Exception: %s ",
-                message,
+                "Failed to convert RA/Dec to Az/El, Exception: %s ", message
             )
             raise Exception(message) from exception
-
-        return refraction_corrected_azel
