@@ -37,8 +37,8 @@ tmc-dishleafnode:
       IsDishAbortEnabled: True
       MaxTrackTableRetry: 3
       TrackTableRetryDuration: 0.2
-      source_uris: gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata
-      array_layout_path: instrument/ska1_mid/layout/mid-layout.json
+      source_uris: "gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata"
+      array_layout_path: "instrument/ska1_mid/layout/mid-layout.json"
     dishpointingdevice:
       TrackTableUpdateRate: 50
       TrackTableInAdvance: 6
