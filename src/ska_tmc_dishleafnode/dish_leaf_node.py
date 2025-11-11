@@ -58,10 +58,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     DefaultArrayLayoutSourceUris = device_property(
         dtype="str",
         doc="Default source URIs for the array layout definition.",
+        default_value=(
+            "gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata"
+        ),
     )
     DefaultArrayLayoutPath = device_property(
         dtype="str",
         doc="Default path for the array layout definition.",
+        default_value="instrument/ska1_mid/layout/mid-layout.json",
     )
     MidPointingDevice = device_property(
         dtype="str",
