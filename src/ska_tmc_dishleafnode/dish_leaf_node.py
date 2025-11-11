@@ -54,7 +54,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         dtype="str",
         doc="FQDN of Dish Master Device",
     )
-
+    DefaultArrayLayoutURL = device_property(
+        dtype="str",
+        doc=(
+            "Default URL for the array layout definition. "
+            "This is for the DefaultArrayLayout reverse trasform."
+        ),
+    )
     MidPointingDevice = device_property(
         dtype="str",
         doc="FQDN of DishLeaf Node Pointing Device",
@@ -1133,6 +1139,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_dish_pointing_model_param=(
                 self.update_global_pointing_param_callback
             ),
+            default_layout_schema=self.DefaultArrayLayoutURL,
             _update_pointingstate_callback=self.update_pointingstate_callback,
             event_subscription_check_period=self.EventSubscriptionCheckPeriod,
             liveliness_check_period=self.LivelinessCheckPeriod,

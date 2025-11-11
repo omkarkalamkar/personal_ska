@@ -31,6 +31,9 @@ server:
           - name: "MidDishControl"
             values:
               - "{{ $.Values.global.dish_manager_suffix }}{{ printf "%03s" . }}"
+          - name: "DefaultArrayLayoutURL"
+            values:
+              - '{"source_uris": ["gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata"], "array_layout_path": "instrument/ska1_mid/layout/mid-layout.json"}'
           - name: "MidPointingDevice"
             values:
               - "{{ $dishlnDomain }}/{{ $dishlnPointingFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
