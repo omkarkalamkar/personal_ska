@@ -24,6 +24,7 @@ from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.control_model import HealthState
 from ska_tango_base.executor import TaskStatus
+from ska_telmodel.data import TMData
 from ska_tmc_common import (
     AdapterFactory,
     Band,
@@ -97,6 +98,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_gpm_version_callback: Callable,
         _liveliness_probe=LivelinessProbeType.NONE,
         _event_receiver: bool = True,
+        default_array_layout_source_uris: str = '',
+        default_array_layout_path: str = '',
         proxy_timeout: int = 500,
         event_subscription_check_period: int = 1,
         liveliness_check_period: int = 1,
@@ -138,6 +141,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             event_subscription_check_period=event_subscription_check_period,
             liveliness_check_period=liveliness_check_period,
         )
+        self.default_array_layout_source_uris = (
+            default_array_layout_source_uris
+        )
+        self.default_array_layout_path = default_array_layout_path
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
         self.configured_band_lock = threading.RLock()
@@ -202,6 +209,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
         self.iers_a = None
+        self.observer = None
         self.achieved_pointing_data = self.process_manager.Queue()
         self.actual_pointing_process_alive = Event()
         self._queue_connector_device_info: SdpQueueConnectorDeviceInfo = (
@@ -285,6 +293,84 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.start_event_processing_threads()
         self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self.load_array_layout_for_dish()
+
+    def load_array_layout_for_dish(self) -> None:
+        """
+        Load the array layout from TelModel and store the dictionary
+        corresponding to this dish (matching ``station_label`` to
+        ``self.dish_id``) into ``self.array_layout``.
+
+        Raises:
+            ValueError: If loading or parsing the array layout fails.
+        """
+        try:
+            if (
+                self.default_array_layout_source_uris
+                and self.default_array_layout_path
+            ):
+                source_uris = [self.default_array_layout_source_uris]
+                array_layout_path = self.default_array_layout_path
+            else:
+                self.logger.warning(
+                    "No default array layout source URIs or path "
+                    "provided; cannot load array layout."
+                )
+                return
+
+            tm_data = TMData(source_uris)
+            raw_layout = tm_data[array_layout_path].get_dict()
+
+            if isinstance(raw_layout, str):
+                layout = json.loads(raw_layout)
+            else:
+                layout = raw_layout
+
+            receptors = layout.get("receptors", [])
+            if not receptors:
+                self.logger.warning(
+                    "No receptors found in layout at '%s'.",
+                    array_layout_path,
+                )
+                return
+
+            target_id = str(self.dish_id).lower()
+            matching_receptor: dict | None = None
+
+            for receptor in receptors:
+                station_label = str(receptor.get("station_label", "")).lower()
+                if station_label == target_id:
+                    matching_receptor = receptor
+                    break
+
+            if matching_receptor is None:
+                self.logger.warning(
+                    "No matching receptor found for dish_id '%s' "
+                    "in layout at '%s'.",
+                    self.dish_id,
+                    array_layout_path,
+                )
+                return
+
+            self.array_layout = matching_receptor
+
+            self.logger.info(
+                "array_layout set for dish_id '%s' "
+                "using station_label '%s'.",
+                self.dish_id,
+                matching_receptor.get("station_label"),
+            )
+
+        except Exception as exc:
+            self.logger.exception(
+                "Failed to load array layout for dish_id '%s' "
+                "from default_layout_schema: %s",
+                getattr(self, "dish_id", "<unknown>"),
+                exc,
+            )
+            raise ValueError(
+                "Failed to load array layout for dish_id "
+            ) from exc
 
     @property
     def configure_track_lrcr(self) -> ResultCode:
@@ -2111,7 +2197,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         unique_id, result_code_message = value
         self.logger.debug(
-            "Current command unique dictionary: ", self.command_unique_id_dict
+            "Current command unique dictionary: %s",
+            self.command_unique_id_dict,
         )
         if (unique_id not in self.command_unique_id_dict.values()) or (
             not unique_id.endswith(self.supported_commands)

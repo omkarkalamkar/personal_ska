@@ -1,11 +1,15 @@
+import json
 import time
 from copy import deepcopy
 
 import pytest
 from astropy.time import Time
-from ska_tmc_common.v3.dish_utils import DishHelper
 
+import ska_tmc_dishleafnode.manager.component_manager as dln_cm_mod
 from ska_tmc_dishleafnode import AzElConverter
+from ska_tmc_dishleafnode.manager.component_manager import (
+    DishLNComponentManager,
+)
 from tests.settings import ARRAY_LAYOUT, SKA_EPOCH, logger
 
 
@@ -37,13 +41,10 @@ def test_azel_to_radec(
     cm_without_er_lp,
 ):
     """Test the backward transform method from AzElConverter."""
+    # updated the test case as it doesn't require to preset the
+    # observer separately now array layout is default set in component manager
     cm = cm_without_er_lp
-    cm.array_layout = ARRAY_LAYOUT
-    dish_helper = DishHelper(antenna_data=ARRAY_LAYOUT)
-    cm.observer = dish_helper.get_dish_antenna()
     converter = AzElConverter(component_manager=cm)
-    converter.dish_helper = dish_helper
-    converter.create_antenna_obj()
     retry = 0
     while retry <= 3:
         try:
@@ -132,3 +133,180 @@ def test_actual_pointing_matches_expected_strings_after_site_shift(
     assert t1 == timestamp_str
     assert ra1 == EXPECTED_RA_SHIFT
     assert dec1 == EXPECTED_DEC_SHIFT
+
+
+class TestTMData:
+    """TMData patch that returns a preconfigured layout via get_dict()."""
+
+    layout_to_return = None
+
+    def __init__(self, source_uris):
+        # keep for debug / possible asserts later
+        self.source_uris = source_uris
+
+    def __getitem__(self, key):
+        # In real TMData, __getitem__ returns an object with get_dict()
+        self.key = key
+        return self
+
+    def get_dict(self):
+        return type(self).layout_to_return
+
+
+def test_load_array_layout_sets_matching_receptor(
+    monkeypatch, cm_without_er_lp
+):
+    """
+    When TelModel layout contains a receptor whose station_label matches
+    dish_id (case-insensitive), that receptor is stored in array_layout.
+    """
+    TestTMData.layout_to_return = {
+        "receptors": [
+            {"station_label": "SKA000", "foo": "ignore"},
+            {
+                "station_label": "SKA001",
+                "location": {"geodetic": {"lat": 1.0, "lon": 2.0}},
+            },
+        ]
+    }
+    monkeypatch.setattr(dln_cm_mod, "TMData", TestTMData)
+
+    cm: DishLNComponentManager = cm_without_er_lp
+
+    # Make sure we have non-empty defaults for this test branch
+    cm.default_array_layout_source_uris = "tm://dummy"
+    cm.default_array_layout_path = "dummy/layout/path"
+
+    # Clear any previous update flags for a clean assertion
+    if hasattr(cm, "layout_updated"):
+        cm.layout_updated.clear()
+
+    cm.load_array_layout_for_dish()
+
+    expected = TestTMData.layout_to_return["receptors"][1]
+    assert cm.array_layout == expected
+    if hasattr(cm, "layout_updated"):
+        assert cm.layout_updated.is_set()
+
+
+def test_load_array_layout_accepts_json_string_layout(
+    monkeypatch, cm_without_er_lp
+):
+    """
+    If TelModel returns a JSON string for the layout, it is decoded and
+    processed as expected.
+    """
+    layout_dict = {
+        "receptors": [
+            {"station_label": "ska001", "meta": "from-json-string"},
+        ]
+    }
+    TestTMData.layout_to_return = json.dumps(layout_dict)
+    monkeypatch.setattr(dln_cm_mod, "TMData", TestTMData)
+
+    cm: DishLNComponentManager = cm_without_er_lp
+    cm.default_array_layout_source_uris = "tm://dummy"
+    cm.default_array_layout_path = "dummy/layout/path"
+
+    cm.load_array_layout_for_dish()
+
+    assert cm.array_layout == layout_dict["receptors"][0]
+
+
+def test_load_array_layout_no_defaults_does_not_touch_array_layout(
+    monkeypatch, cm_without_er_lp
+):
+    """
+    If default_array_layout_source_uris or default_array_layout_path are
+    missing/falsey, the method logs a warning and returns without calling
+    TMData or modifying array_layout.
+    """
+
+    class ExplodingTMData:
+        def __init__(self, *_args, **_kwargs):
+            raise AssertionError("TMData should not be instantiated")
+
+    monkeypatch.setattr(dln_cm_mod, "TMData", ExplodingTMData)
+
+    cm: DishLNComponentManager = cm_without_er_lp
+
+    # Ensure we have some existing layout to detect unwanted changes
+    original_layout = cm.array_layout or ARRAY_LAYOUT
+    cm.array_layout = original_layout
+
+    # Force the early-return branch
+    cm.default_array_layout_source_uris = ""
+    cm.default_array_layout_path = ""
+
+    if hasattr(cm, "layout_updated"):
+        cm.layout_updated.clear()
+        was_set_before = cm.layout_updated.is_set()
+    else:
+        was_set_before = False
+
+    cm.load_array_layout_for_dish()
+
+    assert cm.array_layout == original_layout
+    if hasattr(cm, "layout_updated"):
+        assert cm.layout_updated.is_set() == was_set_before
+
+
+def test_load_array_layout_no_matching_receptor_keeps_existing_layout(
+    monkeypatch, cm_without_er_lp
+):
+    """
+    If no receptor matches dish_id, the method logs a warning and returns
+    without modifying array_layout.
+    """
+    TestTMData.layout_to_return = {
+        "receptors": [
+            {"station_label": "SKA999"},
+            {"station_label": "SKA998"},
+        ]
+    }
+    monkeypatch.setattr(dln_cm_mod, "TMData", TestTMData)
+
+    cm: DishLNComponentManager = cm_without_er_lp
+    cm.default_array_layout_source_uris = "tm://dummy"
+    cm.default_array_layout_path = "dummy/layout/path"
+
+    # Set a known starting layout
+    original_layout = {"existing": "layout-before-call"}
+    cm.array_layout = original_layout
+
+    if hasattr(cm, "layout_updated"):
+        cm.layout_updated.clear()
+
+    cm.load_array_layout_for_dish()
+
+    # Should not change because no station_label matches dish_id
+    assert cm.array_layout == original_layout
+    if hasattr(cm, "layout_updated"):
+        # No call to setter → no signal
+        assert not cm.layout_updated.is_set()
+
+
+def test_load_array_layout_raises_valueerror_on_tmdata_failure(
+    monkeypatch, cm_without_er_lp
+):
+    """
+    Any unexpected exception during loading/parsing is logged and re-raised
+    as a ValueError, with the original exception as __cause__.
+    """
+
+    class FailingTMData:
+        def __init__(self, *_args, **_kwargs):
+            raise RuntimeError("TelModel access failed")
+
+    monkeypatch.setattr(dln_cm_mod, "TMData", FailingTMData)
+
+    cm: DishLNComponentManager = cm_without_er_lp
+    cm.default_array_layout_source_uris = "tm://dummy"
+    cm.default_array_layout_path = "dummy/layout/path"
+
+    with pytest.raises(ValueError) as excinfo:
+        cm.load_array_layout_for_dish()
+
+    err = excinfo.value
+    assert "Failed to load array layout for dish_id" in str(err)
+    assert isinstance(err.__cause__, RuntimeError)

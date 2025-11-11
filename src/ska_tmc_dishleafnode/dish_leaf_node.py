@@ -55,6 +55,18 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         doc="FQDN of Dish Master Device",
     )
 
+    DefaultArrayLayoutSourceUris = device_property(
+        dtype="str",
+        doc="Default source URIs for the array layout definition.",
+        default_value=(
+            "gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata"
+        ),
+    )
+    DefaultArrayLayoutPath = device_property(
+        dtype="str",
+        doc="Default path for the array layout definition.",
+        default_value="instrument/ska1_mid/layout/mid-layout.json",
+    )
     MidPointingDevice = device_property(
         dtype="str",
         doc="FQDN of DishLeaf Node Pointing Device",
@@ -424,6 +436,28 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def kValue(self: MidTmcLeafNodeDish) -> int:
         """Returns the k-value attribute value."""
         return self.component_manager.kValue
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ_WRITE,
+    )
+    def arrayLayout(self: MidTmcLeafNodeDish) -> str:
+        """Returns the array-layout attribute value."""
+        return json.dumps(self.component_manager.array_layout)
+
+    @arrayLayout.write
+    def arrayLayout(self: MidTmcLeafNodeDish, array_layout: str) -> None:
+        """Set the dish array-layout.
+
+        Args:
+            array_layout (str): array layout to be set.
+        """
+        try:
+            layout = json.loads(array_layout)
+        except Exception as e:
+            self.logger.exception("arrayLayout must be valid JSON: %s", e)
+            raise
+        self.component_manager.array_layout = layout
 
     @kValue.write
     def kValue(self: MidTmcLeafNodeDish, k_value: int) -> None:
@@ -995,8 +1029,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         Checks whether this command is allowed to be run in current
         device state
 
-        :return: True if this command is allowed to be run in current
-            device state
+        :return: True if this command is allowed to be run in current device
+            state
 
         :rtype: boolean
         """
@@ -1109,6 +1143,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_dish_pointing_model_param=(
                 self.update_global_pointing_param_callback
             ),
+            default_array_layout_source_uris=self.DefaultArrayLayoutSourceUris,
+            default_array_layout_path=self.DefaultArrayLayoutPath,
             _update_pointingstate_callback=self.update_pointingstate_callback,
             event_subscription_check_period=self.EventSubscriptionCheckPeriod,
             liveliness_check_period=self.LivelinessCheckPeriod,
