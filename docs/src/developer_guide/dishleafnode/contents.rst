@@ -1,7 +1,12 @@
-Modules
---------
+.. _api:
+
+API
+===
 
 Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
+
+Modules
+--------
 
 .. toctree::
    :maxdepth: 4
@@ -52,5 +57,3 @@ Subpackages
    :caption: ska_dishln_pointing_device.mapping_scan
 
    ska_dishln_pointing_device.mapping_scan
-
-
