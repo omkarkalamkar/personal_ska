@@ -33,7 +33,7 @@ server:
               - "{{ $.Values.global.dish_manager_suffix }}{{ printf "%03s" . }}"
           - name: "DefaultArrayLayoutURL"
             values:
-              - {{ .Values.deviceServers.dishln.DefaultArrayLayoutURL | toJson | quote }}
+              - "{{ .Values.deviceServers.dishln.DefaultArrayLayoutURL | toJson | quote }}"
           - name: "MidPointingDevice"
             values:
               - "{{ $dishlnDomain }}/{{ $dishlnPointingFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
