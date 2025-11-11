@@ -1908,7 +1908,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
             self.logger.info(
                 f"dishMode value updated to {DishMode(dish_mode).name}"
             )
@@ -1932,7 +1931,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.dish_pointing_lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
 
             if band_name in self.dish_pointing_model_param:
                 self.dish_pointing_model_param[band_name] = dish_param
@@ -1967,7 +1965,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
             self.logger.debug(
                 "PointingState value updated to "
                 + f"{PointingState(pointingState).name}"
@@ -1990,7 +1987,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info = self.get_device()
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
-            dev_info.update_unresponsive(False)
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
@@ -2842,37 +2838,40 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
+        # The configuredBand check needs to be disabled for time being because
+        # as part of ConfgureBand5b command, dish is internally invoking
+        # ConfigureBand1 command. So the band is set to value 1 in this case.
 
-        def _normalize_band(band: object) -> str:
-            """Normalize a band value into a comparable string.
+        # def _normalize_band(band: object) -> str:
+        #     """Normalize a band value into a comparable string.
 
-            Args:
-                band (object): Band input, can be None, int, digit string,
-                    or an Enum with a 'name' attribute.
+        #     Args:
+        #         band (object): Band input, can be None, int, digit string,
+        #             or an Enum with a 'name' attribute.
 
-            Returns:
-                str: Normalized band string (e.g., "5a", "5b", "none").
-            """
-            mapping = {5: "5a", 6: "5b"}
-            normalized = "none"  # default value
-            if band is None:
-                normalized = "none"
-            elif isinstance(band, str) and band.isdigit():
-                normalized = mapping.get(int(band), band.lower())
-            elif isinstance(band, int):
-                normalized = mapping.get(band, str(band).lower())
-            elif hasattr(band, "name"):  # Band enum
-                normalized = band.name.lower()
-            else:
-                normalized = str(band).lower()
-            return normalized
+        #     Returns:
+        #         str: Normalized band string (e.g., "5a", "5b", "none").
+        #     """
+        #     mapping = {5: "5a", 6: "5b"}
+        #     normalized = "none"  # default value
+        #     if band is None:
+        #         normalized = "none"
+        #     elif isinstance(band, str) and band.isdigit():
+        #         normalized = mapping.get(int(band), band.lower())
+        #     elif isinstance(band, int):
+        #         normalized = mapping.get(band, str(band).lower())
+        #     elif hasattr(band, "name"):  # Band enum
+        #         normalized = band.name.lower()
+        #     else:
+        #         normalized = str(band).lower()
+        #     return normalized
 
-        dish_band = _normalize_band(self.dishConfiguredBand)
+        # dish_band = _normalize_band(self.dishConfiguredBand)
 
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
-            and dish_band == self.receiver_band
+            # and dish_band == self.receiver_band
             and self.configure_band_lrcr == ResultCode.OK
             and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
