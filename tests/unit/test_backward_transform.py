@@ -3,10 +3,17 @@ from copy import deepcopy
 
 import pytest
 from astropy.time import Time
-from ska_tmc_common.v3.dish_utils import DishHelper
 
 from ska_tmc_dishleafnode import AzElConverter
 from tests.settings import ARRAY_LAYOUT, SKA_EPOCH, logger
+
+
+def test_default_array_layout(
+    cm_without_er_lp,
+):
+    """Test the default value of arraylayout."""
+    cm = cm_without_er_lp
+    assert cm.array_layout == ARRAY_LAYOUT
 
 
 @pytest.mark.parametrize(
@@ -37,13 +44,10 @@ def test_azel_to_radec(
     cm_without_er_lp,
 ):
     """Test the backward transform method from AzElConverter."""
+    # updated the test case as it doesn't require to preset the
+    # observer separately now array layout is default set in component manager
     cm = cm_without_er_lp
-    cm.array_layout = ARRAY_LAYOUT
-    dish_helper = DishHelper(antenna_data=ARRAY_LAYOUT)
-    cm.observer = dish_helper.get_dish_antenna()
     converter = AzElConverter(component_manager=cm)
-    converter.dish_helper = dish_helper
-    converter.create_antenna_obj()
     retry = 0
     while retry <= 3:
         try:

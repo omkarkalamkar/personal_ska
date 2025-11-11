@@ -28,7 +28,6 @@ from ska_dishln_pointing_device.dishln_pointing_device import (
 from ska_tmc_dishleafnode import MidTmcLeafNodeDish
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 from tests.settings import (
-    ARRAY_LAYOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     DISHLN_POINTING_DEVICE,
@@ -354,7 +353,6 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_health_state_callback=update_health_state_callback,
     )
     cm.actual_pointing_process_alive.set()
-    cm.array_layout = ARRAY_LAYOUT
     if cm.event_receiver:
         cm.stop_event_receiver()
 
@@ -428,7 +426,6 @@ def cm_pointig_device() -> (
         elevation_min_limit=17.5,
         track_table_advance_sec=7,
     )
-    cm.array_layout = ARRAY_LAYOUT
     cm.converter.create_antenna_obj()
     cm.iers_a = iers.IERS_A.open(
         join(dirname(__file__), "data", "iers_file.all")

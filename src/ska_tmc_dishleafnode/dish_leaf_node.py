@@ -440,8 +440,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     @attribute(
         dtype="str",
         access=AttrWriteType.READ_WRITE,
-        memorized=True,
-        hw_memorized=True,
     )
     def arrayLayout(self: MidTmcLeafNodeDish) -> str:
         """Returns the array-layout attribute value."""
