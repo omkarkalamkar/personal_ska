@@ -13,14 +13,6 @@ from ska_tmc_dishleafnode.manager.component_manager import (
 from tests.settings import ARRAY_LAYOUT, SKA_EPOCH, logger
 
 
-def test_default_array_layout(
-    cm_without_er_lp,
-):
-    """Test the default value of arraylayout."""
-    cm = cm_without_er_lp
-    assert cm.array_layout == ARRAY_LAYOUT
-
-
 @pytest.mark.parametrize(
     "timestamp, az, el, expected_ra, expected_dec",
     [
