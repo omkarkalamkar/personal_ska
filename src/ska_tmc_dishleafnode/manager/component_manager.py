@@ -2201,7 +2201,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         unique_id, result_code_message = value
         self.logger.debug(
-            "Current command unique dictionary: ", self.command_unique_id_dict
+            "Current command unique dictionary: %s",
+            self.command_unique_id_dict,
         )
         if (unique_id not in self.command_unique_id_dict.values()) or (
             not unique_id.endswith(self.supported_commands)
