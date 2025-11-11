@@ -70,8 +70,6 @@ class AzElConverter:
             "Observer set to %s", getattr(antenna, "name", "<antenna>")
         )
 
-    
-
     def apply_refraction_correction(
         self: AzElConverter, azel: AltAz
     ) -> List[float]:

@@ -298,8 +298,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def load_array_layout_for_dish(self) -> None:
         """
         Load the array layout from TelModel and store the dictionary
-        corresponding to this dish (matching station_label to self.dish_id)
-        into self.array_layout.
+        corresponding to this dish (matching ``station_label`` to
+        ``self.dish_id``) into ``self.array_layout``.
+
+        Raises:
+            ValueError: If loading or parsing the array layout fails.
         """
         try:
             if (
@@ -348,6 +351,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     array_layout_path,
                 )
                 return
+
             self.array_layout = matching_receptor
 
             self.logger.info(
@@ -364,7 +368,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 getattr(self, "dish_id", "<unknown>"),
                 exc,
             )
-            raise
+            raise ValueError(
+                "Failed to load array layout for dish_id "
+            ) from exc
 
     @property
     def configure_track_lrcr(self) -> ResultCode:
