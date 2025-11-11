@@ -54,12 +54,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         dtype="str",
         doc="FQDN of Dish Master Device",
     )
-    DefaultArrayLayoutURL = device_property(
+
+    DefaultArrayLayoutSourceUris = device_property(
         dtype="str",
-        doc=(
-            "Default URL for the array layout definition. "
-            "This is for the DefaultArrayLayout reverse trasform."
-        ),
+        doc="Default source URIs for the array layout definition.",
+    )
+    DefaultArrayLayoutPath = device_property(
+        dtype="str",
+        doc="Default path for the array layout definition.",
     )
     MidPointingDevice = device_property(
         dtype="str",
@@ -1025,8 +1027,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         Checks whether this command is allowed to be run in current
         device state
 
-        :return: True if this command is allowed to be run in current
-            device state
+        :return: True if this command is allowed to be run in current device
+            state
 
         :rtype: boolean
         """
@@ -1139,7 +1141,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_dish_pointing_model_param=(
                 self.update_global_pointing_param_callback
             ),
-            default_layout_schema=self.DefaultArrayLayoutURL,
+            default_array_layout_source_uris=self.DefaultArrayLayoutSourceUris,
+            default_array_layout_path=self.DefaultArrayLayoutPath,
             _update_pointingstate_callback=self.update_pointingstate_callback,
             event_subscription_check_period=self.EventSubscriptionCheckPeriod,
             liveliness_check_period=self.LivelinessCheckPeriod,

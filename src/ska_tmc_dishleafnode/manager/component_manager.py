@@ -98,7 +98,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_gpm_version_callback: Callable,
         _liveliness_probe=LivelinessProbeType.NONE,
         _event_receiver: bool = True,
-        default_layout_schema: str = '',
+        default_array_layout_source_uris: str = '',
+        default_array_layout_path: str = '',
         proxy_timeout: int = 500,
         event_subscription_check_period: int = 1,
         liveliness_check_period: int = 1,
@@ -140,7 +141,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             event_subscription_check_period=event_subscription_check_period,
             liveliness_check_period=liveliness_check_period,
         )
-        self.default_layout_schema = default_layout_schema
+        self.default_array_layout_source_uris = (
+            default_array_layout_source_uris
+        )
+        self.default_array_layout_path = default_array_layout_path
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
         self.configured_band_lock = threading.RLock()
@@ -298,24 +302,27 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         into self.array_layout.
         """
         try:
-            schema = self.default_layout_schema
-            if isinstance(schema, str):
-                schema = json.loads(schema)
+            if (
+                self.default_array_layout_source_uris
+                and self.default_array_layout_path
+            ):
+                source_uris = [self.default_array_layout_source_uris]
+                array_layout_path = self.default_array_layout_path
+            else:
+                self.logger.warning(
+                    "No default array layout source URIs or path "
+                    "provided; cannot load array layout."
+                )
+                return
 
-            source_uris = schema["source_uris"]
-            array_layout_path = schema["array_layout_path"]
-
-            # 2. Fetch layout JSON from TelModel
             tm_data = TMData(source_uris)
             raw_layout = tm_data[array_layout_path].get_dict()
 
-            # Data may be stored as json.dumps -> convert to dict if needed
             if isinstance(raw_layout, str):
                 layout = json.loads(raw_layout)
             else:
                 layout = raw_layout
 
-            # 3. Extract receptors and find the one for this dish
             receptors = layout.get("receptors", [])
             if not receptors:
                 self.logger.warning(

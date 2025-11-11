@@ -68,10 +68,8 @@ deviceServers:
     CommandTimeOutDefault: 30.0
     AdapterTimeOut: 2.0
     DishAvailabilityCheckTimeout: 3
-    DefaultArrayLayoutURL:
-        source_uris:
-        - gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata
-        array_layout_path: instrument/ska1_mid/layout/mid-layout.json
+    source_uris: gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata
+    array_layout_path: instrument/ska1_mid/layout/mid-layout.json
   dishpointingdevice:
     enabled: true
     instances: ["01", "02"]

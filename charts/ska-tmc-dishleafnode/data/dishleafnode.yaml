@@ -31,9 +31,13 @@ server:
           - name: "MidDishControl"
             values:
               - "{{ $.Values.global.dish_manager_suffix }}{{ printf "%03s" . }}"
-          - name: "DefaultArrayLayoutURL"
+          - name: "DefaultArrayLayoutSourceUris"
             values:
-              - "{{ .Values.deviceServers.dishln.DefaultArrayLayoutURL | toJson | quote }}"
+              - "{{ .Values.deviceServers.dishln.source_uris | quote }}"
+
+          - name: "DefaultArrayLayoutPath"
+            values:
+              - "{{ .Values.deviceServers.dishln.array_layout_path | quote }}"
           - name: "MidPointingDevice"
             values:
               - "{{ $dishlnDomain }}/{{ $dishlnPointingFamily }}/{{ $prefixMember }}{{ printf "%03s" . }}"
