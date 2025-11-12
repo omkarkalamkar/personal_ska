@@ -9,10 +9,11 @@ Link to the TMC User documentation is `here <https://confluence.skatelescope.org
 .. _Square Kilometre Array: https://skatelescope.org/
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Table of Contents
 
    getting_started/getting_started
+   knowledge_base/knowledge_base
    developer_guide/developer_guide
 
 
