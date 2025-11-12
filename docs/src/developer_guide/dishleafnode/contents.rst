@@ -3,7 +3,8 @@
 API
 ===
 
-Link to the TMC User documentation is `here <https://confluence.skatelescope.org/x/og2ACQ>`_.
+The TMC architecture and design is documented in detail in the Solution Intent space of
+SKA Confluence. Please refer to the following link `here <https://confluence.skatelescope.org/x/og2ACQ>`_.
 
 Modules
 --------

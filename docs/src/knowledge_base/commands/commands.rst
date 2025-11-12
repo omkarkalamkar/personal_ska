@@ -10,5 +10,7 @@ This section specifies the TMC commands and changes done in interfaces for MID t
     :maxdepth: 1
 
     configure_command
-    scan_command
     apply_pointing_model
+    scan_command
+    end_scan
+    abort_command
