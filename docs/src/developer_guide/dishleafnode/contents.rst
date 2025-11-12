@@ -4,7 +4,7 @@ API
 ===
 
 The TMC architecture and design is documented in detail in the Solution Intent space of
-SKA Confluence. Please refer to the following link `here <https://confluence.skatelescope.org/x/og2ACQ>`_.
+SKA Confluence. Please refer `Solution Intent space <https://confluence.skatelescope.org/x/og2ACQ>`_.
 
 Modules
 --------
