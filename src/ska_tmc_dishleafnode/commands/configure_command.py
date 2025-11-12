@@ -531,7 +531,7 @@ class Configure(DishLNCommand):
                 is_configure_command=True,
             )
             configure_band_command.configure_band(
-                argin=json.loads(json_argument),
+                argin=json.dumps(json_argument),
                 logger=self.logger,
                 task_callback=_invoke_configure_band_callback,
                 task_abort_event=self.component_manager.abort_event,
