@@ -11,3 +11,4 @@ This section specifies the TMC commands and changes done in interfaces for MID t
 
     configure_command
     scan_command
+    apply_pointing_model

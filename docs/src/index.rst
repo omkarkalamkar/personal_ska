@@ -4,7 +4,7 @@ Dish Leaf Node documentation
 
 This project is developing the TMC Dish Leaf Nodes component of the Telescope Monitoring and Control (TMC) prototype, for the `Square Kilometre Array`_.
 
-Link to the TMC User documentation is `here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>`_.
+Link to the TMC User documentation is `here <https://confluence.skatelescope.org/x/og2ACQ>`_.
 
 .. _Square Kilometre Array: https://skatelescope.org/
 
