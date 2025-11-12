@@ -11,6 +11,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Updated
 -------
 * Resolved issues for the reverse transform
+
 [0.26.0]
 ********
 Updated
