@@ -11,11 +11,12 @@ Glossary
 
         The detailed information is provided `here <https://confluence.skatelescope.org/x/VVILDw>`_.
 
-    GlobalPointingModel, GPM
+    GlobalPointingModel
+    GPM
 
         A global pointing model(GPM) is a mathematical framework used to correct and improve the pointing accuracy of a telescope across the entire sky.
         In the context of the SKA (Square Kilometre Array) telescope, the global pointing model is built by analyzing pointing offset data—the difference between where the telescope is commanded to point and where it actually points.
 
-        To know more about the GPM flow in TMC please click `here <https://confluence.skatelescope.org/x/V4TtEQ>`_.
+        To know more about the GPM flow in TMC please follow `this <https://confluence.skatelescope.org/x/V4TtEQ>`_.
 
-        To know more about the contents in the GPM input json, please click `here <https://confluence.skatelescope.org/x/IojWE>`_.
+        To know more about the contents in the GPM input json, please `click <https://confluence.skatelescope.org/x/IojWE>`_.
