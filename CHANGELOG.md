@@ -5,12 +5,18 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.26.2]
+********
+Updated
+-------
+* Utilized ska-tmc-common v.1.0.0.
 
 [0.26.1]
 ********
 Updated
 -------
 * Resolved issues for the reverse transform
+
 [0.26.0]
 ********
 Updated
