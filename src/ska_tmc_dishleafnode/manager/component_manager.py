@@ -7,6 +7,7 @@ from __future__ import annotations
 import datetime
 import json
 import os
+import queue
 import re
 import signal
 import threading
@@ -2932,8 +2933,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 which contains the event data, dishMode Event in this case.
 
         """
-        if event:
-            self.event_queues[event.attr_value.name].put(event)
+
+        if not event:
+            self.logger.warning(
+                "Received null event in update_dish_pointing_model_param."
+            )
+            return
+
+        attr_value = getattr(event, "attr_value", None)
+        if not attr_value:
+            self.logger.warning(f"Received event without attr_value: {event}")
+            return
+
+        attr_name = getattr(attr_value, "name", None)
+        if not attr_name:
+            self.logger.warning(
+                f"Event attr_value missing 'name' field: {attr_value}"
+            )
+            return
+
+        if attr_name not in self.event_queues:
+            self.logger.warning(
+                f"Event queue for '{attr_name}' not found. Creating one."
+            )
+            self.event_queues[attr_name] = queue.Queue()
+
+        try:
+            self.event_queues[attr_name].put(event)
+            self.logger.debug(f"Queued event for {attr_name}")
+        except Exception as e:
+            self.logger.exception(
+                f"Failed to queue event for {attr_name}: {e}"
+            )
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
