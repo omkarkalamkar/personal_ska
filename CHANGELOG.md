@@ -5,6 +5,15 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[Unreleased]
+************
+Updated
+-------
+* Updated the TMC mid documentation to bring it on par with the updates made towards resolution of SKB-808
+
+Added
+-----
+* Added glossary and command workflow in Knowledge base
 
 [0.26.1]
 ********
