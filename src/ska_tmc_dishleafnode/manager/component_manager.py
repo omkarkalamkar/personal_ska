@@ -2932,7 +2932,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 which contains the event data, dishMode Event in this case.
 
         """
-        self.event_queues[event.attr_value.name].put(event)
+        if event:
+            self.event_queues[event.attr_value.name].put(event)
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
