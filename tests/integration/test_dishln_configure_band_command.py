@@ -136,7 +136,7 @@ def configureband_command_error_propogation(
 
     # Set defect on DishMaster
     dish_master.SetDefective(ERROR_PROPAGATION_DEFECT)
-    argin = {"dish": {"receiver_band": "1"}}
+    argin = json.dumps({"dish": {"receiver_band": "1"}})
     result_op, unique_id_op = dish_leaf_node.ConfigureBand(argin)
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
@@ -217,7 +217,7 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
 
     # Set defect on DishMaster
     dish_master.SetDefective(TIMEOUT_DEFECT)
-    argin = {"dish": {"receiver_band": "1"}}
+    argin = json.dumps({"dish": {"receiver_band": "1"}})
     result_op, unique_id_op = dish_leaf_node.ConfigureBand(argin)
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
