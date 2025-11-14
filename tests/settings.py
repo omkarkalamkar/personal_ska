@@ -62,42 +62,44 @@ GPM_JSON = (
     + '"band5apointingmodelparams": "", "band5bpointingmodelparams": ""}'
 )
 
-DISH_CONFIGURE_1_0 = {
-    'pointing': {
-        'field': {
-            'reference_frame': 'icrs',
-            'target_name': 'Polaris Australis',
-            'attrs': {'c1': 317.19966667, 'c2': -88.95636111},
+DISH_CONFIGURE_1_0 = json.dumps(
+    {
+        'pointing': {
+            'field': {
+                'reference_frame': 'icrs',
+                'target_name': 'Polaris Australis',
+                'attrs': {'c1': 317.19966667, 'c2': -88.95636111},
+            },
+            'trajectory': {'name': 'fixed', 'attrs': {'x': 1.23, 'y': 4.56}},
+            'projection': {'name': 'SIN', 'alignment': 'ICRS'},
+            'wrap_sector': 0,
         },
-        'trajectory': {'name': 'fixed', 'attrs': {'x': 1.23, 'y': 4.56}},
-        'projection': {'name': 'SIN', 'alignment': 'ICRS'},
-        'wrap_sector': 0,
-    },
-    'dish': {
-        'interface': 'https://schema.skao.int/ska-dish-configure/1.0',
-        'receiver_band': '5b',
-        'band5_downconversion_subband': '1',
-        'spfrx_processing_parameters': [
-            {
-                'dishes': ['all'],
-                'sync_pps': True,
-                'attenuation_pol_x': 10.0,
-                'attenuation_pol_y': 10.0,
-                'saturation_threshold': 0.6,
-                'noise_diode': {
-                    'periodic': {
-                        'period': 1,
-                        'duty_cycle': 1,
-                        'phase_shift': 1,
-                    }
-                },
-            }
-        ],
-    },
-    'tmc': {'scan_duration': 10.0},
-    'interface': 'https://schema.skao.int/ska-tmc-configure/5.0',
-    'transaction_id': 'txn-local-20251113-854387919',
-}
+        'dish': {
+            'interface': 'https://schema.skao.int/ska-dish-configure/1.0',
+            'receiver_band': '5b',
+            'band5_downconversion_subband': '1',
+            'spfrx_processing_parameters': [
+                {
+                    'dishes': ['all'],
+                    'sync_pps': True,
+                    'attenuation_pol_x': 10.0,
+                    'attenuation_pol_y': 10.0,
+                    'saturation_threshold': 0.6,
+                    'noise_diode': {
+                        'periodic': {
+                            'period': 1,
+                            'duty_cycle': 1,
+                            'phase_shift': 1,
+                        }
+                    },
+                }
+            ],
+        },
+        'tmc': {'scan_duration': 10.0},
+        'interface': 'https://schema.skao.int/ska-tmc-configure/5.0',
+        'transaction_id': 'txn-local-20251113-854387919',
+    }
+)
 
 NON_SIDEREAL_OBJECTS = [
     "Sun",
