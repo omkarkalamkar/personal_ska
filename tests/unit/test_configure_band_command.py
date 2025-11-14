@@ -30,8 +30,8 @@ def test_configure_band_command_completed(task_callback, cm):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()
 
-    receiver_band = "1"
-    cm.configureband(receiver_band, task_callback=task_callback)
+    argin = {"dish": {"receiver_band": "1"}}
+    cm.configureband(argin, task_callback=task_callback)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -53,9 +53,9 @@ def test_configureband_command_adapter_none(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()
+    argin = {"dish": {"receiver_band": "1"}}
 
-    receiver_band = "1"
-    cm.configureband(receiver_band, task_callback=task_callback)
+    cm.configureband(argin, task_callback=task_callback)
 
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
