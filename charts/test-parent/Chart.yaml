@@ -25,5 +25,5 @@ dependencies:
     condition: ska-taranta.enabled
   - name: ska-tmc-simulators
     version: 1.5.0-dev.cb2ab9b0d
-    repository: https://registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
+    repository: https://gitlab.com/api/v4/projects/31132400/packages/helm/dev
     condition: ska-tmc-simulators.enabled
