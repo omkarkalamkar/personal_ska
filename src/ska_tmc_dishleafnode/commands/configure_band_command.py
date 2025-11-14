@@ -117,14 +117,17 @@ class ConfigureBand(DishLNCommand):
             return result_code, message
 
         args = json.loads(argin)
-        spfrx_processing_param = args.get("dish", {}).get(
-            "spfrx_processing_parameters", None
-        )
-        if spfrx_processing_param:
+        interface = args.get("interface", None)
+        if interface:
+            self.logger.debug(
+                "Command ID: %s | Interface version received: %s",
+                self.component_manager.command_id,
+                interface,
+            )
             command_name: str = "ConfigureBand"
             adapter_args = argin
         else:
-            receiver_band = args.get("dish", {}).get("receiver_band", "")
+            receiver_band = args.get("dish", {}).get("receiver_band"`, "")
             command_name: str = f"ConfigureBand{receiver_band}"
             adapter_args = True
 
