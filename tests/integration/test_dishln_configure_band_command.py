@@ -10,6 +10,7 @@ from tests.settings import (
     COMMAND_COMPLETED,
     COMMAND_FAILED,
     COMMAND_TIMEOUT,
+    DISH_CONFIGURE_1_0,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
@@ -17,7 +18,7 @@ from tests.settings import (
 )
 
 
-def configureband_command(tango_context, dishln_name, group_callback):
+def configureband_command(tango_context, dishln_name, group_callback, argin):
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
@@ -51,7 +52,7 @@ def configureband_command(tango_context, dishln_name, group_callback):
         lookahead=7,
     )
 
-    result_op, unique_id_op = dish_leaf_node.ConfigureBand("1")
+    result_op, unique_id_op = dish_leaf_node.ConfigureBand(argin)
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
 
@@ -59,7 +60,14 @@ def configureband_command(tango_context, dishln_name, group_callback):
         (unique_id_op[0], COMMAND_COMPLETED),
         lookahead=7,
     )
-    assert dish_master.configuredBand == Band.B1
+    argin_reciever_band = (
+        json.loads(argin).get("dish", {}).get("receiver_band", "")
+    )
+    if argin_reciever_band == "5a":
+        argin_reciever_band = "5"
+    elif argin_reciever_band == "5b":
+        argin_reciever_band = "6"
+    assert dish_master.configuredBand == Band(int(argin_reciever_band))
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
@@ -67,10 +75,18 @@ def configureband_command(tango_context, dishln_name, group_callback):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.parametrize(
+    "argin",
+    ["1", "2", "3", "4", "5a", "5b", DISH_CONFIGURE_1_0],
+)
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_configureband_command(tango_context, group_callback):
-    configureband_command(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)
+def test_configureband_command(tango_context, group_callback, argin):
+    if argin != DISH_CONFIGURE_1_0:
+        argin = json.dumps({"dish": {"receiver_band": str(argin)}})
+    configureband_command(
+        tango_context, DISH_LEAF_NODE_DEVICE, group_callback, argin
+    )
 
 
 def configureband_command_error_propogation(

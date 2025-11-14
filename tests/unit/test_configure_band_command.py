@@ -1,6 +1,7 @@
 """Unit Tests for Track command
 """
 
+import json
 from unittest import mock
 
 import pytest
@@ -9,7 +10,7 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-from tests.settings import simulate_result_code_event
+from tests.settings import DISH_CONFIGURE_1_0, simulate_result_code_event
 
 
 def test_configure_band_command_completed(task_callback, cm):
@@ -74,3 +75,41 @@ def test_configureband_command_not_allowed(cm_without_er_lp):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configureband_allowed()
+
+
+def test_configureband_command_with_interface_version(task_callback, cm):
+    attrs = {
+        'ConfigureBand.return_value': (
+            [ResultCode.OK],
+            ["Command Completed"],
+        ),
+    }
+
+    dishMock = mock.Mock(
+        **attrs,
+    )
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    cm.adapter_factory = adapter_factory
+
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    assert cm.is_configureband_allowed()
+
+    cm.configureband(
+        json.dumps(DISH_CONFIGURE_1_0), task_callback=task_callback
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.QUEUED}
+    )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    simulate_result_code_event(cm, "ConfigureBand", ResultCode.OK)
+    cm.observable.notify_observers(attribute_value_change=True)
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=6,
+    )
