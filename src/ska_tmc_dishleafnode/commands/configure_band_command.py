@@ -127,7 +127,7 @@ class ConfigureBand(DishLNCommand):
             command_name: str = "ConfigureBand"
             adapter_args = argin
         else:
-            receiver_band = args.get("dish", {}).get("receiver_band"`, "")
+            receiver_band = args.get("dish", {}).get("receiver_band", "")
             command_name: str = f"ConfigureBand{receiver_band}"
             adapter_args = True
 
