@@ -227,7 +227,7 @@ class ApplyPointingModel(DishLNCommand):
         Args:
             argin (str): Global pointing model data JSON
 
-        .. literalinclude:: ../../../tests/data/global_pointing_model.json
+        .. literalinclude:: ../../../../tests/data/global_pointing_model.json
             :language: json
             :caption: Example JSON for ApplyPointingModel
 
