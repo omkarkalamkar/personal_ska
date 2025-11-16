@@ -10,7 +10,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 Updated
 -------
 * Updated the TMC mid documentation to bring it on par with the updates made towards resolution of SKB-808
-* Updated the TMC mid ConfigureBand command to support SPFRx configuration
+* Updated the TMC mid ConfigureBand command to support SPFRx configuration.
 
 Added
 -----
