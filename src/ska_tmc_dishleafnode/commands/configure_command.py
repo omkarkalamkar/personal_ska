@@ -522,30 +522,35 @@ class Configure(DishLNCommand):
         self.logger.info(
             "Existing band is %s", self.component_manager.dishConfiguredBand
         )
-        configure_band_command = ConfigureBand(
-            self.component_manager,
-            self.op_state_model,
-            self._adapter_factory,
-            logger=self.logger,
-            is_configure_command=True,
-        )
-        configure_band_command.configure_band(
-            argin=json.dumps(json_argument),
-            logger=self.logger,
-            task_callback=_invoke_configure_band_callback,
-            task_abort_event=self.component_manager.abort_event,
-        )
-
-        if (
-            self.component_manager.get_configure_band_result_code()
-            == ResultCode.FAILED
-        ):
-            return (
-                self.component_manager.get_configure_band_result_code(),
-                self.component_manager.get_configure_band_result_dict()[
-                    "exception"
-                ],
+        if receiver_band != self.component_manager.dishConfiguredBand:
+            configure_band_command = ConfigureBand(
+                self.component_manager,
+                self.op_state_model,
+                self._adapter_factory,
+                logger=self.logger,
+                is_configure_command=True,
             )
+            configure_band_command.configure_band(
+                argin=json.dumps(json_argument),
+                logger=self.logger,
+                task_callback=_invoke_configure_band_callback,
+                task_abort_event=self.component_manager.abort_event,
+            )
+
+            if (
+                self.component_manager.get_configure_band_result_code()
+                == ResultCode.FAILED
+            ):
+                return (
+                    self.component_manager.get_configure_band_result_code(),
+                    self.component_manager.get_configure_band_result_dict()[
+                        "exception"
+                    ],
+                )
+        else:
+            self.component_manager.configure_band_lrcr = ResultCode.OK
+            self.invoke_setopermode_command(json_argument)
+
         return ResultCode.QUEUED, ""
 
     def get_ie_ca_offsets_if_provided(
