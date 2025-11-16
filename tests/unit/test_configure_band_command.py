@@ -95,9 +95,7 @@ def test_configureband_command_with_interface_version(task_callback, cm):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()
 
-    cm.configureband(
-        json.dumps(DISH_CONFIGURE_1_0), task_callback=task_callback
-    )
+    cm.configureband(DISH_CONFIGURE_1_0, task_callback=task_callback)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
