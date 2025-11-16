@@ -117,7 +117,7 @@ class ConfigureBand(DishLNCommand):
             return result_code, message
 
         args = json.loads(argin)
-        interface = args.get("interface", None)
+        interface = args.get("dish", {}).get("interface", None)
         if interface:
             self.logger.debug(
                 "Command ID: %s | Interface version received: %s",
