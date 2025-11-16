@@ -300,7 +300,7 @@ class Configure(DishLNCommand):
                 that includes pointing parameters
                 of Dish- Azimuth and Elevation Angle.
 
-        .. literalinclude:: ../../../tests/data/dishleafnode_configure.json
+        .. literalinclude:: ../../../../tests/data/dishleafnode_configure.json
             :language: json
             :caption: Example JSON for Configure
 

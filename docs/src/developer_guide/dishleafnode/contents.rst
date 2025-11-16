@@ -1,7 +1,13 @@
+.. _api:
+
+API
+===
+
+The TMC architecture and design is documented in detail in the Solution Intent space of
+SKA Confluence. Please refer `Solution Intent space <https://confluence.skatelescope.org/x/og2ACQ>`_.
+
 Modules
 --------
-
-Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
 .. toctree::
    :maxdepth: 4
@@ -52,5 +58,3 @@ Subpackages
    :caption: ska_dishln_pointing_device.mapping_scan
 
    ska_dishln_pointing_device.mapping_scan
-
-
