@@ -117,12 +117,16 @@ class ConfigureBand(DishLNCommand):
             return result_code, message
 
         args = json.loads(argin)
-        interface = args.get("dish", {}).get("interface", None)
-        if interface:
+        spfrx_params = args.get("dish", {}).get(
+            "spfrx_processing_parameters", None
+        )
+        if spfrx_params:
+            # if spfrx_processing_parameters are present in the argin,
+            # pass the entire argin to the adapter in ConfigureBand command
             self.logger.debug(
-                "Command ID: %s | Interface version received: %s",
+                "Command ID: %s | spfrx processing parameters are : %s",
                 self.component_manager.command_id,
-                interface,
+                spfrx_params,
             )
             command_name: str = "ConfigureBand"
             adapter_args = argin

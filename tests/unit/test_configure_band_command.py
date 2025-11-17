@@ -77,7 +77,7 @@ def test_configureband_command_not_allowed(cm_without_er_lp):
         cm.is_configureband_allowed()
 
 
-def test_configureband_command_with_interface_version(task_callback, cm):
+def test_configureband_command_with_spfrx_params(task_callback, cm):
     attrs = {
         'ConfigureBand.return_value': (
             [ResultCode.OK],
