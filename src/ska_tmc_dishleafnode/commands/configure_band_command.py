@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from typing import Callable, Optional, Tuple
@@ -115,7 +116,21 @@ class ConfigureBand(DishLNCommand):
             )
             return result_code, message
 
-        command_name: str = f"ConfigureBand{argin}"
+        args = json.loads(argin)
+        interface = args.get("dish", {}).get("interface", None)
+        if interface:
+            self.logger.debug(
+                "Command ID: %s | Interface version received: %s",
+                self.component_manager.command_id,
+                interface,
+            )
+            command_name: str = "ConfigureBand"
+            adapter_args = argin
+        else:
+            receiver_band = args.get("dish", {}).get("receiver_band", "")
+            command_name: str = f"ConfigureBand{receiver_band}"
+            adapter_args = True
+
         self.logger.debug(
             "Command ID: %s | Preparing to execute command: %s",
             self.component_manager.command_id,
@@ -136,7 +151,7 @@ class ConfigureBand(DishLNCommand):
                 "Dish Master",
                 self.dish_master_adapter,
                 command_name,
-                True,
+                adapter_args,
             )
             if ResultCode(result_code[0]) is ResultCode.QUEUED:
                 # Append command unique id
