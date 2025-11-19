@@ -2924,39 +2924,49 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-common"
+<<<<<<< HEAD
 version = "1.0.0"
+=======
+version = "1.1.0"
+>>>>>>> 54a3d462c6a7925ddb144642b9eac1986eedf200
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 optional = false
-python-versions = ">=3.10,<4.0"
+python-versions = "^3.10"
 groups = ["main"]
+<<<<<<< HEAD
 files = [
     {file = "ska_tmc_common-1.0.0-py3-none-any.whl", hash = "sha256:01e725975de3cd4bc0678c9e54fb762c88634c8bbd2233d7b6c1b0c8122b8657"},
     {file = "ska_tmc_common-1.0.0.tar.gz", hash = "sha256:f874b09bea1c542b91567369f272538f7b141f26066082cf7cccc23b9c588bf6"},
 ]
+=======
+files = []
+develop = false
+>>>>>>> 54a3d462c6a7925ddb144642b9eac1986eedf200
 
 [package.dependencies]
 attrs = "*"
 fire = ">=0.5.0,<0.6.0"
-jsonschema = ">=4.17.3,<5.0.0"
+jsonschema = "^4.17.3"
 jsonschema-specifications = "*"
-katpoint = ">=1.0a2,<2.0"
-marshmallow = ">=3.14.1,<4.0.0"
-mock = ">=4.0.3,<5.0.0"
+katpoint = "^1.0a2"
+marshmallow = "^3.14.1"
+mock = "^4.0.3"
 numpy = {version = ">=1.21.6", markers = "python_version == \"3.10\""}
 pytango = "9.5.0"
 referencing = "*"
 rpds-py = "*"
 ska-control-model = "*"
-ska-ser-logging = ">=0.4.1,<0.5.0"
+ska-ser-logging = "^0.4.1"
 ska-tango-base = "1.2.0"
 ska-tango-testing = "0.6.1"
-ska-telmodel = ">=1.19.0,<2.0.0"
+ska-telmodel = "^1.19.0"
 typing_extensions = "*"
 
 [package.source]
-type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = "ska-nexus"
+type = "git"
+url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
+reference = "sah-1820"
+resolved_reference = "bbc43c30882ca9c9e8a85b567b80351a6fd92293"
 
 [[package]]
 name = "ska-tmc-simulators"
@@ -3654,4 +3664,8 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.11"
+<<<<<<< HEAD
 content-hash = "9f6fd6b3a95e9fc184aa81d0f05848d07e13406db2cec29a7f0698ff610392d4"
+=======
+content-hash = "1343eef7c6f75c380b9f056e9ab496d0b30ba60a55f8ae3b1781b5d664d97df0"
+>>>>>>> 54a3d462c6a7925ddb144642b9eac1986eedf200

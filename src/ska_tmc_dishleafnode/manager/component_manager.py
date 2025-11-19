@@ -240,6 +240,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         }
         self.handle_gpm_version_callback = _update_gpm_version_callback
         self.supported_commands = (
+            "ConfigureBand",
             "ConfigureBand1",
             "ConfigureBand2",
             "ConfigureBand3",

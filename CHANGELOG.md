@@ -5,11 +5,24 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-[0.26.2]
-********
+[0.27.1]
+************
 Updated
 -------
-* Utilized ska-tmc-common v.1.0.0.
+* Fixed the TMC mid ConfigureBand command to support SPFRx configuration.
+
+[0.27.0]
+************
+Updated
+-------
+* Updated the TMC mid documentation to bring it on par with the updates made towards resolution of SKB-808
+* Updated the TMC mid ConfigureBand command to support SPFRx configuration.
+* Utilized ska-tmc-common v.1.1.0.
+* Utilized ska-tmc-simulator v.1.4.1.
+
+Added
+-----
+* Added glossary and command workflow in Knowledge base
 
 [0.26.1]
 ********

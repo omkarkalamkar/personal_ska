@@ -43,7 +43,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.26.2
+    tag: 0.27.1
     pullPolicy: IfNotPresent
 
 resources:
@@ -55,7 +55,7 @@ deviceServers:
   dishln:
     enabled: true
     instances: ["01", "02"]
-    family: "dish-manager" 
+    family: "dish-manager"
     family: "leaf-node-dish"
     prefix_member : "ska"
     pointing_family : "dish-pointing"

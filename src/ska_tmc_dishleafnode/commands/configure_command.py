@@ -300,7 +300,7 @@ class Configure(DishLNCommand):
                 that includes pointing parameters
                 of Dish- Azimuth and Elevation Angle.
 
-        .. literalinclude:: ../../../tests/data/dishleafnode_configure.json
+        .. literalinclude:: ../../../../tests/data/dishleafnode_configure.json
             :language: json
             :caption: Example JSON for Configure
 
@@ -531,7 +531,7 @@ class Configure(DishLNCommand):
                 is_configure_command=True,
             )
             configure_band_command.configure_band(
-                argin=self.component_manager.receiver_band,
+                argin=json.dumps(json_argument),
                 logger=self.logger,
                 task_callback=_invoke_configure_band_callback,
                 task_abort_event=self.component_manager.abort_event,
@@ -550,6 +550,7 @@ class Configure(DishLNCommand):
         else:
             self.component_manager.configure_band_lrcr = ResultCode.OK
             self.invoke_setopermode_command(json_argument)
+
         return ResultCode.QUEUED, ""
 
     def get_ie_ca_offsets_if_provided(
