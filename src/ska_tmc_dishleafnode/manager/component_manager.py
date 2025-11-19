@@ -2538,7 +2538,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.debug("Stopped event processing threads successfully")
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
-            self.actual_pointing_process.terminate()
+            # self.actual_pointing_process.terminate()
             self.logger.debug("Waiting for actual pointing process to join")
             self.actual_pointing_process.join()
             self.logger.debug("actual pointing process to join successful")
