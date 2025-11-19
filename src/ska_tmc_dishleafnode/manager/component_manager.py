@@ -2534,21 +2534,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.stop_liveliness_probe()
 
         self.stop_event_processing_threads()
-
+        self.logger.debug("Stopped event processing threads successfully")
         if self.actual_pointing_process.is_alive():
             self.actual_pointing_process_alive.set()
             self.actual_pointing_process.terminate()
+            self.logger.debug("Waiting for actual pointing process to join")
             self.actual_pointing_process.join()
+            self.logger.debug("actual pointing process to join successful")
             if self.actual_pointing_process.is_alive():
                 self.logger.debug(
                     "Actual pointing process is still alive,"
                     "killing it forcefully"
                 )
                 os.kill(self.actual_pointing_process.pid, signal.SIGKILL)
+            self.logger.debug("actual pointing process to join12 successful")
         del self._actual_pointing
         del self.received_pointing_data
         while not self.achieved_pointing_data.empty():
             _ = self.achieved_pointing_data.get(block=True)
+        self.logger.debug("actual pointing process to join14 successful")
         del self.achieved_pointing_data
         self.process_manager.shutdown()
         self.logger.debug("stop_executors_and_cleanup_memory successful")
