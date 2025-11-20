@@ -952,74 +952,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         self.logger.info("Actual pointing process exiting cleanly.")
 
-    # def process_actual_pointing(self: DishLNComponentManager) -> None:
-    #     """Process the achieved pointing data to calculate actual pointing.
-
-    #     Runs in a child process. Rebuilds the observer when the parent
-    # updates
-    #     `array_layout` (signalled via `self.layout_updated`).
-    #     """
-
-    #     self.logger.info("Main Process ID: %s", os.getppid())
-    #     self.logger.info("Sub-Process ID: %s", os.getpid())
-
-    #     # Initial setup: build antenna/observer and IERS data once.
-    #     try:
-    #         self.create_converter_obj_and_antenna_obj()
-    #     except Exception as e:
-    #         self.logger.exception(
-    #             "Failed to create initial antenna object: %s", e
-    #         )
-
-    #     try:
-    #         self.download_iers_data()
-    #     except Exception as e:
-    #         self.logger.exception("Failed to download IERS data: %s", e)
-    #     while self.actual_pointing_process_alive.is_set() is False:
-    #         try:
-    #             if (
-    #                 hasattr(self, "layout_updated")
-    #                 and self.layout_updated.is_set()
-    #             ):
-    #                 self.logger.debug(
-    #                     "array_layout update detected; rebuilding antenna."
-    #                 )
-    #                 try:
-    #                     self.create_converter_obj_and_antenna_obj()
-    #                 finally:
-    #                     # Always clear to avoid missing subsequent updates.
-    #                     self.layout_updated.clear()
-    #         except Exception as e:
-    #             self.logger.exception(
-    #                 "Error while handling layout update: %s", e
-    #             )
-
-    #         # Process any achieved-pointing samples waiting in the queue.
-    #         if not self.achieved_pointing_data.empty():
-    #             try:
-    #                 # Expecting [timestamp_tai_ska_epoch, azimuth_deg,
-    #                 # elevation_deg]
-    #                 value_list = self.achieved_pointing_data.get(
-    #                     block=True
-    #                 ).tolist()
-    #                 self.perform_reverse_transform(value_list)
-    #             except ValueError as value_error:
-    #                 self.logger.error(
-    #                     "Value error occurred in actual
-    # pointing process: %s",
-    #                     value_error,
-    #                 )
-    #             except Exception as exception:
-    #                 self.logger.exception(
-    #                     "Exception occurred in actual pointing process: %s",
-    #                     str(exception),
-    #                 )
-    #         else:
-    #             #  yield CPU a bit .
-    #             time.sleep(0.01)
-
-    #     self.logger.info("Actual pointing process exiting cleanly.")
-
     def perform_reverse_transform(
         self: DishLNComponentManager, value_list
     ) -> None:
@@ -2603,19 +2535,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.stop_event_processing_threads()
         self.logger.debug("Stopped event processing threads successfully")
 
-        # ----------- STOP CHILD PROCESS SAFELY -----------
         if (
             self.actual_pointing_process
             and self.actual_pointing_process.is_alive()
         ):
-            # Signal child to exit
             self.actual_pointing_process_alive.set()
-
-            # Push a sentinel to unblock queue.get()
-            try:
-                self.achieved_pointing_data.put_nowait(None)
-            except Exception:
-                pass
 
             self.logger.debug("Waiting for actual pointing process to join")
             self.actual_pointing_process.join(timeout=5)
@@ -2633,18 +2557,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             self.logger.debug("Actual pointing process exited")
 
-        # ----------- CLEANUP RESOURCES AFTER PROCESS EXIT -----------
-        try:
-            # Safely drain queue
-            while not self.achieved_pointing_data.empty():
-                self.achieved_pointing_data.get_nowait()
-        except Exception:
-            pass
         del self._actual_pointing
         del self.received_pointing_data
-        while not self.achieved_pointing_data.empty():
-            _ = self.achieved_pointing_data.get(block=True)
-        self.logger.debug("actual pointing process to join14 successful")
         del self.achieved_pointing_data
         self.process_manager.shutdown()
         self.logger.debug("stop_executors_and_cleanup_memory successful")
