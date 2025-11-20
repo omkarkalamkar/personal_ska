@@ -360,7 +360,10 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
 
     yield cm
     # pylint: disable=unnecessary-dunder-call
-    cm.__del__()
+    try:
+        cm.__del__()
+    except AttributeError as e:
+        logger.error("process already cleaned up: %s", e)
     # Give some time to pytest cleanup
     # pylint: enable=unnecessary-dunder-call
 
