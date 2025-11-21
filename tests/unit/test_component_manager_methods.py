@@ -15,17 +15,11 @@ def test_stop_executors_with_event_receiver(cm_without_er_lp):
     # cm fixture already has event receiver enabled
     cm = cm_without_er_lp
     assert cm.actual_pointing_process.is_alive()
-    # assert cm.event_receiver is True
 
-    # Call stop_executors_and_cleanup_memory
-    # This may raise AttributeError if attributes don't exist
-    # but should complete successfully if they do
     try:
         print(f"actual pointing {cm._actual_pointing}")
         cm.stop_executors_and_cleanup_memory()
     except AttributeError as e:
-        # If we get AttributeError, it means the method tried to delete
-        # an attribute that doesn't exist - this is acceptable for the test
         pytest.fail(f"AttributeError during cleanup: {e}")
 
     # Verify actual pointing process is stopped
