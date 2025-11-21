@@ -5,6 +5,12 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.27.2]
+********
+Fixed
+-----
+* Fixed inproper process shutdown after restart server on DishLeafNode
+
 [0.27.1]
 ************
 Updated

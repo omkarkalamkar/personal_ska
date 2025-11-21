@@ -7,6 +7,7 @@ from __future__ import annotations
 import datetime
 import json
 import os
+import queue
 import re
 import signal
 import threading
@@ -211,7 +212,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.observer = None
         self.achieved_pointing_data = self.process_manager.Queue()
-        self.actual_pointing_process_alive = Event()
+        self.stop_actual_pointing_process = Event()
         self._queue_connector_device_info: SdpQueueConnectorDeviceInfo = (
             SdpQueueConnectorDeviceInfo()
         )
@@ -885,7 +886,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def process_actual_pointing(self: DishLNComponentManager) -> None:
         """Process the achieved pointing data to calculate actual pointing.
-
         Runs in a child process. Rebuilds the observer when the parent updates
         `array_layout` (signalled via `self.layout_updated`).
         """
@@ -893,7 +893,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
 
-        # Initial setup: build antenna/observer and IERS data once.
+        # Initial setup
         try:
             self.create_converter_obj_and_antenna_obj()
         except Exception as e:
@@ -905,7 +905,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.download_iers_data()
         except Exception as e:
             self.logger.exception("Failed to download IERS data: %s", e)
-        while self.actual_pointing_process_alive.is_set() is False:
+
+        # Keep running while the Event is NOT set
+        while not self.stop_actual_pointing_process.is_set():
+            # Handle layout updates
             try:
                 if (
                     hasattr(self, "layout_updated")
@@ -917,35 +920,35 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     try:
                         self.create_converter_obj_and_antenna_obj()
                     finally:
-                        # Always clear to avoid missing subsequent updates.
                         self.layout_updated.clear()
             except Exception as e:
                 self.logger.exception(
                     "Error while handling layout update: %s", e
                 )
 
-            # Process any achieved-pointing samples waiting in the queue.
-            if not self.achieved_pointing_data.empty():
-                try:
-                    # Expecting [timestamp_tai_ska_epoch, azimuth_deg,
-                    # elevation_deg]
-                    value_list = self.achieved_pointing_data.get(
-                        block=True
-                    ).tolist()
-                    self.perform_reverse_transform(value_list)
-                except ValueError as value_error:
-                    self.logger.error(
-                        "Value error occurred in actual pointing process: %s",
-                        value_error,
-                    )
-                except Exception as exception:
-                    self.logger.exception(
-                        "Exception occurred in actual pointing process: %s",
-                        str(exception),
-                    )
-            else:
-                #  yield CPU a bit .
-                time.sleep(0.01)
+            # Read queue with timeout — never block forever
+            try:
+                item = self.achieved_pointing_data.get(timeout=0.5)
+            except queue.Empty:
+                continue  # recheck event and loop
+
+            # Shutdown sentinel
+            if item is None:
+                break
+
+            try:
+                value_list = item.tolist()
+                self.perform_reverse_transform(value_list)
+            except ValueError as value_error:
+                self.logger.error(
+                    "Value error occurred in actual pointing process: %s",
+                    value_error,
+                )
+            except Exception as exception:
+                self.logger.exception(
+                    "Exception occurred in actual pointing process: %s",
+                    str(exception),
+                )
 
         self.logger.info("Actual pointing process exiting cleanly.")
 
@@ -2520,11 +2523,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     def stop_executors_and_cleanup_memory(
         self: DishLNComponentManager,
     ) -> None:
-        """Method to clean up the code, stop running threads/sub-processes
-
-        :return: None
-        :rtype: None
-        """
+        """Method to clean up the code, stop running threads/sub-processes"""
 
         if self.event_receiver:
             self.stop_event_receiver()
@@ -2534,21 +2533,32 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.stop_liveliness_probe()
 
         self.stop_event_processing_threads()
+        self.logger.debug("Stopped event processing threads successfully")
 
-        if self.actual_pointing_process.is_alive():
-            self.actual_pointing_process_alive.set()
-            self.actual_pointing_process.terminate()
-            self.actual_pointing_process.join()
+        if (
+            self.actual_pointing_process
+            and self.actual_pointing_process.is_alive()
+        ):
+            self.stop_actual_pointing_process.set()
+
+            self.logger.debug("Waiting for actual pointing process to join")
+            self.actual_pointing_process.join(timeout=5)
+
+            # Try graceful terminate if still alive
             if self.actual_pointing_process.is_alive():
-                self.logger.debug(
-                    "Actual pointing process is still alive,"
-                    "killing it forcefully"
-                )
+                self.logger.debug("Child still alive -> terminate()")
+                self.actual_pointing_process.terminate()
+                self.actual_pointing_process.join(timeout=3)
+
+            # Force kill if STILL alive
+            if self.actual_pointing_process.is_alive():
+                self.logger.debug("Child still alive -> SIGKILL")
                 os.kill(self.actual_pointing_process.pid, signal.SIGKILL)
+
+            self.logger.debug("Actual pointing process exited")
+
         del self._actual_pointing
         del self.received_pointing_data
-        while not self.achieved_pointing_data.empty():
-            _ = self.achieved_pointing_data.get(block=True)
         del self.achieved_pointing_data
         self.process_manager.shutdown()
         self.logger.debug("stop_executors_and_cleanup_memory successful")
@@ -2933,7 +2943,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 which contains the event data, dishMode Event in this case.
 
         """
-        self.event_queues[event.attr_value.name].put(event)
+
+        if not event:
+            self.logger.warning(
+                "Received null event in update_dish_pointing_model_param."
+            )
+            return
+
+        attr_value = getattr(event, "attr_value", None)
+        if not attr_value:
+            self.logger.warning(f"Received event without attr_value: {event}")
+            return
+
+        attr_name = getattr(attr_value, "name", None)
+        if not attr_name:
+            self.logger.warning(
+                f"Event attr_value missing 'name' field: {attr_value}"
+            )
+            return
+
+        if attr_name not in self.event_queues:
+            self.logger.warning(
+                f"Event queue for '{attr_name}' not found. Creating one."
+            )
+            self.event_queues[attr_name] = queue.Queue()
+
+        try:
+            self.event_queues[attr_name].put(event)
+            self.logger.debug(f"Queued event for {attr_name}")
+        except Exception as e:
+            self.logger.exception(
+                f"Failed to queue event for {attr_name}: {e}"
+            )
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
