@@ -188,6 +188,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+KUBECONFIG
+kubeconfig
 
 # Spyder project settings
 .spyderproject
