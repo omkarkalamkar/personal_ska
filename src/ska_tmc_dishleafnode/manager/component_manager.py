@@ -212,7 +212,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.iers_a = None
         self.observer = None
         self.achieved_pointing_data = self.process_manager.Queue()
-        self.actual_pointing_process_alive = Event()
+        self.stop_actual_pointing_process = Event()
         self._queue_connector_device_info: SdpQueueConnectorDeviceInfo = (
             SdpQueueConnectorDeviceInfo()
         )
@@ -907,7 +907,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception("Failed to download IERS data: %s", e)
 
         # Keep running while the Event is NOT set
-        while not self.actual_pointing_process_alive.is_set():
+        while not self.stop_actual_pointing_process.is_set():
             # Handle layout updates
             try:
                 if (
@@ -2539,7 +2539,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.actual_pointing_process
             and self.actual_pointing_process.is_alive()
         ):
-            self.actual_pointing_process_alive.set()
+            self.stop_actual_pointing_process.set()
 
             self.logger.debug("Waiting for actual pointing process to join")
             self.actual_pointing_process.join(timeout=5)

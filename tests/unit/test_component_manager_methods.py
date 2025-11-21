@@ -31,7 +31,7 @@ def test_stop_executors_without_event_receiver(cm_without_er_lp):
     cm = cm_without_er_lp
 
     # Restart the actual pointing process for this test
-    cm.actual_pointing_process_alive.clear()
+    cm.stop_actual_pointing_process.clear()
     from multiprocessing import Process
 
     cm.actual_pointing_process = Process(
@@ -61,7 +61,7 @@ def test_stop_executors_when_process_not_alive(cm_without_er_lp):
     cm = cm_without_er_lp
 
     # Restart and then stop the process manually
-    cm.actual_pointing_process_alive.clear()
+    cm.stop_actual_pointing_process.clear()
     from multiprocessing import Process
 
     cm.actual_pointing_process = Process(
@@ -71,7 +71,7 @@ def test_stop_executors_when_process_not_alive(cm_without_er_lp):
     time.sleep(0.5)
 
     # Manually stop the process
-    cm.actual_pointing_process_alive.set()
+    cm.stop_actual_pointing_process.set()
     time.sleep(1)  # Give time for process to exit
 
     # Call stop_executors_and_cleanup_memory
@@ -88,7 +88,7 @@ def test_stop_executors_with_force_kill(mock_kill, cm_without_er_lp):
     cm = cm_without_er_lp
 
     # Restart the actual pointing process
-    cm.actual_pointing_process_alive.clear()
+    cm.stop_actual_pointing_process.clear()
     from multiprocessing import Process
 
     cm.actual_pointing_process = Process(
@@ -174,7 +174,7 @@ def test_process_actual_pointing_stops_on_event(cm_without_er_lp):
     cm = cm_without_er_lp
 
     # Restart the process
-    cm.actual_pointing_process_alive.clear()
+    cm.stop_actual_pointing_process.clear()
     from multiprocessing import Process
 
     cm.actual_pointing_process = Process(
@@ -192,7 +192,7 @@ def test_process_actual_pointing_stops_on_event(cm_without_er_lp):
     assert cm.actual_pointing_process.is_alive()
 
     # Set the event to stop the process
-    cm.actual_pointing_process_alive.set()
+    cm.stop_actual_pointing_process.set()
 
     # Wait for process to stop
     cm.actual_pointing_process.join(timeout=30)

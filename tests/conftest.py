@@ -353,7 +353,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
     )
-    cm.actual_pointing_process_alive.set()
+    cm.stop_actual_pointing_process.set()
     cm.array_layout = ARRAY_LAYOUT
     if cm.event_receiver:
         cm.stop_event_receiver()
