@@ -11,6 +11,7 @@ from tango import Database, DeviceProxy
 
 from tests.settings import COMMAND_COMPLETED, logger
 
+
 @pytest.mark.skip
 @given(
     parsers.parse("a DishLeafNode device"),
