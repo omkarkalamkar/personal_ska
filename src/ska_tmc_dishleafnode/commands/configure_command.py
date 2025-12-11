@@ -27,7 +27,6 @@ from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.commands.setoperatemode import SetOperateMode
 from ska_tmc_dishleafnode.commands.track_command import Track
 from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
     TrackLoadStaticOff,
@@ -223,9 +222,6 @@ class Configure(DishLNCommand):
             self.component_manager.partial_configure = False
             self.component_manager.is_trackloadstatic_off = False
             self.component_manager.configure_band_lrcr = ResultCode.UNKNOWN
-            self.component_manager.configure_setoperate_mode = (
-                ResultCode.UNKNOWN
-            )
             self.component_manager.partial_configure_lrcr = ResultCode.UNKNOWN
             self.component_manager.configure_track_lrcr = ResultCode.UNKNOWN
             if (
@@ -471,8 +467,6 @@ class Configure(DishLNCommand):
             """
             Method for invoking ConfigureBand callback
             """
-            # once configure band completed then invoke set operate mode
-            # command
             self.logger.debug(
                 "Command ID: %s | "
                 + "Received result for ConfigureBand command"
@@ -493,8 +487,7 @@ class Configure(DishLNCommand):
                 if self.component_manager.abort_event.is_set():
                     return
                 if result_code == ResultCode.OK:
-                    # Invoke set operate mode command
-                    self.invoke_setopermode_command(json_argument)
+                    self.start_dish_tracking(json_argument)
                 elif result_code == ResultCode.FAILED:
                     self.logger.info(
                         "Command ID: %s | "
@@ -511,17 +504,12 @@ class Configure(DishLNCommand):
                             "Configure command."
                         )
                         self.logger.exception(exception_message)
-
                         self.set_failure_for_configure(exception_message)
                     else:
                         self.component_manager.observable.notify_observers(
                             command_exception=True
                         )
 
-        # pylint: enable=unused-argument
-        self.logger.info(
-            "Existing band is %s", self.component_manager.dishConfiguredBand
-        )
         if receiver_band != self.component_manager.dishConfiguredBand:
             configure_band_command = ConfigureBand(
                 self.component_manager,
@@ -549,7 +537,7 @@ class Configure(DishLNCommand):
                 )
         else:
             self.component_manager.configure_band_lrcr = ResultCode.OK
-            self.invoke_setopermode_command(json_argument)
+            self.start_dish_tracking(json_argument)
 
         return ResultCode.QUEUED, ""
 
@@ -584,16 +572,6 @@ class Configure(DishLNCommand):
                 offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
                 offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
         return offsets
-
-    def invoke_setopermode_command(self, json_argument: dict):
-        """Invoke Set Operate mode command
-
-        Args:
-            json_argument (dict): json_argument for starting dish tracking.
-
-        """
-        if self.component_manager.dishMode != DishMode.STOW:
-            self.start_dish_tracking(json_argument)
 
     def invoke_trackloadstaticoff(
         self: Configure,
@@ -697,104 +675,31 @@ class Configure(DishLNCommand):
             json_argument (dict): json argument.
 
         """
-        if self.component_manager.dishMode != DishMode.OPERATE:
-            self.ensure_dish_in_right_dish_mode(json_argument)
-        else:
-            message = "Dish is already in DishMode OPERATE."
-            self.component_manager.update_set_operate_mode_result_dict(
-                ResultCode.OK, message
-            )
-            self.component_manager.configure_setoperate_mode_lrcr = (
-                ResultCode.OK
-            )
+        # Only invoke Track if dish is in OPERATE mode
+        if self.component_manager.dishMode == DishMode.OPERATE:
             self.logger.info(
-                "Command ID: %s | SetOperateMode Result: %s",
+                "Command ID: %s | Dish is already in DishMode OPERATE on %s.",
                 self.component_manager.command_id,
-                self.component_manager.set_operate_mode_result,
+                self.component_manager.dish_dev_name,
             )
             self.invoke_track_command(json_argument)
+        else:
+            self.ensure_dish_in_right_dish_mode(json_argument)
 
-    def ensure_dish_in_right_dish_mode(self: Configure, json_argument: dict):
+    def ensure_dish_in_right_dish_mode(self: Configure, _json_argument: dict):
         """This method set dish to Operate Mode
 
         Args:
             json_argument (dict): json argument for invoking track_command.
         """
         self.logger.debug(
-            "Command ID: %s | "
-            "SetOperateMode command will be executed "
-            "shortly on %s",
+            (
+                "Command ID: %s | Dish is not in OPERATE mode, "
+                "cannot invoke Track command on %s."
+            ),
             self.component_manager.command_id,
             self.component_manager.dish_dev_name,
         )
-
-        # pylint: disable=unused-argument
-        def _invoke_setoperatemode_callback(
-            status=None,
-            progress=None,
-            result=None,
-            exception=None,
-        ):
-            """
-            Method for invoking setoperatemode callback
-            """
-            self.logger.debug(
-                "Command ID: %s | Result code for track load mode: %s",
-                self.component_manager.command_id,
-                str(result),
-            )
-            if result is None:
-                pass
-            else:
-                result_code, message = result
-                self.component_manager.update_set_operate_mode_result_dict(
-                    result_code, message, exception, status
-                )
-                self.component_manager.configure_setoperate_mode_lrcr = (
-                    result_code
-                )
-                if self.component_manager.abort_event.is_set():
-                    return
-                if result_code == ResultCode.OK:
-                    # Invoke Track command
-                    self.invoke_track_command(json_argument)
-                elif result_code == ResultCode.FAILED:
-                    # If timed out has occurred for SetOperateMode
-                    # then update exception message for configure command
-                    if "Timeout has occurred" in exception:
-                        exception_message = (
-                            "Timeout occurred while waiting for "
-                            "SetOperateMode command to"
-                            " be completed in Configure command."
-                        )
-                        self.set_failure_for_configure(exception_message)
-                        self.logger.exception(exception_message)
-                    else:
-                        self.component_manager.observable.notify_observers(
-                            command_exception=True
-                        )
-
-        # pylint: enable=unused-argument
-        setoperatemode_command = SetOperateMode(
-            self.component_manager,
-            self.op_state_model,
-            self._adapter_factory,
-            logger=self.logger,
-            is_configure_command=True,
-        )
-        setoperatemode_command.set_operate_mode(
-            logger=self.logger,
-            task_callback=_invoke_setoperatemode_callback,
-            task_abort_event=self.component_manager.abort_event,
-        )
-
-        if (
-            self.component_manager.get_set_operate_mode_result_code()
-            == ResultCode.FAILED
-        ):
-            self.component_manager.observable.notify_observers(
-                command_exception=True
-            )
 
     def invoke_track_command(self: Configure, json_argument: dict):
         """Invoke Track command on dish
