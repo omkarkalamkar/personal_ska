@@ -680,7 +680,7 @@ class Configure(DishLNCommand):
             self.logger.info(
                 "Command ID: %s | Dish is already in DishMode OPERATE on %s.",
                 self.component_manager.command_id,
-                self.component_manager.dish_dev_name,
+                self.component_manager.track_result,
             )
             self.invoke_track_command(json_argument)
         else:
