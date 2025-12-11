@@ -13,7 +13,8 @@ COPY --from=buildenv /root/.local/ /root/.local/
 ENV PATH=$PATH:/root/.local/bin
 RUN apt-get update && \
       apt-get install -y --no-install-recommends \
-      ca-certificates 
+      ca-certificates
+RUN apt-get update && apt-get install git -y 
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 
 
