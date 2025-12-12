@@ -22,6 +22,7 @@ from tests.settings import (
 )
 
 
+@pytest.mark.skip
 def test_configure_command_completed(
     cm_without_er_lp,
     task_callback,

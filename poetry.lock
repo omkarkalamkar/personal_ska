@@ -2989,7 +2989,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators.git"
 reference = "sah-1828"
-resolved_reference = "0cfb15f1ff2dd667169a888bf485f28e02974abf"
+resolved_reference = "055ac9c5281c9dc36cefd322af85c040885ef66d"
 
 [[package]]
 name = "ska-trajectory"
