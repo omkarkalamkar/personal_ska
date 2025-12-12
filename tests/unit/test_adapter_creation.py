@@ -1,12 +1,10 @@
 from unittest import mock
 
-import pytest
 from ska_tango_base.commands import ResultCode
 
 from ska_tmc_dishleafnode.commands.track_command import Track
 
 
-@pytest.mark.test1
 def test_adapter_creation_success(cm_without_er_lp) -> None:
     cm = cm_without_er_lp
     dishMock = mock.Mock()
@@ -21,7 +19,6 @@ def test_adapter_creation_success(cm_without_er_lp) -> None:
     assert message == "Adapter initialisation is successful"
 
 
-@pytest.mark.test1
 def test_adapter_creation_timeout(cm_without_er_lp) -> None:
     cm = cm_without_er_lp
     track_command_obj = Track(

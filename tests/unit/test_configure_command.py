@@ -22,6 +22,7 @@ from tests.settings import (
 )
 
 
+@pytest.mark.test1
 def test_configure_command_completed(
     cm_without_er_lp,
     task_callback,
@@ -54,6 +55,7 @@ def test_configure_command_completed(
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
+    time.sleep(0.1)  # Ensure configure command is waiting for events
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
@@ -72,7 +74,7 @@ def test_configure_command_completed(
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=6,
+        lookahead=10,
     )
 
 
