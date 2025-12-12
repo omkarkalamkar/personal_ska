@@ -55,7 +55,7 @@ def test_configure_command_completed(
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
-    time.sleep(0.1)  # Ensure configure command is waiting for events
+    time.sleep(0.5)  # Ensure configure command is waiting for events.
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
