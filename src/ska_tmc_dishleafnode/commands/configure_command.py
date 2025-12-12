@@ -686,7 +686,7 @@ class Configure(DishLNCommand):
         else:
             self.ensure_dish_in_right_dish_mode(json_argument)
 
-    def ensure_dish_in_right_dish_mode(self: Configure, _json_argument: dict):
+    def ensure_dish_in_right_dish_mode(self: Configure, json_argument: dict):
         """This method set dish to Operate Mode
 
         Args:
