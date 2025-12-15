@@ -686,7 +686,7 @@ class Configure(DishLNCommand):
         else:
             self.ensure_dish_in_right_dish_mode(json_argument)
 
-    def ensure_dish_in_right_dish_mode(self: Configure, json_argument: dict):
+    def ensure_dish_in_right_dish_mode(self: Configure, _json_argument: dict):
         """This method set dish to Operate Mode
 
         Args:
@@ -700,17 +700,6 @@ class Configure(DishLNCommand):
             self.component_manager.command_id,
             self.component_manager.dish_dev_name,
         )
-
-        def _dish_mode_callback(event):
-            if event.attr_value.value == DishMode.OPERATE:
-                self.logger.info(
-                    "Command ID: %s | DishMode OPERATE received, "
-                    "invoking Track",
-                    self.component_manager.command_id,
-                )
-                self.invoke_track_command(json_argument)
-
-        self.component_manager.add_dish_mode_observer(_dish_mode_callback)
 
     def invoke_track_command(self: Configure, json_argument: dict):
         """Invoke Track command on dish
