@@ -1,11 +1,13 @@
+import json
+
 import pytest
 import tango
-import json
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory
 
 from tests.settings import COMMAND_COMPLETED, DISHLN_POINTING_DEVICE
+
 
 @pytest.mark.skip
 @pytest.mark.post_deployment
