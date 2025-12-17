@@ -2959,14 +2959,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-simulators"
-version = "1.1.5"
+version = "1.6.0"
 description = "SKA TMC Simulators contains helper classes required for Telescope Monitoring and Control(TMC)."
 optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 files = [
-    {file = "ska_tmc_simulators-1.1.5-py3-none-any.whl", hash = "sha256:f20d6cbac6200d39308d14de05f0f3a706f1df251d87b6ffb03b44b17685e936"},
-    {file = "ska_tmc_simulators-1.1.5.tar.gz", hash = "sha256:1932e4436745ad2c0f75214c954bca1481481ce4c119b9bce884b81ff208607e"},
+    {file = "ska_tmc_simulators-1.6.0-py3-none-any.whl", hash = "sha256:1e22a9ea552257d272a29007e6bdc393a16ad49667e7ab36175dd8c79c8ed9cd"},
+    {file = "ska_tmc_simulators-1.6.0.tar.gz", hash = "sha256:d503edccedaa430a4354a94c8ec6663d2d64ebd3934658e9ce3e9491579e11a9"},
 ]
 
 [package.dependencies]
@@ -3658,4 +3658,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "51b0c3c58e7d9cc7bc05475576e2155905a836c5ec6db9940b1d43d5c9717799"
+content-hash = "1abf8e3f84751d0e10efd3b04776c2bf8a058e026676e1598d6f56c1938fe5a0"
