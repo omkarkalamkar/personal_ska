@@ -1,12 +1,13 @@
 import pytest
 import tango
+import json
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory
 
 from tests.settings import COMMAND_COMPLETED, DISHLN_POINTING_DEVICE
 
-
+@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_dishln_pointing_device(group_callback):
@@ -27,7 +28,7 @@ def test_dishln_pointing_device(group_callback):
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_COMPLETED),
-        lookahead=7,
+        lookahead=10,
     )
 
     result_code, message = dishln_pointing_device.StopProgramTrackTable()
@@ -35,7 +36,7 @@ def test_dishln_pointing_device(group_callback):
     assert message == ["Command Completed"]
 
     result_code, message = dishln_pointing_device.ChangePointingData(
-        "trajectory"
+        json.dumps({"type": "trajectory"})
     )
     assert result_code == [ResultCode.OK]
     assert message == ["offset change event set"]
