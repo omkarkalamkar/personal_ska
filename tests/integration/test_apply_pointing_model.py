@@ -1,5 +1,7 @@
 import json
+from collections import OrderedDict
 
+import numpy as np
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
@@ -13,6 +15,19 @@ from tests.settings import (
     logger,
     wait_and_validate_attribute_value_available,
 )
+
+
+def gpm_validation_result(
+    val_result: str, band_name: str, band_result: str
+) -> str:
+    """Method to set gpm result for comparision in event callback"""
+
+    data = json.loads(val_result, object_pairs_hook=OrderedDict)
+
+    if band_name in data:
+        data[band_name] = band_result
+
+    return json.dumps(data)
 
 
 def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
@@ -36,11 +51,17 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         group_callback["gpmVersion"],
     )
     dish_master_dev.subscribe_event(
-        "band2PointingModelParams",
+        "band1PointingModelParams",
         tango.EventType.CHANGE_EVENT,
-        group_callback["band2PointingModelParams"],
+        group_callback["band1PointingModelParams"],
+    )
+    dish_leaf_node.subscribe_event(
+        "gpmvalidationresult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["gpmValidationResult"],
     )
 
+    val_result = dish_leaf_node.gpmvalidationresult
     gpm_version = json.loads(dish_leaf_node.gpmversion)
 
     # Initial DLN gpmversion assertion
@@ -61,15 +82,139 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         Anything,
         lookahead=2,
     )
-
     group_callback["gpmVersion"].assert_change_event(
         Anything,
         lookahead=2,
     )
-
     gpm_version = json.loads(dish_leaf_node.gpmversion)
+    assert gpm_version['Band_1'] == 'main'
 
-    assert gpm_version['Band_2'] == 'main'
+    # GPM validation scenarios
+    # Scenario 1:
+    # Validation success. Band params are matching for given band
+    group_callback["gpmValidationResult"].assert_change_event(
+        gpm_validation_result(val_result, "Band_1", "OK"),
+        lookahead=2,
+    )
+
+    # Scenario 2:
+    # Validation failure. Band params are not matching for given band
+    dish_band1pointingmodelparams = dish_master_dev.band1pointingmodelparams
+    dish_band1pointingmodelparams = dish_band1pointingmodelparams.tolist()
+    band1pointingmodelparams_index1 = dish_band1pointingmodelparams[1]
+    band1pointingmodelparams_index1 += 1
+    # Change the value on the given band
+    dish_band1pointingmodelparams[1] = band1pointingmodelparams_index1
+    dish_master_dev.band1pointingmodelparams = dish_band1pointingmodelparams
+    group_callback["globalPointingModelParams"].assert_change_event(
+        Anything,
+        lookahead=2,
+    )
+    group_callback["gpmValidationResult"].assert_change_event(
+        gpm_validation_result(val_result, "Band_1", "FAILED"),
+        lookahead=2,
+    )
+    gpm_version = json.loads(dish_leaf_node.gpmversion)
+    assert gpm_version['Band_1'] == 'main'
+
+    # Scenario 3:
+    # Connection lost: Dish sent its event on band1PointingModelParams
+    band1pointingmodelparams_index1 -= 1
+    dish_band1pointingmodelparams[1] = band1pointingmodelparams_index1
+    dish_master_dev.band1pointingmodelparams = dish_band1pointingmodelparams
+    group_callback["globalPointingModelParams"].assert_change_event(
+        Anything,
+        lookahead=2,
+    )
+    group_callback["gpmValidationResult"].assert_change_event(
+        gpm_validation_result(val_result, "Band_1", "OK"),
+        lookahead=2,
+    )
+    gpm_version = json.loads(dish_leaf_node.gpmversion)
+    assert gpm_version['Band_1'] == 'main'
+
+    # Scenario 4:
+    # GPM version on Band_3 is Unknown and Dish band3 sent pointing model
+    # param values
+    val_result = dish_leaf_node.gpmvalidationresult
+    dish_master_dev.band3pointingmodelparams = dish_band1pointingmodelparams
+    group_callback["globalPointingModelParams"].assert_change_event(
+        Anything,
+        lookahead=2,
+    )
+
+    group_callback["gpmValidationResult"].assert_change_event(
+        gpm_validation_result(val_result, "Band_3", "FAILED"),
+        lookahead=2,
+    )
+    gpm_version = json.loads(dish_leaf_node.gpmversion)
+    assert gpm_version['Band_3'] == 'UNKNOWN'
+
+    # Scenario 5:
+    # Auto applying GPM if DLN has version for given band and dish sends empty
+    # values for that band [Dish master restart scenario]
+    val_result = dish_leaf_node.gpmvalidationresult
+    dish_band5apointingmodelparams = dish_master_dev.band5apointingmodelparams
+    # assert no value set on band_5a
+    assert not dish_band5apointingmodelparams.tolist()
+
+    # Set GPM version on Band_5a of DLN to 1.5.1
+    gpm_version = json.loads(dish_leaf_node.gpmversion)
+    assert gpm_version['Band_5a'] == 'UNKNOWN'
+    gpm_version['Band_5a'] = '1.5.1'
+    dish_leaf_node.gpmversion = json.dumps(gpm_version)
+    gpm_version = json.loads(dish_leaf_node.gpmversion)
+    assert gpm_version['Band_5a'] == '1.5.1'
+    # Create an event on Band_5a of dish master with empty values in it
+    dish_master_dev.band5apointingmodelparams = np.array([])
+    group_callback["globalPointingModelParams"].assert_change_event(
+        Anything,
+        lookahead=2,
+    )
+    group_callback["gpmVersion"].assert_change_event(
+        Anything,
+        lookahead=2,
+    )
+    group_callback["gpmValidationResult"].assert_change_event(
+        gpm_validation_result(val_result, "Band_5a", "OK"),
+        lookahead=2,
+    )
+    # Assert Band_5a contains values
+    assert (dish_master_dev.band5apointingmodelparams).tolist()
+
+    # Scenario 6:
+    # GPM version doesnt change on APM command failure
+    source_path = (
+        "car://gitlab.com/ska-telescope/ska-tmc/"
+        "ska-tmc-simulators?hm-808#tmdata"
+    )
+    file_path = (
+        "instrument/ska_mid1/global_pointing_model_data"
+        "/gpm-ska001-Band_5b.json"
+    )
+    gpm_json = {
+        "interface": "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0",
+        "tm_data_sources": [source_path],
+        "tm_data_filepath": file_path,
+    }
+    gpm_version = json.loads(dish_leaf_node.gpmversion)
+    band_5b_version = gpm_version['Band_5b']
+    result, unique_id = dish_leaf_node.ApplyPointingModel(json.dumps(gpm_json))
+    logger.info(f"Command ID: {unique_id} Returned result: {result}")
+    assert result[0] == ResultCode.QUEUED
+    unique_id, message = group_callback[
+        "longRunningCommandResult"
+    ].assert_change_event(
+        (unique_id[0], Anything),
+        lookahead=8,
+    )[
+        "attribute_value"
+    ]
+    result_code, mesg = json.loads(message)
+    assert result_code == ResultCode.FAILED
+    assert 'ApplyPointingModel failed' in mesg
+    gpm_version = json.loads(dish_leaf_node.gpmversion)
+    assert band_5b_version == gpm_version['Band_5b']
 
 
 def ApplyPointingModel_with_invalid_tm_path(
@@ -188,7 +333,7 @@ def gpm_version_restart_scenario(
 
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     flag = True
-    band_name = 'Band_2'
+    band_name = 'Band_1'
     band_version = 'main'
     # Check band version is already set, if any
     for band, _ in gpm_version.items():
@@ -230,6 +375,7 @@ def gpm_version_restart_scenario(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.test
 def test_apply_pointing_model(tango_context, group_callback, json_factory):
     """Test to check ApplyPointingModel command with valid TM path"""
     apply_pointing_model(

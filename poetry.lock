@@ -1111,6 +1111,7 @@ optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
+    {file = "junit-xml-2-1.9.tar.gz", hash = "sha256:3b8d9635c5215f754c7807104f6493e3ea3bc9481e2d33db294560da3a1b00f7"},
     {file = "junit_xml_2-1.9-py2.py3-none-any.whl", hash = "sha256:05093d75fe11120ccd51293884b5ee334ff3bc4b5106647c2bcc928486600588"},
 ]
 
@@ -2966,39 +2967,38 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-simulators"
-version = "1.1.5"
+version = "1.5.1"
 description = "SKA TMC Simulators contains helper classes required for Telescope Monitoring and Control(TMC)."
 optional = false
-python-versions = ">=3.10,<4.0"
+python-versions = "^3.10"
 groups = ["main"]
-files = [
-    {file = "ska_tmc_simulators-1.1.5-py3-none-any.whl", hash = "sha256:f20d6cbac6200d39308d14de05f0f3a706f1df251d87b6ffb03b44b17685e936"},
-    {file = "ska_tmc_simulators-1.1.5.tar.gz", hash = "sha256:1932e4436745ad2c0f75214c954bca1481481ce4c119b9bce884b81ff208607e"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 attrs = "*"
 fire = ">=0.5.0,<0.6.0"
-jsonschema = ">=4.17.3,<5.0.0"
+jsonschema = "^4.17.3"
 jsonschema-specifications = "*"
-katpoint = ">=1.0a2,<2.0"
-marshmallow = ">=3.14.1,<4.0.0"
-mock = ">=4.0.3,<5.0.0"
+katpoint = "^1.0a2"
+marshmallow = "^3.14.1"
+mock = "^4.0.3"
 numpy = {version = ">=1.21.6", markers = "python_version == \"3.10\""}
 pytango = "9.5.0"
 referencing = "*"
 rpds-py = "*"
 ska-control-model = "*"
-ska-ser-logging = ">=0.4.1,<0.5.0"
+ska-ser-logging = "^0.4.1"
 ska-tango-base = "1.2.0"
 ska-tango-testing = "0.6.1"
-ska-telmodel = ">=1.19.0,<2.0.0"
+ska-telmodel = "^1.19.0"
 typing_extensions = "*"
 
 [package.source]
-type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = "ska-nexus"
+type = "git"
+url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators.git"
+reference = "hm-808"
+resolved_reference = "534e9951fc481b75e06f00cf24f6a5a68c4a9009"
 
 [[package]]
 name = "ska-trajectory"
@@ -3665,4 +3665,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "1343eef7c6f75c380b9f056e9ab496d0b30ba60a55f8ae3b1781b5d664d97df0"
+content-hash = "611d2ef31030c49ace42779226132174d047bdcf640c0849bd3e2129927b7849"

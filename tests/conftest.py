@@ -189,10 +189,11 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "commandCallInfo",
         "trackTableErrors",
         "globalPointingModelParams",
-        "band2PointingModelParams",
+        "band1PointingModelParams",
         "pointingProgramTrackTable",
         "programTrackTableError",
         "gpmVersion",
+        "gpmValidationResult",
         timeout=80,
     )
     return group_callback
@@ -224,8 +225,9 @@ def dish_mode_callback(argin):
     """An empty dishmode callback"""
 
 
-def pointing_model_param_callaback():
+def pointing_model_param_callaback(temp):
     """An empty dishmode callback"""
+    logger.debug(temp)
 
 
 def pointing_state_callback(argin):
@@ -287,6 +289,11 @@ def update_gpm_version_callback(temp):
     logger.debug(temp)
 
 
+def update_gpm_validation_result_callback(temp, temp2):
+    """An empty gpm validation result callback"""
+    logger.debug(temp)
+
+
 @pytest.fixture()
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
@@ -306,6 +313,9 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         _update_gpm_version_callback=update_gpm_version_callback,
+        _update_gpm_validation_result_callback=(
+            update_gpm_validation_result_callback,
+        ),
         dish_availability_check_timeout=3,
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
@@ -349,6 +359,9 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         _update_gpm_version_callback=update_gpm_version_callback,
+        _update_gpm_validation_result_callback=(
+            update_gpm_validation_result_callback,
+        ),
         dish_availability_check_timeout=3,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
@@ -387,6 +400,9 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         _update_gpm_version_callback=update_gpm_version_callback,
+        _update_gpm_validation_result_callback=(
+            update_gpm_validation_result_callback,
+        ),
         dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
         _liveliness_probe=LivelinessProbeType.NONE,
