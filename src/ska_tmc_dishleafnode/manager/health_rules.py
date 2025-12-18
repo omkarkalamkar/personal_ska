@@ -9,9 +9,9 @@ from ska_control_model import HealthState
 
 HEALTH_RULES = {
     HealthState.OK: [
-        Rule("kvalue_result == ResultCode.OK"),
+        Rule("kvalue_result == 'OK'"),
     ],
     HealthState.DEGRADED: [
-        Rule("kvalue_result == ResultCode.FAILED"),
+        Rule("kvalue_result != 'OK'"),
     ],
 }

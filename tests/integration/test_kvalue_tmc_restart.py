@@ -1,5 +1,6 @@
 import pytest
 import tango
+from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.dev_factory import DevFactory
 from tango import DevState
@@ -32,6 +33,13 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.UNKNOWN)),
     )
+
+    assert wait_and_validate_attribute_value_available(
+        dish_leaf_node,
+        "healthState",
+        HealthState.DEGRADED,
+    )
+
     KVALUE_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
@@ -73,6 +81,13 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.OK)),
     )
+
+    assert wait_and_validate_attribute_value_available(
+        dish_leaf_node,
+        "healthState",
+        HealthState.OK,
+    )
+
     KVALUE_VAL_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
@@ -126,6 +141,13 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.FAILED)),
     )
+
+    assert wait_and_validate_attribute_value_available(
+        dish_leaf_node,
+        "healthState",
+        HealthState.DEGRADED,
+    )
+
     KVALUE_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
@@ -173,6 +195,13 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
         "kValueValidationResult",
         str(int(ResultCode.NOT_ALLOWED)),
     )
+
+    assert wait_and_validate_attribute_value_available(
+        dish_leaf_node,
+        "healthState",
+        HealthState.DEGRADED,
+    )
+
     KVALUE_ID = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
         tango.EventType.CHANGE_EVENT,
