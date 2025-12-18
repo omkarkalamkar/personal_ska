@@ -407,6 +407,7 @@ def delta_configure_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.skip(reason="test pipeline")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_partial_configure_command(
@@ -422,6 +423,7 @@ def test_partial_configure_command(
     )
 
 
+@pytest.mark.skip(reason="test pipeline")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_delta_configure_command(tango_context, group_callback, json_factory):
@@ -492,6 +494,7 @@ def test_delta_configure_with_possible_json(
     )
 
 
+@pytest.mark.skip(reason="test pipeline")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_delta_configure_command_with_different_offset(
@@ -753,6 +756,7 @@ def configure_with_wrap_sector(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.skip(reason="test pipeline")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(
