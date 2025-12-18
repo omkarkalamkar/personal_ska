@@ -81,7 +81,7 @@ def test_configure_command_completed(
 def test_configure_command_completed_partial_config(
     cm_without_er_lp, task_callback, json_factory
 ):
-    """Test partial configure functionality."""
+    """Test partial configure functionality"""
     cm = cm_without_er_lp
     attr = {
         'TrackLoadStaticOff.return_value': (
