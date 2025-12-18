@@ -246,7 +246,7 @@ def test_abort_after_configure(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.skip(reason="test pipline")
+@pytest.mark.skip(reason="test pipeline")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_while_configuring(tango_context, group_callback, json_factory):

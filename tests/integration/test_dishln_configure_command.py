@@ -436,7 +436,6 @@ def test_delta_configure_command(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.skip(reason="test pipeline")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(

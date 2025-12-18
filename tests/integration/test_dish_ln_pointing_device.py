@@ -1,5 +1,3 @@
-import json
-
 import pytest
 import tango
 from ska_control_model import HealthState
@@ -9,7 +7,6 @@ from ska_tmc_common import DevFactory
 from tests.settings import COMMAND_COMPLETED, DISHLN_POINTING_DEVICE
 
 
-@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_dishln_pointing_device(group_callback):
@@ -38,7 +35,7 @@ def test_dishln_pointing_device(group_callback):
     assert message == ["Command Completed"]
 
     result_code, message = dishln_pointing_device.ChangePointingData(
-        json.dumps({"type": "trajectory"})
+        "trajectory"
     )
     assert result_code == [ResultCode.OK]
     assert message == ["offset change event set"]
