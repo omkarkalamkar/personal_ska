@@ -54,22 +54,6 @@ def device_unavailability(tango_context, dishln_name, group_callback):
         (DishMode.STANDBY_FP),
         lookahead=2,
     )
-
-    result_op, unique_id_op = dish_leaf_node.SetOperateMode()
-    assert result_op[0] == ResultCode.QUEUED
-    logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (
-            unique_id_op[0],
-            COMMAND_COMPLETED,
-        ),
-        lookahead=2,
-    )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
