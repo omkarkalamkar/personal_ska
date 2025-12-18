@@ -69,6 +69,7 @@ from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
+from .health_rules import HEALTH_RULES
 
 
 # pylint: disable = too-many-public-methods,too-many-instance-attributes
@@ -2932,6 +2933,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.event_queues["dishMode"].put(event)
 
+    def update_kvalue_event(self, event: tango.EventData) -> None:
+        """
+        Updates dish mode event  in respective queue
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
+
+        """
+        self.event_queues["kValue"].put(event)
+
     def update_dish_pointing_model_params(
         self, event: tango.EventData
     ) -> None:
@@ -3083,3 +3095,50 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # reset flag so you can restart later if needed
         self._stop_thread = False
+
+    def get_kvalue_status(self) -> str:
+        """
+        Normalize kValue validation result for health evaluation.
+        """
+        if self.kValueValidationResult == ResultCode.OK:
+            return "OK"
+        if self.kValueValidationResult == ResultCode.FAILED:
+            return "MISMATCH"
+        return "UNKNOWN"
+
+    def get_ptt_status(self) -> str:
+        """
+        Normalize PTT error presence.
+        """
+        return (
+            "ERROR_PRESENT" if self.current_track_table_error else "NO_ERROR"
+        )
+
+    def evaluate_health_state(self) -> None:
+        """
+        Evaluate dish health using rule engine and
+        update health state via callback.
+        """
+        context = {
+            "kvalue_status": self.get_kvalue_status(),
+            "ptt_status": self.get_ptt_status(),
+        }
+
+        self.logger.debug("Evaluating health with context: %s", context)
+
+        # Priority order: FAILED → DEGRADED → OK
+        for health_state in (
+            HealthState.FAILED,
+            HealthState.DEGRADED,
+            HealthState.OK,
+        ):
+            rules = HEALTH_RULES.get(health_state, [])
+            if any(rule.matches(context) for rule in rules):
+                self.logger.info("HealthState decided as %s", health_state)
+                if self._update_health_state_callback:
+                    self._update_health_state_callback(health_state)
+                return
+
+        # Fallback
+        if self._update_health_state_callback:
+            self._update_health_state_callback(HealthState.UNKNOWN)
