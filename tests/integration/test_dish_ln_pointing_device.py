@@ -27,7 +27,7 @@ def test_dishln_pointing_device(group_callback):
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_COMPLETED),
-        lookahead=10,
+        lookahead=7,
     )
 
     result_code, message = dishln_pointing_device.StopProgramTrackTable()
