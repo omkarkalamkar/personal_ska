@@ -290,8 +290,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.push_change_archive_events("trackTableErrors", value)
         self.logger.debug("Pushed the trackTableErrors event: %s", value)
 
-        self.evaluate_health_state()
-
     def update_global_pointing_param_callback(
         self, global_pointing_model_params: str
     ) -> None:
@@ -343,7 +341,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ResultCode(self.component_manager.kValueValidationResult).name,
         )
 
-        self.component_manager.evaluate_health_state()
+        self.component_manager.evaluate_and_update_health_state()
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""

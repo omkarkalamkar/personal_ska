@@ -5,15 +5,13 @@ Rule engine definitions for Dish Leaf Node health state evaluation.
 from rule_engine import Rule
 from ska_control_model import HealthState
 
+# from ska_tango_base.commands import ResultCode
+
 HEALTH_RULES = {
-    HealthState.FAILED: [
-        Rule('ptt_status == "ERROR_PRESENT"'),
+    HealthState.OK: [
+        Rule("kvalue_result == ResultCode.OK"),
     ],
     HealthState.DEGRADED: [
-        Rule('kvalue_status == "MISMATCH"'),
-        Rule('kvalue_status == "UNKNOWN"'),
-    ],
-    HealthState.OK: [
-        Rule('ptt_status == "NO_ERROR" and ' 'kvalue_status == "OK"'),
+        Rule("kvalue_result == ResultCode.FAILED"),
     ],
 }

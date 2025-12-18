@@ -15,7 +15,7 @@ import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import tango
@@ -69,6 +69,7 @@ from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
+from .health_data import DishHealthData
 from .health_rules import HEALTH_RULES
 
 
@@ -3096,49 +3097,52 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # reset flag so you can restart later if needed
         self._stop_thread = False
 
-    def get_kvalue_status(self) -> str:
+    def build_health_context(self) -> DishHealthData:
         """
-        Normalize kValue validation result for health evaluation.
-        """
-        if self.kValueValidationResult == ResultCode.OK:
-            return "OK"
-        if self.kValueValidationResult == ResultCode.FAILED:
-            return "MISMATCH"
-        return "UNKNOWN"
+        Build health evaluation context.
 
-    def get_ptt_status(self) -> str:
+        Extend  this method when new health inputs
+        (PTT, GPM, etc.) are added.
         """
-        Normalize PTT error presence.
-        """
-        return (
-            "ERROR_PRESENT" if self.current_track_table_error else "NO_ERROR"
-        )
+        return DishHealthData(kvalue_result=self.kValueValidationResult)
 
-    def evaluate_health_state(self) -> None:
+    def evaluate_health_state(
+        self, context: DishHealthData
+    ) -> Optional[HealthState]:
         """
-        Evaluate dish health using rule engine and
-        update health state via callback.
+        Evaluate health state using rules.
+
+        Args:
+            context: DishHealthData
+
+        Returns:
+            HealthState or None if no rule matched
         """
-        context = {
-            "kvalue_status": self.get_kvalue_status(),
-            "ptt_status": self.get_ptt_status(),
+
+        rule_context = {
+            **context.__dict__,
+            "ResultCode": ResultCode,
         }
-
-        self.logger.debug("Evaluating health with context: %s", context)
-
-        # Priority order: FAILED → DEGRADED → OK
-        for health_state in (
-            HealthState.FAILED,
-            HealthState.DEGRADED,
-            HealthState.OK,
-        ):
-            rules = HEALTH_RULES.get(health_state, [])
-            if any(rule.matches(context) for rule in rules):
+        for health_state, rules in HEALTH_RULES.items():
+            # if any(rule.matches(context.__dict__) for rule in rules):
+            if any(rule.matches(rule_context) for rule in rules):
                 self.logger.info("HealthState decided as %s", health_state)
-                if self._update_health_state_callback:
-                    self._update_health_state_callback(health_state)
-                return
+                return health_state
 
-        # Fallback
+        self.logger.debug("No health rule matched for context: %s", context)
+        return None
+
+    def evaluate_and_update_health_state(self) -> None:
+        """
+        Evaluate health state based on kValue
+        and update device health if required.
+        """
+        context = self.build_health_context()
+
+        health_state = self.evaluate_health_state(context)
+
+        if health_state is None:
+            return
+
         if self._update_health_state_callback:
-            self._update_health_state_callback(HealthState.UNKNOWN)
+            self._update_health_state_callback(health_state)
