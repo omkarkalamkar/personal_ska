@@ -686,7 +686,7 @@ class Configure(DishLNCommand):
         else:
             self.ensure_dish_in_right_dish_mode(json_argument)
 
-    def ensure_dish_in_right_dish_mode(self: Configure, json_argument: dict):
+    def ensure_dish_in_right_dish_mode(self: Configure, _json_argument: dict):
         """This method set dish to Operate Mode
 
         Args:
@@ -700,8 +700,6 @@ class Configure(DishLNCommand):
             self.component_manager.command_id,
             self.component_manager.dish_dev_name,
         )
-        self.component_manager.command_in_progress = "Configure"
-        self.component_manager.pending_track_json = json_argument
 
     def invoke_track_command(self: Configure, json_argument: dict):
         """Invoke Track command on dish

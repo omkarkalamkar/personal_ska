@@ -204,8 +204,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.layout_updated = self.process_manager.Event()
         self._current_track_table_error = ""
         self.errors_to_be_reported = []
-        self.pending_track_json: dict = {}
-        self.configure_handler = None
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
@@ -1856,25 +1854,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.observable.notify_observers(attribute_value_change=True)
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
-            # -------------------------------
-        # NEW LOGIC (Configure flow only)
-        # -------------------------------
-        if (
-            dish_mode == DishMode.OPERATE
-            and self.command_in_progress == "Configure"
-            and hasattr(self, "pending_track_json")
-        ):
-            self.logger.info(
-                "Command ID: %s | DishMode OPERATE received, "
-                "invoking Track for Configure.",
-                self.command_id,
-            )
-
-            json_argument = self.pending_track_json
-            del self.pending_track_json
-
-            # Invoke Track exactly like old SetOperateMode callback
-            self.configure_handler.invoke_track_command(json_argument)
 
     def update_dish_pointing_model_param(
         self, dish_param: str, band_name: str
