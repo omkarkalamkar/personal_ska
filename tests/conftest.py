@@ -291,7 +291,13 @@ def update_gpm_version_callback(temp):
 
 def update_gpm_validation_result_callback(temp, temp2):
     """An empty gpm validation result callback"""
-    logger.debug(temp)
+    logger.debug(temp, temp2)
+
+
+def update_gpm_path_data_callback():
+    """
+    Empty update_gpm_path_data_callback
+    """
 
 
 @pytest.fixture()
@@ -316,6 +322,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _update_gpm_validation_result_callback=(
             update_gpm_validation_result_callback,
         ),
+        _update_gpm_paths_data_callback=update_gpm_path_data_callback,
         dish_availability_check_timeout=3,
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
@@ -362,6 +369,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         _update_gpm_validation_result_callback=(
             update_gpm_validation_result_callback,
         ),
+        _update_gpm_paths_data_callback=update_gpm_path_data_callback,
         dish_availability_check_timeout=3,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
@@ -403,6 +411,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_gpm_validation_result_callback=(
             update_gpm_validation_result_callback,
         ),
+        _update_gpm_paths_data_callback=update_gpm_path_data_callback,
         dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
         _liveliness_probe=LivelinessProbeType.NONE,

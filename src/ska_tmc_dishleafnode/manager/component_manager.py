@@ -99,6 +99,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_health_state_callback: Callable,
         _update_gpm_version_callback: Callable,
         _update_gpm_validation_result_callback: Callable,
+        _update_gpm_paths_data_callback: Callable,
         _liveliness_probe=LivelinessProbeType.NONE,
         _event_receiver: bool = True,
         default_array_layout_source_uris: str = '',
@@ -240,15 +241,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._gpm_version = {
             f'Band_{band}': "UNKNOWN" for band in ALLOWED_BANDS
         }
-        self._gpm_validation_result = {
-            f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
+        # self._gpm_validation_result = {
+        #     f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
+        # }
+        self._gpm_path_data: dict = {
+            "tm_data_sources": "",
+            "tm_data_filepath": "",
         }
-        self._gpm_source_path: str = ''
-        self._gpm_file_path: str = ''
         self.handle_gpm_version_callback = _update_gpm_version_callback
         self.handle_update_gpm_validation_result_callback = (
             _update_gpm_validation_result_callback
         )
+        self.store_gpm_path_data_callback = _update_gpm_paths_data_callback
         self.supported_commands = (
             "ConfigureBand",
             "ConfigureBand1",
@@ -278,8 +282,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 attribute_list=list(self.get_attribute_dict().keys()),
             )
             self.event_receiver_object.start()
-        # if _liveliness_probe != LivelinessProbeType.NONE:
-        #     self.start_liveliness_probe(_liveliness_probe)
+        if _liveliness_probe != LivelinessProbeType.NONE:
+            self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
@@ -303,9 +307,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
         self.start_event_processing_threads()
-        # self.kvalue_validation_thread.start()
+        self.kvalue_validation_thread.start()
         self.load_array_layout_for_dish()
-        # self.actual_pointing_process.start()
+        self.actual_pointing_process.start()
 
     def load_array_layout_for_dish(self) -> None:
         """
@@ -423,41 +427,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._gpm_version
 
-    @property
-    def gpm_validation_result(self):
-        """
-        Dictionary mapping each allowed band to its GPM band validation status.
+    # @property
+    # def gpm_validation_result(self):
+    #     """
+    #     Dictionary mapping each allowed band to its GPM
+    #     band validation status.
 
+    #     Returns:
+    #         dict: A mapping like
+    #         {'Band_1': ResultCode.UNKNOWN, 'Band_2': ResultCode.OK, ...}
+    #         where each key corresponds to a band validation result.
+    #         ResultCode.UNKNOWN: Default. Indicates GPM version not set for
+    #                             that band
+    #         ResultCode.FAILED: If validation fails for given band.
+    #         ResultCode.OK: If validation is successfull.
+    #     """
+    #     return self._gpm_validation_result
+
+    @property
+    def gpm_path_data(self) -> dict:
+        """Get the GPM repository(telmodel) path data
         Returns:
-            dict: A mapping like
-            {'Band_1': ResultCode.UNKNOWN, 'Band_2': ResultCode.OK, ...}
-            where each key corresponds to a band validation result.
-            ResultCode.UNKNOWN: Default. Indicates GPM version not set for
-                                that band
-            ResultCode.FAILED: If validation fails for given band.
-            ResultCode.OK: If validation is successfull.
+            str: Stored GPM data paths
         """
-        return self._gpm_validation_result
+        return self._gpm_path_data
 
-    @property
-    def gpm_source_path(self):
-        """Get the GPM repository(telmodel) source path"""
-        return self._gpm_source_path
-
-    @gpm_source_path.setter
-    def gpm_source_path(self, source_path: str) -> None:
-        """Set the GPM repository(telmodel) source path"""
-        self._gpm_source_path = source_path
-
-    @property
-    def gpm_file_path(self):
-        """Get the GPM repository(telmodel) file path"""
-        return self._gpm_file_path
-
-    @gpm_file_path.setter
-    def gpm_file_path(self, file_path: str) -> None:
-        """Set the GPM repository(telmodel) file path"""
-        self._gpm_file_path = file_path
+    @gpm_path_data.setter
+    def gpm_path_data(self, path_data: dict) -> None:
+        """Set the GPM repository(telmodel) path data
+        Args:
+            path_data(dict) : GPM source and file path data
+        """
+        self._gpm_path_data = path_data
 
     @primary_configuration.setter
     def primary_configuration(self, config: dict):
@@ -2043,12 +2044,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self, self.op_state_model, self.adapter_factory, self.logger
             )
             tm_source_path = (
-                self.gpm_source_path
+                self.gpm_path_data["tm_data_sources"]
                 + '?'
                 + gpm_version_for_given_band
                 + '#tmdata'
             )
-            tm_file_path = self.gpm_file_path + band_found + '.json'
+            tm_file_path = (
+                self.gpm_path_data["tm_data_filepath"] + band_found + '.json'
+            )
             self.logger.info(
                 "Stored TMDATA paths %s, %s", tm_source_path, tm_file_path
             )
@@ -2128,12 +2131,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.logger,
                 )
                 tm_source_path = (
-                    self.gpm_source_path
+                    self.gpm_path_data["tm_data_sources"]
                     + '?'
                     + gpm_version_for_given_band
                     + '#tmdata'
                 )
-                tm_file_path = self.gpm_file_path + band_found + '.json'
+                tm_file_path = (
+                    self.gpm_path_data["tm_data_filepath"]
+                    + band_found
+                    + '.json'
+                )
                 result_code, message = apm_cmd_obj.do(
                     json.dumps(
                         {

@@ -182,6 +182,7 @@ class ApplyPointingModel(DishLNCommand):
                 tmdata = TMData(tm_data_sources)
                 file_name = tm_data_filepath.split('/')[-1]
                 gpm_dir_path = tm_data_filepath.split('/')[:3]
+                self.logger.debug("GPM dir path: %s", gpm_dir_path)
                 gpm_dir = tmdata['/'.join(gpm_dir_path)]
                 self.logger.debug("Files found on GPM repo: %s", list(gpm_dir))
                 if gpm_dir and file_name not in list(gpm_dir):
@@ -312,13 +313,14 @@ class ApplyPointingModel(DishLNCommand):
                 )
                 # Set and memorize the tmdata paths at the
                 # time of initialization
-                if not self.component_manager.gpm_source_path:
-                    self.component_manager.gpm_source_path = tm_data_sources[
-                        0
-                    ].split("?")[0]
-                    self.component_manager.gpm_file_path = (
-                        tm_data_filepath.split('Band')[0]
-                    )
+                if not any(self.component_manager.gpm_path_data.values()):
+                    self.component_manager.gpm_path_data[
+                        "tm_data_sources"
+                    ] = tm_data_sources[0].split("?")[0]
+                    self.component_manager.gpm_path_data[
+                        "tm_data_filepath"
+                    ] = tm_data_filepath.split('Band')[0]
+                    self.component_manager.store_gpm_path_data_callback()
                 return result_code[0], message[0]
         except Exception as e:
             self.logger.exception(

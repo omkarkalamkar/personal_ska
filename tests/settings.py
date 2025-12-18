@@ -230,9 +230,15 @@ def update_gpm_version_callback(temp):
     logger.debug(temp)
 
 
-def update_gpm_validation_result_callback(temp):
+def update_gpm_validation_result_callback(temp, temp1):
     """An empty gpm validation result callback"""
-    logger.debug(temp)
+    logger.debug(temp, temp1)
+
+
+def update_gpm_path_data_callback():
+    """
+    Empty update_gpm_path_data_callback
+    """
 
 
 def create_cm(device: str) -> DishLNComponentManager:
@@ -257,6 +263,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_gpm_validation_result_callback=(
             update_gpm_validation_result_callback,
         ),
+        _update_gpm_paths_data_callback=update_gpm_path_data_callback,
     )
     return cm
 

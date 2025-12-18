@@ -32,6 +32,7 @@ from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
+from ska_tmc_dishleafnode.constants import ALLOWED_BANDS
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -143,6 +144,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
+        self._gpm_validation_result = {
+            f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
+        }
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
@@ -211,6 +215,33 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self._health_state,
         )
 
+    def update_gpm_paths_data_callback(self) -> None:
+        """
+        Callback to store GPM paths received from Central node.
+        """
+        try:
+            db = Database()
+            value = {
+                "gpmPathData": {
+                    "__value": [self.component_manager.gpm_path_data]
+                }
+            }
+            db.put_device_attribute_property(self._dishln_name, value)
+            value = db.get_device_attribute_property(
+                self._dishln_name, "gpmPathData"
+            )
+            with tango.EnsureOmniThread():
+                self.push_archive_event(
+                    "gpmPathData", self.component_manager.gpm_path_data
+                )
+            self.logger.info(
+                "%s: Memorized GPM version %s", self._dishln_name, value
+            )
+        except Exception as e:
+            self.logger.exception(
+                "Exception occurred %s while storing gpm path in tango DB", e
+            )
+
     def update_gpm_version_callback(self, gpm_version: str) -> None:
         """
         Callback to update gpmVersion attribute with the provided
@@ -221,17 +252,23 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             gpm_version (str): New GPM version string to set for
             the gpmVersion attribute.
         """
-        db = Database()
-        value = {"gpmVersion": {"__value": [gpm_version]}}
-        db.put_device_attribute_property(self._dishln_name, value)
-        value = db.get_device_attribute_property(
-            self._dishln_name, "gpmVersion"
-        )
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events("gpmVersion", gpm_version)
-        self.logger.info(
-            "%s: Memorized GPM version %s", self._dishln_name, value
-        )
+        try:
+            db = Database()
+            value = {"gpmVersion": {"__value": [gpm_version]}}
+            db.put_device_attribute_property(self._dishln_name, value)
+            value = db.get_device_attribute_property(
+                self._dishln_name, "gpmVersion"
+            )
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events("gpmVersion", gpm_version)
+            self.logger.info(
+                "%s: Memorized GPM version %s", self._dishln_name, value
+            )
+        except Exception as e:
+            self.logger.exception(
+                "Exception occurred %s while storing gpm version in tango DB",
+                e,
+            )
 
     def update_gpm_validation_result_callback(
         self, band: str, validation_result: str
@@ -243,18 +280,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             gpm_validation_result (str): Update GPM validation result for
             given band.
         """
-
-        self.component_manager.gpm_validation_result[band] = validation_result
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "gpmValidationResult",
-                json.dumps(self.component_manager.gpm_validation_result),
+        try:
+            self._gpm_validation_result[band] = validation_result
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events(
+                    "gpmValidationResult",
+                    json.dumps(self._gpm_validation_result),
+                )
+            self.logger.info(
+                "GPM validation result %s",
+                self._gpm_validation_result,
             )
-        self.logger.info(
-            "%s: GPM validation result %s",
-            self._dishln_name,
-            self.component_manager.gpm_validation_result,
-        )
+        except Exception as e:
+            self.logger.exception("Exception occurred: %s", e)
 
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
@@ -615,6 +653,52 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return json.dumps(self.component_manager.gpm_version)
 
+    @gpmVersion.write
+    def gpmVersion(self: MidTmcLeafNodeDish, gpm_version: str) -> None:
+        """Set the GPM version.
+
+        Args:
+            gpm_version(str): string in json dumps format
+        """
+        self.component_manager._gpm_version = json.loads(gpm_version)
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ_WRITE,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def gpmPathData(self: MidTmcLeafNodeDish) -> str:
+        """
+        Returns the tm data sources and file path
+        (dictionary stored in component manager) as a dictionary.
+        Format: '{
+        'tm_data_sources':
+        'car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators',
+        'tm_data_filepath':
+        'instrument/ska_mid1/global_pointing_model_data/gpm-ska001-',
+        }'
+
+        :return: gpm data paths
+        :rtype: str
+        """
+        return json.dumps(self.component_manager.gpm_path_data)
+
+    @gpmPathData.write
+    def gpmPathData(self: MidTmcLeafNodeDish, gpm_path_data: str) -> None:
+        """Set the GPM data paths.
+        Format: '{
+        'tm_data_sources':
+        'car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators',
+        'tm_data_filepath':
+        'instrument/ska_mid1/global_pointing_model_data/gpm-ska001-',
+        }'
+
+        Args:
+            gpm_path_data(str): string in json dumps format
+        """
+        self.component_manager.gpm_path_data = json.dumps(gpm_path_data)
+
     @attribute(
         dtype="str",
         access=AttrWriteType.READ,
@@ -628,16 +712,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :return: JSON string of band-to-GPM validation result mapping
         :rtype: str
         """
-        return json.dumps(self.component_manager.gpm_validation_result)
-
-    @gpmVersion.write
-    def gpmVersion(self: MidTmcLeafNodeDish, gpm_version: str) -> None:
-        """Set the GPM version.
-
-        Args:
-            gpm_version(str): string in json dumps format
-        """
-        self.component_manager._gpm_version = json.loads(gpm_version)
+        return json.dumps(self._gpm_validation_result)
 
     # --------
     # Commands
@@ -1200,6 +1275,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_gpm_version_callback=self.update_gpm_version_callback,
             _update_gpm_validation_result_callback=(
                 self.update_gpm_validation_result_callback
+            ),
+            _update_gpm_paths_data_callback=(
+                self.update_gpm_paths_data_callback
             ),
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
