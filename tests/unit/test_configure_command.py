@@ -61,11 +61,13 @@ def test_configure_command_completed(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    cm.update_device_configured_band("2")
-    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
-    cm.update_device_dish_mode(DishMode.OPERATE)
     simulate_result_code_event(cm, "GenerateProgramTrackTable", ResultCode.OK)
     simulate_track_table_event(cm)
+
+    cm.update_device_configured_band("2")
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
+
     cm.update_device_pointing_state(PointingState.TRACK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
     cm.observable.notify_observers(attribute_value_change=True)
