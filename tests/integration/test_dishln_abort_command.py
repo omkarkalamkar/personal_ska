@@ -177,8 +177,6 @@ def abort_while_configuring(
         lookahead=5,
     )
 
-    assert dish_leaf_node.pointingState == PointingState.READY
-
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
@@ -186,11 +184,11 @@ def abort_while_configuring(
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
-    # if dish_leaf_node.pointingState != PointingState.READY:
-    #     group_callback["pointingState"].assert_change_event(
-    #         (PointingState.READY),
-    #         lookahead=6,
-    #     )
+    if dish_leaf_node.pointingState != PointingState.READY:
+        group_callback["pointingState"].assert_change_event(
+            (PointingState.READY),
+            lookahead=6,
+        )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
