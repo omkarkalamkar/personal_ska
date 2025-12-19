@@ -15,7 +15,7 @@ import time
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import tango
@@ -62,11 +62,13 @@ from ska_tmc_dishleafnode.commands import (
 )
 from ska_tmc_dishleafnode.constants import (
     ALLOWED_BANDS,
-    DISH_BANDPARAMS,
     IERS_DATA_STORAGE_PATH,
     SKA_EPOCH,
 )
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
+from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
+from ska_tmc_dishleafnode.manager.health_data import DishHealthData
+from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -241,13 +243,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._gpm_version = {
             f'Band_{band}': "UNKNOWN" for band in ALLOWED_BANDS
         }
-        # self._gpm_validation_result = {
-        #     f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
-        # }
-        self._gpm_path_data: dict = {
-            "tm_data_sources": "",
-            "tm_data_filepath": "",
+        self._gpm_validation_result = {
+            f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
         }
+        self._gpm_source_path: str = ""
+        self._gpm_file_path: str = ""
         self.handle_gpm_version_callback = _update_gpm_version_callback
         self.handle_update_gpm_validation_result_callback = (
             _update_gpm_validation_result_callback
@@ -282,12 +282,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 attribute_list=list(self.get_attribute_dict().keys()),
             )
             self.event_receiver_object.start()
-        if _liveliness_probe != LivelinessProbeType.NONE:
-            self.start_liveliness_probe(_liveliness_probe)
+        # if _liveliness_probe != LivelinessProbeType.NONE:
+        #     self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
         self.dishln_pointing_device_adapter = None
+        self.gpm_validator = GPMValidator(self, logger)
 
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
@@ -306,10 +307,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
+        self.initialization_complete = threading.Event()
         self.start_event_processing_threads()
         self.kvalue_validation_thread.start()
-        self.load_array_layout_for_dish()
-        self.actual_pointing_process.start()
+        # self.load_array_layout_for_dish()
+        # self.actual_pointing_process.start()
 
     def load_array_layout_for_dish(self) -> None:
         """
@@ -427,38 +429,54 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._gpm_version
 
-    # @property
-    # def gpm_validation_result(self):
-    #     """
-    #     Dictionary mapping each allowed band to its GPM
-    #     band validation status.
+    @property
+    def gpm_validation_result(self):
+        """
+        Dictionary mapping each allowed band to its GPM
+        band validation status.
 
-    #     Returns:
-    #         dict: A mapping like
-    #         {'Band_1': ResultCode.UNKNOWN, 'Band_2': ResultCode.OK, ...}
-    #         where each key corresponds to a band validation result.
-    #         ResultCode.UNKNOWN: Default. Indicates GPM version not set for
-    #                             that band
-    #         ResultCode.FAILED: If validation fails for given band.
-    #         ResultCode.OK: If validation is successfull.
-    #     """
-    #     return self._gpm_validation_result
+        Returns:
+            dict: A mapping like
+            {'Band_1': ResultCode.UNKNOWN, 'Band_2': ResultCode.OK, ...}
+            where each key corresponds to a band validation result.
+            ResultCode.UNKNOWN: Default. Indicates GPM version not set for
+                                that band
+            ResultCode.FAILED: If validation fails for given band.
+            ResultCode.OK: If validation is successfull.
+        """
+        return self._gpm_validation_result
 
     @property
-    def gpm_path_data(self) -> dict:
-        """Get the GPM repository(telmodel) path data
+    def gpm_source_path(self) -> str:
+        """Get the GPM repository(telmodel) source path
         Returns:
-            str: Stored GPM data paths
+            str: Stored GPM source path
         """
-        return self._gpm_path_data
+        return self._gpm_source_path
 
-    @gpm_path_data.setter
-    def gpm_path_data(self, path_data: dict) -> None:
-        """Set the GPM repository(telmodel) path data
-        Args:
-            path_data(dict) : GPM source and file path data
+    @property
+    def gpm_file_path(self) -> str:
+        """Get the GPM repository(telmodel) file path
+        Returns:
+            str: Stored GPM file path
         """
-        self._gpm_path_data = path_data
+        return self._gpm_file_path
+
+    @gpm_source_path.setter
+    def gpm_source_path(self, source_path: str) -> None:
+        """Set the GPM repository(telmodel) source path
+        Args:
+            source_path(str) : GPM source path
+        """
+        self._gpm_source_path = source_path
+
+    @gpm_file_path.setter
+    def gpm_file_path(self, file_path: str) -> None:
+        """Set the GPM repository(telmodel) file path
+        Args:
+            file_path(str) : GPM file path
+        """
+        self._gpm_file_path = file_path
 
     @primary_configuration.setter
     def primary_configuration(self, config: dict):
@@ -898,6 +916,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
+        self.initialization_complete.set()
 
     def convert_timestamp(
         self: DishLNComponentManager, timestamp_tai_ska_epoch: float
@@ -1966,244 +1985,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
-    def get_band_info(self, band_name: str) -> tuple[str | None, str | None]:
-        """Get GPM version and band name for the given band on Dish Leaf Node.
-
-        Args:
-            band_name: The band name to look up.
-
-        Returns:
-            Tuple of (gpm_version, band_found). Both are None if band
-            not found.
-        """
-        gpm_version_for_given_band = None
-        band_found = None
-        try:
-            band_names = {
-                'band1': 'Band_1',
-                'band2': 'Band_2',
-                'band3': 'Band_3',
-                'band4': 'Band_4',
-                'band5a': 'Band_5a',
-                'band5b': 'Band_5b',
-            }
-            for band, band_value in band_names.items():
-                if band in band_name.lower():
-                    band_found = band_value
-                    gpm_version_for_given_band = self.gpm_version[band_found]
-                    break
-            self.logger.info("GPM validation started.")
-            self.logger.debug(
-                "GPM Version: %s, Band_Found: %s",
-                gpm_version_for_given_band,
-                band_found,
-            )
-        except Exception as e:
-            self.logger.exception(
-                "Exception for band %s occurred during GPM validation: %s",
-                band_name,
-                e,
-            )
-        return gpm_version_for_given_band, band_found
-
-    def validate_gpm_version(
-        self,
-        dish_param: list,
-        gpm_version_for_given_band: str,
-        band_found: str,
-    ) -> None:
-        """Validate GPM version against dish parameters.
-
-        Args:
-            dish_param(ndarray): Dish pointing model parameters.
-            gpm_version_for_given_band(str): GPM version for the band.
-            band_found(str): The band name found.
-        """
-        try:
-            ordered_keys = [
-                'IA',
-                'CA',
-                'NPAE',
-                'AN',
-                'AN0',
-                'AW',
-                'AW0',
-                'ACEC',
-                'ACES',
-                'ABA',
-                'ABphi',
-                'IE',
-                'ECEC',
-                'ECES',
-                'HECE4',
-                'HESE4',
-                'HECE8',
-                'HESE8',
-            ]
-            apm_cmd_obj = ApplyPointingModel(
-                self, self.op_state_model, self.adapter_factory, self.logger
-            )
-            tm_source_path = (
-                self.gpm_path_data["tm_data_sources"]
-                + '?'
-                + gpm_version_for_given_band
-                + '#tmdata'
-            )
-            tm_file_path = (
-                self.gpm_path_data["tm_data_filepath"] + band_found + '.json'
-            )
-            self.logger.info(
-                "Stored TMDATA paths %s, %s", tm_source_path, tm_file_path
-            )
-            apm_json, message = apm_cmd_obj.get_global_pointing_data_json(
-                [tm_source_path],
-                tm_file_path,
-            )
-            self.logger.debug(
-                "Downloaded GPM Json %s for %s", apm_json, band_found
-            )
-            if message:
-                self.logger.error(
-                    "GPM validation failed. GPM version '%s' for '%s' "
-                    "of dish. Error: %s",
-                    gpm_version_for_given_band,
-                    DISH_BANDPARAMS[band_found],
-                    message,
-                )
-                if self.handle_update_gpm_validation_result_callback:
-                    self.handle_update_gpm_validation_result_callback(
-                        band_found, ResultCode.FAILED.name
-                    )
-                return
-            band_params = [
-                apm_json['coefficients'][key]['value'] for key in ordered_keys
-            ]
-            band_params = np.array(band_params, dtype=np.float32)
-            if not np.allclose(band_params, dish_param):
-                # Degrade health State and update gpm_validation
-                self.logger.error(
-                    "GPM version '%s' band not matched with '%s' of dish.",
-                    gpm_version_for_given_band,
-                    DISH_BANDPARAMS[band_found],
-                )
-                self.logger.debug(
-                    "Dish GPM: %s, DLN GPM: %s", dish_param, band_params
-                )
-                if self.handle_update_gpm_validation_result_callback:
-                    self.handle_update_gpm_validation_result_callback(
-                        band_found, ResultCode.FAILED.name
-                    )
-            else:
-                if self.handle_update_gpm_validation_result_callback:
-                    self.handle_update_gpm_validation_result_callback(
-                        band_found, ResultCode.OK.name
-                    )
-                self.logger.info(
-                    "GPM version '%s' band params matched with '%s' of dish.",
-                    gpm_version_for_given_band,
-                    DISH_BANDPARAMS[band_found],
-                )
-        except Exception as e:
-            if self.handle_update_gpm_validation_result_callback:
-                self.handle_update_gpm_validation_result_callback(
-                    band_found, ResultCode.FAILED.name
-                )
-            self.logger.exception(
-                "Exception occurred while GPM validation: %s", e
-            )
-
-    def invoke_apm_on_dish(
-        self, gpm_version_for_given_band: str, band_found: str
-    ) -> None:
-        """Invoke ApplyPointingModel if GPM is set for the band
-        on DLN but not on dish.
-
-        Args:
-            gpm_version_for_given_band(str): The GPM version for the band.
-            band_found(str): The band name found.
-        """
-        try:
-            if gpm_version_for_given_band != "UNKNOWN":
-                apm_cmd_obj = ApplyPointingModel(
-                    self,
-                    self.op_state_model,
-                    self.adapter_factory,
-                    self.logger,
-                )
-                tm_source_path = (
-                    self.gpm_path_data["tm_data_sources"]
-                    + '?'
-                    + gpm_version_for_given_band
-                    + '#tmdata'
-                )
-                tm_file_path = (
-                    self.gpm_path_data["tm_data_filepath"]
-                    + band_found
-                    + '.json'
-                )
-                result_code, message = apm_cmd_obj.do(
-                    json.dumps(
-                        {
-                            "tm_data_sources": [tm_source_path],
-                            "tm_data_filepath": tm_file_path,
-                        }
-                    )
-                )
-                if result_code != int(ResultCode.OK):
-                    if self.handle_update_gpm_validation_result_callback:
-                        self.handle_update_gpm_validation_result_callback(
-                            band_found, ResultCode.FAILED.name
-                        )
-                    self.logger.info(
-                        "ApplyPointingModel command failed during GPM "
-                        "validation on %s and message: %s",
-                        self.dish_dev_name,
-                        message,
-                    )
-                    self.logger.info(
-                        "Band: '%s' and GPM version on DLN: '%s'",
-                        DISH_BANDPARAMS[band_found],
-                        gpm_version_for_given_band,
-                    )
-                else:
-                    self.logger.info(
-                        "ApplyPointingModel command invoked successfully "
-                        "during GPM validation"
-                        " on %s for band: %s, version: %s and "
-                        " message received is: %s",
-                        self.dish_dev_name,
-                        band_found,
-                        gpm_version_for_given_band,
-                        message,
-                    )
-                    if self.handle_update_gpm_validation_result_callback:
-                        self.handle_update_gpm_validation_result_callback(
-                            band_found, ResultCode.OK.name
-                        )
-            else:
-                if self.handle_update_gpm_validation_result_callback:
-                    self.handle_update_gpm_validation_result_callback(
-                        band_found, ResultCode.UNKNOWN.name
-                    )
-                self.logger.info(
-                    "Invalid GPM version '%s' found during GPM validation, "
-                    "can't apply GPM to '%s'",
-                    gpm_version_for_given_band,
-                    DISH_BANDPARAMS[band_found],
-                )
-        except Exception as e:
-            self.logger.exception(
-                "GPM validation failed. Exception occurred while applying "
-                "GPM on band: %s for version: %s and exception is %s",
-                band_found,
-                gpm_version_for_given_band,
-                e,
-            )
-            if self.handle_update_gpm_validation_result_callback:
-                self.handle_update_gpm_validation_result_callback(
-                    band_found, ResultCode.FAILED.name
-                )
-
     def update_dish_pointing_model_param(
         self, dish_param: str, band_name: str
     ) -> None:
@@ -2216,61 +1997,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param band_name: Name of the band to update.
         :type band_name: str
         """
+        # Wait for component manager to complete initialization
+        self.initialization_complete.wait()
         with self.dish_pointing_lock:
-            gpm_version_for_given_band = None
-            band_found = None
-            band_name = band_name.lower()
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
-            if band_name.lower() in self.dish_pointing_model_param:
-                gpm_version_for_given_band, band_found = self.get_band_info(
-                    band_name
-                )
-                self.logger.info(
-                    "GPM Version for %s %s",
-                    band_found,
-                    gpm_version_for_given_band,
-                )
-                if np.array(dish_param).size > 0:
-                    if gpm_version_for_given_band == "UNKNOWN":
-                        if self.handle_update_gpm_validation_result_callback:
-                            self.handle_update_gpm_validation_result_callback(
-                                band_found, ResultCode.FAILED.name
-                            )
-                        self.logger.error(
-                            "GPM Validation failed."
-                            "GPM Dish param received: %s",
-                            dish_param,
-                        )
-                        self.logger.error(
-                            "GPM version found '%s' for band: '%s'",
-                            gpm_version_for_given_band,
-                            band_found,
-                        )
-                    else:
-                        self.validate_gpm_version(
-                            dish_param, gpm_version_for_given_band, band_found
-                        )
-                elif not np.array(dish_param).size:
-                    self.invoke_apm_on_dish(
-                        gpm_version_for_given_band, band_found
-                    )
-                self.dish_pointing_model_param[band_name] = json.dumps(
-                    dish_param.tolist()
-                )
-                self.logger.debug(
-                    f"Dish parameter: {band_name} updated to {dish_param}."
-                )
-            else:
-                self.logger.error(
-                    f"Band name '{band_name}' not found in parameters."
-                )
-                return
-
-            if self._update_dish_pointing_model_param:
-                self._update_dish_pointing_model_param(
-                    self.dish_pointing_model_param
-                )
+            self.gpm_validator.update_dish_params_and_validate_gpm(
+                dish_param, band_name
+            )
 
     def update_device_pointing_state(
         self: DishLNComponentManager, pointingState: PointingState
@@ -3383,3 +3117,57 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # reset flag so you can restart later if needed
         self._stop_thread = False
+
+    def build_health_context(self) -> DishHealthData:
+        """
+        Build health evaluation context.
+
+        Extend  this method when new health inputs
+        (PTT, GPM, etc.) are added.
+        """
+
+        return DishHealthData(
+            kvalue_validation_result=self.kValueValidationResult.name,
+            gpm_validation_result=list(self.gpm_validation_result.values()),
+        )
+
+    def evaluate_health_state(
+        self, context: DishHealthData
+    ) -> Optional[HealthState]:
+        """
+        Evaluate health state using rules.
+
+        Args:
+            context: DishHealthData
+
+        Returns:
+            HealthState or None if no rule matched
+        """
+
+        # rule_context = {
+        #     **context.__dict__,
+        #     "ResultCode": ResultCode,
+        # }
+        for health_state, rules in HEALTH_RULES.items():
+            if any(rule.matches(context.__dict__) for rule in rules):
+                # if any(rule.matches(rule_context) for rule in rules):
+                self.logger.info("HealthState decided as %s", health_state)
+                return health_state
+
+        self.logger.debug("No health rule matched for context: %s", context)
+        return None
+
+    def evaluate_and_update_health_state(self) -> None:
+        """
+        Evaluate health state based on kValue
+        and update device health if required.
+        """
+        context = self.build_health_context()
+
+        health_state = self.evaluate_health_state(context)
+
+        if health_state is None:
+            return
+
+        if self._update_health_state_callback:
+            self._update_health_state_callback(health_state)

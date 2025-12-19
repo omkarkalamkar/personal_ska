@@ -235,10 +235,11 @@ def update_gpm_validation_result_callback(temp, temp1):
     logger.debug(temp, temp1)
 
 
-def update_gpm_path_data_callback():
+def update_gpm_path_data_callback(temp1, temp2):
     """
     Empty update_gpm_path_data_callback
     """
+    logger.debug("%s %s", temp1, temp2)
 
 
 def create_cm(device: str) -> DishLNComponentManager:

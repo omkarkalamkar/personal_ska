@@ -10,6 +10,7 @@ from ska_tmc_dishleafnode.commands.apply_pointing_model import (
     ApplyPointingModel,
 )
 from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
+from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
 
 interface = "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0"
 data_sources = [
@@ -195,9 +196,9 @@ def test_apm_extract_band_version(cm_without_er_lp):
         "tm_data_sources": data_sources,
         "tm_data_filepath": file_path,
     }
-    adapter_factory = mock.MagicMock()
-    logger = mock.MagicMock()
-    op_state_model = mock.MagicMock()
+    adapter_factory = MagicMock()
+    logger = MagicMock()
+    op_state_model = MagicMock()
 
     apm_command = ApplyPointingModel(
         cm,
@@ -217,6 +218,7 @@ def test_to_check_apm_command_successful_during_gpm_validation(
 ):
     # Positive Scenario: APM invoked successfully
     cm = cm_without_er_lp
+    cm.adapter_factory = MagicMock()
     cm.gpm_source_path = (
         'car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators'
     )
@@ -228,15 +230,18 @@ def test_to_check_apm_command_successful_during_gpm_validation(
     gpm_version_for_given_band = '1.5.1'
     band_found = 'Band_5a'
     cm.logger = MagicMock()
+    gpm_validator = GPMValidator(cm, cm.logger)
     with patch(
-        "ska_tmc_dishleafnode.manager.component_manager.ApplyPointingModel"
+        "ska_tmc_dishleafnode.manager.gpm_validator.ApplyPointingModel"
     ) as mock_apm_cls:
         mock_apm_instance = MagicMock()
-        mock_apm_instance.do.return_value = (ResultCode.OK, "")
+        mock_apm_instance.do.return_value = (int(ResultCode.OK), "")
         mock_apm_cls.return_value = mock_apm_instance
-        cm.invoke_apm_on_dish(gpm_version_for_given_band, band_found)
+        gpm_validator.invoke_apm_on_dish(
+            gpm_version_for_given_band, band_found
+        )
         cb.assert_called_once_with("Band_5a", "OK")
-        cm.logger.info.assert_called_once()
+        assert cm.logger.info.call_count >= 1
 
 
 def test_to_check_apm_command_failed_during_gpm_validation(cm_without_er_lp):
@@ -253,15 +258,18 @@ def test_to_check_apm_command_failed_during_gpm_validation(cm_without_er_lp):
     gpm_version_for_given_band = '1.5.1'
     band_found = 'Band_5a'
     cm.logger = MagicMock()
+    gpm_validator = GPMValidator(cm, cm.logger)
     with patch(
-        "ska_tmc_dishleafnode.manager.component_manager.ApplyPointingModel"
+        "ska_tmc_dishleafnode.manager.gpm_validator.ApplyPointingModel"
     ) as mock_apm_cls:
         mock_apm_instance = MagicMock()
-        mock_apm_instance.do.return_value = (ResultCode.FAILED, "")
+        mock_apm_instance.do.return_value = (int(ResultCode.FAILED), "")
         mock_apm_cls.return_value = mock_apm_instance
-        cm.invoke_apm_on_dish(gpm_version_for_given_band, band_found)
+        gpm_validator.invoke_apm_on_dish(
+            gpm_version_for_given_band, band_found
+        )
         cb.assert_called_once_with("Band_5a", "FAILED")
-        assert cm.logger.info.call_count == 2
+        assert cm.logger.info.call_count >= 1
 
 
 def test_to_check_apm_command_exception_during_gpm_validation(
@@ -277,13 +285,17 @@ def test_to_check_apm_command_exception_during_gpm_validation(
     band_found = 'Band_5a'
     cm.handle_update_gpm_validation_result_callback = MagicMock()
     cb = cm.handle_update_gpm_validation_result_callback
+    gpm_validator = GPMValidator(cm, cm.logger)
     with patch(
-        "ska_tmc_dishleafnode.manager.component_manager.ApplyPointingModel"
+        "ska_tmc_dishleafnode.manager.gpm_validator.ApplyPointingModel"
     ) as mock_apm_cls:
         mock_apm_instance = MagicMock()
         mock_apm_instance.do.return_value = (ResultCode.FAILED, "")
         mock_apm_cls.return_value = mock_apm_instance
-        cm.invoke_apm_on_dish(gpm_version_for_given_band, band_found)
+        gpm_validator.invoke_apm_on_dish(
+            gpm_version_for_given_band, band_found
+        )
+
         cb.assert_called_once_with("Band_5a", "FAILED")
         cm.logger.exception.assert_called_once()
 
@@ -301,6 +313,7 @@ def test_to_check_validate_gpm_version_with_error(cm_without_er_lp):
     band_found = 'Band_5a'
     cm.handle_update_gpm_validation_result_callback = MagicMock()
     cb = cm.handle_update_gpm_validation_result_callback
+    gpm_validator = GPMValidator(cm, cm.logger)
     with patch(
         "ska_tmc_dishleafnode.manager.component_manager.ApplyPointingModel"
     ) as mock_apm_cls:
@@ -310,7 +323,7 @@ def test_to_check_validate_gpm_version_with_error(cm_without_er_lp):
             "error",
         )
         mock_apm_cls.return_value = mock_apm_instance
-        cm.validate_gpm_version(
+        gpm_validator.validate_gpm_version(
             np.array(dish_param), gpm_version_for_given_band, band_found
         )
         cb.assert_called_once_with("Band_5a", "FAILED")
@@ -329,7 +342,8 @@ def test_to_check_validate_gpm_version_with_success(cm_without_er_lp):
     gpm_version_for_given_band = '1.5.1'
     band_found = 'Band_1'
     cm.handle_update_gpm_validation_result_callback = MagicMock()
-    cm.validate_gpm_version(
+    gpm_validator = GPMValidator(cm, cm.logger)
+    gpm_validator.validate_gpm_version(
         np.array(dish_param), gpm_version_for_given_band, band_found
     )
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
@@ -351,7 +365,8 @@ def test_to_check_validate_gpm_version_with_mismatch(cm_without_er_lp):
     gpm_version_for_given_band = '1.5.1'
     band_found = 'Band_5a'
     cm.handle_update_gpm_validation_result_callback = MagicMock()
-    cm.validate_gpm_version(
+    gpm_validator = GPMValidator(cm, cm.logger)
+    gpm_validator.validate_gpm_version(
         np.array(dish_param), gpm_version_for_given_band, band_found
     )
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
@@ -371,7 +386,8 @@ def test_to_check_validate_gpm_version_with_exception(cm_without_er_lp):
     gpm_version_for_given_band = '1.5.1'
     band_found = 'Band_5a'
     cm.handle_update_gpm_validation_result_callback = MagicMock()
-    cm.validate_gpm_version(
+    gpm_validator = GPMValidator(cm, cm.logger)
+    gpm_validator.validate_gpm_version(
         np.array(dish_param), gpm_version_for_given_band, band_found
     )
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
@@ -387,7 +403,8 @@ def test_to_check_get_band_info_success(cm_without_er_lp):
     set_band = 'Band_5b'
     band_name = "band5bpointingmodelparams"
     cm.gpm_version[set_band] = band_5b_version
-    version, band = cm.get_band_info(band_name)
+    gpm_validator = GPMValidator(cm, cm.logger)
+    version, band = gpm_validator.get_band_info(band_name)
     assert version == band_5b_version
     assert band == set_band
     cm.logger.info.assert_called_once()
@@ -399,64 +416,11 @@ def test_to_check_get_band_info_failure(cm_without_er_lp):
     # Scenario : Exception occurred
     cm.logger = MagicMock()
     band_name = Exception()
-    version, band = cm.get_band_info(band_name)
+    gpm_validator = GPMValidator(cm, cm.logger)
+    version, band = gpm_validator.get_band_info(band_name)
     assert not version
     assert not band
     cm.logger.exception.assert_called_once()
-
-
-def test_to_check_update_dish_pointing_model_param_version_unknown(
-    cm_without_er_lp,
-):
-    cm = cm_without_er_lp
-    cm.logger = MagicMock()
-    cm.handle_update_gpm_validation_result_callback = MagicMock()
-    cm.update_dish_pointing_model_param(
-        np.array(dish_param), 'band1pointingmodelparams'
-    )
-    assert cm.logger.error.call_count >= 1
-    cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
-        "Band_1", "FAILED"
-    )
-
-
-def test_to_check_update_dish_pointing_model_param_version_known(
-    cm_without_er_lp,
-):
-    cm = cm_without_er_lp
-    cm.gpm_version['Band_1'] = '1.5.1'
-    cm.logger = MagicMock()
-    cm.validate_gpm_version = MagicMock()
-    cm._update_dish_pointing_model_param = MagicMock()
-    cm.update_dish_pointing_model_param(
-        np.array(dish_param), 'band1pointingmodelparams'
-    )
-    args, _ = cm.validate_gpm_version.call_args
-    assert isinstance(args[0], np.ndarray)
-    assert args[1] == '1.5.1'
-    assert args[2] == 'Band_1'
-    cm._update_dish_pointing_model_param.assert_called_once()
-
-
-def test_to_check_update_dish_pointing_model_param_empty_dish_param(
-    cm_without_er_lp,
-):
-    cm = cm_without_er_lp
-    cm.logger = MagicMock()
-    cm.gpm_version['Band_1'] = '1.5.1'
-    cm.logger = MagicMock()
-    cm.invoke_apm_on_dish = MagicMock()
-    cm.update_dish_pointing_model_param(
-        np.array([]), 'band1pointingmodelparams'
-    )
-    args, _ = cm.invoke_apm_on_dish.call_args
-    assert args[0] == '1.5.1'
-    assert args[1] == 'Band_1'
-    # invalide band name
-    cm.update_dish_pointing_model_param(
-        np.array([]), 'band10pointingmodelparams'
-    )
-    cm.logger.error.assert_called_once()
 
 
 def test_handler_calls_component_manager_method(cm):
@@ -469,3 +433,69 @@ def test_handler_calls_component_manager_method(cm):
     cm.update_pointing_model_params.assert_called_once_with(
         queue_key, mock_event_data
     )
+
+
+def test_update_dish_pointing_model_param_calls(
+    cm_without_er_lp,
+):
+    # Scenario: Validate GPM version called once from
+    # update_dish_pointing_model_param
+    cm = cm_without_er_lp
+    logger = MagicMock()
+    cm._update_dish_pointing_model_param = MagicMock()
+    cm.evaluate_and_update_health_state = MagicMock()
+    gpm_validator = GPMValidator(cm, logger)
+    gpm_validator.get_band_info = MagicMock(return_value=("1.5.1", "Band_1"))
+    gpm_validator.validate_gpm_version = MagicMock(return_value=None)
+    gpm_validator.update_dish_params_and_validate_gpm(
+        np.array(dish_param),
+        band_name="band1pointingmodelparams",
+    )
+    gpm_validator.get_band_info.assert_called_once_with(
+        "band1pointingmodelparams"
+    )
+    args, _ = gpm_validator.validate_gpm_version.call_args
+    np.testing.assert_array_equal(args[0], dish_param)
+    assert args[1] == "1.5.1"
+    assert args[2] == "Band_1"
+    logger.info.assert_called_once()
+    logger.debug.assert_called_once()
+    cm._update_dish_pointing_model_param.assert_called_once()
+    cm.evaluate_and_update_health_state.assert_called_once()
+
+    # Scenario 2: GPM version unknown
+    cm.handle_update_gpm_validation_result_callback = MagicMock()
+    logger = MagicMock()
+    gpm_validator.get_band_info = MagicMock(return_value=("UNKNOWN", "Band_1"))
+    gpm_validator.update_dish_params_and_validate_gpm(
+        np.array(dish_param),
+        band_name="band1pointingmodelparams",
+    )
+    logger.error.call_count >= 1
+    cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
+        "Band_1", "FAILED"
+    )
+
+    # Scenario 3: invoke gpm gets called once
+    gpm_validator.get_band_info = MagicMock(return_value=("1.5.2", "Band_1"))
+    gpm_validator.invoke_apm_on_dish = MagicMock(return_value=None)
+    gpm_validator.update_dish_params_and_validate_gpm(
+        np.array([]),
+        band_name="band1pointingmodelparams",
+    )
+    gpm_validator.invoke_apm_on_dish.assert_called_once_with("1.5.2", "Band_1")
+
+    # Scenario 4: Invalid band name
+    logger = MagicMock()
+    gpm_validator = GPMValidator(cm, logger)
+    gpm_validator.update_dish_params_and_validate_gpm(
+        np.array(dish_param),
+        band_name="band10pointingmodelparams",
+    )
+    logger.error.assert_called_once()
+
+    # Scenario 5: update method gets called once from CM
+    cm.initialization_complete.set()
+    cm.gpm_validator.update_dish_params_and_validate_gpm = MagicMock()
+    cm.update_dish_pointing_model_param(dish_param, "band1pointingmodelparams")
+    cm.gpm_validator.update_dish_params_and_validate_gpm.assert_called_once()

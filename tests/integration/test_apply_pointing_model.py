@@ -1,15 +1,15 @@
 import json
-from collections import OrderedDict
+from time import sleep
 
 import numpy as np
 import pytest
 import tango
+from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 
 from tests.settings import (
-    COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     logger,
@@ -18,19 +18,27 @@ from tests.settings import (
 
 
 def gpm_validation_result(
-    val_result: str, band_name: str, band_result: str
+    group_callback, band_name: str, band_result: str
 ) -> str:
     """Method to set gpm result for comparision in event callback"""
-
-    data = json.loads(val_result, object_pairs_hook=OrderedDict)
-
-    if band_name in data:
-        data[band_name] = band_result
-
-    return json.dumps(data)
+    timeout = 2
+    flag = False
+    while timeout >= 0:
+        attribute_value = group_callback[
+            "gpmValidationResult"
+        ].assert_change_event(Anything, lookahead=1,)["attribute_value"]
+        gpm_validation_result = json.loads(attribute_value)
+        if gpm_validation_result[band_name] == band_result:
+            flag = True
+            break
+        sleep(1)
+        timeout -= 1
+    assert flag
 
 
 def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
+    """Test to check ApplyPointingModel command with valid TM path"""
+
     logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
@@ -60,8 +68,20 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         tango.EventType.CHANGE_EVENT,
         group_callback["gpmValidationResult"],
     )
-
-    val_result = dish_leaf_node.gpmvalidationresult
+    dish_leaf_node.subscribe_event(
+        "healthState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["healthState"],
+    )
+    
+    dish_leaf_node.gpmversion = """
+    {"Band_1": "UNKNOWN",
+    "Band_2": "UNKNOWN",
+    "Band_3": "UNKNOWN",
+    "Band_4": "UNKNOWN",
+    "Band_5a": "UNKNOWN",
+    "Band_5b": "UNKNOWN"
+    }"""
     gpm_version = json.loads(dish_leaf_node.gpmversion)
 
     # Initial DLN gpmversion assertion
@@ -92,8 +112,10 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     # GPM validation scenarios
     # Scenario 1:
     # Validation success. Band params are matching for given band
-    group_callback["gpmValidationResult"].assert_change_event(
-        gpm_validation_result(val_result, "Band_1", "OK"),
+    gpm_validation_result(group_callback, "Band_1", "OK")
+
+    group_callback["healthState"].assert_change_event(
+        HealthState.OK,
         lookahead=2,
     )
 
@@ -110,8 +132,11 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         Anything,
         lookahead=2,
     )
-    group_callback["gpmValidationResult"].assert_change_event(
-        gpm_validation_result(val_result, "Band_1", "FAILED"),
+
+    gpm_validation_result(group_callback, "Band_1", "FAILED")
+
+    group_callback["healthState"].assert_change_event(
+        HealthState.DEGRADED,
         lookahead=2,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
@@ -126,8 +151,9 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         Anything,
         lookahead=2,
     )
-    group_callback["gpmValidationResult"].assert_change_event(
-        gpm_validation_result(val_result, "Band_1", "OK"),
+    gpm_validation_result(group_callback, "Band_1", "OK")
+    group_callback["healthState"].assert_change_event(
+        HealthState.OK,
         lookahead=2,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
@@ -136,15 +162,16 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     # Scenario 4:
     # GPM version on Band_3 is Unknown and Dish band3 sent pointing model
     # param values
-    val_result = dish_leaf_node.gpmvalidationresult
     dish_master_dev.band3pointingmodelparams = dish_band1pointingmodelparams
     group_callback["globalPointingModelParams"].assert_change_event(
         Anything,
         lookahead=2,
     )
 
-    group_callback["gpmValidationResult"].assert_change_event(
-        gpm_validation_result(val_result, "Band_3", "FAILED"),
+    gpm_validation_result(group_callback, "Band_3", "FAILED")
+
+    group_callback["healthState"].assert_change_event(
+        HealthState.DEGRADED,
         lookahead=2,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
@@ -153,7 +180,6 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     # Scenario 5:
     # Auto applying GPM if DLN has version for given band and dish sends empty
     # values for that band [Dish master restart scenario]
-    val_result = dish_leaf_node.gpmvalidationresult
     dish_band5apointingmodelparams = dish_master_dev.band5apointingmodelparams
     # assert no value set on band_5a
     assert not dish_band5apointingmodelparams.tolist()
@@ -175,8 +201,11 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         Anything,
         lookahead=2,
     )
-    group_callback["gpmValidationResult"].assert_change_event(
-        gpm_validation_result(val_result, "Band_5a", "OK"),
+
+    gpm_validation_result(group_callback, "Band_5a", "OK")
+
+    group_callback["healthState"].assert_change_event(
+        HealthState.DEGRADED,
         lookahead=2,
     )
     # Assert Band_5a contains values
@@ -215,6 +244,16 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     assert 'ApplyPointingModel failed' in mesg
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert band_5b_version == gpm_version['Band_5b']
+
+    # Restore health state to OK for further tests
+    dish_master_dev.band3pointingmodelparams = np.array([])
+
+    gpm_validation_result(group_callback, "Band_3", "UNKNOWN")
+
+    group_callback["healthState"].assert_change_event(
+        HealthState.OK,
+        lookahead=2,
+    )
 
 
 def ApplyPointingModel_with_invalid_tm_path(
@@ -349,7 +388,7 @@ def gpm_version_restart_scenario(
         assert result[0] == ResultCode.QUEUED
 
         group_callback["longRunningCommandResult"].assert_change_event(
-            (unique_id[0], COMMAND_COMPLETED),
+            (unique_id[0], '[0, "Successfully wrote the GPM values"]'),
             lookahead=8,
         )
         group_callback["gpmVersion"].assert_change_event(
@@ -369,13 +408,15 @@ def gpm_version_restart_scenario(
         Anything,
         lookahead=2,
     )
+
     gpm_version_data = json.loads(assertion_data["attribute_value"])
     assert gpm_version_data[band_name] == band_version
+    assert dish_leaf_node.gpmsourcepath
+    assert dish_leaf_node.gpmfilepath
 
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 def test_apply_pointing_model(tango_context, group_callback, json_factory):
     """Test to check ApplyPointingModel command with valid TM path"""
     apply_pointing_model(
@@ -419,6 +460,7 @@ def test_apply_pointing_model_with_erroneous_json(
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
+@pytest.mark.test
 @pytest.mark.xfail(reason="Restarting device sometimes make the pod unstable")
 def test_gpm_restart_scenario(tango_context, group_callback, json_factory):
     """Test to check GPM version memorization"""

@@ -194,6 +194,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "programTrackTableError",
         "gpmVersion",
         "gpmValidationResult",
+        "healthState",
         timeout=80,
     )
     return group_callback
@@ -294,10 +295,11 @@ def update_gpm_validation_result_callback(temp, temp2):
     logger.debug(temp, temp2)
 
 
-def update_gpm_path_data_callback():
+def update_gpm_path_data_callback(temp1, temp2):
     """
     Empty update_gpm_path_data_callback
     """
+    logger.debug("%s %s", temp1, temp2)
 
 
 @pytest.fixture()
