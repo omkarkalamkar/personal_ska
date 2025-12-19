@@ -510,7 +510,15 @@ class Configure(DishLNCommand):
                             command_exception=True
                         )
 
-        if receiver_band != self.component_manager.dishConfiguredBand:
+        if (
+            receiver_band == self.component_manager.dishConfiguredBand
+            or self.component_manager.dishMode == DishMode.OPERATE
+        ):
+            self.component_manager.configure_band_lrcr = ResultCode.OK
+            self.start_dish_tracking(json_argument)
+
+        # Otherwise, ConfigureBand is required
+        else:
             configure_band_command = ConfigureBand(
                 self.component_manager,
                 self.op_state_model,
@@ -535,15 +543,6 @@ class Configure(DishLNCommand):
                         "exception"
                     ],
                 )
-        elif (
-            receiver_band == self.component_manager.dishConfiguredBand
-            and self.component_manager.dishMode == DishMode.OPERATE
-        ):
-            self.component_manager.configure_band_lrcr = ResultCode.OK
-            self.start_dish_tracking(json_argument)
-        else:
-            self.component_manager.configure_band_lrcr = ResultCode.OK
-            self.start_dish_tracking(json_argument)
 
         return ResultCode.QUEUED, ""
 
