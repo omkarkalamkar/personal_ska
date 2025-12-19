@@ -42,7 +42,6 @@ autodoc_mock_imports = [
     "ska_ser_log_transactions",
     "load_dish_cfg_command",
     "ska_trajectory"
-    "rule_engine"
 ]
 
 
