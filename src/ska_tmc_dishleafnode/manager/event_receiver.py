@@ -285,7 +285,16 @@ class DishLNEventReceiver(EventReceiver):
     def handle_kvalue_event(
         self: DishLNEventReceiver, event_flag: tango.EventData
     ) -> None:
-        """Handle kValue change event from Dish Master."""
+        """
+        Handle kValue change event received from the Dish Master.
+
+        Args:
+            event_flag (tango.EventData): Tango event data containing
+            the updated kValue or error information.
+
+        Returns:
+            None
+        """
 
         if event_flag.err:
             error = event_flag.errors[0]

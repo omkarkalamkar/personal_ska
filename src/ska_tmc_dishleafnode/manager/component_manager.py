@@ -3103,8 +3103,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         Extend  this method when new health inputs
         (PTT, GPM, etc.) are added.
+
+        Returns:
+            DishHealthData: Context containing current health inputs
+            required for health state evaluation (e.g. K-value result).
         """
-        return DishHealthData(kvalue_result=self.kValueValidationResult.name)
+        return DishHealthData(
+            kvalue_validation_result=self.kValueValidationResult.name
+        )
 
     def evaluate_health_state(
         self, context: DishHealthData
@@ -3119,13 +3125,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             HealthState or None if no rule matched
         """
 
-        # rule_context = {
-        #     **context.__dict__,
-        #     "ResultCode": ResultCode,
-        # }
         for health_state, rules in HEALTH_RULES.items():
             if any(rule.matches(context.__dict__) for rule in rules):
-                # if any(rule.matches(rule_context) for rule in rules):
                 self.logger.info("HealthState decided as %s", health_state)
                 return health_state
 

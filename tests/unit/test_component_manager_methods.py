@@ -219,7 +219,7 @@ def test_process_actual_pointing_handles_invalid_data(cm):
 
 
 @pytest.mark.parametrize(
-    "kvalue_result, expected_health_states",
+    "kvalue_validation_result, expected_health_states",
     [
         (ResultCode.OK, HealthState.OK),
         (ResultCode.FAILED, HealthState.DEGRADED),
@@ -228,8 +228,9 @@ def test_process_actual_pointing_handles_invalid_data(cm):
         (ResultCode.STARTED, HealthState.DEGRADED),
     ],
 )
+@pytest.mark.health1
 def test_health_evaluation_and_update(
-    cm, kvalue_result, expected_health_states
+    cm, kvalue_validation_result, expected_health_states
 ):
     """
     Verify:
@@ -239,7 +240,7 @@ def test_health_evaluation_and_update(
     """
 
     # Arrange
-    cm.kValueValidationResult = kvalue_result
+    cm.kValueValidationResult = kvalue_validation_result
     mock_callback = mock.Mock()
     cm._update_health_state_callback = mock_callback
 

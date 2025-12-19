@@ -16,4 +16,4 @@ class DishHealthData:
     (PTT, GPM, etc.) are added.
     """
 
-    kvalue_result: ResultCode
+    kvalue_validation_result: ResultCode
