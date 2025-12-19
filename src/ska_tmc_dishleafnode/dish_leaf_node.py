@@ -143,9 +143,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._sdpQueueConnectorFqdn = ""
         self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
-        # self._gpm_validation_result = {
-        #     f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
-        # }
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )

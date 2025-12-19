@@ -282,8 +282,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 attribute_list=list(self.get_attribute_dict().keys()),
             )
             self.event_receiver_object.start()
-        # if _liveliness_probe != LivelinessProbeType.NONE:
-        #     self.start_liveliness_probe(_liveliness_probe)
+        if _liveliness_probe != LivelinessProbeType.NONE:
+            self.start_liveliness_probe(_liveliness_probe)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
@@ -310,8 +310,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.initialization_complete = threading.Event()
         self.start_event_processing_threads()
         self.kvalue_validation_thread.start()
-        # self.load_array_layout_for_dish()
-        # self.actual_pointing_process.start()
+        self.load_array_layout_for_dish()
+        self.actual_pointing_process.start()
 
     def load_array_layout_for_dish(self) -> None:
         """
