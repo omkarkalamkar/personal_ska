@@ -73,7 +73,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         tango.EventType.CHANGE_EVENT,
         group_callback["healthState"],
     )
-    
+
     dish_leaf_node.gpmversion = """
     {"Band_1": "UNKNOWN",
     "Band_2": "UNKNOWN",
