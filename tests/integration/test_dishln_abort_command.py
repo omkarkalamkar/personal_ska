@@ -178,7 +178,7 @@ def abort_while_configuring(
     )
 
     assert dish_leaf_node.pointingState == PointingState.READY
-    
+
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
