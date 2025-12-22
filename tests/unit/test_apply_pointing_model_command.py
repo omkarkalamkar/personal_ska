@@ -241,7 +241,7 @@ def test_to_check_apm_command_successful_during_gpm_validation(
             gpm_version_for_given_band, band_found
         )
         cb.assert_called_once_with("Band_5a", "OK")
-        assert cm.logger.info.call_count >= 1
+        assert cm.logger.debug.call_count >= 1
 
 
 def test_to_check_apm_command_failed_during_gpm_validation(cm_without_er_lp):
@@ -269,7 +269,7 @@ def test_to_check_apm_command_failed_during_gpm_validation(cm_without_er_lp):
             gpm_version_for_given_band, band_found
         )
         cb.assert_called_once_with("Band_5a", "FAILED")
-        assert cm.logger.info.call_count >= 1
+        assert cm.logger.error.call_count >= 1
 
 
 def test_to_check_apm_command_exception_during_gpm_validation(

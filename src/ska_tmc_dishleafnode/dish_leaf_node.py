@@ -218,7 +218,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self, source_path: str, file_path: str
     ) -> None:
         """
-        Callback to store GPM paths received from Central node.
+        Store GPM paths received from Central node
+        (At the time of TMC initialization).
+
+        Args:
+            source_path (str): GPM source path.
+            file_path (str): GPM file path.
         """
         try:
             db = Database()
@@ -283,8 +288,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         Callback to update gpmValidationResult attribute.
 
         Args:
-            gpm_validation_result (str): Update GPM validation result for
-            given band.
+            gpm_validation_result (str): GPM validation result.
+            band(str): Band name for which validation result is to be updated.
         """
         try:
             self.component_manager.gpm_validation_result[
@@ -365,7 +370,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     ) -> None:
         """Push an event for the change of dishMode attribute."""
         self._global_pointing_model_params = global_pointing_model_params
-        self.logger.info("GPM PARAMS: %s", global_pointing_model_params)
+        self.logger.info(
+            "GPM PARAMS on Dish: %s", global_pointing_model_params
+        )
         with tango.EnsureOmniThread():
             self.push_change_archive_events(
                 "globalPointingModelParams",
@@ -653,7 +660,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def gpmVersion(self: MidTmcLeafNodeDish) -> str:
         """
         Returns the band-specific GPM version
-        (dictionary stored in component manager) as a dictionary.
+        (stored in component manager as a dictionary).
         Format: {"band": "version"}.
 
         :return: JSON string of band-to-GPM version mapping
@@ -678,16 +685,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     )
     def gpmSourcePath(self: MidTmcLeafNodeDish) -> str:
         """
-        Returns the tm data sources and file path
-        (dictionary stored in component manager) as a dictionary.
-        Format: '{
-        'tm_data_sources':
-        'car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators',
-        'tm_data_filepath':
-        'instrument/ska_mid1/global_pointing_model_data/gpm-ska001-',
-        }'
+        Returns the tm data source path
 
-        :return: gpm data paths
+        :return: source path
         :rtype: str
         """
         return json.dumps(self.component_manager.gpm_source_path)
@@ -695,12 +695,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     @gpmSourcePath.write
     def gpmSourcePath(self: MidTmcLeafNodeDish, gpm_source_path: str) -> None:
         """Set the GPM source path.
-        Format: '{
-        'tm_data_sources':
-        'car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators',
-        'tm_data_filepath':
-        'instrument/ska_mid1/global_pointing_model_data/gpm-ska001-',
-        }'
 
         Args:
             gpm_source_path(str): string in json dumps format
@@ -715,16 +709,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     )
     def gpmFilePath(self: MidTmcLeafNodeDish) -> str:
         """
-        Returns the tm data sources and file path
-        (dictionary stored in component manager) as a dictionary.
-        Format: '{
-        'tm_data_sources':
-        'car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators',
-        'tm_data_filepath':
-        'instrument/ska_mid1/global_pointing_model_data/gpm-ska001-',
-        }'
+        Returns the tm data file path
 
-        :return: gpm data paths
+        :return: gpm data file path
         :rtype: str
         """
         return json.dumps(self.component_manager.gpm_file_path)
@@ -732,12 +719,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     @gpmFilePath.write
     def gpmFilePath(self: MidTmcLeafNodeDish, gpm_file_path: str) -> None:
         """Set the GPM file path.
-        Format: '{
-        'tm_data_sources':
-        'car://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators',
-        'tm_data_filepath':
-        'instrument/ska_mid1/global_pointing_model_data/gpm-ska001-',
-        }'
 
         Args:
             gpm_file_path(str): string in json dumps format
@@ -751,7 +732,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def gpmValidationResult(self: MidTmcLeafNodeDish) -> str:
         """
         Returns the band-specific GPM validation result.
-        (dictionary stored in component manager) as a dictionary.
+        (dictionary stored in component manager).
         Format: {"band": ResultCode(UNKNOWN/OK/FAILED)}.
 
         :return: JSON string of band-to-GPM validation result mapping

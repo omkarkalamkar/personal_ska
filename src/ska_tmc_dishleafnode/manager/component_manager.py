@@ -430,7 +430,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return self._gpm_version
 
     @property
-    def gpm_validation_result(self):
+    def gpm_validation_result(self) -> dict:
         """
         Dictionary mapping each allowed band to its GPM
         band validation status.

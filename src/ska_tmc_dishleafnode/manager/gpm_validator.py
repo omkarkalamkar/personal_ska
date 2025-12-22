@@ -39,8 +39,8 @@ class GPMValidator:
         """Update the GPM validation result.
 
         Args:
-            band: Band name.
-            result_code: Validation result code.
+            band(str): Band name.
+            result_code(str): Validation result code.
         """
         callback = (
             self.component_manager.handle_update_gpm_validation_result_callback
@@ -52,7 +52,7 @@ class GPMValidator:
         """Get GPM version and band name for the given band.
 
         Args:
-            band_name: The band name to look up.
+            band_name(str): The band name to look up.
 
         Returns:
             Tuple of (gpm_version, band_found). Both are None if band
@@ -227,19 +227,19 @@ class GPMValidator:
                     self.gpm_validation_update(
                         band_found, ResultCode.FAILED.name
                     )
-                    self.logger.info(
+                    self.logger.error(
                         "ApplyPointingModel command failed during GPM "
                         "validation on %s and message: %s",
                         self.component_manager.dish_dev_name,
                         message,
                     )
-                    self.logger.info(
+                    self.logger.error(
                         "Band: '%s' and GPM version on DLN: '%s'",
                         DISH_BANDPARAMS[band_found],
                         gpm_version_for_given_band,
                     )
                 else:
-                    self.logger.info(
+                    self.logger.debug(
                         "ApplyPointingModel command invoked successfully "
                         "during GPM validation"
                         " on %s for band: %s, version: %s and "
@@ -252,7 +252,7 @@ class GPMValidator:
                     self.gpm_validation_update(band_found, ResultCode.OK.name)
             else:
                 self.gpm_validation_update(band_found, ResultCode.UNKNOWN.name)
-                self.logger.info(
+                self.logger.debug(
                     "Invalid GPM version '%s' found during GPM validation, "
                     "can't apply GPM to '%s'",
                     gpm_version_for_given_band,
@@ -276,8 +276,8 @@ class GPMValidator:
         """Update dish parameters and validate or apply GPM for the band.
 
         Args:
-            dish_param: Pointing model parameters.
-            band_name: Band name to update and validate.
+            dish_param(list): Pointing model parameters.
+            band_name(str): Band name to update and validate.
         """
         gpm_version_for_given_band = None
         band_found = None
