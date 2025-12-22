@@ -689,22 +689,14 @@ class Configure(DishLNCommand):
             )
             self.invoke_track_command(json_argument)
         else:
-            self.ensure_dish_in_right_dish_mode(json_argument)
-
-    def ensure_dish_in_right_dish_mode(self: Configure, _json_argument: dict):
-        """This method set dish to Operate Mode
-
-        Args:
-            json_argument (dict): json argument for invoking track_command.
-        """
-        self.logger.debug(
-            (
-                "Command ID: %s | Dish is not in OPERATE mode, "
-                "cannot invoke Track command on %s."
-            ),
-            self.component_manager.command_id,
-            self.component_manager.dish_dev_name,
-        )
+            self.logger.debug(
+                (
+                    "Command ID: %s | Dish is not in OPERATE mode, "
+                    "skipping Track invocation for Configure on %s."
+                ),
+                self.component_manager.command_id,
+                self.component_manager.dish_dev_name,
+            )
 
     def invoke_track_command(self: Configure, json_argument: dict):
         """Invoke Track command on dish
