@@ -12,6 +12,7 @@ import re
 import signal
 import threading
 import time
+from dataclasses import asdict
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
@@ -3144,7 +3145,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         for health_state, rules in HEALTH_RULES.items():
-            if any(rule.matches(context.__dict__) for rule in rules):
+            if any(rule.matches(asdict(context)) for rule in rules):
                 self.logger.info("HealthState decided as %s", health_state)
                 return health_state
 

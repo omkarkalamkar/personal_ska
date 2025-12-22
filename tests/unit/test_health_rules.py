@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 
-def test_health_state_none_returns_early(cm_without_er_lp):
+def test_health_state_gpm_rule(cm_without_er_lp):
     """Test that function returns early when health_state is None."""
     cm = cm_without_er_lp
     cm._update_health_state_callback = MagicMock()
