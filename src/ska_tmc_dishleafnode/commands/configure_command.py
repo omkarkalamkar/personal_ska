@@ -512,7 +512,7 @@ class Configure(DishLNCommand):
 
         if (
             receiver_band == self.component_manager.dishConfiguredBand
-            or self.component_manager.dishMode == DishMode.OPERATE
+            and self.component_manager.dishMode == DishMode.OPERATE
         ):
             self.component_manager.configure_band_lrcr = ResultCode.OK
             self.start_dish_tracking(json_argument)
