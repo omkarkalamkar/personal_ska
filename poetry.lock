@@ -1260,13 +1260,13 @@ reference = "PyPI-public"
 
 [[package]]
 name = "marshmallow"
-version = "3.26.1"
+version = "3.26.2"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "marshmallow-3.26.1-py3-none-any.whl", hash = "sha256:3350409f20a70a7e4e11a27661187b77cdcaeb20abca41c1454fe33636bea09c"},
-    {file = "marshmallow-3.26.1.tar.gz", hash = "sha256:e6d8affb6cb61d39d26402096dc0aee12d5a26d490a121f118d2e81dc0719dc6"},
+    {file = "marshmallow-3.26.2-py3-none-any.whl", hash = "sha256:013fa8a3c4c276c24d26d84ce934dc964e2aa794345a0f8c7e5a7191482c8a73"},
+    {file = "marshmallow-3.26.2.tar.gz", hash = "sha256:bbe2adb5a03e6e3571b573f42527c6fe926e17467833660bebd11593ab8dfd57"},
 ]
 
 [package.dependencies]
@@ -2906,38 +2906,37 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-simulators"
-version = "1.1.5"
+version = "1.7.0"
 description = "SKA TMC Simulators contains helper classes required for Telescope Monitoring and Control(TMC)."
 optional = false
-python-versions = ">=3.10,<4.0"
-files = [
-    {file = "ska_tmc_simulators-1.1.5-py3-none-any.whl", hash = "sha256:f20d6cbac6200d39308d14de05f0f3a706f1df251d87b6ffb03b44b17685e936"},
-    {file = "ska_tmc_simulators-1.1.5.tar.gz", hash = "sha256:1932e4436745ad2c0f75214c954bca1481481ce4c119b9bce884b81ff208607e"},
-]
+python-versions = "^3.10"
+files = []
+develop = false
 
 [package.dependencies]
 attrs = "*"
 fire = ">=0.5.0,<0.6.0"
-jsonschema = ">=4.17.3,<5.0.0"
+jsonschema = "^4.17.3"
 jsonschema-specifications = "*"
-katpoint = ">=1.0a2,<2.0"
-marshmallow = ">=3.14.1,<4.0.0"
-mock = ">=4.0.3,<5.0.0"
+katpoint = "^1.0a2"
+marshmallow = "^3.14.1"
+mock = "^4.0.3"
 numpy = {version = ">=1.21.6", markers = "python_version == \"3.10\""}
 pytango = "9.5.0"
 referencing = "*"
 rpds-py = "*"
 ska-control-model = "*"
-ska-ser-logging = ">=0.4.1,<0.5.0"
+ska-ser-logging = "^0.4.1"
 ska-tango-base = "1.2.0"
 ska-tango-testing = "0.6.1"
-ska-telmodel = ">=1.19.0,<2.0.0"
+ska-telmodel = "^1.19.0"
 typing_extensions = "*"
 
 [package.source]
-type = "legacy"
-url = "https://artefact.skao.int/repository/pypi-internal/simple"
-reference = "ska-nexus"
+type = "git"
+url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators.git"
+reference = "hm-807"
+resolved_reference = "ebafdc72501d8b7258e1bbd6a3d84d1766af4de0"
 
 [[package]]
 name = "ska-trajectory"
@@ -3575,4 +3574,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "d099f70dd1af8adba91f71dcaa20f8a6416cff6d0e114d56b36c940d5f690fff"
+content-hash = "25daca56bcd72ab596e633b15df5dfb33e22d73d6444cafe9cdea7960b6b1dbe"
