@@ -2558,11 +2558,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def get_configure_band_result(self: DishLNComponentManager):
         """
-        Return the result of the ConfigureBand command completion
+        Return the result of the ConfigureBand command completion.
 
         :return: Returns whether the ConfigureBand command completion criteria
-        is satisfied
-        :rtype: boolean
+            is satisfied.
+        :rtype: bool
+
         """
         with self.command_result_update_lock:
             result = (
