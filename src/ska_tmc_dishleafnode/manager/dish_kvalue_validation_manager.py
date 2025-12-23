@@ -119,22 +119,22 @@ class DishkValueValidationManager:
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         else:
-            # if (
-            #     self.component_manager.kValueValidationResult
-            #     == ResultCode.FAILED
-            # ):
-            #     return
-            # Suppress duplicate FAILED only during startup
             if (
-                not self._kvalue_initialized
-                and self.component_manager.kValueValidationResult
+                self.component_manager.kValueValidationResult
                 == ResultCode.FAILED
             ):
                 return
+            # Suppress duplicate FAILED only during startup
+            # if (
+            #     not self._kvalue_initialized
+            #     and self.component_manager.kValueValidationResult
+            #     == ResultCode.FAILED
+            # ):
+            #     return
             self.logger.error(
                 "kValue not identical on dish manager and dish leaf node."
             )
             self.component_manager.kValueValidationResult = ResultCode.FAILED
-            self._kvalue_initialized = True
+            # self._kvalue_initialized = True
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()

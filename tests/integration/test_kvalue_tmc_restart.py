@@ -275,7 +275,7 @@ def test_kvalue_runtime_mismatch_updates_health_to_degraded(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.kvalue_test
+@pytest.mark.kvalue_test1
 def test_kvalue_runtime_recovery_updates_health_to_ok(
     tango_context, group_callback
 ):
