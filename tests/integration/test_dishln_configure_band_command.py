@@ -56,6 +56,10 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
 
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=7,
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], COMMAND_COMPLETED),
         lookahead=7,
