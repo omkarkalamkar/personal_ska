@@ -230,7 +230,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.kvalue_test
+@pytest.mark.kvalue_test1
 def test_kvalue_runtime_mismatch_updates_health_to_degraded(
     tango_context, group_callback
 ):
@@ -256,6 +256,7 @@ def test_kvalue_runtime_mismatch_updates_health_to_degraded(
     )
 
     # Change Dish Master kValue at runtime
+    # dish_master.SetKValue(KVALUE + 10)
     dish_master.SetKValue(KVALUE + 10)
 
     # Validation result updated
