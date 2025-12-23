@@ -24,6 +24,7 @@ class DishkValueValidationManager:
         self.logger = logger
         self.dish_manager_kvalue = ""
         self.kvalue_validation_lock = threading.Lock()
+        self._kvalue_initialized = False
 
     def is_dish_manager_ready(self: DishkValueValidationManager) -> bool:
         """Wait and check if dish manager is ready
@@ -118,8 +119,15 @@ class DishkValueValidationManager:
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         else:
+            # if (
+            #     self.component_manager.kValueValidationResult
+            #     == ResultCode.FAILED
+            # ):
+            #     return
+                # Suppress duplicate FAILED only during startup
             if (
-                self.component_manager.kValueValidationResult
+                not self._kvalue_initialized
+                and self.component_manager.kValueValidationResult
                 == ResultCode.FAILED
             ):
                 return
@@ -127,5 +135,6 @@ class DishkValueValidationManager:
                 "kValue not identical on dish manager and dish leaf node."
             )
             self.component_manager.kValueValidationResult = ResultCode.FAILED
+            self._kvalue_initialized = True
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
