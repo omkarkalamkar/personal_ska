@@ -1,5 +1,4 @@
 import json
-import time
 
 import pytest
 import tango
@@ -17,6 +16,8 @@ from tests.settings import (
     logger,
     tear_down,
 )
+
+# import time
 
 
 def configureband_command(tango_context, dishln_name, group_callback, argin):
@@ -61,7 +62,7 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     result_op, unique_id_op = dish_leaf_node.ConfigureBand(argin)
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
-    time.sleep(1)
+    # time.sleep(1)
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=7,
