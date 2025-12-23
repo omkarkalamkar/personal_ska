@@ -8,7 +8,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 [0.28.0]
 ********
 Updated
------
+-------
 * TMC Mid to align with the changes introduced in Dish 9.0.0 namely; Deprecated SetOperateMode() command which is orchestrated in the TMC Configure workflow.
 
 [0.27.2]
