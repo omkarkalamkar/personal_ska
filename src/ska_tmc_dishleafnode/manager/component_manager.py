@@ -438,12 +438,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         Returns:
             dict: A mapping like
-            {'Band_1': ResultCode.UNKNOWN, 'Band_2': ResultCode.OK, ...}
+            {'Band_1': "UNKNOWN", 'Band_2': "OK", ...}
             where each key corresponds to a band validation result.
-            ResultCode.UNKNOWN: Default. Indicates GPM version not set for
+            "UNKNOWN": Default. Indicates GPM version not set for
                                 that band
-            ResultCode.FAILED: If validation fails for given band.
-            ResultCode.OK: If validation is successfull.
+            "FAILED": If validation fails for given band.
+            "OK": If validation is successfull.
+            The values are derived from ResultCode.<Enum>.name
         """
         return self._gpm_validation_result
 
