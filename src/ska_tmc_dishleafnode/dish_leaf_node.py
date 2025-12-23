@@ -345,6 +345,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
+        self.logger.info(
+            "k-value before push chnage  in update_kvalue_callback"
+        )
         with tango.EnsureOmniThread():
             self.push_change_archive_events(
                 "kValue",
