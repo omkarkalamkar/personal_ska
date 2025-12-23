@@ -592,9 +592,15 @@ def configure_with_wrap_sector(
     actualPointing = json.loads(dish_leaf_node.actualPointing)
     ra = actualPointing[1]
     dec = actualPointing[2]
+    logger.info("actualPointing: %s", actualPointing)
+    logger.info("ra: %s", ra)
+    logger.info("dec: %s", dec)
 
     ra = Angle(ra, u.hour).deg
     dec = Angle(dec, u.deg).deg
+    logger.info("ra: %s", ra)
+    logger.info("dec: %s", dec)
+
     field = json.loads(configure_input_str)["pointing"].get("field", {})
     if field:
         c1 = configure_input['pointing']['field']['attrs']['c1']
@@ -605,6 +611,8 @@ def configure_with_wrap_sector(
         c1 = Angle(c1, u.hour).deg
         c2 = Angle(c2, u.deg).deg
 
+    logger.info("c1: %s", c1)
+    logger.info("c2: %s", c2)
     # Assert ra and dec is consistent with wrap_sector key change
     assert round(ra, 2) == round(c1, 2)
     assert round(dec, 2) == round(c2, 2)
