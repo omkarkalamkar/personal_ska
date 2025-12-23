@@ -124,7 +124,7 @@ class DishkValueValidationManager:
             #     == ResultCode.FAILED
             # ):
             #     return
-                # Suppress duplicate FAILED only during startup
+            # Suppress duplicate FAILED only during startup
             if (
                 not self._kvalue_initialized
                 and self.component_manager.kValueValidationResult
