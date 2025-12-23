@@ -2547,7 +2547,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def get_configure_band_result_code(self: DishLNComponentManager):
         """
-        Return the result of the ConfigureBand command execution
+        Return the result code of the ConfigureBand command execution
 
         :return: ResultCode from dictionary configure_band_result
         :rtype: ResultCode
@@ -2555,6 +2555,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         with self.command_result_update_lock:
             return self.configure_band_result["result_code"]
+
+    def get_configure_band_result(self: DishLNComponentManager):
+        """
+        Return the result of the ConfigureBand command completion
+
+        :return: Returns whether the ConfigureBand command completion criteria
+        is satisfied
+        :rtype: boolean
+        """
+        with self.command_result_update_lock:
+            result = (
+                self.configure_band_result["result_code"] == ResultCode.OK
+                and self.dishMode == DishMode.OPERATE
+            )
+            return result
 
     def get_configure_band_result_dict(self: DishLNComponentManager):
         """
