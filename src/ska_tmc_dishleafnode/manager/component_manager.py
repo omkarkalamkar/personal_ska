@@ -2566,11 +2566,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         """
         with self.command_result_update_lock:
-            self.logger.info(
-                "self.configure_band_result['result_code']: %s",
-                self.configure_band_result["result_code"],
-            )
-            self.logger.info("self.dishMode: %s", self.dishMode)
+            # self.logger.info(
+            #     "self.configure_band_result['result_code']: %s",
+            #     self.configure_band_result["result_code"],
+            # )
+            # self.logger.info("self.dishMode: %s", self.dishMode)
             result = (
                 self.configure_band_result["result_code"] == ResultCode.OK
                 and self.dishMode == DishMode.OPERATE
