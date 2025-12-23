@@ -178,19 +178,29 @@ class ApplyPointingModel(DishLNCommand):
             try:
                 tmdata = TMData(tm_data_sources)
                 file_name = tm_data_filepath.split('/')[-1]
-                gpm_dir_path = tm_data_filepath.split('/')[:3]
+                gpm_dir_path = tm_data_filepath.rsplit('/', 1)[0]
                 self.logger.debug("GPM dir path: %s", gpm_dir_path)
-                gpm_dir = tmdata['/'.join(gpm_dir_path)]
+                gpm_dir = tmdata[gpm_dir_path]
                 self.logger.debug("Files found on GPM repo: %s", list(gpm_dir))
-                if gpm_dir and file_name not in list(gpm_dir):
+                matches = [
+                    f for f in list(gpm_dir) if f.lower() == file_name.lower()
+                ]
+                if not matches:
                     message = (
                         f"{file_name} not found on "
                         f"{tm_data_sources[0]}/{gpm_dir_path}"
                     )
                     self.logger.error("Error: %s", message)
-                else:
-                    gpm_file = tmdata[tm_data_filepath]
-                    result, message = gpm_file.get_dict(), ""
+                    return
+                if len(matches) > 1:
+                    self.logger.error(
+                        "Multiple files %s found for %s, applying: %s",
+                        matches,
+                        file_name,
+                        matches[0],
+                    )
+                gpm_file = tmdata[f"{gpm_dir_path}/{matches[0]}"]
+                result, message = gpm_file.get_dict(), ""
             except json.JSONDecodeError as json_error:
                 self.logger.error(
                     "Failed to parse JSON ,Error: %s", str(json_error)
