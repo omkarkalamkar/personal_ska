@@ -12,6 +12,7 @@ import re
 import signal
 import threading
 import time
+from dataclasses import asdict
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
@@ -241,6 +242,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             f'Band_{band}': "UNKNOWN" for band in ALLOWED_BANDS
         }
         self.handle_gpm_version_callback = _update_gpm_version_callback
+        self.dish_kvalue_validation_manager = DishkValueValidationManager(
+            self, self.logger
+        )
         self.supported_commands = (
             "ConfigureBand",
             "ConfigureBand1",
@@ -845,11 +849,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        dish_kvalue_validation_manager = DishkValueValidationManager(
-            self, self.logger
-        )
-        if dish_kvalue_validation_manager.is_dish_manager_ready():
-            dish_kvalue_validation_manager.validate_dish_kvalue()
+
+        if self.dish_kvalue_validation_manager.is_dish_manager_ready():
+            self.dish_kvalue_validation_manager.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
@@ -2905,10 +2907,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: Dictionary of attributes to be handled by the EventReceiver.
         """
 
+        kvalue_handler = (
+            self.dish_kvalue_validation_manager.validate_dish_kvalue_from_event
+        )
+
         attributes = {
             "longRunningCommandResult": self.update_command_result,
             "dishMode": self.update_device_dish_mode,
             "pointingState": self.update_device_pointing_state,
+            "kValue": kvalue_handler,
             "configuredBand": self.update_device_configured_band,
             "pointingProgramTrackTable": self.update_program_track_table,
             "programTrackTableError": self.update_program_track_table_error,
@@ -3124,10 +3131,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Returns:
             HealthState or None if no rule matched
         """
+        context_dict = asdict(context)
 
         for health_state, rules in HEALTH_RULES.items():
-            if any(rule.matches(context.__dict__) for rule in rules):
-                self.logger.info("HealthState decided as %s", health_state)
+            if any(rule.matches(context_dict) for rule in rules):
+                self.logger.info(
+                    "Updating HealthState to %s based on health rule",
+                    health_state.name,
+                )
                 return health_state
 
         self.logger.debug("No health rule matched for context: %s", context)

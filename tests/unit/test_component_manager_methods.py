@@ -222,13 +222,12 @@ def test_process_actual_pointing_handles_invalid_data(cm):
     "kvalue_validation_result, expected_health_states",
     [
         (ResultCode.OK, HealthState.OK),
-        (ResultCode.FAILED, HealthState.DEGRADED),
-        (ResultCode.UNKNOWN, HealthState.DEGRADED),
-        (ResultCode.NOT_ALLOWED, HealthState.DEGRADED),
-        (ResultCode.STARTED, HealthState.DEGRADED),
+        (ResultCode.FAILED, HealthState.FAILED),
+        (ResultCode.UNKNOWN, HealthState.FAILED),
+        (ResultCode.NOT_ALLOWED, HealthState.FAILED),
+        (ResultCode.STARTED, HealthState.FAILED),
     ],
 )
-@pytest.mark.health1
 def test_health_evaluation_and_update(
     cm, kvalue_validation_result, expected_health_states
 ):
@@ -254,3 +253,12 @@ def test_health_evaluation_and_update(
     cm.evaluate_and_update_health_state()
 
     mock_callback.assert_called_once_with(expected_health_states)
+
+
+def test_evaluate_and_update_health_state_when_no_rule_matches(cm):
+    cm._update_health_state_callback = mock.Mock()
+    cm.evaluate_health_state = mock.Mock(return_value=None)
+
+    cm.evaluate_and_update_health_state()
+
+    cm._update_health_state_callback.assert_not_called()

@@ -9,7 +9,7 @@ HEALTH_RULES = {
     HealthState.OK: [
         Rule("kvalue_validation_result == 'OK'"),
     ],
-    HealthState.DEGRADED: [
+    HealthState.FAILED: [
         Rule("kvalue_validation_result != 'OK'"),
     ],
 }

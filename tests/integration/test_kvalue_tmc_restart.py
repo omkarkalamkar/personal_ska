@@ -37,7 +37,7 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
     assert wait_and_validate_attribute_value_available(
         dish_leaf_node,
         "healthState",
-        HealthState.DEGRADED,
+        HealthState.FAILED,
     )
 
     KVALUE_ID = dish_leaf_node.subscribe_event(
@@ -145,7 +145,7 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
     assert wait_and_validate_attribute_value_available(
         dish_leaf_node,
         "healthState",
-        HealthState.DEGRADED,
+        HealthState.FAILED,
     )
 
     KVALUE_ID = dish_leaf_node.subscribe_event(
@@ -199,7 +199,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     assert wait_and_validate_attribute_value_available(
         dish_leaf_node,
         "healthState",
-        HealthState.DEGRADED,
+        HealthState.FAILED,
     )
 
     KVALUE_ID = dish_leaf_node.subscribe_event(
@@ -223,3 +223,94 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     # check the devices are stable and available for further testing.
     assert dln_can_communicate_with_dish_master(dish_leaf_node)
     assert dish_leaf_node.kValue == dish_master.kValue
+
+
+@pytest.mark.post_deployment
+def test_kvalue_runtime_mismatch_updates_health_to_degraded(
+    tango_context, group_callback
+):
+    """
+    Verify that when Dish Master changes kValue at runtime
+    to a different value, DLN updates:
+    - kValueValidationResult = FAILED
+    - healthState = FAILED
+    """
+    dev_factory = DevFactory()
+    dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+
+    # Initial identical kValue
+    dish_leaf_node.SetKValue(KVALUE)
+    assert dish_master.kValue == dish_leaf_node.kValue
+
+    # Subscribe to validation result
+    kvalue_val_id = dish_leaf_node.subscribe_event(
+        "kValueValidationResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["kValueValidationResult"],
+    )
+
+    # Change Dish Master kValue at runtime
+    dish_master.SetKValue(KVALUE + 10)
+
+    # Validation result updated
+    group_callback["kValueValidationResult"].assert_change_event(
+        str(int(ResultCode.FAILED)),
+        lookahead=8,
+    )
+
+    assert wait_and_validate_attribute_value_available(
+        dish_leaf_node,
+        "healthState",
+        HealthState.FAILED,
+    )
+
+    dish_leaf_node.unsubscribe_event(kvalue_val_id)
+
+
+@pytest.mark.post_deployment
+def test_kvalue_runtime_recovery_updates_health_to_ok(
+    tango_context, group_callback
+):
+    """
+    Verify that when Dish Master fixes kValue at runtime,
+    DLN recovers:
+    - kValueValidationResult = OK
+    - healthState = OK
+    """
+    dev_factory = DevFactory()
+    dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+
+    # Force mismatch first
+    dish_leaf_node.SetKValue(KVALUE)
+    dish_master.SetKValue(KVALUE + 5)
+
+    assert wait_and_validate_attribute_value_available(
+        dish_leaf_node,
+        "healthState",
+        HealthState.FAILED,
+    )
+
+    # Subscribe to validation result
+    kvalue_val_id = dish_leaf_node.subscribe_event(
+        "kValueValidationResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["kValueValidationResult"],
+    )
+
+    # Fix kValue
+    dish_master.SetKValue(KVALUE)
+
+    group_callback["kValueValidationResult"].assert_change_event(
+        str(int(ResultCode.OK)),
+        lookahead=8,
+    )
+
+    assert wait_and_validate_attribute_value_available(
+        dish_leaf_node,
+        "healthState",
+        HealthState.OK,
+    )
+
+    dish_leaf_node.unsubscribe_event(kvalue_val_id)
