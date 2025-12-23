@@ -349,7 +349,6 @@ def test_to_check_validate_gpm_version_with_success(cm_without_er_lp):
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
         "Band_1", "OK"
     )
-    assert cm.logger.info.call_count >= 1
     assert cm.logger.debug.call_count >= 1
 
 
@@ -372,7 +371,6 @@ def test_to_check_validate_gpm_version_with_mismatch(cm_without_er_lp):
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
         "Band_5a", "FAILED"
     )
-    assert cm.logger.info.call_count >= 1
     assert cm.logger.debug.call_count >= 1
 
 
@@ -423,16 +421,15 @@ def test_to_check_get_band_info_failure(cm_without_er_lp):
     cm.logger.exception.assert_called_once()
 
 
-def test_handler_calls_component_manager_method(cm):
-    cm.update_pointing_model_params = MagicMock()
+def test_handler_puts_event_in_queue(cm):
+    cm.event_queues = MagicMock()
     event_receiver = DishLNEventReceiver(cm, cm.logger)
     queue_key = "band2pointingmodelparams"
     mock_event_data = MagicMock(spec=tango.EventData)
     handler = event_receiver._create_pointing_model_handler(queue_key)
     handler(mock_event_data)
-    cm.update_pointing_model_params.assert_called_once_with(
-        queue_key, mock_event_data
-    )
+    cm.event_queues.__getitem__.assert_called_once_with(queue_key)
+    cm.event_queues[queue_key].put.assert_called_once_with(mock_event_data)
 
 
 def test_update_dish_pointing_model_param_calls(

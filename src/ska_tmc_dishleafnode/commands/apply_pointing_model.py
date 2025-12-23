@@ -85,12 +85,9 @@ class ApplyPointingModel(DishLNCommand):
                     message,
                 )
                 if self.band:
-                    for gpm_band in self.component_manager.gpm_version:
-                        if gpm_band.lower() == self.band.lower():
-                            self.component_manager.gpm_version[
-                                gpm_band
-                            ] = self.previous_band_version
-                            break
+                    self.component_manager.gpm_version[
+                        self.band.title()
+                    ] = self.previous_band_version
                 task_callback(
                     status=TaskStatus.COMPLETED,
                     result=(ResultCode(result_code), message),
@@ -296,15 +293,20 @@ class ApplyPointingModel(DishLNCommand):
                 self.band, self.band_version = self.extract_band_and_version(
                     gpm_json_data
                 )
-                for gpm_band in self.component_manager.gpm_version:
-                    if gpm_band.lower() == self.band.lower():
-                        self.previous_band_version = (
-                            self.component_manager.gpm_version[gpm_band]
-                        )
-                        self.component_manager.gpm_version[
-                            gpm_band
-                        ] = self.band_version
-                        break
+                self.previous_band_version = (
+                    self.component_manager.gpm_version.get(self.band.title())
+                )
+                self.component_manager.gpm_version[
+                    self.band.title()
+                ] = self.band_version
+                self.logger.debug(
+                    "Previous band version: %s", self.previous_band_version
+                )
+                self.logger.debug(
+                    "Applying GPM on band: %s with version: %s",
+                    self.band,
+                    self.band_version,
+                )
                 result_code, message = self.call_adapter_method(
                     "Dish Master",
                     self.dish_master_adapter,

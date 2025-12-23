@@ -441,7 +441,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             {'Band_1': "UNKNOWN", 'Band_2': "OK", ...}
             where each key corresponds to a band validation result.
             "UNKNOWN": Default. Indicates GPM version not set for
-                                that band
+            that band
             "FAILED": If validation fails for given band.
             "OK": If validation is successfull.
             The values are derived from ResultCode.<Enum>.name
@@ -2987,30 +2987,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         """
         self.event_queues["dishMode"].put(event)
-
-    def update_pointing_model_params(
-        self, queue_key: str, event: tango.EventData
-    ) -> None:
-        """
-        Updates the band* pointing model parameters event in the respective
-        queue.
-        * :-> 1, 2, 3, 4, 5a, 5b.
-        Args:
-            queue_key (str): The dictionary key for the specific event queue
-                             (e.g., "band1pointingmodelparams").
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data.
-        """
-        try:
-            self.event_queues[queue_key].put(event)
-        except KeyError:
-            self.logger.exception(
-                f"Error: Event queue for key '{queue_key}' not found."
-            )
-        except Exception as e:
-            self.logger.exception(
-                f"Error putting event on queue {queue_key}: {e}"
-            )
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """

@@ -4,6 +4,7 @@ for the Dish Leaf Node.
 """
 
 import json
+import re
 from logging import Logger
 from typing import Tuple
 
@@ -61,21 +62,11 @@ class GPMValidator:
         gpm_version_for_given_band = None
         band_found = None
         try:
-            band_names = {
-                'band1': 'Band_1',
-                'band2': 'Band_2',
-                'band3': 'Band_3',
-                'band4': 'Band_4',
-                'band5a': 'Band_5a',
-                'band5b': 'Band_5b',
-            }
-            for band, band_value in band_names.items():
-                if band in band_name.lower():
-                    band_found = band_value
-                    gpm_version_for_given_band = (
-                        self.component_manager.gpm_version[band_found]
-                    )
-                    break
+            match = re.search(r'band(\d+[ab]?)', band_name.lower())
+            band_found = f"Band_{match.group(1)}"
+            gpm_version_for_given_band = self.component_manager.gpm_version[
+                band_found
+            ]
             self.logger.info("GPM validation started.")
             self.logger.debug(
                 "GPM Version: %s, Band_Found: %s",
@@ -139,7 +130,7 @@ class GPMValidator:
             tm_file_path = (
                 self.component_manager.gpm_file_path + band_found + '.json'
             )
-            self.logger.info(
+            self.logger.debug(
                 "Stored TMDATA paths %s, %s", tm_source_path, tm_file_path
             )
             apm_json, message = apm_cmd_obj.get_global_pointing_data_json(
@@ -175,7 +166,7 @@ class GPMValidator:
                 self.gpm_validation_update(band_found, ResultCode.FAILED.name)
             else:
                 self.gpm_validation_update(band_found, ResultCode.OK.name)
-                self.logger.info(
+                self.logger.debug(
                     "GPM version '%s' band params matched with '%s' of dish.",
                     gpm_version_for_given_band,
                     DISH_BANDPARAMS[band_found],

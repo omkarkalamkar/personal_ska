@@ -208,11 +208,18 @@ class DishLNEventReceiver(EventReceiver):
             """
             Generic handler method for updating pointing model parameters
             using the single optimized manager method.
+
+            Updates the band* pointing model parameters event in the respective
+            queue.
+            * :-> 1, 2, 3, 4, 5a, 5b.
+            Args:
+                queue_key (str): The dictionary key for the specific event
+                queue (e.g., "band1pointingmodelparams").
+                event (tango.EventData): It is the Tango Event Data object
+                    which contains the event data.
             """
-            # Call the SINGLE optimized method with the correct queue_key
-            self._component_manager.update_pointing_model_params(
-                queue_key, event_flag
-            )
+
+            self._component_manager.event_queues[queue_key].put(event_flag)
 
         return generic_handler
 
