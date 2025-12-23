@@ -61,7 +61,7 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     result_op, unique_id_op = dish_leaf_node.ConfigureBand(argin)
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
-    time.sleep(0.5)
+    time.sleep(1)
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
         lookahead=7,
