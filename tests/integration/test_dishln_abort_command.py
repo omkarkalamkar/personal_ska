@@ -314,7 +314,6 @@ def abort_timeout(
         (unique_id[0], COMMAND_TIMEOUT),
         lookahead=3,
     )
-    dish_master.ResetDelayInfo()
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
@@ -324,6 +323,8 @@ def abort_timeout(
         (PointingState.READY),
         lookahead=6,
     )
+
+    dish_master.ResetDelayInfo()
 
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
