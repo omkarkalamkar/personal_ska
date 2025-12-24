@@ -351,8 +351,8 @@ def delta_configure_dish_leaf_node(
     if not delta_only_once:
         delta_configurations = build_delta_configure_data(
             delta_config=delta_config_str,
-            x_offsets=[-5.0, 5.0, 3.0, 2.0, 1.0, 2.0],
-            y_offsets=[5.0, 1.0, 3.0, 2.0, -2.0, -1.0],
+            x_offsets=[-5.0, 5.0, 3.0, 2.0, 1.0, 2.0, 0.0],
+            y_offsets=[5.0, 1.0, 3.0, 2.0, -2.0, -1.0, 0.0],
         )
         count = 0
         for input_str in delta_configurations:
