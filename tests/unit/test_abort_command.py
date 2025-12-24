@@ -31,6 +31,7 @@ def test_abort_command(cm_without_er_lp, task_callback):
     abort_command.invoke_abort(
         task_callback=task_callback, task_abort_event=threading.Event()
     )
+
     simulate_pointing_state_event(cm, PointingState.READY)
     simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
     simulate_result_code_event(cm, "Abort", ResultCode.OK)
