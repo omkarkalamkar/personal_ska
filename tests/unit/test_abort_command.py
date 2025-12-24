@@ -24,6 +24,7 @@ def test_abort_command(cm_without_er_lp, task_callback):
             ["Command Completed"],
         ),
     }
+
     dishMock = mock.Mock(**attrs)
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
     adapter_factory = mock.Mock(**factory_attrs)
