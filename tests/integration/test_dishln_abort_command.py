@@ -277,11 +277,6 @@ def abort_timeout(
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    pointingstate_event_id = dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -323,7 +318,6 @@ def abort_timeout(
 
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
-    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 

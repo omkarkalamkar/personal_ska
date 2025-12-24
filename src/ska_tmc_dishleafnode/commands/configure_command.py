@@ -683,9 +683,8 @@ class Configure(DishLNCommand):
         # Only invoke Track if dish is in OPERATE mode
         if self.component_manager.dishMode == DishMode.OPERATE:
             self.logger.info(
-                "Command ID: %s | Dish is already in DishMode OPERATE on %s.",
+                "Command ID: %s | Dish is already in DishMode OPERATE. ",
                 self.component_manager.command_id,
-                self.component_manager.track_result,
             )
             self.invoke_track_command(json_argument)
         else:
