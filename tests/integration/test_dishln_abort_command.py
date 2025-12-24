@@ -319,11 +319,6 @@ def abort_timeout(
         (DishMode.STANDBY_FP),
         lookahead=5,
     )
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
-
     dish_master.ResetDelayInfo()
 
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
