@@ -257,7 +257,6 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.skip()
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_timeout(tango_context, group_callback):
@@ -277,6 +276,11 @@ def abort_timeout(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
+    )
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
@@ -311,8 +315,19 @@ def abort_timeout(
         lookahead=3,
     )
     dish_master.ResetDelayInfo()
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=5,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
+
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
