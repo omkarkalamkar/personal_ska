@@ -135,7 +135,9 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("json_to_use", ["dishleafnode_configure"])
+@pytest.mark.parametrize(
+    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
+)
 def test_configure_command(
     tango_context, group_callback, json_factory, json_to_use, cm_pointig_device
 ):
@@ -282,6 +284,7 @@ def delta_configure_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dish_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     sleep(1)
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -299,6 +302,12 @@ def delta_configure_dish_leaf_node(
         "sourceOffset",
         tango.EventType.CHANGE_EVENT,
         group_callback["sourceOffset"],
+    )
+
+    ptt_event_id = dish_pointing_device.subscribe_event(
+        "pointingProgramTrackTable",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingProgramTrackTable"],
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -398,10 +407,16 @@ def delta_configure_dish_leaf_node(
         lookahead=6,
     )
 
+    group_callback["pointingProgramTrackTable"].assert_change_event(
+        ("[]"),
+        lookahead=8,
+    )
+
     dish_leaf_node.unsubscribe_event(source_offset_event_id)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dish_pointing_device.unsubscribe_event(ptt_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -593,6 +608,7 @@ def configure_with_wrap_sector(
 
     ra = Angle(ra, u.hour).deg
     dec = Angle(dec, u.deg).deg
+
     field = json.loads(configure_input_str)["pointing"].get("field", {})
     if field:
         c1 = configure_input['pointing']['field']['attrs']['c1']
