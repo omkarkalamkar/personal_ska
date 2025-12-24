@@ -595,7 +595,6 @@ def configure_with_wrap_sector(
 
     ra = Angle(ra, u.hour).deg
     dec = Angle(dec, u.deg).deg
-
     field = json.loads(configure_input_str)["pointing"].get("field", {})
     if field:
         c1 = configure_input['pointing']['field']['attrs']['c1']
@@ -754,7 +753,6 @@ def configure_with_wrap_sector(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.xfail()
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(

@@ -30,7 +30,7 @@ stages:
 join_linting_reports:
   stage: join-reports
   tags:
-    - ${SKA_DEFAULT_RUNNER}
+    - ska-k8s
   script:
     - echo "This step is needed as the artifacts can't be passed in the same stage"
     - make join-lint-reports
