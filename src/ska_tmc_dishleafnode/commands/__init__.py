@@ -8,7 +8,6 @@ from .endscan_command import EndScan
 from .off_command import Off
 from .scan_command import Scan
 from .set_kvalue import SetKValue
-from .setoperatemode import SetOperateMode
 from .setstandbyfpmode import SetStandbyFPMode
 from .setstandbylpmode import SetStandbyLPMode
 from .setstowmode import SetStowMode
@@ -17,7 +16,6 @@ from .track_load_static_off_command import TrackLoadStaticOff
 from .trackstop_command import TrackStop
 
 __all__ = [
-    "SetOperateMode",
     "SetStandbyLPMode",
     "SetStandbyFPMode",
     "SetStowMode",

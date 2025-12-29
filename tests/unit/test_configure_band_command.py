@@ -10,7 +10,11 @@ from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-from tests.settings import DISH_CONFIGURE_1_0, simulate_result_code_event
+from tests.settings import (
+    DISH_CONFIGURE_1_0,
+    simulate_dish_mode_event,
+    simulate_result_code_event,
+)
 
 
 def test_configure_band_command_completed(task_callback, cm):
@@ -38,6 +42,7 @@ def test_configure_band_command_completed(task_callback, cm):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    simulate_dish_mode_event(cm, DishMode.OPERATE)
     simulate_result_code_event(cm, "ConfigureBand1", ResultCode.OK)
     cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
@@ -102,6 +107,7 @@ def test_configureband_command_with_spfrx_params(task_callback, cm):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    simulate_dish_mode_event(cm, DishMode.OPERATE)
     simulate_result_code_event(cm, "ConfigureBand", ResultCode.OK)
     cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(

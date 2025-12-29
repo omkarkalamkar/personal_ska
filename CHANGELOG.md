@@ -5,6 +5,19 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[Unreleased]
+Added
+------
+* Implemented GPM validation functionality on DLN.
+* Implemented gpmValidationResult attribute to check the validation per band.
+* Implemented gpmSourcePath and gpmFilePath memorized attributes(Developers purpose only).
+
+[0.28.0]
+********
+Updated
+-------
+* TMC Mid to align with the changes introduced in Dish 9.0.0 namely; Deprecated SetOperateMode() command which is orchestrated in the TMC Configure workflow.
+
 [0.27.2]
 ********
 Fixed

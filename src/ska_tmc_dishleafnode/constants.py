@@ -13,3 +13,11 @@ IERS_DATA_STORAGE_PATH = join(
 RESET_OFFSETS = [0.0, 0.0]
 ADJUST_TIMEOUT = 10
 ALLOWED_BANDS = ['1', '2', '3', '4', '5a', '5b']
+DISH_BANDPARAMS = {
+    'Band_1': 'band1PointingModelParams',
+    'Band_2': 'band2PointingModelParams',
+    'Band_3': 'band3PointingModelParams',
+    'Band_4': 'band4PointingModelParams',
+    'Band_5a': 'band5aPointingModelParams',
+    'Band_5b': 'band5bPointingModelParams',
+}
