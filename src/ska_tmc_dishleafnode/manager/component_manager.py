@@ -67,8 +67,6 @@ from ska_tmc_dishleafnode.constants import (
 )
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
-from ska_tmc_dishleafnode.manager.health_data import DishHealthData
-from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -3052,7 +3050,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return DishHealthData(
             kvalue_validation_result=self.kValueValidationResult.name,
-            gpm_validation_result=list(self.gpm_validation_result.values())
+            gpm_validation_result=list(self.gpm_validation_result.values()),
         )
 
     def evaluate_health_state(
@@ -3075,6 +3073,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     "Updating HealthState to %s based on health rule",
                     health_state.name,
                 )
+                return health_state
 
         self.logger.debug("No health rule matched for context: %s", context)
         return None
