@@ -161,6 +161,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "trackTableErrors",
             "globalPointingModelParams",
             "gpmVersion",
+            "gpmValidationResult",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -200,7 +201,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             # pylint: enable=unnecessary-dunder-call
 
     def update_health_state_callback(self, healthState: HealthState) -> None:
-        """Change event callback for sourceOffset attribute"""
+        """Change event callback for healthState attribute
+        Args:
+            healthState (HealthState): New health state to be set.
+        """
         self._health_state = healthState
         with tango.EnsureOmniThread():
             self.push_change_archive_events("healthState", self._health_state)
@@ -209,6 +213,45 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self._dishln_name,
             self._health_state,
         )
+
+    def update_gpm_paths_data_callback(
+        self, source_path: str, file_path: str
+    ) -> None:
+        """
+        Store GPM paths received from Central node
+        (At the time of TMC initialization).
+
+        Args:
+            source_path (str): GPM source path.
+            file_path (str): GPM file path.
+        """
+        try:
+            db = Database()
+            value = {"gpmSourcePath": {"__value": [source_path]}}
+            db.put_device_attribute_property(self._dishln_name, value)
+            value = db.get_device_attribute_property(
+                self._dishln_name, "gpmSourcePath"
+            )
+            with tango.EnsureOmniThread():
+                self.push_archive_event("gpmSourcePath", source_path)
+            self.logger.info(
+                "%s: Memorized GPM source path %s", self._dishln_name, value
+            )
+
+            value = {"gpmFilePath": {"__value": [file_path]}}
+            db.put_device_attribute_property(self._dishln_name, value)
+            value = db.get_device_attribute_property(
+                self._dishln_name, "gpmFilePath"
+            )
+            with tango.EnsureOmniThread():
+                self.push_archive_event("gpmFilePath", file_path)
+            self.logger.info(
+                "%s: Memorized GPM file path %s", self._dishln_name, value
+            )
+        except Exception as e:
+            self.logger.exception(
+                "Exception occurred %s while storing gpm path in tango DB", e
+            )
 
     def update_gpm_version_callback(self, gpm_version: str) -> None:
         """
@@ -220,17 +263,49 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             gpm_version (str): New GPM version string to set for
             the gpmVersion attribute.
         """
-        db = Database()
-        value = {"gpmVersion": {"__value": [gpm_version]}}
-        db.put_device_attribute_property(self._dishln_name, value)
-        value = db.get_device_attribute_property(
-            self._dishln_name, "gpmVersion"
-        )
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events("gpmVersion", gpm_version)
-        self.logger.info(
-            "%s: Memorized GPM version %s", self._dishln_name, value
-        )
+        try:
+            db = Database()
+            value = {"gpmVersion": {"__value": [gpm_version]}}
+            db.put_device_attribute_property(self._dishln_name, value)
+            value = db.get_device_attribute_property(
+                self._dishln_name, "gpmVersion"
+            )
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events("gpmVersion", gpm_version)
+            self.logger.info(
+                "%s: Memorized GPM version %s", self._dishln_name, value
+            )
+        except Exception as e:
+            self.logger.exception(
+                "Exception occurred %s while storing gpm version in tango DB",
+                e,
+            )
+
+    def update_gpm_validation_result_callback(
+        self, band: str, validation_result: str
+    ) -> None:
+        """
+        Callback to update gpmValidationResult attribute.
+
+        Args:
+            gpm_validation_result (str): GPM validation result.
+            band(str): Band name for which validation result is to be updated.
+        """
+        try:
+            self.component_manager.gpm_validation_result[
+                band
+            ] = validation_result
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events(
+                    "gpmValidationResult",
+                    json.dumps(self.component_manager.gpm_validation_result),
+                )
+            self.logger.info(
+                "GPM validation result %s",
+                self.component_manager.gpm_validation_result,
+            )
+        except Exception as e:
+            self.logger.exception("Exception occurred: %s", e)
 
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
@@ -295,6 +370,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     ) -> None:
         """Push an event for the change of dishMode attribute."""
         self._global_pointing_model_params = global_pointing_model_params
+        self.logger.info(
+            "GPM PARAMS on Dish: %s", global_pointing_model_params
+        )
         with tango.EnsureOmniThread():
             self.push_change_archive_events(
                 "globalPointingModelParams",
@@ -582,7 +660,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def gpmVersion(self: MidTmcLeafNodeDish) -> str:
         """
         Returns the band-specific GPM version
-        (dictionary stored in component manager) as a JSON string.
+        (stored in component manager as a dictionary).
         Format: {"band": "version"}.
 
         :return: JSON string of band-to-GPM version mapping
@@ -598,6 +676,69 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             gpm_version(str): string in json dumps format
         """
         self.component_manager._gpm_version = json.loads(gpm_version)
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ_WRITE,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def gpmSourcePath(self: MidTmcLeafNodeDish) -> str:
+        """
+        Returns the tm data source path
+
+        :return: source path
+        :rtype: str
+        """
+        return json.dumps(self.component_manager.gpm_source_path)
+
+    @gpmSourcePath.write
+    def gpmSourcePath(self: MidTmcLeafNodeDish, gpm_source_path: str) -> None:
+        """Set the GPM source path.
+
+        Args:
+            gpm_source_path(str): string in json dumps format
+        """
+        self.component_manager.gpm_source_path = gpm_source_path
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ_WRITE,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def gpmFilePath(self: MidTmcLeafNodeDish) -> str:
+        """
+        Returns the tm data file path
+
+        :return: gpm data file path
+        :rtype: str
+        """
+        return json.dumps(self.component_manager.gpm_file_path)
+
+    @gpmFilePath.write
+    def gpmFilePath(self: MidTmcLeafNodeDish, gpm_file_path: str) -> None:
+        """Set the GPM file path.
+
+        Args:
+            gpm_file_path(str): string in json dumps format
+        """
+        self.component_manager.gpm_file_path = gpm_file_path
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ,
+    )
+    def gpmValidationResult(self: MidTmcLeafNodeDish) -> str:
+        """
+        Returns the band-specific GPM validation result.
+        (dictionary stored in component manager).
+        Format: {"band": ResultCode(UNKNOWN/OK/FAILED)}.
+
+        :return: JSON string of band-to-GPM validation result mapping
+        :rtype: str
+        """
+        return json.dumps(self.component_manager.gpm_validation_result)
 
     # --------
     # Commands
@@ -1133,6 +1274,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_track_table_errors_callback=update_track_err_cb,
             _update_health_state_callback=self.update_health_state_callback,
             _update_gpm_version_callback=self.update_gpm_version_callback,
+            _update_gpm_validation_result_callback=(
+                self.update_gpm_validation_result_callback
+            ),
+            _update_gpm_paths_data_callback=(
+                self.update_gpm_paths_data_callback
+            ),
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
         )

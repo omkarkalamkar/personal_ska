@@ -111,10 +111,13 @@ class DishLNEventReceiver(EventReceiver):
                     stateless=True,
                 )
                 for attr_name in pointing_model_params_attrs:
+                    queue_key = attr_name.lower()
+                    # Generate the specific handler method for this attribute
+                    handler = self._create_pointing_model_handler(queue_key)
                     dish_dev_proxy.subscribe_event(
                         attr_name,
                         tango.EventType.CHANGE_EVENT,
-                        self.handle_pointing_model_params,
+                        handler,
                         stateless=True,
                     )
 
@@ -195,21 +198,30 @@ class DishLNEventReceiver(EventReceiver):
             else:
                 self.dislnpd_subscribed = True
 
-    # pylint: enable=unused-argument
-    def handle_pointing_model_params(
-        self: DishLNEventReceiver, event_flag: tango.EventData
-    ):
-        """Method to handle and update the latest value of dish_pointing_model
-        params.
-
-        :parameter event_flag: To flag the change in event for Dishglobalpoing
-            params.
-        :type event_flag: tango.EventType.CHANGE_EVENT
-        :return: None
-        :rtype: NoneType
+    def _create_pointing_model_handler(self, queue_key: str) -> Callable:
+        """
+        A function that generates a specific handler function for a
+        given queue key(attribute name).
         """
 
-        self._component_manager.update_dish_pointing_model_params(event_flag)
+        def generic_handler(event_flag: tango.EventData):
+            """
+            Generic handler method for updating pointing model parameters
+            using the single optimized manager method.
+
+            Updates the band* pointing model parameters event in the respective
+            queue.
+            * :-> 1, 2, 3, 4, 5a, 5b.
+            Args:
+                queue_key (str): The dictionary key for the specific event
+                queue (e.g., "band1pointingmodelparams").
+                event (tango.EventData): It is the Tango Event Data object
+                    which contains the event data.
+            """
+
+            self._component_manager.event_queues[queue_key].put(event_flag)
+
+        return generic_handler
 
     def handle_dish_mode_event(
         self: DishLNEventReceiver, event_flag: tango.EventData

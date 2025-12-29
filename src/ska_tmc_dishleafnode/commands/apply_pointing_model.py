@@ -55,8 +55,9 @@ class ApplyPointingModel(DishLNCommand):
             self.component_manager.command_timeout, logger
         )
         self.command_id: str = ""
-        self.band: str = None
-        self.band_version: str = None
+        self.band: str = ""
+        self.band_version: str = ""
+        self.previous_band_version: str = ""
 
     def update_task_callback(
         self,
@@ -83,6 +84,10 @@ class ApplyPointingModel(DishLNCommand):
                     self.component_manager.dish_dev_name,
                     message,
                 )
+                if self.band:
+                    self.component_manager.gpm_version[
+                        self.band.title()
+                    ] = self.previous_band_version
                 task_callback(
                     status=TaskStatus.COMPLETED,
                     result=(ResultCode(result_code), message),
@@ -98,26 +103,24 @@ class ApplyPointingModel(DishLNCommand):
                     self.band_version,
                     message,
                 )
-                for gpm_band in self.component_manager.gpm_version:
-                    if gpm_band.lower() == self.band.lower():
-                        self.component_manager.gpm_version[
-                            gpm_band
-                        ] = self.band_version
-                        self.logger.debug(
-                            "Updating GPM version: %s",
-                            self.component_manager.gpm_version,
-                        )
-                        self.component_manager.handle_gpm_version_callback(
-                            json.dumps(self.component_manager.gpm_version)
-                        )
-                        task_callback(
-                            status=TaskStatus.COMPLETED,
-                            result=(ResultCode(result_code), message),
-                        )
-                        break
+
+                self.logger.debug(
+                    "Updating GPM version: %s",
+                    self.component_manager.gpm_version,
+                )
+                self.component_manager.handle_gpm_version_callback(
+                    json.dumps(self.component_manager.gpm_version)
+                )
+                task_callback(
+                    status=TaskStatus.COMPLETED,
+                    result=(ResultCode(result_code), message),
+                )
         except Exception as e:
             self.logger.exception("Error updating GPM version: %s", str(e))
         self.component_manager.command_in_progress = ""
+        self.previous_band_version = ""
+        self.band = ""
+        self.band_version = ""
 
     # pylint: disable=unused-argument
     def invoke_apply_pointing_model(
@@ -175,18 +178,31 @@ class ApplyPointingModel(DishLNCommand):
             try:
                 tmdata = TMData(tm_data_sources)
                 file_name = tm_data_filepath.split('/')[-1]
-                gpm_dir_path = tm_data_filepath.split('/')[:3]
-                gpm_dir = tmdata['/'.join(gpm_dir_path)]
+                gpm_dir_path = tm_data_filepath.rsplit('/', 1)[0]
+                self.logger.debug("GPM dir path: %s", gpm_dir_path)
+                gpm_dir = tmdata[gpm_dir_path]
                 self.logger.debug("Files found on GPM repo: %s", list(gpm_dir))
-                if gpm_dir and file_name not in list(gpm_dir):
+                matches = [
+                    f for f in list(gpm_dir) if f.lower() == file_name.lower()
+                ]
+                if not matches:
                     message = (
                         f"{file_name} not found on "
                         f"{tm_data_sources[0]}/{gpm_dir_path}"
                     )
                     self.logger.error("Error: %s", message)
-                else:
-                    gpm_file = tmdata[tm_data_filepath]
-                    result, message = gpm_file.get_dict(), ""
+                    return
+                if len(matches) > 1:
+                    if file_name in matches:
+                        matches[0] = file_name
+                    self.logger.error(
+                        "Multiple files %s found for %s, applying: %s",
+                        matches,
+                        file_name,
+                        matches[0],
+                    )
+                gpm_file = tmdata[f"{gpm_dir_path}/{matches[0]}"]
+                result, message = gpm_file.get_dict(), ""
             except json.JSONDecodeError as json_error:
                 self.logger.error(
                     "Failed to parse JSON ,Error: %s", str(json_error)
@@ -250,7 +266,6 @@ class ApplyPointingModel(DishLNCommand):
                 tm_data_sources,
                 tm_data_filepath,
             )
-
             if not all([tm_data_sources, tm_data_filepath]):
                 return (
                     ResultCode.FAILED,
@@ -258,7 +273,6 @@ class ApplyPointingModel(DishLNCommand):
                     + f"tm_data sources: {tm_data_sources} and "
                     + f"tm_data_filepath: {tm_data_filepath}",
                 )
-
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
                 self.logger.debug(
@@ -288,6 +302,36 @@ class ApplyPointingModel(DishLNCommand):
             with self.component_manager.tango_operation_execution_lock:
                 self.band, self.band_version = self.extract_band_and_version(
                     gpm_json_data
+                )
+                self.previous_band_version = (
+                    self.component_manager.gpm_version.get(self.band.title())
+                )
+                self.component_manager.gpm_version[
+                    self.band.title()
+                ] = self.band_version
+                self.logger.debug(
+                    "Previous band version: %s", self.previous_band_version
+                )
+                # Set and memorize the tmdata paths at the
+                # time of initialization
+                if (
+                    not self.component_manager.gpm_source_path
+                    or not self.component_manager.gpm_file_path
+                ):
+                    self.component_manager.gpm_source_path = tm_data_sources[
+                        0
+                    ].split("?")[0]
+                    self.component_manager.gpm_file_path = re.split(
+                        r'band', tm_data_filepath, flags=re.IGNORECASE
+                    )[0]
+                    self.component_manager.store_gpm_path_data_callback(
+                        self.component_manager.gpm_source_path,
+                        self.component_manager.gpm_file_path,
+                    )
+                self.logger.debug(
+                    "Applying GPM on band: %s with version: %s",
+                    self.band,
+                    self.band_version,
                 )
                 result_code, message = self.call_adapter_method(
                     "Dish Master",

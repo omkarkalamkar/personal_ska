@@ -12,10 +12,11 @@ import re
 import signal
 import threading
 import time
+from dataclasses import asdict
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import tango
@@ -65,6 +66,9 @@ from ska_tmc_dishleafnode.constants import (
     SKA_EPOCH,
 )
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
+from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
+from ska_tmc_dishleafnode.manager.health_data import DishHealthData
+from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -96,6 +100,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_track_table_errors_callback: Callable,
         _update_health_state_callback: Callable,
         _update_gpm_version_callback: Callable,
+        _update_gpm_validation_result_callback: Callable,
+        _update_gpm_paths_data_callback: Callable,
         _liveliness_probe=LivelinessProbeType.NONE,
         _event_receiver: bool = True,
         default_array_layout_source_uris: str = '',
@@ -236,7 +242,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._gpm_version = {
             f'Band_{band}': "UNKNOWN" for band in ALLOWED_BANDS
         }
+        self._gpm_validation_result = {
+            f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
+        }
+        self._gpm_source_path: str = ""
+        self._gpm_file_path: str = ""
         self.handle_gpm_version_callback = _update_gpm_version_callback
+        self.handle_update_gpm_validation_result_callback = (
+            _update_gpm_validation_result_callback
+        )
+        self.store_gpm_path_data_callback = _update_gpm_paths_data_callback
         self.supported_commands = (
             "ConfigureBand",
             "ConfigureBand1",
@@ -271,6 +286,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.abort_event = threading.Event()
         self.dish_adapter = None
         self.dishln_pointing_device_adapter = None
+        self.gpm_validator = GPMValidator(self, logger)
 
         self.actual_pointing_process = Process(
             target=self.process_actual_pointing,
@@ -289,10 +305,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
+        self.initialization_complete = threading.Event()
         self.start_event_processing_threads()
         self.kvalue_validation_thread.start()
-        self.actual_pointing_process.start()
         self.load_array_layout_for_dish()
+        self.actual_pointing_process.start()
 
     def load_array_layout_for_dish(self) -> None:
         """
@@ -398,7 +415,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     @property
     def gpm_version(self):
         """
-        Dictionary mapping each allowed band to its GPM version status.
+        Dictionary mapping each allowed band to its GPM band version status.
 
         Returns:
             dict: A mapping like
@@ -409,6 +426,56 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             (default: 'UNKNOWN').
         """
         return self._gpm_version
+
+    @property
+    def gpm_validation_result(self) -> dict:
+        """
+        Dictionary mapping each allowed band to its GPM
+        band validation status.
+
+        Returns:
+            dict: A mapping like
+            {'Band_1': "UNKNOWN", 'Band_2': "OK", ...}
+            where each key corresponds to a band validation result.
+            "UNKNOWN": Default. Indicates GPM version not set for
+            that band
+            "FAILED": If validation fails for given band.
+            "OK": If validation is successfull.
+            The values are derived from ResultCode.<Enum>.name
+        """
+        return self._gpm_validation_result
+
+    @property
+    def gpm_source_path(self) -> str:
+        """Get the GPM repository(telmodel) source path
+        Returns:
+            str: Stored GPM source path
+        """
+        return self._gpm_source_path
+
+    @property
+    def gpm_file_path(self) -> str:
+        """Get the GPM repository(telmodel) file path
+        Returns:
+            str: Stored GPM file path
+        """
+        return self._gpm_file_path
+
+    @gpm_source_path.setter
+    def gpm_source_path(self, source_path: str) -> None:
+        """Set the GPM repository(telmodel) source path
+        Args:
+            source_path(str) : GPM source path
+        """
+        self._gpm_source_path = source_path
+
+    @gpm_file_path.setter
+    def gpm_file_path(self, file_path: str) -> None:
+        """Set the GPM repository(telmodel) file path
+        Args:
+            file_path(str) : GPM file path
+        """
+        self._gpm_file_path = file_path
 
     @primary_configuration.setter
     def primary_configuration(self, config: dict):
@@ -841,6 +908,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
+        self.initialization_complete.set()
 
     def convert_timestamp(
         self: DishLNComponentManager, timestamp_tai_ska_epoch: float
@@ -1867,26 +1935,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :param band_name: Name of the band to update.
         :type band_name: str
         """
-        dish_param = json.dumps(dish_param.tolist())
+        # Wait for component manager to complete initialization
+        self.initialization_complete.wait()
         with self.dish_pointing_lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
-
-            if band_name in self.dish_pointing_model_param:
-                self.dish_pointing_model_param[band_name] = dish_param
-                self.logger.debug(
-                    f"Dish parameter: {band_name} updated to {dish_param}."
-                )
-            else:
-                self.logger.error(
-                    f"Band name '{band_name}' not found in parameters."
-                )
-                return
-
-            if self._update_dish_pointing_model_param:
-                self._update_dish_pointing_model_param(
-                    self.dish_pointing_model_param
-                )
+            self.gpm_validator.update_dish_params_and_validate_gpm(
+                dish_param, band_name
+            )
 
     def update_device_pointing_state(
         self: DishLNComponentManager, pointingState: PointingState
@@ -2812,50 +2868,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.event_queues["dishMode"].put(event)
 
-    def update_dish_pointing_model_params(
-        self, event: tango.EventData
-    ) -> None:
-        """
-        Updates dish pointing model param event in respective queue
-
-        Args:
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
-
-        """
-
-        if not event:
-            self.logger.warning(
-                "Received null event in update_dish_pointing_model_param."
-            )
-            return
-
-        attr_value = getattr(event, "attr_value", None)
-        if not attr_value:
-            self.logger.warning(f"Received event without attr_value: {event}")
-            return
-
-        attr_name = getattr(attr_value, "name", None)
-        if not attr_name:
-            self.logger.warning(
-                f"Event attr_value missing 'name' field: {attr_value}"
-            )
-            return
-
-        if attr_name not in self.event_queues:
-            self.logger.warning(
-                f"Event queue for '{attr_name}' not found. Creating one."
-            )
-            self.event_queues[attr_name] = queue.Queue()
-
-        try:
-            self.event_queues[attr_name].put(event)
-            self.logger.debug(f"Queued event for {attr_name}")
-        except Exception as e:
-            self.logger.exception(
-                f"Failed to queue event for {attr_name}: {e}"
-            )
-
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
         Updates pointing state event in respective queue
@@ -2963,3 +2975,51 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         # reset flag so you can restart later if needed
         self._stop_thread = False
+
+    def build_health_context(self) -> DishHealthData:
+        """
+        Build health evaluation context.
+
+        Extend  this method when new health inputs
+        (PTT, GPM, etc.) are added.
+        """
+
+        return DishHealthData(
+            gpm_validation_result=list(self.gpm_validation_result.values())
+        )
+
+    def evaluate_health_state(
+        self, context: DishHealthData
+    ) -> Optional[HealthState]:
+        """
+        Evaluate health state using rules.
+
+        Args:
+            context: DishHealthData
+
+        Returns:
+            HealthState or None if no rule matched
+        """
+
+        for health_state, rules in HEALTH_RULES.items():
+            if any(rule.matches(asdict(context)) for rule in rules):
+                self.logger.info("HealthState decided as %s", health_state)
+                return health_state
+
+        self.logger.debug("No health rule matched for context: %s", context)
+        return None
+
+    def evaluate_and_update_health_state(self) -> None:
+        """
+        Evaluate health state based on kValue
+        and update device health if required.
+        """
+        context = self.build_health_context()
+
+        health_state = self.evaluate_health_state(context)
+
+        if health_state is None:
+            return
+
+        if self._update_health_state_callback:
+            self._update_health_state_callback(health_state)
