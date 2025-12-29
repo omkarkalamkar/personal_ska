@@ -619,6 +619,7 @@ def configure_with_wrap_sector(
         c1 = Angle(c1, u.hour).deg
         c2 = Angle(c2, u.deg).deg
 
+    logger.info("Ra and Dec: %s, %s", ra, dec)
     # Assert ra and dec is consistent with wrap_sector key change
     assert round(ra, 2) == round(c1, 2)
     assert round(dec, 2) == round(c2, 2)
