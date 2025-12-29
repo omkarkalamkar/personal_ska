@@ -1,5 +1,5 @@
 import json
-from time import sleep
+import time
 
 import pytest
 import tango
@@ -7,6 +7,7 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
+from tango import DeviceProxy
 
 from tests.settings import (
     COMMAND_COMPLETED,
@@ -22,7 +23,30 @@ from tests.settings import (
     wait_and_validate_attribute_value_available,
 )
 
+TIMEOUT_ACTUAL_POINTING = 5
 OFFSET = 5.0
+
+
+def wait_for_actual_pointing_value(
+    device: DeviceProxy, attribute_name: str, c1: float, c2: float
+) -> bool:
+    """Waits for attribute value to change on the given device."""
+    start_time = time.time()
+    while time.time() - start_time <= TIMEOUT_ACTUAL_POINTING:
+        time.sleep(1)
+        actual_pointing = device.read_attribute(attribute_name).value
+        act_point_json = json.loads(actual_pointing)
+        logger.info("ActualPointing: %s,c1: %s,c2: %s", act_point_json, c1, c2)
+        if act_point_json:
+            ra = act_point_json[1]
+            dec = act_point_json[2]
+            ra = Angle(ra, u.hour).deg
+            dec = Angle(dec, u.deg).deg
+            if (round(ra, 2) == round(c1, 2)) and (
+                round(dec, 2) == round(c2, 2)
+            ):
+                return True
+    return False
 
 
 def configure_dish_leaf_node(
@@ -59,7 +83,7 @@ def configure_dish_leaf_node(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    sleep(1)
+    time.sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
@@ -172,7 +196,7 @@ def partial_configure_dish_leaf_node(
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    sleep(1)
+    time.sleep(1)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -196,7 +220,7 @@ def partial_configure_dish_leaf_node(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    sleep(1)
+    time.sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
@@ -229,7 +253,7 @@ def partial_configure_dish_leaf_node(
     count = 0
     for input_str in partial_configurations:
         # Give a pause before invoking next configuration
-        sleep(3)
+        time.sleep(3)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
@@ -284,8 +308,9 @@ def delta_configure_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dish_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    sleep(1)
+    time.sleep(1)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
@@ -303,13 +328,19 @@ def delta_configure_dish_leaf_node(
         group_callback["sourceOffset"],
     )
 
+    ptt_event_id = dish_pointing_device.subscribe_event(
+        "pointingProgramTrackTable",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingProgramTrackTable"],
+    )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    sleep(1)
+    time.sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
@@ -350,7 +381,7 @@ def delta_configure_dish_leaf_node(
         count = 0
         for input_str in delta_configurations:
             # Give a pause before invoking next configuration
-            sleep(3)
+            time.sleep(3)
             result_config, unique_id_config = dish_leaf_node.Configure(
                 input_str
             )
@@ -400,10 +431,16 @@ def delta_configure_dish_leaf_node(
         lookahead=6,
     )
 
+    group_callback["pointingProgramTrackTable"].assert_change_event(
+        ("[]"),
+        lookahead=8,
+    )
+
     dish_leaf_node.unsubscribe_event(source_offset_event_id)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dish_pointing_device.unsubscribe_event(ptt_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -544,7 +581,7 @@ def configure_with_wrap_sector(
     )
 
     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    sleep(1)
+    time.sleep(1)
     assert result_fp[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
@@ -588,13 +625,6 @@ def configure_with_wrap_sector(
         (DishMode.OPERATE),
         lookahead=6,
     )
-    # Main configure
-    actualPointing = json.loads(dish_leaf_node.actualPointing)
-    ra = actualPointing[1]
-    dec = actualPointing[2]
-
-    ra = Angle(ra, u.hour).deg
-    dec = Angle(dec, u.deg).deg
     field = json.loads(configure_input_str)["pointing"].get("field", {})
     if field:
         c1 = configure_input['pointing']['field']['attrs']['c1']
@@ -605,9 +635,10 @@ def configure_with_wrap_sector(
         c1 = Angle(c1, u.hour).deg
         c2 = Angle(c2, u.deg).deg
 
-    # Assert ra and dec is consistent with wrap_sector key change
-    assert round(ra, 2) == round(c1, 2)
-    assert round(dec, 2) == round(c2, 2)
+    # Main configure
+    assert wait_for_actual_pointing_value(
+        dish_leaf_node, "actualPointing", c1, c2
+    )
 
     # Validate number of program track table entries is 150
     assert (
@@ -638,7 +669,7 @@ def configure_with_wrap_sector(
             flag = True
         else:
             # Safe check: Allow some time to generate PTT
-            sleep(1)
+            time.sleep(1)
             timeout += 1
 
     assert flag  # Verify PTT updated.
@@ -723,7 +754,7 @@ def configure_with_wrap_sector(
             flag = True
         else:
             # Safe check: Allow some time to generate PTT
-            sleep(1)
+            time.sleep(1)
             timeout += 1
 
     assert flag  # Verify PTT updated.

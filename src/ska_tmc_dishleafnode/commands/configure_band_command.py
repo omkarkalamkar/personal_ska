@@ -64,9 +64,7 @@ class ConfigureBand(DishLNCommand):
 
     # pylint: disable=unused-argument
     @timeout_tracker
-    @error_propagation_tracker(
-        "get_configure_band_result_code", [ResultCode.OK]
-    )
+    @error_propagation_tracker("get_configure_band_result", [True])
     def configure_band(
         self: ConfigureBand,
         argin: str,

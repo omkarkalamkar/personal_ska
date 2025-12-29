@@ -146,7 +146,6 @@ def test_configure_command_completed_with_correction_key_reset(
     cm.update_device_configured_band("2")
     time.sleep(2)
     simulate_dish_mode_event(cm, DishMode.OPERATE)
-    simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
     simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)

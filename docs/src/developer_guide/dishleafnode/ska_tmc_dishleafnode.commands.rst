@@ -69,14 +69,6 @@ set_kvalue
    :undoc-members:
    :show-inheritance:
 
-setoperatemode
---------------------------------------------------------------
-
-.. automodule:: ska_tmc_dishleafnode.commands.setoperatemode
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 setstandbyfpmode
 ----------------------------------------------------------------
 

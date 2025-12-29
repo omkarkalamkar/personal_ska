@@ -791,31 +791,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetOperateMode_allowed(self: MidTmcLeafNodeDish) -> bool:
-        """
-        Checks whether this command is allowed to be run in the current
-        dish mode.
-
-        :return: True if this command is allowed to be run in current
-            dish mode.
-
-        :rtype: boolean
-        """
-        return self.component_manager.is_setoperatemode_allowed()
-
-    @command(dtype_out="DevVarLongStringArray")
-    @DebugIt()
-    def SetOperateMode(
-        self: MidTmcLeafNodeDish,
-    ) -> Tuple[List[ResultCode], List[str]]:
-        """Invokes SetOperateMode command on DishMaster device.
-
-        :rtype: Tuple"""
-        handler = self.get_command_object("SetOperateMode")
-        result_code, unique_id = handler()
-
-        return [result_code], [str(unique_id)]
-
     def is_SetStandbyFPMode_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in the current
@@ -1318,7 +1293,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         for command_name, method_name in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
-            ("SetOperateMode", "setoperatemode"),
             ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
             ("ConfigureBand", "configureband"),
