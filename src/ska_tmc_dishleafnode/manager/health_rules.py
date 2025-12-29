@@ -11,5 +11,9 @@ HEALTH_RULES = {
     ],
     HealthState.FAILED: [
         Rule("kvalue_validation_result != 'OK'"),
+        Rule("$all([gpm != 'FAILED' for gpm in gpm_validation_result ])"),
+    ],
+    HealthState.DEGRADED: [
+        Rule("$any([gpm == 'FAILED' for gpm in gpm_validation_result ])"),
     ],
 }

@@ -1,5 +1,5 @@
  {
-    "layout_data": {
+    "array_layout": {   
         "interface": "https://schema.skao.int/ska-telmodel-layout-receptor/1.1",
         "diameter": 15.0,
         "location": {

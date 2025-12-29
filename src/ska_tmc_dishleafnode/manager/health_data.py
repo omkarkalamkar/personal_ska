@@ -17,3 +17,4 @@ class DishHealthData:
     """
 
     kvalue_validation_result: ResultCode
+    gpm_validation_result: ResultCode
