@@ -5,6 +5,11 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[Unreleased]
+* Implemented GPM validation functionality on DLN.
+* Implemented gpmValidationResult attribute to check the validation per band.
+* Implemented gpmSourcePath and gpmFilePath memorized attributes(Developers purpose only).
+
 [0.28.0]
 ********
 Updated
