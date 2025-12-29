@@ -32,8 +32,8 @@ def wait_for_actual_pointing_value(
 ) -> bool:
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
-    while time.time() - start_time >= TIMEOUT_ACTUAL_POINTING:
-        actual_pointing = device.read_attribute(attribute_name)
+    while time.time() - start_time <= TIMEOUT_ACTUAL_POINTING:
+        actual_pointing = device.read_attribute(attribute_name).value
         act_point_json = json.loads(actual_pointing)
         ra = act_point_json[1]
         dec = act_point_json[2]
@@ -781,7 +781,6 @@ def configure_with_wrap_sector(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.xfail()
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(
