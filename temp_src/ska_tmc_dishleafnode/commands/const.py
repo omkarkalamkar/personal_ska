@@ -12,7 +12,6 @@ EVT_DESIRED_POINT = "desiredPointing"
 # In/out commands
 CMD_SET_STOW_MODE = "SetStowMode"
 CMD_SET_STANDBYLP_MODE = "SetStandbyLPMode"
-CMD_SET_OPERATE_MODE = "SetOperateMode"
 CMD_SET_STANDBYFP_MODE = "SetStandbyFPMode"
 CMD_DISH_SCAN = "Scan"
 CMD_DISH_ENDSCAN = "EndScan"
@@ -90,7 +89,6 @@ ERR_ON_SUBS_DISH_DESIRED_POINT_ATTR = (
 ERR_EXCEPT_CMD_CB = "Exception in CommandCallback: \n"
 ERR_EXCEPT_SSM_CMD_CB = "Exception in SetStowMode CommandCallback: \n"
 ERR_EXCEPT_SSLM_CMD_CB = "Exception in SetStandByLPMode CommandCallback: \n"
-ERR_EXCEPT_SOM_CMD_CB = "Exception in SetOperateMode CommandCallback: \n"
 ERR_EXCEPT_SCAN_CMD_CB = "Exception in Scan CommandCallback: \n"
 ERR_EXCEPT_ENDSCAN_CMD_CB = "Exception in EndScan CommandCallback: \n"
 ERR_EXCEPT_CONFIGURE_CMD_CB = "Exception in Configure CommandCallback: \n"
@@ -110,10 +108,8 @@ ERR_DISH_INIT = "Error occured in Dish Leaf Node initialization "
 
 ERR_EXE_STOW_CMD = "Exception in executing STOW command "
 ERR_EXE_STANDBYLP_CMD = "Exception occurred in SetStandByLPMode command."
-ERR_EXE_SET_OPER_MODE_CMD = "Exception in SetOperateMode command:\n"
 ERR_EXE_SET_STOW_MODE_CMD = "Exception in SetStowMode command:"
 ERR_EXE_SET_STANDBYLP_MODE_CMD = "Exception in SetStandByLPMode command:"
-ERR_EXE_SET_OPERATE_MODE_CMD = "Exception in SetOperateMode command:"
 ERR_EXE_SET_STANDBYFP_MODE_CMD = "Exception in SetStandByLPMode command:"
 
 
@@ -169,7 +165,6 @@ STR_SLEW_EXEC = "Slew command execution"
 STR_STOPCAPTURE_EXEC = "StopCapture command execution"
 STR_SETSTOWMODE_EXEC = "SetStowMode command execution"
 STR_SETSTANDBYLPMODE_EXEC = "SetStandByLPMode command execution"
-STR_SETOPERATEMODE_EXEC = "SetOperateMode command execution"
 STR_SETSTANDBYFPMODE_EXEC = "SetStandByFPMode command execution"
 
 
@@ -184,7 +179,6 @@ STR_SET_STOW_MODE_CMD_CALLBK = "DishLeafNode SetStowMode Command Callback"
 STR_SET_SETSTANDBYLP_CMD_CALLBK = (
     "DishLeafNode SetStandByLPMode Command Callback"
 )
-STR_SET_SETOPERATE_CMD_CALLBK = "DishLeafNode SetOperateMode Command Callback"
 STR_SCAN_CMD_CALLBK = "DishLeafNode Scan Command Callback"
 # STR_ENDSCAN_CMD_CALLBK = "DishLeafNode EndScan Command Callback"
 STR_CONFIGURE_CMD_CALLBK = "DishLeafNode Configure Command Callback"

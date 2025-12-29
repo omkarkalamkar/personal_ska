@@ -29,6 +29,11 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
+    pointingstate_event_id = dish_leaf_node.subscribe_event(
+        "pointingState",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["pointingState"],
+    )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
@@ -56,6 +61,14 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
 
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.OPERATE),
+        lookahead=7,
+    )
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], COMMAND_COMPLETED),
         lookahead=7,
@@ -71,6 +84,7 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
 
     tear_down(dish_leaf_node, dish_master, group_callback)
 

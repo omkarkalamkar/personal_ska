@@ -204,6 +204,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             data (str): pointing data from configure command.
         """
         try:
+            self.logger.info("target data is: %s", data)
             self.__target_data = data
             # Set the wrap key
             self.set_wrap_sector_data()

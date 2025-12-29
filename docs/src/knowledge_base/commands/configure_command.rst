@@ -35,7 +35,6 @@ Configure
         C. The command invokes several sub-commands based on the input JSON and the current state:
 
             - **ConfigureBand**: Invoked to configure the receiver band on the Dish Master.
-            - **SetOperateMode**: Invoked to set the dish to OPERATE mode.
             - **Track**: Invoked to start tracking after ensuring that PointingState is not **Track** or **SLEW** and :term:`ProgramTrackTable` has been sent to Dish Master.
 
         D. When each command is invoked on the Dish Master Subarray :-
@@ -49,7 +48,7 @@ Configure
 
             - DishMode is **OPERATE**
             - PointingState is any of the **TRACK** or **SLEW**
-            - For each of the command **ConfigureBand ,SetOperateMode,Track** , Dish Master reports **'RESULT_CODE - OK'** on long running command attribute.
+            - For each of the command **ConfigureBand,Track** , Dish Master reports **'RESULT_CODE - OK'** on long running command attribute.
             - In case of partial configure TrackLoadStaticOff , Dish Master reports **'RESULT_CODE - OK'** on long running command attribute.
 
         B. Command failure is reported in any of the below cases as **'RESULT_CODE - FAILED'** on Long Running Command Result attribute of the TMC Dish leaf node.

@@ -5,13 +5,22 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-[0.27.3]
+[0.29.0]
 ********
-Fixed
+Added
 -----
 * Added event subscription for Dish kValue updates
 * Implemented validation rules using the rule engine
 * Updated dish healthState based on kValue validation results
+* Implemented GPM validation functionality on DLN.
+* Implemented gpmValidationResult attribute to check the validation per band.
+* Implemented gpmSourcePath and gpmFilePath memorized attributes(Developers purpose only.)
+
+[0.28.0]
+********
+Updated
+-------
+* TMC Mid to align with the changes introduced in Dish 9.0.0 namely; Deprecated SetOperateMode() command which is orchestrated in the TMC Configure workflow.
 
 [0.27.2]
 ********

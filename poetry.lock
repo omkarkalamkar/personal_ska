@@ -2256,13 +2256,6 @@ description = "YAML parser and emitter for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "PyYAML-6.0.3-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:c2514fceb77bc5e7a2f7adfaa1feb2fb311607c9cb518dbc378688ec73d8292f"},
-    {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9c57bb8c96f6d1808c030b1687b9b5fb476abaa47f0db9c0101f5e9f394e97f4"},
-    {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_s390x.manylinux_2_17_s390x.manylinux_2_28_s390x.whl", hash = "sha256:efd7b85f94a6f21e4932043973a7ba2613b059c4a000551892ac9f1d11f5baf3"},
-    {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:22ba7cfcad58ef3ecddc7ed1db3409af68d023b7f940da23c6c2a1890976eda6"},
-    {file = "PyYAML-6.0.3-cp38-cp38-musllinux_1_2_x86_64.whl", hash = "sha256:6344df0d5755a2c9a276d4473ae6b90647e216ab4757f8426893b5dd2ac3f369"},
-    {file = "PyYAML-6.0.3-cp38-cp38-win32.whl", hash = "sha256:3ff07ec89bae51176c0549bc4c63aa6202991da2d9a6129d7aef7f1407d3f295"},
-    {file = "PyYAML-6.0.3-cp38-cp38-win_amd64.whl", hash = "sha256:5cf4e27da7e3fbed4d6c3d8e797387aaad68102272f8f9752883bc32d61cb87b"},
     {file = "pyyaml-6.0.3-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:214ed4befebe12df36bcc8bc2b64b396ca31be9304b8f59e25c11cf94a4c033b"},
     {file = "pyyaml-6.0.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:02ea2dfa234451bbb8772601d7b8e426c2bfa197136796224e50e35a78777956"},
     {file = "pyyaml-6.0.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b30236e45cf30d2b8e7b3e85881719e98507abed1011bf463a8fa23e9c3e98a8"},
@@ -2871,13 +2864,13 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-common"
-version = "1.1.0"
+version = "1.2.0"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "ska_tmc_common-1.1.0-py3-none-any.whl", hash = "sha256:3977dcdc9d87a64a406f63b21e193f6aa496b9dbd2fcb81dc09f11e2ccacb399"},
-    {file = "ska_tmc_common-1.1.0.tar.gz", hash = "sha256:64433ae9d956820d85db80663f5dfa6cb25f031162ca9f9485e71810debd5d56"},
+    {file = "ska_tmc_common-1.2.0-py3-none-any.whl", hash = "sha256:2c46fe122dd7eceae022875dec5c7b40d14dba34e1d84b9a5a7b49a880fbd1fd"},
+    {file = "ska_tmc_common-1.2.0.tar.gz", hash = "sha256:53c42eb520f14f4f1652439f562667af98a21c42d9bfd24d6b09e8e141af8e53"},
 ]
 
 [package.dependencies]
@@ -2906,12 +2899,15 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-simulators"
-version = "1.7.0"
+version = "1.7.2"
 description = "SKA TMC Simulators contains helper classes required for Telescope Monitoring and Control(TMC)."
 optional = false
-python-versions = "^3.10"
-files = []
-develop = false
+python-versions = ">=3.10,<4.0"
+groups = ["main"]
+files = [
+    {file = "ska_tmc_simulators-1.7.2-py3-none-any.whl", hash = "sha256:5810dfe4ae42f49b8d5377051a82259e8a39498f6cf4d36a2d3b82bead64acb9"},
+    {file = "ska_tmc_simulators-1.7.2.tar.gz", hash = "sha256:a085f2bebb7e3350052b5ffee4140455a132a447f426c361718f981e2ebf7d8d"},
+]
 
 [package.dependencies]
 attrs = "*"
@@ -3479,10 +3475,17 @@ files = [
 ]
 
 [package.extras]
+<<<<<<< HEAD
 brotli = ["brotli (>=1.2.0)", "brotlicffi (>=1.2.0.0)"]
 h2 = ["h2 (>=4,<5)"]
 socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["backports-zstd (>=1.0.0)"]
+=======
+brotli = ["brotli (>=1.2.0) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=1.2.0.0) ; platform_python_implementation != \"CPython\""]
+h2 = ["h2 (>=4,<5)"]
+socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
+zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
+>>>>>>> f3d09fb1cdf9cee2ab69f59068c5677021a126a7
 
 [package.source]
 type = "legacy"
@@ -3574,4 +3577,8 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
+<<<<<<< HEAD
 content-hash = "25daca56bcd72ab596e633b15df5dfb33e22d73d6444cafe9cdea7960b6b1dbe"
+=======
+content-hash = "36d44df0f0adc674a37efd223caa6e11f1274c651cf92c321603791c108a7743"
+>>>>>>> f3d09fb1cdf9cee2ab69f59068c5677021a126a7
