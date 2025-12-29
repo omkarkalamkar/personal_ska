@@ -35,10 +35,6 @@ def test_configure_command_completed(
             [ResultCode.OK],
             ["Command Completed"],
         ),
-        'SetOperateMode.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
         'Track.return_value': (
             [ResultCode.OK],
             ["Command Completed"],
@@ -58,17 +54,20 @@ def test_configure_command_completed(
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
     cm.configure(configure_input_str, task_callback=task_callback)
+    time.sleep(0.5)  # Ensure configure command is waiting for events.
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.QUEUED}
     )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    cm.update_device_configured_band("2")
-    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
-    cm.update_device_dish_mode(DishMode.OPERATE)
-    simulate_result_code_event(cm, "SetOperateMode", ResultCode.OK)
+    simulate_result_code_event(cm, "GenerateProgramTrackTable", ResultCode.OK)
     simulate_track_table_event(cm)
+
+    cm.update_device_configured_band("2")
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
+
     cm.update_device_pointing_state(PointingState.TRACK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
     cm.observable.notify_observers(attribute_value_change=True)

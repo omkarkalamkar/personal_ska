@@ -52,7 +52,6 @@ from ska_tmc_dishleafnode.commands import (
     EndScan,
     Off,
     Scan,
-    SetOperateMode,
     SetStandbyFPMode,
     SetStandbyLPMode,
     SetStowMode,
@@ -179,7 +178,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.receiver_band = None
         self.partial_configure_lrcr = ResultCode.UNKNOWN
         self.configure_band_lrcr = ResultCode.UNKNOWN
-        self.configure_setoperate_mode_lrcr = ResultCode.UNKNOWN
         self.partial_configure: bool = False
         self.command_result_update_lock = threading.RLock()
         self.tango_operation_execution_lock = threading.RLock()
@@ -248,7 +246,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "ConfigureBand5a",
             "ConfigureBand5b",
             "Track",
-            "SetOperateMode",
             "EndScan",
             "Scan",
             "TrackLoadStaticOff",
@@ -420,15 +417,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
-        ConfigureBand, SetOperateMode, Track and TrackLoadStaticOff
+        ConfigureBand, Track and TrackLoadStaticOff
         """
         with self.command_result_update_lock:
-            self.set_operate_mode_result = {
-                "result_code": None,
-                "message": None,
-                "exception": None,
-                "status": None,
-            }
             self.track_result = {
                 "result_code": None,
                 "message": None,
@@ -553,7 +544,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.UNKNOWN,
                 ],
                 "TrackStop": [DishMode.OPERATE],
-                "SetOperateMode": [DishMode.STANDBY_FP],
                 "Scan": [
                     DishMode.OPERATE,
                     DishMode.STANDBY_FP,
@@ -1341,36 +1331,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
         return task_status, response
 
-    def setoperatemode(
-        self: DishLNComponentManager, task_callback: TaskCallbackType
-    ) -> Tuple[TaskStatus, str]:
-        """Submits the SetOperateMode command for execution.
-
-        :param task_callback: Callback function to handle task status.
-        :type task_callback: TaskCallbackType
-
-        :return: A tuple containing TaskStatus and a message string.
-        :rtype: Tuple
-        """
-        setoperatemode_command = SetOperateMode(
-            self,
-            self.op_state_model,
-            self.adapter_factory,
-            logger=self.logger,
-            is_configure_command=False,
-        )
-        task_status, response = self.submit_task(
-            setoperatemode_command.set_operate_mode,
-            args=[self.logger],
-            is_cmd_allowed=self.is_command_allowed_callable("SetOperateMode"),
-            task_callback=task_callback,
-        )
-        self.logger.info(
-            "SetOperateMode command queued for execution on %s",
-            self.dish_dev_name,
-        )
-        return task_status, response
-
     def configure(
         self: DishLNComponentManager,
         argin: str,
@@ -1707,30 +1667,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         raise CommandNotAllowed(
             "The invocation of the SetStowMode command on this "
-            + "device is not allowed. "
-            + "Reason: The current dish mode is "
-            + f"{self.dishMode}. "
-            + "The command has NOT been executed. "
-            + "This device will continue with normal operation."
-        )
-
-    def is_setoperatemode_allowed(self: DishLNComponentManager) -> bool:
-        """Checks if the given command is allowed in current operational
-        state.
-
-        :return: True if the command is allowed in the current operational
-            state, False otherwise.
-        :rtype: boolean
-        """
-
-        self.check_device_responsive()
-        if self.dishMode in [
-            DishMode.STANDBY_FP,
-        ]:
-            return True
-
-        raise CommandNotAllowed(
-            "The invocation of the SetOperateMode command on this "
             + "device is not allowed. "
             + "Reason: The current dish mode is "
             + f"{self.dishMode}. "
@@ -2230,27 +2166,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.configure_band_result,
                         )
                         is_notify_observer = True
-                    elif "SetOperateMode" in unique_id:
-                        self.set_operate_mode_result[
-                            "result_code"
-                        ] = result_code
-                        self.set_operate_mode_result["message"] = message
-                        self.logger.debug(
-                            "SetOperateMode result: %s",
-                            self.set_operate_mode_result,
-                        )
-                        # pylint: disable=line-too-long
-                        observer_cmd_instance = [
-                            (
-                                observer.command_callback_tracker.command_class_instance,  # noqa: E501
-                                observer.command_callback_tracker.command_id,
-                            )
-                            for observer in self.observable.observers
-                        ]
-                        self.logger.debug(
-                            "Number of observer %s", observer_cmd_instance
-                        )
-                        is_notify_observer = True
                     elif "EndScan" in unique_id:
                         self.end_scan_result["result_code"] = result_code
                         self.end_scan_result["message"] = message
@@ -2313,7 +2228,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 ResultCode.REJECTED,
             ]:
                 # If the Configure command is executed, below LRCR callback
-                # for the commands ConfigureBand, SetOperateMode and
+                # for the commands ConfigureBand and
                 # TrackLoadStaticOff is set via is invoke_configure method.
                 self.logger.debug(
                     "Observer %s",
@@ -2323,10 +2238,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     ],
                 )
                 if self.command_in_progress == "Configure":
-                    if (
-                        ("ConfigureBand" in unique_id)
-                        or ("SetOperateMode" in unique_id)
-                        or ("TrackLoadStaticOff" in unique_id)
+                    if ("ConfigureBand" in unique_id) or (
+                        "TrackLoadStaticOff" in unique_id
                     ):
                         self.logger.debug(
                             "LRCR Callback is: %s",
@@ -2565,9 +2478,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def get_dish_state(
         self,
-    ) -> Tuple[
-        DishMode, PointingState, Band, ResultCode, ResultCode, ResultCode
-    ]:
+    ) -> Tuple[DishMode, PointingState, Band, ResultCode, ResultCode]:
         """
         Returns the current state of the dish including its mode,
         pointing state, band and the result code of the specified commands.
@@ -2578,7 +2489,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 - PointingState: The current pointing state of the dish.
                 - Band: The dish configured band
                 - ResultCode: ConfigureBand command result code
-                - ResultCode: SetOperateMode command result code
                 - ResultCode: Track command result code
         """
         return [
@@ -2586,7 +2496,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.pointingState,
             self.dishConfiguredBand,
             self.get_configure_band_result_code(),
-            self.get_set_operate_mode_result_code(),
             self.get_track_result_code(),
         ]
 
@@ -2638,7 +2547,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def get_configure_band_result_code(self: DishLNComponentManager):
         """
-        Return the result of the ConfigureBand command execution
+        Return the result code of the ConfigureBand command execution
 
         :return: ResultCode from dictionary configure_band_result
         :rtype: ResultCode
@@ -2646,6 +2555,22 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         with self.command_result_update_lock:
             return self.configure_band_result["result_code"]
+
+    def get_configure_band_result(self: DishLNComponentManager):
+        """
+        Return the result of the ConfigureBand command completion.
+
+        :return: Returns whether the ConfigureBand command completion criteria
+            is satisfied.
+        :rtype: bool
+
+        """
+        with self.command_result_update_lock:
+            result = (
+                self.configure_band_result["result_code"] == ResultCode.OK
+                and self.dishMode == DishMode.OPERATE
+            )
+            return result
 
     def get_configure_band_result_dict(self: DishLNComponentManager):
         """
@@ -2679,27 +2604,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.configure_band_result["message"] = message
             self.configure_band_result["exception"] = exception
             self.configure_band_result["status"] = status
-
-    def get_set_operate_mode_result_code(self: DishLNComponentManager):
-        """
-        Return the result of the SetOperateMode command execution
-
-        :return: ResultCode from the set_operate_mode_result
-        :rtype: ResultCode
-        """
-
-        with self.command_result_update_lock:
-            return self.set_operate_mode_result["result_code"]
-
-    def get_set_operate_mode_result_dict(self: DishLNComponentManager):
-        """
-        Return the dictinary containing SetOperateMode command execution status
-
-        :return: set_operate_mode_result dictionary
-        :rtype: dict
-        """
-        with self.command_result_update_lock:
-            return self.set_operate_mode_result
 
     def get_abort_result_code(self: DishLNComponentManager) -> ResultCode:
         """
@@ -2755,29 +2659,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.command_result_update_lock:
             return self.track_result
-
-    def update_set_operate_mode_result_dict(
-        self: DishLNComponentManager,
-        result_code=None,
-        message=None,
-        exception=None,
-        status=None,
-    ):
-        """
-        Set the dictionary containing SetOperateMode command execution status
-
-        Args:
-            result_code (ResultCode): ResultCode to be set in
-                set_operate_mode_result.
-            message (str): message to be set in set_operate_mode_result.
-            exception (str): exception to be set in set_operate_mode_result.
-            status (str): status to be set in set_operate_mode_result.
-        """
-        with self.command_result_update_lock:
-            self.set_operate_mode_result["result_code"] = result_code
-            self.set_operate_mode_result["message"] = message
-            self.set_operate_mode_result["exception"] = exception
-            self.set_operate_mode_result["status"] = status
 
     def set_track_result_dict(
         self: DishLNComponentManager,
@@ -2884,7 +2765,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
             # and dish_band == self.receiver_band
             and self.configure_band_lrcr == ResultCode.OK
-            and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
             and (
                 self.partial_configure_lrcr == ResultCode.OK
