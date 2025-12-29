@@ -27,3 +27,7 @@ dependencies:
     version: 1.4.1
     repository: https://artefact.skao.int/repository/helm-internal
     condition: ska-tmc-simulators.enabled
+  - name: ska-mid-wms
+    version: 1.0.1
+    repository: https://artefact.skao.int/repository/helm-internal
+    condition: ska-mid-wms.enabled

@@ -70,6 +70,8 @@ deviceServers:
     DishAvailabilityCheckTimeout: 3
     source_uris: gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata
     array_layout_path: instrument/ska1_mid/layout/mid-layout.json
+    weather_station_device_name: "ska-mid/weather-monitoring/s1"
+    
   dishpointingdevice:
     enabled: true
     instances: ["01", "02"]

@@ -3,16 +3,16 @@ SetStowMode command class for DishLeafNode.
 """
 from __future__ import annotations
 
-import threading
-from logging import Logger
-from typing import Optional, Tuple
+from typing import Tuple
 
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
+from ska_tmc_common import DishMode
+from ska_tmc_common.v1.error_propagation_tracker import (
+    error_propagation_tracker,
+)
+from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
 class SetStowMode(DishLNCommand):
@@ -24,13 +24,12 @@ class SetStowMode(DishLNCommand):
     Dish Leaf Node device.
     """
 
-    # pylint: disable=unused-argument
-    def set_stow_mode(
-        self: SetStowMode,
-        logger: Logger,
-        task_callback: TaskCallbackType,
-        task_abort_event: Optional[threading.Event] = None,
-    ):
+    @timeout_tracker
+    @error_propagation_tracker(
+        "get_dish_mode",
+        [DishMode.STOW],
+    )
+    def set_stow_mode(self: SetStowMode):
         """A method to invoke the SetStowMode command.
         It sets the task_callback status according to command progress.
 
@@ -41,34 +40,7 @@ class SetStowMode(DishLNCommand):
         :param task_abort_event: Check for abort, defaults to None
         :type task_abort_event: Event, optional
         """
-
-        task_callback(status=TaskStatus.IN_PROGRESS)
-
-        result_code, message = self.do()
-        self.logger.debug(
-            "Command ID: %s | Updating task status with Result: %s"
-            + " Message: %s",
-            self.component_manager.command_id,
-            ResultCode(result_code),
-            message,
-        )
-        if result_code == ResultCode.FAILED:
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(result_code, message),
-                exception=message,
-            )
-        else:
-            logger.info(
-                "Command ID: %s | "
-                "SetStowMode command is invoked successfully on %s",
-                self.component_manager.command_id,
-                self.component_manager.dish_dev_name,
-            )
-            task_callback(
-                status=TaskStatus.COMPLETED,
-                result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-            )
+        return self.do()
 
     # pylint: disable=arguments-differ
     def do(self: SetStowMode) -> Tuple[ResultCode, str]:

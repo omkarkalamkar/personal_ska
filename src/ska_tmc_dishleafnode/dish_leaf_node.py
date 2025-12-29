@@ -90,7 +90,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         default_value=0.2,
         doc="Retry duration for programTrackTable write operation in seconds",
     )
-
+    WeatherStationDeviceName = device_property(
+        dtype="str", doc="FQDN of Weather Station device", default_value=""
+    )
     # ----------
     # Attributes
     # ----------
@@ -622,7 +624,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetStowMode command on DishMaster.
 
-        :rtype: Tuple"""
+        :rtype: Tuple
+        """
 
         handler = self.get_command_object("SetStowMode")
         result_code, unique_id = handler()
@@ -669,7 +672,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetOperateMode command on DishMaster device.
 
-        :rtype: Tuple"""
+        :rtype: Tuple
+        """
         handler = self.get_command_object("SetOperateMode")
         result_code, unique_id = handler()
 
@@ -693,7 +697,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self: MidTmcLeafNodeDish,
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetStandbyFPMode command on DishMaster (Standby-Full power)
-        mode."""
+        mode.
+
+        """
         handler = self.get_command_object("SetStandbyFPMode")
         result_code, unique_id = handler()
 
@@ -1138,7 +1144,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             pointing_callback=self.pointing_callback,
             kvalue_validation_callback=self.kvalue_validation_callback,
             _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
-            _event_receiver=True,
+            _event_manager=True,
             _update_dishmode_callback=self.update_dishmode_callback,
             _update_dish_pointing_model_param=(
                 self.update_global_pointing_param_callback
@@ -1160,6 +1166,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_gpm_version_callback=self.update_gpm_version_callback,
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
+            weather_station_device_name=self.WeatherStationDeviceName,
         )
         return cm
 

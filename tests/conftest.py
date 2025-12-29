@@ -337,7 +337,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         logger=logger,
         _update_dishmode_callback=dish_mode_callback,
         _update_dish_pointing_model_param=(pointing_model_param_callaback),
-        _event_receiver=False,
+        _event_manager=False,
         _liveliness_probe=LivelinessProbeType.NONE,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
@@ -355,8 +355,8 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
     )
     cm.stop_actual_pointing_process.set()
     cm.array_layout = ARRAY_LAYOUT
-    if cm.event_receiver:
-        cm.stop_event_receiver()
+    if cm.event_manager:
+        cm.stop_event_manager()
 
     yield cm
     # pylint: disable=unnecessary-dunder-call

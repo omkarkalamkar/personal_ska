@@ -12,6 +12,7 @@ from ska_tmc_common import (
     AdapterFactory,
     AdapterType,
     DishMode,
+    TimeKeeper,
     TimeoutCallback,
     TimeoutState,
     TmcLeafNodeCommand,
@@ -76,6 +77,10 @@ class DishLNCommand(TmcLeafNodeCommand):
         self._adapter_factory = adapter_factory or AdapterFactory()
         self.dish_master_adapter = None
         self.dishln_pointing_device_adapter = None
+        self.timekeeper = TimeKeeper(
+            self.component_manager.command_timeout, logger
+        )
+        self.command_uniq_id: str = ""
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""

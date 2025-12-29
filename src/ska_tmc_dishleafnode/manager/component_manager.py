@@ -12,11 +12,12 @@ import re
 import signal
 import threading
 import time
+from collections import defaultdict
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
 from typing import Callable, Dict, Tuple
-
+from functools import partial
 import numpy as np
 import tango
 from astropy.time import Time
@@ -41,7 +42,7 @@ from ska_tmc_common import (
 )
 from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
-from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
+from ska_tmc_common.v2.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
@@ -68,7 +69,7 @@ from ska_tmc_dishleafnode.constants import (
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
-from .event_receiver import DishLNEventReceiver
+from .event_manager import DishLNEventManager
 
 
 # pylint: disable = too-many-public-methods,too-many-instance-attributes
@@ -98,7 +99,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_health_state_callback: Callable,
         _update_gpm_version_callback: Callable,
         _liveliness_probe=LivelinessProbeType.NONE,
-        _event_receiver: bool = True,
+        _event_manager: bool = True,
         default_array_layout_source_uris: str = '',
         default_array_layout_path: str = '',
         proxy_timeout: int = 500,
@@ -110,6 +111,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         adapter_timeout: int = 2,
         max_track_table_retry: int = 3,
         track_table_retry_duration: float = 0.2,
+        weather_station_device_name: str = "",
     ):
         """
         Initialise a new ComponentManager instance.
@@ -142,6 +144,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             event_subscription_check_period=event_subscription_check_period,
             liveliness_check_period=liveliness_check_period,
         )
+        self.event_manager = _event_manager
         self.default_array_layout_source_uris = (
             default_array_layout_source_uris
         )
@@ -169,12 +172,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             else None
         )
         self.dish_pointing_model_param: Dict[str, str] = {
-            "band1pointingmodelparams": "",
-            "band2pointingmodelparams": "",
-            "band3pointingmodelparams": "",
-            "band4pointingmodelparams": "",
-            "band5apointingmodelparams": "",
-            "band5bpointingmodelparams": "",
+            "band1PointingModelParams": "",
+            "band2PointingModelParams": "",
+            "band3PointingModelParams": "",
+            "band4PointingModelParams": "",
+            "band5aPointingModelParams": "",
+            "band5bPointingModelParams": "",
         }
         self.receiver_band = None
         self.partial_configure_lrcr = ResultCode.UNKNOWN
@@ -228,7 +231,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.long_running_result_callback = LRCRCallback(self.logger)
         self.extended_time: int = 0
         self.__command_in_progress: str = ""
-        self.event_receiver = _event_receiver
         self.converter = AzElConverter(self)
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
@@ -256,18 +258,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Abort",
             "ApplyPointingModel",
         )
-
-        # Event Receiver
-        if _event_receiver:
-            evt_subscription_check_period = event_subscription_check_period
-            self.event_receiver_object = DishLNEventReceiver(
-                self,
-                logger,
-                proxy_timeout=proxy_timeout,
-                event_subscription_check_period=evt_subscription_check_period,
-                attribute_list=list(self.get_attribute_dict().keys()),
-            )
-            self.event_receiver_object.start()
+        # Event Manager
+        self.event_manager_object: DishLNEventManager = DishLNEventManager(
+            self,
+            logger=logger,
+            event_subscription_check_period=event_subscription_check_period,
+        )
         if _liveliness_probe != LivelinessProbeType.NONE:
             self.start_liveliness_probe(_liveliness_probe)
 
@@ -292,10 +288,111 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
+        self.weather_station_device_name: str = weather_station_device_name
+        self.__humidity: float = 0.10
+        self.__pressure: float = 900.0
+        self.__wind_speed: float = 10.0
+        self.__temperature: float = 30.0
         self.start_event_processing_threads()
-        self.kvalue_validation_thread.start()
         self.actual_pointing_process.start()
+        self.setup_event_subscription()
+        self.kvalue_validation_thread.start()
         self.load_array_layout_for_dish()
+
+    @property
+    def humidity(self) -> float:
+        """The humidity property."""
+        return self.__humidity
+
+    @humidity.setter
+    def humidity(self, humidity: float) -> None:
+        """The setter for humidity property."""
+        with self.rlock:
+            self.__humidity = humidity
+
+    @property
+    def pressure(self) -> float:
+        """The pressure property."""
+        return self.__pressure
+
+    @pressure.setter
+    def pressure(self, pressure: float) -> None:
+        """The setter for pressure property."""
+        with self.rlock:
+            self.__pressure = pressure
+
+    @property
+    def wind_speed(self) -> float:
+        """The wind speed property."""
+        return self.__wind_speed
+
+    @wind_speed.setter
+    def wind_speed(self, wind_speed: float) -> None:
+        """The setter for wind_speed property."""
+        with self.rlock:
+            self.__wind_speed = wind_speed
+
+    @property
+    def temperature(self) -> float:
+        """The temperature property."""
+        return self.__temperature
+
+    @temperature.setter
+    def temperature(self, temperature: float) -> None:
+        """The setter for temperature property."""
+        with self.rlock:
+            self.__temperature = temperature
+
+    def setup_event_subscription(self) -> None:
+        """
+        Sets up the event subscription after input parameters are updated.
+        """
+
+        self.start_event_manager(
+            self.build_device_attribute_map(), timeout=1000
+        )
+        self.logger.debug("Successfully subscribed the events")
+
+    def build_device_attribute_map(self) -> Dict[str, list[str]]:
+        """
+        Builds a dictionary mapping device names to lists of attributes
+        to be subscribed.
+
+        Returns:
+            Dict[str, List[str]]: A mapping from device names to list of
+            attributes.
+        """
+        device_attribute_map = defaultdict(list)
+        device_attribute_map[self.dish_dev_name] = [
+            "band1PointingModelParams",
+            "band2PointingModelParams",
+            "band3PointingModelParams",
+            "band4PointingModelParams",
+            "band5APointingModelParams",
+            "band5BPointingModelParams",
+            "dishMode",
+            "pointingState",
+            "achievedPointing",
+            "configuredBand",
+            "longRunningCommandResult",
+        ]
+        device_attribute_map[self.dishln_pointing_dev_name] = [
+            "pointingProgramTrackTable",
+            "programTrackTableError",
+            "healthState",
+        ]
+        if self.weather_station_device_name:
+            device_attribute_map[self.weather_station_device_name] = [
+                "humidity",
+                "temperature",
+                "windSpeed",
+                "pressure",
+            ]
+
+        self.logger.debug(
+            "Device attribute map dictionary : %s", device_attribute_map
+        )
+        return device_attribute_map
 
     def load_array_layout_for_dish(self) -> None:
         """
@@ -656,6 +753,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return self._device.dish_mode
 
+    def get_dish_mode(self: DishLNComponentManager) -> DishMode:
+        """Returns the dishMode of dish master device
+
+        Returns:
+            DishMode: dishMode of dish master device.
+        """
+        return self.dishMode
+
     @property
     def pointingState(self: DishLNComponentManager) -> PointingState:
         """Returns the pointingState of dish master device
@@ -986,13 +1091,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 str(exception),
             )
 
-    def stop_event_receiver(self: DishLNComponentManager) -> None:
-        """Stops the Event Receiver
-
-        :return: None
-        """
-        if self.event_receiver_object._thread.is_alive():
-            self.event_receiver_object.stop()
+    def stop_event_manager(self) -> None:
+        """Stops the Event Receiver"""
+        if self.event_manager:
+            self.event_manager_object.cancel_subscription_thread(
+                self.event_thread_id
+            )
+            for device in self.build_device_attribute_map():
+                self.event_manager_object.unsubscribe_event_async(device)
 
     def get_device(self: DishLNComponentManager) -> DishDeviceInfo:
         """
@@ -1002,6 +1108,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: DishDeviceInfo
         """
         return self._device
+
+    def check_device_responsiveness(self, device_name: str) -> bool:
+        """This method accepts device_name and
+        provides the responsiveness of the device.
+
+        :param device_name: Tango device FQDN.
+        :type device_name: str
+        :raises DeviceNameIncorrect: raises exception when
+            device name is incorrect.
+        :return: Returns True when device is avaiable, else false.
+        :rtype: bool
+        """
+        with self.rlock:
+            device_information = self.get_device()
+            if not device_information:
+                return False
+            if device_name != device_information.dev_name:
+                return True
+            return not device_information.unresponsive
 
     # pylint: disable=signature-differs
     def off(
@@ -1920,7 +2045,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self._update_dishmode_callback(dish_mode)
 
     def update_dish_pointing_model_param(
-        self, dish_param: str, band_name: str
+        self, dish_param: str,band_name: str
     ) -> None:
         """
         Update the dish pointing model parameter for the specified band and
@@ -2369,28 +2494,35 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         dev_name = sdpqc_fqdn.rsplit("/", 1)[0]
         # Return if same FQDN exists
-        if dev_name == self.queue_connector_device_info.dev_name:
+        queue_connector_dev_name = self.queue_connector_device_info.dev_name
+        if dev_name == queue_connector_dev_name:
             return
         # Unsubscribe the old FQDN if new FQDN comes
-        if (
-            self.queue_connector_device_info.dev_name
-            and dev_name != self.queue_connector_device_info.dev_name
-        ):
-            self.event_receiver_object.unsubscribe_sdpqc_attribute(
-                self.queue_connector_device_info
+        if queue_connector_dev_name and dev_name != queue_connector_dev_name:
+            self.event_manager_object.unsubscribe_events(
+                queue_connector_dev_name
             )
+
         # Subscribe to the SDP queue connector attribute
-        self.queue_connector_device_info.dev_name = dev_name
+        queue_connector_dev_name = dev_name
         attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(
             dish_id=self.dish_id
         )
 
-        if self.event_receiver:
-            self.event_receiver_object.subscribe_sdpqc_attribute(
-                self.queue_connector_device_info, attribute_name
+        if self.event_manager:
+            setattr(
+                self.event_manager_object,
+                f"{attribute_name}_event_callback",
+                self.process_pointing_calibration,
             )
-
-            if self.queue_connector_device_info.event_id:
+            self.event_manager_object.subscribe_events(
+                subscription_configuration={
+                    queue_connector_dev_name: [attribute_name]
+                }
+            )
+            if self.event_manager_object.device_subscriptions.get(
+                queue_connector_dev_name
+            ).get("is_subscription_completed"):
                 self.queue_connector_device_info.subscribed_to_attribute = True
                 self.queue_connector_device_info.attribute_name = (
                     attribute_name
@@ -2398,14 +2530,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug(
                     "Subscribed to %s of %s.",
                     self.queue_connector_device_info.attribute_name,
-                    self.queue_connector_device_info.dev_name,
+                    queue_connector_dev_name,
                 )
             else:
-                self.queue_connector_device_info.dev_name = ""
+                queue_connector_dev_name = ""
                 self.logger.exception(
                     "Failed to subscribe to %s of %s.",
                     self.queue_connector_device_info.attribute_name,
-                    self.queue_connector_device_info.dev_name,
+                    queue_connector_dev_name,
                 )
 
     def process_pointing_calibration(
@@ -2525,8 +2657,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
     ) -> None:
         """Method to clean up the code, stop running threads/sub-processes"""
 
-        if self.event_receiver:
-            self.stop_event_receiver()
+        if self.event_manager:
+            self.stop_event_manager()
             self._stop_thread = True
 
         if self.liveliness_probe_object:
@@ -2849,40 +2981,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
-        # The configuredBand check needs to be disabled for time being because
-        # as part of ConfgureBand5b command, dish is internally invoking
-        # ConfigureBand1 command. So the band is set to value 1 in this case.
-
-        # def _normalize_band(band: object) -> str:
-        #     """Normalize a band value into a comparable string.
-
-        #     Args:
-        #         band (object): Band input, can be None, int, digit string,
-        #             or an Enum with a 'name' attribute.
-
-        #     Returns:
-        #         str: Normalized band string (e.g., "5a", "5b", "none").
-        #     """
-        #     mapping = {5: "5a", 6: "5b"}
-        #     normalized = "none"  # default value
-        #     if band is None:
-        #         normalized = "none"
-        #     elif isinstance(band, str) and band.isdigit():
-        #         normalized = mapping.get(int(band), band.lower())
-        #     elif isinstance(band, int):
-        #         normalized = mapping.get(band, str(band).lower())
-        #     elif hasattr(band, "name"):  # Band enum
-        #         normalized = band.name.lower()
-        #     else:
-        #         normalized = str(band).lower()
-        #     return normalized
-
-        # dish_band = _normalize_band(self.dishConfiguredBand)
-
         return (
             self.dishMode == DishMode.OPERATE
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
-            # and dish_band == self.receiver_band
             and self.configure_band_lrcr == ResultCode.OK
             and self.configure_setoperate_mode_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
@@ -2893,6 +2994,43 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
         )
 
+    def update_windspeed(self, wind_speed: float) -> None:
+        """The method to update windspeed
+
+        :param wind_speed: the wind speed event from wms.
+        :type wind_speed: float
+        """
+        self.logger.info("wind speed updated %s", wind_speed)
+        self.wind_speed = wind_speed
+
+    def update_temperature(self, temperature: float) -> None:
+        """The method to update temperature
+
+        :param temperature: The temperature event from wms.
+        :type temperature: float
+        """
+        self.logger.info("temperature updated %s", temperature)
+        self.temperature = temperature
+
+    def update_pressure(self, pressure: float) -> None:
+        """The method to update pressure.
+
+        :param pressure: The pressure event from the wms.
+        :type pressure: float
+        """
+        self.logger.info("pressure updated %s", pressure)
+
+        self.pressure = pressure
+
+    def update_humidity(self, humidity: float) -> None:
+        """The method to update humidity.
+
+        :param humidity: The humidity event from the wms.
+        :type humidity: float
+        """
+        self.logger.info("humidity updated %s", humidity)
+        self.humidity = humidity
+
     def get_attribute_dict(self) -> dict:
         """
         This method will return dictionary of attributes which will
@@ -2902,6 +3040,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: Dictionary of attributes to be handled by the EventReceiver.
         """
+        band1_callback = partial(self.update_dish_pointing_model_param,band_name="band1PointingModelParams")
+        band2_callback = partial(self.update_dish_pointing_model_param,band_name="band2PointingModelParams")
+        band3_callback = partial(self.update_dish_pointing_model_param,band_name="band3PointingModelParams")
+        band4_callback = partial(self.update_dish_pointing_model_param,band_name="band4PointingModelParams")
+        band5a_callback = partial(self.update_dish_pointing_model_param,band_name="band5aPointingModelParams")
+        band5b_callback = partial(self.update_dish_pointing_model_param,band_name="band5bPointingModelParams")
 
         attributes = {
             "longRunningCommandResult": self.update_command_result,
@@ -2911,118 +3055,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "pointingProgramTrackTable": self.update_program_track_table,
             "programTrackTableError": self.update_program_track_table_error,
             "healthState": self.update_device_health_state,
-            "band1pointingmodelparams": self.update_dish_pointing_model_param,
-            "band2pointingmodelparams": self.update_dish_pointing_model_param,
-            "band3pointingmodelparams": self.update_dish_pointing_model_param,
-            "band4pointingmodelparams": self.update_dish_pointing_model_param,
-            "band5apointingmodelparams": self.update_dish_pointing_model_param,
-            "band5bpointingmodelparams": self.update_dish_pointing_model_param,
+            "band1PointingModelParams": band1_callback,
+            "band2PointingModelParams": band2_callback,
+            "band3PointingModelParams": band3_callback,
+            "band4PointingModelParams": band4_callback,
+            "band5aPointingModelParams": band5a_callback,
+            "band5bPointingModelParams": band5b_callback,
+            "windSpeed": self.update_windspeed,
+            "pressure": self.update_pressure,
+            "humidity": self.update_humidity,
+            "temperature": self.update_temperature,
         }
-
         return {**attributes}
-
-    def update_dish_mode_event(self, event: tango.EventData) -> None:
-        """
-        Updates dish mode event  in respective queue
-
-        Args:
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
-
-        """
-        self.event_queues["dishMode"].put(event)
-
-    def update_dish_pointing_model_params(
-        self, event: tango.EventData
-    ) -> None:
-        """
-        Updates dish pointing model param event in respective queue
-
-        Args:
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
-
-        """
-
-        if not event:
-            self.logger.warning(
-                "Received null event in update_dish_pointing_model_param."
-            )
-            return
-
-        attr_value = getattr(event, "attr_value", None)
-        if not attr_value:
-            self.logger.warning(f"Received event without attr_value: {event}")
-            return
-
-        attr_name = getattr(attr_value, "name", None)
-        if not attr_name:
-            self.logger.warning(
-                f"Event attr_value missing 'name' field: {attr_value}"
-            )
-            return
-
-        if attr_name not in self.event_queues:
-            self.logger.warning(
-                f"Event queue for '{attr_name}' not found. Creating one."
-            )
-            self.event_queues[attr_name] = queue.Queue()
-
-        try:
-            self.event_queues[attr_name].put(event)
-            self.logger.debug(f"Queued event for {attr_name}")
-        except Exception as e:
-            self.logger.exception(
-                f"Failed to queue event for {attr_name}: {e}"
-            )
-
-    def update_pointing_state_event(self, event: tango.EventData) -> None:
-        """
-        Updates pointing state event in respective queue
-
-        Args:
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
-
-        """
-        self.event_queues["pointingState"].put(event)
-
-    def update_configured_band_event(self, event: tango.EventData) -> None:
-        """
-        Updates configured band event in respective queue
-
-        Args:
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
-
-        """
-        self.event_queues["configuredBand"].put(event)
-
-    def update_pointing_program_track_table_event(
-        self, event: tango.EventData
-    ) -> None:
-        """
-        Updates pointing program track table event in respective queue
-
-        Args:
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
-
-        """
-        self.event_queues["pointingProgramTrackTable"].put(event)
-
-    def update_program_track_table_error_event(
-        self, event: tango.EventData
-    ) -> None:
-        """
-        Updates program track table error event in respective queue
-
-        Args:
-            event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
-
-        """
-        self.event_queues["programTrackTableError"].put(event)
 
     def update_program_track_table_error(self, event: tango.EventData) -> None:
         """

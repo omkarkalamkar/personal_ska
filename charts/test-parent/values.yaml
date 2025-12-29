@@ -62,3 +62,9 @@ ska-tmc-simulators:
 
 ska-taranta:
   enabled: false
+
+ska-mid-wms:
+  enabled: true
+  ska-tango-base:
+    enabled: false
+

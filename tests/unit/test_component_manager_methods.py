@@ -47,7 +47,7 @@ def test_stop_executors_without_event_receiver(cm_without_er_lp):
             break
 
     assert cm.actual_pointing_process.is_alive()
-    assert cm.event_receiver is False
+    assert cm.event_manager is False
 
     # Call stop_executors_and_cleanup_memory
     cm.stop_executors_and_cleanup_memory()

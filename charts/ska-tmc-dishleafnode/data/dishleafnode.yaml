@@ -17,7 +17,7 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $dishlnDomain := .Values.global.domain }}
 {{- $dishlnFamily := .Values.deviceServers.dishln.family }}
 {{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
-
+{{- $WeatherStationDeviceName := .Values.deviceServers.dishln.weather_station_device_name}}
 server:
   name: "dish_leaf_node"
   instances:
@@ -73,6 +73,9 @@ server:
           - name: "DishAvailabilityCheckTimeout"
             values:
               - "{{ $DishAvailabilityCheckTimeout }}"
+          - name: "WeatherStationDeviceName"
+            values:
+             - "{{ $WeatherStationDeviceName }}"
   {{- end }}
 depends_on:
   - device: sys/database/2
