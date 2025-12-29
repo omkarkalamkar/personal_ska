@@ -43,10 +43,6 @@ jsonschema-specifications = "*"
 referencing = "*"
 rpds-py = "*"
 rule-engine = "^4.5.0"
-<<<<<<< HEAD
-=======
-
->>>>>>> 65c20d77e6ca078ca6f8dc400d4d1009854cebc7
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
