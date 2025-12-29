@@ -16,7 +16,6 @@ from tests.settings import (
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
-@pytest.mark.kvalue_test1
 @pytest.mark.xfail(
     reason="Restarting device as of now is making the pod unstable"
 )
@@ -55,7 +54,6 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
-@pytest.mark.kvalue_test1
 @pytest.mark.xfail(
     reason="Restarting device as of now is making the pod unstable"
 )
@@ -115,7 +113,6 @@ def test_kvalue_identical_after_dln_restart(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
-@pytest.mark.kvalue_test1
 @pytest.mark.xfail(
     reason="Restarting device as of now is making the pod unstable"
 )
@@ -165,7 +162,6 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
 
 @pytest.mark.post_deployment
 @pytest.mark.restart_device_server
-@pytest.mark.kvalue_test1
 @pytest.mark.xfail(
     reason="Restarting device as of now is making the pod unstable"
 )
@@ -230,7 +226,6 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.kvalue_test1
 def test_kvalue_runtime_mismatch_updates_health_to_degraded(
     tango_context, group_callback
 ):
@@ -256,7 +251,6 @@ def test_kvalue_runtime_mismatch_updates_health_to_degraded(
     )
 
     # Change Dish Master kValue at runtime
-    # dish_master.SetKValue(KVALUE + 10)
     dish_master.SetKValue(KVALUE + 10)
 
     # Validation result updated
@@ -275,7 +269,6 @@ def test_kvalue_runtime_mismatch_updates_health_to_degraded(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.kvalue_test1
 def test_kvalue_runtime_recovery_updates_health_to_ok(
     tango_context, group_callback
 ):

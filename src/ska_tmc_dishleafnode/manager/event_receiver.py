@@ -295,21 +295,6 @@ class DishLNEventReceiver(EventReceiver):
         Returns:
             None
         """
-
-        # if event_flag.err:
-        #     error = event_flag.errors[0]
-        #     self._logger.error(
-        #         "kValue event error: %s, %s",
-        #         error.reason,
-        #         error.desc,
-        #     )
-        #     return
-
-        # kvalue = event_flag.attr_value.value
-        # self._logger.info("Received Dish Manager kValue event: %s", kvalue)
-
-        # Forward to ComponentManager
-        # self._component_manager.update_kvalue_event(kvalue)
         self._logger.info("Received Dish Manager kValue event")
         self._component_manager.update_kvalue_event(event_flag)
 
