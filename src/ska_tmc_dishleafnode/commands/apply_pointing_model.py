@@ -193,6 +193,8 @@ class ApplyPointingModel(DishLNCommand):
                     self.logger.error("Error: %s", message)
                     return
                 if len(matches) > 1:
+                    if file_name in matches:
+                        matches[0] = file_name
                     self.logger.error(
                         "Multiple files %s found for %s, applying: %s",
                         matches,

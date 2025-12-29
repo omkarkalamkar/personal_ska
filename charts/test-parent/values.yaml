@@ -52,12 +52,6 @@ tmc-dishleafnode:
 
 ska-tmc-simulators:
   enabled: true
-  ska_tmc_simulators:
-    image:
-      registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
-      image: ska-tmc-simulators
-      tag: 1.5.1-dev.c534e9951
-      pullPolicy: IfNotPresent
   telescope: SKA-mid
   deviceServers:
     mocks:
