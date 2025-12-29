@@ -33,16 +33,19 @@ def wait_for_actual_pointing_value(
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
     while time.time() - start_time <= TIMEOUT_ACTUAL_POINTING:
+        time.sleep(1)
         actual_pointing = device.read_attribute(attribute_name).value
         act_point_json = json.loads(actual_pointing)
-        ra = act_point_json[1]
-        dec = act_point_json[2]
-        ra = Angle(ra, u.hour).deg
-        dec = Angle(dec, u.deg).deg
-
-        logger.info("Ra: %s, Dec: %s, c1: %s, c2: %s", ra, dec, c1, c2)
-        if (round(ra, 2) == round(c1, 2)) and (round(dec, 2) == round(c2, 2)):
-            return True
+        logger.info("ActualPointing: %s,c1: %s,c2: %s", act_point_json, c1, c2)
+        if act_point_json:
+            ra = act_point_json[1]
+            dec = act_point_json[2]
+            ra = Angle(ra, u.hour).deg
+            dec = Angle(dec, u.deg).deg
+            if (round(ra, 2) == round(c1, 2)) and (
+                round(dec, 2) == round(c2, 2)
+            ):
+                return True
     return False
 
 
