@@ -7,13 +7,15 @@ from ska_control_model import HealthState
 
 HEALTH_RULES = {
     HealthState.OK: [
-        Rule("kvalue_validation_result == 'OK'"),
-        Rule("$all([gpm != 'FAILED' for gpm in gpm_validation_result ])"),
+        Rule(
+            "kvalue_validation_result == 'OK' and "
+            "$all([gpm != 'FAILED' for gpm in gpm_validation_result])"
+        ),
+    ],
+    HealthState.DEGRADED: [
+        Rule("$any([gpm == 'FAILED' for gpm in gpm_validation_result])"),
     ],
     HealthState.FAILED: [
         Rule("kvalue_validation_result != 'OK'"),
-    ],
-    HealthState.DEGRADED: [
-        Rule("$any([gpm == 'FAILED' for gpm in gpm_validation_result ])"),
     ],
 }
