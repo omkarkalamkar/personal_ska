@@ -283,7 +283,7 @@ class GPMValidator:
                 band_found,
                 gpm_version_for_given_band,
             )
-            if np.array(dish_param).size > 0 and np.all(dish_param != 0.0):
+            if np.array(dish_param).size > 0 and np.any(dish_param > 0.0):
                 if gpm_version_for_given_band == "UNKNOWN":
                     self.gpm_validation_update(
                         band_found, ResultCode.FAILED.name

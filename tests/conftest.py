@@ -467,15 +467,9 @@ def cm_pointig_device() -> (
 
 
 @pytest.fixture(autouse=True)
-@pytest.mark.SKA_mid
-def initialise_kvalue(tango_context):
+def initialise_kvalue(dishln_device):
     """Ensure DishLN and DishMaster start with matching KValue."""
-    dev_factory = DevFactory()
-    dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
-
-    KVALUE = 1
-
     try:
-        dish_leaf_node.SetKValue(KVALUE)
+        dishln_device.SetKValue(1)
     except Exception as e:
         logger.exception("Failed initialise_kvalue fixture %s", e)
