@@ -302,6 +302,11 @@ def update_gpm_path_data_callback(temp1, temp2):
     logger.debug("%s %s", temp1, temp2)
 
 
+def update_health_info_callback(temp):
+    """An empty health info callback"""
+    logger.debug(temp)
+
+
 @pytest.fixture()
 def cm() -> Generator[DishLNComponentManager, None, None]:
     """Creates component manager for Dish Leaf Node."""
@@ -329,6 +334,7 @@ def cm() -> Generator[DishLNComponentManager, None, None]:
         _liveliness_probe=LivelinessProbeType.NONE,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
+        _update_health_info_callback=update_health_info_callback,
     )
 
     start_time = time.time()
@@ -375,6 +381,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         dish_availability_check_timeout=3,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
+        _update_health_info_callback=update_health_info_callback,
     )
     cm.stop_actual_pointing_process.set()
     cm.array_layout = ARRAY_LAYOUT
@@ -416,6 +423,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
         _update_gpm_paths_data_callback=update_gpm_path_data_callback,
         dish_availability_check_timeout=3,
         _update_health_state_callback=update_health_state_callback,
+        _update_health_info_callback=update_health_info_callback,
         _liveliness_probe=LivelinessProbeType.NONE,
     )
 

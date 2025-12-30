@@ -97,6 +97,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_last_pointing_data_cb: Callable,
         _update_track_table_errors_callback: Callable,
         _update_health_state_callback: Callable,
+        _update_health_info_callback: Callable,
         _update_gpm_version_callback: Callable,
         _update_gpm_validation_result_callback: Callable,
         _update_gpm_paths_data_callback: Callable,
@@ -203,12 +204,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_track_table_errors_callback
         )
         self._update_health_state_callback = _update_health_state_callback
+        self._update_health_info_callback = _update_health_info_callback
         self._kvalue: int = 0
         self.process_manager = Manager()
         self._array_layout = self.process_manager.dict()
         self.layout_updated = self.process_manager.Event()
         self._current_track_table_error = ""
         self.errors_to_be_reported = []
+        self.health_info: Dict = {}
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
@@ -2975,32 +2978,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # reset flag so you can restart later if needed
         self._stop_thread = False
 
-    # def build_health_context(self) -> DishHealthData:
-    #     """
-    #     Build health evaluation context.
-
-    #     Extend  this method when new health inputs
-    #     (PTT, GPM, etc.) are added.
-    #     """
-
-    #     return DishHealthData(
-    #         gpm_validation_result=list(self.gpm_validation_result.values())
-    #     )
-
-    # def evaluate_and_update_health_state(self) -> None:
-    #     """
-    #     Evaluate health state based on kValue
-    #     and update device health if required.
-    #     """
-    #     context = self.build_health_context()
-
-    #     health_state = self.health_manager.evaluate_health_state(context)
-
     def update_gpm_data_for_health_aggregation(self):
         """
         Update health data from component manager.
         """
 
         self.health_manager.update_health_data(
-            list(self.gpm_validation_result.values()), "GPMValidationResult"
+            list(self.gpm_validation_result.values()),
+            "GPMValidationResultData",
         )

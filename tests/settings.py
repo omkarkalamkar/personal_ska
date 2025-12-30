@@ -260,6 +260,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         _update_health_state_callback=update_health_state_callback,
+        _update_health_info_callback=update_health_state_callback,
         _update_gpm_version_callback=update_gpm_version_callback,
         _update_gpm_validation_result_callback=(
             update_gpm_validation_result_callback,
