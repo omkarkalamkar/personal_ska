@@ -12,11 +12,10 @@ import re
 import signal
 import threading
 import time
-from dataclasses import asdict
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Tuple
 
 import numpy as np
 import tango
@@ -67,8 +66,7 @@ from ska_tmc_dishleafnode.constants import (
 )
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
-from ska_tmc_dishleafnode.manager.health_data import DishHealthData
-from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
+from ska_tmc_dishleafnode.manager.health_data import HealthManager
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -162,6 +160,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         self.adapter_factory = AdapterFactory()
+        self.health_manager = HealthManager(self, logger)
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
@@ -2976,50 +2975,32 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # reset flag so you can restart later if needed
         self._stop_thread = False
 
-    def build_health_context(self) -> DishHealthData:
-        """
-        Build health evaluation context.
+    # def build_health_context(self) -> DishHealthData:
+    #     """
+    #     Build health evaluation context.
 
-        Extend  this method when new health inputs
-        (PTT, GPM, etc.) are added.
+    #     Extend  this method when new health inputs
+    #     (PTT, GPM, etc.) are added.
+    #     """
+
+    #     return DishHealthData(
+    #         gpm_validation_result=list(self.gpm_validation_result.values())
+    #     )
+
+    # def evaluate_and_update_health_state(self) -> None:
+    #     """
+    #     Evaluate health state based on kValue
+    #     and update device health if required.
+    #     """
+    #     context = self.build_health_context()
+
+    #     health_state = self.health_manager.evaluate_health_state(context)
+
+    def update_gpm_data_for_health_aggregation(self):
+        """
+        Update health data from component manager.
         """
 
-        return DishHealthData(
-            gpm_validation_result=list(self.gpm_validation_result.values())
+        self.health_manager.update_health_data(
+            list(self.gpm_validation_result.values()), "GPMValidationResult"
         )
-
-    def evaluate_health_state(
-        self, context: DishHealthData
-    ) -> Optional[HealthState]:
-        """
-        Evaluate health state using rules.
-
-        Args:
-            context: DishHealthData
-
-        Returns:
-            HealthState or None if no rule matched
-        """
-
-        for health_state, rules in HEALTH_RULES.items():
-            if any(rule.matches(asdict(context)) for rule in rules):
-                self.logger.info("HealthState decided as %s", health_state)
-                return health_state
-
-        self.logger.debug("No health rule matched for context: %s", context)
-        return None
-
-    def evaluate_and_update_health_state(self) -> None:
-        """
-        Evaluate health state based on kValue
-        and update device health if required.
-        """
-        context = self.build_health_context()
-
-        health_state = self.evaluate_health_state(context)
-
-        if health_state is None:
-            return
-
-        if self._update_health_state_callback:
-            self._update_health_state_callback(health_state)
