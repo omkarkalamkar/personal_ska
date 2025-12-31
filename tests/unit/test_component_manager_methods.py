@@ -244,21 +244,28 @@ def test_health_evaluation_and_update(
     cm._update_health_state_callback = mock_callback
 
     # --- Rule evaluation ---
-    context = cm.build_health_context()
-    health_state = cm.evaluate_health_state(context)
+    cm.health_manager.update_health_data_and_aggregate(
+        cm.kValueValidationResult.name,
+        "KValueValidationResultData",
+    )
+    health_state = cm.health_manager.evaluate_health_state(
+        cm.health_manager.health_data
+    )
 
     assert health_state == expected_health_states
 
     # --- Update path ---
-    cm.evaluate_and_update_health_state()
 
     mock_callback.assert_called_once_with(expected_health_states)
 
 
 def test_evaluate_and_update_health_state_when_no_rule_matches(cm):
     cm._update_health_state_callback = mock.Mock()
-    cm.evaluate_health_state = mock.Mock(return_value=None)
+    cm.health_manager.evaluate_health_state = mock.Mock(return_value=None)
 
-    cm.evaluate_and_update_health_state()
+    cm.health_manager.update_health_data_and_aggregate(
+        ResultCode.STARTED.name,
+        "KValueValidationResultData",
+    )
 
     cm._update_health_state_callback.assert_not_called()
