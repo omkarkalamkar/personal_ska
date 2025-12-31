@@ -81,7 +81,10 @@ class DishkValueValidationManager:
     def validate_dish_kvalue_from_event(
         self: DishkValueValidationManager, kvalue: int
     ) -> None:
-        """Validate kvalue of dish leaf node and dish manager from event
+        """
+        Validate kvalue of dish leaf node and dish manager from event
+
+        :param kvalue: kValue received from the dish event.
         :return: None
         """
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
