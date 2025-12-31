@@ -3020,6 +3020,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         self.health_manager.update_health_data_and_aggregate(
-            self.kValueValidationResult,
+            self.kValueValidationResult.name,
             "KValueValidationResultData",
         )

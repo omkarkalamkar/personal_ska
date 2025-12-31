@@ -28,7 +28,7 @@ class KValueValidationResultData:
     Context object for kValue validation result.
     """
 
-    result_code: ResultCode = field(default=ResultCode.STARTED)
+    result_code: ResultCode = field(default=ResultCode.STARTED.name)
 
 
 @dataclass
@@ -101,7 +101,7 @@ class HealthManager:
                     str(self.health_data),
                 )
 
-        current_health_state_data = copy.copy(self.health_data)
+        current_health_state_data = copy.deepcopy(self.health_data)
 
         health_state = self.evaluate_health_state(current_health_state_data)
         self.logger.debug(
