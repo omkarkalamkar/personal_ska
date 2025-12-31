@@ -159,7 +159,9 @@ class HealthManager:
             Dict containing health info
         """
         health_info: Dict = {"HealthSummary": {}}
-        dish_name = self.component_manager.device_name
+        dish_name = (
+            "mid-tmc/leaf-node-dish/ska001"  # Placeholder for actual dish name
+        )
         health_info["HealthSummary"][dish_name] = {"Info": []}
 
         if health_state == HealthState.DEGRADED:
