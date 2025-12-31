@@ -67,11 +67,11 @@ from ska_tmc_dishleafnode.constants import (
 )
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY
 from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
-from ska_tmc_dishleafnode.manager.health_data import DishHealthData
-from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
+from .health_data import DishHealthData
+from .health_rules import HEALTH_RULES
 
 
 # pylint: disable = too-many-public-methods,too-many-instance-attributes
@@ -248,6 +248,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._gpm_source_path: str = ""
         self._gpm_file_path: str = ""
         self.handle_gpm_version_callback = _update_gpm_version_callback
+        self.dish_kvalue_validation_manager = DishkValueValidationManager(
+            self, self.logger
+        )
         self.handle_update_gpm_validation_result_callback = (
             _update_gpm_validation_result_callback
         )
@@ -900,11 +903,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        dish_kvalue_validation_manager = DishkValueValidationManager(
-            self, self.logger
-        )
-        if dish_kvalue_validation_manager.is_dish_manager_ready():
-            dish_kvalue_validation_manager.validate_dish_kvalue()
+
+        if self.dish_kvalue_validation_manager.is_dish_manager_ready():
+            self.dish_kvalue_validation_manager.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
@@ -2839,10 +2840,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: Dictionary of attributes to be handled by the EventReceiver.
         """
 
+        kvalue_handler = (
+            self.dish_kvalue_validation_manager.validate_dish_kvalue_from_event
+        )
+
         attributes = {
             "longRunningCommandResult": self.update_command_result,
             "dishMode": self.update_device_dish_mode,
             "pointingState": self.update_device_pointing_state,
+            "kValue": kvalue_handler,
             "configuredBand": self.update_device_configured_band,
             "pointingProgramTrackTable": self.update_program_track_table,
             "programTrackTableError": self.update_program_track_table_error,
@@ -2867,6 +2873,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         """
         self.event_queues["dishMode"].put(event)
+
+    def update_kvalue_event(self, event: tango.EventData) -> None:
+        """
+        Updates dish mode event  in respective queue
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
+
+        """
+        self.event_queues["kValue"].put(event)
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
@@ -2982,10 +2999,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         Extend  this method when new health inputs
         (PTT, GPM, etc.) are added.
-        """
 
+        Returns:
+            DishHealthData: Context containing current health inputs
+            required for health state evaluation (e.g. K-value result).
+        """
         return DishHealthData(
-            gpm_validation_result=list(self.gpm_validation_result.values())
+            kvalue_validation_result=self.kValueValidationResult.name,
+            gpm_validation_result=list(self.gpm_validation_result.values()),
         )
 
     def evaluate_health_state(
@@ -3000,10 +3021,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Returns:
             HealthState or None if no rule matched
         """
+        context_dict = asdict(context)
 
         for health_state, rules in HEALTH_RULES.items():
-            if any(rule.matches(asdict(context)) for rule in rules):
-                self.logger.info("HealthState decided as %s", health_state)
+            if any(rule.matches(context_dict) for rule in rules):
+                self.logger.info(
+                    "Updating HealthState to %s based on health rule",
+                    health_state.name,
+                )
                 return health_state
 
         self.logger.debug("No health rule matched for context: %s", context)

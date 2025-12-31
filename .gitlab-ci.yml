@@ -85,7 +85,7 @@ k8s-test:
     - make k8s-install-chart
     - make k8s-wait
   script:
-    - make k8s-test
+    - make k8s-test 
     - make k8s-test MARK=restart_device_server
     - |
       if [[ "$CI_KEEP_NAMESPACE" != "true" ]]; then
