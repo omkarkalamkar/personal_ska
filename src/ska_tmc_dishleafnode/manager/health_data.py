@@ -190,8 +190,10 @@ class HealthManager:
             HealthState.FAILED,
             HealthState.UNKNOWN,
         ]:
-            error_msg = f"Dish Manager health state reported as\
-                {context.dish_manager_health_data.health_state.name}."
+            error_msg = (
+                "Dish Manager health state reported "
+                + f"as {context.dish_manager_health_data.health_state.name}."
+            )
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
 
         return health_info
