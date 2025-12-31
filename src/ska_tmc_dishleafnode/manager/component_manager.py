@@ -2940,6 +2940,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self._device.health_state = health_state
             self._device.last_event_arrived = time.time()
 
+        self.logger.debug(
+            "Device %s reported health state %s",
+            self._device.dev_name,
+            health_state,
+        )
+        self.health_manager.update_health_data_and_aggregate(
+            self._device.health_state, "DishManagerHealthData"
+        )
+
     def start_event_processing_threads(self) -> None:
         """Start all the event processing threads."""
         # reset flag and any previous threads
@@ -2983,7 +2992,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update health data from component manager.
         """
 
-        self.health_manager.update_health_data(
+        self.health_manager.update_health_data_and_aggregate(
             list(self.gpm_validation_result.values()),
             "GPMValidationResultData",
         )

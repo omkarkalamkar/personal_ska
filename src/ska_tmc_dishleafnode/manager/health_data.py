@@ -28,7 +28,16 @@ class KValueValidationResultData:
     Context object for kValue validation result.
     """
 
-    result_code: ResultCode = field(default=ResultCode.UNKNOWN)
+    result_code: ResultCode = field(default=ResultCode.STARTED)
+
+
+@dataclass
+class DishManagerHealthData:
+    """
+    Context object for Dish Manager health data.
+    """
+
+    health_state: HealthState = field(default=HealthState.UNKNOWN)
 
 
 @dataclass
@@ -43,9 +52,12 @@ class DishHealthData:
     gpm_validation_result: GPMValidationResultData = field(
         default_factory=GPMValidationResultData
     )
-    # k_value_validation_result: KValueValidationResultData = field(
-    #     default_factory=KValueValidationResultData
-    # )
+    dish_manager_health_data: DishManagerHealthData = field(
+        default_factory=DishManagerHealthData
+    )
+    k_value_validation_result: KValueValidationResultData = field(
+        default_factory=KValueValidationResultData
+    )
 
 
 class HealthManager:
@@ -65,7 +77,7 @@ class HealthManager:
 
         self.eventlock = threading._RLock()
 
-    def update_health_data(self, data, datatype) -> None:
+    def update_health_data_and_aggregate(self, data, datatype) -> None:
         """
         Update health data from component manager.
         """
@@ -88,7 +100,9 @@ class HealthManager:
                     "Updated KValueValidationResultData in health data: %s",
                     str(self.health_data),
                 )
+
         current_health_state_data = copy.deepcopy(self.health_data)
+
         health_state = self.evaluate_health_state(current_health_state_data)
         self.logger.debug(
             "Evaluated health state: %s for data: %s",
@@ -132,9 +146,7 @@ class HealthManager:
         self.logger.debug("No health rule matched for context: %s", context)
         return None
 
-    def generate_health_info(
-        self, health_state: HealthState, context: DishHealthData
-    ) -> Dict:
+    def generate_health_info(self, context: DishHealthData) -> Dict:
         """
         Generate health info dictionary based on health state and context.
 
@@ -158,21 +170,26 @@ class HealthManager:
         Returns:
             Dict containing health info
         """
+
         health_info: Dict = {"HealthSummary": {}}
         dish_name = (
             "mid-tmc/leaf-node-dish/ska001"  # Placeholder for actual dish name
         )
         health_info["HealthSummary"][dish_name] = {"Info": []}
 
-        if health_state == HealthState.DEGRADED:
-            # Check GPM validation results for errors
-            for idx, result in enumerate(context.gpm_validation_result.result):
-                if result == "FAILED":
-                    error_msg = f"GPM validation failed for GPM index {idx}."
-                    health_info["HealthSummary"][dish_name]["Info"].append(
-                        error_msg
-                    )
-
-        # Additional health state checks can be added here
+        # Check GPM validation results for errors
+        for idx, result in enumerate(context.gpm_validation_result.result):
+            if result == "FAILED":
+                error_msg = f"GPM validation failed for GPM index {idx}."
+                health_info["HealthSummary"][dish_name]["Info"].append(
+                    error_msg
+                )
+        # Check Dish Manager health state for errors
+        if context.dish_manager_health_data.health_state in [
+            HealthState.DEGRADED,
+            HealthState.FAILED,
+        ]:
+            error_msg = "Dish Manager reports DEGRADED health state."
+            health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
 
         return health_info
