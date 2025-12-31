@@ -113,9 +113,7 @@ class HealthManager:
             return
 
         if health_state == HealthState.DEGRADED:
-            health_info = self.generate_health_info(
-                health_state, current_health_state_data
-            )
+            health_info = self.generate_health_info(current_health_state_data)
             self.logger.debug("Generated health info: %s", str(health_info))
             if self.component_manager._update_health_info_callback:
                 self.component_manager._update_health_info_callback(
@@ -184,10 +182,18 @@ class HealthManager:
                 health_info["HealthSummary"][dish_name]["Info"].append(
                     error_msg
                 )
+        # Check KValue validation results for errors
+        if context.k_value_validation_result is not None:
+            if context.k_value_validation_result == "FAILED":
+                error_msg = "KValue validation failed."
+                health_info["HealthSummary"][dish_name]["Info"].append(
+                    error_msg
+                )
         # Check Dish Manager health state for errors
         if context.dish_manager_health_data.health_state in [
             HealthState.DEGRADED,
             HealthState.FAILED,
+            HealthState.UNKNOWN,
         ]:
             error_msg = "Dish Manager reports DEGRADED health state."
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)

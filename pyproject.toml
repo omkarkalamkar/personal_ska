@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-tmc-dishleafnodes"
-version = "0.28.0"
+version = "0.29.0"
 description = """The Dish Leaf Node is a TMC component responsible to monitor and control the SKA dish."""
 authors = ["Team HIMALAYA", "Team SAHYADRI"]
 license = "BSD-3-Clause"
@@ -43,7 +43,6 @@ jsonschema-specifications = "*"
 referencing = "*"
 rpds-py = "*"
 rule-engine = "^4.5.0"
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

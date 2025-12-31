@@ -5,12 +5,16 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-[Unreleased]
+[0.29.0]
+********
 Added
-------
+-----
+* Added event subscription for Dish kValue updates
+* Implemented validation rules using the rule engine
+* Updated dish healthState based on kValue validation results
 * Implemented GPM validation functionality on DLN.
 * Implemented gpmValidationResult attribute to check the validation per band.
-* Implemented gpmSourcePath and gpmFilePath memorized attributes(Developers purpose only).
+* Implemented gpmSourcePath and gpmFilePath memorized attributes(Developers purpose only.)
 
 [0.28.0]
 ********

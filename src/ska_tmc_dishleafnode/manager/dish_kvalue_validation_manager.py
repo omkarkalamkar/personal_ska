@@ -4,6 +4,7 @@ initialization/restart of device
 # pylint: disable=no-value-for-parameter
 from __future__ import annotations
 
+import threading
 import time
 
 from ska_tango_base.commands import ResultCode
@@ -22,6 +23,7 @@ class DishkValueValidationManager:
         self.component_manager = component_manager
         self.logger = logger
         self.dish_manager_kvalue = ""
+        self.kvalue_validation_lock = threading.Lock()
 
     def is_dish_manager_ready(self: DishkValueValidationManager) -> bool:
         """Wait and check if dish manager is ready
@@ -73,13 +75,51 @@ class DishkValueValidationManager:
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
         self.logger.info("Dish Manager k-value: %s", dish_manager_kvalue)
         self.logger.info("Dish Leaf Node k-value: %s", dish_ln_kvalue)
+        with self.kvalue_validation_lock:
+            self.kvalue_validation_update(dish_manager_kvalue, dish_ln_kvalue)
 
+    def validate_dish_kvalue_from_event(
+        self: DishkValueValidationManager, kvalue: int
+    ) -> None:
+        """
+        Validate kvalue of dish leaf node and dish manager from event
+
+        :param kvalue: kValue received from the dish event.
+        :return: None
+        """
+        dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
+        with self.kvalue_validation_lock:
+            self.kvalue_validation_update(dish_ln_kvalue, kvalue)
+
+    def kvalue_validation_update(
+        self: DishkValueValidationManager,
+        dish_manager_kvalue: str,
+        dish_ln_kvalue: str,
+    ) -> None:
+        """
+        Update the kValueValidationResult attribute of the Dish Leaf Node.
+
+        This method compares the kValue received from the Dish Manager with the
+        kValue maintained by the Dish Leaf Node and updates the
+        kValueValidationResult attribute based on the validation outcome.
+
+        :param dish_manager_kvalue: kValue received from the Dish Manager.
+        :param dish_ln_kvalue: kValue configured in the Dish Leaf Node.
+        :return: None
+        """
         if not dish_manager_kvalue or not dish_ln_kvalue:
+            if (
+                self.component_manager.kValueValidationResult
+                == ResultCode.UNKNOWN
+            ):
+                return
             self.logger.debug("kValue not set")
             self.component_manager.kValueValidationResult = ResultCode.UNKNOWN
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         elif dish_manager_kvalue == dish_ln_kvalue:
+            if self.component_manager.kValueValidationResult == ResultCode.OK:
+                return
             self.logger.info(
                 "kValues are identical on dish manager and dish leaf node."
             )
@@ -87,6 +127,12 @@ class DishkValueValidationManager:
             if self.component_manager.kvalue_validation_callback:
                 self.component_manager.kvalue_validation_callback()
         else:
+            if (
+                self.component_manager.kValueValidationResult
+                == ResultCode.FAILED
+            ):
+                return
+
             self.logger.error(
                 "kValue not identical on dish manager and dish leaf node."
             )

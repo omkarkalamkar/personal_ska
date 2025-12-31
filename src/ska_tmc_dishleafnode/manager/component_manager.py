@@ -250,6 +250,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._gpm_source_path: str = ""
         self._gpm_file_path: str = ""
         self.handle_gpm_version_callback = _update_gpm_version_callback
+        self.dish_kvalue_validation_manager = DishkValueValidationManager(
+            self, self.logger
+        )
         self.handle_update_gpm_validation_result_callback = (
             _update_gpm_validation_result_callback
         )
@@ -902,11 +905,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        dish_kvalue_validation_manager = DishkValueValidationManager(
-            self, self.logger
-        )
-        if dish_kvalue_validation_manager.is_dish_manager_ready():
-            dish_kvalue_validation_manager.validate_dish_kvalue()
+
+        if self.dish_kvalue_validation_manager.is_dish_manager_ready():
+            self.dish_kvalue_validation_manager.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
             self.kValueValidationResult = ResultCode.NOT_ALLOWED
             self.kvalue_validation_callback()
@@ -2841,10 +2842,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: Dictionary of attributes to be handled by the EventReceiver.
         """
 
+        kvalue_handler = (
+            self.dish_kvalue_validation_manager.validate_dish_kvalue_from_event
+        )
+
         attributes = {
             "longRunningCommandResult": self.update_command_result,
             "dishMode": self.update_device_dish_mode,
             "pointingState": self.update_device_pointing_state,
+            "kValue": kvalue_handler,
             "configuredBand": self.update_device_configured_band,
             "pointingProgramTrackTable": self.update_program_track_table,
             "programTrackTableError": self.update_program_track_table_error,
@@ -2869,6 +2875,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         """
         self.event_queues["dishMode"].put(event)
+
+    def update_kvalue_event(self, event: tango.EventData) -> None:
+        """
+        Updates dish mode event  in respective queue
+
+        Args:
+            event (tango.EventData): It is the Tango Event Data object
+                which contains the event data, dishMode Event in this case.
+
+        """
+        self.event_queues["kValue"].put(event)
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
         """
@@ -2995,4 +3012,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.health_manager.update_health_data_and_aggregate(
             list(self.gpm_validation_result.values()),
             "GPMValidationResultData",
+        )
+
+    def update_kvalue_data_for_health_aggregation(self):
+        """
+        Update health data from component manager.
+        """
+
+        self.health_manager.update_health_data_and_aggregate(
+            self.kValueValidationResult,
+            "KValueValidationResultData",
         )

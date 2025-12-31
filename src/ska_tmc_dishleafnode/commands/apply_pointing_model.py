@@ -86,7 +86,7 @@ class ApplyPointingModel(DishLNCommand):
                 )
                 if self.band:
                     self.component_manager.gpm_version[
-                        self.band.title()
+                        self.band.capitalize()
                     ] = self.previous_band_version
                 task_callback(
                     status=TaskStatus.COMPLETED,
@@ -304,10 +304,12 @@ class ApplyPointingModel(DishLNCommand):
                     gpm_json_data
                 )
                 self.previous_band_version = (
-                    self.component_manager.gpm_version.get(self.band.title())
+                    self.component_manager.gpm_version.get(
+                        self.band.capitalize()
+                    )
                 )
                 self.component_manager.gpm_version[
-                    self.band.title()
+                    self.band.capitalize()
                 ] = self.band_version
                 self.logger.debug(
                     "Previous band version: %s", self.previous_band_version

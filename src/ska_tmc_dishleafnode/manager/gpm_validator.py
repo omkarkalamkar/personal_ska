@@ -191,6 +191,9 @@ class GPMValidator:
         """
         try:
             if gpm_version_for_given_band != "UNKNOWN":
+                gpm_previous_version = self.component_manager.gpm_version.get(
+                    band_found
+                )
                 apm_cmd_obj = ApplyPointingModel(
                     self.component_manager,
                     self.component_manager.op_state_model,
@@ -229,6 +232,9 @@ class GPMValidator:
                         DISH_BANDPARAMS[band_found],
                         gpm_version_for_given_band,
                     )
+                    self.component_manager.gpm_version[
+                        band_found
+                    ] = gpm_previous_version
                 else:
                     self.logger.debug(
                         "ApplyPointingModel command invoked successfully "
@@ -283,7 +289,7 @@ class GPMValidator:
                 band_found,
                 gpm_version_for_given_band,
             )
-            if np.array(dish_param).size > 0:
+            if np.array(dish_param).size > 0 and np.any(dish_param > 0.0):
                 if gpm_version_for_given_band == "UNKNOWN":
                     self.gpm_validation_update(
                         band_found, ResultCode.FAILED.name
@@ -301,7 +307,7 @@ class GPMValidator:
                     self.validate_gpm_version(
                         dish_param, gpm_version_for_given_band, band_found
                     )
-            elif not np.array(dish_param).size:
+            elif np.all(dish_param == 0.0) or not np.array(dish_param).size:
                 self.invoke_apm_on_dish(gpm_version_for_given_band, band_found)
             self.component_manager.dish_pointing_model_param[
                 band_name

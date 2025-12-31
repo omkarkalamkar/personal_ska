@@ -110,6 +110,12 @@ class DishLNEventReceiver(EventReceiver):
                     self.handle_command_result_event,
                     stateless=True,
                 )
+                dish_dev_proxy.subscribe_event(
+                    "kValue",
+                    tango.EventType.CHANGE_EVENT,
+                    self.handle_kvalue_event,
+                    stateless=True,
+                )
                 for attr_name in pointing_model_params_attrs:
                     queue_key = attr_name.lower()
                     # Generate the specific handler method for this attribute
@@ -287,6 +293,21 @@ class DishLNEventReceiver(EventReceiver):
             return
         new_value = event_flag.attr_value.value
         self._component_manager.achieved_pointing_data.put(new_value)
+
+    def handle_kvalue_event(
+        self: DishLNEventReceiver, event_flag: tango.EventData
+    ) -> None:
+        """
+        Handle kValue change event received from the Dish Master.
+
+        Args:
+            event_flag (tango.EventData): Tango event data containing
+            the updated kValue or error information.
+
+        Returns:
+            None
+        """
+        self._component_manager.update_kvalue_event(event_flag)
 
     def subscribe_sdpqc_attribute(
         self: DishLNEventReceiver,
