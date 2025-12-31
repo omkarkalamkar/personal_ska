@@ -93,9 +93,15 @@ class DishkValueValidationManager:
         dish_manager_kvalue: str,
         dish_ln_kvalue: str,
     ) -> None:
-        """Update kValueValidationResult attribute of dish leaf node
+        """
+        Update the kValueValidationResult attribute of the Dish Leaf Node.
 
-        :param result: kValue validation result
+        This method compares the kValue received from the Dish Manager with the
+        kValue maintained by the Dish Leaf Node and updates the
+        kValueValidationResult attribute based on the validation outcome.
+
+        :param dish_manager_kvalue: kValue received from the Dish Manager.
+        :param dish_ln_kvalue: kValue configured in the Dish Leaf Node.
         :return: None
         """
         if not dish_manager_kvalue or not dish_ln_kvalue:
