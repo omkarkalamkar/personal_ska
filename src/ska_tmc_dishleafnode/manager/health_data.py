@@ -93,15 +93,15 @@ class HealthManager:
                     str(self.health_data),
                 )
             elif datatype == "KValueValidationResultData":
-                # self.health_data.k_value_validation_result = (
-                #     KValueValidationResultData(result_code=data)
-                # )
+                self.health_data.k_value_validation_result = (
+                    KValueValidationResultData(result_code=data)
+                )
                 self.logger.debug(
                     "Updated KValueValidationResultData in health data: %s",
                     str(self.health_data),
                 )
 
-        current_health_state_data = copy.deepcopy(self.health_data)
+        current_health_state_data = copy.copy(self.health_data)
 
         health_state = self.evaluate_health_state(current_health_state_data)
         self.logger.debug(
