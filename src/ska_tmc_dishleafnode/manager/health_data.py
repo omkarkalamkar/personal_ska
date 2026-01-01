@@ -1,8 +1,6 @@
 """
 Dataclass representing inputs used by the rule engine to evaluate health state.
 """
-
-import copy
 import threading
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional
@@ -10,6 +8,7 @@ from typing import Dict, List, Optional
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 
+from ska_tmc_dishleafnode.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
 
 
@@ -28,7 +27,7 @@ class KValueValidationResultData:
     Context object for kValue validation result.
     """
 
-    result_code: ResultCode = field(default=ResultCode.STARTED.name)
+    result_code: str = field(default=ResultCode.STARTED.name)
 
 
 @dataclass
@@ -38,6 +37,17 @@ class DishManagerHealthData:
     """
 
     health_state: HealthState = field(default=HealthState.UNKNOWN)
+
+
+@dataclass
+class DishBandCapabilityStateData:
+    """
+    Context object for Dish Band Capability data.
+    """
+
+    band_capabilities: Dict[str, CapabilityStates] = field(
+        default_factory=dict
+    )
 
 
 @dataclass
@@ -57,6 +67,9 @@ class DishHealthData:
     )
     k_value_validation_result: KValueValidationResultData = field(
         default_factory=KValueValidationResultData
+    )
+    band_capability_data: DishBandCapabilityStateData = field(
+        default_factory=DishBandCapabilityStateData
     )
 
 
@@ -84,36 +97,59 @@ class HealthManager:
         # figure out which data to update
 
         with self.eventlock:
-            if datatype == "GPMValidationResultData":
-                self.health_data.gpm_validation_result = (
-                    GPMValidationResultData(result=data)
-                )
-                self.logger.debug(
-                    "Updated GPMValidationResultData in health data: %s",
-                    str(self.health_data),
-                )
-            elif datatype == "KValueValidationResultData":
-                self.health_data.k_value_validation_result = (
-                    KValueValidationResultData(result_code=data)
-                )
-                self.logger.debug(
-                    "Updated KValueValidationResultData in health data: %s",
-                    str(self.health_data),
-                )
+            match datatype:
+                case "GPMValidationResultData":
+                    self.health_data.gpm_validation_result = (
+                        GPMValidationResultData(result=data)
+                    )
+                    self.logger.debug(
+                        "Updated GPMValidationResultData in health data: %s",
+                        str(self.health_data),
+                    )
+                case "KValueValidationResultData":
+                    self.health_data.k_value_validation_result = (
+                        KValueValidationResultData(result_code=data)
+                    )
+                    self.logger.debug(
+                        "Updated KValueValidationResultData in"
+                        " health data: %s",
+                        str(self.health_data),
+                    )
+                case "DishManagerHealthData":
+                    self.health_data.dish_manager_health_data = (
+                        DishManagerHealthData(health_state=data)
+                    )
+                    self.logger.debug(
+                        "Updated DishManagerHealthData in health data: %s",
+                        str(self.health_data),
+                    )
+                    return  # not contributing to health state evaluation
+                case "DishBandCapabilityStateData":
+                    band_name, capability_state = data
+                    self.health_data.band_capability_data.band_capabilities[
+                        band_name
+                    ] = capability_state
+                    self.logger.debug(
+                        "Updated DishBandCapabilityStateData"
+                        " in health data: %s",
+                        str(self.health_data),
+                    )
+                    return  # not contributing to health state evaluation yet
 
-        current_health_state_data = copy.deepcopy(self.health_data)
+                case _:
+                    self.logger.warning("Unknown datatype: %s", datatype)
 
-        health_state = self.evaluate_health_state(current_health_state_data)
+        health_state = self.evaluate_health_state(self.health_data)
         self.logger.debug(
             "Evaluated health state: %s for data: %s",
             str(health_state),
-            str(current_health_state_data),
+            str(self.health_data),
         )
         if health_state is None:
             self.logger.debug("Healthstate returned as None, skipping update")
             return
 
-        health_info = self.generate_health_info(current_health_state_data)
+        health_info = self.generate_health_info(self.health_data)
         self.logger.debug("Generated health info: %s", str(health_info))
         if self.component_manager._update_health_info_callback:
             self.component_manager._update_health_info_callback(health_info)
@@ -166,7 +202,7 @@ class HealthManager:
         Returns:
             Dict containing health info
         """
-
+        dish_devie_name = self.component_manager.dish_dev_name
         health_info: Dict = {"HealthSummary": {}}
         dish_name = (
             "mid-tmc/leaf-node-dish/ska001"  # Placeholder for actual dish name
@@ -181,7 +217,7 @@ class HealthManager:
                     error_msg
                 )
         # Check KValue validation results for errors
-        if context.k_value_validation_result != ResultCode.OK:
+        if context.k_value_validation_result.result_code != ResultCode.OK.name:
             error_msg = "KValue validation failed."
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
         # Check Dish Manager health state for errors
@@ -191,9 +227,28 @@ class HealthManager:
             HealthState.UNKNOWN,
         ]:
             error_msg = (
-                "Dish Manager health state reported "
+                f"Dish Manager {dish_devie_name}"
+                + " health state reported "
                 + f"as {context.dish_manager_health_data.health_state.name}."
             )
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
+
+        for (
+            band_name,
+            capability_state,
+        ) in context.band_capability_data.band_capabilities.items():
+            if capability_state in [
+                CapabilityStates.UNAVAILABLE,
+                CapabilityStates.STANDBY,
+                CapabilityStates.UNKNOWN,
+            ]:
+                error_msg = (
+                    f"Band {band_name} capability state is "
+                    + f"{capability_state.name}."
+                    + f"for Dish {dish_devie_name}."
+                )
+                health_info["HealthSummary"][dish_name]["Info"].append(
+                    error_msg
+                )
 
         return health_info

@@ -64,7 +64,7 @@ from ska_tmc_dishleafnode.constants import (
     IERS_DATA_STORAGE_PATH,
     SKA_EPOCH,
 )
-from ska_tmc_dishleafnode.enums import CORRECTION_KEY
+from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CapabilityStates
 from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
 from ska_tmc_dishleafnode.manager.health_data import HealthManager
 
@@ -154,6 +154,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.lock = threading.RLock()
         self.configured_band_lock = threading.RLock()
         self.dish_pointing_lock = threading.RLock()
+        self.band_capability_lock = threading.RLock()
         self.dish_mode_lock = threading.RLock()
         self.pointing_state_lock = threading.RLock()
         self.health_state_lock = threading.RLock()
@@ -212,6 +213,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._current_track_table_error = ""
         self.errors_to_be_reported = []
         self.health_info: Dict = {}
+        self.band_capability_state: Dict[str, CapabilityStates] = {}
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
@@ -1947,6 +1949,35 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 dish_param, band_name
             )
 
+    def update_band_capability_state(
+        self: DishLNComponentManager,
+        band_capability_state: CapabilityStates,
+        band_name: str,
+    ) -> None:
+        """
+        Update the band capability state of the given dish and call
+        the relative callbacks if available.
+
+        :param band_capability_state: Band capability state of the dish device
+        :type band_capability_state: BandCapabilityState
+
+        :return: None
+        :rtype: None
+        """
+        with self.band_capability_lock:
+            dev_info = self.get_device()
+            dev_info.last_event_arrived = time.time()
+            self.band_capability_state[band_name] = band_capability_state
+            self.health_manager.update_health_data_and_aggregate(
+                (band_name, band_capability_state),
+                "DishBandCapabilityStateData",
+            )
+            self.logger.debug(
+                "BandCapabilityState for band %s updated to %s",
+                band_name,
+                band_capability_state.name,
+            )
+
     def update_device_pointing_state(
         self: DishLNComponentManager, pointingState: PointingState
     ) -> None:
@@ -2861,6 +2892,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band4pointingmodelparams": self.update_dish_pointing_model_param,
             "band5apointingmodelparams": self.update_dish_pointing_model_param,
             "band5bpointingmodelparams": self.update_dish_pointing_model_param,
+            "b1CapabilityState": self.update_band_capability_state,
+            "b2CapabilityState": self.update_band_capability_state,
+            "b3CapabilityState": self.update_band_capability_state,
+            "b4CapabilityState": self.update_band_capability_state,
+            "b5aCapabilityState": self.update_band_capability_state,
+            "b5bCapabilityState": self.update_band_capability_state,
         }
 
         return {**attributes}

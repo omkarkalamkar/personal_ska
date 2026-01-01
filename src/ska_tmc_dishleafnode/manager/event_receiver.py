@@ -72,6 +72,15 @@ class DishLNEventReceiver(EventReceiver):
             "band5APointingModelParams",
             "band5BPointingModelParams",
         ]
+        band_capability_attrs = [
+            "b1CapabilityState",
+            "b2CapabilityState",
+            "b3CapabilityState",
+            "b4CapabilityState",
+            "b5aCapabilityState",
+            "b5bCapabilityState",
+        ]
+
         with tango.EnsureOmniThread():
             try:
                 dish_dev_proxy = self._dev_factory.get_device(
@@ -120,6 +129,16 @@ class DishLNEventReceiver(EventReceiver):
                     queue_key = attr_name.lower()
                     # Generate the specific handler method for this attribute
                     handler = self._create_pointing_model_handler(queue_key)
+                    dish_dev_proxy.subscribe_event(
+                        attr_name,
+                        tango.EventType.CHANGE_EVENT,
+                        handler,
+                        stateless=True,
+                    )
+
+                for attr_name in band_capability_attrs:
+                    # Generate the specific handler method for this attribute
+                    handler = self._create_band_capability_handler(attr_name)
                     dish_dev_proxy.subscribe_event(
                         attr_name,
                         tango.EventType.CHANGE_EVENT,
@@ -221,6 +240,31 @@ class DishLNEventReceiver(EventReceiver):
             Args:
                 queue_key (str): The dictionary key for the specific event
                 queue (e.g., "band1pointingmodelparams").
+                event (tango.EventData): It is the Tango Event Data object
+                    which contains the event data.
+            """
+
+            self._component_manager.event_queues[queue_key].put(event_flag)
+
+        return generic_handler
+
+    def _create_band_capability_handler(self, queue_key: str) -> Callable:
+        """
+        A function that generates a specific handler function for a
+        given band capability queue key(attribute name).
+        """
+
+        def generic_handler(event_flag: tango.EventData):
+            """
+            Generic handler method for updating band capability state
+            using the single optimized manager method.
+
+            Updates the band* capability state event in the respective
+            queue.
+            * :-> 1, 2, 3, 4, 5a, 5b.
+            Args:
+                queue_key (str): The dictionary key for the specific event
+                queue (e.g., "b1aCapabilityState").
                 event (tango.EventData): It is the Tango Event Data object
                     which contains the event data.
             """
