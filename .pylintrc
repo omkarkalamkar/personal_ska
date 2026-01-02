@@ -220,7 +220,7 @@ max-args=30
 ignored-argument-names=_.*
 
 # Maximum number of locals for function / method body
-max-locals=25
+max-locals=29
 
 # Maximum number of return / yield for function / method body
 max-returns=10
@@ -241,10 +241,10 @@ max-attributes=90
 min-public-methods=1
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods=80
+max-public-methods=82
 
 # Maximum number of positional argument for function / method
-max-positional-arguments=25
+max-positional-arguments=29
 
 
 

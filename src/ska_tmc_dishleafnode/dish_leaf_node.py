@@ -32,6 +32,8 @@ from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
+from ska_tmc_dishleafnode.commands.setstowmode import StowCommand
+from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 
@@ -93,10 +95,59 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     WeatherStationDeviceName = device_property(
         dtype="str", doc="FQDN of Weather Station device", default_value=""
     )
+    WindSpeedThreshold = device_property(
+        dtype=float,
+        doc="Threshold on wind speed(unit m/s) for auto stowing",
+        default_value=13.5,
+    )
+    GustSpeedThreshold = device_property(
+        dtype=float,
+        doc="Threshold on gust wind speed(unit m/s) for auto stowing",
+        default_value=20.0,
+    )
+    MeanWindSpeedDuration = device_property(
+        dtype=float,
+        doc="Wind speed tracking duration(unit seconds) for auto stowing",
+        default_value=600.0,
+    )
+    MeanGustSpeedDuration = device_property(
+        dtype=float,
+        doc="Gust wind speed tracking duration(unit seconds) for \
+            auto stowing",
+        default_value=3.0,
+    )
+
+    MinTemperatureThreshold = device_property(
+        dtype=float,
+        doc="Minimum Temperature(unit °C) threshold for auto stowing",
+        default_value=-5,
+    )
+    MaxTemperatureThreshold = device_property(
+        dtype=float,
+        doc="Maximum Temperature(unit °C) threshold for auto stowing",
+        default_value=40,
+    )
+    TemperatureDelta = device_property(
+        dtype=float,
+        doc="""
+        Temperature delta(unit °C) to calculate 
+        the rate of change in temperature for auto stowing
+        """,
+        default_value=4.5,
+    )
+    TimeDelta = device_property(
+        dtype=float,
+        doc="""
+        Time delta(unit seconds) to calculate
+        the rate of change in temperature for auto stowing""",
+        default_value=1000.0,
+    )
+    EnableAutoStow = device_property(
+        dtype=bool, doc="Flag to enable AutoStow feature", default_value=True
+    )
     # ----------
     # Attributes
     # ----------
-
     dishMasterDevName = attribute(
         dtype="DevString",
         access=AttrWriteType.READ_WRITE,
@@ -139,6 +190,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def init_device(self: MidTmcLeafNodeDish):
         self._isSubsystemAvailable = True
+        self.stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+        self.mean_wind_speed: float = 0.0
+        self.mean_gust_speed: float = 0.0
+        self.rate_of_change_in_temperature: float = 0.0
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
         self._global_pointing_model_params = "{}"
@@ -164,6 +219,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "globalPointingModelParams",
             "gpmVersion",
             "gpmValidationResult",
+            "stowStatus",
+            "meanWindSpeed",
+            "meanGustSpeed",
+            "rateOfChangeTemperature",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -742,6 +801,94 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return json.dumps(self.component_manager.gpm_validation_result)
 
+    @attribute(
+        dtype=StowStatus,
+        access=AttrWriteType.READ,
+    )
+    def stowStatus(self: MidTmcLeafNodeDish) -> StowStatus:
+        """
+        Returns the stow status
+
+        :return: stow status
+        :rtype: StowStatus
+        """
+        return self.stow_status
+
+    def update_stow_status_callback(self, status: StowStatus):
+        """Callback to update the stow status.
+
+        :param status: stow status.
+        :type status: StowStatus
+        """
+        self.stow_status = status
+        self.push_change_archive_events("stowStatus", status)
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+    )
+    def meanWindSpeed(self: MidTmcLeafNodeDish) -> float:
+        """
+        Returns the mean wind speed for specified duration.
+
+        :return: mean wind speed
+        :rtype: mean_wind_speed
+        """
+        return self.mean_wind_speed
+
+    def update_mean_wind_speed_callback(self, mean_speed: float):
+        """Callback to update the mean wind speed.
+
+        :param mean_speed: mean wind speed.
+        :type mean_speed: float
+        """
+        self.mean_wind_speed = mean_speed
+        self.push_change_archive_events("meanWindSpeed", mean_speed)
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+    )
+    def meanGustSpeed(self: MidTmcLeafNodeDish) -> float:
+        """
+        Returns the mean gust speed for specified duration.
+
+        :return: mean gust speed
+        :rtype: mean_gust_speed
+        """
+        return self.mean_gust_speed
+
+    def update_mean_gust_speed_callback(self, mean_speed: float):
+        """Callback to update the mean gust speed.
+
+        :param mean_speed: mean gust speed.
+        :type mean_speed: float
+        """
+        self.mean_gust_speed = mean_speed
+        self.push_change_archive_events("meanGustSpeed", mean_speed)
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+    )
+    def rateOfChangeTemperature(self: MidTmcLeafNodeDish) -> float:
+        """
+        Returns the rate of change in temperature for specified duration.
+
+        :return: rate of change in temperature
+        :rtype: rate of change in temperature
+        """
+        return self.rate_of_change_in_temperature
+
+    def update_roc_temperature_callback(self, roc_temp: float):
+        """Callback to update the rate of change in temperature
+
+        :param roc_temp: rate of change in temperature
+        :type roc_temp: float
+        """
+        self.rate_of_change_in_temperature = roc_temp
+        self.push_change_archive_events("rateOfChangeTemperature", roc_temp)
+
     # --------
     # Commands
     # --------
@@ -767,7 +914,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: Tuple
         """
-
+        self.component_manager.stow_status = StowStatus.MANUAL_STOW_STARTED
         handler = self.get_command_object("SetStowMode")
         result_code, unique_id = handler()
 
@@ -1288,6 +1435,23 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
             weather_station_device_name=self.WeatherStationDeviceName,
+            wind_speed_threshold=self.WindSpeedThreshold,
+            gust_speed_threshold=self.GustSpeedThreshold,
+            mean_wind_speed_duration=self.MeanWindSpeedDuration,
+            mean_gust_speed_duration=self.MeanGustSpeedDuration,
+            max_temp_threshold=self.MaxTemperatureThreshold,
+            min_temp_threshold=self.MinTemperatureThreshold,
+            time_delta=self.TimeDelta,
+            temp_delta=self.TemperatureDelta,
+            is_auto_stow_enabled=self.EnableAutoStow,
+            _update_roc_temp_callback=self.update_roc_temperature_callback,
+            _update_mean_gust_speed_callback=(
+                self.update_mean_gust_speed_callback
+            ),
+            _update_mean_wind_speed_callback=(
+                self.update_mean_wind_speed_callback
+            ),
+            _update_stow_status_callback=self.update_stow_status_callback,
         )
         return cm
 
@@ -1299,7 +1463,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         for command_name, method_name in [
             ("SetStandbyFPMode", "setstandbyfpmode"),
             ("SetStandbyLPMode", "setstandbylpmode"),
-            ("SetStowMode", "setstowmode"),
             ("Configure", "configure"),
             ("ConfigureBand", "configureband"),
             ("Track", "track"),
@@ -1334,6 +1497,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ),
         )
 
+        self.register_command_object(
+            "SetStowMode",
+            StowCommand(
+                self._command_tracker,
+                self.component_manager,
+                None,
+                self.logger,
+            ),
+        )
         self.register_command_object(
             "SetKValue",
             SetKValue(self.component_manager, logger=self.logger),

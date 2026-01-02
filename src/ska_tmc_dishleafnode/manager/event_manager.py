@@ -53,6 +53,7 @@ class DishLNEventManager(EventManager):
             "band5APointingModelParams",
             "band5BPointingModelParams",
         ]
+        self.logger = logger
         for model_params in self.pointing_model_params_attrs:
             method_name = f"{model_params.lower()}_event_callback"
             setattr(self, method_name, self.handle_pointing_model_params)
@@ -70,10 +71,10 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-
-        self._component_manager.event_queues[event_data.attr_value.name].put(
-            event_data
-        )
+        self.logger.info("%s", event_data)
+        if event_data.attr_value:
+            band_param = event_data.attr_value.name.lower()
+            self._component_manager.event_queues[band_param].put(event_data)
 
     def dishmode_event_callback(
         self: DishLNEventManager, event_data: tango.EventData
@@ -128,8 +129,9 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-        new_value = event_data.attr_value.value
-        self._component_manager.achieved_pointing_data.put(new_value)
+        if event_data.attr_value:
+            new_value = event_data.attr_value.value
+            self._component_manager.achieved_pointing_data.put(new_value)
 
     def pointingprogramtracktable_event_callback(
         self: DishLNEventManager, event_data: tango.EventData

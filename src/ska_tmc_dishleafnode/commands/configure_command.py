@@ -32,7 +32,7 @@ from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
     TrackLoadStaticOff,
 )
 from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
-from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CommandResult
+from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)

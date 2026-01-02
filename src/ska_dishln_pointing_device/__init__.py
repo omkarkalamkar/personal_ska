@@ -1,6 +1,6 @@
 """This is init module for DishLeafNode pointing device"""
 
-from .dishlnpd_component_manager.dishlnpd_component_manager import (
+from .dishlnpd_component_manager.component_manager import (
     DishlnPointingDataComponentManager,
 )
 from .mapping_scan.point_mapping import FixedMappingScan

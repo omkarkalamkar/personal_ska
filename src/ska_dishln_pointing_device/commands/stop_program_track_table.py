@@ -6,7 +6,7 @@ import logging
 from ska_tango_base.commands import FastCommand, ResultCode
 
 from ska_dishln_pointing_device.dishlnpd_component_manager import (
-    dishlnpd_component_manager as manager,
+    component_manager as manager,
 )
 
 
