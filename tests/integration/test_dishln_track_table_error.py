@@ -127,7 +127,7 @@ def configure_dish_leaf_node_source_not_visible(
 
 @pytest.mark.xfail(reason="Test fails if the source is not visible.")
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
 def test_configure_command_source_not_visible(
     tango_context, group_callback, json_factory, json_to_use
@@ -250,7 +250,7 @@ def configure_dish_leaf_node_unknown_source(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
 def test_configure_command_unknown_source(
     tango_context, group_callback, json_factory, json_to_use
