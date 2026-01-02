@@ -19,5 +19,9 @@ HEALTH_RULES = {
     ],
     HealthState.FAILED: [
         Rule("k_value_validation_result.result_code != 'OK'"),
+        Rule(
+            "$all([capability == 'FAILED' for "
+            "capability in dish_band_capabilities.band_capabilities.values()])"
+        ),
     ],
 }

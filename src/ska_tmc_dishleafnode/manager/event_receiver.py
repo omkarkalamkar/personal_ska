@@ -156,6 +156,11 @@ class DishLNEventReceiver(EventReceiver):
                 ):
                     self._logger.exception(log_msg)
             else:
+                self._logger.debug(
+                    "Subscribed to Dish Master events for device successful"
+                    " %s",
+                    dev_info.dev_name,
+                )
                 self.dish_master_subscribed = True
 
     def subscribe_dishlnpd_events(
