@@ -8,6 +8,7 @@ from ska_tmc_dishleafnode.enums import CapabilityStates
 from tests.settings import DISH_MASTER_DEVICE
 
 
+@pytest.mark.bandcapability
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_dishln_band_capability(group_callback):

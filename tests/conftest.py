@@ -195,6 +195,8 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "gpmVersion",
         "gpmValidationResult",
         "healthState",
+        "b1CapabilityState",
+        "b2CapabilityState",
         timeout=80,
     )
     return group_callback

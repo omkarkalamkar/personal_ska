@@ -145,6 +145,12 @@ class DishLNEventReceiver(EventReceiver):
                         handler,
                         stateless=True,
                     )
+                    self._logger.debug(
+                        "Subscribed to Dish Master event for"
+                        " attribute %s successfully %s",
+                        attr_name,
+                        dev_info.dev_name,
+                    )
 
             except Exception as exception:
                 log_msg = (
