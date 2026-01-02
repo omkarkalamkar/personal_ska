@@ -139,7 +139,7 @@ class DishLNEventReceiver(EventReceiver):
                 for attr_name in band_capability_attrs:
                     queue_key = attr_name.lower()
                     # Generate the specific handler method for this attribute
-                    handler = self._create_band_capability_handler(attr_name)
+                    handler = self._create_band_capability_handler(queue_key)
                     dish_dev_proxy.subscribe_event(
                         attr_name,
                         tango.EventType.CHANGE_EVENT,
