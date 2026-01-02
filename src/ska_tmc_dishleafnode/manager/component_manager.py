@@ -533,7 +533,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "achievedPointing",
             "configuredBand",
             "longRunningCommandResult",
-            "kValue"
+            "kValue",
         ]
         device_attribute_map[self.dishln_pointing_dev_name] = [
             "pointingProgramTrackTable",
