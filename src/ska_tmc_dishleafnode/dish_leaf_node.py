@@ -480,6 +480,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ResultCode(self.component_manager.kValueValidationResult).name,
         )
 
+        self.component_manager.evaluate_and_update_health_state()
+
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
         with tango.EnsureOmniThread():
@@ -487,9 +489,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 "kValue",
                 int(self.component_manager.kValue),
             )
-        self.logger.info(
-            "k-value for %s is updated to: %s",
-            self._dishln_name,
+        self.logger.debug(
+            "k-value is updated to: %s",
             self.component_manager.kValue,
         )
 

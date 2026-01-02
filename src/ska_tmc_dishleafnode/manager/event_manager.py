@@ -247,3 +247,15 @@ class DishLNEventManager(EventManager):
         :rtype: NoneType
         """
         self._component_manager.event_queues["windSpeed"].put(event_data)
+
+    def kvalue_event_callback(self, event_data: tango.EventData) -> None:
+        """Method to handle and update the latest value of
+        kvalue attribute.
+
+        :parameter event_data: The change event data
+            for kvalue.
+        :type event_data: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        self._component_manager.event_queues["kValue"].put(event_data)

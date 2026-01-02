@@ -7,6 +7,8 @@ from unittest import mock
 
 import numpy as np
 import pytest
+from ska_control_model import HealthState
+from ska_tango_base.commands import ResultCode
 
 
 def test_stop_executors_with_event_receiver(cm_without_er_lp):
@@ -214,3 +216,49 @@ def test_process_actual_pointing_handles_invalid_data(cm):
 
     # Process should still be alive despite error
     assert cm.actual_pointing_process.is_alive()
+
+
+@pytest.mark.parametrize(
+    "kvalue_validation_result, expected_health_states",
+    [
+        (ResultCode.OK, HealthState.OK),
+        (ResultCode.FAILED, HealthState.FAILED),
+        (ResultCode.UNKNOWN, HealthState.FAILED),
+        (ResultCode.NOT_ALLOWED, HealthState.FAILED),
+        (ResultCode.STARTED, HealthState.FAILED),
+    ],
+)
+def test_health_evaluation_and_update(
+    cm, kvalue_validation_result, expected_health_states
+):
+    """
+    Verify:
+    1. Health rules evaluate correct HealthState
+    2. evaluate_and_update_health_state invokes callback
+       with the same HealthState
+    """
+
+    # Arrange
+    cm.kValueValidationResult = kvalue_validation_result
+    mock_callback = mock.Mock()
+    cm._update_health_state_callback = mock_callback
+
+    # --- Rule evaluation ---
+    context = cm.build_health_context()
+    health_state = cm.evaluate_health_state(context)
+
+    assert health_state == expected_health_states
+
+    # --- Update path ---
+    cm.evaluate_and_update_health_state()
+
+    mock_callback.assert_called_once_with(expected_health_states)
+
+
+def test_evaluate_and_update_health_state_when_no_rule_matches(cm):
+    cm._update_health_state_callback = mock.Mock()
+    cm.evaluate_health_state = mock.Mock(return_value=None)
+
+    cm.evaluate_and_update_health_state()
+
+    cm._update_health_state_callback.assert_not_called()

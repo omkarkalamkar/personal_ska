@@ -465,3 +465,12 @@ def cm_pointig_device() -> (
         join(dirname(__file__), "data", "iers_file.all")
     )
     yield cm
+
+
+@pytest.fixture(autouse=True)
+def initialise_kvalue(dishln_device):
+    """Ensure DishLN and DishMaster start with matching KValue."""
+    try:
+        dishln_device.SetKValue(1)
+    except Exception as e:
+        logger.exception("Failed initialise_kvalue fixture %s", e)
