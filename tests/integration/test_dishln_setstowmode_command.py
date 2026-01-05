@@ -140,7 +140,6 @@ def stow_while_configuring(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.new2
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_stow_while_configuring(tango_context, group_callback, json_factory):
@@ -152,7 +151,6 @@ def test_stow_while_configuring(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.new
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_setstowmode_command(tango_context, group_callback):
