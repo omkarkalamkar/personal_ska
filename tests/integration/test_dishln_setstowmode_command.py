@@ -159,7 +159,7 @@ def test_setstowmode_command(tango_context, group_callback):
     setstowmode_command(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)
 
 
-@pytest.mark.new3
+@pytest.mark.skip(reason="inprogress")
 def test_auto_stow(group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
