@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
+from ska_tmc_common import Band
 
 from ska_tmc_dishleafnode.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
@@ -42,11 +43,18 @@ class DishManagerHealthData:
 @dataclass
 class DishBandCapabilityStateData:
     """
-    Context object for Dish Band Capability data.
+    Context object for Dish Band Capability States.
     """
 
     band_capabilities: Dict[str, CapabilityStates] = field(
-        default_factory=dict
+        default_factory=lambda: {
+            "B1": CapabilityStates.UNKNOWN,
+            "B2": CapabilityStates.UNKNOWN,
+            "B3": CapabilityStates.UNKNOWN,
+            "B4": CapabilityStates.UNKNOWN,
+            "B5a": CapabilityStates.UNKNOWN,
+            "B5b": CapabilityStates.UNKNOWN,
+        }
     )
 
 
@@ -58,6 +66,8 @@ class DishHealthData:
     Extend this dataclass when new health inputs
     (PTT, GPM, etc.) are added.
     """
+
+    configured_band: Band = Band.UNKNOWN
 
     gpm_validation_result: GPMValidationResultData = field(
         default_factory=GPMValidationResultData
@@ -82,11 +92,6 @@ class HealthManager:
         self.health_data = DishHealthData()
         self.component_manager = component_manager
         self.logger = logger
-
-        self.attribute_mapping: Dict[str, str] = {
-            "GPMValidationResultData": "gpm_validation_result",
-            "KValueValidationResultData": "k_value_validation_result",
-        }
 
         self.eventlock = threading._RLock()
 
@@ -134,7 +139,13 @@ class HealthManager:
                         " in health data: %s",
                         str(self.health_data),
                     )
-                    return  # not contributing to health state evaluation yet
+                case "ConfiguredBand":
+                    self.health_data.configured_band = data
+
+                    self.logger.debug(
+                        "Updated configured_band in health data: %s",
+                        self.health_data.configured_band,
+                    )
 
                 case _:
                     self.logger.warning("Unknown datatype: %s", datatype)
@@ -151,6 +162,7 @@ class HealthManager:
 
         health_info = self.generate_health_info(self.health_data)
         self.logger.debug("Generated health info: %s", str(health_info))
+
         if self.component_manager._update_health_info_callback:
             self.component_manager._update_health_info_callback(health_info)
 
@@ -202,12 +214,39 @@ class HealthManager:
         Returns:
             Dict containing health info
         """
-        dish_devie_name = self.component_manager.dish_dev_name
-        health_info: Dict = {"HealthSummary": {}}
+        dish_device_name = self.component_manager.dish_dev_name
         dish_name = (
             "mid-tmc/leaf-node-dish/ska001"  # Placeholder for actual dish name
         )
+        health_info: Dict = {"HealthSummary": {}}
         health_info["HealthSummary"][dish_name] = {"Info": []}
+
+        good_states = {"STANDBY", "CONFIGURING", "OPERATE_FULL"}
+        configured_name = context.configured_band.name
+
+        if context.configured_band not in (Band.NONE, Band.UNKNOWN):
+            band_state = context.band_capability_data.band_capabilities.get(
+                configured_name, CapabilityStates.UNKNOWN
+            )
+            if band_state.name not in good_states:
+                health_info["HealthSummary"][dish_name]["Info"].append(
+                    f"Configured band {configured_name} is {band_state.name}"
+                    + " — not fully available for observation."
+                )
+            # Do NOT report other bands when one is configured
+        else:
+            # list bad bands
+            bad_bands = [
+                name
+                for name, state in (
+                    context.band_capability_data.band_capabilities.items()
+                )
+                if state.name not in good_states
+            ]
+            if bad_bands:
+                health_info["HealthSummary"][dish_name]["Info"].append(
+                    f"Unusable bands: {', '.join(bad_bands)}."
+                )
 
         # Check GPM validation results for errors
         for idx, result in enumerate(context.gpm_validation_result.result):
@@ -227,28 +266,9 @@ class HealthManager:
             HealthState.UNKNOWN,
         ]:
             error_msg = (
-                f"Dish Manager {dish_devie_name}"
+                f"Dish Manager {dish_device_name}"
                 + " health state reported "
                 + f"as {context.dish_manager_health_data.health_state.name}."
             )
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
-
-        for (
-            band_name,
-            capability_state,
-        ) in context.band_capability_data.band_capabilities.items():
-            if capability_state in [
-                CapabilityStates.UNAVAILABLE,
-                CapabilityStates.STANDBY,
-                CapabilityStates.UNKNOWN,
-            ]:
-                error_msg = (
-                    f"Band {band_name} capability state is "
-                    + f"{capability_state.name}."
-                    + f"for Dish {dish_devie_name}."
-                )
-                health_info["HealthSummary"][dish_name]["Info"].append(
-                    error_msg
-                )
-
         return health_info

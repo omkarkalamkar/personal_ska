@@ -1967,14 +1967,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.band_capability_lock:
             dev_info = self.get_device()
             dev_info.last_event_arrived = time.time()
-            self.band_capability_state[band_name] = band_capability_state
+            # remove "CapabilityState" → "b1" → "B1"
+            normalized_band = band_name[:-15].upper()
+            if normalized_band == "B5A":
+                normalized_band = "B5a"
+            elif normalized_band == "B5B":
+                normalized_band = "B5b"
+            self.band_capability_state[normalized_band] = band_capability_state
             self.health_manager.update_health_data_and_aggregate(
-                (band_name, band_capability_state),
+                (normalized_band, band_capability_state),
                 "DishBandCapabilityStateData",
             )
             self.logger.debug(
                 "BandCapabilityState for band %s updated to %s",
-                band_name,
+                normalized_band,
                 band_capability_state.name,
             )
 
@@ -2015,8 +2021,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.configured_band_lock:
             dev_info = self.get_device()
+            old_band = dev_info.configured_band  # optional: for logging
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
+
+            # Trigger health re-evaluation whenever configuredBand changes
+            self.health_manager.update_health_data_and_aggregate(
+                data=configured_band, datatype="ConfiguredBand"
+            )
+
+            self.logger.debug(
+                "Configured band updated from %s to %s. Health re-evaluated.",
+                old_band.name if old_band else "None",
+                configured_band.name,
+            )
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
