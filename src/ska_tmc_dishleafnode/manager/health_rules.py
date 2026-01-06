@@ -15,14 +15,23 @@ HEALTH_RULES = {
         # - A band is requested
         # - AND that band's capability is good
         Rule(
+            "k_value_validation_result.result_code == 'OK' and "
+            "$all([gpm != 'FAILED' for gpm in "
+            "gpm_validation_result.result]) and "
             "receiver_band not in {'NONE', 'UNKNOWN'} and "
-            f"band_capability_data.band_capabilities.get("
-            f"receiver_band.name, 'UNKNOWN') in {GOOD_STATES_SET}"
+            "band_capability_data.band_capabilities[receiver_band] in "
+            f"{GOOD_STATES_SET}"
         ),
+        # No band requested, but all bands band_capability_data are good
         Rule(
             "k_value_validation_result.result_code == 'OK' and "
             "$all([gpm != 'FAILED' for gpm in "
-            "gpm_validation_result.result])"
+            "gpm_validation_result.result]) and "
+            "receiver_band in {'NONE', 'UNKNOWN'} and "
+            "$all(["
+            f"state in {GOOD_STATES_SET} "
+            "for state in band_capability_data.band_capability_values"
+            "])"
         ),
     ],
     HealthState.DEGRADED: [
@@ -32,10 +41,10 @@ HEALTH_RULES = {
         ),
         # No band requested, but at least one band is good
         Rule(
-            "receiver_band in {'NONE', 'UNKNOWN'} and "
-            "$any([state in "
-            "'UNAVAILABLE' for state in "
-            "band_capability_data.band_capabilities.values()])"
+            "k_value_validation_result.result_code == 'OK' and "
+            f"receiver_band in {{'NONE', 'UNKNOWN'}} and "
+            f"$any([state in {GOOD_STATES_SET} "
+            f"for state in band_capability_data.band_capability_values])"
         ),
     ],
     HealthState.FAILED: [
@@ -46,13 +55,12 @@ HEALTH_RULES = {
             "receiver_band in {'NONE', 'UNKNOWN'} and "
             "$all([state not in "
             f"{GOOD_STATES_SET} for state in "
-            "band_capability_data.band_capabilities.values()])"
+            "band_capability_data.band_capability_values])"
         ),
         # Configured band exists but is not in good state
         Rule(
             "receiver_band not in {'NONE', 'UNKNOWN'} and "
-            "band_capability_data.band_capabilities.get("
-            f"receiver_band.name, 'UNKNOWN') not in "
+            "band_capability_data.band_capabilities[receiver_band] not in "
             f"{GOOD_STATES_SET}"
         ),
     ],

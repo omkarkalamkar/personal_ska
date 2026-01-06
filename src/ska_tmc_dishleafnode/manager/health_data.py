@@ -1,8 +1,11 @@
+# flake8: noqa=E501
 """
 Dataclass representing inputs used by the rule engine to evaluate health state.
 """
 import threading
 from dataclasses import asdict, dataclass, field
+
+# from multiprocessing import context
 from typing import Dict, List, Optional
 
 from ska_control_model import HealthState
@@ -48,12 +51,12 @@ class DishBandCapabilityStateData:
 
     band_capabilities: Dict[str, CapabilityStates] = field(
         default_factory=lambda: {
-            "B1": CapabilityStates.UNKNOWN,
-            "B2": CapabilityStates.UNKNOWN,
-            "B3": CapabilityStates.UNKNOWN,
-            "B4": CapabilityStates.UNKNOWN,
-            "B5a": CapabilityStates.UNKNOWN,
-            "B5b": CapabilityStates.UNKNOWN,
+            "B1": CapabilityStates.UNKNOWN.name,
+            "B2": CapabilityStates.UNKNOWN.name,
+            "B3": CapabilityStates.UNKNOWN.name,
+            "B4": CapabilityStates.UNKNOWN.name,
+            "B5a": CapabilityStates.UNKNOWN.name,
+            "B5b": CapabilityStates.UNKNOWN.name,
         }
     )
 
@@ -173,7 +176,7 @@ class HealthManager:
             self.component_manager._update_health_state_callback(health_state)
 
     def evaluate_health_state(
-        self, context: DishHealthData
+        self, health_context: DishHealthData
     ) -> Optional[HealthState]:
         """
         Evaluate health state using rules.
@@ -185,15 +188,47 @@ class HealthManager:
             HealthState or None if no rule matched
         """
 
+        def sanitize_for_rules(obj):
+            import enum
+
+            if isinstance(obj, enum.Enum):
+                return obj.name
+            if isinstance(obj, dict):
+                return {k: sanitize_for_rules(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [sanitize_for_rules(v) for v in obj]
+            if obj is None:
+                return []
+            return obj
+
+        self.logger.info(
+            "Health rules matched for context: %s", health_context
+        )
+
+        context_dict = sanitize_for_rules(asdict(health_context))
+
+        band_caps = context_dict["band_capability_data"]["band_capabilities"]
+
+        context_dict["band_capability_data"]["band_capability_values"] = set(
+            band_caps.values()
+        )
+
+        self.logger.info("Health rules matched for context: %s", context_dict)
+
         for health_state, rules in HEALTH_RULES.items():
-            if any(rule.matches(asdict(context)) for rule in rules):
+            self.logger.info("Rule match for  %s", rules)
+
+            if any(rule.matches(context_dict) for rule in rules):
                 self.logger.info("HealthState decided as %s", health_state)
                 return health_state
 
-        self.logger.debug("No health rule matched for context: %s", context)
+        self.logger.debug(
+            "No health rule matched for context: %s", health_context
+        )
+        return None
         return None
 
-    def generate_health_info(self, context: DishHealthData) -> Dict:
+    def generate_health_info(self, health_context: DishHealthData) -> Dict:
         """
         Generate health info dictionary based on health state and context.
 
@@ -231,11 +266,13 @@ class HealthManager:
             "OPERATE_DEGRADED",
             "UNKNOWN",
         }
-        requested_band = context.receiver_band.name
+        requested_band = health_context.receiver_band.name
 
-        if context.receiver_band not in (Band.NONE, Band.UNKNOWN):
-            band_state = context.band_capability_data.band_capabilities.get(
-                requested_band, CapabilityStates.UNKNOWN
+        if health_context.receiver_band not in (Band.NONE, Band.UNKNOWN):
+            band_state = (
+                health_context.band_capability_data.band_capabilities.get(
+                    requested_band, CapabilityStates.UNKNOWN
+                )
             )
             if band_state.name not in good_states:
                 health_info["HealthSummary"][dish_name]["Info"].append(
@@ -248,7 +285,7 @@ class HealthManager:
             bad_bands = [
                 name
                 for name, state in (
-                    context.band_capability_data.band_capabilities.items()
+                    health_context.band_capability_data.band_capabilities.items()
                 )
                 if state.name not in good_states
             ]
@@ -258,18 +295,23 @@ class HealthManager:
                 )
 
         # Check GPM validation results for errors
-        for idx, result in enumerate(context.gpm_validation_result.result):
+        for idx, result in enumerate(
+            health_context.gpm_validation_result.result
+        ):
             if result == "FAILED":
                 error_msg = f"GPM validation failed for GPM index {idx}."
                 health_info["HealthSummary"][dish_name]["Info"].append(
                     error_msg
                 )
         # Check KValue validation results for errors
-        if context.k_value_validation_result.result_code != ResultCode.OK.name:
+        if (
+            health_context.k_value_validation_result.result_code
+            != ResultCode.OK.name
+        ):
             error_msg = "KValue validation failed."
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
         # Check Dish Manager health state for errors
-        if context.dish_manager_health_data.health_state in [
+        if health_context.dish_manager_health_data.health_state in [
             HealthState.DEGRADED,
             HealthState.FAILED,
             HealthState.UNKNOWN,
@@ -277,7 +319,8 @@ class HealthManager:
             error_msg = (
                 f"Dish Manager {dish_device_name}"
                 + " health state reported "
-                + f"as {context.dish_manager_health_data.health_state.name}."
+                + f"as {health_context.dish_manager_health_data.health_state.name}."
             )
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
+        return health_info
         return health_info
