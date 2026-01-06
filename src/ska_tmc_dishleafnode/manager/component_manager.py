@@ -2021,20 +2021,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         with self.configured_band_lock:
             dev_info = self.get_device()
-            old_band = dev_info.configured_band  # optional: for logging
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
-
-            # Trigger health re-evaluation whenever configuredBand changes
-            self.health_manager.update_health_data_and_aggregate(
-                data=configured_band, datatype="ConfiguredBand"
-            )
-
-            self.logger.debug(
-                "Configured band updated from %s to %s. Health re-evaluated.",
-                old_band.name if old_band else "None",
-                configured_band.name,
-            )
 
     def set_dish_id(
         self: DishLNComponentManager, dish_master_fqdn: str
@@ -3077,4 +3065,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.health_manager.update_health_data_and_aggregate(
             self.kValueValidationResult.name,
             "KValueValidationResultData",
+        )
+
+    def update_reciever_band_for_health(self):
+        """
+        Update health data from component manager.
+        """
+
+        if not self.receiver_band:
+            self.receiver_band = Band.NONE
+
+        self.health_manager.update_health_data_and_aggregate(
+            self.receiver_band,
+            "ConfiguredBand",
         )

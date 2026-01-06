@@ -62,6 +62,8 @@ class TrackStop(DishLNCommand):
                 self.command_uniq_id
             ]
             self.command_uniq_id = ""
+        self.component_manager.receiver_band = ""
+        self.component_manager.update_reciever_band_for_health()
 
     # pylint: disable=unused-argument
     @timeout_tracker

@@ -5,17 +5,19 @@ Rule engine definitions for Dish Leaf Node health state evaluation.
 from rule_engine import Rule
 from ska_control_model import HealthState
 
-GOOD_STATES_SET = "{'STANDBY', 'CONFIGURING', 'OPERATE_FULL'}"
+GOOD_STATES_SET = (
+    "{'STANDBY', 'CONFIGURING', 'OPERATE_FULL', 'OPERATE_DEGRADED', 'UNKNOWN'}"
+)
 
 HEALTH_RULES = {
     HealthState.OK: [
         # Only OK if:
-        # - A specific band is configured
+        # - A band is requested
         # - AND that band's capability is good
         Rule(
-            "configured_band not in {'NONE', 'UNKNOWN'} and "
+            "receiver_band not in {'NONE', 'UNKNOWN'} and "
             f"band_capability_data.band_capabilities.get("
-            f"configured_band.name, 'UNKNOWN') in {GOOD_STATES_SET}"
+            f"receiver_band.name, 'UNKNOWN') in {GOOD_STATES_SET}"
         ),
         Rule(
             "k_value_validation_result.result_code == 'OK' and "
@@ -28,30 +30,30 @@ HEALTH_RULES = {
             "$any([gpm == 'FAILED' for gpm in "
             "gpm_validation_result.result])"
         ),
-        # Configured band exists but is not in good state
+        # No band requested, but at least one band is good
         Rule(
-            "configured_band not in {'NONE', 'UNKNOWN'} and "
-            "band_capability_data.band_capabilities.get("
-            f"configured_band.name, 'UNKNOWN') not in "
-            f"{GOOD_STATES_SET}"
-        ),
-        # No band configured, but at least one band is good
-        Rule(
-            "configured_band in {'NONE', 'UNKNOWN'} and "
+            "receiver_band in {'NONE', 'UNKNOWN'} and "
             "$any([state in "
-            f"{GOOD_STATES_SET} for state in "
+            "'UNAVAILABLE' for state in "
             "band_capability_data.band_capabilities.values()])"
         ),
     ],
     HealthState.FAILED: [
         Rule("k_value_validation_result.result_code != 'OK'"),
         # No usable band at all (only relevant when no band
-        # configured)
+        # is requested)
         Rule(
-            "configured_band in {'NONE', 'UNKNOWN'} and "
+            "receiver_band in {'NONE', 'UNKNOWN'} and "
             "$all([state not in "
             f"{GOOD_STATES_SET} for state in "
             "band_capability_data.band_capabilities.values()])"
+        ),
+        # Configured band exists but is not in good state
+        Rule(
+            "receiver_band not in {'NONE', 'UNKNOWN'} and "
+            "band_capability_data.band_capabilities.get("
+            f"receiver_band.name, 'UNKNOWN') not in "
+            f"{GOOD_STATES_SET}"
         ),
     ],
 }

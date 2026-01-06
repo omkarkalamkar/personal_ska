@@ -67,7 +67,7 @@ class DishHealthData:
     (PTT, GPM, etc.) are added.
     """
 
-    configured_band: Band = Band.UNKNOWN
+    receiver_band: Band = Band.NONE
 
     gpm_validation_result: GPMValidationResultData = field(
         default_factory=GPMValidationResultData
@@ -139,12 +139,15 @@ class HealthManager:
                         " in health data: %s",
                         str(self.health_data),
                     )
-                case "ConfiguredBand":
-                    self.health_data.configured_band = data
+                case "receiver_band":
+                    if isinstance(data, Band):
+                        self.health_data.receiver_band = data
+                    else:
+                        self.health_data.receiver_band = Band(data)
 
                     self.logger.debug(
-                        "Updated configured_band in health data: %s",
-                        self.health_data.configured_band,
+                        "Updated receiver_band in health data: %s",
+                        self.health_data.receiver_band,
                     )
 
                 case _:
@@ -221,16 +224,22 @@ class HealthManager:
         health_info: Dict = {"HealthSummary": {}}
         health_info["HealthSummary"][dish_name] = {"Info": []}
 
-        good_states = {"STANDBY", "CONFIGURING", "OPERATE_FULL"}
-        configured_name = context.configured_band.name
+        good_states = {
+            "STANDBY",
+            "CONFIGURING",
+            "OPERATE_FULL",
+            "OPERATE_DEGRADED",
+            "UNKNOWN",
+        }
+        requested_band = context.receiver_band.name
 
-        if context.configured_band not in (Band.NONE, Band.UNKNOWN):
+        if context.receiver_band not in (Band.NONE, Band.UNKNOWN):
             band_state = context.band_capability_data.band_capabilities.get(
-                configured_name, CapabilityStates.UNKNOWN
+                requested_band, CapabilityStates.UNKNOWN
             )
             if band_state.name not in good_states:
                 health_info["HealthSummary"][dish_name]["Info"].append(
-                    f"Configured band {configured_name} is {band_state.name}"
+                    f"requested band {requested_band} is {band_state.name}"
                     + " — not fully available for observation."
                 )
             # Do NOT report other bands when one is configured
@@ -245,7 +254,7 @@ class HealthManager:
             ]
             if bad_bands:
                 health_info["HealthSummary"][dish_name]["Info"].append(
-                    f"Unusable bands: {', '.join(bad_bands)}."
+                    f"Unavailable bands: {', '.join(bad_bands)}."
                 )
 
         # Check GPM validation results for errors

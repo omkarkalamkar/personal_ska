@@ -218,7 +218,8 @@ class Configure(DishLNCommand):
                 self.component_manager.command_id,
             )
             self.component_manager.command_id = ""
-            self.component_manager.receiver_band = ""
+            # self.component_manager.receiver_band = ""
+            self.component_manager.update_reciever_band_for_health()
             self.component_manager.partial_configure = False
             self.component_manager.is_trackloadstatic_off = False
             self.component_manager.configure_band_lrcr = ResultCode.UNKNOWN
