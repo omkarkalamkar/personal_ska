@@ -169,10 +169,10 @@ def test_auto_stow(group_callback):
         group_callback["stowStatus"],
     )
     group_callback["stowStatus"].assert_change_event(
-        StowStatus.WIND_STOW_STARTED,
+        StowStatus.STOW_STARTED,
         lookahead=5,
     )
     group_callback["stowStatus"].assert_change_event(
-        StowStatus.WIND_STOW_COMPLETED,
+        StowStatus.STOW_COMPLETED,
         lookahead=5,
     )

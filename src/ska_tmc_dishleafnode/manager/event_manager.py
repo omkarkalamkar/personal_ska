@@ -210,7 +210,8 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-        self._component_manager.event_queues["humidity"].put(event_data)
+        attr_name = "humidity" + event_data.device.dev_name()
+        self._component_manager.event_queues[attr_name].put(event_data)
 
     def pressure_event_callback(self, event_data: tango.EventData) -> None:
         """Method to handle and update the latest value of
@@ -222,7 +223,8 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-        self._component_manager.event_queues["pressure"].put(event_data)
+        attr_name = "pressure" + event_data.device.dev_name()
+        self._component_manager.event_queues[attr_name].put(event_data)
 
     def temperature_event_callback(self, event_data: tango.EventData) -> None:
         """Method to handle and update the latest value of
@@ -234,7 +236,8 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-        self._component_manager.event_queues["temperature"].put(event_data)
+        attr_name = "temperature" + event_data.device.dev_name()
+        self._component_manager.event_queues[attr_name].put(event_data)
 
     def windspeed_event_callback(self, event_data: tango.EventData) -> None:
         """Method to handle and update the latest value of
@@ -246,7 +249,8 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-        self._component_manager.event_queues["windSpeed"].put(event_data)
+        attr_name = "windSpeed" + event_data.device.dev_name()
+        self._component_manager.event_queues[attr_name].put(event_data)
 
     def kvalue_event_callback(self, event_data: tango.EventData) -> None:
         """Method to handle and update the latest value of

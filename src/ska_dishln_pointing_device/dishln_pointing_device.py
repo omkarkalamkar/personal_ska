@@ -58,8 +58,8 @@ class DishPointingDevice(TMCBaseLeafDevice):
         default_value=5,
         doc="Advanced program track tables entries in track table schedular",
     )
-    WeatherStationDeviceName = device_property(
-        dtype="str", doc="FQDN of Weather Station device", default_value=""
+    WeatherStationDeviceNames = device_property(
+        dtype=("str",), doc="FQDNs of Weather Station devices", default_value=tuple()
     )
 
     def __init__(self, *args, **kwargs):
@@ -252,7 +252,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
             azimuth_max_limit=self.AzimuthMaxLimit,
             entries_tt_schedular_queue=self.SchedularQueuePreEntries,
             _event_manager=True,
-            weather_station_device_name=self.WeatherStationDeviceName,
+            weather_station_device_names=self.WeatherStationDeviceNames,
             event_subscription_check_period=self.EventSubscriptionCheckPeriod,
         )
         return dish_pointing_device_component_manager

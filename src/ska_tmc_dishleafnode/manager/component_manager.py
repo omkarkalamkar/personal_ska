@@ -18,7 +18,7 @@ from functools import partial
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import tango
@@ -106,7 +106,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_gpm_version_callback: Callable,
         _update_gpm_validation_result_callback: Callable,
         _update_gpm_paths_data_callback: Callable,
-        _liveliness_probe=LivelinessProbeType.NONE,
+        _liveliness_probe=LivelinessProbeType.MULTI_DEVICE,
         _event_manager: bool = True,
         default_array_layout_source_uris: str = '',
         default_array_layout_path: str = '',
@@ -119,7 +119,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         adapter_timeout: int = 2,
         max_track_table_retry: int = 3,
         track_table_retry_duration: float = 0.2,
-        weather_station_device_name: str = "",
+        weather_station_device_names: Optional[list] = None,
         wind_speed_threshold: float = 13.5,
         gust_speed_threshold: float = 20.0,
         mean_wind_speed_duration: float = 600.0,
@@ -154,8 +154,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             to monitor each device in a loop
         :param adapter_timeout: (int) Timeout for the adapter creation
         :param command_timeout: (int) Timeout for the command execution
-        :param weather_station_device_name: (str) The Name of
-            weather station device.
+        :param weather_station_device_names: (list) The Names of
+            weather station devices.
         :param wind_speed_threshold: (float) Threshold on wind speed(unit m/s)
             for auto stowing.
         :param gust_speed_threshold: (float) Threshold on gust wind
@@ -195,6 +195,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.default_array_layout_source_uris = (
             default_array_layout_source_uris
         )
+        self.weather_station_device_names: list = weather_station_device_names
         self.default_array_layout_path = default_array_layout_path
         self.rlock = threading.RLock()
         self.lock = threading.RLock()
@@ -204,7 +205,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.pointing_state_lock = threading.RLock()
         self.health_state_lock = threading.RLock()
         self.source_offset_lock = threading.RLock()
+        self._devices: list = []
         self._device = DishDeviceInfo(dish_dev_name)
+        self.devices = self._device
+        self.add_weather_station_devices(weather_station_device_names)
+
         self.logger = logger
         self.adapter_factory = AdapterFactory()
         self.command_timeout = command_timeout
@@ -321,8 +326,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             logger=logger,
             event_subscription_check_period=event_subscription_check_period,
         )
-        if _liveliness_probe != LivelinessProbeType.NONE:
+
+        if _liveliness_probe == LivelinessProbeType.MULTI_DEVICE:
             self.start_liveliness_probe(_liveliness_probe)
+            for device in self.devices:
+                self.liveliness_probe_object.add_device(device.dev_name)
 
         self.abort_event = threading.Event()
         self.dish_adapter = None
@@ -346,7 +354,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self._stop_thread = False
-        self.weather_station_device_name: str = weather_station_device_name
         self.__humidity: float = 0.10
         self.__pressure: float = 900.0
         self.__wind_speed: float = 10.0
@@ -396,6 +403,34 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             Callable
         ] = _update_stow_status_callback
         self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+
+    def add_weather_station_devices(
+        self, weather_station_devices: list
+    ) -> None:
+        """Method to add all the weather station device info.
+
+        :param weather_station_devices: (list) Weather station device fqdns.
+        """
+        for wms in weather_station_devices:
+            self.devices = DeviceInfo(wms.strip())
+
+    @property
+    def devices(self) -> list[Union[DishDeviceInfo, DeviceInfo]]:
+        """Method provides the devices monitored by CSP subarray leaf node.
+
+        :return: returns list of device information.
+        :rtype: list
+        """
+        return self._devices
+
+    @devices.setter
+    def devices(self, device_info: Union[DishDeviceInfo, DeviceInfo]):
+        """Method appends the device information into devices list.
+
+        :param device_info: Device information.
+        :type device_info: SubArrayDeviceInfo or DeviceInfo
+        """
+        self._devices.append(device_info)
 
     @property
     def stow_status(self) -> StowStatus:
@@ -540,13 +575,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "programTrackTableError",
             "healthState",
         ]
-        if self.weather_station_device_name:
-            device_attribute_map[self.weather_station_device_name] = [
-                "humidity",
-                "temperature",
-                "windSpeed",
-                "pressure",
-            ]
+        if self.weather_station_device_names:
+            for (
+                weather_station_device_name
+            ) in self.weather_station_device_names:
+                device_attribute_map[weather_station_device_name] = [
+                    "humidity",
+                    "temperature",
+                    "windSpeed",
+                    "pressure",
+                ]
 
         self.logger.debug(
             "Device attribute map dictionary : %s", device_attribute_map
@@ -1301,14 +1339,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             for device in self.build_device_attribute_map():
                 self.event_manager_object.unsubscribe_event_async(device)
 
-    def get_device(self: DishLNComponentManager) -> DishDeviceInfo:
+    # pylint: disable=arguments-differ
+    def get_device(
+        self: DishLNComponentManager, device_name: str
+    ) -> Union[DishDeviceInfo, DeviceInfo]:
         """
         Return the device info of the monitoring loop with name dev_name
-
+        :param device_name: (str) device name
         :return: a device info
-        :rtype: DishDeviceInfo
+        :rtype: DishDeviceInfo or DeviceInfo
         """
-        return self._device
+        for dev_info in self.devices:
+            if device_name in dev_info.dev_name:
+                return dev_info
+        return None
 
     def check_device_responsiveness(self, device_name: str) -> bool:
         """This method accepts device_name and
@@ -1322,9 +1366,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: bool
         """
         with self.rlock:
-            device_information = self.get_device()
+            device_information = self.get_device(device_name)
             if not device_information:
-                return False
+                return True
             if device_name != device_information.dev_name:
                 return True
             return not device_information.unresponsive
@@ -1434,6 +1478,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: A tuple containing TaskStatus and a message string.
         :rtype: Tuple
         """
+        self.stow_status = StowStatus.STOW_STARTED
         self.abort_event.set()
         self.observable.notify_observers(attribute_value_change=True)
         self.abort_event.clear()
@@ -2244,7 +2289,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         with self.dish_mode_lock:
-            dev_info = self.get_device()
+            dev_info = self.get_device(self.dish_dev_name)
             if (
                 dev_info.dish_mode == DishMode.STOW
                 and dish_mode != DishMode.STOW
@@ -2278,8 +2323,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # Wait for component manager to complete initialization
         self.initialization_complete.wait()
         with self.dish_pointing_lock:
-            dev_info = self.get_device()
-            dev_info.last_event_arrived = time.time()
             self.gpm_validator.update_dish_params_and_validate_gpm(
                 dish_param, band_name
             )
@@ -2298,7 +2341,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         with self.pointing_state_lock:
-            dev_info = self.get_device()
+            dev_info = self.get_device(self.dish_dev_name)
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             self.logger.debug(
@@ -2320,7 +2363,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type configured_band: Band
         """
         with self.configured_band_lock:
-            dev_info = self.get_device()
+            dev_info = self.get_device(self.dish_dev_name)
             dev_info.configured_band = configured_band
             dev_info.last_event_arrived = time.time()
 
@@ -2508,7 +2551,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type dev_name: str
         """
         with self.rlock:
-            self.get_device().update_unresponsive(False, "")
+            self.get_device(device_name).update_unresponsive(False, "")
             if self.update_availablity_callback is not None:
                 self.update_availablity_callback(True)
 
@@ -2521,7 +2564,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type value: (Tuple[List[str], List[str]])
         """
 
-        device_name = self.get_device()
+        device_name = self.get_device(self.dish_dev_name)
         self.logger.info(
             "Received longRunningCommandResult event for device: %s, "
             + "with value: %s",
@@ -3153,29 +3196,34 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
         )
 
-    def update_windspeed(self, wind_speed: float) -> None:
+    def update_windspeed(self, wind_speed: float, wms: str = "") -> None:
         """The method to update windspeed
 
         :param wind_speed: the wind speed event from wms.
         :type wind_speed: float
+        :param wms: the fqdn of wms
+        :type wms: str
         """
         if wind_speed:
-            self.wind_speed = wind_speed
+            if wms in self.weather_station_device_names[0]:
+                self.wind_speed = wind_speed
             if self.is_auto_stow_enabled:
-                self.auto_stow.wind_speeds = wind_speed
+                self.auto_stow.wind_speeds[wms].append(wind_speed)
+                self.auto_stow.gust_speeds[wms].append(wind_speed)
                 if not self.wind_tracking:
                     self.wind_timer.start()
                     self.gust_timer.start()
                     self.wind_tracking = True
 
-    def update_temperature(self, temperature: float) -> None:
+    def update_temperature(self, temperature: float, wms: str = "") -> None:
         """The method to update temperature
 
         :param temperature: The temperature event from wms.
         :type temperature: float
         """
         if temperature:
-            self.temperature = temperature
+            if wms in self.weather_station_device_names[0]:
+                self.temperature = temperature
             if self.is_auto_stow_enabled:
                 if (
                     temperature > self.max_temp_threshold
@@ -3187,23 +3235,25 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     self.temp_timer.start()
                     self.temperature_tracking = True
 
-    def update_pressure(self, pressure: float) -> None:
+    def update_pressure(self, pressure: float, wms: str = "") -> None:
         """The method to update pressure.
 
         :param pressure: The pressure event from the wms.
         :type pressure: float
         """
         if pressure:
-            self.pressure = pressure
+            if wms in self.weather_station_device_names[0]:
+                self.pressure = pressure
 
-    def update_humidity(self, humidity: float) -> None:
+    def update_humidity(self, humidity: float, wms: str = "") -> None:
         """The method to update humidity.
 
         :param humidity: The humidity event from the wms.
         :type humidity: float
         """
         if humidity:
-            self.humidity = humidity
+            if wms in self.weather_station_device_names[0]:
+                self.humidity = humidity
 
     def get_attribute_dict(self) -> dict:
         """
@@ -3258,11 +3308,21 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band4pointingmodelparams": band4_callback,
             "band5apointingmodelparams": band5a_callback,
             "band5bpointingmodelparams": band5b_callback,
-            "windSpeed": self.update_windspeed,
-            "pressure": self.update_pressure,
-            "humidity": self.update_humidity,
-            "temperature": self.update_temperature,
         }
+
+        for wms in self.weather_station_device_names:
+            if "tango://" in wms:
+                wms = "/".join(wms.split("/")[-3:])
+            attributes.update(
+                {
+                    f"windSpeed{wms}": partial(self.update_windspeed, wms=wms),
+                    f"pressure{wms}": partial(self.update_pressure, wms=wms),
+                    f"humidity{wms}": partial(self.update_humidity, wms=wms),
+                    f"temperature{wms}": partial(
+                        self.update_humidity, wms=wms
+                    ),
+                }
+            )
         return {**attributes}
 
     def update_program_track_table_error(self, event: tango.EventData) -> None:

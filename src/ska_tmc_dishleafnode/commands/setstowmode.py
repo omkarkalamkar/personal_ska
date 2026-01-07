@@ -137,22 +137,12 @@ class SetStowMode(DishLNCommand):
                 self.task_callback(
                     status=status, result=result, exception=message
                 )
-                if (
-                    self.component_manager.stow_status
-                    == StowStatus.MANUAL_STOW_STARTED
-                ):
-                    self.component_manager.stow_status = (
-                        StowStatus.MANUAL_STOW_FAILED
-                    )
+
+                self.component_manager.stow_status = StowStatus.STOW_FAILED
             else:
                 self.task_callback(status=status, result=result)
-                if (
-                    self.component_manager.stow_status
-                    == StowStatus.MANUAL_STOW_STARTED
-                ):
-                    self.component_manager.stow_status = (
-                        StowStatus.MANUAL_STOW_COMPLETED
-                    )
+
+                self.component_manager.stow_status = StowStatus.STOW_COMPLETED
         self.component_manager.command_in_progress = ""
         if not self.component_manager.is_configure_command:
             self.component_manager.clear_configure_command_events_flags()

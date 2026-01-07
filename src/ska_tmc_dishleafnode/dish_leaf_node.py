@@ -92,8 +92,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         default_value=0.2,
         doc="Retry duration for programTrackTable write operation in seconds",
     )
-    WeatherStationDeviceName = device_property(
-        dtype="str", doc="FQDN of Weather Station device", default_value=""
+    WeatherStationDeviceNames = device_property(
+        dtype=("str",), doc="FQDN's of Weather Station devices", default_value=tuple()
     )
     WindSpeedThreshold = device_property(
         dtype=float,
@@ -915,7 +915,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: Tuple
         """
-        self.component_manager.stow_status = StowStatus.MANUAL_STOW_STARTED
         handler = self.get_command_object("SetStowMode")
         result_code, unique_id = handler()
 
@@ -1406,7 +1405,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             component_state_callback=None,
             pointing_callback=self.pointing_callback,
             kvalue_validation_callback=self.kvalue_validation_callback,
-            _liveliness_probe=LivelinessProbeType.SINGLE_DEVICE,
+            _liveliness_probe=LivelinessProbeType.MULTI_DEVICE,
             _event_manager=True,
             _update_dishmode_callback=self.update_dishmode_callback,
             _update_dish_pointing_model_param=(
@@ -1435,7 +1434,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ),
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
-            weather_station_device_name=self.WeatherStationDeviceName,
+            weather_station_device_names=self.WeatherStationDeviceNames,
             wind_speed_threshold=self.WindSpeedThreshold,
             gust_speed_threshold=self.GustSpeedThreshold,
             mean_wind_speed_duration=self.MeanWindSpeedDuration,

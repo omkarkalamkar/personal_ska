@@ -3,6 +3,7 @@
 import logging
 import threading
 import time
+from collections import defaultdict
 
 import numpy as np
 from ska_tango_base.commands import ResultCode
@@ -31,9 +32,10 @@ class AutoStow:
         temp_delta: float = 4.5,
     ):
         self.component_manager = component_manager
-        self.__wind_speeds: list = []
-        self.__gust_speed: list = []
+        self.__wind_speeds: dict = defaultdict(list)
+        self.__gust_speeds: dict = defaultdict(list)
         self.wind_lock = threading.Lock()
+        self.gust_lock = threading.Lock()
         self.wind_threshold: float = wind_threshold
         self.gust_threshold: float = gust_threshold
         self.logger: logging.Logger = logger
@@ -59,27 +61,21 @@ class AutoStow:
 
     @property
     def wind_speeds(self):
-        """Wind speed list property."""
+        """Wind speed dictionary property."""
         with self.wind_lock:
             return self.__wind_speeds
 
     @property
-    def gust_speed(self):
-        """Gust speed."""
-        with self.wind_lock:
-            return self.__gust_speed
-
-    @wind_speeds.setter
-    def wind_speeds(self, speed: float):
-        """Setter for wind speed list."""
-        with self.wind_lock:
-            self.__wind_speeds.append(speed)
-            self.__gust_speed.append(speed)
+    def gust_speeds(self):
+        """Gust speed dictionary property."""
+        with self.gust_lock:
+            return self.__gust_speeds
 
     def calculate_mean_wind_speed(self):
         """Method to calculate mean wind speed."""
         self.logger.info("%s", time.time())
-        wind_speed = self.wind_speeds.copy()
+        wind_speed_means: list = []
+        wind_speeds: dict = self.wind_speeds.copy()
         self.wind_speeds.clear()
 
         def _task_callback(**kwargs):
@@ -87,64 +83,59 @@ class AutoStow:
             if not result:
                 pass
             elif result[0] == ResultCode.OK:
-                self.component_manager.stow_status = (
-                    StowStatus.WIND_STOW_COMPLETED
-                )
                 self.logger.info("auto stow completed")
             elif result[0] == ResultCode.FAILED:
-                self.component_manager.stow_status = (
-                    StowStatus.WIND_STOW_FAILED
-                )
                 self.logger.info("auto stow failed.")
 
-        wind_speed_mean = np.array(wind_speed).mean()
+        for _, wind_speed in wind_speeds.items():
+            wind_speed_means.append(np.array(wind_speed).mean())
+        wind_speed_mean = max(wind_speed_means)
         self.logger.info(
-            "%s mean speed is: %s from %s",
+            "%s max mean speed is: %s from %s",
             time.time(),
             wind_speed_mean,
-            wind_speed,
+            wind_speed_means,
         )
         self.component_manager.wind_speed_mean = wind_speed_mean
         if wind_speed_mean >= self.wind_threshold:
-            if self.component_manager.get_dish_mode() != DishMode.STOW:
-                self.component_manager.stow_status = (
-                    StowStatus.WIND_STOW_STARTED
-                )
+            if (
+                self.component_manager.get_dish_mode() != DishMode.STOW
+                and self.component_manager.stow_status
+                != StowStatus.STOW_STARTED
+            ):
                 self.component_manager.setstowmode(_task_callback)
 
     def check_gusts(self):
         """Method to calculate gust speed."""
-        gust_speed = self.gust_speed.copy()
-        self.gust_speed.clear()
+        gust_speeds: dict = self.gust_speeds.copy()
+        self.gust_speeds.clear()
+        gust_speed_means: list = []
 
         def _task_callback(**kwargs):
             result = kwargs.get("result", None)
             if not result:
                 pass
             elif result[0] == ResultCode.OK:
-                self.component_manager.stow_status = (
-                    StowStatus.WIND_STOW_COMPLETED
-                )
                 self.logger.info("auto stow completed")
             elif result[0] == ResultCode.FAILED:
-                self.component_manager.stow_status = (
-                    StowStatus.WIND_STOW_FAILED
-                )
                 self.logger.info("auto stow failed.")
 
-        gust_wind_speed_mean = np.array(gust_speed).mean()
+        for _, gust_speed in gust_speeds.items():
+            gust_speed_means.append(np.array(gust_speed).mean())
+        gust_wind_speed_mean = max(gust_speed_means)
         self.logger.info(
-            "%s gust speed mean is: %s from %s",
+            "%s max gust speed mean is: %s from %s",
             time.time(),
             gust_wind_speed_mean,
-            gust_speed,
+            gust_speed_means,
         )
         self.component_manager.gust_wind_speed_mean = gust_wind_speed_mean
         if gust_wind_speed_mean >= self.gust_threshold:
-            if self.component_manager.get_dish_mode() != DishMode.STOW:
-                self.component_manager.stow_status = (
-                    StowStatus.WIND_STOW_STARTED
-                )
+            if (
+                self.component_manager.get_dish_mode() != DishMode.STOW
+                and self.component_manager.stow_status
+                != StowStatus.STOW_STARTED
+            ):
                 self.component_manager.setstowmode(_task_callback)
 
     def temperature_based_auto_stow(self):
@@ -155,18 +146,14 @@ class AutoStow:
             if not result:
                 pass
             elif result[0] == ResultCode.OK:
-                self.component_manager.stow_status = (
-                    StowStatus.TEMP_STOW_COMPLETED
-                )
                 self.logger.info("auto stow completed")
             elif result[0] == ResultCode.FAILED:
-                self.component_manager.stow_status = (
-                    StowStatus.TEMP_STOW_FAILED
-                )
                 self.logger.info("auto stow failed.")
 
-        if self.component_manager.get_dish_mode() != DishMode.STOW:
-            self.component_manager.stow_status = StowStatus.TEMP_STOW_STARTED
+        if (
+            self.component_manager.get_dish_mode() != DishMode.STOW
+            and self.component_manager.stow_status != StowStatus.STOW_STARTED
+        ):
             self.component_manager.setstowmode(_task_callback)
 
     def change_of_rate_temperature_auto_stow(self):
@@ -182,3 +169,4 @@ class AutoStow:
         if rate_of_change > self.temp_delta:
             self.temperature_based_auto_stow()
         self.previous_temperature = current_temperature
+

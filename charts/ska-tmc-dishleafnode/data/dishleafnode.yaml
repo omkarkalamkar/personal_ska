@@ -17,7 +17,7 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $dishlnDomain := .Values.global.domain }}
 {{- $dishlnFamily := .Values.deviceServers.dishln.family }}
 {{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
-{{- $WeatherStationDeviceName := .Values.deviceServers.dishln.weather_station_device_name}}
+{{- $WeatherStationDeviceNames := .Values.deviceServers.dishln.weather_station_device_names}}
 
 server:
   name: "dish_leaf_node"
@@ -74,9 +74,11 @@ server:
           - name: "DishAvailabilityCheckTimeout"
             values:
               - "{{ $DishAvailabilityCheckTimeout }}"
-          - name: "WeatherStationDeviceName"
+          - name: "WeatherStationDeviceNames"
             values:
-             - "{{ $WeatherStationDeviceName }}"
+            {{- range $wms := $WeatherStationDeviceNames }}
+                - "{{ $wms }}"
+            {{- end }}
           - name: "EventSubscriptionCheckPeriod"
             values:
               - "{{ $EventSubscriptionCheckPeriod }}"

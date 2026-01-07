@@ -14,7 +14,7 @@ import time
 from collections import defaultdict
 from logging import Logger
 from queue import Queue
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import tango
 from astropy.time import Time
@@ -57,7 +57,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         azimuth_max_limit: float = 270.0,
         entries_tt_schedular_queue: int = 5,
         _event_manager: bool = False,
-        weather_station_device_name: str = "",
+        weather_station_device_names: Optional[list] = None,
         event_subscription_check_period: int = 1,
     ):
         """
@@ -120,7 +120,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.__wind_speed: float = 10.0
         self.__temperature: float = 30.0
         self.entries_tt_schedular_queue = entries_tt_schedular_queue
-        self.weather_station_device_name = weather_station_device_name
+        self.weather_station_device_name: str = ""
+        if weather_station_device_names:
+            self.weather_station_device_name = weather_station_device_names[0]
         self.event_processing_methods = self.get_attribute_dict()
         self.event_threads: list[threading.Thread] = []
         self.event_manager_object: DishLNPDEventManager = DishLNPDEventManager(
