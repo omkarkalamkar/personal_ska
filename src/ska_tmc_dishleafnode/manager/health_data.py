@@ -2,6 +2,7 @@
 """
 Dataclass representing inputs used by the rule engine to evaluate health state.
 """
+import enum
 import threading
 from dataclasses import asdict, dataclass, field
 
@@ -189,8 +190,6 @@ class HealthManager:
         """
 
         def sanitize_for_rules(obj):
-            import enum
-
             if isinstance(obj, enum.Enum):
                 return obj.name
             if isinstance(obj, dict):
@@ -225,7 +224,6 @@ class HealthManager:
         self.logger.debug(
             "No health rule matched for context: %s", health_context
         )
-        return None
         return None
 
     def generate_health_info(self, health_context: DishHealthData) -> Dict:
@@ -267,6 +265,7 @@ class HealthManager:
             "UNKNOWN",
         }
         requested_band = health_context.receiver_band.name
+        bcaps = health_context.band_capability_data.band_capabilities.items()
 
         if health_context.receiver_band not in (Band.NONE, Band.UNKNOWN):
             band_state = (
@@ -281,14 +280,12 @@ class HealthManager:
                 )
             # Do NOT report other bands when one is configured
         else:
-            # list bad bands
+            # # list bad bands
+
             bad_bands = [
-                name
-                for name, state in (
-                    health_context.band_capability_data.band_capabilities.items()
-                )
-                if state.name not in good_states
+                name for name, state in bcaps if state.name not in good_states
             ]
+
             if bad_bands:
                 health_info["HealthSummary"][dish_name]["Info"].append(
                     f"Unavailable bands: {', '.join(bad_bands)}."
@@ -316,11 +313,11 @@ class HealthManager:
             HealthState.FAILED,
             HealthState.UNKNOWN,
         ]:
+            hs = health_context.dish_manager_health_data.health_state.name
             error_msg = (
                 f"Dish Manager {dish_device_name}"
-                + " health state reported "
-                + f"as {health_context.dish_manager_health_data.health_state.name}."
+                + " health state reported as "
+                + f"{hs}"
             )
             health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
-        return health_info
         return health_info
