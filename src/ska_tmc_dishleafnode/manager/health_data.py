@@ -1,12 +1,8 @@
-# flake8: noqa=E501
 """
 Dataclass representing inputs used by the rule engine to evaluate health state.
 """
-import enum
 import threading
 from dataclasses import asdict, dataclass, field
-
-# from multiprocessing import context
 from typing import Dict, List, Optional
 
 from ska_control_model import HealthState
@@ -23,7 +19,7 @@ class GPMValidationResultData:
     Context object for GPM validation results.
     """
 
-    result: List[str] = field(default_factory=list)
+    result: List[ResultCode] = field(default_factory=list)
 
 
 @dataclass
@@ -32,7 +28,7 @@ class KValueValidationResultData:
     Context object for kValue validation result.
     """
 
-    result_code: str = field(default=ResultCode.STARTED.name)
+    result_code: ResultCode = field(default=ResultCode.STARTED)
 
 
 @dataclass
@@ -52,12 +48,12 @@ class DishBandCapabilityStateData:
 
     band_capabilities: Dict[str, CapabilityStates] = field(
         default_factory=lambda: {
-            "B1": CapabilityStates.UNKNOWN.name,
-            "B2": CapabilityStates.UNKNOWN.name,
-            "B3": CapabilityStates.UNKNOWN.name,
-            "B4": CapabilityStates.UNKNOWN.name,
-            "B5a": CapabilityStates.UNKNOWN.name,
-            "B5b": CapabilityStates.UNKNOWN.name,
+            "B1": CapabilityStates.UNKNOWN,
+            "B2": CapabilityStates.UNKNOWN,
+            "B3": CapabilityStates.UNKNOWN,
+            "B4": CapabilityStates.UNKNOWN,
+            "B5a": CapabilityStates.UNKNOWN,
+            "B5b": CapabilityStates.UNKNOWN,
         }
     )
 
@@ -92,19 +88,23 @@ class HealthManager:
     Manager for Dish Leaf Node health data.
     """
 
+    _active_issues: Dict[str, str]
+
     def __init__(self, component_manager, logger):
         self.health_data = DishHealthData()
         self.component_manager = component_manager
         self.logger = logger
 
-        self.eventlock = threading._RLock()
+        self.eventlock = threading.RLock()
+
+        self._active_issues: Dict[str, str] = {}
+        self._cached_health_info: Optional[Dict] = None
+        self._cached_health_state: Optional[HealthState] = None
 
     def update_health_data_and_aggregate(self, data, datatype) -> None:
         """
         Update health data from component manager.
         """
-        # figure out which data to update
-
         with self.eventlock:
             match datatype:
                 case "GPMValidationResultData":
@@ -115,6 +115,7 @@ class HealthManager:
                         "Updated GPMValidationResultData in health data: %s",
                         str(self.health_data),
                     )
+                    self._update_gpm_issues()
                 case "KValueValidationResultData":
                     self.health_data.k_value_validation_result = (
                         KValueValidationResultData(result_code=data)
@@ -124,6 +125,7 @@ class HealthManager:
                         " health data: %s",
                         str(self.health_data),
                     )
+                    self._update_kvalue_issues()
                 case "DishManagerHealthData":
                     self.health_data.dish_manager_health_data = (
                         DishManagerHealthData(health_state=data)
@@ -132,7 +134,7 @@ class HealthManager:
                         "Updated DishManagerHealthData in health data: %s",
                         str(self.health_data),
                     )
-                    # return  # not contributing to health state evaluation
+                    self._update_dishmanager_issues()
                 case "DishBandCapabilityStateData":
                     band_name, capability_state = data
                     self.health_data.band_capability_data.band_capabilities[
@@ -143,6 +145,7 @@ class HealthManager:
                         " in health data: %s",
                         str(self.health_data),
                     )
+                    self._update_band_issues()
                 case "receiver_band":
                     if isinstance(data, Band):
                         self.health_data.receiver_band = data
@@ -153,109 +156,40 @@ class HealthManager:
                         "Updated receiver_band in health data: %s",
                         self.health_data.receiver_band,
                     )
-
+                    self._update_band_issues()
                 case _:
                     self.logger.warning("Unknown datatype: %s", datatype)
 
-        health_state = self.evaluate_health_state(self.health_data)
-        self.logger.debug(
-            "Evaluated health state: %s for data: %s",
-            str(health_state),
-            str(self.health_data),
-        )
-        if health_state is None:
-            self.logger.debug("Healthstate returned as None, skipping update")
-            return
+            health_state = self.evaluate_health_state(self.health_data)
+            self.logger.debug(
+                "Evaluated health state: %s for data: %s",
+                str(health_state),
+                str(self.health_data),
+            )
 
-        health_info = self.generate_health_info(self.health_data)
-        self.logger.debug("Generated health info: %s", str(health_info))
+            health_info = self.generate_health_info()
 
-        if self.component_manager._update_health_info_callback:
-            self.component_manager._update_health_info_callback(health_info)
+            info_changed = health_info != self._cached_health_info
+            state_changed = health_state != self._cached_health_state
 
-        if self.component_manager._update_health_state_callback:
-            self.component_manager._update_health_state_callback(health_state)
+            if info_changed:
+                self._cached_health_info = health_info
+                if self.component_manager._update_health_info_callback:
+                    self.component_manager._update_health_info_callback(
+                        health_info
+                    )
 
-    def evaluate_health_state(
-        self, health_context: DishHealthData
-    ) -> Optional[HealthState]:
+            if state_changed or info_changed:
+                self._cached_health_state = health_state
+                if self.component_manager._update_health_state_callback:
+                    self.component_manager._update_health_state_callback(
+                        health_state
+                    )
+
+    def _update_band_issues(self):
         """
-        Evaluate health state using rules.
-
-        Args:
-            context: DishHealthData
-
-        Returns:
-            HealthState or None if no rule matched
+        Update band-related issues in active issues.
         """
-
-        def sanitize_for_rules(obj):
-            if isinstance(obj, enum.Enum):
-                return obj.name
-            if isinstance(obj, dict):
-                return {k: sanitize_for_rules(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [sanitize_for_rules(v) for v in obj]
-            if obj is None:
-                return []
-            return obj
-
-        self.logger.info(
-            "Health rules matched for context: %s", health_context
-        )
-
-        context_dict = sanitize_for_rules(asdict(health_context))
-
-        band_caps = context_dict["band_capability_data"]["band_capabilities"]
-
-        context_dict["band_capability_data"]["band_capability_values"] = set(
-            band_caps.values()
-        )
-
-        self.logger.info("Health rules matched for context: %s", context_dict)
-
-        for health_state, rules in HEALTH_RULES.items():
-            self.logger.info("Rule match for  %s", rules)
-
-            if any(rule.matches(context_dict) for rule in rules):
-                self.logger.info("HealthState decided as %s", health_state)
-                return health_state
-
-        self.logger.debug(
-            "No health rule matched for context: %s", health_context
-        )
-        return None
-
-    def generate_health_info(self, health_context: DishHealthData) -> Dict:
-        """
-        Generate health info dictionary based on health state and context.
-
-        example:
-        {
-            "HealthSummary": {
-                "mid-tmc/leaf-node-dish/ska036": {
-                    "Info": [
-                        "Dish is configured for Band\
-                        1 but Band1 is not available",
-                        "another error",
-                        "another error"
-                    ]
-                }
-            }
-        }
-
-        Args:
-            health_state: HealthState
-            context: DishHealthData
-        Returns:
-            Dict containing health info
-        """
-        dish_device_name = self.component_manager.dish_dev_name
-        dish_name = (
-            "mid-tmc/leaf-node-dish/ska001"  # Placeholder for actual dish name
-        )
-        health_info: Dict = {"HealthSummary": {}}
-        health_info["HealthSummary"][dish_name] = {"Info": []}
 
         good_states = {
             "STANDBY",
@@ -264,73 +198,169 @@ class HealthManager:
             "OPERATE_DEGRADED",
             "UNKNOWN",
         }
-        requested_band = health_context.receiver_band.name
-        # bcaps = health_context.band_capability_data.band_capabilities.items()
+        requested = self.health_data.receiver_band
 
-        if health_context.receiver_band not in (Band.NONE, Band.UNKNOWN):
-            band_state = (
-                health_context.band_capability_data.band_capabilities.get(
-                    requested_band, CapabilityStates.UNKNOWN
+        # Clear old band-related issues
+        keys_to_remove = [
+            k for k in self._active_issues if k.startswith("band_")
+        ]
+        for k in keys_to_remove:
+            self._active_issues.pop(k, None)
+
+        if requested not in (Band.NONE, Band.UNKNOWN):
+            state = (
+                self.health_data.band_capability_data.band_capabilities.get(
+                    requested.name,
+                    CapabilityStates.UNKNOWN,
                 )
             )
-            if band_state.name not in good_states:
-                health_info["HealthSummary"][dish_name]["Info"].append(
-                    f"requested band {requested_band} is {band_state.name}"
-                    + " — not fully available for observation."
+            if state.value not in good_states:
+                self._active_issues[f"band_requested_{requested.name}"] = (
+                    f"requested band {requested.name} is {state.value} — not "
+                    + "fully available for observation."
                 )
-            # Do NOT report other bands when one is configured
         else:
-            # # list bad bands
-
-            # bad_bands = [
-            #   name for name, state in bcaps if state.name not in good_states
-            # ]
-
-            self.logger.info(
-                "bcs-%s",
-                health_context.band_capability_data.band_capabilities.items(),
+            band_capabilities = (
+                self.health_data.band_capability_data.band_capabilities.items()
             )
-
             bad_bands = [
                 name
-                for name, state in (
-                    health_context.band_capability_data.band_capabilities.items()  # pylint: disable=C0301
-                )
-                if state not in good_states
+                for name, state in band_capabilities
+                if state.value not in good_states
             ]
-
             if bad_bands:
-                health_info["HealthSummary"][dish_name]["Info"].append(
-                    f"Unavailable bands: {', '.join(bad_bands)}"
-                )
+                self._active_issues[
+                    "band_unavailable"
+                ] = f"Unavailable bands: {', '.join(bad_bands)}."
 
-        # Check GPM validation results for errors
+    def _update_gpm_issues(self):
+        """
+        Update GPM-related issues in active issues.
+        """
+        # Clear old GPM-related issues
+        keys_to_remove = [
+            k for k in self._active_issues if k.startswith("gpm_")
+        ]
+        for k in keys_to_remove:
+            self._active_issues.pop(k, None)
+
         for idx, result in enumerate(
-            health_context.gpm_validation_result.result
+            self.health_data.gpm_validation_result.result
         ):
-            if result == "FAILED":
+            if result == ResultCode.FAILED:
                 error_msg = f"GPM validation failed for GPM index {idx}."
-                health_info["HealthSummary"][dish_name]["Info"].append(
-                    error_msg
-                )
-        # Check KValue validation results for errors
+                self._active_issues[f"gpm_{idx}"] = error_msg
+
+    def _update_kvalue_issues(self):
+        """
+        Update KValue-related issues in active issues.
+        """
+        # Clear old KValue-related issues
+        keys_to_remove = [
+            k for k in self._active_issues if k.startswith("kvalue_")
+        ]
+        for k in keys_to_remove:
+            self._active_issues.pop(k, None)
+
         if (
-            health_context.k_value_validation_result.result_code
-            != ResultCode.OK.name
+            self.health_data.k_value_validation_result.result_code
+            != ResultCode.OK
         ):
             error_msg = "KValue validation failed."
-            health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
-        # Check Dish Manager health state for errors
-        if health_context.dish_manager_health_data.health_state in [
+            self._active_issues["kvalue_failed"] = error_msg
+
+    def _update_dishmanager_issues(self):
+        """
+        Update DishManager-related issues in active issues.
+        """
+        # Clear old DishManager-related issues
+        keys_to_remove = [
+            k for k in self._active_issues if k.startswith("dishmanager_")
+        ]
+        for k in keys_to_remove:
+            self._active_issues.pop(k, None)
+
+        if self.health_data.dish_manager_health_data.health_state in [
             HealthState.DEGRADED,
             HealthState.FAILED,
             HealthState.UNKNOWN,
         ]:
-            hs = health_context.dish_manager_health_data.health_state.name
-            error_msg = (
-                f"Dish Manager {dish_device_name}"
-                + " health state reported as "
-                + f"{hs}"
+            health_state_name = (
+                self.health_data.dish_manager_health_data.health_state.name
             )
-            health_info["HealthSummary"][dish_name]["Info"].append(error_msg)
+            dish_device_name = self.component_manager.dish_dev_name
+            error_msg = (
+                f"Dish Manager {dish_device_name} health state reported as "
+                + f"{health_state_name}."
+            )
+            self._active_issues["dishmanager_health"] = error_msg
+
+    def evaluate_health_state(
+        self, health_context: DishHealthData
+    ) -> HealthState:
+        """
+        Evaluate health state using rules.
+
+        Args:
+            health_context: DishHealthData
+
+        Returns:
+            HealthState (never None now)
+        """
+
+        def sanitize_for_rules(obj):
+            if hasattr(type(obj), '_member_names_'):  # Enum check
+                return obj.value
+            if isinstance(obj, dict):
+                return {k: sanitize_for_rules(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [sanitize_for_rules(v) for v in obj]
+            if obj is None:
+                return []
+            return obj
+
+        context_dict = sanitize_for_rules(asdict(health_context))
+
+        # Expose the set of current capability states for rules (now strs)
+        band_caps = context_dict["band_capability_data"]["band_capabilities"]
+        context_dict["band_capability_data"]["band_capability_values"] = set(
+            band_caps.values()
+        )
+
+        # Evaluate in priority order: OK > DEGRADED > FAILED > UNKNOWN
+        for health_state in (
+            HealthState.OK,
+            HealthState.DEGRADED,
+            HealthState.FAILED,
+            HealthState.UNKNOWN,
+        ):
+            for rule in HEALTH_RULES.get(health_state, []):
+                if rule.matches(context_dict):
+                    self.logger.info(
+                        "HealthState decided as %s", health_state.name
+                    )
+                    return health_state
+
+        # Unreachable due to UNKNOWN fallback, but log
+        self.logger.warning(
+            "Unexpected: No rule matched, defaulting to UNKNOWN"
+        )
+        return HealthState.UNKNOWN
+
+    def generate_health_info(self) -> Dict:
+        """
+        Generate health info dictionary from active issues.
+
+        Returns:
+            Dict containing health info
+        """
+        dish_device_name = self.component_manager.dish_dev_name
+        dish_name = (
+            # Placeholder for actual dish name
+            f"mid-tmc/leaf-node-dish/{dish_device_name[-3:]}"
+        )
+        health_info: Dict = {"HealthSummary": {}}
+        health_info["HealthSummary"][dish_name] = {
+            "Info": list(self._active_issues.values())
+        }
         return health_info

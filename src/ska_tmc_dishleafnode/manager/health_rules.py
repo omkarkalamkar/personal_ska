@@ -5,63 +5,70 @@ Rule engine definitions for Dish Leaf Node health state evaluation.
 from rule_engine import Rule
 from ska_control_model import HealthState
 
-GOOD_STATES_SET = (
-    "{'STANDBY', 'CONFIGURING', 'OPERATE_FULL', 'OPERATE_DEGRADED', 'UNKNOWN'}"
-)
+GOOD_CAPABILITY_STATES = {
+    "STANDBY",
+    "CONFIGURING",
+    "OPERATE_FULL",
+    "OPERATE_DEGRADED",
+    "UNKNOWN",
+}
 
 HEALTH_RULES = {
     HealthState.OK: [
-        # Only OK if:
-        # - A band is requested
-        # - AND that band's capability is good
+        # Case 1: Specific band configured and fully capable
         Rule(
             "k_value_validation_result.result_code == 'OK' and "
-            "$all([gpm != 'FAILED' for gpm in "
-            "gpm_validation_result.result]) and "
-            "receiver_band not in {'NONE', 'UNKNOWN'} and "
-            "band_capability_data.band_capabilities[receiver_band] in "
-            f"{GOOD_STATES_SET}"
+            "$all(gpm != 'FAILED' for gpm in gpm_validation_result.result) "
+            "and receiver_band not in {'NONE', 'UNKNOWN'} and "
+            "band_capability_data.band_capabilities[receiver_band] "
+            f"in {GOOD_CAPABILITY_STATES}"
         ),
-        # No band requested, but all bands band_capability_data are good
+        # Case 2: No band configured, all bands good
         Rule(
             "k_value_validation_result.result_code == 'OK' and "
-            "$all([gpm != 'FAILED' for gpm in "
-            "gpm_validation_result.result]) and "
-            "receiver_band in {'NONE', 'UNKNOWN'} and "
-            "$all(["
-            f"state in {GOOD_STATES_SET} "
-            "for state in band_capability_data.band_capability_values"
-            "])"
+            "$all(gpm != 'FAILED' for gpm in gpm_validation_result.result) "
+            "and receiver_band in {'NONE', 'UNKNOWN'} and "
+            "$all(state in "
+            f"{GOOD_CAPABILITY_STATES} for state in "
+            "band_capability_data.band_capability_values)"
         ),
     ],
     HealthState.DEGRADED: [
-        Rule(
-            "$any([gpm == 'FAILED' for gpm in "
-            "gpm_validation_result.result])"
-        ),
-        # No band requested, but at least one band is good
+        # Any GPM failed
+        Rule("$any(gpm == 'FAILED' for gpm in gpm_validation_result.result)"),
+        # Configured band not fully capable (KValue and GPM are OK)
         Rule(
             "k_value_validation_result.result_code == 'OK' and "
-            f"receiver_band in {{'NONE', 'UNKNOWN'}} and "
-            f"$any([state in {GOOD_STATES_SET} "
-            f"for state in band_capability_data.band_capability_values])"
+            "$all(gpm != 'FAILED' for gpm in gpm_validation_result.result) "
+            "and receiver_band not in {'NONE', 'UNKNOWN'} and "
+            "band_capability_data.band_capabilities[receiver_band] "
+            f"not in {GOOD_CAPABILITY_STATES}"
+        ),
+        # No band configured, but some bands are bad (partial capability)
+        Rule(
+            "k_value_validation_result.result_code == 'OK' and "
+            "$all(gpm != 'FAILED' for gpm in gpm_validation_result.result) "
+            "and receiver_band in {'NONE', 'UNKNOWN'} and "
+            "$any(state in "
+            f"{GOOD_CAPABILITY_STATES} for state in "
+            "band_capability_data.band_capability_values) and "
+            "$any(state not in "
+            f"{GOOD_CAPABILITY_STATES} for state in "
+            "band_capability_data.band_capability_values)"
         ),
     ],
     HealthState.FAILED: [
+        # KValue validation failed (critical)
         Rule("k_value_validation_result.result_code != 'OK'"),
-        # No usable band at all (only relevant when no band
-        # is requested)
+        # No band configured and ALL bands unavailable
         Rule(
             "receiver_band in {'NONE', 'UNKNOWN'} and "
-            "$all([state not in "
-            f"{GOOD_STATES_SET} for state in "
-            "band_capability_data.band_capability_values])"
+            "$all(state not in "
+            f"{GOOD_CAPABILITY_STATES} for state in "
+            "band_capability_data.band_capability_values)"
         ),
-        # Configured band exists but is not in good state
-        Rule(
-            "receiver_band not in {'NONE', 'UNKNOWN'} and "
-            "band_capability_data.band_capabilities[receiver_band] not in "
-            f"{GOOD_STATES_SET}"
-        ),
+    ],
+    HealthState.UNKNOWN: [
+        Rule("True"),
     ],
 }

@@ -247,7 +247,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             f'Band_{band}': "UNKNOWN" for band in ALLOWED_BANDS
         }
         self._gpm_validation_result = {
-            f'Band_{band}': ResultCode.UNKNOWN.name for band in ALLOWED_BANDS
+            f'Band_{band}': ResultCode.UNKNOWN for band in ALLOWED_BANDS
         }
         self._gpm_source_path: str = ""
         self._gpm_file_path: str = ""
@@ -3063,7 +3063,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
 
         self.health_manager.update_health_data_and_aggregate(
-            self.kValueValidationResult.name,
+            self.kValueValidationResult,
             "KValueValidationResultData",
         )
 
