@@ -49,6 +49,48 @@ def wait_for_actual_pointing_value(
     return False
 
 
+def log_pre_configure_health(
+    dish_leaf_node: DeviceProxy,
+    dish_master: DeviceProxy,
+    dishln_pointing_device: DeviceProxy,
+) -> None:
+    """
+    Log DishLeafNode/DishMaster/DishPointingDevice healthState
+    (and DishLeafNode healthInfo)
+    just before invoking Configure(), to help debugging integration
+      failures.
+    """
+
+    def _read_attr(dev: DeviceProxy, attr: str):
+        try:
+            return dev.read_attribute(attr).value
+        except Exception as exc:  # pragma: no cover (best-effort diagnostics)
+            logger.warning(
+                "Failed reading %s from %s: %s",
+                attr,
+                getattr(dev, "name", dev),
+                exc,
+            )
+            return None
+
+    ln_health_state = _read_attr(dish_leaf_node, "healthState")
+    ln_health_info = _read_attr(dish_leaf_node, "healthInfo")
+    dm_health_state = _read_attr(dish_master, "healthState")
+    dp_health_state = _read_attr(dishln_pointing_device, "healthState")
+
+    logger.info(
+        "Pre-Configure health: DishLeafNode healthState=%s healthInfo=%s",
+        ln_health_state,
+        ln_health_info,
+    )
+    logger.info(
+        "Pre-Configure health: DishMaster healthState=%s, "
+        "DishPointingDevice healthState=%s",
+        dm_health_state,
+        dp_health_state,
+    )
+
+
 def configure_dish_leaf_node(
     tango_context,
     dishln_name,
@@ -100,6 +142,11 @@ def configure_dish_leaf_node(
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=6,
+    )
+
+    # Reusable diagnostics before invoking Configure
+    log_pre_configure_health(
+        dish_leaf_node, dish_master, dishln_pointing_device
     )
 
     result_config, unique_id_config = dish_leaf_node.Configure(

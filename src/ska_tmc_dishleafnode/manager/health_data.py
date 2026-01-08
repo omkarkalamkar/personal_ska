@@ -265,7 +265,7 @@ class HealthManager:
             "UNKNOWN",
         }
         requested_band = health_context.receiver_band.name
-        # bcaps = health_context.band_capability_data.band_capabilities.items()
+        bcaps = health_context.band_capability_data.band_capabilities.items()
 
         if health_context.receiver_band not in (Band.NONE, Band.UNKNOWN):
             band_state = (
@@ -292,11 +292,7 @@ class HealthManager:
             )
 
             bad_bands = [
-                name
-                for name, state in (
-                    health_context.band_capability_data.band_capabilities.items()  # pylint: disable=C0301
-                )
-                if state not in good_states
+                name for name, state in (bcaps) if state not in good_states
             ]
 
             if bad_bands:

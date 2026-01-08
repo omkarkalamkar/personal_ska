@@ -24,7 +24,7 @@ TIMEOUT = 10
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
     """This test tests the NaN received from SDPQC functionality"""
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
