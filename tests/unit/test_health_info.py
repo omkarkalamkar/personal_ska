@@ -1,6 +1,7 @@
 # flake8: noqa=E501
 
 import logging
+from unittest import mock
 
 import pytest
 from ska_control_model import HealthState
@@ -18,7 +19,7 @@ from ska_tmc_dishleafnode.manager.health_data import (
 )
 
 
-@pytest.mark.ut1
+@pytest.mark.ut41
 def test_generate_health_info_collects_expected_errors(cm_without_er_lp):
     cm = cm_without_er_lp
     logger = logging.getLogger("test")
@@ -39,6 +40,7 @@ def test_generate_health_info_collects_expected_errors(cm_without_er_lp):
     )
 
     health_info = hm.generate_health_info(context)
+    logger.info("Generated health info: %s", health_info)
 
     # The implementation uses a fixed placeholder
     # dish name "mid-tmc/leaf-node-dish/ska001"
@@ -53,7 +55,7 @@ def test_generate_health_info_collects_expected_errors(cm_without_er_lp):
     assert any(
         "Dish Manager" in s and "health state reported" in s for s in info_list
     )
-    assert any("Band B1 capability state is" in s for s in info_list)
+    assert any("Unavailable bands" in s for s in info_list)
 
 
 @pytest.mark.ut1
@@ -639,3 +641,99 @@ def _make_health_data(
 #     )
 
 #     assert hm.evaluate_health_state(dh) == expected_health, name
+
+
+@pytest.mark.ut44
+def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
+    cm_without_er_lp,
+):
+    """
+    Simulate Dish Master healthState events arriving in sequence and verify
+    healthInfo is updated each time.
+
+    Sequence: DEGRADED -> FAILED -> UNKNOWN -> OK
+
+    Also logs the healthInfo after each event so transitions are visible
+    in pytest output/captured logs.
+    """
+    logger = logging.getLogger("test.healthinfo.transitions")
+    cm = cm_without_er_lp
+
+    # Capture updates pushed by HealthManager.update_health_data_and_aggregate()
+    health_info_cb = mock.Mock()
+    cm._update_health_info_callback = health_info_cb
+
+    # Avoid unrelated side-effects
+    cm._update_health_state_callback = mock.Mock()
+
+    hm = HealthManager(component_manager=cm, logger=logger)
+
+    # Keep other signals "healthy" so DishManager message is the primary delta.
+    hm.update_health_data_and_aggregate(
+        ResultCode.OK.name, "KValueValidationResultData"
+    )
+    hm.update_health_data_and_aggregate(["OK"], "GPMValidationResultData")
+    hm.update_health_data_and_aggregate(Band.NONE, "receiver_band")
+
+    standby = CapabilityStates.STANDBY.name
+    for band_name in ["B1", "B2", "B3", "B4", "B5a", "B5b"]:
+        hm.update_health_data_and_aggregate(
+            (band_name, standby),
+            "DishBandCapabilityStateData",
+        )
+
+    dish_key = (
+        "mid-tmc/leaf-node-dish/ska001"  # placeholder key used internally
+    )
+
+    sequence = [
+        HealthState.DEGRADED,
+        HealthState.FAILED,
+        HealthState.UNKNOWN,
+        HealthState.OK,
+    ]
+
+    for idx, state in enumerate(sequence, start=1):
+        logger.info(
+            "---- DishMaster health transition step %d -> %s ----",
+            idx,
+            state.name,
+        )
+
+        hm.update_health_data_and_aggregate(state, "DishManagerHealthData")
+
+        # We expect healthInfo callback to be called on each aggregate call
+        assert health_info_cb.call_count >= idx
+
+        health_info = health_info_cb.call_args[0][0]
+        logger.info("HealthInfo after %s: %s", state.name, health_info)
+
+        assert "HealthSummary" in health_info
+        assert dish_key in health_info["HealthSummary"]
+        info_list = health_info["HealthSummary"][dish_key]["Info"]
+        logger.info("HealthInfo.Info list after %s: %s", state.name, info_list)
+
+        has_dm_msg = any(
+            "Dish Manager" in s and "health state reported as" in s
+            for s in info_list
+        )
+
+        logger.info("state -%s , state.name -%s", state, state.name)
+        if state in (
+            HealthState.DEGRADED,
+            HealthState.FAILED,
+            HealthState.UNKNOWN,
+        ):
+            assert (
+                has_dm_msg
+            ), f"Expected Dish Manager message for state={state}"
+            assert any(
+                state.name in s for s in info_list
+            ), f"Expected state name {state.name} to appear in Dish Manager message"
+        else:
+            # OK should not contribute a Dish Manager error message
+            assert (
+                not has_dm_msg
+            ), "Did not expect Dish Manager message for state=OK"
+
+    assert False

@@ -132,7 +132,7 @@ class HealthManager:
                         "Updated DishManagerHealthData in health data: %s",
                         str(self.health_data),
                     )
-                    return  # not contributing to health state evaluation
+                    # return  # not contributing to health state evaluation
                 case "DishBandCapabilityStateData":
                     band_name, capability_state = data
                     self.health_data.band_capability_data.band_capabilities[
@@ -265,7 +265,7 @@ class HealthManager:
             "UNKNOWN",
         }
         requested_band = health_context.receiver_band.name
-        bcaps = health_context.band_capability_data.band_capabilities.items()
+        # bcaps = health_context.band_capability_data.band_capabilities.items()
 
         if health_context.receiver_band not in (Band.NONE, Band.UNKNOWN):
             band_state = (
@@ -282,13 +282,26 @@ class HealthManager:
         else:
             # # list bad bands
 
+            # bad_bands = [
+            #   name for name, state in bcaps if state.name not in good_states
+            # ]
+
+            self.logger.info(
+                "bcs-%s",
+                health_context.band_capability_data.band_capabilities.items(),
+            )
+
             bad_bands = [
-                name for name, state in bcaps if state.name not in good_states
+                name
+                for name, state in (
+                    health_context.band_capability_data.band_capabilities.items()  # pylint: disable=C0301
+                )
+                if state not in good_states
             ]
 
             if bad_bands:
                 health_info["HealthSummary"][dish_name]["Info"].append(
-                    f"Unavailable bands: {', '.join(bad_bands)}."
+                    f"Unavailable bands: {', '.join(bad_bands)}"
                 )
 
         # Check GPM validation results for errors
