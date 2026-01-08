@@ -126,18 +126,20 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     UNKNOWN -> FAILED (assumed; adjust if rules differ)
     """
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
+    logger = logging.getLogger("test.health.band1.capability")
+    hm = HealthManager(component_manager=cm, logger=logger)
 
     dh = DishHealthData()
 
-    # IMPORTANT for rule_engine: keep rule inputs primitive (str/int), not Enums
-    # Receiver band: use Band.B1.value if your rules compare numerically,
-    # or Band.B1.name if they compare strings. If you still hit conversion
-    # errors, switch to .value.
-    dh.receiver_band = Band.B1.name
+    # IMPORTANT: set these on dh (the object you actually evaluate)
+    dh.gpm_validation_result = GPMValidationResultData(result=["OK"])
+    dh.k_value_validation_result = KValueValidationResultData(
+        result_code=ResultCode.OK.name
+    )
 
-    # Override the entire band_capabilities dict with strings to avoid
-    # Enum objects from the default factory confusing rule_engine.
+    # Use primitive string expected by rules / indexing
+    dh.receiver_band = Band.B1
+
     dh.band_capability_data = DishBandCapabilityStateData(
         band_capabilities={
             "B1": capability_state,
@@ -149,6 +151,7 @@ def test_evaluate_health_state_for_all_capability_states_band1(
         }
     )
 
+    logger.info("Evaluating DishHealthData: %s", dh)
     assert hm.evaluate_health_state(dh) == expected_health
 
 
@@ -186,7 +189,12 @@ def test_evaluate_health_state_for_all_capability_states_when_band_not_configure
 
     # "Band not configured": use NONE (primitive).
     # Use .value to keep rule_engine happy if it expects numeric/decimal.
-    dh.receiver_band = Band.NONE.name
+    dh.receiver_band = Band.NONE
+    # IMPORTANT: set these on dh (the object you actually evaluate)
+    dh.gpm_validation_result = GPMValidationResultData(result=["OK"])
+    dh.k_value_validation_result = KValueValidationResultData(
+        result_code=ResultCode.OK.name
+    )
 
     dh.band_capability_data = DishBandCapabilityStateData(
         band_capabilities={
