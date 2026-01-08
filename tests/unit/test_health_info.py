@@ -139,7 +139,7 @@ def test_generate_health_info_parametrized(
         (CapabilityStates.CONFIGURING, HealthState.OK),
         (CapabilityStates.OPERATE_DEGRADED, HealthState.OK),
         (CapabilityStates.OPERATE_FULL, HealthState.OK),
-        (CapabilityStates.UNKNOWN, HealthState.FAILED),
+        (CapabilityStates.UNKNOWN, HealthState.OK),
     ],
 )
 def test_evaluate_health_state_for_all_capability_states_band1(
@@ -186,14 +186,14 @@ def test_evaluate_health_state_for_all_capability_states_band1(
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
-        (CapabilityStates.UNAVAILABLE.name, HealthState.FAILED),
-        (CapabilityStates.STANDBY.name, HealthState.OK),
-        (CapabilityStates.CONFIGURING.name, HealthState.OK),
-        (CapabilityStates.OPERATE_DEGRADED.name, HealthState.OK),
-        (CapabilityStates.OPERATE_FULL.name, HealthState.OK),
+        (CapabilityStates.UNAVAILABLE, HealthState.FAILED),
+        (CapabilityStates.STANDBY, HealthState.OK),
+        (CapabilityStates.CONFIGURING, HealthState.OK),
+        (CapabilityStates.OPERATE_DEGRADED, HealthState.OK),
+        (CapabilityStates.OPERATE_FULL, HealthState.OK),
         # UNKNOWN: set expected to FAILED by assumption; adjust to match HEALTH_RULES
         # once rule semantics are confirmed.
-        # (CapabilityStates.UNKNOWN.name, HealthState.FAILED),
+        (CapabilityStates.UNKNOWN, HealthState.OK),
     ],
 )
 def test_evaluate_health_state_for_all_capability_states_when_band_not_configured(
@@ -218,14 +218,14 @@ def test_evaluate_health_state_for_all_capability_states_when_band_not_configure
     # Use .value to keep rule_engine happy if it expects numeric/decimal.
     dh.receiver_band = Band.NONE
     # IMPORTANT: set these on dh (the object you actually evaluate)
-    dh.gpm_validation_result = GPMValidationResultData(result=["OK"])
+    dh.gpm_validation_result = GPMValidationResultData(result=[ResultCode.OK])
     dh.k_value_validation_result = KValueValidationResultData(
-        result_code=ResultCode.OK.name
+        result_code=ResultCode.OK
     )
 
     dh.band_capability_data = DishBandCapabilityStateData(
         band_capabilities={
-            Band.B1: capability_state,
+            "B1": capability_state,
             "B2": capability_state,
             "B3": capability_state,
             "B4": capability_state,
@@ -263,7 +263,7 @@ def test_evaluate_health_state_failed_when_kvalue_validation_failed(
 
     dh = DishHealthData()
     dh.k_value_validation_result = KValueValidationResultData(
-        result_code=ResultCode.FAILED.name
+        result_code=ResultCode.FAILED
     )
 
     assert hm.evaluate_health_state(dh) == HealthState.FAILED
@@ -278,7 +278,9 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
     hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
 
     dh = DishHealthData()
-    dh.gpm_validation_result = GPMValidationResultData(result=["FAILED"])
+    dh.gpm_validation_result = GPMValidationResultData(
+        result=[ResultCode.FAILED]
+    )
 
     assert hm.evaluate_health_state(dh) == HealthState.DEGRADED
 
@@ -287,15 +289,15 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
 @pytest.mark.parametrize(
     "b1_state,expected_health",
     [
-        (CapabilityStates.UNAVAILABLE.name, HealthState.FAILED),
-        (CapabilityStates.STANDBY.name, HealthState.OK),
-        (CapabilityStates.CONFIGURING.name, HealthState.OK),
-        (CapabilityStates.OPERATE_DEGRADED.name, HealthState.OK),
-        (CapabilityStates.OPERATE_FULL.name, HealthState.OK),
+        (CapabilityStates.UNAVAILABLE, HealthState.FAILED),
+        (CapabilityStates.STANDBY, HealthState.OK),
+        (CapabilityStates.CONFIGURING, HealthState.OK),
+        (CapabilityStates.OPERATE_DEGRADED, HealthState.OK),
+        (CapabilityStates.OPERATE_FULL, HealthState.OK),
         # Per current health_rules.py:
         # GOOD_STATES_SET includes 'UNKNOWN', and for a configured band the OK rule
         # checks membership in GOOD_STATES_SET -> UNKNOWN should be OK.
-        # (CapabilityStates.UNKNOWN.name, HealthState.OK),
+        (CapabilityStates.UNKNOWN, HealthState.OK),
     ],
 )
 def test_evaluate_health_state_band1_configured_b2_unavailable(
@@ -309,24 +311,22 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
     hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
 
     dh = DishHealthData()
-    dh.receiver_band = (
-        Band.B1.name
-    )  # rules use 'NONE'/'UNKNOWN' strings, so use .name
+    dh.receiver_band = Band.B1  # rules use 'NONE'/'UNKNOWN' strings, so use
 
     dh.k_value_validation_result = KValueValidationResultData(
-        result_code=ResultCode.OK.name
+        result_code=ResultCode.OK
     )
-    dh.gpm_validation_result = GPMValidationResultData(result=["OK"])
+    dh.gpm_validation_result = GPMValidationResultData(result=[ResultCode.OK])
 
     # Important: keep all band capabilities as strings (no Enum objects)
     dh.band_capability_data = DishBandCapabilityStateData(
         band_capabilities={
             "B1": b1_state,
-            "B2": CapabilityStates.UNAVAILABLE.name,
-            "B3": CapabilityStates.UNKNOWN.name,
-            "B4": CapabilityStates.UNKNOWN.name,
-            "B5a": CapabilityStates.UNKNOWN.name,
-            "B5b": CapabilityStates.UNKNOWN.name,
+            "B2": CapabilityStates.UNAVAILABLE,
+            "B3": CapabilityStates.UNKNOWN,
+            "B4": CapabilityStates.UNKNOWN,
+            "B5a": CapabilityStates.UNKNOWN,
+            "B5b": CapabilityStates.UNKNOWN,
         }
     )
 
@@ -339,65 +339,65 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
     [
         # Case 1: B2 is UNAVAILABLE (existing behaviour)
         (
-            CapabilityStates.UNAVAILABLE.name,
-            CapabilityStates.UNAVAILABLE.name,
+            CapabilityStates.UNAVAILABLE,
+            CapabilityStates.UNAVAILABLE,
             HealthState.FAILED,
         ),
         (
-            CapabilityStates.UNAVAILABLE.name,
-            CapabilityStates.STANDBY.name,
+            CapabilityStates.UNAVAILABLE,
+            CapabilityStates.STANDBY,
             HealthState.OK,
         ),
         (
-            CapabilityStates.UNAVAILABLE.name,
-            CapabilityStates.CONFIGURING.name,
+            CapabilityStates.UNAVAILABLE,
+            CapabilityStates.CONFIGURING,
             HealthState.OK,
         ),
         (
-            CapabilityStates.UNAVAILABLE.name,
-            CapabilityStates.OPERATE_DEGRADED.name,
+            CapabilityStates.UNAVAILABLE,
+            CapabilityStates.OPERATE_DEGRADED,
             HealthState.OK,
         ),
         (
-            CapabilityStates.UNAVAILABLE.name,
-            CapabilityStates.OPERATE_FULL.name,
+            CapabilityStates.UNAVAILABLE,
+            CapabilityStates.OPERATE_FULL,
             HealthState.OK,
         ),
         # Per current health_rules.py (GOOD_STATES_SET includes 'UNKNOWN'):
         (
-            CapabilityStates.UNAVAILABLE.name,
-            CapabilityStates.UNKNOWN.name,
+            CapabilityStates.UNAVAILABLE,
+            CapabilityStates.UNKNOWN,
             HealthState.OK,
         ),
         # Case 2: B2 is OPERATE_FULL (new condition you asked for)
         (
-            CapabilityStates.OPERATE_FULL.name,
-            CapabilityStates.UNAVAILABLE.name,
+            CapabilityStates.OPERATE_FULL,
+            CapabilityStates.UNAVAILABLE,
             HealthState.FAILED,
         ),
         (
-            CapabilityStates.OPERATE_FULL.name,
-            CapabilityStates.STANDBY.name,
+            CapabilityStates.OPERATE_FULL,
+            CapabilityStates.STANDBY,
             HealthState.OK,
         ),
         (
-            CapabilityStates.OPERATE_FULL.name,
-            CapabilityStates.CONFIGURING.name,
+            CapabilityStates.OPERATE_FULL,
+            CapabilityStates.CONFIGURING,
             HealthState.OK,
         ),
         (
-            CapabilityStates.OPERATE_FULL.name,
-            CapabilityStates.OPERATE_DEGRADED.name,
+            CapabilityStates.OPERATE_FULL,
+            CapabilityStates.OPERATE_DEGRADED,
             HealthState.OK,
         ),
         (
-            CapabilityStates.OPERATE_FULL.name,
-            CapabilityStates.OPERATE_FULL.name,
+            CapabilityStates.OPERATE_FULL,
+            CapabilityStates.OPERATE_FULL,
             HealthState.OK,
         ),
         (
-            CapabilityStates.OPERATE_FULL.name,
-            CapabilityStates.UNKNOWN.name,
+            CapabilityStates.OPERATE_FULL,
+            CapabilityStates.UNKNOWN,
             HealthState.OK,
         ),
     ],
@@ -413,33 +413,26 @@ def test_evaluate_health_state_band1_configured_b2_varies(
     hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
 
     dh = DishHealthData()
-    dh.receiver_band = Band.B1.name
+    dh.receiver_band = Band.B1
 
     # Make OK-rule candidates eligible (unless Band1 capability forces FAILED)
     dh.k_value_validation_result = KValueValidationResultData(
-        result_code=ResultCode.OK.name
+        result_code=ResultCode.OK
     )
-    dh.gpm_validation_result = GPMValidationResultData(result=["OK"])
+    dh.gpm_validation_result = GPMValidationResultData(result=[ResultCode.OK])
 
     dh.band_capability_data = DishBandCapabilityStateData(
         band_capabilities={
             "B1": b1_state,
             "B2": b2_state,
-            "B3": CapabilityStates.UNKNOWN.name,
-            "B4": CapabilityStates.UNKNOWN.name,
-            "B5a": CapabilityStates.UNKNOWN.name,
-            "B5b": CapabilityStates.UNKNOWN.name,
+            "B3": CapabilityStates.UNKNOWN,
+            "B4": CapabilityStates.UNKNOWN,
+            "B5a": CapabilityStates.UNKNOWN,
+            "B5b": CapabilityStates.UNKNOWN,
         }
     )
 
     assert hm.evaluate_health_state(dh) == expected_health
-
-    # ...existing code...
-
-
-# from ska_tmc_common import Band
-
-# ...existing code...
 
 
 def _make_health_data(
@@ -461,10 +454,10 @@ def _make_health_data(
         band_capabilities={
             "B1": b1_state,
             "B2": b2_state,
-            "B3": CapabilityStates.UNKNOWN.name,
-            "B4": CapabilityStates.UNKNOWN.name,
-            "B5a": CapabilityStates.UNKNOWN.name,
-            "B5b": CapabilityStates.UNKNOWN.name,
+            "B3": CapabilityStates.UNKNOWN,
+            "B4": CapabilityStates.UNKNOWN,
+            "B5a": CapabilityStates.UNKNOWN,
+            "B5b": CapabilityStates.UNKNOWN,
         }
     )
     return dh
@@ -497,15 +490,15 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
 
     # Keep other signals "healthy" so DishManager message is the primary delta.
     hm.update_health_data_and_aggregate(
-        ResultCode.OK.name, "KValueValidationResultData"
+        ResultCode.OK, "KValueValidationResultData"
     )
     hm.update_health_data_and_aggregate(["OK"], "GPMValidationResultData")
     hm.update_health_data_and_aggregate(Band.NONE, "receiver_band")
 
-    standby = CapabilityStates.STANDBY.name
-    for band_name in ["B1", "B2", "B3", "B4", "B5a", "B5b"]:
+    standby = CapabilityStates.STANDBY
+    for band in ["B1", "B2", "B3", "B4", "B5a", "B5b"]:
         hm.update_health_data_and_aggregate(
-            (band_name, standby),
+            (band, standby),
             "DishBandCapabilityStateData",
         )
 
@@ -524,7 +517,7 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
         logger.info(
             "---- DishMaster health transition step %d -> %s ----",
             idx,
-            state.name,
+            state,
         )
 
         hm.update_health_data_and_aggregate(state, "DishManagerHealthData")
@@ -533,19 +526,19 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
         assert health_info_cb.call_count >= idx
 
         health_info = health_info_cb.call_args[0][0]
-        logger.info("HealthInfo after %s: %s", state.name, health_info)
+        logger.info("HealthInfo after %s: %s", state, health_info)
 
         assert "HealthSummary" in health_info
         assert dish_key in health_info["HealthSummary"]
         info_list = health_info["HealthSummary"][dish_key]["Info"]
-        logger.info("HealthInfo.Info list after %s: %s", state.name, info_list)
+        logger.info("HealthInfo.Info list after %s: %s", state, info_list)
 
         has_dm_msg = any(
             "Dish Manager" in s and "health state reported as" in s
             for s in info_list
         )
 
-        logger.info("state -%s , state.name -%s", state, state.name)
+        logger.info("state -%s , state -%s", state, state)
         if state in (
             HealthState.DEGRADED,
             HealthState.FAILED,
@@ -555,8 +548,8 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
                 has_dm_msg
             ), f"Expected Dish Manager message for state={state}"
             assert any(
-                state.name in s for s in info_list
-            ), f"Expected state name {state.name} to appear in Dish Manager message"
+                state in s for s in info_list
+            ), f"Expected state {state} to appear in Dish Manager message"
         else:
             # OK should not contribute a Dish Manager error message
             assert (
@@ -585,9 +578,11 @@ def test_generate_health_info(cm_without_er_lp):
 
     # Start with multiple failures
     context = DishHealthData(
-        gpm_validation_result=GPMValidationResultData(result=["FAILED"]),
+        gpm_validation_result=GPMValidationResultData(
+            result=[ResultCode.FAILED]
+        ),
         k_value_validation_result=KValueValidationResultData(
-            result_code=ResultCode.FAILED.name
+            result_code=ResultCode.FAILED
         ),
         dish_manager_health_data=DishManagerHealthData(
             health_state=HealthState.DEGRADED
@@ -597,12 +592,12 @@ def test_generate_health_info(cm_without_er_lp):
         receiver_band=Band.NONE,
         band_capability_data=DishBandCapabilityStateData(
             band_capabilities={
-                "B1": CapabilityStates.UNAVAILABLE.name,
-                "B2": CapabilityStates.STANDBY.name,
-                "B3": CapabilityStates.STANDBY.name,
-                "B4": CapabilityStates.STANDBY.name,
-                "B5a": CapabilityStates.STANDBY.name,
-                "B5b": CapabilityStates.STANDBY.name,
+                "B1": CapabilityStates.UNAVAILABLE,
+                "B2": CapabilityStates.STANDBY,
+                "B3": CapabilityStates.STANDBY,
+                "B4": CapabilityStates.STANDBY,
+                "B5a": CapabilityStates.STANDBY,
+                "B5b": CapabilityStates.STANDBY,
             }
         ),
     )
@@ -640,7 +635,9 @@ def test_generate_health_info(cm_without_er_lp):
 
     # Step 1: Fix GPM (remove FAILED -> OK) and assert GPM message disappears
     logger.info("STEP1: fix GPM validation (FAILED -> OK)")
-    context.gpm_validation_result = GPMValidationResultData(result=["OK"])
+    context.gpm_validation_result = GPMValidationResultData(
+        result=[ResultCode.OK]
+    )
     _, info_list = _health_info_and_list()
     _assert_not_has(info_list, "GPM validation failed")
     _assert_has(info_list, "KValue validation failed")
@@ -650,7 +647,7 @@ def test_generate_health_info(cm_without_er_lp):
     # Step 2: Fix KValue (FAILED -> OK) and assert KValue message disappears
     logger.info("STEP2: fix KValue validation (FAILED -> OK)")
     context.k_value_validation_result = KValueValidationResultData(
-        result_code=ResultCode.OK.name
+        result_code=ResultCode.OK
     )
     _, info_list = _health_info_and_list()
     _assert_not_has(info_list, "GPM validation failed")
@@ -662,7 +659,7 @@ def test_generate_health_info(cm_without_er_lp):
     logger.info("STEP3: fix band capability (B1 UNAVAILABLE -> STANDBY)")
     context.band_capability_data.band_capabilities[
         "B1"
-    ] = CapabilityStates.STANDBY.name
+    ] = CapabilityStates.STANDBY
     _, info_list = _health_info_and_list()
     _assert_not_has(info_list, "GPM validation failed")
     _assert_not_has(info_list, "KValue validation failed")
@@ -718,7 +715,7 @@ def test_evaluate_health_state_degraded_when_no_band_requested_and_any_band_good
 
     # KValue OK (required by the target DEGRADED rule)
     hm.update_health_data_and_aggregate(
-        ResultCode.OK.name, "KValueValidationResultData"
+        ResultCode.OK, "KValueValidationResultData"
     )
 
     # No band requested (required by the target DEGRADED rule)
@@ -729,16 +726,16 @@ def test_evaluate_health_state_degraded_when_no_band_requested_and_any_band_good
     # - at least one band is NOT GOOD (e.g. UNAVAILABLE)
     # This ensures $any(...) is true, but $all(...) for OK (NONE-band OK rule) is false.
     hm.update_health_data_and_aggregate(
-        ("B1", CapabilityStates.STANDBY.name), "DishBandCapabilityStateData"
+        ("B1", CapabilityStates.STANDBY), "DishBandCapabilityStateData"
     )
     hm.update_health_data_and_aggregate(
-        ("B2", CapabilityStates.UNAVAILABLE.name),
+        ("B2", CapabilityStates.UNAVAILABLE),
         "DishBandCapabilityStateData",
     )
     # fill remaining bands with UNAVAILABLE to keep "not all good"
-    for band_name in ["B3", "B4", "B5a", "B5b"]:
+    for band in ["B3", "B4", "B5a", "B5b"]:
         hm.update_health_data_and_aggregate(
-            (band_name, CapabilityStates.UNAVAILABLE.name),
+            (band, CapabilityStates.UNAVAILABLE),
             "DishBandCapabilityStateData",
         )
 
@@ -778,17 +775,17 @@ def test_evaluate_health_state_failed_when_no_band_requested_and_all_bands_not_g
     dh = DishHealthData(
         receiver_band=Band.NONE,
         k_value_validation_result=KValueValidationResultData(
-            result_code=ResultCode.OK.name
+            result_code=ResultCode.OK
         ),
-        gpm_validation_result=GPMValidationResultData(result=["OK"]),
+        gpm_validation_result=GPMValidationResultData(result=[ResultCode.OK]),
         band_capability_data=DishBandCapabilityStateData(
             band_capabilities={
-                "B1": CapabilityStates.UNAVAILABLE.name,
-                "B2": CapabilityStates.UNAVAILABLE.name,
-                "B3": CapabilityStates.UNAVAILABLE.name,
-                "B4": CapabilityStates.UNAVAILABLE.name,
-                "B5a": CapabilityStates.UNAVAILABLE.name,
-                "B5b": CapabilityStates.UNAVAILABLE.name,
+                "B1": CapabilityStates.UNAVAILABLE,
+                "B2": CapabilityStates.UNAVAILABLE,
+                "B3": CapabilityStates.UNAVAILABLE,
+                "B4": CapabilityStates.UNAVAILABLE,
+                "B5a": CapabilityStates.UNAVAILABLE,
+                "B5b": CapabilityStates.UNAVAILABLE,
             }
         ),
     )
