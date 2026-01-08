@@ -9,6 +9,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 from tango import DeviceProxy
 
+from ska_tmc_dishleafnode.enums import CapabilityStates
 from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
@@ -148,6 +149,18 @@ def configure_dish_leaf_node(
     log_pre_configure_health(
         dish_leaf_node, dish_master, dishln_pointing_device
     )
+
+    capabiity_argin = json.dumps(
+        {
+            "B1": CapabilityStates.OPERATE_FULL,
+            "B2": CapabilityStates.OPERATE_DEGRADED,
+            "B3": CapabilityStates.OPERATE_FULL,
+            "B4": CapabilityStates.OPERATE_FULL,
+            "B5a": CapabilityStates.OPERATE_FULL,
+            "B5b": CapabilityStates.OPERATE_FULL,
+        }
+    )
+    dish_master.SetDirectCapabilityState(capabiity_argin)
 
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
