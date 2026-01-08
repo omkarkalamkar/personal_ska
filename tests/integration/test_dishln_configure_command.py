@@ -152,6 +152,9 @@ def configure_dish_leaf_node(
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
+    log_pre_configure_health(
+        dish_leaf_node, dish_master, dishln_pointing_device
+    )
     assert result_config[0] == ResultCode.QUEUED
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
@@ -197,11 +200,16 @@ def configure_dish_leaf_node(
         ("[]"),
         lookahead=8,
     )
+
+    log_pre_configure_health(
+        dish_leaf_node, dish_master, dishln_pointing_device
+    )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
+    assert False
 
 
 @pytest.mark.post_deployment
