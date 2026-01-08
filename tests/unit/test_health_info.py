@@ -18,46 +18,6 @@ from ska_tmc_dishleafnode.manager.health_data import (
     KValueValidationResultData,
 )
 
-# ut51 is superset of this.
-# @pytest.mark.ut41
-# def test_generate_health_info_collects_expected_errors(cm_without_er_lp):
-#     cm = cm_without_er_lp
-#     logger = logging.getLogger("test")
-#     hm = HealthManager(component_manager=cm, logger=logger)
-
-#     # Build a context with multiple error conditions
-#     context = DishHealthData(
-#         gpm_validation_result=GPMValidationResultData(result=["FAILED"]),
-#         k_value_validation_result=KValueValidationResultData(
-#             result_code=ResultCode.FAILED.name
-#         ),
-#         dish_manager_health_data=DishManagerHealthData(
-#             health_state=HealthState.DEGRADED
-#         ),
-#         band_capability_data=DishBandCapabilityStateData(
-#             band_capabilities={"B1": CapabilityStates.UNAVAILABLE}
-#         ),
-#     )
-
-#     health_info = hm.generate_health_info(context)
-#     logger.info("Generated health info: %s", health_info)
-
-#     # The implementation uses a fixed placeholder
-#     # dish name "mid-tmc/leaf-node-dish/ska001"
-#     dish_key = "mid-tmc/leaf-node-dish/ska001"
-#     assert "HealthSummary" in health_info
-#     assert dish_key in health_info["HealthSummary"]
-#     info_list = health_info["HealthSummary"][dish_key]["Info"]
-
-#     # Check presence of each expected error message fragment
-#     assert any("GPM validation failed" in s for s in info_list)
-#     assert any("KValue validation failed" in s for s in info_list)
-#     assert any(
-#         "Dish Manager" in s and "health state reported" in s for s in info_list
-#     )
-#     assert any("Unavailable bands" in s for s in info_list)
-#     assert False
-
 
 @pytest.mark.ut1
 @pytest.mark.parametrize(
@@ -140,35 +100,7 @@ def test_generate_health_info_parametrized(
 # -------------------------------------------
 
 
-class CMStub:
-    """Minimal component-manager stub required by HealthManager."""
-
-    def __init__(self):
-        self.dish_dev_name = "mid-tmc/leaf-node-dish/ska001"
-        # callbacks are optional for these tests
-        self._update_health_state_callback = None
-        self._update_health_info_callback = None
-
-
-# @pytest.mark.ut21
-# def test_evaluate_health_state_ok_when_configured_band_is_operable(cm_without_er_lp):
-#     """
-#     Health should be OK when a receiver band is requested and that band's
-#     capability state is a good/operable state (e.g. OPERATE_FULL).
-#     """
-#     cm = cm_without_er_lp
-#     hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
-
-#     dh = DishHealthData()
-#     # request Band 1 and mark it as operable
-#     #dh.receiver_band = Band.B1
-#     dh.receiver_band = Band.B1.name
-#     dh.band_capability_data.band_capabilities["B1"] = CapabilityStates.OPERATE_FULL.name
-
-#     assert hm.evaluate_health_state(dh) == HealthState.OK
-
-
-@pytest.mark.ut22
+@pytest.mark.ut1
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
@@ -220,7 +152,7 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
-@pytest.mark.ut22
+@pytest.mark.ut1
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
@@ -271,7 +203,7 @@ def test_evaluate_health_state_for_all_capability_states_when_band_not_configure
     assert hm.evaluate_health_state(dh) == expected_health
 
 
-@pytest.mark.ut23
+@pytest.mark.ut1
 # Note --This is causing thread crash  when below rule was added
 # HealthState.DEGRADED: [
 #         Rule(
@@ -285,11 +217,13 @@ def test_evaluate_health_state_for_all_capability_states_when_band_not_configure
 #             f"$any([state in {GOOD_STATES_SET} "
 #             f"for state in band_capability_data.band_capability_values])"
 #             )
-def test_evaluate_health_state_failed_when_kvalue_validation_failed():
+def test_evaluate_health_state_failed_when_kvalue_validation_failed(
+    cm_without_er_lp,
+):
     """
     Health should be FAILED when kValue validation result is FAILED.
     """
-    cm = CMStub()
+    cm = cm_without_er_lp
     hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
 
     dh = DishHealthData()
@@ -300,12 +234,12 @@ def test_evaluate_health_state_failed_when_kvalue_validation_failed():
     assert hm.evaluate_health_state(dh) == HealthState.FAILED
 
 
-@pytest.mark.ut24
-def test_evaluate_health_state_degraded_when_any_gpm_failed():
+@pytest.mark.ut1
+def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
     """
     Health should be DEGRADED when any GPM validation result equals 'FAILED'.
     """
-    cm = CMStub()
+    cm = cm_without_er_lp
     hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
 
     dh = DishHealthData()
@@ -314,7 +248,7 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed():
     assert hm.evaluate_health_state(dh) == HealthState.DEGRADED
 
 
-@pytest.mark.ut25
+@pytest.mark.ut1
 @pytest.mark.parametrize(
     "b1_state,expected_health",
     [
@@ -364,7 +298,7 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
-@pytest.mark.ut26
+@pytest.mark.ut1
 @pytest.mark.parametrize(
     "b2_state,b1_state,expected_health",
     [
@@ -501,150 +435,7 @@ def _make_health_data(
     return dh
 
 
-# @pytest.mark.ut30  # keep ONE marker (or rename to ut_matrix if you prefer)
-# @pytest.mark.parametrize(
-#     "name,receiver_band,b1_state,b2_state,kvalue_code,gpm_result,expected_health",
-#     [
-#         # --- Former UT23: kvalue FAILED -> FAILED (independent of band/caps) ---
-#         (
-#             "kvalue_failed",
-#             Band.B1.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             ResultCode.FAILED.name,
-#             ["OK"],
-#             HealthState.FAILED,
-#         ),
-#         # --- Former UT24: any GPM FAILED -> DEGRADED ---
-#         (
-#             "gpm_failed",
-#             Band.B1.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             ResultCode.OK.name,
-#             ["FAILED"],
-#             HealthState.DEGRADED,
-#         ),
-#         # --- Former UT22: Band1 configured; health depends on B1 only (B2 irrelevant) ---
-#         (
-#             "band1_configured_b1_unavailable",
-#             Band.B1.name,
-#             CapabilityStates.UNAVAILABLE.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.FAILED,
-#         ),
-#         (
-#             "band1_configured_b1_standby",
-#             Band.B1.name,
-#             CapabilityStates.STANDBY.name,
-#             CapabilityStates.UNAVAILABLE.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,
-#         ),
-#         (
-#             "band1_configured_b1_configuring",
-#             Band.B1.name,
-#             CapabilityStates.CONFIGURING.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,
-#         ),
-#         (
-#             "band1_configured_b1_operate_degraded",
-#             Band.B1.name,
-#             CapabilityStates.OPERATE_DEGRADED.name,
-#             CapabilityStates.UNAVAILABLE.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,
-#         ),
-#         (
-#             "band1_configured_b1_operate_full",
-#             Band.B1.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             CapabilityStates.UNAVAILABLE.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,
-#         ),
-#         (
-#             "band1_configured_b1_unknown",
-#             Band.B1.name,
-#             CapabilityStates.UNKNOWN.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,  # per GOOD_STATES_SET includes UNKNOWN
-#         ),
-#         # --- Former UT22: Band NOT configured --- (rules: OK if kvalue OK and no GPM FAILED)
-#         (
-#             "band_not_configured_all_operate_full",
-#             Band.NONE.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,
-#         ),
-#         (
-#             "band_not_configured_all_unavailable",
-#             Band.NONE.name,
-#             CapabilityStates.UNAVAILABLE.name,
-#             CapabilityStates.UNAVAILABLE.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.FAILED,
-#         ),
-#         # --- Former UT26: explicitly vary B2 between UNAVAILABLE and OPERATE_FULL while Band1 configured ---
-#         (
-#             "band1_configured_b2_unavailable_b1_operate_full",
-#             Band.B1.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             CapabilityStates.UNAVAILABLE.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,
-#         ),
-#         (
-#             "band1_configured_b2_operate_full_b1_operate_full",
-#             Band.B1.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             CapabilityStates.OPERATE_FULL.name,
-#             ResultCode.OK.name,
-#             ["OK"],
-#             HealthState.OK,
-#         ),
-#     ],
-# )
-# def test_evaluate_health_state_matrix(
-#     cm_without_er_lp,
-#     name,
-#     receiver_band,
-#     b1_state,
-#     b2_state,
-#     kvalue_code,
-#     gpm_result,
-#     expected_health,
-# ):
-#     cm = cm_without_er_lp
-#     hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
-
-#     dh = _make_health_data(
-#         receiver_band=receiver_band,
-#         b1_state=b1_state,
-#         b2_state=b2_state,
-#         kvalue_code=kvalue_code,
-#         gpm_result=gpm_result,
-#     )
-
-#     assert hm.evaluate_health_state(dh) == expected_health, name
-
-
-@pytest.mark.ut44
+@pytest.mark.ut1
 def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
     cm_without_er_lp,
 ):
@@ -741,7 +532,7 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
 # ...existing code...
 
 
-@pytest.mark.ut51
+@pytest.mark.ut1
 def test_generate_health_info(cm_without_er_lp):
     """
     Build an initially "bad" health context (GPM FAILED, KValue FAILED, DishManager
@@ -863,3 +654,117 @@ def test_generate_health_info(cm_without_er_lp):
     evaluated = hm.evaluate_health_state(context)
     logger.info("Evaluated healthState: %s", evaluated)
     assert evaluated == HealthState.OK
+
+
+@pytest.mark.ut1
+def test_evaluate_health_state_degraded_when_no_band_requested_and_any_band_good(
+    cm_without_er_lp,
+):
+    """
+    Use HealthManager + update_health_data_and_aggregate to build the health context
+    and verify HealthState.DEGRADED when:
+
+      - k_value_validation_result.result_code == 'OK'
+      - receiver_band in {'NONE', 'UNKNOWN'}
+      - ANY band capability is in GOOD_STATES_SET (e.g. STANDBY)
+        but NOT ALL are good (so it doesn't become OK via the 'NONE' OK rule)
+
+    This specifically targets the DEGRADED rule:
+      k_value_validation_result.result_code == 'OK' AND receiver_band in {'NONE','UNKNOWN'}
+      AND $any(state in GOOD_STATES_SET for state in band_capability_values)
+    """
+    logger = logging.getLogger("test.health.degraded.any_good_band")
+    cm = cm_without_er_lp
+    hm = HealthManager(component_manager=cm, logger=logger)
+
+    # Keep GPM "not failed" so it doesn't trigger the other DEGRADED rule
+    hm.update_health_data_and_aggregate(["OK"], "GPMValidationResultData")
+
+    # KValue OK (required by the target DEGRADED rule)
+    hm.update_health_data_and_aggregate(
+        ResultCode.OK.name, "KValueValidationResultData"
+    )
+
+    # No band requested (required by the target DEGRADED rule)
+    hm.update_health_data_and_aggregate(Band.NONE, "receiver_band")
+
+    # Provide band capabilities such that:
+    # - at least one band is GOOD (e.g. STANDBY)
+    # - at least one band is NOT GOOD (e.g. UNAVAILABLE)
+    # This ensures $any(...) is true, but $all(...) for OK (NONE-band OK rule) is false.
+    hm.update_health_data_and_aggregate(
+        ("B1", CapabilityStates.STANDBY.name), "DishBandCapabilityStateData"
+    )
+    hm.update_health_data_and_aggregate(
+        ("B2", CapabilityStates.UNAVAILABLE.name),
+        "DishBandCapabilityStateData",
+    )
+    # fill remaining bands with UNAVAILABLE to keep "not all good"
+    for band_name in ["B3", "B4", "B5a", "B5b"]:
+        hm.update_health_data_and_aggregate(
+            (band_name, CapabilityStates.UNAVAILABLE.name),
+            "DishBandCapabilityStateData",
+        )
+
+    # Now evaluate using real rule set
+    evaluated = hm.evaluate_health_state(hm.health_data)
+    logger.info("Health context (asdict-like): %s", hm.health_data)
+    logger.info("Evaluated health state: %s", evaluated)
+
+    assert evaluated == HealthState.DEGRADED
+
+
+# ...existing code...
+
+
+@pytest.mark.ut1
+def test_evaluate_health_state_failed_when_no_band_requested_and_all_bands_not_good(
+    cm_without_er_lp,
+):
+    """
+    Target FAILED rule:
+
+      receiver_band in {'NONE', 'UNKNOWN'} and
+      $all([state not in GOOD_STATES_SET for state in band_capability_values])
+
+    Build DishHealthData directly using primitive strings so:
+      band_capability_values == {'UNAVAILABLE'} only
+    and ensure it can't satisfy the OK/DEGRADED "no band requested" rules:
+      - OK(no band) requires ALL states in GOOD_STATES_SET (false for UNAVAILABLE)
+      - DEGRADED(no band) requires ANY state in GOOD_STATES_SET (false for UNAVAILABLE)
+    """
+    logger = logging.getLogger(
+        "test.health.failed.all_bands_not_good_when_no_band_requested"
+    )
+    cm = cm_without_er_lp
+    hm = HealthManager(component_manager=cm, logger=logger)
+
+    dh = DishHealthData(
+        receiver_band=Band.NONE,
+        k_value_validation_result=KValueValidationResultData(
+            result_code=ResultCode.OK.name
+        ),
+        gpm_validation_result=GPMValidationResultData(result=["OK"]),
+        band_capability_data=DishBandCapabilityStateData(
+            band_capabilities={
+                "B1": CapabilityStates.UNAVAILABLE.name,
+                "B2": CapabilityStates.UNAVAILABLE.name,
+                "B3": CapabilityStates.UNAVAILABLE.name,
+                "B4": CapabilityStates.UNAVAILABLE.name,
+                "B5a": CapabilityStates.UNAVAILABLE.name,
+                "B5b": CapabilityStates.UNAVAILABLE.name,
+            }
+        ),
+    )
+
+    # Sanity log what we're evaluating
+    logger.info("DishHealthData: %s", dh)
+    logger.info(
+        "band_capability_values (expected {'UNAVAILABLE'}): %s",
+        dh.band_capability_data.band_capabilities,
+    )
+
+    evaluated = hm.evaluate_health_state(dh)
+    logger.info("Evaluated health state: %s", evaluated)
+
+    assert evaluated == HealthState.FAILED
