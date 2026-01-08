@@ -152,12 +152,12 @@ def configure_dish_leaf_node(
 
     capabiity_argin = json.dumps(
         {
-            "B1": CapabilityStates.OPERATE_FULL.name,
-            "B2": CapabilityStates.OPERATE_DEGRADED.name,
-            "B3": CapabilityStates.OPERATE_FULL.name,
-            "B4": CapabilityStates.OPERATE_FULL.name,
-            "B5a": CapabilityStates.OPERATE_FULL.name,
-            "B5b": CapabilityStates.OPERATE_FULL.name,
+            "B1": CapabilityStates.OPERATE_FULL,
+            "B2": CapabilityStates.OPERATE_DEGRADED,
+            "B3": CapabilityStates.OPERATE_FULL,
+            "B4": CapabilityStates.OPERATE_FULL,
+            "B5a": CapabilityStates.OPERATE_FULL,
+            "B5b": CapabilityStates.OPERATE_FULL,
         }
     )
     dish_master.SetDirectCapabilityState(capabiity_argin)
