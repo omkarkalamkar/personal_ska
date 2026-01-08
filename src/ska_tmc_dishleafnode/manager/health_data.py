@@ -310,7 +310,7 @@ class HealthManager:
 
         def sanitize_for_rules(obj):
             if hasattr(type(obj), '_member_names_'):  # Enum check
-                return obj.value
+                return obj.name
             if isinstance(obj, dict):
                 return {k: sanitize_for_rules(v) for k, v in obj.items()}
             if isinstance(obj, list):
@@ -336,7 +336,7 @@ class HealthManager:
         ):
             for rule in HEALTH_RULES.get(health_state, []):
                 if rule.matches(context_dict):
-                    self.logger.info(
+                    self.logger.debug(
                         "HealthState decided as %s", health_state.name
                     )
                     return health_state
@@ -354,10 +354,9 @@ class HealthManager:
         Returns:
             Dict containing health info
         """
-        dish_device_name = self.component_manager.dish_dev_name
         dish_name = (
             # Placeholder for actual dish name
-            f"mid-tmc/leaf-node-dish/{dish_device_name[-3:]}"
+            "mid-tmc/leaf-node-dish/ska001"
         )
         health_info: Dict = {"HealthSummary": {}}
         health_info["HealthSummary"][dish_name] = {

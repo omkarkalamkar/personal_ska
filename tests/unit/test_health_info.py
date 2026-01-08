@@ -25,21 +25,56 @@ from ska_tmc_dishleafnode.manager.health_data import (
     "expect_k_err,expect_dish_err",
     [
         # GPM OK, KValue OK, Dish OK -> no errors
-        (["OK"], ResultCode.OK.name, HealthState.OK, False, False, False),
+        ([ResultCode.OK], ResultCode.OK, HealthState.OK, False, False, False),
         # GPM FAILED, KValue OK, Dish OK -> only GPM error
-        (["FAILED"], ResultCode.OK.name, HealthState.OK, True, False, False),
+        (
+            [ResultCode.FAILED],
+            ResultCode.OK,
+            HealthState.OK,
+            True,
+            False,
+            False,
+        ),
         # GPM OK, KValue FAILED, Dish OK -> only KValue error
-        (["OK"], ResultCode.FAILED.name, HealthState.OK, False, True, False),
+        (
+            [ResultCode.OK],
+            ResultCode.FAILED,
+            HealthState.OK,
+            False,
+            True,
+            False,
+        ),
         # GPM OK, KValue OK, Dish DEGRADED -> only Dish Manager error
-        (["OK"], ResultCode.OK.name, HealthState.DEGRADED, False, False, True),
+        (
+            [ResultCode.OK],
+            ResultCode.OK,
+            HealthState.DEGRADED,
+            False,
+            False,
+            True,
+        ),
         # GPM OK, KValue OK, Dish FAILED -> only Dish Manager error
-        (["OK"], ResultCode.OK.name, HealthState.FAILED, False, False, True),
+        (
+            [ResultCode.OK],
+            ResultCode.OK,
+            HealthState.FAILED,
+            False,
+            False,
+            True,
+        ),
         # GPM OK, KValue OK, Dish UNKNOWN -> only Dish Manager error
-        (["OK"], ResultCode.OK.name, HealthState.UNKNOWN, False, False, True),
+        (
+            [ResultCode.OK],
+            ResultCode.OK,
+            HealthState.UNKNOWN,
+            False,
+            False,
+            True,
+        ),
         # Combined: GPM FAILED, KValue FAILED, Dish UNKNOWN -> all errors
         (
-            ["FAILED"],
-            ResultCode.FAILED.name,
+            [ResultCode.FAILED],
+            ResultCode.FAILED,
             HealthState.UNKNOWN,
             True,
             True,
@@ -59,24 +94,22 @@ def test_generate_health_info_parametrized(
     logger = logging.getLogger("test")
     # cm = CMStub()
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logger)
 
-    context = DishHealthData(
-        gpm_validation_result=GPMValidationResultData(result=gpm_result),
-        k_value_validation_result=KValueValidationResultData(
-            result_code=kvalue_code
-        ),
-        dish_manager_health_data=DishManagerHealthData(
-            health_state=dish_state
-        ),
-        band_capability_data=DishBandCapabilityStateData(
-            band_capabilities={"B1": CapabilityStates.OPERATE_FULL}
-        ),
-    )
+    for events, data_type in zip(
+        [gpm_result, kvalue_code, dish_state],
+        [
+            "GPMValidationResultData",
+            "KValueValidationResultData",
+            "DishManagerHealthData",
+        ],
+    ):
+        logger.info("Event input: %s", events)
+        cm.health_manager.update_health_data_and_aggregate(events, data_type)
 
-    health_info = hm.generate_health_info(context)
+    health_info = cm.health_manager.generate_health_info()
     # generate_health_info uses a fixed placeholder
     # key "mid-tmc/leaf-node-dish/ska001"
+    logger.info("Generated healthInfo: %s", health_info)
     dish_key = "mid-tmc/leaf-node-dish/ska001"
     assert "HealthSummary" in health_info
     assert dish_key in health_info["HealthSummary"]
@@ -97,22 +130,16 @@ def test_generate_health_info_parametrized(
     assert has_dish_msg is expect_dish_err
 
 
-# -------------------------------------------
-
-
 @pytest.mark.ut1
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
-        (CapabilityStates.UNAVAILABLE.name, HealthState.FAILED),
-        (CapabilityStates.STANDBY.name, HealthState.OK),
-        (CapabilityStates.CONFIGURING.name, HealthState.OK),
-        (CapabilityStates.OPERATE_DEGRADED.name, HealthState.OK),
-        (CapabilityStates.OPERATE_FULL.name, HealthState.OK),
-        # Unknown capability: current rules typically treat as FAILED for the
-        # configured band. If your HEALTH_RULES implement different behaviour,
-        # adjust this expectation accordingly.
-        # (CapabilityStates.UNKNOWN.name, HealthState.FAILED),
+        (CapabilityStates.UNAVAILABLE, HealthState.FAILED),
+        (CapabilityStates.STANDBY, HealthState.OK),
+        (CapabilityStates.CONFIGURING, HealthState.OK),
+        (CapabilityStates.OPERATE_DEGRADED, HealthState.OK),
+        (CapabilityStates.OPERATE_FULL, HealthState.OK),
+        (CapabilityStates.UNKNOWN, HealthState.FAILED),
     ],
 )
 def test_evaluate_health_state_for_all_capability_states_band1(
@@ -132,9 +159,9 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     dh = DishHealthData()
 
     # IMPORTANT: set these on dh (the object you actually evaluate)
-    dh.gpm_validation_result = GPMValidationResultData(result=["OK"])
+    dh.gpm_validation_result = GPMValidationResultData(result=[ResultCode.OK])
     dh.k_value_validation_result = KValueValidationResultData(
-        result_code=ResultCode.OK.name
+        result_code=ResultCode.OK
     )
 
     # Use primitive string expected by rules / indexing
@@ -143,11 +170,11 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     dh.band_capability_data = DishBandCapabilityStateData(
         band_capabilities={
             "B1": capability_state,
-            "B2": CapabilityStates.UNKNOWN.name,
-            "B3": CapabilityStates.UNKNOWN.name,
-            "B4": CapabilityStates.UNKNOWN.name,
-            "B5a": CapabilityStates.UNKNOWN.name,
-            "B5b": CapabilityStates.UNKNOWN.name,
+            "B2": CapabilityStates.UNKNOWN,
+            "B3": CapabilityStates.UNKNOWN,
+            "B4": CapabilityStates.UNKNOWN,
+            "B5a": CapabilityStates.UNKNOWN,
+            "B5b": CapabilityStates.UNKNOWN,
         }
     )
 
@@ -198,7 +225,7 @@ def test_evaluate_health_state_for_all_capability_states_when_band_not_configure
 
     dh.band_capability_data = DishBandCapabilityStateData(
         band_capabilities={
-            "B1": capability_state,
+            Band.B1: capability_state,
             "B2": capability_state,
             "B3": capability_state,
             "B4": capability_state,
@@ -553,7 +580,8 @@ def test_generate_health_info(cm_without_er_lp):
     logger = logging.getLogger("test.healthinfo.stepwise")
     hm = HealthManager(component_manager=cm, logger=logger)
 
-    dish_key = "mid-tmc/leaf-node-dish/ska001"  # fixed placeholder used by generate_health_info
+    # fixed placeholder used by generate_health_info
+    dish_key = "mid-tmc/leaf-node-dish/ska001"
 
     # Start with multiple failures
     context = DishHealthData(

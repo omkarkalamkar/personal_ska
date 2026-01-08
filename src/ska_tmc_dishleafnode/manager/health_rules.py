@@ -13,6 +13,7 @@ GOOD_CAPABILITY_STATES = {
     "UNKNOWN",
 }
 
+
 HEALTH_RULES = {
     HealthState.OK: [
         # Case 1: Specific band configured and fully capable
