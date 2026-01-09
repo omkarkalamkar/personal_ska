@@ -316,14 +316,15 @@ class HealthManager:
         """
 
         def sanitize_for_rules(obj):
-            if isinstance(obj, Enum):
+            if isinstance(obj, Enum):  # Proper Enum check
                 return obj.name
-            if isinstance(obj, (dict, list, set, tuple)):
-                container = type(obj)
-                return container(sanitize_for_rules(v) for v in obj)
+            if isinstance(obj, dict):
+                return {k: sanitize_for_rules(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [sanitize_for_rules(v) for v in obj]
+            if isinstance(obj, set):
+                return {sanitize_for_rules(v) for v in obj}
             return obj
-
-        context_dict = sanitize_for_rules(asdict(health_context))
 
         # Expose the set of current capability states for rules (now strs)
         band_caps = context_dict["band_capability_data"]["band_capabilities"]
