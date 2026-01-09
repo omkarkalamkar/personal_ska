@@ -690,7 +690,7 @@ def test_generate_health_info(cm_without_er_lp):
     assert evaluated == HealthState.OK
 
 
-@pytest.mark.ut1
+@pytest.mark.ut12
 def test_evaluate_health_state_degraded_when_no_band_requested_and_any_band_good(
     cm_without_er_lp,
 ):
@@ -751,7 +751,7 @@ def test_evaluate_health_state_degraded_when_no_band_requested_and_any_band_good
 # ...existing code...
 
 
-@pytest.mark.ut1
+@pytest.mark.ut12
 def test_evaluate_health_state_failed_when_no_band_requested_and_all_bands_not_good(
     cm_without_er_lp,
 ):
@@ -802,3 +802,123 @@ def test_evaluate_health_state_failed_when_no_band_requested_and_all_bands_not_g
     logger.info("Evaluated health state: %s", evaluated)
 
     assert evaluated == HealthState.FAILED
+
+
+@pytest.mark.ut82
+def test_generate_health_info(cm_without_er_lp):
+    """
+    Same scenario as before, but with the updated [`HealthManager.update_health_data_and_aggregate`](src/ska_tmc_dishleafnode/manager/health_data.py)
+    flow: we build/modify health inputs via update_health_data_and_aggregate so that
+    `_active_issues` is updated and `generate_health_info()` reflects removals.
+
+    Steps:
+      0) Start with GPM FAILED, KValue FAILED, DishManager DEGRADED, Band B1 UNAVAILABLE
+      1) Fix GPM (FAILED -> OK) => GPM failure removed from healthInfo
+      2) Fix KValue (FAILED -> OK) => KValue failure removed
+      3) Fix band capabilities (B1 UNAVAILABLE -> STANDBY) => Unavailable bands removed
+      4) Fix DishManager (DEGRADED -> OK) => DishManager msg removed
+      Final) healthInfo.Info == [] and evaluated healthState == OK
+    """
+    cm = cm_without_er_lp
+    logger = logging.getLogger("test.healthinfo.stepwise")
+    hm = HealthManager(component_manager=cm, logger=logger)
+
+    dish_key = "mid-tmc/leaf-node-dish/ska001"  # placeholder used by generate_health_info
+
+    def _info_list():
+        hi = hm.generate_health_info()
+        info = hi["HealthSummary"][dish_key]["Info"]
+        logger.info("healthInfo: %s", hi)
+        logger.info("healthInfo.Info: %s", info)
+        return info
+
+    def _assert_has(info, needle: str):
+        assert any(
+            needle in s for s in info
+        ), f"Expected '{needle}' in info: {info}"
+
+    def _assert_not_has(info, needle: str):
+        assert not any(
+            needle in s for s in info
+        ), f"Did not expect '{needle}' in info: {info}"
+
+    # STEP0: all problems present
+    logger.info("STEP0: inject all negative inputs")
+    hm.update_health_data_and_aggregate(
+        [ResultCode.FAILED], "GPMValidationResultData"
+    )
+    hm.update_health_data_and_aggregate(
+        ResultCode.FAILED, "KValueValidationResultData"
+    )
+    hm.update_health_data_and_aggregate(
+        HealthState.DEGRADED, "DishManagerHealthData"
+    )
+    hm.update_health_data_and_aggregate(Band.NONE, "receiver_band")
+    hm.update_health_data_and_aggregate(
+        ("B1", CapabilityStates.UNAVAILABLE), "DishBandCapabilityStateData"
+    )
+    # Ensure other bands are "good" so only B1 is listed unavailable
+    for b in ["B2", "B3", "B4", "B5a", "B5b"]:
+        hm.update_health_data_and_aggregate(
+            (b, CapabilityStates.STANDBY), "DishBandCapabilityStateData"
+        )
+
+    info = _info_list()
+    _assert_has(info, "GPM validation failed")
+    _assert_has(info, "KValue validation failed")
+    _assert_has(info, "Dish Manager")
+    _assert_has(info, "Unavailable bands")
+
+    # STEP1: fix GPM
+    logger.info("STEP1: fix GPM (FAILED -> OK)")
+    hm.update_health_data_and_aggregate(
+        [ResultCode.OK], "GPMValidationResultData"
+    )
+    info = _info_list()
+    _assert_not_has(info, "GPM validation failed")
+    _assert_has(info, "KValue validation failed")
+    _assert_has(info, "Dish Manager")
+    _assert_has(info, "Unavailable bands")
+
+    # STEP2: fix KValue
+    logger.info("STEP2: fix KValue (FAILED -> OK)")
+    hm.update_health_data_and_aggregate(
+        ResultCode.OK, "KValueValidationResultData"
+    )
+    info = _info_list()
+    _assert_not_has(info, "GPM validation failed")
+    _assert_not_has(info, "KValue validation failed")
+    _assert_has(info, "Dish Manager")
+    _assert_has(info, "Unavailable bands")
+
+    # STEP3: fix band availability (B1 UNAVAILABLE -> STANDBY)
+    logger.info("STEP3: fix band capability (B1 UNAVAILABLE -> STANDBY)")
+    hm.update_health_data_and_aggregate(
+        ("B1", CapabilityStates.STANDBY), "DishBandCapabilityStateData"
+    )
+    info = _info_list()
+    _assert_not_has(info, "GPM validation failed")
+    _assert_not_has(info, "KValue validation failed")
+    _assert_has(info, "Dish Manager")
+    _assert_not_has(info, "Unavailable bands")
+
+    # STEP4: fix DishManager
+    logger.info("STEP4: fix DishManager health (DEGRADED -> OK)")
+    hm.update_health_data_and_aggregate(
+        HealthState.OK, "DishManagerHealthData"
+    )
+    info = _info_list()
+    _assert_not_has(info, "GPM validation failed")
+    _assert_not_has(info, "KValue validation failed")
+    _assert_not_has(info, "Unavailable bands")
+    _assert_not_has(info, "Dish Manager")
+
+    # FINAL: healthInfo blank and healthState OK
+    logger.info(
+        "FINAL: expect healthInfo.Info == [] and evaluated healthState == OK"
+    )
+    assert info == []
+
+    evaluated = hm.evaluate_health_state(hm.health_data)
+    logger.info("Evaluated healthState: %s", evaluated)
+    assert evaluated == HealthState.OK

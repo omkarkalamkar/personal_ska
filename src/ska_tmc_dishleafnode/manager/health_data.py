@@ -141,13 +141,16 @@ class HealthManager:
                     )
                     self._update_dishmanager_issues()
                 case "DishBandCapabilityStateData":
+                    self.logger.info(
+                        "Updating DishBandCapabilityStateData as %s", data
+                    )
                     band_name, capability_state = data
                     if not isinstance(capability_state, CapabilityStates):
                         capability_state = CapabilityStates(capability_state)
                     self.health_data.band_capability_data.band_capabilities[
                         band_name
                     ] = capability_state
-                    self.logger.debug(
+                    self.logger.info(
                         "Updated DishBandCapabilityStateData"
                         " in health data: %s",
                         str(self.health_data),
@@ -198,6 +201,8 @@ class HealthManager:
         Update band-related issues in active issues.
         """
 
+        self.logger.info("Updating band issues")
+
         good_states = {
             "STANDBY",
             "CONFIGURING",
@@ -206,6 +211,9 @@ class HealthManager:
             "UNKNOWN",
         }
         requested = self.health_data.receiver_band
+        self.logger.info("Requested band: %s", requested)
+
+        self.logger.info("Active issues: %s", self._active_issues)
 
         # Clear old band-related issues
         keys_to_remove = [
@@ -213,6 +221,10 @@ class HealthManager:
         ]
         for k in keys_to_remove:
             self._active_issues.pop(k, None)
+
+        self.logger.info(
+            "Active issues after removal: %s", self._active_issues
+        )
 
         if requested not in (Band.NONE, Band.UNKNOWN):
             state = (
@@ -230,15 +242,18 @@ class HealthManager:
             band_capabilities = (
                 self.health_data.band_capability_data.band_capabilities.items()
             )
+            self.logger.info("Band capabilities: %s", band_capabilities)
             bad_bands = [
                 name
                 for name, state in band_capabilities
-                if state.value not in good_states
+                if state.name not in good_states
             ]
+            self.logger.info("Bad bands: %s", bad_bands)
             if bad_bands:
                 self._active_issues[
                     "band_unavailable"
                 ] = f"Unavailable bands: {', '.join(bad_bands)}."
+            self.logger.info("Updated active issues: %s", self._active_issues)
 
     def _update_gpm_issues(self):
         """
