@@ -324,16 +324,14 @@ class HealthManager:
         #     return obj
 
         def sanitize_for_rules(obj):
-            if isinstance(obj, Enum):
+            if isinstance(obj, Enum):  # Proper Enum check
                 return obj.name
-
             if isinstance(obj, dict):
                 return {k: sanitize_for_rules(v) for k, v in obj.items()}
-
-            if isinstance(obj, (list, set, tuple)):
-                container = type(obj)
-                return container(sanitize_for_rules(v) for v in obj)
-
+            if isinstance(obj, list):
+                return [sanitize_for_rules(v) for v in obj]
+            if isinstance(obj, set):
+                return {sanitize_for_rules(v) for v in obj}
             return obj
 
         context_dict = sanitize_for_rules(asdict(health_context))
