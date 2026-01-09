@@ -5,6 +5,7 @@ import pytest
 import tango
 from astropy import units as u
 from astropy.coordinates import Angle
+from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
 from tango import DeviceProxy
@@ -50,16 +51,26 @@ def wait_for_actual_pointing_value(
     return False
 
 
-def log_pre_configure_health(
+def log_and_assert_health(
     dish_leaf_node: DeviceProxy,
     dish_master: DeviceProxy,
     dishln_pointing_device: DeviceProxy,
+    *,
+    expected_ln_health_state=None,
 ) -> None:
     """
     Log DishLeafNode/DishMaster/DishPointingDevice healthState
-    (and DishLeafNode healthInfo)
-    just before invoking Configure(), to help debugging integration
-      failures.
+    (and DishLeafNode healthInfo) just before invoking Configure().
+
+    If expected_ln_health_state is provided, assert DishLeafNode healthState
+    matches it.
+
+    Args:
+        dish_leaf_node: DishLeafNode Tango proxy
+        dish_master: DishMaster Tango proxy
+        dishln_pointing_device: DishLeafNode Pointing Tango proxy
+        expected_ln_health_state: Optional expected DishLeafNode healthState.
+
     """
 
     def _read_attr(dev: DeviceProxy, attr: str):
@@ -90,6 +101,13 @@ def log_pre_configure_health(
         dm_health_state,
         dp_health_state,
     )
+
+    if expected_ln_health_state is not None:
+        assert ln_health_state == expected_ln_health_state, (
+            "DishLeafNode healthState mismatch before Configure(): "
+            f"expected={expected_ln_health_state}, actual={ln_health_state}, "
+            f"healthInfo={ln_health_info}"
+        )
 
 
 def configure_dish_leaf_node(
@@ -146,8 +164,8 @@ def configure_dish_leaf_node(
     )
 
     # Reusable diagnostics before invoking Configure
-    log_pre_configure_health(
-        dish_leaf_node, dish_master, dishln_pointing_device
+    log_and_assert_health(
+        dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
     )
 
     capabiity_argin = json.dumps(
@@ -165,8 +183,8 @@ def configure_dish_leaf_node(
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
-    log_pre_configure_health(
-        dish_leaf_node, dish_master, dishln_pointing_device
+    log_and_assert_health(
+        dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
     )
     assert result_config[0] == ResultCode.QUEUED
     logger.info(
@@ -196,6 +214,19 @@ def configure_dish_leaf_node(
     )
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
+
+    capabiity_argin = json.dumps(
+        {
+            "B1": CapabilityStates.UNAVAILABLE,
+            "B2": CapabilityStates.UNAVAILABLE,
+            "B3": CapabilityStates.UNAVAILABLE,
+            "B4": CapabilityStates.UNAVAILABLE,
+            "B5a": CapabilityStates.UNAVAILABLE,
+            "B5b": CapabilityStates.UNAVAILABLE,
+        }
+    )
+    dish_master.SetDirectCapabilityState(capabiity_argin)
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
@@ -214,8 +245,8 @@ def configure_dish_leaf_node(
         lookahead=8,
     )
 
-    log_pre_configure_health(
-        dish_leaf_node, dish_master, dishln_pointing_device
+    log_and_assert_health(
+        dish_leaf_node, dish_master, dishln_pointing_device, HealthState.FAILED
     )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
