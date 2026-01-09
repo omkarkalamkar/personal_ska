@@ -560,7 +560,7 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
 # ...existing code...
 
 
-@pytest.mark.ut1
+@pytest.mark.ut81
 def test_generate_health_info(cm_without_er_lp):
     """
     Build an initially "bad" health context (GPM FAILED, KValue FAILED, DishManager
@@ -603,7 +603,8 @@ def test_generate_health_info(cm_without_er_lp):
     )
 
     def _health_info_and_list():
-        hi = hm.generate_health_info(context)
+        # hi = hm.generate_health_info(context)
+        hi = hm.generate_health_info()
         info = hi["HealthSummary"][dish_key]["Info"]
         logger.info("healthInfo: %s", hi)
         logger.info("healthInfo.Info: %s", info)

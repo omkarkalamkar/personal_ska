@@ -315,12 +315,25 @@ class HealthManager:
             HealthState (never None now)
         """
 
+        # def sanitize_for_rules(obj):
+        #     if isinstance(obj, Enum):
+        #         return obj.name
+        #     if isinstance(obj, (dict, list, set, tuple)):
+        #         container = type(obj)
+        #         return container(sanitize_for_rules(v) for v in obj)
+        #     return obj
+
         def sanitize_for_rules(obj):
             if isinstance(obj, Enum):
                 return obj.name
-            if isinstance(obj, (dict, list, set, tuple)):
+
+            if isinstance(obj, dict):
+                return {k: sanitize_for_rules(v) for k, v in obj.items()}
+
+            if isinstance(obj, (list, set, tuple)):
                 container = type(obj)
                 return container(sanitize_for_rules(v) for v in obj)
+
             return obj
 
         context_dict = sanitize_for_rules(asdict(health_context))
