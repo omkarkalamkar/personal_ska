@@ -9,8 +9,8 @@ global:
       enabled: false
   tango_host: databaseds-tango-base-test:10000
   retry:
-  - "--tries=10"
-  - "--sleep=5"
+    - "--tries=10"
+    - "--sleep=5"
   dishes: ["ska001", "ska002"]
   mid_sdp_queueconnector: "mid-sdp/queueconnector/01"
   dish_manager_suffix: "mid-dish/dish-manager/ska"
@@ -56,7 +56,7 @@ ska-tmc-simulators:
     image:
       registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
       image: ska-tmc-simulators
-      tag: 1.7.5-dev.c41cc2d43
+      tag: 1.9.0-dev.c04074d2c
   telescope: SKA-mid
   deviceServers:
     mocks:
