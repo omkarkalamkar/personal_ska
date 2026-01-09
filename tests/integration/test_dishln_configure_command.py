@@ -252,7 +252,6 @@ def configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
     dishln_pointing_device.unsubscribe_event(dishpd_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
-    assert False
 
 
 @pytest.mark.post_deployment
