@@ -327,6 +327,10 @@ class HealthManager:
             band_caps.values()
         )
 
+        self.logger.debug(
+            "Evaluating health state with context: %s", context_dict
+        )
+
         # Evaluate in priority order: OK > DEGRADED > FAILED > UNKNOWN
         for health_state in (
             HealthState.OK,
