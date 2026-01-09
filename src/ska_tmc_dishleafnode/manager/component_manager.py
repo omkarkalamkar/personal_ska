@@ -3072,10 +3072,43 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Update health data from component manager.
         """
 
-        if not self.receiver_band:
-            self.receiver_band = Band.NONE
+        # if not self.receiver_band:
+        #     self.receiver_band = Band.NONE
+
+        # self.health_manager.update_health_data_and_aggregate(
+        #     self.receiver_band,
+        #     "receiver_band",
+        # )
+
+        rb = self.receiver_band
+
+        if rb in (None, ""):
+            rb_norm = Band.NONE
+        elif isinstance(rb, Band):
+            rb_norm = rb
+        elif isinstance(rb, int):
+            try:
+                rb_norm = Band(rb)
+            except Exception:
+                rb_norm = Band.NONE
+        elif isinstance(rb, str) and rb.isdigit():
+            try:
+                rb_norm = Band(int(rb))
+            except Exception:
+                rb_norm = Band.NONE
+        elif isinstance(rb, str):
+            # Accept enum name strings e.g. "B2", "NONE", "UNKNOWN"
+            try:
+                rb_norm = Band[rb]
+            except Exception:
+                rb_norm = Band.NONE
+        else:
+            rb_norm = Band.NONE
+
+        # Keep internal state consistent
+        self.receiver_band = rb_norm
 
         self.health_manager.update_health_data_and_aggregate(
-            self.receiver_band,
+            rb_norm,
             "receiver_band",
         )
