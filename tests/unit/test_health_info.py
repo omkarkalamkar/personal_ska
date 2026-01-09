@@ -463,7 +463,7 @@ def _make_health_data(
     return dh
 
 
-@pytest.mark.ut12
+@pytest.mark.ut1
 def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
     cm_without_er_lp,
 ):

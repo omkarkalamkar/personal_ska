@@ -116,6 +116,8 @@ class Configure(DishLNCommand):
                 self.component_manager.dishConfiguredBand
             )
 
+        self.component_manager.update_reciever_band_for_health()
+
         result_code, message = self.do(argin)
         self.set_command_id(__class__.__name__)
         return result_code, message
