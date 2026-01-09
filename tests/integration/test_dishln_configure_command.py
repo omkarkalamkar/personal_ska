@@ -55,7 +55,6 @@ def log_and_assert_health(
     dish_leaf_node: DeviceProxy,
     dish_master: DeviceProxy,
     dishln_pointing_device: DeviceProxy,
-    *,
     expected_ln_health_state=None,
 ) -> None:
     """
