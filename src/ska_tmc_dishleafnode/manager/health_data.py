@@ -3,6 +3,7 @@ Dataclass representing inputs used by the rule engine to evaluate health state.
 """
 import threading
 from dataclasses import asdict, dataclass, field
+from enum import Enum
 from typing import Dict, List, Optional
 
 from ska_control_model import HealthState
@@ -19,7 +20,7 @@ class GPMValidationResultData:
     Context object for GPM validation results.
     """
 
-    result: List[ResultCode] = field(default_factory=list)
+    result: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -117,6 +118,8 @@ class HealthManager:
                     )
                     self._update_gpm_issues()
                 case "KValueValidationResultData":
+                    if not isinstance(data, ResultCode):
+                        data = ResultCode(data)
                     self.health_data.k_value_validation_result = (
                         KValueValidationResultData(result_code=data)
                     )
@@ -127,6 +130,8 @@ class HealthManager:
                     )
                     self._update_kvalue_issues()
                 case "DishManagerHealthData":
+                    if not isinstance(data, HealthState):
+                        data = HealthState(data)
                     self.health_data.dish_manager_health_data = (
                         DishManagerHealthData(health_state=data)
                     )
@@ -137,6 +142,8 @@ class HealthManager:
                     self._update_dishmanager_issues()
                 case "DishBandCapabilityStateData":
                     band_name, capability_state = data
+                    if not isinstance(capability_state, CapabilityStates):
+                        capability_state = CapabilityStates(capability_state)
                     self.health_data.band_capability_data.band_capabilities[
                         band_name
                     ] = capability_state
@@ -309,14 +316,11 @@ class HealthManager:
         """
 
         def sanitize_for_rules(obj):
-            if hasattr(type(obj), '_member_names_'):  # Enum check
+            if isinstance(obj, Enum):
                 return obj.name
-            if isinstance(obj, dict):
-                return {k: sanitize_for_rules(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [sanitize_for_rules(v) for v in obj]
-            if obj is None:
-                return []
+            if isinstance(obj, (dict, list, set, tuple)):
+                container = type(obj)
+                return container(sanitize_for_rules(v) for v in obj)
             return obj
 
         context_dict = sanitize_for_rules(asdict(health_context))
