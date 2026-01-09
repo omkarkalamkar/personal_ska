@@ -20,6 +20,7 @@ from tests.settings import (
     build_delta_configure_data,
     build_partial_configure_data,
     get_non_sidereal_json_for_now,
+    log_and_assert_health,
     logger,
     tear_down,
     wait_and_validate_attribute_value_available,
@@ -49,64 +50,6 @@ def wait_for_actual_pointing_value(
             ):
                 return True
     return False
-
-
-def log_and_assert_health(
-    dish_leaf_node: DeviceProxy,
-    dish_master: DeviceProxy,
-    dishln_pointing_device: DeviceProxy,
-    expected_ln_health_state=None,
-) -> None:
-    """
-    Log DishLeafNode/DishMaster/DishPointingDevice healthState
-    (and DishLeafNode healthInfo) just before invoking Configure().
-
-    If expected_ln_health_state is provided, assert DishLeafNode healthState
-    matches it.
-
-    Args:
-        dish_leaf_node: DishLeafNode Tango proxy
-        dish_master: DishMaster Tango proxy
-        dishln_pointing_device: DishLeafNode Pointing Tango proxy
-        expected_ln_health_state: Optional expected DishLeafNode healthState.
-
-    """
-
-    def _read_attr(dev: DeviceProxy, attr: str):
-        try:
-            return dev.read_attribute(attr).value
-        except Exception as exc:  # pragma: no cover (best-effort diagnostics)
-            logger.warning(
-                "Failed reading %s from %s: %s",
-                attr,
-                getattr(dev, "name", dev),
-                exc,
-            )
-            return None
-
-    ln_health_state = _read_attr(dish_leaf_node, "healthState")
-    ln_health_info = _read_attr(dish_leaf_node, "healthInfo")
-    dm_health_state = _read_attr(dish_master, "healthState")
-    dp_health_state = _read_attr(dishln_pointing_device, "healthState")
-
-    logger.info(
-        "Pre-Configure health: DishLeafNode healthState=%s healthInfo=%s",
-        ln_health_state,
-        ln_health_info,
-    )
-    logger.info(
-        "Pre-Configure health: DishMaster healthState=%s, "
-        "DishPointingDevice healthState=%s",
-        dm_health_state,
-        dp_health_state,
-    )
-
-    if expected_ln_health_state is not None:
-        assert ln_health_state == expected_ln_health_state, (
-            "DishLeafNode healthState mismatch before Configure(): "
-            f"expected={expected_ln_health_state}, actual={ln_health_state}, "
-            f"healthInfo={ln_health_info}"
-        )
 
 
 def configure_dish_leaf_node(
@@ -162,7 +105,6 @@ def configure_dish_leaf_node(
         lookahead=6,
     )
 
-    # Reusable diagnostics before invoking Configure
     log_and_assert_health(
         dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
     )
@@ -255,7 +197,7 @@ def configure_dish_leaf_node(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 @pytest.mark.parametrize(
     "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
 )

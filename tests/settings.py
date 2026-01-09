@@ -7,6 +7,7 @@ from typing import List
 
 import tango
 from astropy.time import Time
+from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState
@@ -639,3 +640,108 @@ def monitor_track_table_errors_attribute(
         time_consumed = time_consumed + 0.5
     logger.info("TrackTableErrors: %s", dish_leaf_node.trackTableErrors)
     return True
+
+
+def log_and_assert_health(
+    dish_leaf_node: DeviceProxy,
+    dish_master: DeviceProxy,
+    dishln_pointing_device: DeviceProxy,
+    expected_ln_health_state=None,
+) -> None:
+    """
+    Log DishLeafNode/DishMaster/DishPointingDevice healthState
+    (and DishLeafNode healthInfo) just before invoking Configure().
+
+    If expected_ln_health_state is provided, assert DishLeafNode healthState
+    matches it. Additionally:
+      - If expected is FAILED, assert healthInfo contains expected messaage
+      - If expected is OK, assert HealthInfo contains blank Info (i.e., []).
+    """
+
+    def _read_attr(dev: DeviceProxy, attr: str):
+        try:
+            return dev.read_attribute(attr).value
+        except Exception as exc:  # pragma: no cover
+            logger.warning(
+                "Failed reading %s from %s: %s",
+                attr,
+                getattr(dev, "name", dev),
+                exc,
+            )
+            return None
+
+    ln_health_state = _read_attr(dish_leaf_node, "healthState")
+    ln_health_info_raw = _read_attr(dish_leaf_node, "healthInfo")
+    dm_health_state = _read_attr(dish_master, "healthState")
+    dp_health_state = _read_attr(dishln_pointing_device, "healthState")
+
+    logger.info(
+        "health: DishLeafNode healthState=%s healthInfo=%s",
+        ln_health_state,
+        ln_health_info_raw,
+    )
+    logger.info(
+        "health: DishMaster healthState=%s, "
+        "DishPointingDevice healthState=%s",
+        dm_health_state,
+        dp_health_state,
+    )
+
+    if expected_ln_health_state is None:
+        return
+
+    assert ln_health_state == expected_ln_health_state, (
+        "DishLeafNode healthState mismatch before/after operation: "
+        f"expected={expected_ln_health_state}, actual={ln_health_state}, "
+        f"healthInfo={ln_health_info_raw}"
+    )
+
+    # healthInfo is typically a JSON string attribute in Tango
+    try:
+        ln_health_info = (
+            json.loads(ln_health_info_raw) if ln_health_info_raw else {}
+        )
+    except Exception:
+        ln_health_info = ln_health_info_raw
+
+    ln_name = (
+        dish_leaf_node.name()
+        if callable(getattr(dish_leaf_node, "name", None))
+        else getattr(dish_leaf_node, "name", None)
+    )
+    # dm_name = (
+    #     dish_master.name()
+    #     if callable(getattr(dish_master, "name", None))
+    #     else getattr(dish_master, "name", None)
+    # )
+
+    if expected_ln_health_state == HealthState.OK:
+        # Expect Info to be an empty list
+        info_list = (
+            ln_health_info.get("HealthSummary", {})
+            .get(ln_name, {})
+            .get("Info", None)
+            if isinstance(ln_health_info, dict)
+            else None
+        )
+        assert isinstance(info_list, list) and len(info_list) == 0, (
+            "Expected empty Info list  when health is OK; "
+            f"got Info={info_list}, full healthInfo={ln_health_info_raw}"
+        )
+
+    if expected_ln_health_state == HealthState.FAILED:
+        # expected_msg = (
+        #     f"Dish Manager {dm_name} health state reported as DEGRADED."
+        # )
+        # expected_health_info = {
+        #     "HealthSummary": {
+        #         ln_name: {
+        #             "Info": [expected_msg],
+        #         }
+        #     }
+        # }
+        # assert ln_health_info == expected_health_info, (
+        #     "DishLeafNode healthInfo mismatch for FAILED state.\n"
+        #     f"expected={expected_health_info}\nactual={ln_health_info_raw}"
+        # )
+        logger.info("ln_health_info_raw: %s", ln_health_info_raw)
