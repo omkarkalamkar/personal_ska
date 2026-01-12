@@ -74,7 +74,7 @@ def test_gust_auto_stow_failed(
 
     cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
-    _simulate_wind_speed(cm, 21.0, 3)
+    _simulate_wind_speed(cm, 10.0, 3)
     assert wait_for_stow_status(cm, StowStatus.STOW_STARTED)
 
     # no dishmode stow event
