@@ -27,6 +27,7 @@ def gpm_validation_result(
         attribute_value = group_callback[
             "gpmValidationResult"
         ].assert_change_event(Anything, lookahead=5,)["attribute_value"]
+        logger.info(f"GPM Validation Result: {attribute_value}")
         gpm_validation_result = json.loads(attribute_value)
         if gpm_validation_result[band_name] == band_result:
             flag = True
@@ -416,7 +417,7 @@ def gpm_version_restart_scenario(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid_skip
+@pytest.mark.SKA_mid
 def test_apply_pointing_model(tango_context, group_callback, json_factory):
     """Test to check ApplyPointingModel command with valid TM path"""
     apply_pointing_model(
