@@ -194,7 +194,7 @@ def configure_dish_leaf_node(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 @pytest.mark.parametrize(
     "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
 )
@@ -481,7 +481,7 @@ def delta_configure_dish_leaf_node(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_partial_configure_command(
     tango_context, group_callback, json_factory
 ):
@@ -496,7 +496,7 @@ def test_partial_configure_command(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_delta_configure_command(tango_context, group_callback, json_factory):
     """Test delta configure functionality on Dish Leaf Node."""
     delta_configure_dish_leaf_node(
@@ -510,7 +510,7 @@ def test_delta_configure_command(tango_context, group_callback, json_factory):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 @pytest.mark.parametrize(
     "delta_configure_type",
     [
@@ -566,7 +566,7 @@ def test_delta_configure_with_possible_json(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_delta_configure_command_with_different_offset(
     tango_context, group_callback, json_factory
 ):
@@ -821,7 +821,7 @@ def configure_with_wrap_sector(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 @pytest.mark.parametrize(
     "wrap_sector, json_to_use, partial_or_delta_conf",
     [
