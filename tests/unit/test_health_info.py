@@ -693,13 +693,11 @@ def test_generate_health_info(cm_without_er_lp):
     hm = HealthManager(component_manager=cm, logger=logger)
 
     # placeholder used by generate_health_info
-    dish_key = "mid-tmc/leaf-node-dish/ska001"
 
     def _info_list():
         hi = hm.generate_health_info()
-        info = hi["HealthSummary"][dish_key]["Info"]
+        info = hi["HealthSummary"]
         logger.info("healthInfo: %s", hi)
-        logger.info("healthInfo.Info: %s", info)
         return info
 
     def _assert_has(info, needle: str):
