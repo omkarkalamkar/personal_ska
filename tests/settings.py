@@ -352,7 +352,7 @@ def wait_for_unresponsive(cm: DishLNComponentManager) -> bool:
     count = 0
     timeout = 20
     while count < timeout:
-        if cm.get_device().unresponsive:
+        if cm.get_device(cm.dish_dev_name).unresponsive:
             return True
         time.sleep(1)
         count += 1

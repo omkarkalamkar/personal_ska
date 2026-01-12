@@ -38,7 +38,7 @@ def test_radec_to_azel(
     """Function to test AzEl conversion"""
     cm = cm_without_er_lp
     cm.array_layout = ARRAY_LAYOUT
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
     converter = AzElConverter(component_manager=cm)
     retry = 0

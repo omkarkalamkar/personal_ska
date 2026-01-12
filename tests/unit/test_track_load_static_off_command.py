@@ -30,7 +30,7 @@ def test_trackloadstaticoff_command(
     """Test the successful completion of the TrackLoadStaticOff command."""
     cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
-    cm.get_device()._unresponsive = False
+    cm.get_device(cm.dish_dev_name)._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
     dish_device.subscribe_event(
         "longRunningCommandResult",
@@ -79,7 +79,7 @@ def test_trackloadstaticoff_command_invalid_input(
     """Test the failure scenario while invoking
     TrackLoadStaticOff command."""
     cm = cm_without_er_lp
-    cm.get_device()._unresponsive = False
+    cm.get_device(cm.dish_dev_name)._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
 
     status, message = cm.track_load_static_off(
@@ -166,7 +166,7 @@ def test_configure_command_completed_with_correction_key_update(
     group_callback,
 ):
     """Test configure command with correction key as UPDATE"""
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     dish_device.subscribe_event(
         "longRunningCommandResult",

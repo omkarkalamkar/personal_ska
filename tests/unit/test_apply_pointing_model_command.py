@@ -45,7 +45,7 @@ def test_apply_pointing_model_command(
     """Test to check the global pointing model command
     functionality"""
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     global_pointing_tm_data_path = json_factory("global_pointing_model")
     cm.apply_pointing_model(
@@ -76,7 +76,7 @@ def test_apply_pointing_model_command_with_faulty_path(
     gets detected.
     """
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     global_pointing_tm_model_path = json_factory("global_pointing_model")
     global_pointing_tm_model_path = json.loads(global_pointing_tm_model_path)
@@ -117,7 +117,7 @@ def test_apply_pointing_model_command_with_faulty_json(
     gets detected.
     """
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     global_pointing_tm_model_path = json_factory(
         "global_pointing_model_faulty"
@@ -154,7 +154,7 @@ def test_apply_pointing_model_command_file_not_found(
     found on the repo.
     """
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     gpm_json = json.dumps(
         {
