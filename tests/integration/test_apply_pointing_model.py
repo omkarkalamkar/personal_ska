@@ -29,7 +29,13 @@ def gpm_validation_result(
         ].assert_change_event(Anything, lookahead=5,)["attribute_value"]
         logger.info(f"GPM Validation Result: {attribute_value}")
         gpm_validation_result = json.loads(attribute_value)
-        if gpm_validation_result[band_name] == band_result:
+        logger.info("attribute_value %s", attribute_value)
+        if not isinstance(band_result, ResultCode):
+            data = ResultCode(int(band_result))
+
+        logger.info("band_result %s", band_result)
+        logger.info("data %s", data)
+        if gpm_validation_result[band_name] == data:
             flag = True
             break
         sleep(1)

@@ -275,6 +275,7 @@ class HealthManager:
         for idx, result in enumerate(
             self.health_data.gpm_validation_result.result
         ):
+            self.logger.info("result %s", result)
             # if result == ResultCode.FAILED:
             #     error_msg = f"GPM validation failed for GPM index {idx}."
             #     self._active_issues[f"gpm_{idx}"] = error_msg
