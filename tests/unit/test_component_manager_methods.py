@@ -218,6 +218,7 @@ def test_process_actual_pointing_handles_invalid_data(cm):
     assert cm.actual_pointing_process.is_alive()
 
 
+@pytest.mark.up1
 @pytest.mark.parametrize(
     "kvalue_validation_result, expected_health_states",
     [
@@ -245,7 +246,7 @@ def test_health_evaluation_and_update(
 
     # --- Rule evaluation ---
     cm.health_manager.update_health_data_and_aggregate(
-        cm.kValueValidationResult.name,
+        cm.kValueValidationResult,
         "KValueValidationResultData",
     )
     health_state = cm.health_manager.evaluate_health_state(
@@ -259,12 +260,13 @@ def test_health_evaluation_and_update(
     mock_callback.assert_called_once_with(expected_health_states)
 
 
+@pytest.mark.up1
 def test_evaluate_and_update_health_state_when_no_rule_matches(cm):
     cm._update_health_state_callback = mock.Mock()
     cm.health_manager.evaluate_health_state = mock.Mock(return_value=None)
 
     cm.health_manager.update_health_data_and_aggregate(
-        ResultCode.STARTED.name,
+        ResultCode.STARTED,
         "KValueValidationResultData",
     )
 

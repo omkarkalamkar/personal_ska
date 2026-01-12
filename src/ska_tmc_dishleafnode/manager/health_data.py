@@ -239,9 +239,9 @@ class HealthManager:
             self.logger.info("state - %s", state)
             self.logger.info("state.value - %s", state.value)
             self.logger.info("state.name- %s", state.name)
-            if state.value not in good_states:
+            if state.name not in good_states:
                 self._active_issues[f"band_requested_{requested.name}"] = (
-                    f"requested band {requested.name} is {state.value} not "
+                    f"requested band {requested.name} is {state.name} not "
                     + "fully available for observation."
                 )
         else:
