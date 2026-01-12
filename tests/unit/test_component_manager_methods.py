@@ -287,8 +287,6 @@ def test_health_state_falls_back_to_unknown_when_no_decisive_condition_is_met(
             band_capabilities={},
         ),
     )
-    data["band_capability_data"]["band_capability_values"] = set()
-
     health = cm.health_manager.evaluate_health_state(data)
 
     assert health == HealthState.UNKNOWN, (
