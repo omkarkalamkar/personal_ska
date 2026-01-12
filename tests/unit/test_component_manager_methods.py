@@ -9,6 +9,14 @@ import numpy as np
 import pytest
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
+from ska_tmc_common import Band
+
+from ska_tmc_dishleafnode.manager.health_data import (
+    DishBandCapabilityStateData,
+    DishHealthData,
+    GPMValidationResultData,
+    KValueValidationResultData,
+)
 
 
 def test_stop_executors_with_event_receiver(cm_without_er_lp):
@@ -259,13 +267,30 @@ def test_health_evaluation_and_update(
     mock_callback.assert_called_once_with(expected_health_states)
 
 
-def test_evaluate_and_update_health_state_when_no_rule_matches(cm):
-    cm._update_health_state_callback = mock.Mock()
-    cm.health_manager.evaluate_health_state = mock.Mock(return_value=None)
+def test_health_state_falls_back_to_unknown_when_no_decisive_condition_is_met(
+    cm,
+):
+    """
+    The purpose of this test is to verify that HealthState.UNKNOWN acts as
+    a true fallback when none of the more specific rules (OK/DEGRADED/FAILED)
+    match — which relies on the Rule("True") catch-all at the end.
+    """
 
-    cm.health_manager.update_health_data_and_aggregate(
-        ResultCode.STARTED.name,
-        "KValueValidationResultData",
+    data = DishHealthData(
+        k_value_validation_result=KValueValidationResultData(
+            result_code=ResultCode.OK
+        ),
+        gpm_validation_result=GPMValidationResultData(result=[]),
+        receiver_band=Band.NONE,
+        band_capability_data=DishBandCapabilityStateData(
+            band_capabilities={},
+            band_capability_values=[],
+        ),
     )
 
-    cm._update_health_state_callback.assert_not_called()
+    health = cm.health_manager.evaluate_health_state(data)
+
+    assert health == HealthState.UNKNOWN, (
+        "Should fall back to UNKNOWN when no OK/DEGRADED/FAILED rule matches "
+        "(protected by the Rule('True') catch-all)"
+    )
