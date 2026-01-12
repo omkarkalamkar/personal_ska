@@ -105,7 +105,10 @@ class AutoStow:
 
             for _, wind_speed in wind_speeds.items():
                 wind_speed_means.append(np.array(wind_speed).mean())
-            wind_speed_mean = max(wind_speed_means)
+            if wind_speed_means:
+                wind_speed_mean = max(wind_speed_means)
+            else:
+                wind_speed_mean = 0
             self.component_manager.wind_speed_mean = wind_speed_mean
             if wind_speed_mean >= self.wind_threshold:
                 self.logger.info(
@@ -131,7 +134,10 @@ class AutoStow:
 
             for _, gust_speed in gust_speeds.items():
                 gust_speed_means.append(np.array(gust_speed).mean())
-            gust_wind_speed_mean = max(gust_speed_means)
+            if gust_speed_means:
+                gust_wind_speed_mean = max(gust_speed_means)
+            else:
+                gust_wind_speed_mean = 0
             self.component_manager.gust_wind_speed_mean = gust_wind_speed_mean
             if gust_wind_speed_mean >= self.gust_threshold:
                 self.logger.info(
