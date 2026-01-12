@@ -285,9 +285,9 @@ def test_health_state_falls_back_to_unknown_when_no_decisive_condition_is_met(
         receiver_band=Band.NONE,
         band_capability_data=DishBandCapabilityStateData(
             band_capabilities={},
-            band_capability_values=[],
         ),
     )
+    data["band_capability_data"]["band_capability_values"] = set()
 
     health = cm.health_manager.evaluate_health_state(data)
 
