@@ -416,7 +416,7 @@ def gpm_version_restart_scenario(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_apply_pointing_model(tango_context, group_callback, json_factory):
     """Test to check ApplyPointingModel command with valid TM path"""
     apply_pointing_model(
@@ -428,7 +428,7 @@ def test_apply_pointing_model(tango_context, group_callback, json_factory):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_ApplyPointingModel_invalid_tm_path(
     tango_context, group_callback, json_factory
 ):
@@ -445,7 +445,7 @@ def test_ApplyPointingModel_invalid_tm_path(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_apply_pointing_model_with_erroneous_json(
     tango_context, group_callback, json_factory
 ):

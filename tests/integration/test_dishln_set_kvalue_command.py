@@ -14,6 +14,6 @@ def set_kvalue_command():
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_set_kvalue_command():
     set_kvalue_command()

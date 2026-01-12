@@ -88,7 +88,7 @@ def track_load_static_off_dish_leaf_node_timeout(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_track_load_static_off_command_timeout(
     tango_context, group_callback, json_factory
 ):
@@ -166,7 +166,7 @@ def track_load_static_off_dish_leaf_node_error_propagation(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_track_load_static_off_command_error_propagation(
     tango_context, group_callback, json_factory
 ):
@@ -222,7 +222,7 @@ def track_load_static_off_dish_leaf_node(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_track_load_static_off_command(
     tango_context, group_callback, json_factory
 ):

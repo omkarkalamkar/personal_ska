@@ -59,6 +59,6 @@ def device_unavailability(tango_context, dishln_name, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_device_unavailability(tango_context, group_callback):
     device_unavailability(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)

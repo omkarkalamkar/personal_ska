@@ -94,7 +94,7 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     ["1", "2", "3", "4", "5a", "5b", DISH_CONFIGURE_1_0],
 )
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_configureband_command(tango_context, group_callback, argin):
     if argin != DISH_CONFIGURE_1_0:
         argin = json.dumps({"dish": {"receiver_band": str(argin)}})
@@ -177,7 +177,7 @@ def configureband_command_error_propogation(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_configureband_command_error_propogation(
     tango_context, group_callback
 ):
@@ -259,7 +259,7 @@ def configureband_command_timeout(tango_context, dishln_name, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid_skipskip
 def test_configureband_command_timeout(tango_context, group_callback):
     configureband_command_timeout(
         tango_context, DISH_LEAF_NODE_DEVICE, group_callback
