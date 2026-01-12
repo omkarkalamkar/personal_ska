@@ -12,7 +12,6 @@ from ska_tmc_dishleafnode.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_data import (
     DishBandCapabilityStateData,
     DishHealthData,
-    DishManagerHealthData,
     GPMValidationResultData,
     HealthManager,
     KValueValidationResultData,
@@ -111,7 +110,6 @@ def test_generate_health_info_parametrized(
     # key "mid-tmc/leaf-node-dish/ska001"
     logger.info("Generated healthInfo: %s", health_info)
     assert "HealthSummary" in health_info
-    assert dish_key in health_info["HealthSummary"]
     info_list = health_info["HealthSummary"]
 
     # GPM error
@@ -528,10 +526,9 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
 
         health_info = health_info_cb.call_args[0][0]
         logger.info("HealthInfo after %s: %s", state, health_info)
-
         assert "HealthSummary" in health_info
-        assert dish_key in health_info["HealthSummary"]
-        info_list = health_info["HealthSummary"][dish_key]["Info"]
+
+        info_list = health_info["HealthSummary"]
         logger.info("HealthInfo.Info list after %s: %s", state, info_list)
 
         has_dm_msg = any(
@@ -696,13 +693,11 @@ def test_generate_health_info(cm_without_er_lp):
     hm = HealthManager(component_manager=cm, logger=logger)
 
     # placeholder used by generate_health_info
-    dish_key = "mid-tmc/leaf-node-dish/ska001"
 
     def _info_list():
         hi = hm.generate_health_info()
-        info = hi["HealthSummary"][dish_key]["Info"]
+        info = hi["HealthSummary"]
         logger.info("healthInfo: %s", hi)
-        logger.info("healthInfo.Info: %s", info)
         return info
 
     def _assert_has(info, needle: str):
