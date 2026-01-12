@@ -54,7 +54,7 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid_skipskip
+@pytest.mark.SKA_midskip
 def test_on_command(tango_context, group_callback):
     setstandbyfpmode_command(
         tango_context, DISH_LEAF_NODE_DEVICE, group_callback

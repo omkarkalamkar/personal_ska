@@ -125,7 +125,7 @@ def check_track_table(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid_skipskip
+@pytest.mark.SKA_midskip
 def test_program_track_table(tango_context, group_callback, json_factory):
     check_track_table(
         tango_context,
