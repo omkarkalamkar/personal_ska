@@ -110,10 +110,9 @@ def test_generate_health_info_parametrized(
     # generate_health_info uses a fixed placeholder
     # key "mid-tmc/leaf-node-dish/ska001"
     logger.info("Generated healthInfo: %s", health_info)
-    dish_key = "mid-tmc/leaf-node-dish/ska001"
     assert "HealthSummary" in health_info
     assert dish_key in health_info["HealthSummary"]
-    info_list = health_info["HealthSummary"][dish_key]["Info"]
+    info_list = health_info["HealthSummary"]
 
     # GPM error
     has_gpm_msg = any("GPM validation failed" in s for s in info_list)
@@ -159,7 +158,9 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     dh = DishHealthData()
 
     # IMPORTANT: set these on dh (the object you actually evaluate)
-    dh.gpm_validation_result = GPMValidationResultData(result=[ResultCode.OK])
+    dh.gpm_validation_result = GPMValidationResultData(
+        result=["ResultCode.OK"]
+    )
     dh.k_value_validation_result = KValueValidationResultData(
         result_code=ResultCode.OK
     )
@@ -694,7 +695,8 @@ def test_generate_health_info(cm_without_er_lp):
     logger = logging.getLogger("test.healthinfo.stepwise")
     hm = HealthManager(component_manager=cm, logger=logger)
 
-    dish_key = "mid-tmc/leaf-node-dish/ska001"  # placeholder used by generate_health_info
+    # placeholder used by generate_health_info
+    dish_key = "mid-tmc/leaf-node-dish/ska001"
 
     def _info_list():
         hi = hm.generate_health_info()
