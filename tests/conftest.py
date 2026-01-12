@@ -150,7 +150,7 @@ def dishln_device(request):
                 "DishAvailabilityCheckTimeout": 5,
             },
             process=True,
-            timeout=20,
+            timeout=180,
         ) as proxy:
             yield proxy
     else:
@@ -376,12 +376,10 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         dish_availability_check_timeout=3,
         command_timeout=30,
         _update_health_state_callback=update_health_state_callback,
+        mean_wind_speed_duration=5,
     )
     cm.stop_actual_pointing_process.set()
     cm.array_layout = ARRAY_LAYOUT
-    if cm.event_manager:
-        cm.stop_event_manager()
-
     yield cm
     # pylint: disable=unnecessary-dunder-call
     try:

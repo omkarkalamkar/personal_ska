@@ -106,8 +106,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_gpm_version_callback: Callable,
         _update_gpm_validation_result_callback: Callable,
         _update_gpm_paths_data_callback: Callable,
-        _liveliness_probe=LivelinessProbeType.MULTI_DEVICE,
-        _event_manager: bool = True,
+        _liveliness_probe=LivelinessProbeType.NONE,
+        _event_manager: bool = False,
         default_array_layout_source_uris: str = '',
         default_array_layout_path: str = '',
         proxy_timeout: int = 500,
@@ -124,8 +124,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         gust_speed_threshold: float = 20.0,
         mean_wind_speed_duration: float = 600.0,
         mean_gust_speed_duration: float = 3.0,
-        max_temp_threshold: float = -5.0,
-        min_temp_threshold: float = 40.0,
+        max_temp_threshold: float = 40.0,
+        min_temp_threshold: float = -5.0,
         time_delta: float = 1000.0,
         temp_delta: float = 4.5,
         is_auto_stow_enabled: bool = True,
@@ -370,9 +370,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             wind_threshold=wind_speed_threshold,
             gust_threshold=gust_speed_threshold,
             temp_delta=temp_delta,
+            time_delta=time_delta,
         )
         self.wind_tracking: bool = False
-        self.temperature_tracking: bool = False
+        self.temperature_tracking: dict[str, bool] = defaultdict(bool)
         self.__rate_of_change_temperature: float = 0.0
         self.__gust_wind_speed_mean: float = 0.0
         self.__wind_speed_mean: float = 0.0
@@ -385,10 +386,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             mean_gust_speed_duration, self.auto_stow.check_gusts
         )
         self.time_delta: float = time_delta
-        self.temp_timer: threading.Timer = RepeatedTimer(
-            self.time_delta,
-            self.auto_stow.change_of_rate_temperature_auto_stow,
-        )
+        self.temp_timers: list[threading.Thread] = []
         self.is_auto_stow_enabled: bool = is_auto_stow_enabled
         self._update_roc_temp_callback: Optional[
             Callable
@@ -403,6 +401,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             Callable
         ] = _update_stow_status_callback
         self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+        # this is temporary variable
+        # which can be utilised to expose failure in future.
+        self.__auto_stow_failures: list[str] = [""]
+
+    def update_auto_stow_failures(self, failure: str):
+        """Method updates the auto stow failures"""
+        self.__auto_stow_failures.append(failure)
 
     def add_weather_station_devices(
         self, weather_station_devices: list
@@ -411,8 +416,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :param weather_station_devices: (list) Weather station device fqdns.
         """
-        for wms in weather_station_devices:
-            self.devices = DeviceInfo(wms.strip())
+        if weather_station_devices:
+            for wms in weather_station_devices:
+                self.devices = DeviceInfo(wms.strip())
 
     @property
     def devices(self) -> list[Union[DishDeviceInfo, DeviceInfo]]:
@@ -540,11 +546,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         Sets up the event subscription after input parameters are updated.
         """
-
-        self.start_event_manager(
-            self.build_device_attribute_map(), timeout=1000
-        )
-        self.logger.debug("Successfully subscribed the events")
+        if self.event_manager:
+            self.start_event_manager(
+                self.build_device_attribute_map(), timeout=1000
+            )
+            self.logger.debug("Successfully subscribed the events")
 
     def build_device_attribute_map(self) -> Dict[str, list[str]]:
         """
@@ -2541,7 +2547,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         with self.rlock:
             device_info.update_unresponsive(True, exception)
             if self.update_availablity_callback is not None:
-                self.update_availablity_callback(False)
+                if self.dish_dev_name == device_info.dev_name:
+                    self.update_availablity_callback(False)
+                else:
+                    if self.is_auto_stow_enabled:
+                        for wms in self.weather_station_device_names:
+                            if device_info.dev_name in wms:
+                                self.logger.info(
+                                    "Invoking auto stow due to connection"
+                                    "failure with weather station."
+                                    "Exception: %s",
+                                    exception,
+                                )
+                                self.auto_stow.invoke_auto_stow()
 
     def update_responsiveness_info(self, device_name: str) -> None:
         """
@@ -2896,10 +2914,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.wind_timer.cancel()
         if self.gust_timer and self.gust_timer.is_alive():
             self.gust_timer.cancel()
-        if self.temp_timer and self.temp_timer.is_alive():
-            self.temp_timer.cancel()
+        if self.temp_timers:
+            for key in self.temperature_tracking:
+                self.temperature_tracking[key] = False
+            for timer in self.temp_timers:
+                timer.join()
+            for poller in self.auto_stow.poll_threads:
+                poller.join()
         self.wind_tracking = False
-        self.temperature_tracking = False
         self.logger.debug("Stopped event processing threads successfully")
 
         if (
@@ -3211,6 +3233,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.auto_stow.wind_speeds[wms].append(wind_speed)
                 self.auto_stow.gust_speeds[wms].append(wind_speed)
                 if not self.wind_tracking:
+                    self.wind_timer.daemon = True
+                    self.gust_timer.daemon = True
                     self.wind_timer.start()
                     self.gust_timer.start()
                     self.wind_tracking = True
@@ -3224,16 +3248,20 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if temperature:
             if wms in self.weather_station_device_names[0]:
                 self.temperature = temperature
+            self.auto_stow.temperatures[wms] = temperature
             if self.is_auto_stow_enabled:
                 if (
                     temperature > self.max_temp_threshold
                     or temperature < self.min_temp_threshold
                 ):
-                    self.auto_stow.temperature_based_auto_stow()
-                if not self.temperature_tracking:
-                    self.auto_stow.previous_temperature = temperature
-                    self.temp_timer.start()
-                    self.temperature_tracking = True
+                    self.auto_stow.invoke_auto_stow()
+                if not self.temperature_tracking.get(wms):
+                    self.temperature_tracking[wms] = True
+                    temp_timer = threading.Thread(
+                        target=self.auto_stow.roc_temp, args=[wms], daemon=True
+                    )
+                    temp_timer.start()
+                    self.temp_timers.append(temp_timer)
 
     def update_pressure(self, pressure: float, wms: str = "") -> None:
         """The method to update pressure.
@@ -3309,20 +3337,26 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band5apointingmodelparams": band5a_callback,
             "band5bpointingmodelparams": band5b_callback,
         }
-
-        for wms in self.weather_station_device_names:
-            if "tango://" in wms:
-                wms = "/".join(wms.split("/")[-3:])
-            attributes.update(
-                {
-                    f"windSpeed{wms}": partial(self.update_windspeed, wms=wms),
-                    f"pressure{wms}": partial(self.update_pressure, wms=wms),
-                    f"humidity{wms}": partial(self.update_humidity, wms=wms),
-                    f"temperature{wms}": partial(
-                        self.update_humidity, wms=wms
-                    ),
-                }
-            )
+        if self.weather_station_device_names:
+            for wms in self.weather_station_device_names:
+                if "tango://" in wms:
+                    wms = "/".join(wms.split("/")[-3:])
+                attributes.update(
+                    {
+                        f"windSpeed{wms}": partial(
+                            self.update_windspeed, wms=wms
+                        ),
+                        f"pressure{wms}": partial(
+                            self.update_pressure, wms=wms
+                        ),
+                        f"humidity{wms}": partial(
+                            self.update_humidity, wms=wms
+                        ),
+                        f"temperature{wms}": partial(
+                            self.update_temperature, wms=wms
+                        ),
+                    }
+                )
         return {**attributes}
 
     def update_program_track_table_error(self, event: tango.EventData) -> None:

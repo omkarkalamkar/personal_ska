@@ -93,7 +93,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         doc="Retry duration for programTrackTable write operation in seconds",
     )
     WeatherStationDeviceNames = device_property(
-        dtype=("str",), doc="FQDN's of Weather Station devices", default_value=tuple()
+        dtype=("str",),
+        doc="FQDN's of Weather Station devices",
+        default_value=tuple(),
     )
     WindSpeedThreshold = device_property(
         dtype=float,

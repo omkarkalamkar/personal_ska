@@ -59,7 +59,9 @@ class DishPointingDevice(TMCBaseLeafDevice):
         doc="Advanced program track tables entries in track table schedular",
     )
     WeatherStationDeviceNames = device_property(
-        dtype=("str",), doc="FQDNs of Weather Station devices", default_value=tuple()
+        dtype=("str",),
+        doc="FQDNs of Weather Station devices",
+        default_value=tuple(),
     )
 
     def __init__(self, *args, **kwargs):

@@ -233,6 +233,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         Sets up the event subscription after input parameters are updated.
         """
+
         self.start_event_manager(
             self.build_device_attribute_map(), timeout=1000
         )

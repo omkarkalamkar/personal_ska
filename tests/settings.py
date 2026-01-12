@@ -13,6 +13,7 @@ from ska_tmc_common import DishMode, PointingState
 from ska_tmc_common.adapters import AdapterFactory as HelperAdapterFactory
 from tango import DeviceProxy
 
+from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 configure_logging()
@@ -309,13 +310,25 @@ def wait_for_dish_mode(
     """
     start_time = time.time()
     elapsed_time = 0
-    while elapsed_time < TIMEOUT:
+    while elapsed_time < 10:
         cm.update_device_dish_mode(dish_mode)
         if cm.dishMode == int(dish_mode):
             return True
         elapsed_time = time.time() - start_time
     logger.info("Current Dishmode is %s", cm.dishMode)
     return False
+
+
+def wait_for_stow_status(
+    cm: DishLNComponentManager, status: StowStatus, timeout: int = 10
+) -> bool:
+    """Wait for stow status"""
+    start_time = time.time()
+    while cm.stow_status != status:
+        if (time.time() - start_time) >= timeout:
+            return False
+        time.sleep(1)
+    return True
 
 
 def wait_for_attribute_value(
