@@ -10,7 +10,7 @@ from tests.settings import DISH_MASTER_DEVICE
 
 @pytest.mark.bandcapability
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_dishln_band_capability(group_callback):
     dish_manager_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     dish_manager_device.subscribe_event(
