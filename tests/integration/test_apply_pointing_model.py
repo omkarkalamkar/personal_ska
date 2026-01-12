@@ -14,6 +14,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     wait_and_validate_attribute_value_available,
+    wait_for_attribute_health_value,
 )
 
 
@@ -208,10 +209,13 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
 
     gpm_validation_result(group_callback, "Band_5a", "OK")
 
-    group_callback["healthState"].assert_change_event(
-        HealthState.DEGRADED,
-        lookahead=5,
-    )
+    # group_callback["healthState"].assert_change_event(
+    #     HealthState.DEGRADED,
+    #     lookahead=5,
+    # )
+
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
     # Assert Band_5a contains values
     assert (dish_master_dev.band5apointingmodelparams).tolist()
 
