@@ -226,6 +226,8 @@ class HealthManager:
             "Active issues after removal: %s", self._active_issues
         )
 
+        self.logger.info("requested.name    %s", requested.name)
+
         if requested not in (Band.NONE, Band.UNKNOWN):
             state = (
                 self.health_data.band_capability_data.band_capabilities.get(
@@ -233,9 +235,13 @@ class HealthManager:
                     CapabilityStates.UNKNOWN,
                 )
             )
+
+            self.logger.info("state - %s", state)
+            self.logger.info("state.value - %s", state.value)
+            self.logger.info("state.name- %s", state.name)
             if state.value not in good_states:
                 self._active_issues[f"band_requested_{requested.name}"] = (
-                    f"requested band {requested.name} is {state.value} — not "
+                    f"requested band {requested.name} is {state.value} not "
                     + "fully available for observation."
                 )
         else:
