@@ -18,6 +18,7 @@ from tests.settings import (
     logger,
     tear_down,
     wait_and_validate_attribute_value_available,
+    wait_for_attribute_health_value,
     wait_for_attribute_value,
 )
 
@@ -117,7 +118,7 @@ def endscan_command(
         }
     )
     dish_master.SetDirectCapabilityState(capabiity_argin)
-    wait_for_attribute_value(dish_leaf_node, "healthState", HealthState.FAILED)
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 2)
     log_and_assert_health(
         dish_leaf_node, dish_master, dishln_pointing_device, HealthState.FAILED
     )
@@ -173,9 +174,7 @@ def endscan_command(
     #     }
     # )
 
-    wait_for_attribute_value(
-        dish_leaf_node, "healthState", HealthState.DEGRADED
-    )
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
     log_and_assert_health(
         dish_leaf_node,
         dish_master,
@@ -193,7 +192,7 @@ def endscan_command(
         }
     )
     dish_master.SetDirectCapabilityState(capabiity_argin)
-    wait_for_attribute_value(dish_leaf_node, "healthState", "0")
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
     log_and_assert_health(
         dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
     )
