@@ -241,7 +241,7 @@ class HealthManager:
             self.logger.info("state.name- %s", state.name)
             if state.name not in good_states:
                 self._active_issues[f"band_requested_{requested.name}"] = (
-                    f"requested band {requested.name} is {state.value} not "
+                    f"requested band {requested.name} is {state.name} not "
                     + "fully available for observation."
                 )
         else:
@@ -259,7 +259,7 @@ class HealthManager:
                 self._active_issues[
                     "band_unavailable"
                 ] = f"Unavailable bands: {', '.join(bad_bands)}."
-            self.logger.info("Updated active issues: %s", self._active_issues)
+        self.logger.info("Updated active issues: %s", self._active_issues)
 
     def _update_gpm_issues(self):
         """
