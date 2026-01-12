@@ -8,7 +8,7 @@ from tests.settings import COMMAND_COMPLETED, DISHLN_POINTING_DEVICE
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_dishln_pointing_device(group_callback, json_factory):
     """Test the dishln pointing device is up and pingable"""
 
