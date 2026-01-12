@@ -401,12 +401,6 @@ class HealthManager:
         Returns:
             Dict containing health info
         """
-        dish_name = (
-            # Placeholder for actual dish name
-            "mid-tmc/leaf-node-dish/ska001"
-        )
-        health_info: Dict = {"HealthSummary": {}}
-        health_info["HealthSummary"][dish_name] = {
-            "Info": list(self._active_issues.values())
-        }
+        health_info: Dict = {"HealthSummary": []}
+        health_info["HealthSummary"] = list(self._active_issues.values())
         return health_info
