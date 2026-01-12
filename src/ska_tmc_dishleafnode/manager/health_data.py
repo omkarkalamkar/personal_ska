@@ -259,7 +259,7 @@ class HealthManager:
                 self._active_issues[
                     "band_unavailable"
                 ] = f"Unavailable bands: {', '.join(bad_bands)}."
-            self.logger.info("Updated active issues: %s", self._active_issues)
+        self.logger.info("Updated active issues: %s", self._active_issues)
 
     def _update_gpm_issues(self):
         """

@@ -324,7 +324,9 @@ def wait_for_attribute_value(
 ) -> bool:
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
+    logger.info("checking for %s to change from %s", attribute_name, value)
     while device.read_attribute(attribute_name).value == value:
+        logger.info("Waiting for %s to change from %s", attribute_name, value)
         time.sleep(0.5)
         if time.time() - start_time >= TIMEOUT:
             return False
