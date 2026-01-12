@@ -117,7 +117,7 @@ def endscan_command(
         }
     )
     dish_master.SetDirectCapabilityState(capabiity_argin)
-    wait_for_attribute_value(dish_leaf_node, "healthState", 2)
+    wait_for_attribute_value(dish_leaf_node, "healthState", HealthState.FAILED)
     log_and_assert_health(
         dish_leaf_node, dish_master, dishln_pointing_device, HealthState.FAILED
     )
@@ -173,7 +173,9 @@ def endscan_command(
     #     }
     # )
 
-    wait_for_attribute_value(dish_leaf_node, "healthState", 1)
+    wait_for_attribute_value(
+        dish_leaf_node, "healthState", HealthState.DEGRADED
+    )
     log_and_assert_health(
         dish_leaf_node,
         dish_master,

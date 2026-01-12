@@ -333,7 +333,7 @@ def wait_for_attribute_value(
         time.sleep(0.5)
         if time.time() - start_time >= TIMEOUT:
             return False
-    logger.info("Attribute %s changed to %s", attribute_name, value)
+    logger.info("Attribute %s value is now %s", attribute_name, value)
     return True
 
 
