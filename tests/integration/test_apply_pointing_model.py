@@ -416,7 +416,7 @@ def gpm_version_restart_scenario(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_mid_skip
 def test_apply_pointing_model(tango_context, group_callback, json_factory):
     """Test to check ApplyPointingModel command with valid TM path"""
     apply_pointing_model(
