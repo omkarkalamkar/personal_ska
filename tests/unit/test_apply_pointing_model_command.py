@@ -240,7 +240,7 @@ def test_to_check_apm_command_successful_during_gpm_validation(
         gpm_validator.invoke_apm_on_dish(
             gpm_version_for_given_band, band_found
         )
-        cb.assert_called_once_with("Band_5a", ResultCode.OK)
+        cb.assert_called_once_with("Band_5a", "OK")
         assert cm.logger.debug.call_count >= 1
 
 
@@ -268,7 +268,7 @@ def test_to_check_apm_command_failed_during_gpm_validation(cm_without_er_lp):
         gpm_validator.invoke_apm_on_dish(
             gpm_version_for_given_band, band_found
         )
-        cb.assert_called_once_with("Band_5a", ResultCode.FAILED)
+        cb.assert_called_once_with("Band_5a", "FAILED")
         assert cm.logger.error.call_count >= 1
 
 
@@ -296,7 +296,7 @@ def test_to_check_apm_command_exception_during_gpm_validation(
             gpm_version_for_given_band, band_found
         )
 
-        cb.assert_called_once_with("Band_5a", ResultCode.FAILED)
+        cb.assert_called_once_with("Band_5a", "FAILED")
         cm.logger.exception.assert_called_once()
 
 
@@ -326,7 +326,7 @@ def test_to_check_validate_gpm_version_with_error(cm_without_er_lp):
         gpm_validator.validate_gpm_version(
             np.array(dish_param), gpm_version_for_given_band, band_found
         )
-        cb.assert_called_once_with("Band_5a", ResultCode.FAILED)
+        cb.assert_called_once_with("Band_5a", "FAILED")
         cm.logger.error.assert_called_once()
 
 
@@ -347,7 +347,7 @@ def test_to_check_validate_gpm_version_with_success(cm_without_er_lp):
         np.array(dish_param), gpm_version_for_given_band, band_found
     )
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
-        "Band_1", ResultCode.OK
+        "Band_1", "OK"
     )
     assert cm.logger.debug.call_count >= 1
 
@@ -369,7 +369,7 @@ def test_to_check_validate_gpm_version_with_mismatch(cm_without_er_lp):
         np.array(dish_param), gpm_version_for_given_band, band_found
     )
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
-        "Band_5a", ResultCode.FAILED
+        "Band_5a", "FAILED"
     )
     assert cm.logger.debug.call_count >= 1
 
@@ -389,7 +389,7 @@ def test_to_check_validate_gpm_version_with_exception(cm_without_er_lp):
         np.array(dish_param), gpm_version_for_given_band, band_found
     )
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
-        "Band_5a", ResultCode.FAILED
+        "Band_5a", "FAILED"
     )
     assert cm.logger.exception.call_count >= 1
 
@@ -470,7 +470,7 @@ def test_update_dish_pointing_model_param_calls(
     )
     logger.error.call_count >= 1
     cm.handle_update_gpm_validation_result_callback.assert_called_once_with(
-        "Band_1", ResultCode.FAILED
+        "Band_1", "FAILED"
     )
 
     # Scenario 3: invoke gpm gets called once
