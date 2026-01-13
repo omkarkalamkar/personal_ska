@@ -53,13 +53,19 @@ class Scan(DishLNCommand):
             **kwargs: Keyword arguments for task status update.
         """
         super().update_task_status(**kwargs)
-        if self.component_manager.command_unique_id_dict.get(
-            self.command_uniq_id
-        ):
-            del self.component_manager.command_unique_id_dict[
-                self.command_uniq_id
-            ]
-            self.command_uniq_id = ""
+        # Previously configure command used to clear this dictionary
+        # But it was happening once Scan has started , causing entries
+        # of Scan command get erased , to avoid this dictionary will now
+        # be cleared from here.
+        self.component_manager.command_unique_id_dict.clear()
+        self.command_uniq_id = ""
+        # if self.component_manager.command_unique_id_dict.get(
+        #     self.command_uniq_id
+        # ):
+        #     del self.component_manager.command_unique_id_dict[
+        #         self.command_uniq_id
+        #     ]
+        #     self.command_uniq_id = ""
 
     # pylint: disable=unused-argument
     @timeout_tracker
