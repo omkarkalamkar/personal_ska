@@ -217,7 +217,7 @@ class GPMValidator:
                         }
                     )
                 )
-                if result_code != int(ResultCode.OK.name):
+                if result_code != int(ResultCode.OK):
                     self.gpm_validation_update(
                         band_found, ResultCode.FAILED.name
                     )
