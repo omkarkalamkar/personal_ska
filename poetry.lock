@@ -3026,7 +3026,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-common.git"
 reference = "sah-1841-rebase"
-resolved_reference = "58a190456b6a83c11c17928038bd17a9290a310f"
+resolved_reference = "4e6b62674e91aac261275e150d95eba52801cd93"
 
 [[package]]
 name = "ska-tmc-simulators"
@@ -3061,7 +3061,7 @@ typing_extensions = "*"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators.git"
 reference = "sah-1841-rebased"
-resolved_reference = "2be0dca78dd0cf6e371d29b1a9b1fa9bc7833be4"
+resolved_reference = "33cd9c0ae47a9f7d109a9129609f02b2a99a3264"
 
 [[package]]
 name = "ska-trajectory"
