@@ -84,7 +84,7 @@ class DishHealthData:
     )
 
 
-class HealthManager:
+class DishHealthStateAndInfoManager:
     """
     Manager for Dish Leaf Node health data.
     """
@@ -104,79 +104,26 @@ class HealthManager:
 
     def update_health_data_and_aggregate(self, data, datatype) -> None:
         """
-        Update health data from component manager.
+        Update health data from component manager and trigger aggregation.
         """
         with self.eventlock:
             match datatype:
                 case "GPMValidationResultData":
-                    self.health_data.gpm_validation_result = (
-                        GPMValidationResultData(result=data)
-                    )
-                    self.logger.debug(
-                        "Updated GPMValidationResultData in health data: %s",
-                        str(self.health_data),
-                    )
-                    self._update_gpm_issues()
+                    self._update_gpm_validation(data)
                 case "KValueValidationResultData":
-                    if not isinstance(data, ResultCode):
-                        data = ResultCode(data)
-                    self.health_data.k_value_validation_result = (
-                        KValueValidationResultData(result_code=data)
-                    )
-                    self.logger.debug(
-                        "Updated KValueValidationResultData in"
-                        " health data: %s",
-                        str(self.health_data),
-                    )
-                    self._update_kvalue_issues()
+                    self._update_kvalue_validation(data)
                 case "DishManagerHealthData":
-                    if not isinstance(data, HealthState):
-                        data = HealthState(data)
-                    self.health_data.dish_manager_health_data = (
-                        DishManagerHealthData(health_state=data)
-                    )
-                    self.logger.debug(
-                        "Updated DishManagerHealthData in health data: %s",
-                        str(self.health_data),
-                    )
-                    self._update_dishmanager_issues()
+                    self._update_dish_manager_health(data)
                 case "DishBandCapabilityStateData":
-                    self.logger.info(
-                        "Updating DishBandCapabilityStateData as %s", data
-                    )
-                    band_name, capability_state = data
-                    if not isinstance(capability_state, CapabilityStates):
-                        capability_state = CapabilityStates(capability_state)
-                    self.health_data.band_capability_data.band_capabilities[
-                        band_name
-                    ] = capability_state
-                    self.logger.info(
-                        "Updated DishBandCapabilityStateData"
-                        " in health data: %s",
-                        str(self.health_data),
-                    )
-                    self._update_band_issues()
+                    self._update_band_capability(data)
                 case "receiver_band":
-                    if isinstance(data, Band):
-                        self.health_data.receiver_band = data
-                    else:
-                        self.health_data.receiver_band = Band(data)
-
-                    self.logger.debug(
-                        "Updated receiver_band in health data: %s",
-                        self.health_data.receiver_band,
-                    )
-                    self._update_band_issues()
+                    self._update_receiver_band(data)
                 case _:
                     self.logger.warning("Unknown datatype: %s", datatype)
+                    return
 
+            # After any successful update → re-evaluate
             health_state = self.evaluate_health_state(self.health_data)
-            self.logger.debug(
-                "Evaluated health state: %s for data: %s",
-                str(health_state),
-                str(self.health_data),
-            )
-
             health_info = self.generate_health_info()
 
             info_changed = health_info != self._cached_health_info
@@ -196,12 +143,77 @@ class HealthManager:
                         health_state
                     )
 
-    def _update_band_issues(self):
-        """
-        Update band-related issues in active issues.
-        """
+    def _update_gpm_validation(self, data: List[str]) -> None:
+        """Update GPM validation result and related issues."""
+        self.health_data.gpm_validation_result = GPMValidationResultData(
+            result=data
+        )
+        self.logger.debug(
+            "Updated GPMValidationResultData: %s", str(self.health_data)
+        )
+        self._update_gpm_issues()
 
-        self.logger.info("Updating band issues")
+    def _update_kvalue_validation(self, data) -> None:
+        """Update K-value validation result and related issues."""
+        if not isinstance(data, ResultCode):
+            data = ResultCode(data)
+
+        self.health_data.k_value_validation_result = (
+            KValueValidationResultData(result_code=data)
+        )
+        self.logger.debug(
+            "Updated KValueValidationResultData: %s", str(self.health_data)
+        )
+        self._update_kvalue_issues()
+
+    def _update_dish_manager_health(self, data) -> None:
+        """Update Dish Manager health state and related issues."""
+        if not isinstance(data, HealthState):
+            data = HealthState(data)
+
+        self.health_data.dish_manager_health_data = DishManagerHealthData(
+            health_state=data
+        )
+        self.logger.debug(
+            "Updated DishManagerHealthData: %s", str(self.health_data)
+        )
+        self._update_dishmanager_issues()
+
+    def _update_band_capability(self, data) -> None:
+        """Update single band capability state and related issues."""
+        self.logger.info("Updating DishBandCapabilityStateData as %s", data)
+        band_name, capability_state = data
+
+        if not isinstance(capability_state, CapabilityStates):
+            capability_state = CapabilityStates(capability_state)
+
+        self.health_data.band_capability_data.band_capabilities[
+            band_name
+        ] = capability_state
+        self.logger.info("Updated band capability → %s", str(self.health_data))
+
+        self._update_band_issues()
+
+    def _update_receiver_band(self, data) -> None:
+        """Update current receiver band and
+        trigger band-related issue check."""
+
+        if isinstance(data, Band):
+            self.health_data.receiver_band = data
+        else:
+            self.health_data.receiver_band = Band(data)
+
+        self.logger.debug(
+            "Updated receiver_band: %s", self.health_data.receiver_band
+        )
+        self._update_band_issues()
+
+    def _update_band_issues(self) -> None:
+        """
+        Update band-related issues in _active_issues
+        based on current receiver band and capability states.
+        """
+        self.logger.debug("Updating band issues")
 
         good_states = {
             "STANDBY",
@@ -210,58 +222,90 @@ class HealthManager:
             "OPERATE_DEGRADED",
             "UNKNOWN",
         }
+
         requested = self.health_data.receiver_band
-        self.logger.info("Requested band: %s", requested)
 
-        self.logger.info("Active issues: %s", self._active_issues)
-
-        # Clear old band-related issues
-        keys_to_remove = [
-            k for k in self._active_issues if k.startswith("band_")
-        ]
-        for k in keys_to_remove:
-            self._active_issues.pop(k, None)
-
-        self.logger.info(
-            "Active issues after removal: %s", self._active_issues
+        band_capabilities = (
+            self.health_data.band_capability_data.band_capabilities
+        )
+        any_bad_state = any(
+            state.name not in good_states
+            for state in band_capabilities.values()
         )
 
-        self.logger.info("requested.name    %s", requested.name)
+        if requested in (Band.NONE, Band.UNKNOWN) and not any_bad_state:
+            self.logger.debug(
+                "No requested band and all bands are in good state "
+                "→ clearing band issues"
+            )
+            self._clear_band_issues()
+            return
+
+        # Clear previous band-related issues
+        self._clear_band_issues()
 
         if requested not in (Band.NONE, Band.UNKNOWN):
-            state = (
-                self.health_data.band_capability_data.band_capabilities.get(
-                    requested.name,
-                    CapabilityStates.UNKNOWN,
-                )
+            state = band_capabilities.get(
+                requested.name, CapabilityStates.UNKNOWN
             )
 
-            self.logger.info("state - %s", state)
-            self.logger.info("state.value - %s", state.value)
-            self.logger.info("state.name- %s", state.name)
             if state.name not in good_states:
-                self._active_issues[f"band_requested_{requested.name}"] = (
-                    f"requested band {requested.name} is {state.name} not "
-                    + "fully available for observation."
+                msg = (
+                    f"Requested band {requested.name} is in state "
+                    f"{state.name} (not fully available)"
                 )
+                self._active_issues[f"band_requested_{requested.name}"] = msg
+                self.logger.info(msg)
+            else:
+                self.logger.debug(
+                    "Requested band %s is in acceptable state: %s",
+                    requested.name,
+                    state.name,
+                )
+
         else:
-            band_capabilities = (
-                self.health_data.band_capability_data.band_capabilities.items()
-            )
-            self.logger.info("Band capabilities: %s", band_capabilities)
+            # No specific band requested → check if any band is bad
             bad_bands = [
                 name
-                for name, state in band_capabilities
+                for name, state in band_capabilities.items()
                 if state.name not in good_states
             ]
-            self.logger.info("Bad bands: %s", bad_bands)
-            if bad_bands:
-                self._active_issues[
-                    "band_unavailable"
-                ] = f"Unavailable bands: {', '.join(bad_bands)}."
-        self.logger.info("Updated active issues: %s", self._active_issues)
 
-    def _update_gpm_issues(self):
+            if bad_bands:
+                msg = f"Some bands unavailable: {', '.join(bad_bands)}"
+                self._active_issues["band_unavailable"] = msg
+                self.logger.info(msg)
+            else:
+                self.logger.debug(
+                    "No specific band requested and all bands are healthy"
+                )
+
+        if self._active_issues:
+            self.logger.debug(
+                "Active band-related issues after update: %s",
+                {
+                    k: v
+                    for k, v in self._active_issues.items()
+                    if k.startswith("band_")
+                },
+            )
+        else:
+            self.logger.debug("No active band-related issues after update")
+
+    def _clear_band_issues(self) -> None:
+        """Helper to remove all previous band-related issues."""
+        removed = [
+            k for k in list(self._active_issues) if k.startswith("band_")
+        ]
+        for key in removed:
+            self._active_issues.pop(key, None)
+
+        if removed:
+            self.logger.debug(
+                "Cleared %d previous band-related issue(s)", len(removed)
+            )
+
+    def _update_gpm_issues(self) -> None:
         """
         Update GPM-related issues in active issues.
         """
@@ -275,7 +319,9 @@ class HealthManager:
         for idx, result in enumerate(
             self.health_data.gpm_validation_result.result
         ):
-            self.logger.info("result %s", result)
+            self.logger.debug(
+                "Evaluating GPM result at index %d: %s", idx, result
+            )
 
             if (
                 isinstance(result, ResultCode) and result == ResultCode.FAILED
@@ -285,7 +331,7 @@ class HealthManager:
                 error_msg = f"GPM validation failed for GPM index {idx}."
                 self._active_issues[f"gpm_{idx}"] = error_msg
 
-    def _update_kvalue_issues(self):
+    def _update_kvalue_issues(self) -> None:
         """
         Update KValue-related issues in active issues.
         """
@@ -303,9 +349,16 @@ class HealthManager:
             error_msg = "KValue validation failed."
             self._active_issues["kvalue_failed"] = error_msg
 
-    def _update_dishmanager_issues(self):
+    def _update_dishmanager_issues(self) -> None:
         """
         Update DishManager-related issues in active issues.
+
+        This method checks the health state of the Dish Manager and updates
+        the active issues dictionary if the health state is DEGRADED, FAILED,
+        or UNKNOWN. It also logs the relevant error message.
+
+        Returns:
+            None
         """
         # Clear old DishManager-related issues
         keys_to_remove = [
@@ -380,9 +433,7 @@ class HealthManager:
                     return health_state
 
         # Unreachable due to UNKNOWN fallback, but log
-        self.logger.warning(
-            "Unexpected: No rule matched, defaulting to UNKNOWN"
-        )
+        self.logger.debug("Unexpected: No rule matched, defaulting to UNKNOWN")
         return HealthState.UNKNOWN
 
     def generate_health_info(self) -> Dict:

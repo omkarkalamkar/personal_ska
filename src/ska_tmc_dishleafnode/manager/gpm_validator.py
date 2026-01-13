@@ -148,7 +148,7 @@ class GPMValidator:
                     DISH_BANDPARAMS[band_found],
                     message,
                 )
-                self.gpm_validation_update(band_found, ResultCode.FAILED)
+                self.gpm_validation_update(band_found, ResultCode.FAILED.name)
                 return
             band_params = [
                 apm_json['coefficients'][key]['value'] for key in ordered_keys
@@ -163,16 +163,16 @@ class GPMValidator:
                 self.logger.debug(
                     "Dish GPM: %s, DLN GPM: %s", dish_param, band_params
                 )
-                self.gpm_validation_update(band_found, ResultCode.FAILED)
+                self.gpm_validation_update(band_found, ResultCode.FAILED.name)
             else:
-                self.gpm_validation_update(band_found, ResultCode.OK)
+                self.gpm_validation_update(band_found, ResultCode.OK.name)
                 self.logger.debug(
                     "GPM version '%s' band params matched with '%s' of dish.",
                     gpm_version_for_given_band,
                     DISH_BANDPARAMS[band_found],
                 )
         except Exception as e:
-            self.gpm_validation_update(band_found, ResultCode.FAILED)
+            self.gpm_validation_update(band_found, ResultCode.FAILED.name)
             self.logger.exception(
                 "Exception occurred while GPM validation: %s", e
             )
@@ -217,8 +217,10 @@ class GPMValidator:
                         }
                     )
                 )
-                if result_code != int(ResultCode.OK):
-                    self.gpm_validation_update(band_found, ResultCode.FAILED)
+                if result_code != int(ResultCode.OK.name):
+                    self.gpm_validation_update(
+                        band_found, ResultCode.FAILED.name
+                    )
                     self.logger.error(
                         "ApplyPointingModel command failed during GPM "
                         "validation on %s and message: %s",
@@ -244,9 +246,9 @@ class GPMValidator:
                         gpm_version_for_given_band,
                         message,
                     )
-                    self.gpm_validation_update(band_found, ResultCode.OK)
+                    self.gpm_validation_update(band_found, ResultCode.OK.name)
             else:
-                self.gpm_validation_update(band_found, ResultCode.UNKNOWN)
+                self.gpm_validation_update(band_found, ResultCode.UNKNOWN.name)
                 self.logger.debug(
                     "Invalid GPM version '%s' found during GPM validation, "
                     "can't apply GPM to '%s'",
@@ -261,7 +263,7 @@ class GPMValidator:
                 gpm_version_for_given_band,
                 e,
             )
-            self.gpm_validation_update(band_found, ResultCode.FAILED)
+            self.gpm_validation_update(band_found, ResultCode.FAILED.name)
 
     def update_dish_params_and_validate_gpm(
         self,
@@ -289,7 +291,9 @@ class GPMValidator:
             )
             if np.array(dish_param).size > 0 and np.any(dish_param > 0.0):
                 if gpm_version_for_given_band == "UNKNOWN":
-                    self.gpm_validation_update(band_found, ResultCode.FAILED)
+                    self.gpm_validation_update(
+                        band_found, ResultCode.FAILED.name
+                    )
                     self.logger.error(
                         "GPM Validation failed. GPM Dish param received: %s",
                         dish_param,

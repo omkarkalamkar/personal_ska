@@ -226,8 +226,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 "healthInfo", json.dumps(self.component_manager.health_info)
             )
         self.logger.info(
-            "Updated HealthInfo of %s is: %s",
-            self._dishln_name,
+            "Updated HealthInfo is: %s",
             json.dumps(self.component_manager.health_info),
         )
 

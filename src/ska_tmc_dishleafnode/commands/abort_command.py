@@ -105,7 +105,7 @@ class Abort(DishLNCommand):
             self.command_uniq_id = ""
         self.component_manager.clear_configure_command_events_flags()
         self.component_manager.receiver_band = ""
-        self.component_manager.update_reciever_band_for_health()
+        self.component_manager.update_receiverband_for_health_aggregation()
 
     # pylint: disable=arguments-differ
 
