@@ -29,10 +29,6 @@ def gpm_validation_result(
             "gpmValidationResult"
         ].assert_change_event(Anything, lookahead=5,)["attribute_value"]
         gpm_validation_result = json.loads(attribute_value)
-        logger.info("gpm_validation_result %s", gpm_validation_result)
-
-        logger.info("band_result %s", band_result)
-        logger.info(" ResultCode[band_result] %s", ResultCode[band_result])
         if gpm_validation_result[band_name] == ResultCode[band_result]:
             flag = True
             break
@@ -208,11 +204,6 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     )
 
     gpm_validation_result(group_callback, "Band_5a", "OK")
-
-    # group_callback["healthState"].assert_change_event(
-    #     HealthState.DEGRADED,
-    #     lookahead=5,
-    # )
 
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
 

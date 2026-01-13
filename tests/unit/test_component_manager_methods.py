@@ -218,7 +218,6 @@ def test_process_actual_pointing_handles_invalid_data(cm):
     assert cm.actual_pointing_process.is_alive()
 
 
-@pytest.mark.up1
 @pytest.mark.parametrize(
     "kvalue_validation_result, expected_health_states",
     [
