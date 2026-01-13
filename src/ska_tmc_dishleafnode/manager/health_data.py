@@ -272,7 +272,7 @@ class DishHealthStateAndInfoManager:
             ]
 
             if bad_bands:
-                msg = f"Some bands unavailable: {', '.join(bad_bands)}"
+                msg = f"Unavailable bands: {', '.join(bad_bands)}"
                 self._active_issues["band_unavailable"] = msg
                 self.logger.info(msg)
             else:
