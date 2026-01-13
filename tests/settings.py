@@ -732,11 +732,11 @@ def log_and_assert_health(
     except Exception:
         ln_health_info = ln_health_info_raw
 
-    ln_name = (
-        dish_leaf_node.name()
-        if callable(getattr(dish_leaf_node, "name", None))
-        else getattr(dish_leaf_node, "name", None)
-    )
+    # ln_name = (
+    #     dish_leaf_node.name()
+    #     if callable(getattr(dish_leaf_node, "name", None))
+    #     else getattr(dish_leaf_node, "name", None)
+    # )
     # dm_name = (
     #     dish_master.name()
     #     if callable(getattr(dish_master, "name", None))
@@ -744,17 +744,16 @@ def log_and_assert_health(
     # )
 
     if expected_ln_health_state == HealthState.OK:
-        # Expect Info to be an empty list
-        info_list = (
-            ln_health_info.get("HealthSummary", {})
-            .get(ln_name, {})
-            .get("Info", None)
+        # Expect HealthSummary to be an empty list
+        health_summary = (
+            ln_health_info.get("HealthSummary")
             if isinstance(ln_health_info, dict)
             else None
         )
-        assert isinstance(info_list, list) and len(info_list) == 0, (
-            "Expected empty Info list  when health is OK; "
-            f"got Info={info_list}, full healthInfo={ln_health_info_raw}"
+        assert isinstance(health_summary, list) and len(health_summary) == 0, (
+            "Expected HealthSummary to be an empty list when health is OK; "
+            f"got HealthSummary={health_summary},"
+            f"full healthInfo={ln_health_info_raw}"
         )
 
     if expected_ln_health_state == HealthState.FAILED:
