@@ -14,6 +14,7 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     logger,
     wait_and_validate_attribute_value_available,
+    wait_for_attribute_health_value,
 )
 
 
@@ -27,15 +28,8 @@ def gpm_validation_result(
         attribute_value = group_callback[
             "gpmValidationResult"
         ].assert_change_event(Anything, lookahead=5,)["attribute_value"]
-        logger.info(f"GPM Validation Result: {attribute_value}")
         gpm_validation_result = json.loads(attribute_value)
-        logger.info("attribute_value %s", attribute_value)
-        if not isinstance(band_result, ResultCode):
-            data = ResultCode(int(band_result))
-
-        logger.info("band_result %s", band_result)
-        logger.info("data %s", data)
-        if gpm_validation_result[band_name] == data:
+        if gpm_validation_result[band_name] == ResultCode[band_result]:
             flag = True
             break
         sleep(1)
@@ -211,10 +205,8 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
 
     gpm_validation_result(group_callback, "Band_5a", "OK")
 
-    group_callback["healthState"].assert_change_event(
-        HealthState.DEGRADED,
-        lookahead=5,
-    )
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
     # Assert Band_5a contains values
     assert (dish_master_dev.band5apointingmodelparams).tolist()
 
@@ -435,7 +427,7 @@ def test_apply_pointing_model(tango_context, group_callback, json_factory):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_ApplyPointingModel_invalid_tm_path(
     tango_context, group_callback, json_factory
 ):
@@ -452,7 +444,7 @@ def test_ApplyPointingModel_invalid_tm_path(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_apply_pointing_model_with_erroneous_json(
     tango_context, group_callback, json_factory
 ):
