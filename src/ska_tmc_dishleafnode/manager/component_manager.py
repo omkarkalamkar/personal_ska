@@ -66,7 +66,9 @@ from ska_tmc_dishleafnode.constants import (
 )
 from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CapabilityStates
 from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
-from ska_tmc_dishleafnode.manager.health_data import HealthManager
+from ska_tmc_dishleafnode.manager.health_data import (
+    DishHealthStateAndInfoManager,
+)
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
@@ -162,7 +164,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         self.adapter_factory = AdapterFactory()
-        self.health_manager = HealthManager(self, logger)
+        self.health_manager = DishHealthStateAndInfoManager(self, logger)
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
@@ -1955,14 +1957,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         band_name: str,
     ) -> None:
         """
-        Update the band capability state of the given dish and call
-        the relative callbacks if available.
+        Update the band capability state for a specific dish band and trigger
+        associated callbacks.
 
-        :param band_capability_state: Band capability state of the dish device
-        :type band_capability_state: BandCapabilityState
+        This method normalizes the band name by removing the "CapabilityState"
+        suffix and converting to uppercase
+        (with special handling for B5a and B5b).
+        It updates the internal band capability state dictionary, notifies the
+        health manager, and logs the state change.
 
-        :return: None
-        :rtype: None
+        :param band_capability_state: The new capability state of the band
+        :type band_capability_state: CapabilityStates
+        :param band_name: The band name string (e.g., "b1CapabilityState")
+        :type band_name: str
         """
         with self.band_capability_lock:
             dev_info = self.get_device()
@@ -3047,7 +3054,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # reset flag so you can restart later if needed
         self._stop_thread = False
 
-    def update_gpm_data_for_health_aggregation(self):
+    def update_gpm_data_for_health_aggregation(self) -> None:
         """
         Update health data from component manager.
         """
@@ -3057,7 +3064,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "GPMValidationResultData",
         )
 
-    def update_kvalue_data_for_health_aggregation(self):
+    def update_kvalue_data_for_health_aggregation(self) -> None:
         """
         Update health data from component manager.
         """
@@ -3067,18 +3074,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "KValueValidationResultData",
         )
 
-    def update_reciever_band_for_health(self):
+    def update_receiverband_for_health_aggregation(self) -> None:
         """
         Update health data from component manager.
         """
-
-        # if not self.receiver_band:
-        #     self.receiver_band = Band.NONE
-
-        # self.health_manager.update_health_data_and_aggregate(
-        #     self.receiver_band,
-        #     "receiver_band",
-        # )
 
         rb = self.receiver_band
 

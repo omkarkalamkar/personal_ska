@@ -10,8 +10,8 @@ from ska_tmc_dishleafnode.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_data import (
     DishBandCapabilityStateData,
     DishHealthData,
+    DishHealthStateAndInfoManager,
     GPMValidationResultData,
-    HealthManager,
     KValueValidationResultData,
 )
 
@@ -147,7 +147,7 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     """
     cm = cm_without_er_lp
     logger = logging.getLogger("test.health.band1.capability")
-    hm = HealthManager(component_manager=cm, logger=logger)
+    hm = DishHealthStateAndInfoManager(component_manager=cm, logger=logger)
 
     dh = DishHealthData()
 
@@ -205,7 +205,9 @@ def test_healthstate_for_all_capability_states_when_band_not_configured(
     """
     logger = logging.getLogger("test")
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
+    hm = DishHealthStateAndInfoManager(
+        component_manager=cm, logger=logging.getLogger("test")
+    )
 
     dh = DishHealthData()
 
@@ -240,7 +242,9 @@ def test_evaluate_health_state_failed_when_kvalue_validation_failed(
     Health should be FAILED when kValue validation result is FAILED.
     """
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
+    hm = DishHealthStateAndInfoManager(
+        component_manager=cm, logger=logging.getLogger("test")
+    )
 
     dh = DishHealthData()
     dh.k_value_validation_result = KValueValidationResultData(
@@ -255,7 +259,9 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
     Health should be DEGRADED when any GPM validation result equals 'FAILED'.
     """
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
+    hm = DishHealthStateAndInfoManager(
+        component_manager=cm, logger=logging.getLogger("test")
+    )
 
     dh = DishHealthData()
     dh.gpm_validation_result = GPMValidationResultData(
@@ -288,7 +294,9 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
     Health must still be driven by Band1 capability state only.
     """
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
+    hm = DishHealthStateAndInfoManager(
+        component_manager=cm, logger=logging.getLogger("test")
+    )
 
     dh = DishHealthData()
     dh.receiver_band = Band.B1  # rules use 'NONE'/'UNKNOWN' strings, so use
@@ -390,7 +398,9 @@ def test_evaluate_health_state_band1_configured_b2_varies(
     OPERATE_FULL. Health should still be driven by Band1 capability only.
     """
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logging.getLogger("test"))
+    hm = DishHealthStateAndInfoManager(
+        component_manager=cm, logger=logging.getLogger("test")
+    )
 
     dh = DishHealthData()
     dh.receiver_band = Band.B1
@@ -464,7 +474,7 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
     # Avoid unrelated side-effects
     cm._update_health_state_callback = mock.Mock()
 
-    hm = HealthManager(component_manager=cm, logger=logger)
+    hm = DishHealthStateAndInfoManager(component_manager=cm, logger=logger)
 
     # Keep other signals "healthy" so DishManager message is primary delta.
     hm.update_health_data_and_aggregate(
@@ -538,7 +548,8 @@ def test_healthstate_degraded_when_no_band_requested_and_any_band_good(
     cm_without_er_lp,
 ):
     """
-    Use HealthManager + update_health_data_and_aggregate to build  context
+    Use DishHealthStateAndInfoManager +
+    update_health_data_and_aggregate to build  context
     and verify HealthState.DEGRADED when:
 
       - k_value_validation_result.result_code == 'OK'
@@ -553,7 +564,7 @@ def test_healthstate_degraded_when_no_band_requested_and_any_band_good(
     """
     logger = logging.getLogger("test.health.degraded.any_good_band")
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logger)
+    hm = DishHealthStateAndInfoManager(component_manager=cm, logger=logger)
 
     # Keep GPM "not failed" so it doesn't trigger the other DEGRADED rule
     hm.update_health_data_and_aggregate(["OK"], "GPMValidationResultData")
@@ -611,7 +622,7 @@ def test_healthstate_failed_when_no_band_requested_and_all_bands_not_good(
         "test.health.failed.all_bands_not_good_when_no_band_requested"
     )
     cm = cm_without_er_lp
-    hm = HealthManager(component_manager=cm, logger=logger)
+    hm = DishHealthStateAndInfoManager(component_manager=cm, logger=logger)
 
     dh = DishHealthData(
         receiver_band=Band.NONE,
@@ -657,7 +668,7 @@ def test_generate_health_info(cm_without_er_lp):
     """
     cm = cm_without_er_lp
     logger = logging.getLogger("test.healthinfo.stepwise")
-    hm = HealthManager(component_manager=cm, logger=logger)
+    hm = DishHealthStateAndInfoManager(component_manager=cm, logger=logger)
 
     # placeholder used by generate_health_info
 

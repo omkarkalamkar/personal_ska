@@ -197,8 +197,6 @@ def endscan_command(
         dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
     )
 
-    logger.info("Trupti")
-
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
