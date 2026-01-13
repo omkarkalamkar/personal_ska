@@ -357,6 +357,9 @@ class DishLNEventReceiver(EventReceiver):
         Returns:
             None
         """
+        self._logger.info(
+            f"Handling k-value event from Dish Master: {event_flag}"
+        )
         self._component_manager.update_kvalue_event(event_flag)
 
     def subscribe_sdpqc_attribute(

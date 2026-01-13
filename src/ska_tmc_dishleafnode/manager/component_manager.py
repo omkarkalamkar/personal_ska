@@ -910,6 +910,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
 
+        self.logger.info("Updating k-value validation result.")
         if self.dish_kvalue_validation_manager.is_dish_manager_ready():
             self.dish_kvalue_validation_manager.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
@@ -2175,6 +2176,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dish_adapter (DishAdapter): dish Adapter to be set,
                 used to write programTrackTable on the dish.
         """
+        self.logger.info("Setting dish adapter in component manager")
         self.dish_adapter = dish_adapter
 
     def set_dishln_pointing_device_adapter(
@@ -2935,6 +2937,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 which contains the event data, dishMode Event in this case.
 
         """
+        self.logger.info("Updating k-value event in respective queue.")
         self.event_queues["kValue"].put(event)
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
