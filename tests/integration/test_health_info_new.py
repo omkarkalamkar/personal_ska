@@ -205,7 +205,7 @@ def endscan_command(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_healthInfo(tango_context, group_callback, json_factory):
     endscan_command(
         tango_context,
