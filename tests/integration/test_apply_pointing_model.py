@@ -12,6 +12,8 @@ from ska_tmc_common.dev_factory import DevFactory
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
+    log_and_assert_health,
     logger,
     wait_and_validate_attribute_value_available,
     wait_for_attribute_health_value,
@@ -44,6 +46,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master_dev = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
@@ -140,6 +143,14 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         HealthState.DEGRADED,
         lookahead=5,
     )
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master_dev,
+        dishln_pointing_device,
+        HealthState.DEGRADED,
+        "KValue validation failed.",
+    )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_1'] == 'main'
 
@@ -174,6 +185,14 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     group_callback["healthState"].assert_change_event(
         HealthState.DEGRADED,
         lookahead=5,
+    )
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master_dev,
+        dishln_pointing_device,
+        HealthState.DEGRADED,
+        "KValue validation failed.",
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_3'] == 'UNKNOWN'
