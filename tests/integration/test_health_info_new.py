@@ -23,7 +23,7 @@ from tests.settings import (
 )
 
 
-def endscan_command(
+def observation_workflow(
     tango_context, dishln_name, group_callback, configure_input_str
 ):
     logger.info(f"{tango_context}")
@@ -69,7 +69,11 @@ def endscan_command(
     )
 
     log_and_assert_health(
-        dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.OK,
+        None,
     )
     logger.info("Health state is OK before configure command")
 
@@ -100,7 +104,11 @@ def endscan_command(
     # After Configure Health State is OK
 
     log_and_assert_health(
-        dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.OK,
+        None,
     )
 
     # Requested Band becomes UNAVAILABLE
@@ -120,7 +128,12 @@ def endscan_command(
     dish_master.SetDirectCapabilityState(capabiity_argin)
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 2)
     log_and_assert_health(
-        dish_leaf_node, dish_master, dishln_pointing_device, HealthState.FAILED
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.FAILED,
+        "requested band B2 is UNAVAILABLE not"
+        " fully available for observation.",
     )
 
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
@@ -180,6 +193,7 @@ def endscan_command(
         dish_master,
         dishln_pointing_device,
         HealthState.DEGRADED,
+        "Unavailable bands: B1, B2, B3, B4, B5a, B5b.",
     )
 
     logger.info("Band B2 will be available again")
@@ -194,7 +208,11 @@ def endscan_command(
     dish_master.SetDirectCapabilityState(capabiity_argin)
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
     log_and_assert_health(
-        dish_leaf_node, dish_master, dishln_pointing_device, HealthState.OK
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.OK,
+        None,
     )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
@@ -205,9 +223,9 @@ def endscan_command(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_healthInfo(tango_context, group_callback, json_factory):
-    endscan_command(
+    observation_workflow(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
