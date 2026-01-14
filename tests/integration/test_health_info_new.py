@@ -192,7 +192,7 @@ def observation_workflow(
         dish_master,
         dishln_pointing_device,
         HealthState.DEGRADED,
-        "Unavailable bands: B1, B2, B3, B4, B5a, B5b.",
+        "Unavailable bands: B2",
     )
 
     logger.info("Band B2 will be available again")

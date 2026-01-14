@@ -8,8 +8,10 @@ from tango import DevState
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     KVALUE,
     dln_can_communicate_with_dish_master,
+    log_and_assert_health,
     wait_and_validate_attribute_value_available,
 )
 
@@ -26,6 +28,8 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
     dev_factory = DevFactory()
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
+    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_leaf_node.SetKValue(0)  # Set k-value to initialization value
     dish_leaf_node_server.RestartServer()
     assert wait_and_validate_attribute_value_available(
@@ -38,6 +42,13 @@ def test_kvalue_when_dln_initialized(tango_context, group_callback):
         dish_leaf_node,
         "healthState",
         HealthState.FAILED,
+    )
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.FAILED,
+        "KValue validation failed.",
     )
 
     KVALUE_ID = dish_leaf_node.subscribe_event(
@@ -123,6 +134,8 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
+    # set initial identical kvalue
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_code == ResultCode.OK
     # validate kvalue set on dish manager
@@ -146,6 +159,13 @@ def test_kvalue_not_identical_after_dln_restart(tango_context, group_callback):
         dish_leaf_node,
         "healthState",
         HealthState.FAILED,
+    )
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.FAILED,
+        "KValue validation failed.",
     )
 
     KVALUE_ID = dish_leaf_node.subscribe_event(
@@ -176,6 +196,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     dish_leaf_node_server = dev_factory.get_device("dserver/dish_leaf_node/01")
     dish_master_server = dev_factory.get_device("dserver/mocks/001")
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     result_code, _ = dish_leaf_node.SetKValue(KVALUE)
     assert result_code == ResultCode.OK
     # validate kvalue set on dish manager
@@ -200,6 +221,13 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
         dish_leaf_node,
         "healthState",
         HealthState.FAILED,
+    )
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.FAILED,
+        "KValue validation failed.",
     )
 
     KVALUE_ID = dish_leaf_node.subscribe_event(
@@ -226,7 +254,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_kvalue_runtime_mismatch_updates_health_to_degraded(
     tango_context, group_callback
 ):
@@ -239,6 +267,7 @@ def test_kvalue_runtime_mismatch_updates_health_to_degraded(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
 
     # Initial identical kValue
     dish_leaf_node.SetKValue(KVALUE)
@@ -266,11 +295,19 @@ def test_kvalue_runtime_mismatch_updates_health_to_degraded(
         HealthState.FAILED,
     )
 
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.FAILED,
+        "KValue validation failed.",
+    )
+
     dish_leaf_node.unsubscribe_event(kvalue_val_id)
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_kvalue_runtime_recovery_updates_health_to_ok(
     tango_context, group_callback
 ):
@@ -283,6 +320,7 @@ def test_kvalue_runtime_recovery_updates_health_to_ok(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
 
     # Force mismatch first
     dish_leaf_node.SetKValue(KVALUE)
@@ -293,7 +331,13 @@ def test_kvalue_runtime_recovery_updates_health_to_ok(
         "healthState",
         HealthState.FAILED,
     )
-
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.FAILED,
+        "KValue validation failed.",
+    )
     # Subscribe to validation result
     kvalue_val_id = dish_leaf_node.subscribe_event(
         "kValueValidationResult",
