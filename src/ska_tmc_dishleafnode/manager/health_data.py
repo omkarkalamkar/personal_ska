@@ -5,6 +5,7 @@ import threading
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional
+from unittest import result
 
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
@@ -309,6 +310,19 @@ class DishHealthStateAndInfoManager:
         """
         Update GPM-related issues in active issues.
         """
+
+        def normalize_result(result_val):
+            if isinstance(result_val, ResultCode):
+                return result_val.name.upper()
+            if isinstance(result_val, int):
+                try:
+                    return ResultCode(result_val).name.upper()
+                except ValueError:
+                    return str(result_val).upper()
+            if isinstance(result_val, str):
+                return result_val.upper()
+            return str(result_val).upper()
+
         # Clear old GPM-related issues
         keys_to_remove = [
             k for k in self._active_issues if k.startswith("gpm_")
@@ -316,20 +330,41 @@ class DishHealthStateAndInfoManager:
         for k in keys_to_remove:
             self._active_issues.pop(k, None)
 
-        for idx, result in enumerate(
+        for idx, result_val in enumerate(
             self.health_data.gpm_validation_result.result
         ):
             self.logger.debug(
                 "Evaluating GPM result at index %d: %s", idx, result
             )
 
-            if (
-                isinstance(result, ResultCode) and result == ResultCode.FAILED
-            ) or (
-                isinstance(result, int) and result == ResultCode.FAILED.value
-            ):
-                error_msg = f"GPM validation failed for GPM index {idx}."
-                self._active_issues[f"gpm_{idx}"] = error_msg
+            res = normalize_result(result_val)
+
+            if res == "FAILED":
+                self._active_issues[
+                    f"gpm_{idx}"
+                ] = f"GPM validation failed for GPM index {idx}."
+            elif res == "DEGRADED":
+                self._active_issues[
+                    f"gpm_{idx}"
+                ] = f"GPM validation degraded for GPM index {idx}."
+
+            # if (
+            #     (
+            #         isinstance(result, ResultCode)
+            #         and result == ResultCode.FAILED
+            #     )
+            #     or (
+            #         isinstance(result, int)
+            #         and result == ResultCode.FAILED.value
+            #     )
+            #     or (isinstance(result, str) and result.upper() == "FAILED")
+            # ):
+            #     error_msg = f"GPM validation failed for GPM index {idx}."
+            #     self._active_issues[f"gpm_{idx}"] = error_msg
+
+        self.logger.info(
+            "Active GPM-related issues after update: %s", self._active_issues
+        )
 
     def _update_kvalue_issues(self) -> None:
         """
