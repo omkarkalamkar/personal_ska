@@ -104,16 +104,19 @@ class AutoStow:
             self.wind_speeds.clear()
 
             for _, wind_speed in wind_speeds.items():
+                self.logger.info(wind_speed)
                 wind_speed_means.append(np.array(wind_speed).mean())
+
             if wind_speed_means:
                 wind_speed_mean = max(wind_speed_means)
             else:
                 wind_speed_mean = 0
             self.component_manager.wind_speed_mean = wind_speed_mean
-            if wind_speed_mean >= self.wind_threshold:
+            if wind_speed_mean > self.wind_threshold:
                 self.logger.info(
-                    "Invoking auto stow based on mean wind speed %s",
+                    "Invoking auto stow based on mean wind speed %s %s",
                     wind_speed_mean,
+                    wind_speed_means,
                 )
                 self.invoke_auto_stow()
 
@@ -139,7 +142,7 @@ class AutoStow:
             else:
                 gust_wind_speed_mean = 0
             self.component_manager.gust_wind_speed_mean = gust_wind_speed_mean
-            if gust_wind_speed_mean >= self.gust_threshold:
+            if gust_wind_speed_mean > self.gust_threshold:
                 self.logger.info(
                     "Invoking auto stow based on mean gust speed %s",
                     gust_wind_speed_mean,
@@ -173,7 +176,7 @@ class AutoStow:
 
     def _one_sec_poll(self, wms: str):
         """Method to poll temperature every second."""
-        while self.component_manager.temperature_tracking[wms]:
+        while self.component_manager.temperature_tracking[wms].is_set():
             start_time = time.perf_counter()
             self.polled_temperatures[wms].append(self.temperatures[wms])
             self.logger.info(
@@ -205,10 +208,8 @@ class AutoStow:
 
             self.initial_mark_achieved[wms].wait()
 
-            while (
-                self.component_manager.temperature_tracking[wms]
-                and self.temp_update[wms].wait()
-            ):
+            while self.component_manager.temperature_tracking[wms].is_set():
+                self.temp_update[wms].wait()
                 self.temp_update[wms].clear()
                 self.logger.info("%s", len(self.polled_temperatures))
                 temps = self.polled_temperatures[wms].copy()

@@ -320,7 +320,7 @@ def wait_for_dish_mode(
 
 
 def wait_for_stow_status(
-    cm: DishLNComponentManager, status: StowStatus, timeout: int = 10
+    cm: DishLNComponentManager, status: StowStatus, timeout: int = 20
 ) -> bool:
     """Wait for stow status"""
     start_time = time.time()

@@ -321,11 +321,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "ApplyPointingModel",
         )
         # Event Manager
-        self.event_manager_object: DishLNEventManager = DishLNEventManager(
-            self,
-            logger=logger,
-            event_subscription_check_period=event_subscription_check_period,
-        )
+        if _event_manager:
+            check_period: int = event_subscription_check_period
+            self.event_manager_object: DishLNEventManager = DishLNEventManager(
+                self,
+                logger=logger,
+                event_subscription_check_period=check_period,
+            )
 
         if _liveliness_probe == LivelinessProbeType.MULTI_DEVICE:
             self.start_liveliness_probe(_liveliness_probe)
@@ -338,7 +340,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.gpm_validator = GPMValidator(self, logger)
 
         self.actual_pointing_process = Process(
-            target=self.process_actual_pointing,
+            target=self.process_actual_pointing, daemon=True
         )
         self.process_lock = Lock()
         self.kvalue_validation_thread = threading.Timer(
@@ -373,7 +375,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             time_delta=time_delta,
         )
         self.wind_tracking: bool = False
-        self.temperature_tracking: dict[str, bool] = defaultdict(bool)
+        self.temperature_tracking: dict[str, bool] = defaultdict(
+            threading.Event
+        )
         self.__rate_of_change_temperature: float = 0.0
         self.__gust_wind_speed_mean: float = 0.0
         self.__wind_speed_mean: float = 0.0
@@ -2300,8 +2304,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 dev_info.dish_mode == DishMode.STOW
                 and dish_mode != DishMode.STOW
             ):
+                self.stow_status = StowStatus.DISH_NOT_IN_STOW
                 if self._update_stow_status_callback:
-                    self.stow_status = StowStatus.DISH_NOT_IN_STOW
                     self._update_stow_status_callback(
                         StowStatus.DISH_NOT_IN_STOW
                     )
@@ -2744,9 +2748,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return
         # Unsubscribe the old FQDN if new FQDN comes
         if queue_connector_dev_name and dev_name != queue_connector_dev_name:
-            self.event_manager_object.unsubscribe_events(
-                queue_connector_dev_name
-            )
+            if self.event_manager:
+                self.event_manager_object.unsubscribe_events(
+                    queue_connector_dev_name
+                )
 
         # Subscribe to the SDP queue connector attribute
         queue_connector_dev_name = dev_name
@@ -2901,7 +2906,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self: DishLNComponentManager,
     ) -> None:
         """Method to clean up the code, stop running threads/sub-processes"""
-
         if self.event_manager:
             self.stop_event_manager()
             self._stop_thread = True
@@ -2916,9 +2920,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.gust_timer.cancel()
         if self.temp_timers:
             for key in self.temperature_tracking:
-                self.temperature_tracking[key] = False
+                self.temperature_tracking[key].clear()
+                self.auto_stow.initial_mark_achieved[key].set()
             for timer in self.temp_timers:
-                timer.join()
+                timer.join(timeout=5)
             for poller in self.auto_stow.poll_threads:
                 poller.join()
         self.wind_tracking = False
@@ -3256,7 +3261,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 ):
                     self.auto_stow.invoke_auto_stow()
                 if not self.temperature_tracking.get(wms):
-                    self.temperature_tracking[wms] = True
+                    self.temperature_tracking[wms].set()
                     temp_timer = threading.Thread(
                         target=self.auto_stow.roc_temp, args=[wms], daemon=True
                     )

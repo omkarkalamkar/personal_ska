@@ -156,29 +156,36 @@ class SetStowMode(DishLNCommand):
             Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
         """
+        try:
+            result_code, message = self.init_adapter()
+            if result_code == ResultCode.FAILED:
+                self.logger.debug(
+                    "Command ID: %s | Adapter for : %s is not found ",
+                    self.component_manager.command_id,
+                    self.component_manager.dish_dev_name,
+                )
+                return result_code, message
+            with self.component_manager.tango_operation_execution_lock:
+                result_code, message = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "SetStowMode"
+                )
+            if result_code[0] == ResultCode.FAILED:
+                return result_code[0], message[0]
 
-        result_code, message = self.init_adapter()
-        if result_code == ResultCode.FAILED:
-            self.logger.debug(
-                "Command ID: %s | Adapter for : %s is not found ",
-                self.component_manager.command_id,
-                self.component_manager.dish_dev_name,
+            result_code, message = self.stop_program_track_table()
+
+            if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
+                return result_code, message
+
+            self.component_manager.clear_track_table_errors()
+            self.component_manager.abort_event.clear()
+        except Exception as exception:
+            message = (
+                "Exception has occured while invoking setstowmode: %s",
+                exception,
             )
-            return result_code, message
-        with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "SetStowMode"
-            )
-        if result_code[0] == ResultCode.FAILED:
-            return result_code[0], message[0]
-
-        result_code, message = self.stop_program_track_table()
-
-        if result_code in [ResultCode.FAILED, ResultCode.REJECTED]:
-            return result_code, message
-
-        self.component_manager.clear_track_table_errors()
-        self.component_manager.abort_event.clear()
+            self.logger.exception(message)
+            return ResultCode.FAILED, message
         return ResultCode.OK, "Command Invocation Completed"
 
     def stop_program_track_table(self) -> Tuple[ResultCode, str]:
