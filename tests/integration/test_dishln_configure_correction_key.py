@@ -52,7 +52,7 @@ def validate_trackloadstaticoff_invoked(dish_master, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 @pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])
 def test_main_config_with_correction_key_update_reset(
     tango_context, json_factory, group_callback, correction_key
@@ -146,7 +146,7 @@ def test_main_config_with_correction_key_update_reset(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 @pytest.mark.parametrize("correction_key", ["UPDATE", "RESET"])
 def test_partial_configure_with_update_reset_correction_key(
     tango_context,
@@ -286,7 +286,7 @@ def test_partial_configure_with_update_reset_correction_key(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 @pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])
 def test_configure_with_maintain_notset_correction_key(
     tango_context,
