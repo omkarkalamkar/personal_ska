@@ -168,9 +168,6 @@ class ApplyPointingModel(DishLNCommand):
         result = {}
         message = ""
 
-        if isinstance(tm_data_sources, str):
-            tm_data_sources = [tm_data_sources]
-
         # Function to execute data retrieval within a thread
         def retrieve_data():
             """Fetch JSON data from GPM repo and return as a dictionary."""
@@ -280,6 +277,9 @@ class ApplyPointingModel(DishLNCommand):
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message
+
+            if isinstance(tm_data_sources, str):
+                tm_data_sources = [tm_data_sources]
 
             (
                 global_pointing_data_json,
