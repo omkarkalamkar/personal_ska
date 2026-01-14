@@ -149,7 +149,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         dish_master_dev,
         dishln_pointing_device,
         HealthState.DEGRADED,
-        "KValue validation failed.",
+        "GPM validation failed for GPM index 0.",
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_1'] == 'main'
@@ -192,7 +192,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         dish_master_dev,
         dishln_pointing_device,
         HealthState.DEGRADED,
-        "KValue validation failed.",
+        "GPM validation failed for GPM index 2.",
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_3'] == 'UNKNOWN'
@@ -272,7 +272,6 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         HealthState.OK,
         lookahead=5,
     )
-    assert False
 
 
 def ApplyPointingModel_with_invalid_tm_path(
