@@ -172,20 +172,6 @@ def observation_workflow(
         lookahead=6,
     )
 
-    # After TrackStop , receiver Band will be set to None
-    # But only Band B2 will not be available , which will cause HealthState to
-    # Degrade
-    # capabiity_argin = json.dumps(
-    #     {
-    #         "B1": CapabilityStates.OPERATE_FULL,
-    #         "B2": CapabilityStates.UNAVAILABLE,
-    #         "B3": CapabilityStates.OPERATE_FULL,
-    #         "B4": CapabilityStates.OPERATE_FULL,
-    #         "B5a": CapabilityStates.OPERATE_FULL,
-    #         "B5b": CapabilityStates.OPERATE_FULL,
-    #     }
-    # )
-
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
     log_and_assert_health(
         dish_leaf_node,
