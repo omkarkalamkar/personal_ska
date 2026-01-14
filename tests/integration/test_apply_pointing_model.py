@@ -272,6 +272,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         HealthState.OK,
         lookahead=5,
     )
+    assert False
 
 
 def ApplyPointingModel_with_invalid_tm_path(
