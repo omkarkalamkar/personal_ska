@@ -132,8 +132,7 @@ def observation_workflow(
         dish_master,
         dishln_pointing_device,
         HealthState.FAILED,
-        "requested band B2 is UNAVAILABLE not"
-        " fully available for observation.",
+        "Requested band B2 is in state UNAVAILABLE (not fully available)",
     )
 
     result_scan, unique_id_scan = dish_leaf_node.Scan("1")
