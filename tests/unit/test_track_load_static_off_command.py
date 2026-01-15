@@ -11,6 +11,7 @@ from ska_tmc_common.enum import DishMode, PointingState
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.manager.event_manager import DishLNEventManager
 from tests.settings import (
     COMMAND_COMPLETED,
     DISH_MASTER_DEVICE,
@@ -182,6 +183,9 @@ def test_configure_command_completed_with_correction_key_update(
         f"{SDP_QUEUE_CONNECTOR_DEVICE}/" "pointing_cal_{dish_id}"
     )
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+    cm.event_manager = True
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
+
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
     unique_id = ""
@@ -286,6 +290,9 @@ def test_correction_key_update_partial_config(
     )
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     cm.dish_id = "SKA001"
+    cm.event_manager = True
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
+
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
