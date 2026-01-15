@@ -21,7 +21,6 @@ DISH_ID = "ska001"
 ATTRIBUTE_NAME = "pointing_cal_ska001"
 
 
-@pytest.mark.new
 def test_sdpqc_fqdn_info_is_stored(cm):
     """This test case checks the received SDP Queue connector
     information getting stored in component manager as expected."""
@@ -47,6 +46,12 @@ def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.dish_id = DISH_ID
+    cm.event_manager = True
+    attrs = {'subscribe_events.return_value': None}
+    cm.event_manager_object = mock.Mock(
+        device_subscriptions={dev_name: {"is_subscription_completed": True}},
+        **attrs,
+    )
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     cm.correction_key = "UPDATE"
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
@@ -72,6 +77,12 @@ def test_with_updated_sdpqc_fqdn(tango_context, cm):
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.dish_id = DISH_ID
     cm.correction_key = "UPDATE"
+    cm.event_manager = True
+    attrs = {'subscribe_events.return_value': None}
+    cm.event_manager_object = mock.Mock(
+        device_subscriptions={dev_name: {"is_subscription_completed": True}},
+        **attrs,
+    )
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sleep(1)
     assert dev_name == cm.queue_connector_device_info.dev_name
@@ -100,6 +111,14 @@ def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     SDP pointing calibration data from SDP Queue connector device."""
     cm.dish_id = DISH_ID
     cm.correction_key = "UPDATE"
+    cm.event_manager = True
+    dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
+
+    attrs = {'subscribe_events.return_value': None}
+    cm.event_manager_object = mock.Mock(
+        device_subscriptions={dev_name: {"is_subscription_completed": True}},
+        **attrs,
+    )
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sleep(1)
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
