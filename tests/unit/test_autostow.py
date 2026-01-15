@@ -108,7 +108,7 @@ def test_wind_auto_stow_completed(
     cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     # FOR UNIT TESTING 5sec is set for wind stow
-    _simulate_wind_speed(cm, 13.5, 5)
+    _simulate_wind_speed(cm, 13.6, 5)
     assert wait_for_stow_status(cm, StowStatus.STOW_STARTED)
 
     simulate_dish_mode_event(cm, DishMode.STOW)
@@ -185,7 +185,7 @@ def test_temp_roc_stow_completed(
     assert wait_for_stow_status(cm, StowStatus.STOW_COMPLETED)
 
 
-def test_temp_auto_stow_not_invoked(
+def test_auto_stow_not_invoked(
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
