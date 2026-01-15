@@ -340,7 +340,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.gpm_validator = GPMValidator(self, logger)
 
         self.actual_pointing_process = Process(
-            target=self.process_actual_pointing, daemon=True
+            target=self.process_actual_pointing
         )
         self.process_lock = Lock()
         self.kvalue_validation_thread = threading.Timer(
