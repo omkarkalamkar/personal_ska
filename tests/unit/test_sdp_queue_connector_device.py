@@ -105,14 +105,9 @@ def test_to_check_nan_received_from_sdp_not_processed(tango_context, cm):
     SDP pointing calibration data from SDP Queue connector device."""
     cm.dish_id = DISH_ID
     cm.correction_key = "UPDATE"
-    cm.event_manager = True
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
-
-    attrs = {'subscribe_events.return_value': None}
-    cm.event_manager_object = mock.Mock(
-        device_subscriptions={dev_name: {"is_subscription_completed": True}},
-        **attrs,
-    )
+    cm.event_manager = True
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sleep(1)
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)

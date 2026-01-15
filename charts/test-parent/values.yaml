@@ -51,6 +51,8 @@ tmc-dishleafnode:
       SchedularQueuePreEntries: 5
 
 ska-tmc-simulators:
+  labels:
+    app: ska-tmc-dishleafnode
   enabled: true
   telescope: SKA-mid
   deviceServers:
@@ -64,6 +66,8 @@ ska-taranta:
   enabled: false
 
 ska-mid-wms:
+  labels:
+    app: ska-tmc-dishleafnode
   enabled: true
   ska-tango-base:
     enabled: false

@@ -74,7 +74,7 @@ deviceServers:
       - "ska-mid/weather-monitoring/s1"
       - "ska-mid/weather-monitoring/s2"
     wind_speed_threshold: 60 #inflated 
-    gust_speed_threshold: 40 #inflated 
+    gust_speed_threshold: 60 #inflated 
     mean_wind_speed_duration: 600
     mean_gust_speed_duration: 3
     max_temp_threshold: 40.0
