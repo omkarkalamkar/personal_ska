@@ -7,6 +7,7 @@ import time
 from collections import defaultdict
 
 import numpy as np
+import tango
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode
 
@@ -199,33 +200,36 @@ class AutoStow:
 
     def roc_temp(self, wms: str):
         """Method to calculate the rate of change of temperature."""
-        try:
-            poll_thread = threading.Thread(
-                target=self._one_sec_poll, args=[wms], daemon=True
-            )
-            poll_thread.start()
-            self.poll_threads.append(poll_thread)
+        with tango.EnsureOmniThread():
+            try:
+                poll_thread = threading.Thread(
+                    target=self._one_sec_poll, args=[wms], daemon=True
+                )
+                poll_thread.start()
+                self.poll_threads.append(poll_thread)
 
-            self.initial_mark_achieved[wms].wait()
+                self.initial_mark_achieved[wms].wait()
 
-            while self.component_manager.temperature_tracking[wms].is_set():
-                self.temp_update[wms].wait()
-                self.temp_update[wms].clear()
-                self.logger.info("%s", len(self.polled_temperatures))
-                temps = self.polled_temperatures[wms].copy()
-                self.polled_temperatures[wms].pop(0)
-                self.logger.info("%s %s", temps[-1], temps[0])
-                if abs(temps[-1] - temps[0]) > self.temp_delta:
-                    self.logger.info(
-                        "roc %s %s", abs(temps[-1] - temps[0]), wms
-                    )
-                    self.invoke_auto_stow()
-        except Exception as exception:
-            message = (
-                "Exception occured while checking"
-                "for rate of change of temperature %s",
-                exception,
-            )
-            self.component_manager.update_auto_stow_failures(message)
+                while self.component_manager.temperature_tracking[
+                    wms
+                ].is_set():
+                    self.temp_update[wms].wait()
+                    self.temp_update[wms].clear()
+                    self.logger.info("%s", len(self.polled_temperatures))
+                    temps = self.polled_temperatures[wms].copy()
+                    self.polled_temperatures[wms].pop(0)
+                    self.logger.info("%s %s", temps[-1], temps[0])
+                    if abs(temps[-1] - temps[0]) > self.temp_delta:
+                        self.logger.info(
+                            "roc %s %s", abs(temps[-1] - temps[0]), wms
+                        )
+                        self.invoke_auto_stow()
+            except Exception as exception:
+                message = (
+                    "Exception occured while checking"
+                    "for rate of change of temperature %s",
+                    exception,
+                )
+                self.component_manager.update_auto_stow_failures(message)
 
-            self.logger.exception(message)
+                self.logger.exception(message)

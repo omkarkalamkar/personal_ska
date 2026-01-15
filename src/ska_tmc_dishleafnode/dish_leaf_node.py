@@ -262,6 +262,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             # pylint: disable=unnecessary-dunder-call
             self.component_manager.__del__()
             # pylint: enable=unnecessary-dunder-call
+        super().delete_device()
 
     def update_health_state_callback(self, healthState: HealthState) -> None:
         """Change event callback for healthState attribute

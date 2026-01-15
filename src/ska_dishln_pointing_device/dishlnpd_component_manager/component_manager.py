@@ -439,8 +439,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     def download_antenna_and_iers_data(self):
         """Method that downloads antenna and iers data"""
-        self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
+        with tango.EnsureOmniThread():
+            self.create_converter_obj_and_antenna_obj()
+            self.download_iers_data()
 
     def create_converter_obj_and_antenna_obj(
         self: DishlnPointingDataComponentManager,
@@ -571,132 +572,144 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        try:
-            pre_entries_of_ptt_in_schedular = self.entries_tt_schedular_queue
-            self.logger.debug(
-                "Starting ProgramTrackTable calculation.",
-            )
-            timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
-            # This is dummy calculation because first time calculation takes
-            # time due to IERS file downloads
-            if isinstance(self.target, str):
-                self.converter.point_to_body(self.target, timestamp)
-            else:
-                ra, dec = self.target  # pylint: disable=E0633
-                self.converter.point(ra, dec, timestamp)
-
-            self.update_program_track_table_error_callback("")
-            self.logger.debug("Converter Object Updated")
-
-            utc_now = datetime.datetime.utcnow()
-
-            # The average time required to perform a RaDec to AzEl conversion
-            # is approximately 20 milliseconds. Therefore, the total
-            # calculation time and the advanced tracktable time are added to
-            # the current timestamp to generate the future tracktable.
-
-            RaDec_AzEl_conversion_time = 0.02
-            time_to_add: float = (
-                operator.mul(
-                    PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
-                )
-                + self.track_table_advance_sec
-            )
-
-            extended_time: datetime.datetime = utc_now + datetime.timedelta(
-                seconds=time_to_add
-            )
-            track_table_calculator = ProgramTrackTableCalculator(
-                self, self.logger
-            )
-            track_table_calculator.track_table_time_stamp = extended_time
-
-            with self.track_thread_lock:
-                is_track_thread_stop = self.mapping_scan_event.is_set()
-
-            track_table_scheduler = sched.scheduler(time.time, time.sleep)
-            event_priority: int = 1
-            track_table_calculator.track_table_scheduler = (
-                track_table_scheduler
-            )
-            while not is_track_thread_stop:
-                self.logger.debug(
-                    "Current Thread ID: %s", threading.get_native_id()
+        with tango.EnsureOmniThread():
+            try:
+                pre_entries_of_ptt_in_schedular = (
+                    self.entries_tt_schedular_queue
                 )
                 self.logger.debug(
-                    "Target used to calculate trackTable: %s", self.target
+                    "Starting ProgramTrackTable calculation.",
                 )
+                timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+                # This is dummy calculation because first
+                #  time calculation takes
+                # time due to IERS file downloads
+                if isinstance(self.target, str):
+                    self.converter.point_to_body(self.target, timestamp)
+                else:
+                    ra, dec = self.target  # pylint: disable=E0633
+                    self.converter.point(ra, dec, timestamp)
+
+                self.update_program_track_table_error_callback("")
+                self.logger.debug("Converter Object Updated")
+
+                utc_now = datetime.datetime.utcnow()
+
+                # The average time required to perform a
+                # RaDec to AzEl conversion
+                # is approximately 20 milliseconds. Therefore, the total
+                # calculation time and the advanced
+                #  tracktable time are added to
+                # the current timestamp to generate the future tracktable.
+
+                RaDec_AzEl_conversion_time = 0.02
+                time_to_add: float = (
+                    operator.mul(
+                        PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
+                    )
+                    + self.track_table_advance_sec
+                )
+
+                extended_time: datetime.datetime = (
+                    utc_now + datetime.timedelta(seconds=time_to_add)
+                )
+                track_table_calculator = ProgramTrackTableCalculator(
+                    self, self.logger
+                )
+                track_table_calculator.track_table_time_stamp = extended_time
 
                 with self.track_thread_lock:
                     is_track_thread_stop = self.mapping_scan_event.is_set()
-                program_track_table: list = (
-                    track_table_calculator.calculate_program_track_table(
-                        self.target, self.converter
+
+                track_table_scheduler = sched.scheduler(time.time, time.sleep)
+                event_priority: int = 1
+                track_table_calculator.track_table_scheduler = (
+                    track_table_scheduler
+                )
+                while not is_track_thread_stop:
+                    self.logger.debug(
+                        "Current Thread ID: %s", threading.get_native_id()
                     )
-                )
-                first_entry_timestamp: float = program_track_table[0]
+                    self.logger.debug(
+                        "Target used to calculate trackTable: %s", self.target
+                    )
 
-                # advance_time is subtracted to provide programTrackTable few
-                # seconds in advance
-                actual_time = (
-                    first_entry_timestamp - self.track_table_advance_sec
-                )
-
-                scheduled_time = Time(
-                    float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
-                    format="unix_tai",
-                    scale="tai",
-                ).unix
-
-                # Convert to human-readable format
-                actual_time_readable = datetime.datetime.utcfromtimestamp(
-                    actual_time
-                ).strftime("%Y-%m-%d %H:%M:%S")
-                scheduled_time_readable = datetime.datetime.utcfromtimestamp(
-                    scheduled_time
-                ).strftime("%Y-%m-%d %H:%M:%S")
-
-                self.logger.debug("Actual Time: %s", actual_time_readable)
-                self.logger.debug(
-                    "Scheduled time: %s", scheduled_time_readable
-                )
-
-                with self.track_thread_lock:
-                    if not self.mapping_scan_event.is_set():
-                        if pre_entries_of_ptt_in_schedular > 0:
-                            pre_entries_of_ptt_in_schedular -= 1
-                        else:
-                            track_table_calculator.ptt_buffer_set = True
-                        track_table_scheduler.enterabs(
-                            scheduled_time,
-                            event_priority,
-                            self.update_pointing_program_track_table,
-                            argument=(program_track_table,),
+                    with self.track_thread_lock:
+                        is_track_thread_stop = self.mapping_scan_event.is_set()
+                    program_track_table: list = (
+                        track_table_calculator.calculate_program_track_table(
+                            self.target, self.converter
                         )
-                        self.logger.debug(
-                            "Scheduled trackTable write operation"
-                        )
-                        self.logger.debug(
-                            "Scheduler Length: %s",
-                            len(track_table_scheduler.queue),
-                        )
+                    )
+                    first_entry_timestamp: float = program_track_table[0]
 
-            self.logger.debug("Program TrackTable Calculation stopped.")
-        except Exception as value_error:
-            self.logger.error(
-                "Error occured during track_thread execution: %s",
-                str(value_error),
-            )
-            self.update_program_track_table_error_callback(str(value_error))
-            self.current_track_table_error = str(value_error)
+                    # advance_time is subtracted to provide
+                    #  programTrackTable few
+                    # seconds in advance
+                    actual_time = (
+                        first_entry_timestamp - self.track_table_advance_sec
+                    )
 
-        except BaseException as exception:
-            self.logger.exception(
-                "Exception occurred during track_thread :%s",
-                str(exception),
-            )
-            self.update_program_track_table_error_callback(str(exception))
-            self.current_track_table_error = str(exception)
+                    scheduled_time = Time(
+                        float(actual_time)
+                        + Time(SKA_EPOCH, scale="utc").unix_tai,
+                        format="unix_tai",
+                        scale="tai",
+                    ).unix
+
+                    # Convert to human-readable format
+                    actual_time_readable = datetime.datetime.utcfromtimestamp(
+                        actual_time
+                    ).strftime("%Y-%m-%d %H:%M:%S")
+                    scheduled_time_readable = (
+                        datetime.datetime.utcfromtimestamp(
+                            scheduled_time
+                        ).strftime("%Y-%m-%d %H:%M:%S")
+                    )
+
+                    self.logger.debug("Actual Time: %s", actual_time_readable)
+                    self.logger.debug(
+                        "Scheduled time: %s", scheduled_time_readable
+                    )
+
+                    with self.track_thread_lock:
+                        if not self.mapping_scan_event.is_set():
+                            if pre_entries_of_ptt_in_schedular > 0:
+                                pre_entries_of_ptt_in_schedular -= 1
+                            else:
+                                track_table_calculator.ptt_buffer_set = True
+                            track_table_scheduler.enterabs(
+                                scheduled_time,
+                                event_priority,
+                                self.update_pointing_program_track_table,
+                                argument=(program_track_table,),
+                            )
+                            self.logger.debug(
+                                "Scheduled trackTable write operation"
+                            )
+                            self.logger.debug(
+                                "Scheduler Length: %s",
+                                len(track_table_scheduler.queue),
+                            )
+
+                self.logger.debug("Program TrackTable Calculation stopped.")
+            except Exception as value_error:
+                self.logger.error(
+                    "Error occured during track_thread execution: %s",
+                    str(value_error),
+                )
+                self.update_program_track_table_error_callback(
+                    str(value_error)
+                )
+                self.current_track_table_error = str(value_error)
+
+            except BaseException as exception:
+                self.logger.exception(
+                    "Exception occurred during track_thread :%s",
+                    str(exception),
+                )
+                self.update_program_track_table_error_callback(str(exception))
+                self.current_track_table_error = str(exception)
 
     def generate_program_track_table(
         self, task_callback: TaskCallbackType
