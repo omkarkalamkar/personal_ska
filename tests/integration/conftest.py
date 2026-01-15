@@ -2,8 +2,9 @@
 import logging
 
 import pytest
-from settings import WEATHER_STATION_DEVICE, WEATHER_STATION_DEVICE2
 from ska_tmc_common.dev_factory import DevFactory
+
+from tests.settings import WEATHER_STATION_DEVICE, WEATHER_STATION_DEVICE2
 
 
 @pytest.fixture(autouse=True, scope="session")

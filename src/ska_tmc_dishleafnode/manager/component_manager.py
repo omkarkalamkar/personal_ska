@@ -2748,13 +2748,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             return
         # Unsubscribe the old FQDN if new FQDN comes
         if queue_connector_dev_name and dev_name != queue_connector_dev_name:
-            if self.event_manager:
+            if (
+                self.event_manager
+                and self.event_manager_object.device_subscriptions.get(
+                    queue_connector_dev_name
+                )
+            ):
                 self.event_manager_object.unsubscribe_events(
                     queue_connector_dev_name
                 )
 
         # Subscribe to the SDP queue connector attribute
-        queue_connector_dev_name = dev_name
+        self.queue_connector_device_info.dev_name = dev_name
+        queue_connector_dev_name = self.queue_connector_device_info.dev_name
         attribute_name = sdpqc_fqdn.rsplit("/", 1)[-1].format(
             dish_id=self.dish_id
         )
@@ -2770,9 +2776,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     queue_connector_dev_name: [attribute_name]
                 }
             )
-            if self.event_manager_object.device_subscriptions.get(
+            dev = self.event_manager_object.device_subscriptions.get(
                 queue_connector_dev_name
-            ).get("is_subscription_completed"):
+            )
+            if dev and dev.get("is_subscription_completed"):
                 self.queue_connector_device_info.subscribed_to_attribute = True
                 self.queue_connector_device_info.attribute_name = (
                     attribute_name
