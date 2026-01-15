@@ -26,6 +26,7 @@ TIMEOUT = 100
 NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
 WEATHER_STATION_DEVICE = "ska-mid/weather-monitoring/s1"
+WEATHER_STATION_DEVICE2 = "ska-mid/weather-monitoring/s2"
 DISH_MASTER_DEVICE = "mid-dish/dish-manager/ska001"
 DISH_LEAF_NODE_DEVICE = "mid-tmc/leaf-node-dish/ska001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"

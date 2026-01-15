@@ -18,6 +18,15 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $dishlnFamily := .Values.deviceServers.dishln.family }}
 {{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
 {{- $WeatherStationDeviceNames := .Values.deviceServers.dishln.weather_station_device_names}}
+{{- $WindSpeedThreshold := .Values.deviceServers.dishln.wind_speed_threshold }}
+{{- $GustSpeedThreshold := .Values.deviceServers.dishln.gust_speed_threshold }}
+{{- $MeanWindSpeedDuration := .Values.deviceServers.dishln.mean_wind_speed_duration }}
+{{- $MeanGustSpeedDuration := .Values.deviceServers.dishln.mean_gust_speed_duration }}
+{{- $MaxTemperatureThreshold := .Values.deviceServers.dishln.max_temp_threshold }}
+{{- $MinTemperatureThreshold := .Values.deviceServers.dishln.min_temp_threshold }}
+{{- $TimeDelta := .Values.deviceServers.dishln.time_delta }}
+{{- $TemperatureDelta := .Values.deviceServers.dishln.temp_delta }}
+{{- $EnableAutoStow := .Values.deviceServers.dishln.enable_auto_stow }}
 
 server:
   name: "dish_leaf_node"
@@ -82,6 +91,33 @@ server:
           - name: "EventSubscriptionCheckPeriod"
             values:
               - "{{ $EventSubscriptionCheckPeriod }}"
+          - name: "WindSpeedThreshold"
+            values:
+              - "{{$WindSpeedThreshold}}"
+          - name: "GustSpeedThreshold"
+            values:
+              - "{{$GustSpeedThreshold}}"
+          - name: "MeanWindSpeedDuration"
+            values:
+              - "{{$MeanWindSpeedDuration}}"
+          - name: "MeanGustSpeedDuration"
+            values:
+              - "{{$MeanGustSpeedDuration}}"
+          - name: "MaxTemperatureThreshold"
+            values:
+              - "{{$MaxTemperatureThreshold}}"
+          - name: "MinTemperatureThreshold"
+            values:
+              - "{{$MinTemperatureThreshold}}"
+          - name: "TimeDelta"
+            values:
+              - "{{$TimeDelta}}"
+          - name: "TemperatureDelta"
+            values:
+              - "{{$TemperatureDelta}}"
+          - name: "EnableAutoStow"
+            values:
+              - "{{$EnableAutoStow}}"
   {{- end }}
 depends_on:
   - device: sys/database/2
