@@ -3077,7 +3077,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "KValueValidationResultData",
         )
 
-    def update_receiverband_for_health_aggregation(self) -> None:
+    def update_rxband_health_aggregation(self) -> None:
         """
         Update health data from component manager.
         """
