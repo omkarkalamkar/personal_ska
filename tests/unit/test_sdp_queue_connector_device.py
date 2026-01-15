@@ -76,11 +76,7 @@ def test_with_updated_sdpqc_fqdn(tango_context, cm):
     cm.dish_id = DISH_ID
     cm.correction_key = "UPDATE"
     cm.event_manager = True
-    attrs = {'subscribe_events.return_value': None}
-    cm.event_manager_object = mock.Mock(
-        device_subscriptions={dev_name: {"is_subscription_completed": True}},
-        **attrs,
-    )
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sleep(1)
     assert dev_name == cm.queue_connector_device_info.dev_name
