@@ -56,7 +56,7 @@ ska-tmc-simulators:
     image:
       registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
       image: ska-tmc-simulators
-      tag: 1.7.6-dev.c64485f63
+      tag: 1.9.0-dev.ca46b2b5c
   telescope: SKA-mid
   deviceServers:
     mocks:
