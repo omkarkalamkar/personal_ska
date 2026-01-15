@@ -1550,8 +1550,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             if progress is not None:
                 task_callback(progress=progress / 2)
-
-            if status == TaskStatus.COMPLETED:
+            if status == TaskStatus.IN_PROGRESS:
+                task_callback(status=status)
+            elif status == TaskStatus.COMPLETED:
                 task_callback(
                     progress=50,
                 )
