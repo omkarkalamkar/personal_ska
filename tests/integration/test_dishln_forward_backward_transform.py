@@ -135,7 +135,7 @@ def actual_pointing_attr(tango_context):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_actual_pointing_attribute(
     tango_context, json_factory, group_callback
 ):
