@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from ska_tmc_common import DevFactory
 
+from ska_tmc_dishleafnode.manager.event_manager import DishLNEventManager
 from tests.settings import (
     SDP_QUEUE_CONNECTOR_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE2,
@@ -47,11 +48,8 @@ def test_dish_leaf_node_gets_the_pointing_cal(tango_context, cm):
     dev_name = SDP_QUEUE_CONNECTOR_FQDN.rsplit("/", 1)[0]
     cm.dish_id = DISH_ID
     cm.event_manager = True
-    attrs = {'subscribe_events.return_value': None}
-    cm.event_manager_object = mock.Mock(
-        device_subscriptions={dev_name: {"is_subscription_completed": True}},
-        **attrs,
-    )
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
+
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     cm.correction_key = "UPDATE"
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
