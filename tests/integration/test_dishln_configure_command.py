@@ -36,6 +36,7 @@ def wait_for_actual_pointing_value(
         time.sleep(1)
         actual_pointing = device.read_attribute(attribute_name).value
         act_point_json = json.loads(actual_pointing)
+        logger.info("Expected Pointing: c1: %s, c2: %s", c1, c2)
         logger.info("ActualPointing: %s,c1: %s,c2: %s", act_point_json, c1, c2)
         if act_point_json:
             ra = act_point_json[1]
