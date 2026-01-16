@@ -422,7 +422,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         if weather_station_devices:
             for wms in weather_station_devices:
-                self.devices = DeviceInfo(wms.strip())
+                self.devices = DeviceInfo(wms.strip(), True)
 
     @property
     def devices(self) -> list[Union[DishDeviceInfo, DeviceInfo]]:
@@ -3242,7 +3242,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type wms: str
         """
         if wind_speed:
-            self.logger.info(wind_speed)
             if wms in self.weather_station_device_names[0]:
                 self.wind_speed = wind_speed
             if self.is_auto_stow_enabled:
@@ -3262,6 +3261,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type temperature: float
         """
         if temperature:
+            self.logger.info(temperature)
             if wms in self.weather_station_device_names[0]:
                 self.temperature = temperature
             self.auto_stow.temperatures[wms] = temperature

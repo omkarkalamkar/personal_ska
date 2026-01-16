@@ -65,10 +65,31 @@ ska-tmc-simulators:
 ska-taranta:
   enabled: false
 
-ska-mid-wms:
+simulator:
+  enabled: true
+  name: wms-sim
+  containers:
+    registry: registry.gitlab.com
+    image: ska-telescope/ska-mid-wms-interface/ska-mid-wms-interface
+    tag: 966329b7
+    pullPolicy: IfNotPresent
+    
+mid_wms:
+  deviceServers:
+    wms:
+      station_ids: ["s1", "s2"]
+      modbus_server_hostnames: ["wms-sim-s1", "wms-sim-s2"]
+      modbus_server_ports: ["1502", "1502"]
   labels:
     app: ska-tmc-dishleafnode
   enabled: true
   ska-tango-base:
     enabled: false
-
+  simulator:
+    enabled: false
+    name: wms-sim
+    containers:
+      registry: registry.gitlab.com
+      image: ska-telescope/ska-mid-wms-interface/ska-mid-wms-interface
+      tag: 966329b7
+      pullPolicy: IfNotPresent

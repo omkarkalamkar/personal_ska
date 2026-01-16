@@ -31,3 +31,4 @@ dependencies:
     version: 1.0.1
     repository: https://artefact.skao.int/repository/helm-internal
     condition: ska-mid-wms.enabled
+    alias: mid_wms

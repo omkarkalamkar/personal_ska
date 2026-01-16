@@ -73,13 +73,13 @@ deviceServers:
     weather_station_device_names: 
       - "ska-mid/weather-monitoring/s1"
       - "ska-mid/weather-monitoring/s2"
-    wind_speed_threshold: 60 #inflated 
-    gust_speed_threshold: 60 #inflated 
-    mean_wind_speed_duration: 600
+    wind_speed_threshold: 13.5 #inflated 
+    gust_speed_threshold: 20 #inflated 
+    mean_wind_speed_duration: 10
     mean_gust_speed_duration: 3
     max_temp_threshold: 40.0
     min_temp_threshold: -5
-    time_delta: 1000.0
+    time_delta: 10.0
     temp_delta: 10.0 #inflated 
     enable_auto_stow: true
     

@@ -1,4 +1,5 @@
 import json
+import math
 import time
 
 import pytest
@@ -42,8 +43,9 @@ def wait_for_actual_pointing_value(
             dec = act_point_json[2]
             ra = Angle(ra, u.hour).deg
             dec = Angle(dec, u.deg).deg
-            if (round(ra, 2) == round(c1, 2)) and (
-                round(dec, 2) == round(c2, 2)
+
+            if math.isclose(ra, c1, rel_tol=0.001) and (
+                math.isclose(dec, c2, rel_tol=0.001)
             ):
                 return True
     return False
