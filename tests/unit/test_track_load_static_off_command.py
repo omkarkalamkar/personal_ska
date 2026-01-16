@@ -183,6 +183,7 @@ def test_configure_command_completed_with_correction_key_update(
         f"{SDP_QUEUE_CONNECTOR_DEVICE}/" "pointing_cal_{dish_id}"
     )
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+
     cm.event_manager = True
     cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
 
@@ -338,6 +339,9 @@ def test_correction_key_maintain_empty_partial_main_config(
     )
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     cm.dish_id = "SKA001"
+    cm.event_manager = True
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
+
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
 
     with pytest.raises(AssertionError):

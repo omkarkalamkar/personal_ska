@@ -1345,8 +1345,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.event_manager_object.cancel_subscription_thread(
                 self.event_thread_id
             )
-            for device in self.build_device_attribute_map():
-                self.event_manager_object.unsubscribe_event_async(device)
+            for device in self.event_manager_object.device_subscriptions:
+                if self.event_manager_object.device_subscriptions.get(
+                    device
+                ).get("is_subscription_completed"):
+                    self.event_manager_object.unsubscribe_event_async(device)
 
     # pylint: disable=arguments-differ
     def get_device(
@@ -2768,7 +2771,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if self.event_manager:
             setattr(
                 self.event_manager_object,
-                f"{attribute_name}_event_callback",
+                f"{attribute_name.lower()}_event_callback",
                 self.process_pointing_calibration,
             )
             self.event_manager_object.subscribe_events(

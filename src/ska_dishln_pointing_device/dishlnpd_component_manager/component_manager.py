@@ -149,6 +149,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.event_threads.append(thread)
             thread.start()
 
+    def process_event(self, attribute_name):
+        with tango.EnsureOmniThread():
+            super().process_event(attribute_name)
+
     def stop_event_processing_threads(self) -> None:
         """
         Stop all event-processing threads:
