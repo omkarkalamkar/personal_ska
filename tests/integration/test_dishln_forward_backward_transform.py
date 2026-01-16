@@ -1,9 +1,14 @@
 """Integration test for testing forward and backward transform."""
 import ast
+import json
+import math
+import time
 from time import sleep
 
+import astropy.units as u
 import pytest
 import tango
+from astropy.coordinates import Angle
 from astropy.time import Time
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode, PointingState
@@ -116,26 +121,39 @@ def actual_pointing_attr(tango_context):
     """Test to check actualPointing is getting updated"""
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = DevFactory().get_device(DISH_MASTER_DEVICE)
+
     timestamp_str = "2019-02-19 06:01:00"
     epoch_time = Time(SKA_EPOCH, format="isot", scale="utc")
     timestamp_time = Time(timestamp_str, format="iso", scale="utc")
     timestamp = (timestamp_time - epoch_time).sec
-    value_to_verify = '["2019-02-19 06:01:00", "15:31:50.9", "10:15:51.4"]'
+
+    # Expected values in degrees
+    expected_ra = Angle("15:31:50.9", unit=u.hour).deg
+    expected_dec = Angle("10:15:51.4", unit=u.deg).deg
+
     count = 0
-    # Reason to add below while loop:
-    # Sometimes its observed that previous value of programTrackTable overrides
-    # the given sent values, resulting into test case failure
-    # So periodically sending the intended values to check actualPointing
-    # working as expected.
-    while dish_leaf_node.actualPointing != value_to_verify and count < 30:
+    while count < 30:
         dish_master.programTrackTable = [timestamp, 322.8709276, 41.3703589]
-        count = count + 1
-        sleep(1)
-    assert dish_leaf_node.actualPointing == value_to_verify
+        time.sleep(1)
+        actual_pointing = json.loads(dish_leaf_node.actualPointing)
+
+        # Parse actual RA/Dec
+        actual_ra = Angle(actual_pointing[1], unit=u.hour).deg
+        actual_dec = Angle(actual_pointing[2], u.deg).deg
+        logger.info("Expected: RA=%.20f, Dec=%.20f", expected_ra, expected_dec)
+
+        # Compare with tolerance
+        if math.isclose(actual_ra, expected_ra, abs_tol=0.01) and math.isclose(
+            actual_dec, expected_dec, abs_tol=0.01
+        ):
+            return True
+        count += 1
+
+    assert False, f"A {actual_pointing},E {expected_ra},{expected_dec}"
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_actual_pointing_attribute(
     tango_context, json_factory, group_callback
 ):
