@@ -58,6 +58,10 @@ class DishLNEventManager(EventManager):
             method_name = f"{model_params.lower()}_event_callback"
             setattr(self, method_name, self.handle_pointing_model_params)
 
+    def unsubscribe_events(self, device_name, attribute_names=None):
+        with tango.EnsureOmniThread():
+            super().unsubscribe_events(device_name, attribute_names)
+
     # pylint: enable=unused-argument
     def handle_pointing_model_params(
         self: DishLNEventManager, event_data: tango.EventData

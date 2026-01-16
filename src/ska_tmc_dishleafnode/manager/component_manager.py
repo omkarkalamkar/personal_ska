@@ -1198,13 +1198,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-
-        if self.dish_kvalue_validation_manager.is_dish_manager_ready():
-            self.dish_kvalue_validation_manager.validate_dish_kvalue()
-        elif self.kvalue_validation_callback:
-            self.kValueValidationResult = ResultCode.NOT_ALLOWED
-            self.kvalue_validation_callback()
-        self.initialization_complete.set()
+        with tango.EnsureOmniThread():
+            if self.dish_kvalue_validation_manager.is_dish_manager_ready():
+                self.dish_kvalue_validation_manager.validate_dish_kvalue()
+            elif self.kvalue_validation_callback:
+                self.kValueValidationResult = ResultCode.NOT_ALLOWED
+                self.kvalue_validation_callback()
+            self.initialization_complete.set()
 
     def convert_timestamp(
         self: DishLNComponentManager, timestamp_tai_ska_epoch: float

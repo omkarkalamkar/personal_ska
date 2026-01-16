@@ -99,63 +99,67 @@ class AutoStow:
 
     def calculate_mean_wind_speed(self):
         """Method to calculate mean wind speed."""
-        try:
-            wind_speed_means: list = []
-            wind_speeds: dict = self.wind_speeds.copy()
-            self.wind_speeds.clear()
+        with tango.EnsureOmniThread():
+            try:
+                wind_speed_means: list = []
+                wind_speeds: dict = self.wind_speeds.copy()
+                self.wind_speeds.clear()
 
-            for _, wind_speed in wind_speeds.items():
-                self.logger.info(wind_speed)
-                wind_speed_means.append(np.array(wind_speed).mean())
+                for _, wind_speed in wind_speeds.items():
+                    self.logger.info(wind_speed)
+                    wind_speed_means.append(np.array(wind_speed).mean())
 
-            if wind_speed_means:
-                wind_speed_mean = max(wind_speed_means)
-            else:
-                wind_speed_mean = 0
-            self.component_manager.wind_speed_mean = wind_speed_mean
-            if wind_speed_mean > self.wind_threshold:
-                self.logger.info(
-                    "Invoking auto stow based on mean wind speed %s %s",
-                    wind_speed_mean,
-                    wind_speed_means,
+                if wind_speed_means:
+                    wind_speed_mean = max(wind_speed_means)
+                else:
+                    wind_speed_mean = 0
+                self.component_manager.wind_speed_mean = wind_speed_mean
+                if wind_speed_mean > self.wind_threshold:
+                    self.logger.info(
+                        "Invoking auto stow based on mean wind speed %s %s",
+                        wind_speed_mean,
+                        wind_speed_means,
+                    )
+                    self.invoke_auto_stow()
+
+            except Exception as exception:
+                message = (
+                    "Exception occured while calculating wind mean speed %s",
+                    exception,
                 )
-                self.invoke_auto_stow()
-
-        except Exception as exception:
-            message = (
-                "Exception occured while calculating wind mean speed %s",
-                exception,
-            )
-            self.component_manager.update_auto_stow_failures(message)
-            self.logger.exception(message)
+                self.component_manager.update_auto_stow_failures(message)
+                self.logger.exception(message)
 
     def check_gusts(self):
         """Method to calculate gust speed."""
-        try:
-            gust_speeds: dict = self.gust_speeds.copy()
-            self.gust_speeds.clear()
-            gust_speed_means: list = []
+        with tango.EnsureOmniThread():
+            try:
+                gust_speeds: dict = self.gust_speeds.copy()
+                self.gust_speeds.clear()
+                gust_speed_means: list = []
 
-            for _, gust_speed in gust_speeds.items():
-                gust_speed_means.append(np.array(gust_speed).mean())
-            if gust_speed_means:
-                gust_wind_speed_mean = max(gust_speed_means)
-            else:
-                gust_wind_speed_mean = 0
-            self.component_manager.gust_wind_speed_mean = gust_wind_speed_mean
-            if gust_wind_speed_mean > self.gust_threshold:
-                self.logger.info(
-                    "Invoking auto stow based on mean gust speed %s",
-                    gust_wind_speed_mean,
+                for _, gust_speed in gust_speeds.items():
+                    gust_speed_means.append(np.array(gust_speed).mean())
+                if gust_speed_means:
+                    gust_wind_speed_mean = max(gust_speed_means)
+                else:
+                    gust_wind_speed_mean = 0
+                self.component_manager.gust_wind_speed_mean = (
+                    gust_wind_speed_mean
                 )
-                self.invoke_auto_stow()
-        except Exception as exception:
-            message = (
-                "Exception occured while calculating gust mean speed %s",
-                exception,
-            )
-            self.component_manager.update_auto_stow_failures(message)
-            self.logger.exception(message)
+                if gust_wind_speed_mean > self.gust_threshold:
+                    self.logger.info(
+                        "Invoking auto stow based on mean gust speed %s",
+                        gust_wind_speed_mean,
+                    )
+                    self.invoke_auto_stow()
+            except Exception as exception:
+                message = (
+                    "Exception occured while calculating gust mean speed %s",
+                    exception,
+                )
+                self.component_manager.update_auto_stow_failures(message)
+                self.logger.exception(message)
 
     def invoke_auto_stow(self):
         """Method to start temperature."""
@@ -180,9 +184,6 @@ class AutoStow:
         while self.component_manager.temperature_tracking[wms].is_set():
             start_time = time.perf_counter()
             self.polled_temperatures[wms].append(self.temperatures[wms])
-            self.logger.info(
-                "%s %s", len(self.polled_temperatures[wms]), time.time()
-            )
             # once the initial mark(time delta is reached),
             # the comparision loop starts
             if (
@@ -215,10 +216,8 @@ class AutoStow:
                 ].is_set():
                     self.temp_update[wms].wait()
                     self.temp_update[wms].clear()
-                    self.logger.info("%s", len(self.polled_temperatures))
                     temps = self.polled_temperatures[wms].copy()
                     self.polled_temperatures[wms].pop(0)
-                    self.logger.info("%s %s", temps[-1], temps[0])
                     if abs(temps[-1] - temps[0]) > self.temp_delta:
                         self.logger.info(
                             "roc %s %s", abs(temps[-1] - temps[0]), wms
