@@ -759,7 +759,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :param temperature: The temperature event from wms.
         :type temperature: float
         """
-        self.logger.info("temperature updated %s", temperature)
         if temperature:
             self.temperature = temperature
 
