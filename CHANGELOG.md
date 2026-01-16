@@ -9,6 +9,9 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 ********
 Added
 -----
+* Implemented  HealthInfo on Dish Leaf Node
+* Improved visibility: failures (e.g. GPM/KValue validation, Dish Manager state, band capability) now surface in healthInfo .
+
 
 [0.29.0]
 ********

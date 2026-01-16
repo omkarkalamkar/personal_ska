@@ -208,7 +208,7 @@ def observation_workflow(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_healthInfo(tango_context, group_callback, json_factory):
     observation_workflow(
         tango_context,
