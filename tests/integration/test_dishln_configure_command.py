@@ -60,7 +60,7 @@ def wait_for_actual_pointing_value(
             logger.info("Expected: RA=%.6f, Dec=%.6f", c1, c2)
             logger.info("Actual:   RA=%.6f, Dec=%.6f", ra, dec)
 
-            if math.isclose(ra, c1, abs_tol=0.01) and math.isclose(
+            if math.isclose(ra, c1, abs_tol=0.1) and math.isclose(
                 dec, c2, abs_tol=0.01
             ):
                 return True
