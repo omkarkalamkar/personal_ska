@@ -139,7 +139,7 @@ def actual_pointing_attr(tango_context):
 
         # Parse actual RA/Dec
         actual_ra = Angle(actual_pointing[1], unit=u.hour).deg
-        actual_dec = Angle(actual_pointing[2].u.deg).deg
+        actual_dec = Angle(actual_pointing[2], u.deg).deg
         logger.info("Expected: RA=%.20f, Dec=%.20f", expected_ra, expected_dec)
 
         # Compare with tolerance
