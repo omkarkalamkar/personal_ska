@@ -129,7 +129,7 @@ def actual_pointing_attr(tango_context):
 
     # Expected values in degrees
     expected_ra = Angle("15:31:50.9", unit=u.hour).deg
-    expected_dec = Angle("10:15:51.4").deg
+    expected_dec = Angle("10:15:51.4", unit=u.deg).deg
 
     count = 0
     while count < 30:
