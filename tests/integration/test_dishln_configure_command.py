@@ -49,8 +49,13 @@ def wait_for_actual_pointing_value(
             # ):
             #     return True
 
-            ra = Angle(act_point_json[1], unit=u.hour).deg
-            dec = Angle(act_point_json[2]).deg
+            # ra = Angle(act_point_json[1], unit=u.hour).deg
+            # dec = Angle(act_point_json[2]).deg
+
+            ra = act_point_json[1]
+            dec = act_point_json[2]
+            ra = Angle(ra, u.hour).deg
+            dec = Angle(dec, u.deg).deg
 
             logger.info("Expected: RA=%.6f, Dec=%.6f", c1, c2)
             logger.info("Actual:   RA=%.6f, Dec=%.6f", ra, dec)
