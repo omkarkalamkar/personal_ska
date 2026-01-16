@@ -5,12 +5,20 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-[0.29.1]
+
+[0.29.2]
 ********
 Added
 -----
 * Implemented  HealthInfo on Dish Leaf Node
+
+
+[0.29.1]
+********
+Added
+-----
 * Improved visibility: failures (e.g. GPM/KValue validation, Dish Manager state, band capability) now surface in healthInfo .
+* Added fix for GPM issue faced on mid integration.
 
 
 [0.29.0]
