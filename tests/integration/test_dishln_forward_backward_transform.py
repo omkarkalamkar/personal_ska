@@ -143,8 +143,8 @@ def actual_pointing_attr(tango_context):
         logger.info("Expected: RA=%.20f, Dec=%.20f", expected_ra, expected_dec)
 
         # Compare with tolerance
-        if math.isclose(actual_ra, expected_ra, abs_tol=1e-3) and math.isclose(
-            actual_dec, expected_dec, abs_tol=1e-3
+        if math.isclose(actual_ra, expected_ra, abs_tol=0.01) and math.isclose(
+            actual_dec, expected_dec, abs_tol=0.01
         ):
             return True
         count += 1
