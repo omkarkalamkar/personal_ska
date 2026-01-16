@@ -378,7 +378,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.temperature_tracking: dict[str, bool] = defaultdict(
             threading.Event
         )
-        self.__rate_of_change_temperature: float = 0.0
+        self.__rate_of_change_temperature: dict = {}
         self.__gust_wind_speed_mean: float = 0.0
         self.__wind_speed_mean: float = 0.0
         self.max_temp_threshold: float = max_temp_threshold
@@ -458,12 +458,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self._update_stow_status_callback(status)
 
     @property
-    def rate_of_change_temperature(self) -> float:
+    def rate_of_change_temperature(self) -> dict:
         """Rate of change of temperature."""
         return self.__rate_of_change_temperature
 
     @rate_of_change_temperature.setter
-    def rate_of_change_temperature(self, roc: float):
+    def rate_of_change_temperature(self, roc: dict):
         """setter for change of temperature.
 
         :param roc: rate of change of temperature
@@ -471,7 +471,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.__rate_of_change_temperature = roc
         if self._update_roc_temp_callback:
-            self._update_roc_temp_callback(roc)
+            self._update_roc_temp_callback(json.dumps(roc))
 
     @property
     def gust_wind_speed_mean(self) -> float:

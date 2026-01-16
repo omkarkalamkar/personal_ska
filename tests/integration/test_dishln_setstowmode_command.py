@@ -157,6 +157,8 @@ def test_setstowmode_command(tango_context, group_callback):
     setstowmode_command(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)
 
 
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
 def test_auto_stow_gust_speed(group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
@@ -200,6 +202,8 @@ def test_auto_stow_gust_speed(group_callback):
     )
 
 
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
 def test_auto_stow_wind_speed(group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
@@ -244,6 +248,8 @@ def test_auto_stow_wind_speed(group_callback):
     )
 
 
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
 def test_auto_stow_max_temp(group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
@@ -288,6 +294,8 @@ def test_auto_stow_max_temp(group_callback):
     )
 
 
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
 def test_auto_stow_temp_delta(group_callback):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)

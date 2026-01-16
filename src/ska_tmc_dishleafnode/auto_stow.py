@@ -37,6 +37,7 @@ class AutoStow:
         self.component_manager = component_manager
         self.__wind_speeds: dict = defaultdict(list)
         self.__gust_speeds: dict = defaultdict(list)
+        self.rate_of_change_temp: dict = {}
         self.wind_lock = threading.Lock()
         self.gust_lock = threading.Lock()
         self.wind_threshold: float = wind_threshold
@@ -45,6 +46,7 @@ class AutoStow:
         self.temp_delta: float = temp_delta
         self.time_delta: float = time_delta
         self.temp_lock = threading.Lock()
+        self.poll_lock = threading.Lock()
         self.poll_threads: list = []
         self.__polled_temperatures: dict = defaultdict(list)
         self.__temperatures: dict = {}
@@ -82,7 +84,7 @@ class AutoStow:
     @property
     def polled_temperatures(self) -> dict:
         """Property to store polled the temperatures."""
-        with self.temp_lock:
+        with self.poll_lock:
             return self.__polled_temperatures
 
     @property
@@ -106,7 +108,6 @@ class AutoStow:
                 self.wind_speeds.clear()
 
                 for _, wind_speed in wind_speeds.items():
-                    self.logger.info(wind_speed)
                     wind_speed_means.append(np.array(wind_speed).mean())
 
                 if wind_speed_means:
@@ -186,13 +187,14 @@ class AutoStow:
             self.polled_temperatures[wms].append(self.temperatures[wms])
             # once the initial mark(time delta is reached),
             # the comparision loop starts
+            temp = self.polled_temperatures[wms].copy()
             if (
-                len(self.polled_temperatures[wms]) == self.time_delta
+                len(temp) == self.time_delta
                 and not self.initial_mark_achieved[wms].is_set()
             ):
                 self.initial_mark_achieved[wms].set()
             # if the polled data is more than the time delta it is removed.
-            elif len(self.polled_temperatures[wms]) > self.time_delta:
+            elif len(temp) > self.time_delta:
                 self.polled_temperatures[wms].pop(0)
             # notify the change in temperature
             self.temp_update[wms].set()
@@ -218,11 +220,16 @@ class AutoStow:
                     self.temp_update[wms].clear()
                     temps = self.polled_temperatures[wms].copy()
                     self.polled_temperatures[wms].pop(0)
-                    if abs(temps[-1] - temps[0]) > self.temp_delta:
+                    roc = abs(temps[-1] - temps[0])
+                    self.rate_of_change_temp[wms] = roc
+                    if roc > self.temp_delta:
                         self.logger.info(
-                            "roc %s %s", abs(temps[-1] - temps[0]), wms
+                            "rate of change :%s for station: %s", roc, wms
                         )
                         self.invoke_auto_stow()
+                    self.component_manager.rate_of_change_temperature = (
+                        self.rate_of_change_temp
+                    )
             except Exception as exception:
                 message = (
                     "Exception occured while checking"

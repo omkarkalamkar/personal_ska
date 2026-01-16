@@ -872,10 +872,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self.push_change_archive_events("meanGustSpeed", mean_speed)
 
     @attribute(
-        dtype=float,
+        dtype=str,
         access=AttrWriteType.READ,
     )
-    def rateOfChangeTemperature(self: MidTmcLeafNodeDish) -> float:
+    def rateOfChangeTemperature(self: MidTmcLeafNodeDish) -> str:
         """
         Returns the rate of change in temperature for specified duration.
 
@@ -884,11 +884,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.rate_of_change_in_temperature
 
-    def update_roc_temperature_callback(self, roc_temp: float):
+    def update_roc_temperature_callback(self, roc_temp: str):
         """Callback to update the rate of change in temperature
 
         :param roc_temp: rate of change in temperature
-        :type roc_temp: float
+        :type roc_temp: str
         """
         self.rate_of_change_in_temperature = roc_temp
         self.push_change_archive_events("rateOfChangeTemperature", roc_temp)

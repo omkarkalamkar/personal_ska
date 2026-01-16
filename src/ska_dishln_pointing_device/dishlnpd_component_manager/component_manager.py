@@ -749,7 +749,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :param wind_speed: the wind speed event from wms.
         :type wind_speed: float
         """
-        self.logger.info("wind speed updated %s", wind_speed)
         if wind_speed:
             self.wind_speed = wind_speed
 
@@ -778,7 +777,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :param humidity: The humidity event from the wms.
         :type humidity: float
         """
-        self.logger.info("humidity updated %s", humidity)
         if humidity:
             self.humidity = humidity
 
