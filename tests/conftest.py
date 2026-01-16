@@ -465,7 +465,6 @@ def cm_pointig_device() -> (
     yield cm
 
 
-@pytest.fixture(autouse=True)
 def initialise_kvalue(dishln_device):
     """Ensure DishLN and DishMaster start with matching KValue."""
     try:
