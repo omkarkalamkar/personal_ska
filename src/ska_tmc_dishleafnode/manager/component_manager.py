@@ -3239,6 +3239,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type wms: str
         """
         if wind_speed:
+            self.logger.info(wind_speed)
             if wms in self.weather_station_device_names[0]:
                 self.wind_speed = wind_speed
             if self.is_auto_stow_enabled:
@@ -3408,6 +3409,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
             self.event_threads.append(thread)
             thread.start()
+
+    def process_event(self, attribute_name):
+        with tango.EnsureOmniThread():
+            super().process_event(attribute_name)
 
     def check_event_error(self, event: tango.EventData, callback: str):
         """Method for checking event error."""
