@@ -40,18 +40,6 @@ def wait_for_actual_pointing_value(
         logger.info("Expected Pointing: c1: %s, c2: %s", c1, c2)
         logger.info("ActualPointing: %s,c1: %s,c2: %s", act_point_json, c1, c2)
         if act_point_json:
-            # ra = act_point_json[1]
-            # dec = act_point_json[2]
-            # ra = Angle(ra, u.hour).deg
-            # dec = Angle(dec, u.deg).deg
-            # if (round(ra, 2) == round(c1, 2)) and (
-            #     round(dec, 2) == round(c2, 2)
-            # ):
-            #     return True
-
-            # ra = Angle(act_point_json[1], unit=u.hour).deg
-            # dec = Angle(act_point_json[2]).deg
-
             ra = act_point_json[1]
             dec = act_point_json[2]
             ra = Angle(ra, u.hour).deg
@@ -183,7 +171,7 @@ def configure_dish_leaf_node(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 @pytest.mark.parametrize(
     "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
 )
@@ -470,7 +458,7 @@ def delta_configure_dish_leaf_node(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_partial_configure_command(
     tango_context, group_callback, json_factory
 ):
@@ -485,7 +473,7 @@ def test_partial_configure_command(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_delta_configure_command(tango_context, group_callback, json_factory):
     """Test delta configure functionality on Dish Leaf Node."""
     delta_configure_dish_leaf_node(
@@ -499,7 +487,7 @@ def test_delta_configure_command(tango_context, group_callback, json_factory):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 @pytest.mark.parametrize(
     "delta_configure_type",
     [
@@ -555,7 +543,7 @@ def test_delta_configure_with_possible_json(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_delta_configure_command_with_different_offset(
     tango_context, group_callback, json_factory
 ):
