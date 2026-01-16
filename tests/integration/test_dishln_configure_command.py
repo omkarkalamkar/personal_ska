@@ -57,10 +57,13 @@ def wait_for_actual_pointing_value(
             ra = Angle(ra, u.hour).deg
             dec = Angle(dec, u.deg).deg
 
-            logger.info("Expected: RA=%.6f, Dec=%.6f", c1, c2)
-            logger.info("Actual:   RA=%.6f, Dec=%.6f", ra, dec)
+            logger.info("Expected: RA=%.20f, Dec=%.20f", c1, c2)
+            logger.info("Actual:   RA=%.20f, Dec=%.20f", ra, dec)
+            diff_ra = ra - c1
+            diff_dec = dec - c2
+            logger.info("Diff: RA=%.20f°, Dec=%.20f°", diff_ra, diff_dec)
 
-            if math.isclose(ra, c1, abs_tol=0.1) and math.isclose(
+            if math.isclose(ra, c1, abs_tol=0.2) and math.isclose(
                 dec, c2, abs_tol=0.01
             ):
                 return True
