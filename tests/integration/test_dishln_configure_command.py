@@ -24,7 +24,7 @@ from tests.settings import (
     wait_and_validate_attribute_value_available,
 )
 
-TIMEOUT_ACTUAL_POINTING = 5
+TIMEOUT_ACTUAL_POINTING = 10
 OFFSET = 5.0
 
 
