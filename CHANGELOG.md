@@ -5,6 +5,17 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.30.0]
+********
+Added
+------
+* Added AutoStow functionality.
+
+Updated
+-------
+* Updated SetStowMode functionality.
+* Updated subscriptions with event manager.
+
 
 [0.29.2]
 ********
