@@ -518,7 +518,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             try:
                 self.pointing_program_track_table = program_track_table
                 self.update_pointing_program_track_table_callback(
-                    self.pointing_program_track_table
+                    program_track_table
                 )
             except BaseException as exception:
                 message = "Exception while writing trackTable: %s" + str(
