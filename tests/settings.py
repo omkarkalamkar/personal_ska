@@ -608,11 +608,12 @@ def simulate_pointing_state_event(
 def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
     """Return the json for Configure command with visible non-sidereal object
     according to current time.
+    It has been found that during 9am IST to 10:30 am IST ,
+    none of the non-sidereal objects are visible.
     """
     configure_input_json = json.loads(non_side_real_json)
     timestamp: Time = Time(datetime.utcnow(), scale="utc")
-    logger.info("CURRENT TIME: %s", timestamp.iso)
-    logger.info("Elevation Min Limit: %s", cm.elevation_min_limit)
+
     for target in NON_SIDEREAL_OBJECTS:
         _, El = cm.converter.point_to_body(target, timestamp)
         logger.info("Target: %s, El: %s", target, El)
