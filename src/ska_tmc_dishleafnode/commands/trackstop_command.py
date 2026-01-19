@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from typing import Dict, Tuple, Union
 
-import tango
 from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
