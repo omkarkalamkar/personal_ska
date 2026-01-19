@@ -70,7 +70,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
         super().__init__(logger)
         self.logger = logger
-        self.ptt_lock = threading.Lock()
         self.pointing_program_track_table: list = []
         self.update_pointing_program_track_table_callback = (
             update_pointing_program_track_table_callback
@@ -514,22 +513,19 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :return: None
         :rtype: None
         """
-        with self.ptt_lock:
-            try:
-                self.pointing_program_track_table = program_track_table
-                self.update_pointing_program_track_table_callback(
-                    program_track_table
-                )
-            except BaseException as exception:
-                message = "Exception while writing trackTable: %s" + str(
-                    exception
-                )
-                self.logger.exception(message)
-                raise Exception(message) from exception
-            self.logger.debug(
-                "Calculated ProgramTrackTable: %s",
-                program_track_table,
+        try:
+            self.pointing_program_track_table = program_track_table
+            self.update_pointing_program_track_table_callback(
+                program_track_table.copy()
             )
+        except BaseException as exception:
+            message = "Exception while writing trackTable: %s" + str(exception)
+            self.logger.exception(message)
+            raise Exception(message) from exception
+        self.logger.debug(
+            "Calculated ProgramTrackTable: %s",
+            program_track_table,
+        )
 
     def stop_track_table_thread(self):
         """Stop the track table thread if it is running"""
