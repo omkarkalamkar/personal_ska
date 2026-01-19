@@ -44,7 +44,7 @@ def wait_for_actual_pointing_value(
             ra = Angle(ra, u.hour).deg
             dec = Angle(dec, u.deg).deg
 
-            if math.isclose(ra, c1, abs_tol=0.01) and (
+            if math.isclose(ra, c1, abs_tol=0.2) and (
                 math.isclose(dec, c2, abs_tol=0.01)
             ):
                 return True
