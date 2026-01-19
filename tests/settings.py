@@ -616,6 +616,8 @@ def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
         if El > cm.elevation_min_limit:
             configure_input_json["pointing"]["target"]["target_name"] = target
             return json.dumps(configure_input_json)
+
+    logger.info("No visible non-sidereal object found")
     return ""
 
 
