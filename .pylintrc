@@ -241,7 +241,7 @@ max-attributes=90
 min-public-methods=1
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods=82
+max-public-methods=84
 
 # Maximum number of positional argument for function / method
 max-positional-arguments=29

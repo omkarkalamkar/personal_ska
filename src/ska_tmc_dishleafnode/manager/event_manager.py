@@ -53,10 +53,22 @@ class DishLNEventManager(EventManager):
             "band5APointingModelParams",
             "band5BPointingModelParams",
         ]
+        self.band_capability_attrs = [
+            "b1CapabilityState",
+            "b2CapabilityState",
+            "b3CapabilityState",
+            "b4CapabilityState",
+            "b5aCapabilityState",
+            "b5bCapabilityState",
+        ]
         self.logger = logger
         for model_params in self.pointing_model_params_attrs:
             method_name = f"{model_params.lower()}_event_callback"
             setattr(self, method_name, self.handle_pointing_model_params)
+
+        for model_params in self.band_capability_attrs:
+            method_name = f"{model_params.lower()}_event_callback"
+            setattr(self, method_name, self.handle_band_capabilities)
 
     def unsubscribe_events(self, device_name, attribute_names=None):
         with tango.EnsureOmniThread():
@@ -79,6 +91,26 @@ class DishLNEventManager(EventManager):
         if event_data.attr_value:
             band_param = event_data.attr_value.name.lower()
             self._component_manager.event_queues[band_param].put(event_data)
+
+    # pylint: enable=unused-argument
+    def handle_band_capabilities(
+        self: DishLNEventManager, event_data: tango.EventData
+    ):
+        """Method to handle and update the latest value of Band capabilities
+        params.
+
+        :parameter event_data: The change event data for Dish
+          global pointing model params.
+        :type event_data: tango.EventType.CHANGE_EVENT
+        :return: None
+        :rtype: NoneType
+        """
+        self.logger.info("%s", event_data)
+        if event_data.attr_value:
+            band_capability = event_data.attr_value.name.lower()
+            self._component_manager.event_queues[band_capability].put(
+                event_data
+            )
 
     def dishmode_event_callback(
         self: DishLNEventManager, event_data: tango.EventData

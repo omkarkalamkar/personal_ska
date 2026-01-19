@@ -909,6 +909,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self.rate_of_change_in_temperature = roc_temp
         self.push_change_archive_events("rateOfChangeTemperature", roc_temp)
+
     @attribute(
         dtype="str",
         access=AttrWriteType.READ,

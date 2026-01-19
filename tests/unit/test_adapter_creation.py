@@ -6,7 +6,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode.commands.track_command import Track
-from ska_tmc_dishleafnode.enums import CapabilityStates
+from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from tests.settings import DISH_MASTER_DEVICE
 
 

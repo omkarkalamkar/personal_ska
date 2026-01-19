@@ -332,7 +332,9 @@ def wait_for_stow_status(
         if (time.time() - start_time) >= timeout:
             return False
         time.sleep(1)
-        
+    return True
+
+
 def wait_for_attribute_health_value(
     device: DeviceProxy, attribute_name: str, value: str = "[]"
 ) -> bool:

@@ -13,7 +13,6 @@ import signal
 import threading
 import time
 from collections import defaultdict
-from dataclasses import asdict
 from functools import partial
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
@@ -77,8 +76,6 @@ from ska_tmc_dishleafnode.manager.health_data import (
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_manager import DishLNEventManager
-from .health_data import DishHealthData
-from .health_rules import HEALTH_RULES
 
 
 # pylint: disable = too-many-public-methods,too-many-instance-attributes
@@ -588,7 +585,14 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "configuredBand",
             "longRunningCommandResult",
             "kValue",
+            "b1CapabilityState",
+            "b2CapabilityState",
+            "b3CapabilityState",
+            "b4CapabilityState",
+            "b5aCapabilityState",
+            "b5bCapabilityState",
         ]
+
         device_attribute_map[self.dishln_pointing_dev_name] = [
             "pointingProgramTrackTable",
             "programTrackTableError",
@@ -2370,7 +2374,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type band_name: str
         """
         with self.band_capability_lock:
-            dev_info = self.get_device()
+            dev_info = self.get_device(self.dish_dev_name)
             dev_info.last_event_arrived = time.time()
             # remove "CapabilityState" → "b1" → "B1"
             normalized_band = band_name[:-15].upper()
@@ -3423,6 +3427,23 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         ),
                     }
                 )
+        band_capabilities = [
+            "b1capabilitystate",
+            "b2capabilitystate",
+            "b3capabilitystate",
+            "b4capabilitystate",
+            "b5acapabilitystate",
+            "b5bcapabilitystate",
+        ]
+        for band_capability in band_capabilities:
+            attributes.update(
+                {
+                    band_capability: partial(
+                        self.update_band_capability_state,
+                        band_name=band_capability,
+                    )
+                }
+            )
         return {**attributes}
 
     def update_program_track_table_error(self, event: tango.EventData) -> None:

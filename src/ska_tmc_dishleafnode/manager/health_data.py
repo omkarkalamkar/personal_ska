@@ -11,7 +11,7 @@ from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import Band
 
-from ska_tmc_dishleafnode.enums import CapabilityStates
+from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
 
 
