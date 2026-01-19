@@ -611,8 +611,11 @@ def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
     """
     configure_input_json = json.loads(non_side_real_json)
     timestamp: Time = Time(datetime.utcnow(), scale="utc")
+    logger.info("CURRENT TIME: %s", timestamp.iso)
+    logger.info("Elevation Min Limit: %s", cm.elevation_min_limit)
     for target in NON_SIDEREAL_OBJECTS:
         _, El = cm.converter.point_to_body(target, timestamp)
+        logger.info("Target: %s, El: %s", target, El)
         if El > cm.elevation_min_limit:
             configure_input_json["pointing"]["target"]["target_name"] = target
             return json.dumps(configure_input_json)
