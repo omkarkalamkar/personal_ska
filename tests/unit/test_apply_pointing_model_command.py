@@ -440,7 +440,7 @@ def test_update_dish_pointing_model_param_calls(
     cm = cm_without_er_lp
     logger = MagicMock()
     cm._update_dish_pointing_model_param = MagicMock()
-    cm.evaluate_and_update_health_state = MagicMock()
+    cm.update_gpm_data_for_health_aggregation = MagicMock()
     gpm_validator = GPMValidator(cm, logger)
     gpm_validator.get_band_info = MagicMock(return_value=("1.5.1", "Band_1"))
     gpm_validator.validate_gpm_version = MagicMock(return_value=None)
@@ -458,7 +458,7 @@ def test_update_dish_pointing_model_param_calls(
     logger.info.assert_called_once()
     logger.debug.assert_called_once()
     cm._update_dish_pointing_model_param.assert_called_once()
-    cm.evaluate_and_update_health_state.assert_called_once()
+    cm.update_gpm_data_for_health_aggregation.assert_called_once()
 
     # Scenario 2: GPM version unknown
     cm.handle_update_gpm_validation_result_callback = MagicMock()

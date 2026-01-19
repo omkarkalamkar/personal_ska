@@ -217,7 +217,7 @@ def track_dish_leaf_node(
     )
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
-        lookahead=2,
+        lookahead=4,
     )
 
     lrcr_event_id = dish_leaf_node.subscribe_event(

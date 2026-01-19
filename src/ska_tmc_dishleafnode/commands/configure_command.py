@@ -218,7 +218,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_id,
             )
             self.component_manager.command_id = ""
-            self.component_manager.receiver_band = ""
+            self.component_manager.update_rxband_health_aggregation()
             self.component_manager.partial_configure = False
             self.component_manager.is_trackloadstatic_off = False
             self.component_manager.configure_band_lrcr = ResultCode.UNKNOWN
@@ -230,7 +230,7 @@ class Configure(DishLNCommand):
             ):
                 self.component_manager.correction_key = ""
             self.component_manager.clear_configure_command_events_flags()
-            self.component_manager.command_unique_id_dict.clear()
+
             self.logger.debug("Configure command cleanup completed.")
 
         except Exception as e:

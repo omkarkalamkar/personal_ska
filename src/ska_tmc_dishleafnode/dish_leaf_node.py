@@ -149,6 +149,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         super().init_device()
         for attribute_name in [
             "healthState",
+            "healthInfo",
             "isSubsystemAvailable",
             "actualPointing",
             "dishMode",
@@ -212,6 +213,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "Updated HealthState of %s is: %s",
             self._dishln_name,
             self._health_state,
+        )
+
+    def update_health_info_callback(self, health_info: dict) -> None:
+        """Change event callback for healthInfo attribute
+        Args:
+            health_info (dict): New health info to be set.
+        """
+        self.component_manager.health_info = health_info
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "healthInfo", json.dumps(self.component_manager.health_info)
+            )
+        self.logger.info(
+            "Updated HealthInfo is: %s",
+            json.dumps(self.component_manager.health_info),
         )
 
     def update_gpm_paths_data_callback(
@@ -419,7 +435,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ResultCode(self.component_manager.kValueValidationResult).name,
         )
 
-        self.component_manager.evaluate_and_update_health_state()
+        self.component_manager.update_kvalue_data_for_health_aggregation()
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
@@ -436,6 +452,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     # ------------------
     # Attributes methods
     # ------------------
+
     def read_dishMasterDevName(self) -> str:
         """Reads the dishMasterDevName attribute value.
 
@@ -740,6 +757,18 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :rtype: str
         """
         return json.dumps(self.component_manager.gpm_validation_result)
+
+    @attribute(
+        dtype="str",
+        access=AttrWriteType.READ,
+    )
+    def healthInfo(self: MidTmcLeafNodeDish) -> str:
+        """Reads the healthInfo attribute value.
+
+        Returns:
+            str: healthInfo attribute value.
+        """
+        return json.dumps(self.component_manager.health_info)
 
     # --------
     # Commands
@@ -1274,6 +1303,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             _update_last_pointing_data_cb=self.update_last_pointing_data_cb,
             _update_track_table_errors_callback=update_track_err_cb,
             _update_health_state_callback=self.update_health_state_callback,
+            _update_health_info_callback=self.update_health_info_callback,
             _update_gpm_version_callback=self.update_gpm_version_callback,
             _update_gpm_validation_result_callback=(
                 self.update_gpm_validation_result_callback

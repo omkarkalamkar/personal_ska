@@ -12,11 +12,10 @@ import re
 import signal
 import threading
 import time
-from dataclasses import asdict
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Tuple
 
 import numpy as np
 import tango
@@ -65,13 +64,14 @@ from ska_tmc_dishleafnode.constants import (
     IERS_DATA_STORAGE_PATH,
     SKA_EPOCH,
 )
-from ska_tmc_dishleafnode.enums import CORRECTION_KEY
+from ska_tmc_dishleafnode.enums import CORRECTION_KEY, CapabilityStates
 from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
+from ska_tmc_dishleafnode.manager.health_data import (
+    DishHealthStateAndInfoManager,
+)
 
 from .dish_kvalue_validation_manager import DishkValueValidationManager
 from .event_receiver import DishLNEventReceiver
-from .health_data import DishHealthData
-from .health_rules import HEALTH_RULES
 
 
 # pylint: disable = too-many-public-methods,too-many-instance-attributes
@@ -99,6 +99,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_last_pointing_data_cb: Callable,
         _update_track_table_errors_callback: Callable,
         _update_health_state_callback: Callable,
+        _update_health_info_callback: Callable,
         _update_gpm_version_callback: Callable,
         _update_gpm_validation_result_callback: Callable,
         _update_gpm_paths_data_callback: Callable,
@@ -155,6 +156,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.lock = threading.RLock()
         self.configured_band_lock = threading.RLock()
         self.dish_pointing_lock = threading.RLock()
+        self.band_capability_lock = threading.RLock()
         self.dish_mode_lock = threading.RLock()
         self.pointing_state_lock = threading.RLock()
         self.health_state_lock = threading.RLock()
@@ -162,6 +164,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._device = DishDeviceInfo(dish_dev_name)
         self.logger = logger
         self.adapter_factory = AdapterFactory()
+        self.health_manager = DishHealthStateAndInfoManager(self, logger)
         self.command_timeout = command_timeout
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
@@ -204,12 +207,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_track_table_errors_callback
         )
         self._update_health_state_callback = _update_health_state_callback
+        self._update_health_info_callback = _update_health_info_callback
         self._kvalue: int = 0
         self.process_manager = Manager()
         self._array_layout = self.process_manager.dict()
         self.layout_updated = self.process_manager.Event()
         self._current_track_table_error = ""
         self.errors_to_be_reported = []
+        self.health_info: Dict = {}
+        self.band_capability_state: Dict[str, CapabilityStates] = {}
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
         self.dish_availability_check_timeout = dish_availability_check_timeout
@@ -904,6 +910,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
 
+        self.logger.info("Updating k-value validation result.")
         if self.dish_kvalue_validation_manager.is_dish_manager_ready():
             self.dish_kvalue_validation_manager.validate_dish_kvalue()
         elif self.kvalue_validation_callback:
@@ -1945,6 +1952,46 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 dish_param, band_name
             )
 
+    def update_band_capability_state(
+        self: DishLNComponentManager,
+        band_capability_state: CapabilityStates,
+        band_name: str,
+    ) -> None:
+        """
+        Update the band capability state for a specific dish band and trigger
+        associated callbacks.
+
+        This method normalizes the band name by removing the "CapabilityState"
+        suffix and converting to uppercase
+        (with special handling for B5a and B5b).
+        It updates the internal band capability state dictionary, notifies the
+        health manager, and logs the state change.
+
+        :param band_capability_state: The new capability state of the band
+        :type band_capability_state: CapabilityStates
+        :param band_name: The band name string (e.g., "b1CapabilityState")
+        :type band_name: str
+        """
+        with self.band_capability_lock:
+            dev_info = self.get_device()
+            dev_info.last_event_arrived = time.time()
+            # remove "CapabilityState" → "b1" → "B1"
+            normalized_band = band_name[:-15].upper()
+            if normalized_band == "B5A":
+                normalized_band = "B5a"
+            elif normalized_band == "B5B":
+                normalized_band = "B5b"
+            self.band_capability_state[normalized_band] = band_capability_state
+            self.health_manager.update_health_data_and_aggregate(
+                (normalized_band, band_capability_state),
+                "DishBandCapabilityStateData",
+            )
+            self.logger.debug(
+                "BandCapabilityState for band %s updated to %s",
+                normalized_band,
+                band_capability_state.name,
+            )
+
     def update_device_pointing_state(
         self: DishLNComponentManager, pointingState: PointingState
     ) -> None:
@@ -2129,6 +2176,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dish_adapter (DishAdapter): dish Adapter to be set,
                 used to write programTrackTable on the dish.
         """
+        self.logger.info("Setting dish adapter in component manager")
         self.dish_adapter = dish_adapter
 
     def set_dishln_pointing_device_adapter(
@@ -2859,6 +2907,12 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "band4pointingmodelparams": self.update_dish_pointing_model_param,
             "band5apointingmodelparams": self.update_dish_pointing_model_param,
             "band5bpointingmodelparams": self.update_dish_pointing_model_param,
+            "b1CapabilityState": self.update_band_capability_state,
+            "b2CapabilityState": self.update_band_capability_state,
+            "b3CapabilityState": self.update_band_capability_state,
+            "b4CapabilityState": self.update_band_capability_state,
+            "b5aCapabilityState": self.update_band_capability_state,
+            "b5bCapabilityState": self.update_band_capability_state,
         }
 
         return {**attributes}
@@ -2883,6 +2937,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 which contains the event data, dishMode Event in this case.
 
         """
+        self.logger.info("Updating k-value event in respective queue.")
         self.event_queues["kValue"].put(event)
 
     def update_pointing_state_event(self, event: tango.EventData) -> None:
@@ -2955,6 +3010,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self._device.health_state = health_state
             self._device.last_event_arrived = time.time()
 
+        self.logger.debug(
+            "Device %s reported health state %s",
+            self._device.dev_name,
+            health_state,
+        )
+        self.health_manager.update_health_data_and_aggregate(
+            self._device.health_state, "DishManagerHealthData"
+        )
+
     def start_event_processing_threads(self) -> None:
         """Start all the event processing threads."""
         # reset flag and any previous threads
@@ -2993,58 +3057,60 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # reset flag so you can restart later if needed
         self._stop_thread = False
 
-    def build_health_context(self) -> DishHealthData:
+    def update_gpm_data_for_health_aggregation(self) -> None:
         """
-        Build health evaluation context.
-
-        Extend  this method when new health inputs
-        (PTT, GPM, etc.) are added.
-
-        Returns:
-            DishHealthData: Context containing current health inputs
-            required for health state evaluation (e.g. K-value result).
+        Update health data from component manager.
         """
-        return DishHealthData(
-            kvalue_validation_result=self.kValueValidationResult.name,
-            gpm_validation_result=list(self.gpm_validation_result.values()),
+
+        self.health_manager.update_health_data_and_aggregate(
+            list(self.gpm_validation_result.values()),
+            "GPMValidationResultData",
         )
 
-    def evaluate_health_state(
-        self, context: DishHealthData
-    ) -> Optional[HealthState]:
+    def update_kvalue_data_for_health_aggregation(self) -> None:
         """
-        Evaluate health state using rules.
-
-        Args:
-            context: DishHealthData
-
-        Returns:
-            HealthState or None if no rule matched
+        Update health data from component manager.
         """
-        context_dict = asdict(context)
 
-        for health_state, rules in HEALTH_RULES.items():
-            if any(rule.matches(context_dict) for rule in rules):
-                self.logger.info(
-                    "Updating HealthState to %s based on health rule",
-                    health_state.name,
-                )
-                return health_state
+        self.health_manager.update_health_data_and_aggregate(
+            self.kValueValidationResult,
+            "KValueValidationResultData",
+        )
 
-        self.logger.debug("No health rule matched for context: %s", context)
-        return None
-
-    def evaluate_and_update_health_state(self) -> None:
+    def update_rxband_health_aggregation(self) -> None:
         """
-        Evaluate health state based on kValue
-        and update device health if required.
+        Update health data from component manager.
         """
-        context = self.build_health_context()
 
-        health_state = self.evaluate_health_state(context)
+        rb = self.receiver_band
 
-        if health_state is None:
-            return
+        if rb in (None, ""):
+            rb_norm = Band.NONE
+        elif isinstance(rb, Band):
+            rb_norm = rb
+        elif isinstance(rb, int):
+            try:
+                rb_norm = Band(rb)
+            except Exception:
+                rb_norm = Band.NONE
+        elif isinstance(rb, str) and rb.isdigit():
+            try:
+                rb_norm = Band(int(rb))
+            except Exception:
+                rb_norm = Band.NONE
+        elif isinstance(rb, str):
+            # Accept enum name strings e.g. "B2", "NONE", "UNKNOWN"
+            try:
+                rb_norm = Band[rb]
+            except Exception:
+                rb_norm = Band.NONE
+        else:
+            rb_norm = Band.NONE
 
-        if self._update_health_state_callback:
-            self._update_health_state_callback(health_state)
+        # Keep internal state consistent
+        self.receiver_band = rb_norm
+
+        self.health_manager.update_health_data_and_aggregate(
+            rb_norm,
+            "receiver_band",
+        )
