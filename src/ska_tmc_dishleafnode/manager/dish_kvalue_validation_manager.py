@@ -87,6 +87,7 @@ class DishkValueValidationManager:
         :param kvalue: kValue received from the dish event.
         :return: None
         """
+        self.logger.info("Validating k-value from event.")
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
         with self.kvalue_validation_lock:
             self.kvalue_validation_update(dish_ln_kvalue, kvalue)

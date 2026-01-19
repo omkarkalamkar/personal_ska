@@ -37,6 +37,7 @@ def wait_for_actual_pointing_value(
         time.sleep(1)
         actual_pointing = device.read_attribute(attribute_name).value
         act_point_json = json.loads(actual_pointing)
+        logger.info("Expected Pointing: c1: %s, c2: %s", c1, c2)
         logger.info("ActualPointing: %s,c1: %s,c2: %s", act_point_json, c1, c2)
         if act_point_json:
             ra = act_point_json[1]
@@ -44,10 +45,17 @@ def wait_for_actual_pointing_value(
             ra = Angle(ra, u.hour).deg
             dec = Angle(dec, u.deg).deg
 
-            if math.isclose(ra, c1, abs_tol=0.2) and (
-                math.isclose(dec, c2, abs_tol=0.01)
+            logger.info("Expected: RA=%.20f, Dec=%.20f", c1, c2)
+            logger.info("Actual:   RA=%.20f, Dec=%.20f", ra, dec)
+            diff_ra = ra - c1
+            diff_dec = dec - c2
+            logger.info("Diff: RA=%.20f°, Dec=%.20f°", diff_ra, diff_dec)
+
+            if math.isclose(ra, c1, abs_tol=0.2) and math.isclose(
+                dec, c2, abs_tol=0.01
             ):
                 return True
+
     return False
 
 
@@ -107,6 +115,7 @@ def configure_dish_leaf_node(
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
+
     assert result_config[0] == ResultCode.QUEUED
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
@@ -135,6 +144,7 @@ def configure_dish_leaf_node(
     )
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
@@ -152,6 +162,7 @@ def configure_dish_leaf_node(
         ("[]"),
         lookahead=8,
     )
+
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
@@ -790,6 +801,9 @@ def configure_with_wrap_sector(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+# @pytest.mark.xfail(
+#     reason="Test is failing due to mismatch of " "expected and actual values"
+# )
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(

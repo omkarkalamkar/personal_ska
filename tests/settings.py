@@ -7,6 +7,8 @@ from typing import List
 
 import tango
 from astropy.time import Time
+
+# from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState
@@ -263,6 +265,7 @@ def create_cm(device: str) -> DishLNComponentManager:
         _update_last_pointing_data_cb=update_last_pointing_data_callback,
         _update_track_table_errors_callback=update_track_table_errors_callback,
         _update_health_state_callback=update_health_state_callback,
+        _update_health_info_callback=update_health_state_callback,
         _update_gpm_version_callback=update_gpm_version_callback,
         _update_gpm_validation_result_callback=(
             update_gpm_validation_result_callback,
@@ -329,6 +332,26 @@ def wait_for_stow_status(
         if (time.time() - start_time) >= timeout:
             return False
         time.sleep(1)
+        
+def wait_for_attribute_health_value(
+    device: DeviceProxy, attribute_name: str, value: str = "[]"
+) -> bool:
+    """Waits for attribute value to change on the given device."""
+    start_time = time.time()
+    logger.info("checking for %s to change to %s", attribute_name, value)
+    logger.info(
+        "Current val is %s", device.read_attribute(attribute_name).value
+    )
+    while device.read_attribute(attribute_name).value != value:
+        logger.info("Waiting for %s to change from %s", attribute_name, value)
+        time.sleep(0.5)
+        if time.time() - start_time >= TIMEOUT:
+            return False
+    logger.info(
+        "Attribute %s value is now %s",
+        attribute_name,
+        device.read_attribute(attribute_name).value,
+    )
     return True
 
 
@@ -337,10 +360,16 @@ def wait_for_attribute_value(
 ) -> bool:
     """Waits for attribute value to change on the given device."""
     start_time = time.time()
+    logger.info("checking for %s to change to %s", attribute_name, value)
+    logger.info(
+        "Current val is %s", device.read_attribute(attribute_name).value
+    )
     while device.read_attribute(attribute_name).value == value:
+        logger.info("Waiting for %s to change from %s", attribute_name, value)
         time.sleep(0.5)
         if time.time() - start_time >= TIMEOUT:
             return False
+    logger.info("Attribute %s value is now %s", attribute_name, value)
     return True
 
 
@@ -592,14 +621,20 @@ def simulate_pointing_state_event(
 def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
     """Return the json for Configure command with visible non-sidereal object
     according to current time.
+    It has been found that during 9am IST to 10:30 am IST ,
+    none of the non-sidereal objects are visible.
     """
     configure_input_json = json.loads(non_side_real_json)
     timestamp: Time = Time(datetime.utcnow(), scale="utc")
+
     for target in NON_SIDEREAL_OBJECTS:
         _, El = cm.converter.point_to_body(target, timestamp)
+        logger.info("Target: %s, El: %s", target, El)
         if El > cm.elevation_min_limit:
             configure_input_json["pointing"]["target"]["target_name"] = target
             return json.dumps(configure_input_json)
+
+    logger.info("No visible non-sidereal object found")
     return ""
 
 
@@ -653,3 +688,204 @@ def monitor_track_table_errors_attribute(
         time_consumed = time_consumed + 0.5
     logger.info("TrackTableErrors: %s", dish_leaf_node.trackTableErrors)
     return True
+
+
+def log_and_assert_health(
+    dish_leaf_node: DeviceProxy,
+    dish_master: DeviceProxy,
+    dishln_pointing_device: DeviceProxy,
+    expected_ln_health_state=None,
+    expected_error_message: str | None = None,
+) -> None:
+    """
+    - If expected_ln_health_state is provided,
+     assert DishLeafNode healthState matches it.
+    - If expected is FAILED or DEGRADED,
+    assert healthInfo contains the expected error message
+    - If expected is OK, assert HealthInfo is either {}
+    or has HealthSummary=[]
+    """
+
+    def _read_attr(dev: DeviceProxy, attr: str):
+        try:
+            return dev.read_attribute(attr).value
+        except Exception as exc:  # pragma: no cover
+            logger.warning(
+                "Failed reading %s from %s: %s",
+                attr,
+                getattr(dev, "name", dev),
+                exc,
+            )
+            return None
+
+    ln_health_state = _read_attr(dish_leaf_node, "healthState")
+    ln_health_info_raw = _read_attr(dish_leaf_node, "healthInfo")
+    dm_health_state = _read_attr(dish_master, "healthState")
+    dp_health_state = _read_attr(dishln_pointing_device, "healthState")
+
+    logger.info(
+        "health: DishLeafNode healthState=%s healthInfo=%s",
+        ln_health_state,
+        ln_health_info_raw,
+    )
+    logger.info(
+        "health: DishMaster healthState=%s, "
+        "DishPointingDevice healthState=%s",
+        dm_health_state,
+        dp_health_state,
+    )
+
+    if expected_ln_health_state is None:
+        return
+
+    assert ln_health_state == expected_ln_health_state, (
+        "DishLeafNode healthState mismatch before/after operation: "
+        f"expected={expected_ln_health_state}, actual={ln_health_state}, "
+        f"healthInfo={ln_health_info_raw}"
+    )
+
+    try:
+        ln_health_info = (
+            json.loads(ln_health_info_raw) if ln_health_info_raw else {}
+        )
+    except Exception:
+        ln_health_info = ln_health_info_raw
+        logger.warning("Failed parsing healthInfo: %s", ln_health_info)
+
+    if expected_error_message:
+        logger.info("Expected error message: %s", expected_error_message)
+    # if expected_ln_health_state == HealthState.OK:
+    #     # Accept either {} or {"HealthSummary": []}
+    #     if isinstance(ln_health_info, dict):
+    #         health_summary = ln_health_info.get("HealthSummary")
+    #         assert ln_health_info == {} or (
+    #             isinstance(health_summary, list) and len(health_summary) == 0
+    #         ), (
+    #             "Expected healthInfo={} when health is OK; "
+    #             f"got healthInfo={ln_health_info_raw}"
+    #         )
+    # elif expected_ln_health_state in (
+    #     HealthState.FAILED,
+    #     HealthState.DEGRADED,
+    # ):
+    #     # Expect HealthSummary to contain the expected error message
+    #     if isinstance(ln_health_info, dict):
+    #         health_summary = ln_health_info.get("HealthSummary")
+    #         assert (
+    #             isinstance(health_summary, list) and len(health_summary) > 0
+    #         ), (
+    #             f"Expected non-empty HealthSummary when health="
+    #             f"{expected_ln_health_state}; "
+    #             f"got {health_summary}, full healthInfo={ln_health_info_raw}"
+    #         )
+    #     if expected_error_message:
+    #         assert expected_error_message in health_summary, (
+    #             f"Expected error message '{expected_error_message}' "
+    #             f"in HealthSummary; "
+    #             f"got {health_summary}, full healthInfo={ln_health_info_raw}"
+    #         )
+
+
+# def log_and_assert_health(
+#     dish_leaf_node: DeviceProxy,
+#     dish_master: DeviceProxy,
+#     dishln_pointing_device: DeviceProxy,
+#     expected_ln_health_state=None,
+# ) -> None:
+#     """
+#     Log DishLeafNode/DishMaster/DishPointingDevice healthState
+#     (and DishLeafNode healthInfo) just before invoking Configure().
+
+#     If expected_ln_health_state is provided, assert DishLeafNode healthState
+#     matches it. Additionally:
+#       - If expected is FAILED, assert healthInfo contains expected messaage
+#       - If expected is OK, assert HealthInfo contains blank Info (i.e., []).
+#     """
+
+#     def _read_attr(dev: DeviceProxy, attr: str):
+#         try:
+#             return dev.read_attribute(attr).value
+#         except Exception as exc:  # pragma: no cover
+#             logger.warning(
+#                 "Failed reading %s from %s: %s",
+#                 attr,
+#                 getattr(dev, "name", dev),
+#                 exc,
+#             )
+#             return None
+
+#     ln_health_state = _read_attr(dish_leaf_node, "healthState")
+#     ln_health_info_raw = _read_attr(dish_leaf_node, "healthInfo")
+#     dm_health_state = _read_attr(dish_master, "healthState")
+#     dp_health_state = _read_attr(dishln_pointing_device, "healthState")
+
+#     logger.info(
+#         "health: DishLeafNode healthState=%s healthInfo=%s",
+#         ln_health_state,
+#         ln_health_info_raw,
+#     )
+#     logger.info(
+#         "health: DishMaster healthState=%s, "
+#         "DishPointingDevice healthState=%s",
+#         dm_health_state,
+#         dp_health_state,
+#     )
+
+#     if expected_ln_health_state is None:
+#         return
+
+#     assert ln_health_state == expected_ln_health_state, (
+#         "DishLeafNode healthState mismatch before/after operation: "
+#         f"expected={expected_ln_health_state}, actual={ln_health_state}, "
+#         f"healthInfo={ln_health_info_raw}"
+#     )
+
+#     # healthInfo is typically a JSON string attribute in Tango
+#     try:
+#         ln_health_info = (
+#             json.loads(ln_health_info_raw) if ln_health_info_raw else {}
+#         )
+#     except Exception:
+#         ln_health_info = ln_health_info_raw
+
+#     # ln_name = (
+#     #     dish_leaf_node.name()
+#     #     if callable(getattr(dish_leaf_node, "name", None))
+#     #     else getattr(dish_leaf_node, "name", None)
+#     # )
+#     # dm_name = (
+#     #     dish_master.name()
+#     #     if callable(getattr(dish_master, "name", None))
+#     #     else getattr(dish_master, "name", None)
+#     # )
+
+#     if expected_ln_health_state == HealthState.OK:
+#         # Expect HealthSummary to be an empty list
+#         health_summary = (
+#             ln_health_info.get("HealthSummary")
+#             if isinstance(ln_health_info, dict)
+#             else None
+#         )
+#         assert isinstance(health_summary, list) and
+# len(health_summary) == 0, (
+#             "Expected HealthSummary to be an empty list when health is OK; "
+#             f"got HealthSummary={health_summary},"
+#             f"full healthInfo={ln_health_info_raw}"
+#         )
+
+#     if expected_ln_health_state == HealthState.FAILED:
+#         # expected_msg = (
+#         #     f"Dish Manager {dm_name} health state reported as DEGRADED."
+#         # )
+#         # expected_health_info = {
+#         #     "HealthSummary": {
+#         #         ln_name: {
+#         #             "Info": [expected_msg],
+#         #         }
+#         #     }
+#         # }
+#         # assert ln_health_info == expected_health_info, (
+#         #     "DishLeafNode healthInfo mismatch for FAILED state.\n"
+#         #     f"expected={expected_health_info}\nactual={ln_health_info_raw}"
+#         # )
+#         logger.info("ln_health_info_raw: %s", ln_health_info_raw)

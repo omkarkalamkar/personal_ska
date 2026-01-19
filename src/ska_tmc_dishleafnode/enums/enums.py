@@ -1,5 +1,5 @@
 """Enumeration module for Dish Leaf Node"""
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class CORRECTION_KEY(Enum):
@@ -23,3 +23,16 @@ class CommandResult(Enum):
     NOT_ACHIEVED = "NOT_ACHIEVED"
     ACHIEVED = "ACHIEVED"
     ABORTED = "ABORTED"
+
+
+class CapabilityStates(IntEnum):
+    """
+    This is an enumerator class that contains CapabilityStates values.
+    """
+
+    UNAVAILABLE = 0
+    STANDBY = 1
+    CONFIGURING = 2
+    OPERATE_DEGRADED = 3
+    OPERATE_FULL = 4
+    UNKNOWN = 5

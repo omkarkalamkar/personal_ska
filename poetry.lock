@@ -3094,14 +3094,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-common"
-version = "1.2.0"
+version = "1.4.2"
 description = "SKA TMC common contains common classes required for Telescope Monitoring and Control(TMC)."
 optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 files = [
-    {file = "ska_tmc_common-1.2.0-py3-none-any.whl", hash = "sha256:2c46fe122dd7eceae022875dec5c7b40d14dba34e1d84b9a5a7b49a880fbd1fd"},
-    {file = "ska_tmc_common-1.2.0.tar.gz", hash = "sha256:53c42eb520f14f4f1652439f562667af98a21c42d9bfd24d6b09e8e141af8e53"},
+    {file = "ska_tmc_common-1.4.2-py3-none-any.whl", hash = "sha256:5afe4a2778ccc82dbd53b86493e6fbaf0d909dbc2f4ce1e888ea5eafe96c69b5"},
+    {file = "ska_tmc_common-1.4.2.tar.gz", hash = "sha256:f7b48dbdd9ad1d84887637a426ae56ad9ed2851299572077686229adccca4b71"},
 ]
 
 [package.dependencies]
@@ -3113,13 +3113,13 @@ katpoint = ">=1.0a2,<2.0"
 marshmallow = ">=3.14.1,<4.0.0"
 mock = ">=4.0.3,<5.0.0"
 numpy = {version = ">=1.21.6", markers = "python_version == \"3.10\""}
-pytango = "9.5.0"
+pytango = ">=9.5.0"
 referencing = "*"
 rpds-py = "*"
 ska-control-model = "*"
 ska-ser-logging = ">=0.4.1,<0.5.0"
-ska-tango-base = "1.2.0"
-ska-tango-testing = "0.6.1"
+ska-tango-base = ">=1.2.0"
+ska-tango-testing = ">=0.6.1"
 ska-telmodel = ">=1.19.0,<2.0.0"
 typing_extensions = "*"
 
@@ -3130,14 +3130,14 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-simulators"
-version = "1.7.5"
+version = "1.9.0"
 description = "SKA TMC Simulators contains helper classes required for Telescope Monitoring and Control(TMC)."
 optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 files = [
-    {file = "ska_tmc_simulators-1.7.5-py3-none-any.whl", hash = "sha256:3a39a5ca48e306d6d20514cdba374721efd7a18152d93b87bbb8c9c3035f3ca3"},
-    {file = "ska_tmc_simulators-1.7.5.tar.gz", hash = "sha256:94c4aa555101f8f2db69d41ab7200c8acbbb901796b88e7839196f8fad15dd50"},
+    {file = "ska_tmc_simulators-1.9.0-py3-none-any.whl", hash = "sha256:d38cb667ab7d7856fe657940b3e55829adde86393b62db59205cb601ba484a8d"},
+    {file = "ska_tmc_simulators-1.9.0.tar.gz", hash = "sha256:699418801091f7d506d90f9685cf78093a3235f0612f4799edd6691e58dc6a63"},
 ]
 
 [package.dependencies]
@@ -3149,13 +3149,13 @@ katpoint = ">=1.0a2,<2.0"
 marshmallow = ">=3.14.1,<4.0.0"
 mock = ">=4.0.3,<5.0.0"
 numpy = {version = ">=1.21.6", markers = "python_version == \"3.10\""}
-pytango = "9.5.0"
+pytango = ">=9.5.0"
 referencing = "*"
 rpds-py = "*"
 ska-control-model = "*"
 ska-ser-logging = ">=0.4.1,<0.5.0"
-ska-tango-base = "1.2.0"
-ska-tango-testing = "0.6.1"
+ska-tango-base = ">=1.2.0"
+ska-tango-testing = ">=0.6.1"
 ska-telmodel = ">=1.19.0,<2.0.0"
 typing_extensions = "*"
 
@@ -3834,4 +3834,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "9465f76c061d9bf0554460a2484d0a36f184b54445b119df364173323578474f"
+content-hash = "74cc25a015b4150cba62006b8bb1f8a00550375d70345cd304deb90701a14b64"

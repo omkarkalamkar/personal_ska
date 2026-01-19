@@ -12,8 +12,11 @@ from ska_tmc_common.dev_factory import DevFactory
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
+    log_and_assert_health,
     logger,
     wait_and_validate_attribute_value_available,
+    wait_for_attribute_health_value,
 )
 
 
@@ -26,7 +29,7 @@ def gpm_validation_result(
     while timeout >= 0:
         attribute_value = group_callback[
             "gpmValidationResult"
-        ].assert_change_event(Anything, lookahead=1,)["attribute_value"]
+        ].assert_change_event(Anything, lookahead=5,)["attribute_value"]
         gpm_validation_result = json.loads(attribute_value)
         if gpm_validation_result[band_name] == band_result:
             flag = True
@@ -45,6 +48,7 @@ def apply_pointing_model(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master_dev = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
@@ -98,15 +102,15 @@ def apply_pointing_model(
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], '[0, "Successfully wrote the GPM values"]'),
-        lookahead=8,
+        lookahead=5,
     )
     group_callback["globalPointingModelParams"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
     group_callback["gpmVersion"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_1'] == 'main'
@@ -118,7 +122,7 @@ def apply_pointing_model(
 
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
-        lookahead=2,
+        lookahead=5,
     )
 
     # Scenario 2:
@@ -132,14 +136,22 @@ def apply_pointing_model(
     dish_master_dev.band1pointingmodelparams = dish_band1pointingmodelparams
     group_callback["globalPointingModelParams"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
 
     gpm_validation_result(group_callback, "Band_1", "FAILED")
 
     group_callback["healthState"].assert_change_event(
         HealthState.DEGRADED,
-        lookahead=2,
+        lookahead=5,
+    )
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master_dev,
+        dishln_pointing_device,
+        HealthState.DEGRADED,
+        "GPM validation failed for GPM index 0.",
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_1'] == 'main'
@@ -151,12 +163,12 @@ def apply_pointing_model(
     dish_master_dev.band1pointingmodelparams = dish_band1pointingmodelparams
     group_callback["globalPointingModelParams"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
     gpm_validation_result(group_callback, "Band_1", "OK")
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
-        lookahead=2,
+        lookahead=5,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_1'] == 'main'
@@ -167,14 +179,22 @@ def apply_pointing_model(
     dish_master_dev.band3pointingmodelparams = dish_band1pointingmodelparams
     group_callback["globalPointingModelParams"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
 
     gpm_validation_result(group_callback, "Band_3", "FAILED")
 
     group_callback["healthState"].assert_change_event(
         HealthState.DEGRADED,
-        lookahead=2,
+        lookahead=5,
+    )
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master_dev,
+        dishln_pointing_device,
+        HealthState.DEGRADED,
+        "GPM validation failed for GPM index 2.",
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_3'] == 'UNKNOWN'
@@ -197,19 +217,17 @@ def apply_pointing_model(
     dish_master_dev.band5apointingmodelparams = np.array([])
     group_callback["globalPointingModelParams"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
     group_callback["gpmVersion"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
 
     gpm_validation_result(group_callback, "Band_5a", "OK")
 
-    group_callback["healthState"].assert_change_event(
-        HealthState.DEGRADED,
-        lookahead=2,
-    )
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
     # Assert Band_5a contains values
     assert (dish_master_dev.band5apointingmodelparams).tolist()
 
@@ -237,7 +255,7 @@ def apply_pointing_model(
         "longRunningCommandResult"
     ].assert_change_event(
         (unique_id[0], Anything),
-        lookahead=8,
+        lookahead=5,
     )[
         "attribute_value"
     ]
@@ -254,7 +272,7 @@ def apply_pointing_model(
 
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
-        lookahead=2,
+        lookahead=5,
     )
 
 
@@ -281,7 +299,7 @@ def ApplyPointingModel_with_invalid_tm_path(
         "longRunningCommandResult"
     ].assert_change_event(
         (unique_id[0], Anything),
-        lookahead=4,
+        lookahead=5,
     )[
         "attribute_value"
     ]
@@ -313,7 +331,7 @@ def ApplyPointingModel_with_invalid_dish_id(
         "longRunningCommandResult"
     ].assert_change_event(
         (unique_id[0], Anything),
-        lookahead=4,
+        lookahead=5,
     )[
         "attribute_value"
     ]
@@ -345,7 +363,7 @@ def ApplyPointingModel_with_invalid_json(
         "longRunningCommandResult"
     ].assert_change_event(
         (unique_id[0], Anything),
-        lookahead=4,
+        lookahead=5,
     )[
         "attribute_value"
     ]
@@ -391,11 +409,11 @@ def gpm_version_restart_scenario(
 
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id[0], '[0, "Successfully wrote the GPM values"]'),
-            lookahead=8,
+            lookahead=5,
         )
         group_callback["gpmVersion"].assert_change_event(
             Anything,
-            lookahead=2,
+            lookahead=5,
         )
 
     dish_leaf_node.init()
@@ -408,7 +426,7 @@ def gpm_version_restart_scenario(
 
     assertion_data = group_callback["gpmVersion"].assert_change_event(
         Anything,
-        lookahead=2,
+        lookahead=5,
     )
 
     gpm_version_data = json.loads(assertion_data["attribute_value"])

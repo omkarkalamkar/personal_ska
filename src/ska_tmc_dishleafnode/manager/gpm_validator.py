@@ -326,4 +326,4 @@ class GPMValidator:
             self.component_manager._update_dish_pointing_model_param(
                 self.component_manager.dish_pointing_model_param
             )
-        self.component_manager.evaluate_and_update_health_state()
+        self.component_manager.update_gpm_data_for_health_aggregation()
