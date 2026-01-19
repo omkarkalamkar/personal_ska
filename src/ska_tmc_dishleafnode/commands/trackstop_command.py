@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Dict, Tuple, Union
 
+import tango
 from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
@@ -72,75 +73,75 @@ class TrackStop(DishLNCommand):
             Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
         """
-
-        result_code, message = self.init_adapter()
-        if result_code == ResultCode.FAILED:
-            self.logger.debug(
-                "Command ID: %s | Adapter for : %s is not found",
-                self.component_manager.command_id,
-                self.component_manager.dish_dev_name,
-            )
-            return result_code, message
-        # Stop the thread which started when Track command was invoked
-        result_code, message = [ResultCode.OK], ""
-        with self.component_manager.tango_operation_execution_lock:
-            self.logger.debug(
-                "Command ID: %s | Acquired tango lock",
-                self.component_manager.command_id,
-            )
-            result_code, msg = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "TrackStop"
-            )
-            if ResultCode(result_code[0]) is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    "TrackStop"
-                ] = msg[0]
-                self.command_uniq_id = msg[0]
-            self.logger.info(
-                "Command ID: %s |"
-                + "TrackStop command executed on %s ,"
-                + "with ResultCode: %s, Message: %s",
-                self.component_manager.command_id,
-                self.component_manager.dish_dev_name,
-                ResultCode(result_code[0]),
-                msg,
-            )
-            if result_code[0] in [
-                ResultCode.FAILED,
-                ResultCode.REJECTED,
-                ResultCode.NOT_ALLOWED,
-            ]:
-                message = (
-                    f"TrackStop result code: {result_code[0]} "
-                    + f"and message: {msg[0]}"
+        with tango.EnsureOmniThread():
+            result_code, message = self.init_adapter()
+            if result_code == ResultCode.FAILED:
+                self.logger.debug(
+                    "Command ID: %s | Adapter for : %s is not found",
+                    self.component_manager.command_id,
+                    self.component_manager.dish_dev_name,
                 )
-            self.logger.debug(
-                "Command ID: %s | Released tango lock",
-                self.component_manager.command_id,
-            )
-
-        try:
-            self.dishln_pointing_device_adapter.StopProgramTrackTable()
-        except Exception as exception:
-            self.logger.exception(
-                "Command ID: %s | Unable to stop programTrackTable: %s",
-                self.component_manager.command_id,
-                str(exception),
-            )
-            self.component_manager.current_track_table_error = (
-                f"Exception while stopping programTrackTable {exception}"
-            )
-            if self.component_manager._update_health_state_callback:
-                self.component_manager._update_health_state_callback(
-                    HealthState.DEGRADED
+                return result_code, message
+            # Stop the thread which started when Track command was invoked
+            result_code, message = [ResultCode.OK], ""
+            with self.component_manager.tango_operation_execution_lock:
+                self.logger.debug(
+                    "Command ID: %s | Acquired tango lock",
+                    self.component_manager.command_id,
                 )
-            result_code = [ResultCode.FAILED]
-            message += (
-                " StopProgramTrackTable: "
-                " There was an error while stopping the generation of "
-                + f"program track table: {exception}"
-            )
-        if not message:
-            message = COMMAND_COMPLETION_MESSAGE
-        return result_code[0], message
+                result_code, msg = self.call_adapter_method(
+                    "Dish Master", self.dish_master_adapter, "TrackStop"
+                )
+                if ResultCode(result_code[0]) is ResultCode.QUEUED:
+                    # Append command unique id
+                    self.component_manager.command_unique_id_dict[
+                        "TrackStop"
+                    ] = msg[0]
+                    self.command_uniq_id = msg[0]
+                self.logger.info(
+                    "Command ID: %s |"
+                    + "TrackStop command executed on %s ,"
+                    + "with ResultCode: %s, Message: %s",
+                    self.component_manager.command_id,
+                    self.component_manager.dish_dev_name,
+                    ResultCode(result_code[0]),
+                    msg,
+                )
+                if result_code[0] in [
+                    ResultCode.FAILED,
+                    ResultCode.REJECTED,
+                    ResultCode.NOT_ALLOWED,
+                ]:
+                    message = (
+                        f"TrackStop result code: {result_code[0]} "
+                        + f"and message: {msg[0]}"
+                    )
+                self.logger.debug(
+                    "Command ID: %s | Released tango lock",
+                    self.component_manager.command_id,
+                )
+
+            try:
+                self.dishln_pointing_device_adapter.StopProgramTrackTable()
+            except Exception as exception:
+                self.logger.exception(
+                    "Command ID: %s | Unable to stop programTrackTable: %s",
+                    self.component_manager.command_id,
+                    str(exception),
+                )
+                self.component_manager.current_track_table_error = (
+                    f"Exception while stopping programTrackTable {exception}"
+                )
+                if self.component_manager._update_health_state_callback:
+                    self.component_manager._update_health_state_callback(
+                        HealthState.DEGRADED
+                    )
+                result_code = [ResultCode.FAILED]
+                message += (
+                    " StopProgramTrackTable: "
+                    " There was an error while stopping the generation of "
+                    + f"program track table: {exception}"
+                )
+            if not message:
+                message = COMMAND_COMPLETION_MESSAGE
+            return result_code[0], message
