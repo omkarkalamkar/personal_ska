@@ -61,6 +61,15 @@ class DishBandCapabilityStateData:
 
 
 @dataclass
+class ProgramTrackTableError:
+    """Context object for Program Track Table errors.
+    Stores errors as a dictionary where the key is the error name
+      and the value is the error message."""
+
+    errors: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
 class DishHealthData:
     """
     Context object passed to health rule engine.
@@ -82,6 +91,9 @@ class DishHealthData:
     )
     band_capability_data: DishBandCapabilityStateData = field(
         default_factory=DishBandCapabilityStateData
+    )
+    program_track_table: ProgramTrackTableError = field(
+        default_factory=ProgramTrackTableError
     )
 
 
@@ -119,6 +131,8 @@ class DishHealthStateAndInfoManager:
                     self._update_band_capability(data)
                 case "receiver_band":
                     self._update_receiver_band(data)
+                case "ProgramtracktableErrors":
+                    self._update_program_track_table(data)
                 case _:
                     self.logger.warning("Unknown datatype: %s", datatype)
                     return
@@ -153,6 +167,53 @@ class DishHealthStateAndInfoManager:
             "Updated GPMValidationResultData: %s", str(self.health_data)
         )
         self._update_gpm_issues()
+
+    def _update_program_track_table(self, data: Dict[str, str]) -> None:
+        """Update program track table and related issues.
+        Args: data: A dictionary where the key is the error name
+         and the value is the error message.
+           If the dictionary contains a None key,
+           all existing errors will be erased.
+        """
+        if data is None or None in data.keys():
+            # Erase all existing errors
+            self.health_data.program_track_table = ProgramTrackTableError(
+                errors={}
+            )
+            self.logger.debug(
+                "ProgramTrackTableData cleared: %s", str(self.health_data)
+            )
+        else:
+            # Normal update
+            self.health_data.program_track_table = ProgramTrackTableError(
+                errors=data
+            )
+            self.logger.debug(
+                "Updated ProgramTrackTableData: %s", str(self.health_data)
+            )
+        # Continue with related updates
+        # self._update_program_track_table_issues()
+
+    def _update_program_track_table_issues(self) -> None:
+        """Update issues related to the program track table."""
+        self.logger.debug("Updating program track table issues")
+
+        if not self.health_data.program_track_table:
+            self.logger.debug("No program track table data available")
+            return
+
+        keys_to_remove = [
+            k for k in self._active_issues if k.startswith("kvalue_")
+        ]
+        for k in keys_to_remove:
+            self._active_issues.pop(k, None)
+
+        if (
+            self.health_data.k_value_validation_result.result_code
+            != ResultCode.OK
+        ):
+            error_msg = "KValue validation failed."
+            self._active_issues["kvalue_failed"] = error_msg
 
     def _update_kvalue_validation(self, data) -> None:
         """Update K-value validation result and related issues."""

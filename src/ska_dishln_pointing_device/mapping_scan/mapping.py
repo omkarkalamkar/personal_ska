@@ -50,6 +50,7 @@ class BaseScanMapping:
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
         try:
+            self.logger.info("Extracting target from config")
             self.extract_target_from_config()
             if isinstance(self.component_manager.target, list):
                 self.setup_observation_target()

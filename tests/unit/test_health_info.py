@@ -768,3 +768,33 @@ def test_generate_health_info(cm_without_er_lp):
     evaluated = hm.evaluate_health_state(hm.health_data)
     logger.info("Evaluated healthState: %s", evaluated)
     assert evaluated == HealthState.OK
+
+
+# # Internal errors
+
+# import pytest
+# import tango
+
+
+@pytest.mark.pt1
+def test_update_program_track_table_error_real_flow(cm_without_er_lp):
+    """
+    Integration-style test to verify data flow into health_manager
+    without mocking update_health_data_and_aggregate.
+    """
+
+    event = "The 'program_id' column is missing."
+
+    cm = cm_without_er_lp
+
+    # Act: call the method under test
+    cm.update_program_track_table_error(event)
+
+    cm.update_healthinfo_errors()
+
+    # self.health_manager.update_health_data_and_aggregate(
+    #             {None: "No Program Track Table Errors"},
+    #             "ProgramtracktableErrors",
+    #         )
+
+    assert False

@@ -432,6 +432,10 @@ class Configure(DishLNCommand):
             Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
         """
+        self.logger.info(
+            "Invoking GenerateProgramTrackTable with target_data: %s",
+            target_data,
+        )
         self.dishln_pointing_device_adapter.targetData = target_data
         (
             result_code,

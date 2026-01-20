@@ -2997,7 +2997,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 which contains the event data, dishMode Event in this case.
         """
         if event:
-            self.current_track_table_error = event
+            # self.current_track_table_error = event
+            self.health_manager.update_health_data_and_aggregate(
+                {"Calculation_Error": event},
+                "ProgramtracktableErrors",
+            )
 
     def update_device_health_state(self, health_state: HealthState) -> None:
         """
@@ -3075,6 +3079,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.health_manager.update_health_data_and_aggregate(
             self.kValueValidationResult,
             "KValueValidationResultData",
+        )
+
+    def update_healthinfo_errors(self) -> None:
+        """
+        Update health info errors from component manager.
+        """
+
+        self.health_manager.update_health_data_and_aggregate(
+            {None: "No Program Track Table Errors"},
+            "ProgramtracktableErrors",
         )
 
     def update_rxband_health_aggregation(self) -> None:
