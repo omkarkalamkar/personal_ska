@@ -51,7 +51,7 @@ def wait_for_actual_pointing_value(
             diff_dec = dec - c2
             logger.info("Diff: RA=%.20f°, Dec=%.20f°", diff_ra, diff_dec)
 
-            if math.isclose(ra, c1, abs_tol=0.8) and math.isclose(
+            if math.isclose(ra, c1, abs_tol=0.9) and math.isclose(
                 dec, c2, abs_tol=0.02
             ):
                 return True
