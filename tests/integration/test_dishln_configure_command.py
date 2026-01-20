@@ -185,7 +185,7 @@ def test_configure_command(
         # It was found that some times targets are not visible,during specific
         # IST morning hours
         # so we can skip test in that case.
-        if json_to_use is not None:
+        if json_to_use:
             configure_dish_leaf_node(
                 tango_context,
                 DISH_LEAF_NODE_DEVICE,
