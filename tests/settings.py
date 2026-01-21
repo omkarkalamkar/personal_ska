@@ -7,6 +7,7 @@ from typing import List
 
 import tango
 from astropy.time import Time
+from ska_control_model import HealthState
 
 # from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
@@ -741,36 +742,36 @@ def log_and_assert_health(
 
     if expected_error_message:
         logger.info("Expected error message: %s", expected_error_message)
-    # if expected_ln_health_state == HealthState.OK:
-    #     # Accept either {} or {"HealthSummary": []}
-    #     if isinstance(ln_health_info, dict):
-    #         health_summary = ln_health_info.get("HealthSummary")
-    #         assert ln_health_info == {} or (
-    #             isinstance(health_summary, list) and len(health_summary) == 0
-    #         ), (
-    #             "Expected healthInfo={} when health is OK; "
-    #             f"got healthInfo={ln_health_info_raw}"
-    #         )
-    # elif expected_ln_health_state in (
-    #     HealthState.FAILED,
-    #     HealthState.DEGRADED,
-    # ):
-    #     # Expect HealthSummary to contain the expected error message
-    #     if isinstance(ln_health_info, dict):
-    #         health_summary = ln_health_info.get("HealthSummary")
-    #         assert (
-    #             isinstance(health_summary, list) and len(health_summary) > 0
-    #         ), (
-    #             f"Expected non-empty HealthSummary when health="
-    #             f"{expected_ln_health_state}; "
-    #             f"got {health_summary}, full healthInfo={ln_health_info_raw}"
-    #         )
-    #     if expected_error_message:
-    #         assert expected_error_message in health_summary, (
-    #             f"Expected error message '{expected_error_message}' "
-    #             f"in HealthSummary; "
-    #             f"got {health_summary}, full healthInfo={ln_health_info_raw}"
-    #         )
+    if expected_ln_health_state == HealthState.OK:
+        # Accept either {} or {"HealthSummary": []}
+        if isinstance(ln_health_info, dict):
+            health_summary = ln_health_info.get("HealthSummary")
+            assert ln_health_info == {} or (
+                isinstance(health_summary, list) and len(health_summary) == 0
+            ), (
+                "Expected healthInfo={} when health is OK; "
+                f"got healthInfo={ln_health_info_raw}"
+            )
+    elif expected_ln_health_state in (
+        HealthState.FAILED,
+        HealthState.DEGRADED,
+    ):
+        # Expect HealthSummary to contain the expected error message
+        if isinstance(ln_health_info, dict):
+            health_summary = ln_health_info.get("HealthSummary")
+            assert (
+                isinstance(health_summary, list) and len(health_summary) > 0
+            ), (
+                f"Expected non-empty HealthSummary when health="
+                f"{expected_ln_health_state}; "
+                f"got {health_summary}, full healthInfo={ln_health_info_raw}"
+            )
+        if expected_error_message:
+            assert expected_error_message in health_summary, (
+                f"Expected error message '{expected_error_message}' "
+                f"in HealthSummary; "
+                f"got {health_summary}, full healthInfo={ln_health_info_raw}"
+            )
 
 
 # def log_and_assert_health(

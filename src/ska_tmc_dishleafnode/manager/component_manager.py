@@ -2997,7 +2997,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 which contains the event data, dishMode Event in this case.
         """
         if event:
-            # self.current_track_table_error = event
+            self.current_track_table_error = event
+            if self._update_health_state_callback:
+                self._update_health_state_callback(HealthState.DEGRADED)
             self.health_manager.update_health_data_and_aggregate(
                 {"Calculation_Error": event},
                 "ProgramtracktableErrors",
