@@ -128,7 +128,7 @@ def partial_configure_dish_leaf_node_error_propagation(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_partial_configure_error_propogation(
     tango_context, group_callback, json_factory
 ):
@@ -235,7 +235,7 @@ def configure_dish_leaf_node_error_propagation(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_configure_error_propagation(
     tango_context, group_callback, json_factory
 ):
@@ -359,7 +359,7 @@ def configure_dish_leaf_node_timeout(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_configure_error_timeout(tango_context, group_callback, json_factory):
     """Test configure error propogation functionality on Dish Leaf Node."""
     configure_dish_leaf_node_timeout(

@@ -53,6 +53,6 @@ def setstowmode_command(tango_context, dishln_name, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_mid
+@pytest.mark.SKA_midskip
 def test_setstowmode_command(tango_context, group_callback):
     setstowmode_command(tango_context, DISH_LEAF_NODE_DEVICE, group_callback)

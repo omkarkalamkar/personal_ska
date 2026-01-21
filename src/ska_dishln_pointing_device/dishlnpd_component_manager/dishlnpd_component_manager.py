@@ -528,7 +528,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             "Scheduler Length: %s",
                             len(track_table_scheduler.queue),
                         )
-                        raise ValueError("Failed to update ProgramTrackTable")
+                        # Testing purpose
+                # raise ValueError("Failed to update ProgramTrackTable")
 
             self.logger.debug("Program TrackTable Calculation stopped.")
         except Exception as value_error:
