@@ -152,6 +152,17 @@ class TrackStop(DishLNCommand):
                 self.component_manager._update_health_state_callback(
                     HealthState.DEGRADED
                 )
+
+            health_manager = self.component_manager.health_manager
+            update_health_data_and_aggregate = (
+                health_manager.update_health_data_and_aggregate
+            )
+
+            update_health_data_and_aggregate(
+                {"Track_Table_Stop_Error": exception},
+                "ProgramtracktableErrors",
+            )
+
             result_code = [ResultCode.FAILED]
             message += (
                 " StopProgramTrackTable: "

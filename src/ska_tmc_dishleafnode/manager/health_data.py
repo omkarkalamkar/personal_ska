@@ -195,25 +195,24 @@ class DishHealthStateAndInfoManager:
         # self._update_program_track_table_issues()
 
     def _update_program_track_table_issues(self) -> None:
-        """Update issues related to the program track table."""
-        self.logger.debug("Updating program track table issues")
-
-        if not self.health_data.program_track_table:
-            self.logger.debug("No program track table data available")
-            return
-
+        """
+        Update ProgramTrackTable-related issues in active issues.
+        """
+        # Clear old ProgramTrackTable-related issues
         keys_to_remove = [
-            k for k in self._active_issues if k.startswith("kvalue_")
+            k
+            for k in self._active_issues
+            if k.startswith("program_track_table_")
         ]
         for k in keys_to_remove:
             self._active_issues.pop(k, None)
 
-        if (
-            self.health_data.k_value_validation_result.result_code
-            != ResultCode.OK
-        ):
-            error_msg = "KValue validation failed."
-            self._active_issues["kvalue_failed"] = error_msg
+        # Check for new errors in ProgramTrackTable
+        errors = getattr(self.health_data.program_track_table, "errors", {})
+        if errors:
+            for err_type, err_msg in errors.items():
+                key = f"program_track_table_{err_type.lower()}"
+                self._active_issues[key] = err_msg
 
     def _update_kvalue_validation(self, data) -> None:
         """Update K-value validation result and related issues."""

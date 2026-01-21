@@ -330,6 +330,13 @@ def configure_dish_leaf_node_unknown_source(
         lookahead=8,
     )
 
+    result_config, unique_id_config = dish_leaf_node.TrackStop()
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_config[0], COMMAND_COMPLETED),
+        lookahead=6,
+    )
+
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)

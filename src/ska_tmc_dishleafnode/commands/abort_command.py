@@ -106,6 +106,7 @@ class Abort(DishLNCommand):
         self.component_manager.clear_configure_command_events_flags()
         self.component_manager.receiver_band = ""
         self.component_manager.update_rxband_health_aggregation()
+        self.component_manager.update_healthinfo_errors()
 
     # pylint: disable=arguments-differ
 
@@ -211,6 +212,16 @@ class Abort(DishLNCommand):
             if self.component_manager._update_health_state_callback:
                 self.component_manager._update_health_state_callback(
                     HealthState.DEGRADED
+                )
+
+                health_manager = self.component_manager.health_manager
+                update_health_data_and_aggregate = (
+                    health_manager.update_health_data_and_aggregate
+                )
+
+                update_health_data_and_aggregate(
+                    {"Track_Table_Stop_Error": exception},
+                    "ProgramtracktableErrors",
                 )
                 result_code = [ResultCode.FAILED]
                 message += (
