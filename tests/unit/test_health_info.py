@@ -776,25 +776,75 @@ def test_generate_health_info(cm_without_er_lp):
 # import tango
 
 
-@pytest.mark.pt1
+@pytest.mark.pt2
 def test_update_program_track_table_error_real_flow(cm_without_er_lp):
     """
     Integration-style test to verify data flow into health_manager
     without mocking update_health_data_and_aggregate.
+
+    Asserts:
+      - When ProgramTrackTable error is present -> HealthState.DEGRADED and
+        healthInfo contains the error text.
+      - When ProgramTrackTable error is cleared -> HealthState.OK and
+        healthInfo has no messages (blank summary list).
     """
-
-    event = "The 'program_id' column is missing."
-
     cm = cm_without_er_lp
+    logger = logging.getLogger("test.healthinfo.programtracktable")
+    hm = DishHealthStateAndInfoManager(component_manager=cm, logger=logger)
 
-    # Act: call the method under test
-    cm.update_program_track_table_error(event)
+    # Keep other signals healthy
+    hm.update_health_data_and_aggregate(
+        ResultCode.OK, "KValueValidationResultData"
+    )
+    hm.update_health_data_and_aggregate(
+        [ResultCode.OK], "GPMValidationResultData"
+    )
+    hm.update_health_data_and_aggregate(Band.NONE, "receiver_band")
 
-    cm.update_healthinfo_errors()
+    standby = CapabilityStates.STANDBY
+    for band in ["B1", "B2", "B3", "B4", "B5a", "B5b"]:
+        hm.update_health_data_and_aggregate(
+            (band, standby),
+            "DishBandCapabilityStateData",
+        )
 
-    # self.health_manager.update_health_data_and_aggregate(
-    #             {None: "No Program Track Table Errors"},
-    #             "ProgramtracktableErrors",
-    #         )
+    # --- Inject ProgramTrackTable error ---
+    pt_error_text = "The 'program_id' column is missing."
+    hm.update_health_data_and_aggregate(
+        {"TrackTable_error": pt_error_text},
+        "ProgramtracktableErrors",
+    )
 
-    assert False
+    evaluated = hm.evaluate_health_state(hm.health_data)
+    assert evaluated == HealthState.DEGRADED
+
+    health_info = hm.generate_health_info()
+    assert "HealthSummary" in health_info
+    summary_list = health_info["HealthSummary"]
+    assert isinstance(summary_list, list)
+
+    assert any(pt_error_text in s for s in summary_list), (
+        "Expected ProgramTrackTable error HealthSummary when DEGRADED; "
+        f"got HealthSummary={summary_list}"
+    )
+
+    # --- Clear ProgramTrackTable error ---
+    hm.update_health_data_and_aggregate(
+        {None: "No Program Track Table Errors"},
+        "ProgramtracktableErrors",
+    )
+
+    evaluated = hm.evaluate_health_state(hm.health_data)
+    assert evaluated == HealthState.OK
+
+    health_info = hm.generate_health_info()
+    assert "HealthSummary" in health_info
+    summary_list = health_info["HealthSummary"]
+    assert isinstance(summary_list, list)
+
+    assert (
+        summary_list == []
+    ), f"Expected blank HealthSummary when OK; got {summary_list}"
+
+
+# ...existing code...
