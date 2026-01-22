@@ -192,7 +192,7 @@ class DishHealthStateAndInfoManager:
                 "Updated ProgramTrackTableData: %s", str(self.health_data)
             )
         # Continue with related updates
-        # self._update_program_track_table_issues()
+        self._update_program_track_table_issues()
 
     def _update_program_track_table_issues(self) -> None:
         """
