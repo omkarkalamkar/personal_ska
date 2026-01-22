@@ -52,7 +52,6 @@ HEALTH_RULES = {
             f"{GOOD_CAPABILITY_STATES} for state in "
             "band_capability_data.band_capability_values])"
         ),
-        Rule('"True" in is_program_track_table_error'),
     ],
     HealthState.FAILED: [
         # KValue validation failed (critical)
