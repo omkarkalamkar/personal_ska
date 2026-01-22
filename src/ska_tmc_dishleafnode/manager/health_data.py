@@ -199,6 +199,10 @@ class DishHealthStateAndInfoManager:
         Update ProgramTrackTable-related issues in active issues.
         """
         # Clear old ProgramTrackTable-related issues
+        self.logger.info(
+            "Updated ProgramTrackTable-related issues: %s", self._active_issues
+        )
+
         keys_to_remove = [
             k
             for k in self._active_issues
@@ -213,6 +217,9 @@ class DishHealthStateAndInfoManager:
             for err_type, err_msg in errors.items():
                 key = f"program_track_table_{err_type.lower()}"
                 self._active_issues[key] = err_msg
+        self.logger.info(
+            "Updated ProgramTrackTable-related issues: %s", self._active_issues
+        )
 
     def _update_kvalue_validation(self, data) -> None:
         """Update K-value validation result and related issues."""
