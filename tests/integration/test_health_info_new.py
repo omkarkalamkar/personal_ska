@@ -352,6 +352,8 @@ def configure_dish_leaf_node_unknown_source(
         lookahead=6,
     )
 
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
+
     log_and_assert_health(
         dish_leaf_node,
         dish_master,
