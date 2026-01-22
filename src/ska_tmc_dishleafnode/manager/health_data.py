@@ -216,7 +216,8 @@ class DishHealthStateAndInfoManager:
         if errors:
             for err_type, err_msg in errors.items():
                 key = f"program_track_table_{err_type.lower()}"
-                self._active_issues[key] = err_msg
+                error_msg = f"Program_Track_Table Process Failed :{err_msg}"
+                self._active_issues[key] = error_msg
         self.logger.info(
             "Updated ProgramTrackTable-related issues: %s", self._active_issues
         )
@@ -515,6 +516,13 @@ class DishHealthStateAndInfoManager:
         context_dict["band_capability_data"]["band_capability_values"] = set(
             band_caps.values()
         )
+
+        is_program_track_table_error = (
+            context_dict["program_track_table"]["errors"] != {}
+        )
+        context_dict[
+            "is_program_track_table_error"
+        ] = is_program_track_table_error
 
         self.logger.debug(
             "Evaluating health state with context: %s", context_dict
