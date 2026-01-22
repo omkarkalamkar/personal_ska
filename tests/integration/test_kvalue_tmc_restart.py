@@ -254,7 +254,7 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_kvalue_runtime_mismatch_updates_health_to_degraded(
     tango_context, group_callback
 ):
@@ -307,7 +307,7 @@ def test_kvalue_runtime_mismatch_updates_health_to_degraded(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_kvalue_runtime_recovery_updates_health_to_ok(
     tango_context, group_callback
 ):

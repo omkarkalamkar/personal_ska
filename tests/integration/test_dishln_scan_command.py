@@ -145,7 +145,7 @@ def scan_command_timeout(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_scan_command_timeout(tango_context, group_callback, json_factory):
     scan_command_timeout(
         tango_context,
@@ -277,7 +277,7 @@ def scan_command_error_propagation(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_scan_command_error_propagation(
     tango_context, group_callback, json_factory
 ):
@@ -391,7 +391,7 @@ def scan_command(
 
 
 @pytest.mark.post_deployment
-@pytest.mark.SKA_midskip
+@pytest.mark.SKA_mid
 def test_scan_command(tango_context, group_callback, json_factory):
     scan_command(
         tango_context,
