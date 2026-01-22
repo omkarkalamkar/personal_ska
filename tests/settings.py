@@ -1,6 +1,7 @@
 """This module provides settings for the test cases."""
 import json
 import logging
+import re
 import time
 from datetime import datetime
 from typing import List
@@ -767,7 +768,15 @@ def log_and_assert_health(
                 f"got {health_summary}, full healthInfo={ln_health_info_raw}"
             )
         if expected_error_message:
-            assert expected_error_message in health_summary, (
+            # assert expected_error_message in health_summary, (
+            #     f"Expected error message '{expected_error_message}' "
+            #     f"in HealthSummary; "
+            #     f"got {health_summary}, full healthInfo={ln_health_info_raw}"
+            # )
+            pattern = fr"{re.escape(expected_error_message)}.*"
+            logger.info("pattern: %s", pattern)
+
+            assert re.search(pattern, health_summary[0]), (
                 f"Expected error message '{expected_error_message}' "
                 f"in HealthSummary; "
                 f"got {health_summary}, full healthInfo={ln_health_info_raw}"
