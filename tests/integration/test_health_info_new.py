@@ -330,11 +330,34 @@ def configure_dish_leaf_node_unknown_source(
         lookahead=8,
     )
 
-    result_config, unique_id_config = dish_leaf_node.TrackStop()
+    result_abort, unique_id_abort = dish_leaf_node.Abort()
+    logger.info(
+        f"Command ID: {unique_id_abort} Returned result: {result_abort}"
+    )
+
+    assert result_abort == ResultCode.STARTED
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_COMPLETED),
+        (unique_id_abort[0], COMMAND_COMPLETED),
+        lookahead=5,
+    )
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
         lookahead=6,
+    )
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.OK,
+        None,
     )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
