@@ -3363,7 +3363,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     or temperature < self.auto_stow.min_temp_threshold
                 ):
                     self.auto_stow.invoke_auto_stow()
-                if not self.temperature_tracking.get(wms).is_set():
+                if not self.temperature_tracking[wms].is_set():
                     self.temperature_tracking[wms].set()
                     self.auto_stow.start_temp_tracking(wms)
 
