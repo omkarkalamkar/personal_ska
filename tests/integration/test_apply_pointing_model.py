@@ -9,6 +9,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 
+from ska_tmc_dishleafnode.enums import CapabilityStates
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -77,6 +78,18 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         tango.EventType.CHANGE_EVENT,
         group_callback["healthState"],
     )
+
+    capabiity_argin = json.dumps(
+        {
+            "B1": CapabilityStates.OPERATE_FULL,
+            "B2": CapabilityStates.OPERATE_FULL,
+            "B3": CapabilityStates.OPERATE_FULL,
+            "B4": CapabilityStates.OPERATE_FULL,
+            "B5a": CapabilityStates.OPERATE_FULL,
+            "B5b": CapabilityStates.OPERATE_FULL,
+        }
+    )
+    dish_master_dev.SetDirectCapabilityState(capabiity_argin)
 
     dish_leaf_node.gpmversion = """
     {"Band_1": "UNKNOWN",
