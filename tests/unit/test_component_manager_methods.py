@@ -10,6 +10,11 @@ import pytest
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 
+from ska_tmc_dishleafnode.enums import CapabilityStates
+from ska_tmc_dishleafnode.manager.health_data import (
+    DishBandCapabilityStateData,
+)
+
 
 def test_stop_executors_with_event_receiver(cm_without_er_lp):
     """Test stop_executors_and_cleanup_memory with
@@ -218,6 +223,7 @@ def test_process_actual_pointing_handles_invalid_data(cm):
     assert cm.actual_pointing_process.is_alive()
 
 
+@pytest.mark.v2
 @pytest.mark.parametrize(
     "kvalue_validation_result, expected_health_states",
     [
@@ -242,6 +248,20 @@ def test_health_evaluation_and_update(
     cm.kValueValidationResult = kvalue_validation_result
     mock_callback = mock.Mock()
     cm._update_health_state_callback = mock_callback
+
+    # Include band capability data in healthdata
+
+    dh = cm.health_manager.health_data
+    dh.band_capability_data = DishBandCapabilityStateData(
+        band_capabilities={
+            "B1": CapabilityStates.STANDBY,
+            "B2": CapabilityStates.STANDBY,
+            "B3": CapabilityStates.STANDBY,
+            "B4": CapabilityStates.STANDBY,
+            "B5a": CapabilityStates.STANDBY,
+            "B5b": CapabilityStates.STANDBY,
+        }
+    )
 
     # --- Rule evaluation ---
     cm.health_manager.update_health_data_and_aggregate(

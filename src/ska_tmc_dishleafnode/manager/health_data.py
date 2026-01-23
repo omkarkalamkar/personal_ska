@@ -289,6 +289,7 @@ class DishHealthStateAndInfoManager:
             "CONFIGURING",
             "OPERATE_FULL",
             "OPERATE_DEGRADED",
+            "UNKNOWN",
         }
 
         requested = self.health_data.receiver_band

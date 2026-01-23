@@ -124,7 +124,6 @@ def test_generate_health_info_parametrized(
     assert has_dish_msg is expect_dish_err
 
 
-@pytest.mark.v1
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
@@ -133,7 +132,7 @@ def test_generate_health_info_parametrized(
         (CapabilityStates.CONFIGURING, HealthState.OK),
         (CapabilityStates.OPERATE_DEGRADED, HealthState.OK),
         (CapabilityStates.OPERATE_FULL, HealthState.OK),
-        (CapabilityStates.UNKNOWN, HealthState.FAILED),
+        (CapabilityStates.UNKNOWN, HealthState.OK),
     ],
 )
 def test_evaluate_health_state_for_all_capability_states_band1(
@@ -178,7 +177,6 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
-@pytest.mark.v1
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
@@ -190,7 +188,7 @@ def test_evaluate_health_state_for_all_capability_states_band1(
         # UNKNOWN: set expected to FAILED by assumption;
         # adjust to match HEALTH_RULES
         # once rule semantics are confirmed.
-        (CapabilityStates.UNKNOWN, HealthState.FAILED),
+        (CapabilityStates.UNKNOWN, HealthState.OK),
     ],
 )
 def test_healthstate_for_all_capability_states_when_band_not_configured(
@@ -273,7 +271,6 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
     assert hm.evaluate_health_state(dh) == HealthState.DEGRADED
 
 
-@pytest.mark.v1
 @pytest.mark.parametrize(
     "b1_state,expected_health",
     [
@@ -286,7 +283,7 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
         # GOOD_STATES_SET includes 'UNKNOWN',
         # and for a configured band the OK rule
         # checks membership in GOOD_STATES_SET -> UNKNOWN should be OK.
-        (CapabilityStates.UNKNOWN, HealthState.FAILED),
+        (CapabilityStates.UNKNOWN, HealthState.OK),
     ],
 )
 def test_evaluate_health_state_band1_configured_b2_unavailable(
@@ -324,7 +321,6 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
-@pytest.mark.v1
 @pytest.mark.parametrize(
     "b2_state,b1_state,expected_health",
     [
@@ -358,7 +354,7 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
         (
             CapabilityStates.UNAVAILABLE,
             CapabilityStates.UNKNOWN,
-            HealthState.FAILED,
+            HealthState.OK,
         ),
         # Case 2: B2 is OPERATE_FULL (new condition you asked for)
         (
@@ -389,7 +385,7 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
         (
             CapabilityStates.OPERATE_FULL,
             CapabilityStates.UNKNOWN,
-            HealthState.FAILED,
+            HealthState.OK,
         ),
     ],
 )
