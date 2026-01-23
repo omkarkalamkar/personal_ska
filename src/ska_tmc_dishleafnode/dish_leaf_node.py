@@ -150,6 +150,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     # ----------
     # Attributes
     # ----------
+
     dishMasterDevName = attribute(
         dtype="DevString",
         access=AttrWriteType.READ_WRITE,
@@ -921,6 +922,380 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             str: healthInfo attribute value.
         """
         return json.dumps(self.component_manager.health_info)
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="m/s",
+        display_unit="m/s",
+    )
+    def windSpeedThreshold(self: MidTmcLeafNodeDish) -> float:
+        """Reads the windSpeedThreshold attribute value.
+
+        Returns:
+            float: windSpeedThreshold attribute value.
+        """
+        return self.component_manager.auto_stow.wind_speed_threshold
+
+    @windSpeedThreshold.write
+    def windSpeedThreshold(
+        self: MidTmcLeafNodeDish, wind_speed_threshold: float
+    ) -> None:
+        """Set the windSpeedThreshold attribute value.
+
+        Args:
+            wind_speed_threshold(float): value to update
+        """
+        self.component_manager.auto_stow.wind_speed_threshold = (
+            wind_speed_threshold
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="m/s",
+        display_unit="m/s",
+    )
+    def gustSpeedThreshold(self: MidTmcLeafNodeDish) -> float:
+        """Reads the gustSpeedThreshold attribute value.
+
+        Returns:
+            float: gustSpeedThreshold attribute value.
+        """
+        return self.component_manager.auto_stow.gust_speed_threshold
+
+    @gustSpeedThreshold.write
+    def gustSpeedThreshold(
+        self: MidTmcLeafNodeDish, gust_speed_threshold: float
+    ) -> None:
+        """Set the gustSpeedThreshold attribute value.
+
+        Args:
+            gust_speed_threshold(float): value to update
+        """
+        self.component_manager.auto_stow.gust_speed_threshold = (
+            gust_speed_threshold
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="m/s",
+        display_unit="m/s",
+    )
+    def opsWindSpeedThreshold(self: MidTmcLeafNodeDish) -> float:
+        """Reads the opsWindSpeedThreshold attribute value.
+
+        Returns:
+            float: opsWindSpeedThreshold attribute value.
+        """
+        return (
+            self.component_manager.auto_stow.operational_wind_speed_threshold
+        )
+
+    @opsWindSpeedThreshold.write
+    def opsWindSpeedThreshold(
+        self: MidTmcLeafNodeDish, operational_wind_speed_threshold: float
+    ) -> None:
+        """Set the opsWindSpeedThreshold attribute value.
+
+        Args:
+            operational_wind_speed_threshold(float): value to update
+        """
+        self.component_manager.auto_stow.operational_wind_speed_threshold = (
+            operational_wind_speed_threshold
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="m/s",
+        display_unit="m/s",
+    )
+    def opsPercMeanDiffThreshold(self: MidTmcLeafNodeDish) -> float:
+        """Reads the opsPercMeanDiffThreshold attribute value.
+
+        Returns:
+            float: opsPercMeanDiffThreshold attribute value.
+        """
+        auto_stow = self.component_manager.auto_stow
+        return auto_stow.operational_perc_mean_diff_threshold
+
+    @opsPercMeanDiffThreshold.write
+    def opsPercMeanDiffThreshold(
+        self: MidTmcLeafNodeDish, operational_perc_mean_diff_threshold: float
+    ) -> None:
+        """Set the opsPercMeanDiffThreshold attribute value.
+
+        Args:
+            operational_perc_mean_diff_threshold(float): value to update
+        """
+        auto_stow = self.component_manager.auto_stow
+        auto_stow.operational_perc_mean_diff_threshold = (
+            operational_perc_mean_diff_threshold
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="s",
+        display_unit="s",
+    )
+    def meanWindSpeedDuration(self: MidTmcLeafNodeDish) -> float:
+        """Reads the meanWindSpeedDuration attribute value.
+
+        Returns:
+            float: meanWindSpeedDuration attribute value.
+        """
+        return self.component_manager.auto_stow.mean_wind_speed_duration
+
+    @meanWindSpeedDuration.write
+    def meanWindSpeedDuration(
+        self: MidTmcLeafNodeDish, mean_wind_speed_duration: float
+    ) -> None:
+        """Set the meanWindSpeedDuration attribute value.
+
+        Args:
+            mean_wind_speed_duration(float): value to update
+        """
+        self.component_manager.auto_stow.mean_wind_speed_duration = (
+            mean_wind_speed_duration
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="s",
+        display_unit="s",
+    )
+    def meanGustSpeedDuration(self: MidTmcLeafNodeDish) -> float:
+        """Reads the meanGustSpeedDuration attribute value.
+
+        Returns:
+            float: meanGustSpeedDuration attribute value.
+        """
+        return self.component_manager.auto_stow.mean_gust_speed_duration
+
+    @meanGustSpeedDuration.write
+    def meanGustSpeedDuration(
+        self: MidTmcLeafNodeDish, mean_gust_speed_duration: float
+    ) -> None:
+        """Set the meanGustSpeedDuration attribute value.
+
+        Args:
+            mean_gust_speed_duration(float): value to update
+        """
+        self.component_manager.auto_stow.mean_gust_speed_duration = (
+            mean_gust_speed_duration
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="s",
+        display_unit="s",
+    )
+    def meanOpsWindSpeedDuration(self: MidTmcLeafNodeDish) -> float:
+        """Reads the meanGustSpeedDuration attribute value.
+
+        Returns:
+            float: meanGustSpeedDuration attribute value.
+        """
+        return self.component_manager.auto_stow.operational_wind_speed_duration
+
+    @meanOpsWindSpeedDuration.write
+    def meanOpsWindSpeedDuration(
+        self: MidTmcLeafNodeDish, operational_wind_speed_duration: float
+    ) -> None:
+        """Set the meanOpsWindSpeedDuration attribute value.
+
+        Args:
+            operational_wind_speed_duration(float): value to update
+        """
+        self.component_manager.auto_stow.operational_wind_speed_duration = (
+            operational_wind_speed_duration
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="s",
+        display_unit="s",
+    )
+    def opsPercMeanDiffDuration(self: MidTmcLeafNodeDish) -> float:
+        """Reads the opsPercMeanDiffDuration attribute value.
+
+        Returns:
+            float: opsPercMeanDiffDuration attribute value.
+        """
+        auto_stow = self.component_manager.auto_stow
+        return auto_stow.operational_perc_mean_diff_duration
+
+    @opsPercMeanDiffDuration.write
+    def opsPercMeanDiffDuration(
+        self: MidTmcLeafNodeDish, operational_perc_mean_diff_duration: float
+    ) -> None:
+        """Set the opsPercMeanDiffDuration attribute value.
+
+        Args:
+            operational_perc_mean_diff_duration(float): value to update
+        """
+        auto_stow = self.component_manager.auto_stow
+
+        auto_stow.operational_perc_mean_diff_duration = (
+            operational_perc_mean_diff_duration
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+    )
+    def percentileForDiff(self: MidTmcLeafNodeDish) -> float:
+        """Reads the percentileForDiff attribute value.
+
+        Returns:
+            float: percentileForDiff attribute value.
+        """
+        return self.component_manager.auto_stow.percentile_for_diff
+
+    @percentileForDiff.write
+    def percentileForDiff(
+        self: MidTmcLeafNodeDish, percentile_for_diff: float
+    ) -> None:
+        """Set the percentileForDiff attribute value.
+
+        Args:
+            operational_perc_mean_diff_duration(float): value to update
+        """
+        self.component_manager.auto_stow.percentile_for_diff = (
+            percentile_for_diff
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="°C",
+        display_unit="°C",
+    )
+    def minTemperatureThreshold(self: MidTmcLeafNodeDish) -> float:
+        """Reads the minTemperatureThreshold attribute value.
+
+        Returns:
+            float: minTemperatureThreshold attribute value.
+        """
+        return self.component_manager.auto_stow.min_temp_threshold
+
+    @minTemperatureThreshold.write
+    def minTemperatureThreshold(
+        self: MidTmcLeafNodeDish, min_temp_threshold: float
+    ) -> None:
+        """Set the minTemperatureThreshold attribute value.
+
+        Args:
+            min_temp_threshold(float): value to update
+        """
+        self.component_manager.auto_stow.min_temp_threshold = (
+            min_temp_threshold
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="°C",
+        display_unit="°C",
+    )
+    def maxTemperatureThreshold(self: MidTmcLeafNodeDish) -> float:
+        """Reads the maxTemperatureThreshold attribute value.
+
+        Returns:
+            float: maxTemperatureThreshold attribute value.
+        """
+        return self.component_manager.auto_stow.max_temp_threshold
+
+    @maxTemperatureThreshold.write
+    def maxTemperatureThreshold(
+        self: MidTmcLeafNodeDish, max_temp_threshold: float
+    ) -> None:
+        """Set the maxTemperatureThreshold attribute value.
+
+        Args:
+            max_temp_threshold(float): value to update
+        """
+        self.component_manager.auto_stow.max_temp_threshold = (
+            max_temp_threshold
+        )
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="°C",
+        display_unit="°C",
+    )
+    def temperatureDelta(self: MidTmcLeafNodeDish) -> float:
+        """Reads the temperatureDelta attribute value.
+
+        Returns:
+            float: temperatureDelta attribute value.
+        """
+        return self.component_manager.auto_stow.temp_delta
+
+    @temperatureDelta.write
+    def temperatureDelta(self: MidTmcLeafNodeDish, temp_delta: float) -> None:
+        """Set the temperatureDelta attribute value.
+
+        Args:
+            temp_delta(float): value to update
+        """
+        self.component_manager.auto_stow.temp_delta = temp_delta
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+        memorized=True,
+        hw_memorized=True,
+        unit="s",
+        display_unit="s",
+    )
+    def timeDelta(self: MidTmcLeafNodeDish) -> float:
+        """Reads the timeDelta attribute value.
+
+        Returns:
+            float: timeDelta attribute value.
+        """
+        return self.component_manager.auto_stow.time_delta
+
+    @timeDelta.write
+    def timeDelta(self: MidTmcLeafNodeDish, time_delta: float) -> None:
+        """Set the timeDelta attribute value.
+
+        Args:
+            time_delta(float): value to update
+        """
+        self.component_manager.auto_stow.time_delta = time_delta
 
     # --------
     # Commands

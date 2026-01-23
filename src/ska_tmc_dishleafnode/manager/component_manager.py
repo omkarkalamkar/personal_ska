@@ -45,7 +45,7 @@ from ska_tmc_common.adapters import DishAdapter, DishlnPointingDeviceAdapter
 from ska_tmc_common.lrcr_callback import LRCRCallback
 from ska_tmc_common.v2.tmc_component_manager import TmcLeafNodeComponentManager
 
-from ska_tmc_dishleafnode.auto_stow import AutoStow, RepeatedTimer
+from ska_tmc_dishleafnode.auto_stow import AutoStow
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.commands import (
     Abort,
@@ -123,12 +123,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         weather_station_device_names: Optional[list] = None,
         wind_speed_threshold: float = 13.5,
         gust_speed_threshold: float = 20.0,
+        operational_wind_speed_threshold: float = 10.0,
+        operational_perc_mean_diff_threshold: float = 4.5,
         mean_wind_speed_duration: float = 600.0,
         mean_gust_speed_duration: float = 3.0,
+        operational_wind_speed_duration: float = 1000.0,
+        operational_perc_mean_diff_duration: float = 600.0,
         max_temp_threshold: float = 40.0,
         min_temp_threshold: float = -5.0,
         time_delta: float = 1000.0,
         temp_delta: float = 4.5,
+        percentile_for_diff: float = 95.0,
         is_auto_stow_enabled: bool = True,
         _update_roc_temp_callback: Optional[Callable] = None,
         _update_mean_gust_speed_callback: Optional[Callable] = None,
@@ -372,30 +377,83 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.kvalue_validation_thread.start()
         self.load_array_layout_for_dish()
         self.actual_pointing_process.start()
+        self.__initialize_auto_stow__(
+            wind_speed_threshold,
+            gust_speed_threshold,
+            operational_wind_speed_threshold,
+            operational_perc_mean_diff_threshold,
+            temp_delta,
+            time_delta,
+            max_temp_threshold,
+            min_temp_threshold,
+            mean_wind_speed_duration,
+            mean_gust_speed_duration,
+            operational_wind_speed_duration,
+            operational_perc_mean_diff_duration,
+            is_auto_stow_enabled,
+            _update_roc_temp_callback,
+            _update_mean_wind_speed_callback,
+            _update_mean_gust_speed_callback,
+            _update_stow_status_callback,
+            percentile_for_diff,
+        )
+
+        self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+        # this is temporary variable
+        # which can be utilised to expose failure in future.
+
+    def __initialize_auto_stow__(
+        self,
+        wind_speed_threshold,
+        gust_speed_threshold,
+        operational_wind_speed_threshold,
+        operational_perc_mean_diff_threshold,
+        temp_delta,
+        time_delta,
+        max_temp_threshold,
+        min_temp_threshold,
+        mean_wind_speed_duration,
+        mean_gust_speed_duration,
+        operational_wind_speed_duration,
+        operational_perc_mean_diff_duration,
+        is_auto_stow_enabled,
+        _update_roc_temp_callback,
+        _update_mean_wind_speed_callback,
+        _update_mean_gust_speed_callback,
+        _update_stow_status_callback,
+        percentile_for_diff,
+    ):
+        """Initialise all variables related to auto stow functionality."""
         self.auto_stow = AutoStow(
             self,
             self.logger,
-            wind_threshold=wind_speed_threshold,
-            gust_threshold=gust_speed_threshold,
             temp_delta=temp_delta,
             time_delta=time_delta,
+            wind_speed_threshold=wind_speed_threshold,
+            gust_speed_threshold=gust_speed_threshold,
+            max_temp_threshold=max_temp_threshold,
+            min_temp_threshold=min_temp_threshold,
+            mean_gust_speed_duration=mean_gust_speed_duration,
+            mean_wind_speed_duration=mean_wind_speed_duration,
+            operational_wind_speed_duration=operational_wind_speed_duration,
+            operational_wind_speed_threshold=(
+                operational_wind_speed_threshold
+            ),
+            operational_perc_mean_diff_threshold=(
+                operational_perc_mean_diff_threshold
+            ),
+            operational_perc_mean_diff_duration=(
+                operational_perc_mean_diff_duration
+            ),
+            percentile_for_diff=percentile_for_diff,
         )
-        self.wind_tracking: bool = False
         self.temperature_tracking: dict[str, bool] = defaultdict(
             threading.Event
         )
         self.__rate_of_change_temperature: dict = {}
         self.__gust_wind_speed_mean: float = 0.0
         self.__wind_speed_mean: float = 0.0
-        self.max_temp_threshold: float = max_temp_threshold
-        self.min_temp_threshold: float = min_temp_threshold
-        self.wind_timer: threading.Timer = RepeatedTimer(
-            mean_wind_speed_duration, self.auto_stow.calculate_mean_wind_speed
-        )
-        self.gust_timer: threading.Timer = RepeatedTimer(
-            mean_gust_speed_duration, self.auto_stow.check_gusts
-        )
-        self.time_delta: float = time_delta
+
         self.temp_timers: list[threading.Thread] = []
         self.is_auto_stow_enabled: bool = is_auto_stow_enabled
         self._update_roc_temp_callback: Optional[
@@ -410,9 +468,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._update_stow_status_callback: Optional[
             Callable
         ] = _update_stow_status_callback
-        self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
-        # this is temporary variable
-        # which can be utilised to expose failure in future.
         self.__auto_stow_failures: list[str] = [""]
 
     def update_auto_stow_failures(self, failure: str):
@@ -2978,19 +3033,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.stop_liveliness_probe()
 
         self.stop_event_processing_threads()
-        if self.wind_timer and self.wind_timer.is_alive():
-            self.wind_timer.cancel()
-        if self.gust_timer and self.gust_timer.is_alive():
-            self.gust_timer.cancel()
-        if self.temp_timers:
-            for key in self.temperature_tracking:
-                self.temperature_tracking[key].clear()
-                self.auto_stow.initial_mark_achieved[key].set()
-            for timer in self.temp_timers:
-                timer.join(timeout=5)
-            for poller in self.auto_stow.poll_threads:
-                poller.join()
-        self.wind_tracking = False
+        if self.is_auto_stow_enabled:
+            del self.auto_stow  # calls destructor of class AutoStow
         self.logger.debug("Stopped event processing threads successfully")
 
         if (
@@ -3299,14 +3343,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             if wms in self.weather_station_device_names[0]:
                 self.wind_speed = wind_speed
             if self.is_auto_stow_enabled:
-                self.auto_stow.wind_speeds[wms].append(wind_speed)
-                self.auto_stow.gust_speeds[wms].append(wind_speed)
-                if not self.wind_tracking:
-                    self.wind_timer.daemon = True
-                    self.gust_timer.daemon = True
-                    self.wind_timer.start()
-                    self.gust_timer.start()
-                    self.wind_tracking = True
+                self.auto_stow.update_wind_speed(wms, wind_speed)
+                self.auto_stow.start_wind_tracking()
 
     def update_temperature(self, temperature: float, wms: str = "") -> None:
         """The method to update temperature
@@ -3321,17 +3359,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.auto_stow.temperatures[wms] = temperature
             if self.is_auto_stow_enabled:
                 if (
-                    temperature > self.max_temp_threshold
-                    or temperature < self.min_temp_threshold
+                    temperature > self.auto_stow.max_temp_threshold
+                    or temperature < self.auto_stow.min_temp_threshold
                 ):
                     self.auto_stow.invoke_auto_stow()
-                if not self.temperature_tracking.get(wms):
+                if not self.temperature_tracking.get(wms).is_set():
                     self.temperature_tracking[wms].set()
-                    temp_timer = threading.Thread(
-                        target=self.auto_stow.roc_temp, args=[wms], daemon=True
-                    )
-                    temp_timer.start()
-                    self.temp_timers.append(temp_timer)
+                    self.auto_stow.start_temp_tracking(wms)
 
     def update_pressure(self, pressure: float, wms: str = "") -> None:
         """The method to update pressure.
@@ -3489,6 +3523,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 target=self.process_event,
                 args=[attribute],
                 name=f"evt_{attribute}",
+                daemon=True,
             )
             self.event_threads.append(thread)
             thread.start()
