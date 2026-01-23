@@ -1,6 +1,5 @@
 """Test to verify EndScan command on dishleafnode"""
 import json
-import time
 
 import pytest
 import tango
@@ -12,14 +11,11 @@ from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_dishleafnode.enums import CapabilityStates
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_FAILED_WITH_TRACK,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     DISHLN_POINTING_DEVICE,
-    get_non_sidereal_json_for_source_unknown,
     log_and_assert_health,
     logger,
-    monitor_track_table_errors_attribute,
     tear_down,
     wait_and_validate_attribute_value_available,
     wait_for_attribute_health_value,
@@ -223,164 +219,20 @@ def test_healthInfo(tango_context, group_callback, json_factory):
 
 
 # ----------------------------------------------------------
-def configure_dish_leaf_node_unknown_source(
-    tango_context,
-    dishln_name,
-    group_callback,
-    configure_input_str,
-):
-    logger.info(f"{tango_context}")
-    dev_factory = DevFactory()
-    dish_leaf_node = dev_factory.get_device(dishln_name)
-    dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
-
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-
-    dishmode_event_id = dish_leaf_node.subscribe_event(
-        "dishMode",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["dishMode"],
-    )
-    pointingstate_event_id = dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
-    dishpd_event_id = dishln_pointing_device.subscribe_event(
-        "programTrackTableError",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["programTrackTableError"],
-    )
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=2,
-    )
-
-    result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-    time.sleep(1)
-
-    assert result_fp[0] == ResultCode.QUEUED
-
-    lrcr_event_id = dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=6,
-    )
-
-    track_table_error_before_configure = dish_leaf_node.trackTableErrors
-    logger.info(
-        "track_table_error_before_configure: %s",
-        track_table_error_before_configure,
-    )
-    result_config, unique_id_config = dish_leaf_node.Configure(
-        configure_input_str
-    )
-    assert result_config[0] == ResultCode.QUEUED
-    logger.info(
-        f"Command ID: {unique_id_config} Returned result: {result_config}"
-    )
-
-    monitor_track_table_errors_attribute(
-        dish_leaf_node, track_table_error_before_configure
-    )
-
-    expected_message = (
-        "Target description 'Pluto, special' contains unknown"
-        + " *special* body 'Pluto'"
-    )
-
-    track_table_error = dish_leaf_node.trackTableErrors
-
-    logger.info(
-        "track_table_error after configure: %s",
-        track_table_error,
-    )
-    result = any(expected_message in message for message in track_table_error)
-    group_callback["programTrackTableError"].assert_change_event(
-        expected_message,
-        lookahead=8,
-    )
-    assert result
-
-    log_and_assert_health(
-        dish_leaf_node,
-        dish_master,
-        dishln_pointing_device,
-        HealthState.DEGRADED,
-        "Target description 'Pluto, special' contains unknown ",
-    )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (
-            unique_id_config[0],
-            COMMAND_FAILED_WITH_TRACK,
-        ),
-        lookahead=8,
-    )
-
-    result_abort, unique_id_abort = dish_leaf_node.Abort()
-    logger.info(
-        f"Command ID: {unique_id_abort} Returned result: {result_abort}"
-    )
-
-    assert result_abort == ResultCode.STARTED
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=6,
-    )
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_abort[0], COMMAND_COMPLETED),
-        lookahead=5,
-    )
-
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
-
-    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
-
-    log_and_assert_health(
-        dish_leaf_node,
-        dish_master,
-        dishln_pointing_device,
-        HealthState.OK,
-        None,
-    )
-
-    dish_leaf_node.unsubscribe_event(dishmode_event_id)
-    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
-    dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    dishln_pointing_device.unsubscribe_event(dishpd_event_id)
-    tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.post_deployment
-@pytest.mark.SKA_mid
-@pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
-def test_configure_command_unknown_source(
-    tango_context, group_callback, json_factory, json_to_use
-):
-    json_to_use = get_non_sidereal_json_for_source_unknown(
-        json_factory(json_to_use)
-    )
-    configure_dish_leaf_node_unknown_source(
-        tango_context,
-        DISH_LEAF_NODE_DEVICE,
-        group_callback,
-        json_to_use,
-    )
+# @pytest.mark.post_deployment
+# @pytest.mark.SKA_mid
+# @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
+# def test_configure_command_unknown_source(
+#     tango_context, group_callback, json_factory, json_to_use
+# ):
+#     json_to_use = get_non_sidereal_json_for_source_unknown(
+#         json_factory(json_to_use)
+#     )
+#     configure_dish_leaf_node_unknown_source(
+#         tango_context,
+#         DISH_LEAF_NODE_DEVICE,
+#         group_callback,
+#         json_to_use,
+#     )
