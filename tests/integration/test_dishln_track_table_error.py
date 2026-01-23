@@ -322,6 +322,8 @@ def configure_dish_leaf_node_unknown_source(
     )
     assert result
 
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
     log_and_assert_health(
         dish_leaf_node,
         dish_master,
