@@ -179,62 +179,6 @@ def test_configure_command_source_not_visible(
         )
 
 
-# def configure_dish_leaf_node_unknown_source(
-#     tango_context,
-#     dishln_name,
-#     group_callback,
-#     configure_input_str,
-# ):
-#     logger.info(f"{tango_context}")
-#     dev_factory = DevFactory()
-#     dish_leaf_node = dev_factory.get_device(dishln_name)
-#     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-#     dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
-
-#     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-
-#     dishmode_event_id = dish_leaf_node.subscribe_event(
-#         "dishMode",
-#         tango.EventType.CHANGE_EVENT,
-#         group_callback["dishMode"],
-#     )
-#     pointingstate_event_id = dish_leaf_node.subscribe_event(
-#         "pointingState",
-#         tango.EventType.CHANGE_EVENT,
-#         group_callback["pointingState"],
-#     )
-#     dishpd_event_id = dishln_pointing_device.subscribe_event(
-#         "programTrackTableError",
-#         tango.EventType.CHANGE_EVENT,
-#         group_callback["programTrackTableError"],
-#     )
-
-#     group_callback["dishMode"].assert_change_event(
-#         (DishMode.STANDBY_LP),
-#         lookahead=2,
-#     )
-
-#     result_fp, unique_id_fp = dish_leaf_node.SetStandbyFPMode()
-#     time.sleep(1)
-
-#     assert result_fp[0] == ResultCode.QUEUED
-
-#     lrcr_event_id = dish_leaf_node.subscribe_event(
-#         "longRunningCommandResult",
-#         tango.EventType.CHANGE_EVENT,
-#         group_callback["longRunningCommandResult"],
-#     )
-
-#     group_callback["longRunningCommandResult"].assert_change_event(
-#         (unique_id_fp[0], COMMAND_COMPLETED),
-#         lookahead=6,
-#     )
-
-#     group_callback["dishMode"].assert_change_event(
-#         (DishMode.STANDBY_FP),
-#         lookahead=6,
-#     )
-
 #     track_table_error_before_configure = dish_leaf_node.trackTableErrors
 #     logger.info(
 #         "track_table_error_before_configure: %s",
