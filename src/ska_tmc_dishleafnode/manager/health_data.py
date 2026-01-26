@@ -170,11 +170,15 @@ class DishHealthStateAndInfoManager:
 
     def _update_program_track_table(self, data: Dict[str, str]) -> None:
         """Update program track table and related issues.
-        Args: data: A dictionary where the key is the error name
+
+        Args:
+          data (Dict[str, str]): A dictionary where the key is the error name
+
          and the value is the error message.
            If the dictionary contains a None key,
            all existing errors will be erased.
         """
+
         if data is None or None in data.keys():
             # Erase all existing errors
             self.health_data.program_track_table = ProgramTrackTableError(

@@ -216,23 +216,3 @@ def test_healthInfo(tango_context, group_callback, json_factory):
         group_callback,
         json_factory("dishleafnode_configure"),
     )
-
-
-# ----------------------------------------------------------
-
-
-# @pytest.mark.post_deployment
-# @pytest.mark.SKA_mid
-# @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
-# def test_configure_command_unknown_source(
-#     tango_context, group_callback, json_factory, json_to_use
-# ):
-#     json_to_use = get_non_sidereal_json_for_source_unknown(
-#         json_factory(json_to_use)
-#     )
-#     configure_dish_leaf_node_unknown_source(
-#         tango_context,
-#         DISH_LEAF_NODE_DEVICE,
-#         group_callback,
-#         json_to_use,
-#     )

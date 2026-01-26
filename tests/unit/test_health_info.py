@@ -541,9 +541,6 @@ def test_healthinfo_updates_on_dish_master_health_transitions_sequence(
             ), "Did not expect Dish Manager message for state=OK"
 
 
-# ...existing code...
-
-
 def test_healthstate_degraded_when_no_band_requested_and_any_band_good(
     cm_without_er_lp,
 ):
@@ -602,9 +599,6 @@ def test_healthstate_degraded_when_no_band_requested_and_any_band_good(
     logger.info("Evaluated health state: %s", evaluated)
 
     assert evaluated == HealthState.DEGRADED
-
-
-# ...existing code...
 
 
 def test_healthstate_failed_when_no_band_requested_and_all_bands_not_good(
@@ -770,13 +764,6 @@ def test_generate_health_info(cm_without_er_lp):
     assert evaluated == HealthState.OK
 
 
-# # Internal errors
-
-# import pytest
-# import tango
-
-
-@pytest.mark.pt2
 def test_update_program_track_table_error_real_flow(cm_without_er_lp):
     """
     Integration-style test to verify data flow into health_manager
@@ -845,6 +832,3 @@ def test_update_program_track_table_error_real_flow(cm_without_er_lp):
     assert (
         summary_list == []
     ), f"Expected blank HealthSummary when OK; got {summary_list}"
-
-
-# ...existing code...

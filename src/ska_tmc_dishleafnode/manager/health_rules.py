@@ -23,6 +23,7 @@ HEALTH_RULES = {
             "and receiver_band not in {'NONE', 'UNKNOWN'} and "
             "band_capability_data.band_capabilities[receiver_band] "
             f"in {GOOD_CAPABILITY_STATES}"
+            " and not is_program_track_table_error"
         ),
         # Case 2: No band configured, all bands good
         Rule(
