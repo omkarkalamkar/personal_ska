@@ -624,7 +624,7 @@ def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
             return json.dumps(configure_input_json)
 
     logger.info("No visible non-sidereal object found")
-    return ""
+    return None
 
 
 def get_non_sidereal_json_for_source_not_visible(non_side_real_json) -> str:
