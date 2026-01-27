@@ -228,12 +228,9 @@ class AutoStow:
     def gust_speed_threshold(self, wind_speed: float) -> None:
         """Setter to update the gust speed threshold"""
         with self.update_lock:
-            self.logger.info("set")
             self.cancel_timer(self.gust_timer)
             self.__gust_speed_threshold = wind_speed
             self.gust_speeds.clear()
-
-            self.logger.info("set %s", self.gust_timer)
 
     @property
     def mean_wind_speed_duration(self) -> float:
@@ -334,7 +331,7 @@ class AutoStow:
     def time_delta(self, delta: float) -> None:
         """Setter to update time delta."""
         try:
-            start = time.perf_counter()
+            self.__time_delta = delta
             if self.temp_threads:
                 for key in self.component_manager.temperature_tracking:
                     self.component_manager.temperature_tracking[key].clear()
@@ -348,10 +345,8 @@ class AutoStow:
                 self.polled_temperatures.clear()
                 self.initial_mark_achieved.clear()
                 self.temp_update.clear()
-            self.__time_delta = delta
-            delta = time.perf_counter() - start
         except Exception as e:
-            self.logger.info(e)
+            self.logger.exception(e)
 
     @property
     def temperatures(self) -> dict:
@@ -518,6 +513,7 @@ class AutoStow:
             # once the initial mark(time delta is reached),
             # the comparision loop starts
             temp = self.polled_temperatures[wms].copy()
+
             if (
                 len(temp) == self.time_delta
                 and not self.initial_mark_achieved[wms].is_set()
@@ -528,6 +524,7 @@ class AutoStow:
                 self.polled_temperatures[wms].pop(0)
             # notify the change in temperature
             self.temp_update[wms].set()
+
             end_time = time.perf_counter()
             time.sleep(1 - (end_time - start_time))
 
@@ -543,15 +540,17 @@ class AutoStow:
 
                 self.initial_mark_achieved[wms].wait()
 
-                while (
-                    self.component_manager.temperature_tracking[wms].is_set()
-                    and self.temp_update[wms].is_set()
-                ):
+                while self.component_manager.temperature_tracking[
+                    wms
+                ].is_set():
+                    if not self.temp_update[wms].wait(timeout=1):
+                        continue
                     self.temp_update[wms].clear()
                     temps = self.polled_temperatures[wms].copy()
                     self.polled_temperatures[wms].pop(0)
                     roc = abs(temps[-1] - temps[0])
                     self.rate_of_change_temp[wms] = roc
+
                     if roc > self.temp_delta:
                         self.logger.info(
                             "rate of change :%s for station: %s", roc, wms
