@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 from typing import Dict, Tuple, Union
 
-from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
@@ -64,6 +63,7 @@ class TrackStop(DishLNCommand):
             self.command_uniq_id = ""
         self.component_manager.receiver_band = ""
         self.component_manager.update_rxband_health_aggregation()
+        self.component_manager.update_healthinfo_errors()
 
     # pylint: disable=unused-argument
     @timeout_tracker
@@ -147,10 +147,17 @@ class TrackStop(DishLNCommand):
             self.component_manager.current_track_table_error = (
                 f"Exception while stopping programTrackTable {exception}"
             )
-            if self.component_manager._update_health_state_callback:
-                self.component_manager._update_health_state_callback(
-                    HealthState.DEGRADED
-                )
+
+            health_manager = self.component_manager.health_manager
+            update_health_data_and_aggregate = (
+                health_manager.update_health_data_and_aggregate
+            )
+
+            update_health_data_and_aggregate(
+                {"Track_Table_Stop_Error": exception},
+                "ProgramtracktableErrors",
+            )
+
             result_code = [ResultCode.FAILED]
             message += (
                 " StopProgramTrackTable: "

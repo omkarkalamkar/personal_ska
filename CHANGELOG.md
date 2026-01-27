@@ -5,6 +5,11 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.29.3]
+********
+Added
+-----
+* Added Program Track Table errors on HealthInfo.
 
 [0.29.2]
 ********

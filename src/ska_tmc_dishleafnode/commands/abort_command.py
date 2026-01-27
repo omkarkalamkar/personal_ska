@@ -7,7 +7,6 @@ import logging
 import threading
 from typing import Dict, Optional, Tuple, Union
 
-from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -106,6 +105,7 @@ class Abort(DishLNCommand):
         self.component_manager.clear_configure_command_events_flags()
         self.component_manager.receiver_band = ""
         self.component_manager.update_rxband_health_aggregation()
+        self.component_manager.update_healthinfo_errors()
 
     # pylint: disable=arguments-differ
 
@@ -208,15 +208,21 @@ class Abort(DishLNCommand):
             self.component_manager.current_track_table_error = (
                 f"Exception while stopping programTrackTable {exception}"
             )
-            if self.component_manager._update_health_state_callback:
-                self.component_manager._update_health_state_callback(
-                    HealthState.DEGRADED
-                )
-                result_code = [ResultCode.FAILED]
-                message += (
-                    " StopProgramTrackTable: There was an error while"
-                    + " stopping the generation of "
-                    + f"program track table: {exception}"
-                )
+
+            health_manager = self.component_manager.health_manager
+            update_health_data_and_aggregate = (
+                health_manager.update_health_data_and_aggregate
+            )
+
+            update_health_data_and_aggregate(
+                {"Track_Table_Stop_Error": exception},
+                "ProgramtracktableErrors",
+            )
+            result_code = [ResultCode.FAILED]
+            message += (
+                " StopProgramTrackTable: There was an error while"
+                + " stopping the generation of "
+                + f"program track table: {exception}"
+            )
 
         return result_code[0], message

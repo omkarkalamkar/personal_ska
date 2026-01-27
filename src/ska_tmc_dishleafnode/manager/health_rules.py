@@ -23,6 +23,7 @@ HEALTH_RULES = {
             "and receiver_band not in {'NONE', 'UNKNOWN'} and "
             "band_capability_data.band_capabilities[receiver_band] "
             f"in {GOOD_CAPABILITY_STATES}"
+            " and not is_program_track_table_error"
         ),
         # Case 2: No band configured, all bands good
         Rule(
@@ -31,7 +32,8 @@ HEALTH_RULES = {
             "and receiver_band in {'NONE', 'UNKNOWN'} and "
             "$all([state in "
             f"{GOOD_CAPABILITY_STATES} for state in "
-            "band_capability_data.band_capability_values])"
+            "band_capability_data.band_capability_values]) "
+            "and not is_program_track_table_error"
         ),
     ],
     HealthState.DEGRADED: [
@@ -52,6 +54,7 @@ HEALTH_RULES = {
             f"{GOOD_CAPABILITY_STATES} for state in "
             "band_capability_data.band_capability_values])"
         ),
+        Rule("is_program_track_table_error"),
     ],
     HealthState.FAILED: [
         # KValue validation failed (critical)
