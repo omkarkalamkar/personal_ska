@@ -2,8 +2,10 @@ import time
 
 import pytest
 import tango
+from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode
+from ska_tmc_simulators import PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
@@ -13,9 +15,11 @@ from tests.settings import (
     DISHLN_POINTING_DEVICE,
     get_non_sidereal_json_for_source_not_visible,
     get_non_sidereal_json_for_source_unknown,
+    log_and_assert_health,
     logger,
     monitor_track_table_errors_attribute,
     tear_down,
+    wait_for_attribute_health_value,
 )
 
 OFFSET = 5.0
@@ -118,6 +122,35 @@ def configure_dish_leaf_node_source_not_visible(
         lookahead=8,
     )
 
+    result_abort, unique_id_abort = dish_leaf_node.Abort()
+
+    assert result_abort == ResultCode.STARTED
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_abort[0], COMMAND_COMPLETED),
+        lookahead=5,
+    )
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
+
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.OK,
+        None,
+    )
+
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
@@ -135,12 +168,13 @@ def test_configure_command_source_not_visible(
     json_to_use = get_non_sidereal_json_for_source_not_visible(
         json_factory(json_to_use)
     )
-    configure_dish_leaf_node_source_not_visible(
-        tango_context,
-        DISH_LEAF_NODE_DEVICE,
-        group_callback,
-        json_to_use,
-    )
+    if json_to_use is not None:
+        configure_dish_leaf_node_source_not_visible(
+            tango_context,
+            DISH_LEAF_NODE_DEVICE,
+            group_callback,
+            json_to_use,
+        )
 
 
 def configure_dish_leaf_node_unknown_source(
@@ -234,12 +268,54 @@ def configure_dish_leaf_node_unknown_source(
     )
     assert result
 
+    assert wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.DEGRADED,
+        "Target description 'Pluto, special' contains unknown ",
+    )
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (
             unique_id_config[0],
             COMMAND_FAILED_WITH_TRACK,
         ),
         lookahead=8,
+    )
+
+    result_abort, unique_id_abort = dish_leaf_node.Abort()
+    logger.info(
+        f"Command ID: {unique_id_abort} Returned result: {result_abort}"
+    )
+
+    assert result_abort == ResultCode.STARTED
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=6,
+    )
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_abort[0], COMMAND_COMPLETED),
+        lookahead=5,
+    )
+
+    group_callback["pointingState"].assert_change_event(
+        (PointingState.READY),
+        lookahead=6,
+    )
+
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
+
+    log_and_assert_health(
+        dish_leaf_node,
+        dish_master,
+        dishln_pointing_device,
+        HealthState.OK,
+        None,
     )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)

@@ -16,6 +16,11 @@ Updated
 * Updated SetStowMode functionality.
 * Updated subscriptions with event manager.
 
+[0.29.3]
+********
+Added
+-----
+* Added Program Track Table errors on HealthInfo.
 
 [0.29.2]
 ********
