@@ -3399,7 +3399,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :type temperature: float
         """
         if temperature:
-            self.logger.info(temperature)
             if wms in self.weather_station_device_names[0]:
                 self.temperature = temperature
             self.auto_stow.temperatures[wms] = temperature
