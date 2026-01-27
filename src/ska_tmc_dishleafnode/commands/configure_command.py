@@ -738,7 +738,9 @@ class Configure(DishLNCommand):
             )
         else:
             track_table_provided_thread = threading.Thread(
-                target=self.is_tracktable_provided, args=(json_argument,)
+                target=self.is_tracktable_provided,
+                args=(json_argument,),
+                daemon=True,
             )
             track_table_provided_thread.start()
 

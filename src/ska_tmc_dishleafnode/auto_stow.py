@@ -94,7 +94,8 @@ class AutoStow:
         self.gust_timer: Optional[RepeatedTimer] = None
         self.operational_wind_timer: Optional[RepeatedTimer] = None
         self.perc_mean_diff_timer: Optional[RepeatedTimer] = None
-        self.update_lock = threading.Lock()
+        self.update_temp_lock = threading.RLock()
+        self.update_wind_lock = threading.RLock()
 
     def __del__(self):
         """Destructor to manage the cleanup."""
@@ -189,45 +190,51 @@ class AutoStow:
     @property
     def max_temp_threshold(self) -> float:
         """Property for maximum temperature threshold"""
-        return self.__max_temp_threshold
+        with self.update_temp_lock:
+            return self.__max_temp_threshold
 
     @max_temp_threshold.setter
     def max_temp_threshold(self, temp: float) -> None:
         """Setter to update the maximum temperature threshold"""
-        self.__max_temp_threshold = temp
+        with self.update_temp_lock:
+            self.__max_temp_threshold = temp
 
     @property
     def min_temp_threshold(self) -> float:
         """Property for minimum temperature threshold"""
-        return self.__min_temp_threshold
+        with self.update_temp_lock:
+            return self.__min_temp_threshold
 
     @min_temp_threshold.setter
     def min_temp_threshold(self, temp: float) -> None:
         """Setter to update the minimum temperature threshold"""
-        self.__min_temp_threshold = temp
+        with self.update_temp_lock:
+            self.__min_temp_threshold = temp
 
     @property
     def wind_speed_threshold(self) -> float:
         """Property for wind speed threshold"""
-        return self.__wind_speed_threshold
+        with self.update_wind_lock:
+            return self.__wind_speed_threshold
 
     @wind_speed_threshold.setter
     def wind_speed_threshold(self, wind_speed: float) -> None:
         """Setter to update the wind speed threshold"""
-        self.cancel_timer(self.wind_timer)
-        self.__wind_speed_threshold = wind_speed
-        self.wind_speeds.clear()
+        with self.update_wind_lock:
+            self.cancel_timer(self.wind_timer)
+            self.__wind_speed_threshold = wind_speed
+            self.wind_speeds.clear()
 
     @property
     def gust_speed_threshold(self) -> float:
         """Property for gust speed threshold"""
-        with self.update_lock:
+        with self.update_wind_lock:
             return self.__gust_speed_threshold
 
     @gust_speed_threshold.setter
     def gust_speed_threshold(self, wind_speed: float) -> None:
         """Setter to update the gust speed threshold"""
-        with self.update_lock:
+        with self.update_wind_lock:
             self.cancel_timer(self.gust_timer)
             self.__gust_speed_threshold = wind_speed
             self.gust_speeds.clear()
@@ -235,118 +242,137 @@ class AutoStow:
     @property
     def mean_wind_speed_duration(self) -> float:
         """Property for mean wind speed duration"""
-
-        return self.__mean_wind_speed_duration
+        with self.update_wind_lock:
+            return self.__mean_wind_speed_duration
 
     @mean_wind_speed_duration.setter
     def mean_wind_speed_duration(self, wind_speed: float) -> None:
         """Setter to update the mean wind speed duration"""
-        self.cancel_timer(self.wind_timer)
+        with self.update_wind_lock:
+            self.cancel_timer(self.wind_timer)
 
-        self.__mean_wind_speed_duration = wind_speed
-        self.wind_speeds.clear()
+            self.__mean_wind_speed_duration = wind_speed
+            self.wind_speeds.clear()
 
     @property
     def mean_gust_speed_duration(self) -> float:
         """Property for mean gust speed duration"""
-        return self.__mean_gust_speed_duration
+        with self.update_wind_lock:
+            return self.__mean_gust_speed_duration
 
     @mean_gust_speed_duration.setter
     def mean_gust_speed_duration(self, wind_speed: float) -> None:
         """Setter to update the mean gust speed duration"""
-        self.cancel_timer(self.gust_timer)
-        self.__mean_gust_speed_duration = wind_speed
-        self.gust_speeds.clear()
+        with self.update_wind_lock:
+            self.cancel_timer(self.gust_timer)
+            self.__mean_gust_speed_duration = wind_speed
+            self.gust_speeds.clear()
 
     @property
     def operational_wind_speed_duration(self) -> float:
         """Operation requirement wind duration"""
-        return self.__operational_wind_speed_duration
+        with self.update_wind_lock:
+            return self.__operational_wind_speed_duration
 
     @operational_wind_speed_duration.setter
     def operational_wind_speed_duration(self, duration: float) -> None:
         """Operation requirement wind duration"""
-        self.cancel_timer(self.operational_wind_timer)
-        self.__operational_wind_speed_duration = duration
+        with self.update_wind_lock:
+            self.cancel_timer(self.operational_wind_timer)
+            self.__operational_wind_speed_duration = duration
 
     @property
     def operational_perc_mean_diff_duration(self) -> float:
         """Operation requirement wind duration"""
-        return self.__operational_perc_mean_diff_duration
+        with self.update_wind_lock:
+            return self.__operational_perc_mean_diff_duration
 
     @operational_perc_mean_diff_duration.setter
     def operational_perc_mean_diff_duration(self, duration: float) -> None:
         """Operation requirement wind duration"""
-        self.cancel_timer(self.perc_mean_diff_timer)
-        self.__operational_perc_mean_diff_duration = duration
+        with self.update_wind_lock:
+            self.cancel_timer(self.perc_mean_diff_timer)
+            self.__operational_perc_mean_diff_duration = duration
 
     @property
     def operational_wind_speed_threshold(self) -> float:
         """Operation requirement wind threshold"""
-        return self.__operational_wind_speed_threshold
+        with self.update_wind_lock:
+            return self.__operational_wind_speed_threshold
 
     @operational_wind_speed_threshold.setter
     def operational_wind_speed_threshold(self, speed: float) -> None:
         """Operation requirement wind threshold"""
-        self.cancel_timer(self.operational_wind_timer)
-        self.__operational_wind_speed_threshold = speed
+        with self.update_wind_lock:
+            self.cancel_timer(self.operational_wind_timer)
+            self.__operational_wind_speed_threshold = speed
 
     @property
     def operational_perc_mean_diff_threshold(self) -> float:
         """Operation requirement wind threshold"""
-        return self.__operational_perc_mean_diff_threshold
+        with self.update_wind_lock:
+            return self.__operational_perc_mean_diff_threshold
 
     @operational_perc_mean_diff_threshold.setter
     def operational_perc_mean_diff_threshold(self, speed: float) -> None:
         """Operation requirement wind threshold"""
-        self.cancel_timer(self.perc_mean_diff_timer)
-        self.__operational_perc_mean_diff_threshold = speed
+        with self.update_wind_lock:
+            self.cancel_timer(self.perc_mean_diff_timer)
+            self.__operational_perc_mean_diff_threshold = speed
 
     @property
     def percentile_for_diff(self) -> float:
         """Operation requirement wind threshold"""
-        return self.__percentile_for_diff
+        with self.update_wind_lock:
+            return self.__percentile_for_diff
 
     @percentile_for_diff.setter
     def percentile_for_diff(self, percentile: float) -> None:
         """Operation requirement wind threshold"""
-        self.__percentile_for_diff = percentile
+        with self.update_wind_lock:
+            self.__percentile_for_diff = percentile
 
     @property
     def temp_delta(self) -> float:
         """Property of Temperature Delta"""
-        return self.__temp_delta
+        with self.update_temp_lock:
+            return self.__temp_delta
 
     @temp_delta.setter
     def temp_delta(self, delta: float) -> None:
         """Setter to update temperature delta."""
-        self.__temp_delta = delta
+        with self.update_temp_lock:
+            self.__temp_delta = delta
 
     @property
     def time_delta(self) -> float:
         """Property of Time Delta"""
-        return self.__time_delta
+        with self.update_temp_lock:
+            return self.__time_delta
 
     @time_delta.setter
     def time_delta(self, delta: float) -> None:
         """Setter to update time delta."""
-        try:
-            self.__time_delta = delta
-            if self.temp_threads:
-                for key in self.component_manager.temperature_tracking:
-                    self.component_manager.temperature_tracking[key].clear()
-                for poller in self.poll_threads:
-                    poller.join()
-                self.poll_threads.clear()
-                for wms, thread in self.temp_threads.items():
-                    self.initial_mark_achieved[wms].set()
-                    thread.join()
-                self.temp_threads.clear()
-                self.polled_temperatures.clear()
-                self.initial_mark_achieved.clear()
-                self.temp_update.clear()
-        except Exception as e:
-            self.logger.exception(e)
+        with self.update_temp_lock:
+            try:
+                self.__time_delta = delta
+                if self.temp_threads:
+                    for key in self.component_manager.temperature_tracking:
+                        self.component_manager.temperature_tracking[
+                            key
+                        ].clear()
+                    for poller in self.poll_threads:
+                        poller.join()
+                    self.poll_threads.clear()
+                    for wms, thread in self.temp_threads.items():
+                        self.initial_mark_achieved[wms].set()
+                        thread.join()
+                    self.temp_threads.clear()
+                    self.polled_temperatures.clear()
+                    self.initial_mark_achieved.clear()
+                    self.temp_update.clear()
+            except Exception as e:
+                self.logger.exception(e)
 
     @property
     def temperatures(self) -> dict:
