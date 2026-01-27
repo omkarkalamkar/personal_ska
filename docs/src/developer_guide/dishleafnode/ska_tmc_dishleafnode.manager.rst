@@ -21,10 +21,10 @@ ska\_tmc\_dishleafnode.manager.program\_track\_table\_calculator module
    :undoc-members:
    :show-inheritance:
 
-ska\_tmc\_dishleafnode.manager.event\_receiver module
+ska\_tmc\_dishleafnode.manager.event\_manager module
 -------------------------------------------------------------
 
-.. automodule:: ska_tmc_dishleafnode.manager.event_receiver
+.. automodule:: ska_tmc_dishleafnode.manager.event_manager
    :members:
    :undoc-members:
    :show-inheritance:

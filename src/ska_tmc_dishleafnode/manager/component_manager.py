@@ -152,8 +152,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             when state of the component changed
         :param communication_state_callback: callback to be called
             when communication status of the component changed
-        :param event_receiver: flag used to control whether
-            EventReceiver object should be instantiated or not
+        :param event_manager: flag used to control whether
+            EventManager object should be instantiated or not
         :param proxy_timeout: allows to specify a client side timeout
             for sub-devices in milliseconds used by the liveliness probe
         :param event_subscription_check_period: (int) Time in seconds for
