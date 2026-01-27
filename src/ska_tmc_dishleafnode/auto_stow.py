@@ -320,7 +320,7 @@ class AutoStow:
     @temp_delta.setter
     def temp_delta(self, delta: float) -> None:
         """Setter to update temperature delta."""
-        self._temp_delta = delta
+        self.__temp_delta = delta
 
     @property
     def time_delta(self) -> float:
