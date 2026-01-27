@@ -386,10 +386,6 @@ class Configure(DishLNCommand):
                     f"Exception while generating programTrackTable "
                     f"{exception}"
                 )
-                # if self.component_manager._update_health_state_callback:
-                #     self.component_manager._update_health_state_callback(
-                #         HealthState.DEGRADED
-                #     )
 
                 health_manager = self.component_manager.health_manager
                 update_health_data_and_aggregate = (
@@ -442,10 +438,7 @@ class Configure(DishLNCommand):
             Tuple[ResultCode, str]: Tuple of ResultCode and message.
 
         """
-        self.logger.info(
-            "Invoking GenerateProgramTrackTable with target_data: %s",
-            target_data,
-        )
+
         self.dishln_pointing_device_adapter.targetData = target_data
         (
             result_code,

@@ -2994,7 +2994,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         Args:
             event (tango.EventData): It is the Tango Event Data object
-                which contains the event data, dishMode Event in this case.
+
         """
         if event:
             self.current_track_table_error = event

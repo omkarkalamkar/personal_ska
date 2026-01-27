@@ -379,7 +379,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
     def start_track_table_calculation(self) -> None:
         """This method creates and starts a thread for the programTrackTable
         calculation."""
-        self.logger.info("Starting trackTable thread.")
+
         try:
             # Stop existing thread if alive
             self.stop_track_table_thread()
@@ -387,9 +387,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 # clear mapping scan event to start new thread
                 self.mapping_scan_event.clear()
                 self.create_track_table_thread()
-                self.logger.info("Starting trackTable thread.")
                 self.track_table_thread.start()
-                self.logger.info("Started trackTable thread.")
+
         except Exception as exception:
             self.logger.exception(
                 "Failed to start trackTable thread" + " due to exception: %s",

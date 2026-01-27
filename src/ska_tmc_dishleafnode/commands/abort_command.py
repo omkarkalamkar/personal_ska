@@ -7,7 +7,6 @@ import logging
 import threading
 from typing import Dict, Optional, Tuple, Union
 
-# from ska_control_model import HealthState
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -209,10 +208,6 @@ class Abort(DishLNCommand):
             self.component_manager.current_track_table_error = (
                 f"Exception while stopping programTrackTable {exception}"
             )
-            # if self.component_manager._update_health_state_callback:
-            #     self.component_manager._update_health_state_callback(
-            #         HealthState.DEGRADED
-            #     )
 
             health_manager = self.component_manager.health_manager
             update_health_data_and_aggregate = (
