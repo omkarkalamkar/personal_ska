@@ -333,19 +333,25 @@ class AutoStow:
     @time_delta.setter
     def time_delta(self, delta: float) -> None:
         """Setter to update time delta."""
-        if self.temp_threads:
-            for key in self.component_manager.temperature_tracking:
-                self.component_manager.temperature_tracking[key].clear()
-            for poller in self.poll_threads:
-                poller.join()
-            for wms, thread in self.temp_threads.items():
-                self.initial_mark_achieved[wms].set()
-                thread.join()
-            self.polled_temperatures.clear()
-            self.initial_mark_achieved.clear()
-            self.temp_threads.clear()
-            self.temp_update.clear()
-        self.__time_delta = delta
+        try:
+            start = time.perf_counter()
+            if self.temp_threads:
+                for key in self.component_manager.temperature_tracking:
+                    self.component_manager.temperature_tracking[key].clear()
+                for poller in self.poll_threads:
+                    poller.join()
+                self.poll_threads.clear()
+                for wms, thread in self.temp_threads.items():
+                    self.initial_mark_achieved[wms].set()
+                    thread.join()
+                self.temp_threads.clear()
+                self.polled_temperatures.clear()
+                self.initial_mark_achieved.clear()
+                self.temp_update.clear()
+            self.__time_delta = delta
+            delta = time.perf_counter() - start
+        except Exception as e:
+            self.logger.info(e)
 
     @property
     def temperatures(self) -> dict:
@@ -537,10 +543,10 @@ class AutoStow:
 
                 self.initial_mark_achieved[wms].wait()
 
-                while self.component_manager.temperature_tracking[
-                    wms
-                ].is_set():
-                    self.temp_update[wms].wait()
+                while (
+                    self.component_manager.temperature_tracking[wms].is_set()
+                    and self.temp_update[wms].is_set()
+                ):
                     self.temp_update[wms].clear()
                     temps = self.polled_temperatures[wms].copy()
                     self.polled_temperatures[wms].pop(0)
