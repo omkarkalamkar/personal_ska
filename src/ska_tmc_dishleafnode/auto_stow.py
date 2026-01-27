@@ -94,6 +94,7 @@ class AutoStow:
         self.gust_timer: Optional[RepeatedTimer] = None
         self.operational_wind_timer: Optional[RepeatedTimer] = None
         self.perc_mean_diff_timer: Optional[RepeatedTimer] = None
+        self.update_lock = threading.Lock()
 
     def __del__(self):
         """Destructor to manage the cleanup."""
@@ -130,7 +131,7 @@ class AutoStow:
 
     def start_wind_tracking(self) -> None:
         """Starts wind based tracking"""
-        if not self.wind_timer:
+        if not self.wind_timer or not self.wind_timer.is_alive():
             self.wind_timer = RepeatedTimer(
                 self.mean_wind_speed_duration,
                 self.calculate_mean_wind_speeds,
@@ -142,19 +143,22 @@ class AutoStow:
             )
             self.wind_timer.daemon = True
             self.wind_timer.start()
-        if not self.gust_timer:
+        if not self.gust_timer or not self.gust_timer.is_alive():
             self.gust_timer = RepeatedTimer(
                 self.mean_gust_speed_duration,
                 self.calculate_mean_wind_speeds,
                 args=(
                     self.gust_speeds,
                     self.gust_speed_threshold,
-                    "gust_speed_mean",
+                    "gust_wind_speed_mean",
                 ),
             )
             self.gust_timer.daemon = True
             self.gust_timer.start()
-        if not self.operational_wind_timer:
+        if (
+            not self.operational_wind_timer
+            or not self.operational_wind_timer.is_alive()
+        ):
             self.operational_wind_timer = RepeatedTimer(
                 self.operational_wind_speed_duration,
                 self.calculate_mean_wind_speeds,
@@ -166,7 +170,10 @@ class AutoStow:
             )
             self.operational_wind_timer.daemon = True
             self.operational_wind_timer.start()
-        if not self.perc_mean_diff_timer:
+        if (
+            not self.perc_mean_diff_timer
+            or not self.perc_mean_diff_timer.is_alive()
+        ):
             self.perc_mean_diff_timer = RepeatedTimer(
                 self.operational_perc_mean_diff_duration,
                 self.calculate_diff_precentile_average,
@@ -214,14 +221,19 @@ class AutoStow:
     @property
     def gust_speed_threshold(self) -> float:
         """Property for gust speed threshold"""
-        return self.__gust_speed_threshold
+        with self.update_lock:
+            return self.__gust_speed_threshold
 
     @gust_speed_threshold.setter
     def gust_speed_threshold(self, wind_speed: float) -> None:
         """Setter to update the gust speed threshold"""
-        self.cancel_timer(self.gust_timer)
-        self.__gust_speed_threshold = wind_speed
-        self.gust_speeds.clear()
+        with self.update_lock:
+            self.logger.info("set")
+            self.cancel_timer(self.gust_timer)
+            self.__gust_speed_threshold = wind_speed
+            self.gust_speeds.clear()
+
+            self.logger.info("set %s", self.gust_timer)
 
     @property
     def mean_wind_speed_duration(self) -> float:
@@ -324,15 +336,16 @@ class AutoStow:
         if self.temp_threads:
             for key in self.component_manager.temperature_tracking:
                 self.component_manager.temperature_tracking[key].clear()
-            for wms, thread in self.temp_threads.items():
-                self.initial_mark_achieved[wms].set()
-                thread.join(timeout=5)
             for poller in self.poll_threads:
                 poller.join()
+            for wms, thread in self.temp_threads.items():
+                self.initial_mark_achieved[wms].set()
+                thread.join()
             self.polled_temperatures.clear()
             self.initial_mark_achieved.clear()
+            self.temp_threads.clear()
             self.temp_update.clear()
-        self._time_delta = delta
+        self.__time_delta = delta
 
     @property
     def temperatures(self) -> dict:
@@ -374,7 +387,6 @@ class AutoStow:
         """Method to cancel ongoing timer thread."""
         if timer and timer.is_alive():
             timer.cancel()
-            timer = None
 
     def _task_callback(self, **kwargs):
         """Method for handling setstowmode command result."""

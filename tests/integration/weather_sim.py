@@ -3,6 +3,7 @@ import random
 import time
 
 import httpx
+import numpy as np
 
 NAMESPACE = os.getenv("KUBE_NAMESPACE")
 CLUSTER_DOMAIN = os.getenv("CLUSTER_DOMAIN")
@@ -15,8 +16,11 @@ def simulate_temperature(
     station_name: str = "wms-sim-s1",
 ):
     start_time = time.time()
+    data = np.arange(-51, 51)
+    start_value = list(data).index(start_range)
+    end_value = list(data).index(end_range)
     while (time.time() - start_time) <= duration:
-        value = random.randrange(start_range * 308, end_range * 308)
+        value = random.randrange(start_value * 200, end_value * 200)
         httpx.get(
             f"http://{station_name}.{NAMESPACE}.svc.{CLUSTER_DOMAIN}:8080"
             f"/api/registers?register=11&value={value}&submit=Set"

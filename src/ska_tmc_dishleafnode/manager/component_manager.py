@@ -139,6 +139,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_mean_gust_speed_callback: Optional[Callable] = None,
         _update_mean_wind_speed_callback: Optional[Callable] = None,
         _update_stow_status_callback: Optional[Callable] = None,
+        _update_mean_operational_speed_callback: Optional[Callable] = None,
+        _update_mean_operational_diff_callback: Optional[Callable] = None,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -351,7 +353,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.gpm_validator = GPMValidator(self, logger)
 
         self.actual_pointing_process = Process(
-            target=self.process_actual_pointing
+            target=self.process_actual_pointing, daemon=True
         )
         self.process_lock = Lock()
         self.kvalue_validation_thread = threading.Timer(
@@ -396,6 +398,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_mean_gust_speed_callback,
             _update_stow_status_callback,
             percentile_for_diff,
+            _update_mean_operational_speed_callback,
+            _update_mean_operational_diff_callback,
         )
 
         self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
@@ -422,6 +426,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         _update_mean_gust_speed_callback,
         _update_stow_status_callback,
         percentile_for_diff,
+        _update_mean_operational_speed_callback,
+        _update_mean_operational_diff_callback,
     ):
         """Initialise all variables related to auto stow functionality."""
         self.auto_stow = AutoStow(
@@ -468,7 +474,15 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self._update_stow_status_callback: Optional[
             Callable
         ] = _update_stow_status_callback
+        self._update_mean_operational_speed_callback: Optional[
+            Callable
+        ] = _update_mean_operational_speed_callback
+        self._update_mean_operational_diff_callback: Optional[
+            Callable
+        ] = _update_mean_operational_diff_callback
         self.__auto_stow_failures: list[str] = [""]
+        self.__operational_wind_speed_mean: float = 0.0
+        self.__operational_perc_mean_diff: float = 0.0
 
     def update_auto_stow_failures(self, failure: str):
         """Method updates the auto stow failures"""
@@ -549,6 +563,38 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.__gust_wind_speed_mean = speed
         if self._update_mean_gust_speed_callback:
             self._update_mean_gust_speed_callback(speed)
+
+    @property
+    def operational_wind_speed_mean(self) -> float:
+        """Gust of wind."""
+        return self.__operational_wind_speed_mean
+
+    @operational_wind_speed_mean.setter
+    def operational_wind_speed_mean(self, speed: float):
+        """Setter for gust of wind.
+
+        :param speed: speed
+        :type speed: float
+        """
+        self.__operational_wind_speed_mean = speed
+        if self._update_mean_operational_speed_callback:
+            self._update_mean_operational_speed_callback(speed)
+
+    @property
+    def operational_perc_mean_diff(self) -> float:
+        """Gust of wind."""
+        return self.__operational_perc_mean_diff
+
+    @operational_perc_mean_diff.setter
+    def operational_perc_mean_diff(self, speed: float):
+        """Setter for gust of wind.
+
+        :param speed: speed
+        :type speed: float
+        """
+        self.__operational_perc_mean_diff = speed
+        if self._update_mean_operational_diff_callback:
+            self._update_mean_operational_diff_callback(speed)
 
     @property
     def wind_speed_mean(self) -> float:
@@ -2445,7 +2491,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug(
                 "BandCapabilityState for band %s updated to %s",
                 normalized_band,
-                band_capability_state.name,
+                CapabilityStates(band_capability_state).name,
             )
 
     def update_device_pointing_state(

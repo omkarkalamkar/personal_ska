@@ -87,7 +87,6 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-        self.logger.info("%s", event_data)
         if event_data.attr_value:
             band_param = event_data.attr_value.name.lower()
             self._component_manager.event_queues[band_param].put(event_data)
@@ -105,7 +104,6 @@ class DishLNEventManager(EventManager):
         :return: None
         :rtype: NoneType
         """
-        self.logger.info("%s", event_data)
         if event_data.attr_value:
             band_capability = event_data.attr_value.name.lower()
             self._component_manager.event_queues[band_capability].put(

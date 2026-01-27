@@ -108,7 +108,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
         self.data_download_thread = threading.Thread(
-            target=self.download_antenna_and_iers_data
+            target=self.download_antenna_and_iers_data, daemon=True
         )
         self.data_download_thread.start()
         self.track_thread_lock = threading.Lock()
@@ -759,7 +759,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :param pressure: The pressure event from the wms.
         :type pressure: float
         """
-        self.logger.info("pressure updated %s", pressure)
         if pressure:
             self.pressure = pressure
 
