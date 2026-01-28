@@ -107,6 +107,16 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         doc="Threshold on gust wind speed(unit m/s) for auto stowing",
         default_value=20.0,
     )
+    opsWindSpeedThreshold = device_property(
+        dtype=float,
+        doc="Threshold on operational wind speed(unit m/s) for auto stowing",
+        default_value=10.0,
+    )
+    opsPercMeanDiffThreshold = device_property(
+        dtype=float,
+        doc="Threshold on operational wind speed(unit m/s) for auto stowing",
+        default_value=4.5,
+    )
     MeanWindSpeedDuration = device_property(
         dtype=float,
         doc="Wind speed tracking duration(unit seconds) for auto stowing",
@@ -118,7 +128,18 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             auto stowing",
         default_value=3.0,
     )
-
+    meanOpsWindSpeedDuration = device_property(
+        dtype=float,
+        doc="Operational wind speed tracking duration(unit seconds) for \
+            auto stowing",
+        default_value=1000.0,
+    )
+    opsPercMeanDiffDuration = device_property(
+        dtype=float,
+        doc="Operational wind speed tracking duration(unit seconds) for \
+            auto stowing",
+        default_value=600.0,
+    )
     MinTemperatureThreshold = device_property(
         dtype=float,
         doc="Minimum Temperature(unit °C) threshold for auto stowing",
