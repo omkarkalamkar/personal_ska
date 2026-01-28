@@ -2941,7 +2941,7 @@ typing_extensions = "*"
 [package.source]
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators.git"
-reference = "sah-1863"
+reference = "06d38cc1d2e342db92cb90cc0b5036e761149d61"
 resolved_reference = "06d38cc1d2e342db92cb90cc0b5036e761149d61"
 
 [[package]]
@@ -3585,4 +3585,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "9ebc90523c3d6450c114128b01238f038e3db43ac877a0fee9a1e30bf277a1c5"
+content-hash = "46ce2900184a9c65ff0e9e66973327d616933c53a630dfbe1e28459f0eabba03"

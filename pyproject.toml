@@ -24,7 +24,7 @@ numpy = "1.23.0"
 pytango = "9.5.0"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
 fire = ">=0.5.0,<0.6.0"
-ska-tmc-simulators = { git = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators.git", branch = "sah-1863" }
+ska-tmc-simulators = { git = "https://gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators.git", rev = "06d38cc1d2e342db92cb90cc0b5036e761149d61" }
 ska-tmc-common = "1.4.2"
 ska-tango-base = "1.2.0"
 ska-trajectory = "0.2.0"
