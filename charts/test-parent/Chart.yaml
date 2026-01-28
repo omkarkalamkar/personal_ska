@@ -24,7 +24,7 @@ dependencies:
     repository: https://artefact.skao.int/repository/helm-internal
     condition: ska-taranta.enabled
   - name: ska-tmc-simulators
-    version: 1.9.3-dev.c06d38cc1
+    version: 1.9.3
     repository: https://gitlab.com/api/v4/projects/31132400/packages/helm/dev
     condition: ska-tmc-simulators.enabled
 
