@@ -425,9 +425,8 @@ def tear_down(
     dish_master.SetDirectPointingState(PointingState.NONE)
 
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
-    group_callback["dishMode"].assert_change_event(
-        DishMode.STANDBY_LP,
-        lookahead=15,
+    assert wait_for_attribute_value(
+        dish_master, "dishMode", DishMode.STANDBY_LP
     )
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_master.clearcommandcallinfo()
