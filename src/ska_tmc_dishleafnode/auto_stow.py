@@ -569,7 +569,7 @@ class AutoStow:
                 while self.component_manager.temperature_tracking[
                     wms
                 ].is_set():
-                    if not self.temp_update[wms].wait(timeout=1):
+                    if not self.temp_update[wms].wait(timeout=0.3):
                         continue
                     self.temp_update[wms].clear()
                     temps = self.polled_temperatures[wms].copy()
