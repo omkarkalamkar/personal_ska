@@ -111,7 +111,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             target=self.download_antenna_and_iers_data, daemon=True
         )
         self.data_download_thread.start()
-        self.track_thread_lock = threading.Lock()
+        self.track_thread_lock = threading.RLock()
         self.track_table_thread = None
         self._wrap_sector: int
         self._wrap_sector_key: bool = False
@@ -132,6 +132,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.start_event_processing_threads()
         self.setup_event_subscription()
+        self.stop_track_called: threading.Event = threading.Event()
 
     def start_event_processing_threads(self) -> None:
         """Start all the event processing threads."""
@@ -543,10 +544,13 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             # Stop existing thread if alive
             self.stop_track_table_thread()
             with self.track_thread_lock:
-                # clear mapping scan event to start new thread
-                self.mapping_scan_event.clear()
-                self.create_track_table_thread()
-                self.track_table_thread.start()
+                # added condition for edge case where tracktable start
+                # and stop are running parallely.
+                if not self.stop_track_called.is_set():
+                    # clear mapping scan event to start new thread
+                    self.mapping_scan_event.clear()
+                    self.create_track_table_thread()
+                    self.track_table_thread.start()
 
         except Exception as exception:
             self.logger.exception(

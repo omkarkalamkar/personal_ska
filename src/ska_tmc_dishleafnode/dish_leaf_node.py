@@ -97,49 +97,55 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         doc="FQDN's of Weather Station devices",
         default_value=tuple(),
     )
-    WindSpeedThreshold = device_property(
+
+    # wind thresholds
+    MaxAllowedWindspeed = device_property(
         dtype=float,
         doc="Threshold on wind speed(unit m/s) for auto stowing",
         default_value=13.5,
     )
-    GustSpeedThreshold = device_property(
+    MaxAllowedGustWindpeed = device_property(
         dtype=float,
         doc="Threshold on gust wind speed(unit m/s) for auto stowing",
         default_value=20.0,
     )
-    opsWindSpeedThreshold = device_property(
+    MaxAllowedOpsWindspeed = device_property(
         dtype=float,
         doc="Threshold on operational wind speed(unit m/s) for auto stowing",
         default_value=10.0,
     )
-    opsPercMeanDiffThreshold = device_property(
+    MaxAllowedWindspeedDifference = device_property(
         dtype=float,
         doc="Threshold on operational wind speed(unit m/s) for auto stowing",
         default_value=4.5,
     )
-    MeanWindSpeedDuration = device_property(
+
+    # Wind time windows
+    MeanWindspeedMeasurementTimeWindow = device_property(
         dtype=float,
         doc="Wind speed tracking duration(unit seconds) for auto stowing",
         default_value=600.0,
     )
-    MeanGustSpeedDuration = device_property(
+    GustWindspeedMeasurementTimeWindow = device_property(
         dtype=float,
         doc="Gust wind speed tracking duration(unit seconds) for \
             auto stowing",
         default_value=3.0,
     )
-    meanOpsWindSpeedDuration = device_property(
+    WindSpeedMeasurementTimeWindow = device_property(
         dtype=float,
         doc="Operational wind speed tracking duration(unit seconds) for \
             auto stowing",
         default_value=1000.0,
     )
-    opsPercMeanDiffDuration = device_property(
+    MaxAllowedOpsMeanWindspeedMeasurementTimeWindow = device_property(
         dtype=float,
-        doc="Operational wind speed tracking duration(unit seconds) for \
-            auto stowing",
+        doc="Operational wind speed mean and percentile difference \
+            duration(unit seconds) for auto stowing",
         default_value=600.0,
     )
+
+    # Temperature thresholds
     MinTemperatureThreshold = device_property(
         dtype=float,
         doc="Minimum Temperature(unit °C) threshold for auto stowing",
@@ -952,19 +958,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="m/s",
         display_unit="m/s",
     )
-    def windSpeedThreshold(self: MidTmcLeafNodeDish) -> float:
-        """Reads the windSpeedThreshold attribute value.
+    def maxAllowedWindspeed(self: MidTmcLeafNodeDish) -> float:
+        """Reads the maxAllowedWindspeed attribute value.
 
         Returns:
-            float: windSpeedThreshold attribute value.
+            float: maxAllowedWindspeed attribute value.
         """
         return self.component_manager.auto_stow.wind_speed_threshold
 
-    @windSpeedThreshold.write
-    def windSpeedThreshold(
+    @maxAllowedWindspeed.write
+    def maxAllowedWindspeed(
         self: MidTmcLeafNodeDish, wind_speed_threshold: float
     ) -> None:
-        """Set the windSpeedThreshold attribute value.
+        """Set the maxAllowedWindspeed attribute value.
 
         Args:
             wind_speed_threshold(float): value to update
@@ -981,19 +987,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="m/s",
         display_unit="m/s",
     )
-    def gustSpeedThreshold(self: MidTmcLeafNodeDish) -> float:
-        """Reads the gustSpeedThreshold attribute value.
+    def maxAllowedGustWindpeed(self: MidTmcLeafNodeDish) -> float:
+        """Reads the maxAllowedGustWindpeed attribute value.
 
         Returns:
-            float: gustSpeedThreshold attribute value.
+            float: maxAllowedGustWindpeed attribute value.
         """
         return self.component_manager.auto_stow.gust_speed_threshold
 
-    @gustSpeedThreshold.write
-    def gustSpeedThreshold(
+    @maxAllowedGustWindpeed.write
+    def maxAllowedGustWindpeed(
         self: MidTmcLeafNodeDish, gust_speed_threshold: float
     ) -> None:
-        """Set the gustSpeedThreshold attribute value.
+        """Set the maxAllowedGustWindpeed attribute value.
 
         Args:
             gust_speed_threshold(float): value to update
@@ -1010,21 +1016,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="m/s",
         display_unit="m/s",
     )
-    def opsWindSpeedThreshold(self: MidTmcLeafNodeDish) -> float:
-        """Reads the opsWindSpeedThreshold attribute value.
+    def maxAllowedOpsWindspeed(self: MidTmcLeafNodeDish) -> float:
+        """Reads the maxAllowedOpsWindspeed attribute value.
 
         Returns:
-            float: opsWindSpeedThreshold attribute value.
+            float: maxAllowedOpsWindspeed attribute value.
         """
         return (
             self.component_manager.auto_stow.operational_wind_speed_threshold
         )
 
-    @opsWindSpeedThreshold.write
-    def opsWindSpeedThreshold(
+    @maxAllowedOpsWindspeed.write
+    def maxAllowedOpsWindspeed(
         self: MidTmcLeafNodeDish, operational_wind_speed_threshold: float
     ) -> None:
-        """Set the opsWindSpeedThreshold attribute value.
+        """Set the maxAllowedOpsWindspeed attribute value.
 
         Args:
             operational_wind_speed_threshold(float): value to update
@@ -1041,20 +1047,20 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="m/s",
         display_unit="m/s",
     )
-    def opsPercMeanDiffThreshold(self: MidTmcLeafNodeDish) -> float:
-        """Reads the opsPercMeanDiffThreshold attribute value.
+    def maxAllowedWindspeedDifference(self: MidTmcLeafNodeDish) -> float:
+        """Reads the maxAllowedWindspeedDifference attribute value.
 
         Returns:
-            float: opsPercMeanDiffThreshold attribute value.
+            float: maxAllowedWindspeedDifference attribute value.
         """
         auto_stow = self.component_manager.auto_stow
         return auto_stow.operational_perc_mean_diff_threshold
 
-    @opsPercMeanDiffThreshold.write
-    def opsPercMeanDiffThreshold(
+    @maxAllowedWindspeedDifference.write
+    def maxAllowedWindspeedDifference(
         self: MidTmcLeafNodeDish, operational_perc_mean_diff_threshold: float
     ) -> None:
-        """Set the opsPercMeanDiffThreshold attribute value.
+        """Set the maxAllowedWindspeedDifference attribute value.
 
         Args:
             operational_perc_mean_diff_threshold(float): value to update
@@ -1072,19 +1078,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="s",
         display_unit="s",
     )
-    def meanWindSpeedDuration(self: MidTmcLeafNodeDish) -> float:
-        """Reads the meanWindSpeedDuration attribute value.
+    def meanWindspeedMeasurementTimeWindow(self: MidTmcLeafNodeDish) -> float:
+        """Reads the meanWindspeedMeasurementTimeWindow attribute value.
 
         Returns:
             float: meanWindSpeedDuration attribute value.
         """
         return self.component_manager.auto_stow.mean_wind_speed_duration
 
-    @meanWindSpeedDuration.write
-    def meanWindSpeedDuration(
+    @meanWindspeedMeasurementTimeWindow.write
+    def meanWindspeedMeasurementTimeWindow(
         self: MidTmcLeafNodeDish, mean_wind_speed_duration: float
     ) -> None:
-        """Set the meanWindSpeedDuration attribute value.
+        """Set the meanWindspeedMeasurementTimeWindow attribute value.
 
         Args:
             mean_wind_speed_duration(float): value to update
@@ -1101,19 +1107,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="s",
         display_unit="s",
     )
-    def meanGustSpeedDuration(self: MidTmcLeafNodeDish) -> float:
-        """Reads the meanGustSpeedDuration attribute value.
+    def gustWindspeedMeasurementTimeWindow(self: MidTmcLeafNodeDish) -> float:
+        """Reads the gustWindspeedMeasurementTimeWindow attribute value.
 
         Returns:
-            float: meanGustSpeedDuration attribute value.
+            float: gustWindspeedMeasurementTimeWindow attribute value.
         """
         return self.component_manager.auto_stow.mean_gust_speed_duration
 
-    @meanGustSpeedDuration.write
-    def meanGustSpeedDuration(
+    @gustWindspeedMeasurementTimeWindow.write
+    def gustWindspeedMeasurementTimeWindow(
         self: MidTmcLeafNodeDish, mean_gust_speed_duration: float
     ) -> None:
-        """Set the meanGustSpeedDuration attribute value.
+        """Set the gustWindspeedMeasurementTimeWindow attribute value.
 
         Args:
             mean_gust_speed_duration(float): value to update
@@ -1130,19 +1136,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="s",
         display_unit="s",
     )
-    def meanOpsWindSpeedDuration(self: MidTmcLeafNodeDish) -> float:
-        """Reads the meanGustSpeedDuration attribute value.
+    def windSpeedMeasurementTimeWindow(self: MidTmcLeafNodeDish) -> float:
+        """Reads the windSpeedMeasurementTimeWindow attribute value.
 
         Returns:
-            float: meanGustSpeedDuration attribute value.
+            float: windSpeedMeasurementTimeWindow attribute value.
         """
         return self.component_manager.auto_stow.operational_wind_speed_duration
 
-    @meanOpsWindSpeedDuration.write
-    def meanOpsWindSpeedDuration(
+    @windSpeedMeasurementTimeWindow.write
+    def windSpeedMeasurementTimeWindow(
         self: MidTmcLeafNodeDish, operational_wind_speed_duration: float
     ) -> None:
-        """Set the meanOpsWindSpeedDuration attribute value.
+        """Set the windSpeedMeasurementTimeWindow attribute value.
 
         Args:
             operational_wind_speed_duration(float): value to update
@@ -1159,17 +1165,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="s",
         display_unit="s",
     )
-    def opsPercMeanDiffDuration(self: MidTmcLeafNodeDish) -> float:
-        """Reads the opsPercMeanDiffDuration attribute value.
+    def maxAllowedOpsMeanWindspeedMeasurementTimeWindow(
+        self: MidTmcLeafNodeDish,
+    ) -> float:
+        """Reads the maxAllowedOpsMeanWindspeedMeasurementTimeWindow
+        attribute value.
 
         Returns:
-            float: opsPercMeanDiffDuration attribute value.
+            float: maxAllowedOpsMeanWindspeedMeasurementTimeWindow
+            attribute value.
         """
         auto_stow = self.component_manager.auto_stow
         return auto_stow.operational_perc_mean_diff_duration
 
-    @opsPercMeanDiffDuration.write
-    def opsPercMeanDiffDuration(
+    @maxAllowedOpsMeanWindspeedMeasurementTimeWindow.write
+    def maxAllowedOpsMeanWindspeedMeasurementTimeWindow(
         self: MidTmcLeafNodeDish, operational_perc_mean_diff_duration: float
     ) -> None:
         """Set the opsPercMeanDiffDuration attribute value.

@@ -31,6 +31,7 @@ class StopProgramTrackTable(FastCommand):
     def do(self, *args, **kwargs) -> None:
         """This method stops program track table generation."""
         try:
+            self.component_manager.stop_track_called.set()
             self.logger.info(
                 "Executing StopProgramTrackTable command on %s",
                 self.component_manager.dishln_pointing_device_name,
@@ -49,6 +50,7 @@ class StopProgramTrackTable(FastCommand):
                 + " on %s",
                 self.component_manager.dishln_pointing_device_name,
             )
+            self.component_manager.stop_track_called.clear()
         except Exception as exception:
             self.logger.exception(
                 "Exception occurred in StopProgramTrackTable command "
