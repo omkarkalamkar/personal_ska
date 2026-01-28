@@ -137,7 +137,7 @@ def configure_dish_leaf_node_source_not_visible(
     )
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
+        (PointingState.UNKNOWN),
         lookahead=6,
     )
 
@@ -304,7 +304,7 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
+        (PointingState.UNKNOWN),
         lookahead=6,
     )
 

@@ -116,7 +116,7 @@ def abort_when_configured(
     assert result_abort == ResultCode.STARTED
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
+        (PointingState.UNKNOWN),
         lookahead=6,
     )
     group_callback["dishMode"].assert_change_event(
@@ -215,7 +215,7 @@ def abort_while_configuring(
     )
 
     group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
+        (PointingState.UNKNOWN),
         lookahead=6,
     )
 
