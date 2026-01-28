@@ -441,6 +441,7 @@ def test_auto_stow_temp_delta(group_callback):
         )
     dish_leaf_node.timeDelta = 10.0
     dish_leaf_node.temperatureDelta = 20.0
+
     simulate_temperature(10, 15, 2)
     simulate_temperature(15, 20, 2)
     simulate_temperature(20, 35, 6)
@@ -453,3 +454,4 @@ def test_auto_stow_temp_delta(group_callback):
         StowStatus.STOW_COMPLETED,
         lookahead=5,
     )
+    dish_leaf_node.timeDelta = 1000.0
