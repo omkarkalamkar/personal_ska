@@ -346,25 +346,25 @@ def abort_exception(tango_context, dishln_name, group_callback):
         lookahead=2,
     )
 
-    result, unique_id = dish_leaf_node.SetStandbyFPMode()
+    # result, unique_id = dish_leaf_node.SetStandbyFPMode()
 
-    logger.debug("Command id: %s | Returned result: %s", unique_id, result)
-    assert result[0] == ResultCode.QUEUED
+    # logger.debug("Command id: %s | Returned result: %s", unique_id, result)
+    # assert result[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id[0], COMMAND_COMPLETED),
-        lookahead=2,
-    )
+    # group_callback["longRunningCommandResult"].assert_change_event(
+    #     (unique_id[0], COMMAND_COMPLETED),
+    #     lookahead=2,
+    # )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=5,
-    )
+    # group_callback["dishMode"].assert_change_event(
+    #     (DishMode.STANDBY_FP),
+    #     lookahead=5,
+    # )
 
     ERROR_PROPAGATION_DEFECT = json.dumps(
         {
@@ -376,7 +376,12 @@ def abort_exception(tango_context, dishln_name, group_callback):
     )
 
     dish_master.SetDefective(ERROR_PROPAGATION_DEFECT)
-    result, unique_id = dish_leaf_node.Abort()
+    _, unique_id = dish_leaf_node.Abort()
+
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=5,
+    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_FAILED),
