@@ -193,8 +193,8 @@ def test_auto_stow_gust_speed(group_callback):
         DishMode.STANDBY_FP,
         lookahead=5,
     )
-    dish_leaf_node.gustSpeedThreshold = 22.0
-    dish_leaf_node.meanGustSpeedDuration = 4
+    dish_leaf_node.maxAllowedGustWindpeed = 22.0
+    dish_leaf_node.gustWindspeedMeasurementTimeWindow = 4
     simulate_windspeed(22, 24, 4)
 
     group_callback["stowStatus"].assert_change_event(
@@ -243,8 +243,8 @@ def test_auto_stow_wind_speed(group_callback):
         DishMode.STANDBY_FP,
         lookahead=5,
     )
-    dish_leaf_node.windSpeedThreshold = 16.0
-    dish_leaf_node.meanWindSpeedDuration = 10.0
+    dish_leaf_node.maxAllowedWindspeed = 16.0
+    dish_leaf_node.meanWindspeedMeasurementTimeWindow = 10.0
     simulate_windspeed(16, 18, 10)
 
     group_callback["stowStatus"].assert_change_event(
@@ -293,8 +293,8 @@ def test_auto_stow_ops_speed(group_callback):
         DishMode.STANDBY_FP,
         lookahead=5,
     )
-    dish_leaf_node.opsWindSpeedThreshold = 5.0
-    dish_leaf_node.meanOpsWindSpeedDuration = 10.0
+    dish_leaf_node.maxAllowedOpsWindspeed = 5.0
+    dish_leaf_node.WindspeedMeasurementTimeWindow = 10.0
     simulate_windspeed(6, 7, 10)
 
     group_callback["stowStatus"].assert_change_event(
@@ -343,8 +343,8 @@ def test_auto_stow_ops_perc_speed(group_callback):
         DishMode.STANDBY_FP,
         lookahead=5,
     )
-    dish_leaf_node.opsPercMeanDiffThreshold = 5.0
-    dish_leaf_node.opsPercMeanDiffDuration = 10.0
+    dish_leaf_node.maxAllowedWindspeedDifference = 5.0
+    dish_leaf_node.maxAllowedOpsMeanWindspeedMeasurementTimeWindow = 10.0
 
     simulate_windspeed(10, 11, 3)
     simulate_windspeed(12, 13, 1)
