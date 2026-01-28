@@ -223,6 +223,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self.stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
         self.mean_wind_speed: float = 0.0
         self.mean_gust_speed: float = 0.0
+        self.mean_ops_wind_speed: float = 0.0
+        self.ops_mean_difference: float = 0.0
         self.rate_of_change_in_temperature: float = 0.0
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
@@ -253,6 +255,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "stowStatus",
             "meanWindSpeed",
             "meanGustSpeed",
+            "opsMeanWindSpeedDifference",
+            "meanOpsWindSpeed",
             "rateOfChangeTemperature",
         ]:
             self.set_change_event(attribute_name, True, False)
@@ -915,6 +919,55 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self.mean_gust_speed = mean_speed
         self.push_change_archive_events("meanGustSpeed", mean_speed)
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+    )
+    def meanOpsWindSpeed(self: MidTmcLeafNodeDish) -> float:
+        """
+        Returns the mean operational speed for specified duration.
+
+        :return: mean operational speed
+        :rtype: float
+        """
+        return self.mean_ops_wind_speed
+
+    def update_mean_operational_speed_callback(self, mean_speed: float):
+        """Callback to update the mean operational speed.
+
+        :param mean_speed: mean operational speed.
+        :type mean_speed: float
+        """
+        self.mean_ops_wind_speed = mean_speed
+        self.push_change_archive_events("meanOpsWindSpeed", mean_speed)
+
+    @attribute(
+        dtype=float,
+        access=AttrWriteType.READ,
+    )
+    def opsMeanWindSpeedDifference(self: MidTmcLeafNodeDish) -> float:
+        """
+        Returns the mean operational wind speed mean
+        and 95th percentile difference
+        speed for specified duration.
+
+        :return: ops_mean_difference
+        :rtype: float
+        """
+        return self.ops_mean_difference
+
+    def update_mean_operational_diff_callback(self, mean_speed: float):
+        """Callback to update the mean operational wind speed
+        difference.
+
+        :param mean_speed: ops_mean_difference
+        :type mean_speed: float
+        """
+        self.ops_mean_difference = mean_speed
+        self.push_change_archive_events(
+            "opsMeanWindSpeedDifference", mean_speed
+        )
 
     @attribute(
         dtype=str,
@@ -1874,10 +1927,20 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             max_track_table_retry=self.MaxTrackTableRetry,
             track_table_retry_duration=self.TrackTableRetryDuration,
             weather_station_device_names=self.WeatherStationDeviceNames,
-            wind_speed_threshold=self.WindSpeedThreshold,
-            gust_speed_threshold=self.GustSpeedThreshold,
-            mean_wind_speed_duration=self.MeanWindSpeedDuration,
-            mean_gust_speed_duration=self.MeanGustSpeedDuration,
+            wind_speed_threshold=self.MaxAllowedWindspeed,
+            gust_speed_threshold=self.MaxAllowedGustWindspeed,
+            operational_wind_speed_threshold=self.maxAllowedOpsWindspeed,
+            operational_perc_mean_diff_threshold=(
+                self.MaxAllowedWindspeedDifference
+            ),
+            mean_wind_speed_duration=self.MeanWindspeedMeasurementTimeWindow,
+            mean_gust_speed_duration=self.GustWindspeedMeasurementTimeWindow,
+            operational_wind_speed_duration=(
+                self.WindspeedMeasurementTimeWindow
+            ),
+            operational_perc_mean_diff_duration=(
+                self.MaxAllowedOpsMeanWindspeedMeasurementTimeWindow
+            ),
             max_temp_threshold=self.MaxTemperatureThreshold,
             min_temp_threshold=self.MinTemperatureThreshold,
             time_delta=self.TimeDelta,
@@ -1889,6 +1952,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ),
             _update_mean_wind_speed_callback=(
                 self.update_mean_wind_speed_callback
+            ),
+            _update_mean_operational_speed_callback=(
+                self.update_mean_operational_speed_callback
+            ),
+            _update_mean_operational_diff_callback=(
+                self.update_mean_operational_diff_callback
             ),
             _update_stow_status_callback=self.update_stow_status_callback,
         )
