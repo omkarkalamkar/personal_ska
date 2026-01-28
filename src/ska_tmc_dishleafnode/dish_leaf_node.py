@@ -104,7 +104,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         doc="Threshold on wind speed(unit m/s) for auto stowing",
         default_value=13.5,
     )
-    MaxAllowedGustWindpeed = device_property(
+    MaxAllowedGustWindspeed = device_property(
         dtype=float,
         doc="Threshold on gust wind speed(unit m/s) for auto stowing",
         default_value=20.0,
@@ -132,7 +132,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             auto stowing",
         default_value=3.0,
     )
-    WindSpeedMeasurementTimeWindow = device_property(
+    WindspeedMeasurementTimeWindow = device_property(
         dtype=float,
         doc="Operational wind speed tracking duration(unit seconds) for \
             auto stowing",

@@ -18,10 +18,16 @@ command: "python3 /app/src/ska_tmc_dishleafnode/dish_leaf_node.py"
 {{- $dishlnFamily := .Values.deviceServers.dishln.family }}
 {{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
 {{- $WeatherStationDeviceNames := .Values.deviceServers.dishln.weather_station_device_names}}
-{{- $WindSpeedThreshold := .Values.deviceServers.dishln.wind_speed_threshold }}
-{{- $GustSpeedThreshold := .Values.deviceServers.dishln.gust_speed_threshold }}
-{{- $MeanWindSpeedDuration := .Values.deviceServers.dishln.mean_wind_speed_duration }}
-{{- $MeanGustSpeedDuration := .Values.deviceServers.dishln.mean_gust_speed_duration }}
+{{- $MaxAllowedWindspeed := .Values.deviceServers.dishln.max_allowed_wind_speed }}
+{{- $MaxAllowedGustWindspeed := .Values.deviceServers.dishln.max_allowed_gust_wind_speed }}
+{{- $MaxAllowedOpsWindspeed := .Values.deviceServers.dishln.max_allowed_ops_wind_speed }}
+{{- $MaxAllowedWindspeedDifference := .Values.deviceServers.dishln.max_allowed_wind_speed_difference }}
+
+{{- $WindspeedMeasurementTimeWindow := .Values.deviceServers.dishln.wind_speed_measurement_time_window }}
+{{- $GustWindspeedMeasurementTimeWindow := .Values.deviceServers.dishln.gust_wind_speed_measurement_time_window }}
+{{- $MeanWindspeedTimeWindow := .Values.deviceServers.dishln.mean_wind_speed_measurement_time_window }}
+{{- $MaxAllowedOpsMeanWindspeedMeasurementTimeWindow := .Values.deviceServers.dishln.max_allowed_ops_mean_wind_speed_measurement_time_window }}
+
 {{- $MaxTemperatureThreshold := .Values.deviceServers.dishln.max_temp_threshold }}
 {{- $MinTemperatureThreshold := .Values.deviceServers.dishln.min_temp_threshold }}
 {{- $TimeDelta := .Values.deviceServers.dishln.time_delta }}
@@ -91,18 +97,31 @@ server:
           - name: "EventSubscriptionCheckPeriod"
             values:
               - "{{ $EventSubscriptionCheckPeriod }}"
-          - name: "WindSpeedThreshold"
+          - name: "MaxAllowedWindspeed"
             values:
-              - "{{$WindSpeedThreshold}}"
-          - name: "GustSpeedThreshold"
+              - "{{$MaxAllowedWindspeed}}"
+          - name: "MaxAllowedGustWindspeed"
             values:
-              - "{{$GustSpeedThreshold}}"
-          - name: "MeanWindSpeedDuration"
+              - "{{$MaxAllowedGustWindspeed}}"
+          - name: "MaxAllowedOpsWindspeed"
             values:
-              - "{{$MeanWindSpeedDuration}}"
-          - name: "MeanGustSpeedDuration"
+              - "{{$MaxAllowedOpsWindspeed}}"
+          - name: "MaxAllowedWindspeedDifference"
             values:
-              - "{{$MeanGustSpeedDuration}}"
+              - "{{$MaxAllowedWindspeedDifference}}"
+          - name: "WindspeedMeasurementTimeWindow"
+            values:
+              - "{{$WindspeedMeasurementTimeWindow}}"
+          - name: "GustWindspeedMeasurementTimeWindow"
+            values:
+              - "{{$GustWindspeedMeasurementTimeWindow}}"              
+          - name: "MeanWindspeedTimeWindow"
+            values:
+              - "{{$MeanWindspeedTimeWindow}}"
+          - name: "MaxAllowedOpsMeanWindspeedMeasurementTimeWindow"
+            values:
+              - "{{$MaxAllowedOpsMeanWindspeedMeasurementTimeWindow}}"
+
           - name: "MaxTemperatureThreshold"
             values:
               - "{{$MaxTemperatureThreshold}}"
