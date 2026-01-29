@@ -371,6 +371,7 @@ class AutoStow:
                     self.polled_temperatures.clear()
                     self.initial_mark_achieved.clear()
                     self.temp_update.clear()
+
             except Exception as e:
                 self.logger.exception(e)
 
@@ -569,7 +570,7 @@ class AutoStow:
                 while self.component_manager.temperature_tracking[
                     wms
                 ].is_set():
-                    if not self.temp_update[wms].wait(timeout=0.3):
+                    if not self.temp_update[wms].wait(timeout=0.2):
                         continue
                     self.temp_update[wms].clear()
                     temps = self.polled_temperatures[wms].copy()
