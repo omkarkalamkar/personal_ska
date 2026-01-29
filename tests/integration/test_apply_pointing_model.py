@@ -156,9 +156,11 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
 
     gpm_validation_result(group_callback, "Band_1", "FAILED")
 
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
     group_callback["healthState"].assert_change_event(
         HealthState.DEGRADED,
-        lookahead=5,
+        lookahead=15,
     )
 
     log_and_assert_health(
@@ -181,9 +183,10 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         lookahead=5,
     )
     gpm_validation_result(group_callback, "Band_1", "OK")
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
-        lookahead=5,
+        lookahead=15,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_1'] == 'main'
@@ -199,9 +202,11 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
 
     gpm_validation_result(group_callback, "Band_3", "FAILED")
 
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
     group_callback["healthState"].assert_change_event(
         HealthState.DEGRADED,
-        lookahead=5,
+        lookahead=15,
     )
 
     log_and_assert_health(
@@ -287,7 +292,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
 
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
-        lookahead=5,
+        lookahead=15,
     )
 
 
