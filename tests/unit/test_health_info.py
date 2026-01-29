@@ -5,6 +5,7 @@ import pytest
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import Band
+from ska_tmc_simulators import DishMode
 
 from ska_tmc_dishleafnode.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_data import (
@@ -132,7 +133,7 @@ def test_generate_health_info_parametrized(
         (CapabilityStates.CONFIGURING, HealthState.OK),
         (CapabilityStates.OPERATE_DEGRADED, HealthState.OK),
         (CapabilityStates.OPERATE_FULL, HealthState.OK),
-        (CapabilityStates.UNKNOWN, HealthState.OK),
+        (CapabilityStates.UNKNOWN, HealthState.FAILED),
     ],
 )
 def test_evaluate_health_state_for_all_capability_states_band1(
@@ -177,6 +178,7 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
+@pytest.mark.m1
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
@@ -185,10 +187,7 @@ def test_evaluate_health_state_for_all_capability_states_band1(
         (CapabilityStates.CONFIGURING, HealthState.OK),
         (CapabilityStates.OPERATE_DEGRADED, HealthState.OK),
         (CapabilityStates.OPERATE_FULL, HealthState.OK),
-        # UNKNOWN: set expected to FAILED by assumption;
-        # adjust to match HEALTH_RULES
-        # once rule semantics are confirmed.
-        (CapabilityStates.UNKNOWN, HealthState.OK),
+        (CapabilityStates.UNKNOWN, HealthState.FAILED),
     ],
 )
 def test_healthstate_for_all_capability_states_when_band_not_configured(
@@ -283,7 +282,7 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
         # GOOD_STATES_SET includes 'UNKNOWN',
         # and for a configured band the OK rule
         # checks membership in GOOD_STATES_SET -> UNKNOWN should be OK.
-        (CapabilityStates.UNKNOWN, HealthState.OK),
+        (CapabilityStates.UNKNOWN, HealthState.FAILED),
     ],
 )
 def test_evaluate_health_state_band1_configured_b2_unavailable(
@@ -321,6 +320,7 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
+@pytest.mark.p1
 @pytest.mark.parametrize(
     "b2_state,b1_state,expected_health",
     [
@@ -354,7 +354,7 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
         (
             CapabilityStates.UNAVAILABLE,
             CapabilityStates.UNKNOWN,
-            HealthState.OK,
+            HealthState.FAILED,
         ),
         # Case 2: B2 is OPERATE_FULL (new condition you asked for)
         (
@@ -385,7 +385,7 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
         (
             CapabilityStates.OPERATE_FULL,
             CapabilityStates.UNKNOWN,
-            HealthState.OK,
+            HealthState.FAILED,
         ),
     ],
 )
@@ -832,3 +832,393 @@ def test_update_program_track_table_error_real_flow(cm_without_er_lp):
     assert (
         summary_list == []
     ), f"Expected blank HealthSummary when OK; got {summary_list}"
+
+
+# "DISH.LMC team suggestion is that the DISH Capabilities transition
+# to UNKNOWN should  be ignored when Dish is not in
+# OPERATE mode" = Change will be needed in this case
+# Below are the test cases for same
+
+
+@pytest.fixture
+def cm_for_bandcap_tests(cm_without_er_lp):
+    """
+    Reuse existing CM fixture but isolate health manager so we can assert
+    health state + info deterministically.
+    """
+    cm = cm_without_er_lp
+    cm.health_manager = DishHealthStateAndInfoManager(
+        component_manager=cm, logger=logging.getLogger("test.bandcap.health")
+    )
+    return cm
+
+
+@pytest.mark.ut_bandcap_1
+def test_bandcap_unknown_in_operate_updates_health_to_degraded_and_sets_info(
+    cm_for_bandcap_tests,
+):
+    cm = cm_for_bandcap_tests
+
+    # Arrange: dish in OPERATE, requested band is B1,
+    #  and other health inputs OK
+    cm.update_device_dish_mode(DishMode.OPERATE)
+
+    cm.health_manager.update_health_data_and_aggregate(
+        Band.B1, "receiver_band"
+    )
+    cm.health_manager.update_health_data_and_aggregate(
+        ("B1", CapabilityStates.STANDBY),
+        "DishBandCapabilityStateData",
+    )
+
+    # Keep other signals healthy
+    cm.health_manager.update_health_data_and_aggregate(
+        ResultCode.OK, "KValueValidationResultData"
+    )
+    cm.health_manager.update_health_data_and_aggregate(
+        [ResultCode.OK], "GPMValidationResultData"
+    )
+
+    # Act: incoming UNKNOWN for B1 capability in OPERATE
+    cm.update_band_capability_state(
+        CapabilityStates.UNKNOWN, "b1CapabilityState"
+    )
+
+    # Assert: CM raw dict updated with key "B1"
+    assert cm.band_capability_state["B1"] == CapabilityStates.UNKNOWN
+
+    # Assert: health evaluates to DEGRADED
+    evaluated = cm.health_manager.evaluate_health_state(
+        cm.health_manager.health_data
+    )
+    assert evaluated == HealthState.FAILED
+
+    # Assert: healthInfo contains an entry mentioning B1 not fully available
+    hi = cm.health_manager.generate_health_info()
+    assert "HealthSummary" in hi
+    info_list = hi["HealthSummary"]
+    assert isinstance(info_list, list)
+
+    assert any("B1" in s for s in info_list), f"Info={info_list}"
+    assert any(
+        "not fully available" in s.lower() for s in info_list
+    ), f"Info={info_list}"
+
+
+# ...existing code...
+
+
+@pytest.mark.ut_bandcap_2
+@pytest.mark.parametrize(
+    "dish_mode,cap_state",
+    [
+        (DishMode.STANDBY_FP, CapabilityStates.STANDBY),
+        (DishMode.STANDBY_FP, CapabilityStates.CONFIGURING),
+        (DishMode.STANDBY_FP, CapabilityStates.OPERATE_FULL),
+        (DishMode.STOW, CapabilityStates.STANDBY),
+    ],
+)
+def test_bandcap_non_unknown_outside_operate_updates_health_ok_and_no_info(
+    cm_for_bandcap_tests,
+    dish_mode,
+    cap_state,
+):
+    """
+    Dish not in OPERATE, capability becomes a valid non-UNKNOWN/non-UNAVAILABLE
+    state. Expect:
+      - health update occurs (no suppression)
+      - band state is stored
+      - evaluated healthState is OK
+      - healthInfo summary is blank
+    """
+    cm = cm_for_bandcap_tests
+
+    # Arrange: dish NOT in OPERATE
+    cm.update_device_dish_mode(dish_mode)
+
+    # Make requested band B1 and keep other signals healthy
+    cm.health_manager.update_health_data_and_aggregate(
+        Band.B1, "receiver_band"
+    )
+    cm.health_manager.update_health_data_and_aggregate(
+        ResultCode.OK, "KValueValidationResultData"
+    )
+    cm.health_manager.update_health_data_and_aggregate(
+        [ResultCode.OK], "GPMValidationResultData"
+    )
+
+    # Make all bands "good" to avoid other band issues affecting the result
+    for band in ["B1", "B2", "B3", "B4", "B5a", "B5b"]:
+        cm.health_manager.update_health_data_and_aggregate(
+            (band, CapabilityStates.STANDBY),
+            "DishBandCapabilityStateData",
+        )
+
+    # Spy to ensure health update is called when it should be
+    with mock.patch.object(
+        cm.health_manager,
+        "update_health_data_and_aggregate",
+        wraps=cm.health_manager.update_health_data_and_aggregate,
+    ) as spy:
+        # Act: update B1 capability
+        cm.update_band_capability_state(cap_state, "b1CapabilityState")
+
+        # Assert: band state stored
+        assert cm.band_capability_state["B1"] == cap_state
+
+        # Assert: health update called with the expected tuple
+        assert any(
+            c.args == (("B1", cap_state), "DishBandCapabilityStateData")
+            for c in spy.mock_calls
+        ), f"Expected health update call not found. Calls: {spy.mock_calls}"
+
+    # Assert: evaluated health OK
+    evaluated = cm.health_manager.evaluate_health_state(
+        cm.health_manager.health_data
+    )
+    assert evaluated == HealthState.OK
+
+    # Assert: healthInfo blank
+    hi = cm.health_manager.generate_health_info()
+    assert "HealthSummary" in hi
+    assert hi["HealthSummary"] == [], f"Expected blank HealthSummary, got {hi}"
+
+
+#
+
+
+# ...existing code...
+
+
+@pytest.mark.ut_bandcap_5
+@pytest.mark.parametrize(
+    "dish_mode",
+    [
+        DishMode.STANDBY_FP,
+        DishMode.STOW,
+    ],
+)
+def test_bandcap_unknown_outside_operate_is_recorded_not_affect_health(
+    cm_for_bandcap_tests,
+    dish_mode,
+):
+    """
+    Dish not in OPERATE, capability becomes UNKNOWN.
+
+    Expect:
+      - raw band_capability_state is updated (debug/telemetry)
+      - DishBandCapabilityStateData update is NOT forwarded to health manager
+      - overall health remains OK (given other signals are healthy)
+      - healthInfo is blank
+    """
+    cm = cm_for_bandcap_tests
+
+    # Arrange: dish NOT in OPERATE
+    cm.update_device_dish_mode(dish_mode)
+
+    # Keep other signals healthy
+    cm.health_manager.update_health_data_and_aggregate(
+        Band.B1, "receiver_band"
+    )
+    cm.health_manager.update_health_data_and_aggregate(
+        ResultCode.OK, "KValueValidationResultData"
+    )
+    cm.health_manager.update_health_data_and_aggregate(
+        [ResultCode.OK], "GPMValidationResultData"
+    )
+    # Dish manager OK/UNKNOWN could otherwise influence health; force OK
+    cm.health_manager.update_health_data_and_aggregate(
+        HealthState.OK, "DishManagerHealthData"
+    )
+
+    # Make all bands "good" before the UNKNOWN event arrives
+    for band in ["B1", "B2", "B3", "B4", "B5a", "B5b"]:
+        cm.health_manager.update_health_data_and_aggregate(
+            (band, CapabilityStates.STANDBY),
+            "DishBandCapabilityStateData",
+        )
+
+    # Spy to ensure HEALTH is not updated with UNKNOWN outside OPERATE
+    with mock.patch.object(
+        cm.health_manager,
+        "update_health_data_and_aggregate",
+        wraps=cm.health_manager.update_health_data_and_aggregate,
+    ) as spy:
+        # Act: incoming UNKNOWN for B1 capability (outside OPERATE)
+        cm.update_band_capability_state(
+            CapabilityStates.UNKNOWN, "b1CapabilityState"
+        )
+
+        # Assert: raw stored in CM
+        assert cm.band_capability_state["B1"] == CapabilityStates.UNKNOWN
+
+        # Assert: the UNKNOWN band capability was NOT forwarded
+        # to health manager
+        assert not any(
+            c.args
+            == (
+                ("B1", CapabilityStates.UNKNOWN),
+                "DishBandCapabilityStateData",
+            )
+            for c in spy.mock_calls
+        ), f"Unexpected health update calls: {spy.mock_calls}"
+
+    # Assert: health still OK
+    evaluated = cm.health_manager.evaluate_health_state(
+        cm.health_manager.health_data
+    )
+    assert evaluated == HealthState.OK
+
+    # Assert: healthInfo blank
+    hi = cm.health_manager.generate_health_info()
+    assert "HealthSummary" in hi
+    assert hi["HealthSummary"] == [], f"Expected blank HealthSummary, got {hi}"
+
+
+# ...existing code...
+
+
+@pytest.mark.ut_bandcap_seq
+def test_bandcap_unknown_handling_sequential_health_and_info(
+    cm_for_bandcap_tests,
+):
+    """
+    Sequentially verify the three scenarios:
+
+    1) Dish not in OPERATE, capability becomes UNKNOWN:
+       - HealthState OK
+       - HealthSummary blank
+
+    2) Dish in OPERATE, capability becomes UNKNOWN:
+       - HealthState DEGRADED
+       - HealthSummary contains requested-band message
+
+    3) Dish in OPERATE, capability becomes STANDBY:
+       - HealthState OK
+       - HealthSummary blank
+    """
+    cm = cm_for_bandcap_tests
+
+    def _make_other_signals_healthy():
+        cm.health_manager.update_health_data_and_aggregate(
+            ResultCode.OK, "KValueValidationResultData"
+        )
+        cm.health_manager.update_health_data_and_aggregate(
+            [ResultCode.OK], "GPMValidationResultData"
+        )
+        cm.health_manager.update_health_data_and_aggregate(
+            HealthState.OK, "DishManagerHealthData"
+        )
+
+    def _set_band_context_all_good():
+        cm.health_manager.update_health_data_and_aggregate(
+            Band.B1, "receiver_band"
+        )
+        for b in ["B1", "B2", "B3", "B4", "B5a", "B5b"]:
+            cm.health_manager.update_health_data_and_aggregate(
+                (b, CapabilityStates.STANDBY),
+                "DishBandCapabilityStateData",
+            )
+
+    def _assert_health_ok_and_info_blank():
+        evaluated = cm.health_manager.evaluate_health_state(
+            cm.health_manager.health_data
+        )
+        assert evaluated == HealthState.OK
+        hi = cm.health_manager.generate_health_info()
+        assert (
+            hi["HealthSummary"] == []
+        ), f"Expected blank HealthSummary, got {hi}"
+
+    def _assert_health_failed_and_has_requested_band_msg():
+        evaluated = cm.health_manager.evaluate_health_state(
+            cm.health_manager.health_data
+        )
+        assert evaluated == HealthState.FAILED
+        hi = cm.health_manager.generate_health_info()
+        summary = hi["HealthSummary"]
+        assert any(
+            "Requested band B1" in s for s in summary
+        ), f"HealthSummary={summary}"
+        assert any(
+            "not fully available" in s.lower() for s in summary
+        ), f"HealthSummary={summary}"
+
+    # Keep non-band signals healthy for the whole test
+    _make_other_signals_healthy()
+
+    # -------------------------
+    # 1) NOT OPERATE + UNKNOWN
+    # -------------------------
+    cm.update_device_dish_mode(DishMode.STANDBY_FP)
+    _set_band_context_all_good()
+
+    with mock.patch.object(
+        cm.health_manager,
+        "update_health_data_and_aggregate",
+        wraps=cm.health_manager.update_health_data_and_aggregate,
+    ) as spy:
+        cm.update_band_capability_state(
+            CapabilityStates.UNKNOWN, "b1CapabilityState"
+        )
+
+        # raw stored
+        assert cm.band_capability_state["B1"] == CapabilityStates.UNKNOWN
+
+        # NOT forwarded to health
+        assert not any(
+            c.args
+            == (
+                ("B1", CapabilityStates.UNKNOWN),
+                "DishBandCapabilityStateData",
+            )
+            for c in spy.mock_calls
+        ), f"Unexpected health update calls: {spy.mock_calls}"
+
+    _assert_health_ok_and_info_blank()
+
+    # ----------------------
+    # 2) OPERATE + UNKNOWN
+    # ----------------------
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    _set_band_context_all_good()
+
+    with mock.patch.object(
+        cm.health_manager,
+        "update_health_data_and_aggregate",
+        wraps=cm.health_manager.update_health_data_and_aggregate,
+    ) as spy:
+        cm.update_band_capability_state(
+            CapabilityStates.UNKNOWN, "b1CapabilityState"
+        )
+
+        # raw stored
+        assert cm.band_capability_state["B1"] == CapabilityStates.UNKNOWN
+
+        # forwarded in OPERATE
+        assert any(
+            c.args
+            == (
+                ("B1", CapabilityStates.UNKNOWN),
+                "DishBandCapabilityStateData",
+            )
+            for c in spy.mock_calls
+        ), f"Expected health update call not found. Calls: {spy.mock_calls}"
+
+    _assert_health_failed_and_has_requested_band_msg()
+
+    # ----------------------
+    # 3) OPERATE + STANDBY
+    # ----------------------
+    cm.update_device_dish_mode(DishMode.OPERATE)
+    _set_band_context_all_good()
+
+    cm.update_band_capability_state(
+        CapabilityStates.STANDBY, "b1CapabilityState"
+    )
+    assert cm.band_capability_state["B1"] == CapabilityStates.STANDBY
+
+    _assert_health_ok_and_info_blank()
+
+
+# ...existing code...
