@@ -9,6 +9,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 
+from ska_tmc_dishleafnode.enums import CapabilityStates
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -117,6 +118,22 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     # Scenario 1:
     # Validation success. Band params are matching for given band
     gpm_validation_result(group_callback, "Band_1", "OK")
+
+    # Set other parameters positive
+    logger.info("will set CapabilityStates")
+
+    capabiity_argin = json.dumps(
+        {
+            "B1": CapabilityStates.OPERATE_FULL,
+            "B2": CapabilityStates.OPERATE_FULL,
+            "B3": CapabilityStates.OPERATE_FULL,
+            "B4": CapabilityStates.OPERATE_FULL,
+            "B5a": CapabilityStates.OPERATE_FULL,
+            "B5b": CapabilityStates.OPERATE_FULL,
+        }
+    )
+    dish_master_dev.SetDirectCapabilityState(capabiity_argin)
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
 
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
