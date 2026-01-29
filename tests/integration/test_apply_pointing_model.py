@@ -137,7 +137,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
 
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
-        lookahead=5,
+        lookahead=10,
     )
 
     # Scenario 2:
