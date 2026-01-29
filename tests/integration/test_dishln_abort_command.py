@@ -3,6 +3,7 @@ import json
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
+from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, FaultType, PointingState
 
@@ -257,6 +258,7 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
     )
 
 
+@pytest.mark.sah1863
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_timeout(tango_context, group_callback):
@@ -309,18 +311,32 @@ def abort_timeout(
         (unique_id[0], COMMAND_TIMEOUT),
         lookahead=3,
     )
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
+
+    lrcr_event_id = dish_master.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=5,
     )
-    dish_master.ResetDelayInfo()
 
-    dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    # dish master ABORT LRCR OK is asserted
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (Anything, COMMAND_COMPLETED),
+        lookahead=3,
+    )
+
+    dish_master.ResetDelayInfo()
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_master.unsubscribe_event(lrcr_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.sah1863
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_exception(tango_context, group_callback):
@@ -346,25 +362,25 @@ def abort_exception(tango_context, dishln_name, group_callback):
         lookahead=2,
     )
 
-    # result, unique_id = dish_leaf_node.SetStandbyFPMode()
+    result, unique_id = dish_leaf_node.SetStandbyFPMode()
 
-    # logger.debug("Command id: %s | Returned result: %s", unique_id, result)
-    # assert result[0] == ResultCode.QUEUED
+    logger.debug("Command id: %s | Returned result: %s", unique_id, result)
+    assert result[0] == ResultCode.QUEUED
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
-    # group_callback["longRunningCommandResult"].assert_change_event(
-    #     (unique_id[0], COMMAND_COMPLETED),
-    #     lookahead=2,
-    # )
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id[0], COMMAND_COMPLETED),
+        lookahead=2,
+    )
 
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.STANDBY_FP),
-    #     lookahead=5,
-    # )
+    group_callback["dishMode"].assert_change_event(
+        (DishMode.STANDBY_FP),
+        lookahead=5,
+    )
 
     ERROR_PROPAGATION_DEFECT = json.dumps(
         {
@@ -377,11 +393,6 @@ def abort_exception(tango_context, dishln_name, group_callback):
 
     dish_master.SetDefective(ERROR_PROPAGATION_DEFECT)
     _, unique_id = dish_leaf_node.Abort()
-
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=5,
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_FAILED),

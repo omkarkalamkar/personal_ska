@@ -59,11 +59,20 @@ class TrackLoadStaticOff(DishLNCommand):
             **kwargs: Keyword arguments for task status update.
         """
         super().update_task_status(**kwargs)
-        if self.component_manager.command_unique_id_dict.get(
+        self.logger.info("command_uniq_id: %s", self.command_uniq_id)
+        self.logger.info(
+            "command_unique_id_dict: %s",
+            self.component_manager.command_unique_id_dict,
+        )
+        # if self.component_manager.command_unique_id_dict.get(
+        #     self.command_uniq_id
+        # ):
+        if (
             self.command_uniq_id
+            in self.component_manager.command_unique_id_dict.values()
         ):
             del self.component_manager.command_unique_id_dict[
-                self.command_uniq_id
+                "TrackLoadStaticOff"
             ]
             self.command_uniq_id = ""
 
