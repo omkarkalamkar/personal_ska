@@ -14,7 +14,7 @@ Added
 Updated
 -------
 * Updated SetStowMode functionality.
-* Updated subscriptions with event manager.
+* Updated subscription mechanism with event manager.
 
 [0.29.3]
 ********
