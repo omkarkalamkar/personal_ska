@@ -165,34 +165,18 @@ def test_auto_stow_gust_speed(group_callback):
     dish_leaf_node: MidTmcLeafNodeDish = dev_factory.get_device(
         DISH_LEAF_NODE_DEVICE
     )
-    dish_manager = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_leaf_node.subscribe_event(
+    stow_status_id = dish_leaf_node.subscribe_event(
         "stowStatus",
         tango.EventType.CHANGE_EVENT,
         group_callback["stowStatus"],
     )
-    dish_leaf_node.subscribe_event(
+    dish_mode_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
-        group_callback["stowStatus"].assert_change_event(
-            StowStatus.STOW_COMPLETED,
-            lookahead=1,
-        )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
-        dish_manager.SetStandbyFPMode()
+    _reset_stow_mode(dish_leaf_node, group_callback)
 
-        group_callback["dishMode"].assert_change_event(
-            DishMode.STANDBY_FP,
-            lookahead=5,
-        )
-    dish_manager.SetStandbyFPMode()
-    group_callback["dishMode"].assert_change_event(
-        DishMode.STANDBY_FP,
-        lookahead=5,
-    )
     dish_leaf_node.maxAllowedGustWindpeed = 22.0
     dish_leaf_node.gustWindspeedMeasurementTimeWindow = 4
     simulate_windspeed(22, 24, 4)
@@ -205,6 +189,8 @@ def test_auto_stow_gust_speed(group_callback):
         StowStatus.STOW_COMPLETED,
         lookahead=5,
     )
+    dish_leaf_node.unsubscribe_event(stow_status_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_id)
 
 
 @pytest.mark.post_deployment
@@ -214,35 +200,18 @@ def test_auto_stow_wind_speed(group_callback):
     dish_leaf_node: MidTmcLeafNodeDish = dev_factory.get_device(
         DISH_LEAF_NODE_DEVICE
     )
-    dish_manager = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_leaf_node.subscribe_event(
+    stow_status_id = dish_leaf_node.subscribe_event(
         "stowStatus",
         tango.EventType.CHANGE_EVENT,
         group_callback["stowStatus"],
     )
-    dish_leaf_node.subscribe_event(
+    dish_mode_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
-        group_callback["stowStatus"].assert_change_event(
-            StowStatus.STOW_COMPLETED,
-            lookahead=1,
-        )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
-        dish_manager.SetStandbyFPMode()
+    _reset_stow_mode(dish_leaf_node, group_callback)
 
-        group_callback["dishMode"].assert_change_event(
-            DishMode.STANDBY_FP,
-            lookahead=5,
-        )
-
-    dish_manager.SetStandbyFPMode()
-    group_callback["dishMode"].assert_change_event(
-        DishMode.STANDBY_FP,
-        lookahead=5,
-    )
     dish_leaf_node.maxAllowedWindspeed = 16.0
     dish_leaf_node.meanWindspeedMeasurementTimeWindow = 10.0
     simulate_windspeed(16, 18, 10)
@@ -255,6 +224,8 @@ def test_auto_stow_wind_speed(group_callback):
         StowStatus.STOW_COMPLETED,
         lookahead=5,
     )
+    dish_leaf_node.unsubscribe_event(stow_status_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_id)
 
 
 @pytest.mark.post_deployment
@@ -264,35 +235,18 @@ def test_auto_stow_ops_speed(group_callback):
     dish_leaf_node: MidTmcLeafNodeDish = dev_factory.get_device(
         DISH_LEAF_NODE_DEVICE
     )
-    dish_manager = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_leaf_node.subscribe_event(
+    stow_status_id = dish_leaf_node.subscribe_event(
         "stowStatus",
         tango.EventType.CHANGE_EVENT,
         group_callback["stowStatus"],
     )
-    dish_leaf_node.subscribe_event(
+    dish_mode_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
-        group_callback["stowStatus"].assert_change_event(
-            StowStatus.STOW_COMPLETED,
-            lookahead=1,
-        )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
-        dish_manager.SetStandbyFPMode()
+    _reset_stow_mode(dish_leaf_node, group_callback)
 
-        group_callback["dishMode"].assert_change_event(
-            DishMode.STANDBY_FP,
-            lookahead=5,
-        )
-
-    dish_manager.SetStandbyFPMode()
-    group_callback["dishMode"].assert_change_event(
-        DishMode.STANDBY_FP,
-        lookahead=5,
-    )
     dish_leaf_node.maxAllowedOpsWindspeed = 5.0
     dish_leaf_node.WindspeedMeasurementTimeWindow = 10.0
     simulate_windspeed(6, 7, 10)
@@ -305,6 +259,8 @@ def test_auto_stow_ops_speed(group_callback):
         StowStatus.STOW_COMPLETED,
         lookahead=5,
     )
+    dish_leaf_node.unsubscribe_event(stow_status_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_id)
 
 
 @pytest.mark.post_deployment
@@ -314,35 +270,18 @@ def test_auto_stow_ops_perc_speed(group_callback):
     dish_leaf_node: MidTmcLeafNodeDish = dev_factory.get_device(
         DISH_LEAF_NODE_DEVICE
     )
-    dish_manager = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_leaf_node.subscribe_event(
+    stow_status_id = dish_leaf_node.subscribe_event(
         "stowStatus",
         tango.EventType.CHANGE_EVENT,
         group_callback["stowStatus"],
     )
-    dish_leaf_node.subscribe_event(
+    dish_mode_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
-        group_callback["stowStatus"].assert_change_event(
-            StowStatus.STOW_COMPLETED,
-            lookahead=1,
-        )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
-        dish_manager.SetStandbyFPMode()
+    _reset_stow_mode(dish_leaf_node, group_callback)
 
-        group_callback["dishMode"].assert_change_event(
-            DishMode.STANDBY_FP,
-            lookahead=5,
-        )
-
-    dish_manager.SetStandbyFPMode()
-    group_callback["dishMode"].assert_change_event(
-        DishMode.STANDBY_FP,
-        lookahead=5,
-    )
     dish_leaf_node.maxAllowedWindspeedDifference = 5.0
     dish_leaf_node.maxAllowedOpsMeanWindspeedMeasurementTimeWindow = 10.0
 
@@ -358,6 +297,8 @@ def test_auto_stow_ops_perc_speed(group_callback):
         StowStatus.STOW_COMPLETED,
         lookahead=5,
     )
+    dish_leaf_node.unsubscribe_event(stow_status_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_id)
 
 
 @pytest.mark.post_deployment
@@ -367,35 +308,18 @@ def test_auto_stow_max_temp(group_callback):
     dish_leaf_node: MidTmcLeafNodeDish = dev_factory.get_device(
         DISH_LEAF_NODE_DEVICE
     )
-    dish_manager = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_leaf_node.subscribe_event(
+    stow_status_id = dish_leaf_node.subscribe_event(
         "stowStatus",
         tango.EventType.CHANGE_EVENT,
         group_callback["stowStatus"],
     )
-    dish_leaf_node.subscribe_event(
+    dish_mode_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
-        group_callback["stowStatus"].assert_change_event(
-            StowStatus.STOW_COMPLETED,
-            lookahead=1,
-        )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
-        dish_manager.SetStandbyFPMode()
+    _reset_stow_mode(dish_leaf_node, group_callback)
 
-        group_callback["dishMode"].assert_change_event(
-            DishMode.STANDBY_FP,
-            lookahead=5,
-        )
-
-    dish_manager.SetStandbyFPMode()
-    group_callback["dishMode"].assert_change_event(
-        DishMode.STANDBY_FP,
-        lookahead=5,
-    )
     dish_leaf_node.maxTemperatureThreshold = 35
     simulate_temperature(35, 36, 2)
 
@@ -407,6 +331,8 @@ def test_auto_stow_max_temp(group_callback):
         StowStatus.STOW_COMPLETED,
         lookahead=5,
     )
+    dish_leaf_node.unsubscribe_event(stow_status_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_id)
 
 
 @pytest.mark.post_deployment
@@ -416,29 +342,18 @@ def test_auto_stow_temp_delta(group_callback):
     dish_leaf_node: MidTmcLeafNodeDish = dev_factory.get_device(
         DISH_LEAF_NODE_DEVICE
     )
-    dish_manager = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_leaf_node.subscribe_event(
+    stow_status_id = dish_leaf_node.subscribe_event(
         "stowStatus",
         tango.EventType.CHANGE_EVENT,
         group_callback["stowStatus"],
     )
-    dish_leaf_node.subscribe_event(
+    dish_mode_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
-        group_callback["stowStatus"].assert_change_event(
-            StowStatus.STOW_COMPLETED,
-            lookahead=1,
-        )
-    if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
-        dish_manager.SetStandbyFPMode()
-
-        group_callback["dishMode"].assert_change_event(
-            DishMode.STANDBY_FP,
-            lookahead=5,
-        )
+    _reset_stow_mode(dish_leaf_node, group_callback)
+    # sometimes in pipeline it takes more time.
     dish_leaf_node.timeDelta = 10.0
     dish_leaf_node.temperatureDelta = 20.0
 
@@ -454,4 +369,40 @@ def test_auto_stow_temp_delta(group_callback):
         StowStatus.STOW_COMPLETED,
         lookahead=5,
     )
+    dish_leaf_node.set_timeout_millis(5000)
+
     dish_leaf_node.timeDelta = 1000.0
+    dish_leaf_node.unsubscribe_event(stow_status_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_id)
+
+
+def _reset_stow_mode(dish_leaf_node: tango.DeviceProxy, group_callback):
+    """
+    Resets the DishMode to StandbyFP.
+    """
+    if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
+        group_callback["stowStatus"].assert_change_event(
+            StowStatus.STOW_COMPLETED,
+            lookahead=1,
+        )
+    if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
+        lrcr_event_id = dish_leaf_node.subscribe_event(
+            "longRunningCommandResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandResult"],
+        )
+        result, unique_id = dish_leaf_node.SetStandbyFPMode()
+
+        logger.debug("Command id: %s | Returned result: %s", unique_id, result)
+        assert result[0] == ResultCode.QUEUED
+
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id[0], COMMAND_COMPLETED),
+            lookahead=2,
+        )
+
+        group_callback["dishMode"].assert_change_event(
+            (DishMode.STANDBY_FP),
+            lookahead=5,
+        )
+        dish_leaf_node.unsubscribe_event(lrcr_event_id)
