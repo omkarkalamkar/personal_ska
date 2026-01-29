@@ -114,11 +114,6 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     gpm_version = json.loads(dish_leaf_node.gpmversion)
     assert gpm_version['Band_1'] == 'main'
 
-    # GPM validation scenarios
-    # Scenario 1:
-    # Validation success. Band params are matching for given band
-    gpm_validation_result(group_callback, "Band_1", "OK")
-
     # Set other parameters positive
     logger.info("will set CapabilityStates")
 
@@ -133,7 +128,12 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         }
     )
     dish_master_dev.SetDirectCapabilityState(capabiity_argin)
-    # wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
+    # wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
+
+    # GPM validation scenarios
+    # Scenario 1:
+    # Validation success. Band params are matching for given band
+    gpm_validation_result(group_callback, "Band_1", "OK")
 
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
