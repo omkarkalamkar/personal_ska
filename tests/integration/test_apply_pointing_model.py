@@ -133,7 +133,7 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
         }
     )
     dish_master_dev.SetDirectCapabilityState(capabiity_argin)
-    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
+    # wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
 
     group_callback["healthState"].assert_change_event(
         HealthState.OK,
