@@ -178,7 +178,6 @@ def test_evaluate_health_state_for_all_capability_states_band1(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
-@pytest.mark.m1
 @pytest.mark.parametrize(
     "capability_state,expected_health",
     [
@@ -905,9 +904,6 @@ def test_bandcap_unknown_in_operate_updates_health_to_degraded_and_sets_info(
     ), f"Info={info_list}"
 
 
-# ...existing code...
-
-
 @pytest.mark.ut_bandcap_2
 @pytest.mark.parametrize(
     "dish_mode,cap_state",
@@ -985,9 +981,6 @@ def test_bandcap_non_unknown_outside_operate_updates_health_ok_and_no_info(
 
 
 #
-
-
-# ...existing code...
 
 
 @pytest.mark.ut_bandcap_5
@@ -1073,9 +1066,6 @@ def test_bandcap_unknown_outside_operate_is_recorded_not_affect_health(
     hi = cm.health_manager.generate_health_info()
     assert "HealthSummary" in hi
     assert hi["HealthSummary"] == [], f"Expected blank HealthSummary, got {hi}"
-
-
-# ...existing code...
 
 
 @pytest.mark.ut_bandcap_seq
@@ -1219,6 +1209,3 @@ def test_bandcap_unknown_handling_sequential_health_and_info(
     assert cm.band_capability_state["B1"] == CapabilityStates.STANDBY
 
     _assert_health_ok_and_info_blank()
-
-
-# ...existing code...

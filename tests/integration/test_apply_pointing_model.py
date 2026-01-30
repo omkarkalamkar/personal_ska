@@ -115,7 +115,6 @@ def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
     assert gpm_version['Band_1'] == 'main'
 
     # Set other parameters positive
-    logger.info("will set CapabilityStates")
 
     capabiity_argin = json.dumps(
         {

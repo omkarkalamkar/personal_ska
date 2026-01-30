@@ -68,8 +68,6 @@ def observation_workflow(
         lookahead=6,
     )
 
-    logger.info("will set CapabilityStates")
-
     capabiity_argin = json.dumps(
         {
             "B1": CapabilityStates.OPERATE_FULL,
