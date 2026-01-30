@@ -5,13 +5,12 @@ import threading
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional
-from unittest import result
 
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import Band
 
-from ska_tmc_dishleafnode.enums import CapabilityStates
+from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_rules import HEALTH_RULES
 
 
@@ -401,7 +400,7 @@ class DishHealthStateAndInfoManager:
             self.health_data.gpm_validation_result.result
         ):
             self.logger.debug(
-                "Evaluating GPM result at index %d: %s", idx, result
+                "Evaluating GPM result at index %d: %s", idx, result_val
             )
 
             res = normalize_result(result_val)

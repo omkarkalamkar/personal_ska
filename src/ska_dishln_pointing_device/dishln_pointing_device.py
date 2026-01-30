@@ -58,6 +58,11 @@ class DishPointingDevice(TMCBaseLeafDevice):
         default_value=5,
         doc="Advanced program track tables entries in track table schedular",
     )
+    WeatherStationDeviceNames = device_property(
+        dtype=("str",),
+        doc="FQDNs of Weather Station devices",
+        default_value=tuple(),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -231,24 +236,26 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: component manager instance
         :rtype: DishlnPointingDataComponentManager
         """
-        dish_pointing_device_component_manager = (
-            DishlnPointingDataComponentManager(
-                disln_pointing_device_name=self.get_name(),
-                logger=self.logger,
-                update_pointing_program_track_table_callback=(
-                    self.update_pointing_program_track_table_callback
-                ),
-                update_program_track_table_error_callback=(
-                    self.update_program_track_table_error_callback
-                ),
-                track_table_update_rate=self.TrackTableUpdateRate,
-                elevation_max_limit=self.ElevationMaxLimit,
-                elevation_min_limit=self.ElevationMinLimit,
-                track_table_advance_sec=self.TrackTableInAdvance,
-                azimuth_min_limit=self.AzimuthMinLimit,
-                azimuth_max_limit=self.AzimuthMaxLimit,
-                entries_tt_schedular_queue=self.SchedularQueuePreEntries,
-            )
+        cm = DishlnPointingDataComponentManager
+        dish_pointing_device_component_manager = cm(
+            disln_pointing_device_name=self.get_name(),
+            logger=self.logger,
+            update_pointing_program_track_table_callback=(
+                self.update_pointing_program_track_table_callback
+            ),
+            update_program_track_table_error_callback=(
+                self.update_program_track_table_error_callback
+            ),
+            track_table_update_rate=self.TrackTableUpdateRate,
+            elevation_max_limit=self.ElevationMaxLimit,
+            elevation_min_limit=self.ElevationMinLimit,
+            track_table_advance_sec=self.TrackTableInAdvance,
+            azimuth_min_limit=self.AzimuthMinLimit,
+            azimuth_max_limit=self.AzimuthMaxLimit,
+            entries_tt_schedular_queue=self.SchedularQueuePreEntries,
+            _event_manager=True,
+            weather_station_device_names=self.WeatherStationDeviceNames,
+            event_subscription_check_period=self.EventSubscriptionCheckPeriod,
         )
         return dish_pointing_device_component_manager
 

@@ -11,18 +11,22 @@ import re
 import sched
 import threading
 import time
+from collections import defaultdict
 from logging import Logger
-from typing import Callable, List, Tuple
+from queue import Queue
+from typing import Callable, List, Optional, Tuple
 
+import tango
 from astropy.time import Time
 from astropy.utils import iers
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import TaskStatus
-from ska_tmc_common.v1.tmc_component_manager import TmcLeafNodeComponentManager
+from ska_tmc_common.v2.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
+from ska_dishln_pointing_device.event_manager import DishLNPDEventManager
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import (
     IERS_DATA_STORAGE_PATH,
@@ -51,7 +55,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         track_table_advance_sec: int = 6,
         azimuth_min_limit: float = -270.0,
         azimuth_max_limit: float = 270.0,
-        entries_tt_schedular_queue=5,
+        entries_tt_schedular_queue: int = 5,
+        _event_manager: bool = False,
+        weather_station_device_names: Optional[list] = None,
+        event_subscription_check_period: int = 1,
     ):
         """
         Initialise a new ComponentManager instance.
@@ -70,6 +77,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.update_program_track_table_error_callback = (
             update_program_track_table_error_callback
         )
+        self.event_manager = _event_manager
         self.target: list | str | None = None
         self._current_track_table_error = ""
         self.__target_data: dict = {}
@@ -100,14 +108,165 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
         self.data_download_thread = threading.Thread(
-            target=self.download_antenna_and_iers_data
+            target=self.download_antenna_and_iers_data, daemon=True
         )
         self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
         self.track_table_thread = None
         self._wrap_sector: int
         self._wrap_sector_key: bool = False
+        self.__humidity: float = 0.10
+        self.__pressure: float = 900.0
+        self.__wind_speed: float = 10.0
+        self.__temperature: float = 30.0
         self.entries_tt_schedular_queue = entries_tt_schedular_queue
+        self.weather_station_device_name: str = ""
+        if weather_station_device_names:
+            self.weather_station_device_name = weather_station_device_names[0]
+        self.event_processing_methods = self.get_attribute_dict()
+        self.event_threads: list[threading.Thread] = []
+        self.event_manager_object: DishLNPDEventManager = DishLNPDEventManager(
+            self,
+            logger=logger,
+            event_subscription_check_period=event_subscription_check_period,
+        )
+        self.start_event_processing_threads()
+        self.setup_event_subscription()
+        self.stop_track_called: threading.Event = threading.Event()
+
+    def start_event_processing_threads(self) -> None:
+        """Start all the event processing threads."""
+        # reset flag and any previous threads
+        self._stop_thread = False
+        self.event_threads.clear()
+
+        for attribute, _ in self.event_processing_methods.items():
+            self.event_queues[attribute] = Queue()
+            thread = threading.Thread(
+                target=self.process_event,
+                args=[attribute],
+                name=f"evt_{attribute}",
+            )
+            self.event_threads.append(thread)
+            thread.start()
+
+    def process_event(self, attribute_name):
+        with tango.EnsureOmniThread():
+            super().process_event(attribute_name)
+
+    def stop_event_processing_threads(self) -> None:
+        """
+        Stop all event-processing threads:
+        1) Signal them to exit their loops.
+        2) Wait (join) until each thread has terminated.
+        3) Clean up queues and thread list.
+        """
+        # signal all threads to stop
+        self._stop_thread = True
+
+        # join each thread so we wait for their clean exit
+        for thread in self.event_threads:
+            if thread.is_alive():
+                thread.join()
+
+        # optionally clear queues and thread references
+        self.event_queues.clear()
+        self.event_threads.clear()
+
+        # reset flag so you can restart later if needed
+        self._stop_thread = False
+
+    # pylint: disable-next=unused-argument
+    def check_device_responsiveness(self, device_name: str) -> bool:
+        """This method accepts device_name and
+        provides the responsiveness of the device.
+
+        :param device_name: Tango device FQDN.
+        :type device_name: str
+        :raises DeviceNameIncorrect: raises exception when
+            device name is incorrect.
+        :return: Returns True when device is avaiable, else false.
+        :rtype: bool
+        """
+        return True
+
+    @property
+    def humidity(self) -> float:
+        """The humidity property."""
+        return self.__humidity
+
+    @humidity.setter
+    def humidity(self, humidity: float) -> None:
+        """The setter for humidity property."""
+        with self.rlock:
+            self.__humidity = humidity
+
+    @property
+    def pressure(self) -> float:
+        """The pressure property."""
+        return self.__pressure
+
+    @pressure.setter
+    def pressure(self, pressure: float) -> None:
+        """The setter for pressure property."""
+        with self.rlock:
+            self.__pressure = pressure
+
+    @property
+    def wind_speed(self) -> float:
+        """The wind speed property."""
+        return self.__wind_speed
+
+    @wind_speed.setter
+    def wind_speed(self, wind_speed: float) -> None:
+        """The setter for wind_speed property."""
+        with self.rlock:
+            self.__wind_speed = wind_speed
+
+    @property
+    def temperature(self) -> float:
+        """The temperature property."""
+        return self.__temperature
+
+    @temperature.setter
+    def temperature(self, temperature: float) -> None:
+        """The setter for temperature property."""
+        with self.rlock:
+            self.__temperature = temperature
+
+    def setup_event_subscription(self) -> None:
+        """
+        Sets up the event subscription after input parameters are updated.
+        """
+
+        self.start_event_manager(
+            self.build_device_attribute_map(), timeout=1000
+        )
+        self.logger.debug("Successfully subscribed the events")
+
+    def build_device_attribute_map(self) -> dict[str, list[str]]:
+        """
+        Builds a dictionary mapping device names to lists of attributes
+        to be subscribed.
+
+        Returns:
+            Dict[str, List[str]]: A mapping from device names to list of
+            attributes.
+        """
+        device_attribute_map = defaultdict(list)
+
+        if self.weather_station_device_name:
+            device_attribute_map[self.weather_station_device_name] = [
+                "humidity",
+                "temperature",
+                "windSpeed",
+                "pressure",
+            ]
+
+        self.logger.debug(
+            "Device attribute map dictionary : %s", device_attribute_map
+        )
+        return device_attribute_map
 
     @property
     def wrap_sector_key(self: DishlnPointingDataComponentManager) -> bool:
@@ -285,8 +444,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
     def download_antenna_and_iers_data(self):
         """Method that downloads antenna and iers data"""
-        self.create_converter_obj_and_antenna_obj()
-        self.download_iers_data()
+        with tango.EnsureOmniThread():
+            self.create_converter_obj_and_antenna_obj()
+            self.download_iers_data()
 
     def create_converter_obj_and_antenna_obj(
         self: DishlnPointingDataComponentManager,
@@ -384,10 +544,13 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             # Stop existing thread if alive
             self.stop_track_table_thread()
             with self.track_thread_lock:
-                # clear mapping scan event to start new thread
-                self.mapping_scan_event.clear()
-                self.create_track_table_thread()
-                self.track_table_thread.start()
+                # added condition for edge case where tracktable start
+                # and stop are running parallely.
+                if not self.stop_track_called.is_set():
+                    # clear mapping scan event to start new thread
+                    self.mapping_scan_event.clear()
+                    self.create_track_table_thread()
+                    self.track_table_thread.start()
 
         except Exception as exception:
             self.logger.exception(
@@ -424,7 +587,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
-            # This is dummy calculation because first time calculation takes
+            # This is dummy calculation because first
+            #  time calculation takes
             # time due to IERS file downloads
             if isinstance(self.target, str):
                 self.converter.point_to_body(self.target, timestamp)
@@ -437,9 +601,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
             utc_now = datetime.datetime.utcnow()
 
-            # The average time required to perform a RaDec to AzEl conversion
+            # The average time required to perform a
+            # RaDec to AzEl conversion
             # is approximately 20 milliseconds. Therefore, the total
-            # calculation time and the advanced tracktable time are added to
+            # calculation time and the advanced
+            #  tracktable time are added to
             # the current timestamp to generate the future tracktable.
 
             RaDec_AzEl_conversion_time = 0.02
@@ -483,7 +649,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 )
                 first_entry_timestamp: float = program_track_table[0]
 
-                # advance_time is subtracted to provide programTrackTable few
+                # advance_time is subtracted to provide
+                #  programTrackTable few
                 # seconds in advance
                 actual_time = (
                     first_entry_timestamp - self.track_table_advance_sec
@@ -572,3 +739,71 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             command.generate_program_track_table,
             task_callback=task_callback,
         )
+
+    def update_windspeed(self, wind_speed: float) -> None:
+        """The method to update windspeed
+
+        :param wind_speed: the wind speed event from wms.
+        :type wind_speed: float
+        """
+        if wind_speed:
+            self.wind_speed = wind_speed
+
+    def update_temperature(self, temperature: float) -> None:
+        """The method to update temperature
+
+        :param temperature: The temperature event from wms.
+        :type temperature: float
+        """
+        if temperature:
+            self.temperature = temperature
+
+    def update_pressure(self, pressure: float) -> None:
+        """The method to update pressure.
+
+        :param pressure: The pressure event from the wms.
+        :type pressure: float
+        """
+        if pressure:
+            self.pressure = pressure
+
+    def update_humidity(self, humidity: float) -> None:
+        """The method to update humidity.
+
+        :param humidity: The humidity event from the wms.
+        :type humidity: float
+        """
+        if humidity:
+            self.humidity = humidity
+
+    def check_event_error(self, event: tango.EventData, callback: str):
+        """Method for checking event error."""
+        if event.err:
+            error = event.errors[0]
+            self.logger.error(
+                "Error occurred on %s for device: %s - %s, %s",
+                callback,
+                event.device.dev_name(),
+                error.reason,
+                error.desc,
+            )
+            return True
+        return False
+
+    def get_attribute_dict(self) -> dict:
+        """
+        This method will return dictionary of attributes which will
+        be subscribed by TMC Dish Leaf Node Pointing Device.
+        It will contain mapping of attribute with function which will
+        process event data in TMC
+
+        :return: Dictionary of attributes to be handled by the EventReceiver.
+        """
+
+        attributes = {
+            "windSpeed": self.update_windspeed,
+            "pressure": self.update_pressure,
+            "humidity": self.update_humidity,
+            "temperature": self.update_temperature,
+        }
+        return {**attributes}
