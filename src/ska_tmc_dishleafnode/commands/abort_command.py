@@ -95,11 +95,6 @@ class Abort(DishLNCommand):
                     status=status, result=result, exception=message
                 )
         self.component_manager.command_in_progress = ""
-        self.logger.info("command_uniq_id: %s", self.command_uniq_id)
-        self.logger.info(
-            "command_unique_id_dict: %s",
-            self.component_manager.command_unique_id_dict,
-        )
         if (
             self.command_uniq_id
             in self.component_manager.command_unique_id_dict.values()

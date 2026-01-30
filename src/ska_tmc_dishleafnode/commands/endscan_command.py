@@ -53,9 +53,6 @@ class EndScan(DishLNCommand):
             **kwargs: Keyword arguments for task status update.
         """
         super().update_task_status(**kwargs)
-        # if self.component_manager.command_unique_id_dict.get(
-        #     self.command_uniq_id
-        # ):
         if (
             self.command_uniq_id
             in self.component_manager.command_unique_id_dict.values()

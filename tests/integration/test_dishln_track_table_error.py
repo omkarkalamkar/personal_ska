@@ -138,11 +138,6 @@ def configure_dish_leaf_node_source_not_visible(
         lookahead=5,
     )
 
-    # group_callback["pointingState"].assert_change_event(
-    #     (PointingState.UNKNOWN),
-    #     lookahead=6,
-    # )
-
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
 
     log_and_assert_health(
@@ -304,11 +299,6 @@ def configure_dish_leaf_node_unknown_source(
         (unique_id_abort[0], COMMAND_COMPLETED),
         lookahead=5,
     )
-
-    # group_callback["pointingState"].assert_change_event(
-    #     (PointingState.UNKNOWN),
-    #     lookahead=6,
-    # )
 
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
 

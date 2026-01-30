@@ -116,10 +116,6 @@ def abort_when_configured(
 
     assert result_abort == ResultCode.STARTED
 
-    # group_callback["pointingState"].assert_change_event(
-    #     (PointingState.UNKNOWN),
-    #     lookahead=6,
-    # )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=6,
@@ -214,11 +210,6 @@ def abort_while_configuring(
         (unique_id_abort[0], COMMAND_COMPLETED),
         lookahead=5,
     )
-
-    # group_callback["pointingState"].assert_change_event(
-    #     (PointingState.UNKNOWN),
-    #     lookahead=6,
-    # )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
