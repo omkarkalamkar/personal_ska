@@ -51,11 +51,6 @@ tmc-dishleafnode:
       SchedularQueuePreEntries: 5
 
 ska-tmc-simulators:
-  ska_tmc_simulators:
-    image:
-      registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
-      image: ska-tmc-simulators
-      tag: 1.9.3-dev.c5b96b9d0
   labels:
     app: ska-tmc-dishleafnode
   enabled: true

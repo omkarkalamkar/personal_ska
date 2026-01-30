@@ -16,6 +16,13 @@ Updated
 * Updated SetStowMode functionality.
 * Updated subscription mechanism with event manager.
 
+[0.29.4]
+********
+Fixed
+-----
+* Updated Abort command as per the dish-lmc chart 9.0.0
+* Fixed issue with clearing of dictionary command_unique_id_dict
+
 [0.29.3]
 ********
 Added
