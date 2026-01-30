@@ -9,7 +9,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 ********
 Added
 ------
-* Added Autostow functionality
+* Added Autostow functionality.
 
 Updated
 -------
