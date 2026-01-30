@@ -2748,7 +2748,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         return (
             self.dishMode == DishMode.STANDBY_FP
-            and self.pointingState == PointingState.READY
             and self.abort_result["result_code"] == ResultCode.OK
         )
 

@@ -54,12 +54,11 @@ class TrackStop(DishLNCommand):
             **kwargs: Keyword arguments for task status update.
         """
         super().update_task_status(**kwargs)
-        if self.component_manager.command_unique_id_dict.get(
+        if (
             self.command_uniq_id
+            in self.component_manager.command_unique_id_dict.values()
         ):
-            del self.component_manager.command_unique_id_dict[
-                self.command_uniq_id
-            ]
+            del self.component_manager.command_unique_id_dict["TrackStop"]
             self.command_uniq_id = ""
         self.component_manager.receiver_band = ""
         self.component_manager.update_rxband_health_aggregation()
