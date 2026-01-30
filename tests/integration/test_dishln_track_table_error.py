@@ -21,7 +21,6 @@ from tests.settings import (
     wait_for_attribute_health_value,
 )
 
-
 OFFSET = 5.0
 
 
