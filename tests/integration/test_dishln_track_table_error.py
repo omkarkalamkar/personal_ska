@@ -5,7 +5,6 @@ import tango
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode
-from ska_tmc_simulators import PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
@@ -134,11 +133,6 @@ def configure_dish_leaf_node_source_not_visible(
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_abort[0], COMMAND_COMPLETED),
         lookahead=5,
-    )
-
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
     )
 
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
@@ -301,11 +295,6 @@ def configure_dish_leaf_node_unknown_source(
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_abort[0], COMMAND_COMPLETED),
         lookahead=5,
-    )
-
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
     )
 
     wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)

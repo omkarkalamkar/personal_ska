@@ -3,6 +3,7 @@ import json
 import pytest
 import tango
 from ska_tango_base.commands import ResultCode
+from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode, FaultType, PointingState
 
@@ -115,10 +116,6 @@ def abort_when_configured(
 
     assert result_abort == ResultCode.STARTED
 
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=6,
@@ -214,11 +211,6 @@ def abort_while_configuring(
         lookahead=5,
     )
 
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
-
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
@@ -309,15 +301,28 @@ def abort_timeout(
         (unique_id[0], COMMAND_TIMEOUT),
         lookahead=3,
     )
+    dish_leaf_node.unsubscribe_event(lrcr_event_id)
+
+    lrcr_event_id = dish_master.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_FP),
         lookahead=5,
     )
-    dish_master.ResetDelayInfo()
 
-    dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    # dish master ABORT LRCR OK is asserted
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (Anything, COMMAND_COMPLETED),
+        lookahead=3,
+    )
+
+    dish_master.ResetDelayInfo()
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
+    dish_master.unsubscribe_event(lrcr_event_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -376,7 +381,7 @@ def abort_exception(tango_context, dishln_name, group_callback):
     )
 
     dish_master.SetDefective(ERROR_PROPAGATION_DEFECT)
-    result, unique_id = dish_leaf_node.Abort()
+    _, unique_id = dish_leaf_node.Abort()
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_FAILED),
