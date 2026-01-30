@@ -21,8 +21,6 @@ from tests.settings import (
     wait_for_attribute_health_value,
 )
 
-# from ska_tmc_simulators import PointingState
-
 
 OFFSET = 5.0
 

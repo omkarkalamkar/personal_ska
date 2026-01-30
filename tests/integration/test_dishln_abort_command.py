@@ -249,7 +249,6 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
     )
 
 
-@pytest.mark.sah1863
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_timeout(tango_context, group_callback):
@@ -327,7 +326,6 @@ def abort_timeout(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.sah1863
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_exception(tango_context, group_callback):

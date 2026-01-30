@@ -99,7 +99,6 @@ class Abort(DishLNCommand):
             self.command_uniq_id
             in self.component_manager.command_unique_id_dict.values()
         ):
-            self.logger.info("Deleted Abort id: %s", self.command_uniq_id)
             del self.component_manager.command_unique_id_dict["Abort"]
             self.command_uniq_id = ""
         self.component_manager.clear_configure_command_events_flags()
