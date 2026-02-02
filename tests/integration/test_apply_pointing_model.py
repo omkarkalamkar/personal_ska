@@ -39,7 +39,9 @@ def gpm_validation_result(
     assert flag
 
 
-def apply_pointing_model(tango_context, dishln_name, group_callback, gpm_json):
+def apply_pointing_model(
+    tango_context, initialise_kvalue, dishln_name, group_callback, gpm_json
+):
     """Test to check ApplyPointingModel command with valid TM path"""
 
     logger.info(f"{tango_context}")
@@ -435,10 +437,13 @@ def gpm_version_restart_scenario(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-def test_apply_pointing_model(tango_context, group_callback, json_factory):
+def test_apply_pointing_model(
+    tango_context, initialise_kvalue, group_callback, json_factory
+):
     """Test to check ApplyPointingModel command with valid TM path"""
     apply_pointing_model(
         tango_context,
+        initialise_kvalue,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
         json_factory("global_pointing_model"),

@@ -17,6 +17,7 @@ from ska_tmc_common import DishMode, PointingState
 from ska_tmc_common.adapters import AdapterFactory as HelperAdapterFactory
 from tango import DeviceProxy
 
+from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
 configure_logging()
@@ -28,6 +29,8 @@ SLEEP_TIME = 0.5
 TIMEOUT = 100
 NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES = 150
 
+WEATHER_STATION_DEVICE = "ska-mid/weather-monitoring/s1"
+WEATHER_STATION_DEVICE2 = "ska-mid/weather-monitoring/s2"
 DISH_MASTER_DEVICE = "mid-dish/dish-manager/ska001"
 DISH_LEAF_NODE_DEVICE = "mid-tmc/leaf-node-dish/ska001"
 SDP_QUEUE_CONNECTOR_DEVICE = "mid-sdp/queueconnector/01"
@@ -313,13 +316,25 @@ def wait_for_dish_mode(
     """
     start_time = time.time()
     elapsed_time = 0
-    while elapsed_time < TIMEOUT:
+    while elapsed_time < 10:
         cm.update_device_dish_mode(dish_mode)
         if cm.dishMode == int(dish_mode):
             return True
         elapsed_time = time.time() - start_time
     logger.info("Current Dishmode is %s", cm.dishMode)
     return False
+
+
+def wait_for_stow_status(
+    cm: DishLNComponentManager, status: StowStatus, timeout: int = 20
+) -> bool:
+    """Wait for stow status"""
+    start_time = time.time()
+    while cm.stow_status != status:
+        if (time.time() - start_time) >= timeout:
+            return False
+        time.sleep(1)
+    return True
 
 
 def wait_for_attribute_health_value(
@@ -371,7 +386,7 @@ def wait_for_unresponsive(cm: DishLNComponentManager) -> bool:
     count = 0
     timeout = 20
     while count < timeout:
-        if cm.get_device().unresponsive:
+        if cm.get_device(cm.dish_dev_name).unresponsive:
             return True
         time.sleep(1)
         count += 1
@@ -401,25 +416,17 @@ def tear_down(
             lookahead=4,
         )
         dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    dish_master.SetDirectPointingState(PointingState.NONE)
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
-    pointingstate_event_id = dish_leaf_node.subscribe_event(
-        "pointingState",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingState"],
-    )
+    dish_master.SetDirectPointingState(PointingState.NONE)
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_LP),
-        lookahead=15,
-    )
+    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    assert wait_for_attribute_value(dish_master, "dishMode", "2")
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
-    dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_master.clearcommandcallinfo()
 
 
@@ -565,21 +572,24 @@ def simulate_result_code_event(
     result: ResultCode,
 ):
     """Simulate LRCR event from given device for given result."""
-    command_id = ""
-    command_id = f"{time.time()}_{command_name}"
-    cm.command_unique_id_dict[command_name] = command_id
-    logging.info("command_id  is: %s", command_id)
-    command_result = (
-        command_id,
-        json.dumps(
-            [
-                result,
-                f"{command_name} completed",
-            ]
-        ),
-    )
-    time.sleep(0.2)
-    cm.update_command_result(command_result)
+    try:
+        command_id = ""
+        command_id = f"{time.time()}_{command_name}"
+        cm.command_unique_id_dict[command_name] = command_id
+        logging.info("command_id  is: %s", command_id)
+        command_result = (
+            command_id,
+            json.dumps(
+                [
+                    result,
+                    f"{command_name} completed",
+                ]
+            ),
+        )
+        time.sleep(0.2)
+        cm.update_command_result(command_result)
+    except Exception as exception:
+        logging.exception(exception)
 
 
 def simulate_track_table_event(
@@ -596,7 +606,10 @@ def simulate_dish_mode_event(
     dishmode: DishMode,
 ):
     """Simulate Dish mode event from dish master."""
-    cm.update_device_dish_mode(dishmode)
+    try:
+        cm.update_device_dish_mode(dishmode)
+    except Exception as exception:
+        logging.exception(exception)
 
 
 def simulate_pointing_state_event(

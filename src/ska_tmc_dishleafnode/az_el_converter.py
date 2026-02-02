@@ -33,12 +33,6 @@ class AzElConverter:
         # Instantiate it lazily in create_antenna_obj to use the latest layout.
         self.dish_helper: DishHelper | None = None
         self.refraction_correction = TroposphericRefraction()
-        # The values for temperature, pressure and humidity are considered
-        self.weather_data = {
-            "temperature": 30.0,
-            "pressure": 900.0,
-            "humidity": 0.10,  # Humidity is a fraction (0–1)
-        }
 
     def create_antenna_obj(self) -> None:
         """Create antenna object from array layout and set observer."""
@@ -77,9 +71,9 @@ class AzElConverter:
         try:
             refraction_corrected_azel = self.refraction_correction.refract(
                 azel,
-                self.weather_data["pressure"] * u.hPa,
-                self.weather_data["temperature"] * u.deg_C,
-                self.weather_data["humidity"],
+                self.component_manager.pressure * u.hPa,
+                self.component_manager.temperature * u.deg_C,
+                self.component_manager.humidity,
             )
             logger.debug(
                 "After refraction: Az=%s deg, El=%s deg",
@@ -177,9 +171,9 @@ class AzElConverter:
         azel = AltAz(az=Angle(az_value, u.deg), alt=Angle(el_value, u.deg))
         refraction_removed_azel = self.refraction_correction.unrefract(
             azel,
-            self.weather_data["pressure"] * u.hPa,
-            self.weather_data["temperature"] * u.deg_C,
-            self.weather_data["humidity"],
+            self.component_manager.pressure * u.hPa,
+            self.component_manager.temperature * u.deg_C,
+            self.component_manager.humidity,
         )
 
         target = Target.from_azel(

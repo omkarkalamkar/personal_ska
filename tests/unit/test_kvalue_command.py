@@ -44,7 +44,7 @@ def test_dm_available_after_dln_init_or_restart(
     cm_without_er_lp, tango_context
 ):
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     kvalue_validation_obj = DishkValueValidationManager(cm, logger)
     assert kvalue_validation_obj.is_dish_manager_ready()
 
@@ -71,7 +71,7 @@ def test_setkvalue_command_fail_check_allowed_with_device_unresponsive(
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(True, "Not available")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(True, "Not available")
     with pytest.raises(
         DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
     ):

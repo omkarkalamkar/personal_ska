@@ -6,7 +6,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory
 
 from ska_tmc_dishleafnode.commands.track_command import Track
-from ska_tmc_dishleafnode.enums import CapabilityStates
+from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from tests.settings import DISH_MASTER_DEVICE
 
 
@@ -41,7 +41,7 @@ def test_band_capability_state_change(
 ) -> None:
     cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
-    cm.get_device()._unresponsive = False
+    cm.get_device(cm.dish_dev_name)._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
     dish_device.subscribe_event(
         "b1CapabilityState",

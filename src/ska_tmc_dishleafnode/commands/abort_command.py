@@ -11,7 +11,6 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeKeeper
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
@@ -33,21 +32,6 @@ class Abort(DishLNCommand):
     Command to abort the Dish Master and bring it to its ABORTED state.
     """
 
-    def __init__(
-        self: Abort,
-        component_manager,
-        op_state_model,
-        adapter_factory=None,
-        logger: logging.Logger = LOGGER,
-    ):
-        super().__init__(
-            component_manager, op_state_model, adapter_factory, logger
-        )
-        self.timekeeper = TimeKeeper(
-            self.component_manager.command_timeout, logger
-        )
-        self.command_uniq_id: str = ""
-
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker(
@@ -60,13 +44,10 @@ class Abort(DishLNCommand):
         task_abort_event: Optional[threading.Event] = None,
     ):
         """This method calls do for Abort command"""
-        self.component_manager.command_in_progress = "Abort"
         with self.component_manager.tango_operation_execution_lock:
-            result_code, message = self.do()
-            return result_code, message
+            return self.do()
 
     # pylint: enable=unused-argument
-
     def update_task_status(
         self,
         **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],

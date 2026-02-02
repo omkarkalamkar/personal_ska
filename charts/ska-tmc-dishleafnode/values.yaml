@@ -43,12 +43,16 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.29.5
+    tag: 0.30.0
     pullPolicy: IfNotPresent
 
 resources:
+  limits:
+    cpu: 2000m
+    memory: 1000Mi
+    
   requests:
-    cpu: 1000m
+    cpu: 1100m
     memory: 500Mi
 
 deviceServers:
@@ -70,6 +74,23 @@ deviceServers:
     DishAvailabilityCheckTimeout: 3
     source_uris: gitlab://gitlab.com/ska-telescope/ska-telmodel-data?main#tmdata
     array_layout_path: instrument/ska1_mid/layout/mid-layout.json
+    weather_station_device_names: 
+      - "ska-mid/weather-monitoring/s1"
+      - "ska-mid/weather-monitoring/s2"
+    max_allowed_wind_speed: 13.5
+    max_allowed_ops_wind_speed: 10
+    max_allowed_gust_wind_speed: 20  
+    max_allowed_wind_speed_difference: 4.5
+    wind_speed_measurement_time_window: 1000
+    gust_wind_speed_measurement_time_window: 3
+    mean_wind_speed_measurement_time_window: 600
+    max_allowed_ops_mean_wind_speed_measurement_time_window: 600
+    max_temp_threshold: 40.0
+    min_temp_threshold: -5
+    time_delta: 1000.0
+    temp_delta: 10.0 #inflated 
+    enable_auto_stow: true
+    
   dishpointingdevice:
     enabled: true
     instances: ["01", "02"]

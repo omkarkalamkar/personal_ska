@@ -10,7 +10,7 @@ import pytest
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 
-from ska_tmc_dishleafnode.enums import CapabilityStates
+from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_data import (
     DishBandCapabilityStateData,
 )
@@ -54,7 +54,7 @@ def test_stop_executors_without_event_receiver(cm_without_er_lp):
             break
 
     assert cm.actual_pointing_process.is_alive()
-    assert cm.event_receiver is False
+    assert cm.event_manager is False
 
     # Call stop_executors_and_cleanup_memory
     cm.stop_executors_and_cleanup_memory()

@@ -11,6 +11,17 @@ Fixed
 -----
 * Release tag 0.29.5 as tag 0.29.4 has incorrect code base.
 
+[0.30.0]
+********
+Added
+------
+* Added Autostow functionality.
+
+Updated
+-------
+* Updated SetStowMode functionality.
+* Updated subscription mechanism with event manager.
+
 [0.29.4]
 ********
 Fixed

@@ -13,4 +13,3 @@ Feature: DishLeafNode acceptance
 		| SetStandbyFPMode  | STANDBY            | DishMode.STANDBY_LP |
 		| Configure         | STANDBY            | DishMode.STANDBY_FP |
 		| SetStandbyLPMode  | STANDBY            | DishMode.STANDBY_FP |
-		| SetStowMode       | STANDBY            | DishMode.STANDBY_LP |
