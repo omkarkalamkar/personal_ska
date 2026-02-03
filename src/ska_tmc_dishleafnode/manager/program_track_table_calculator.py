@@ -65,7 +65,6 @@ class ProgramTrackTableCalculator:
         else:
             self.right_ascension, self.declination = target_data
         self.azel_converter = azel_converter
-        self.weather_data = self.azel_converter.weather_data
         program_track_table = []
 
         try:

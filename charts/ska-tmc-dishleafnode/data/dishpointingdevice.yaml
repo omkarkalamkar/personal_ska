@@ -15,6 +15,8 @@ entrypoints:
 {{- $dishlnDomain := .Values.global.domain }}{{- $Domain := .Values.global.domain }}
 {{- $dishlnPointingFamily := .Values.deviceServers.dishln.pointing_family }}
 {{- $prefixMember := .Values.deviceServers.dishln.prefix_member}}
+{{- $WeatherStationDeviceNames := .Values.deviceServers.dishln.weather_station_device_names}}
+{{- $EventSubscriptionCheckPeriod := .Values.deviceServers.dishln.EventSubscriptionCheckPeriod }}
 
 server:
   name: "dishpointing"
@@ -62,6 +64,12 @@ server:
             - name: "SchedularQueuePreEntries"
               values:
                 - "{{ $SchedularQueuePreEntries }}"
+            - name: "WeatherStationDeviceNames"
+              values:
+              {{- range $wms := $WeatherStationDeviceNames }}
+                - "{{ $wms }}"
+              {{- end }}
+
   {{- end }}
 
 depends_on:

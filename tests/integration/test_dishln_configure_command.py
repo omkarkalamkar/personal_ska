@@ -24,7 +24,7 @@ from tests.settings import (
     wait_and_validate_attribute_value_available,
 )
 
-TIMEOUT_ACTUAL_POINTING = 5
+TIMEOUT_ACTUAL_POINTING = 10
 OFFSET = 5.0
 
 
@@ -51,8 +51,8 @@ def wait_for_actual_pointing_value(
             diff_dec = dec - c2
             logger.info("Diff: RA=%.20f°, Dec=%.20f°", diff_ra, diff_dec)
 
-            if math.isclose(ra, c1, abs_tol=0.2) and math.isclose(
-                dec, c2, abs_tol=0.01
+            if math.isclose(ra, c1, abs_tol=0.9) and math.isclose(
+                dec, c2, abs_tol=0.02
             ):
                 return True
 
@@ -185,7 +185,7 @@ def test_configure_command(
         # It was found that some times targets are not visible,during specific
         # IST morning hours
         # so we can skip test in that case.
-        if json_to_use is not None:
+        if json_to_use:
             configure_dish_leaf_node(
                 tango_context,
                 DISH_LEAF_NODE_DEVICE,

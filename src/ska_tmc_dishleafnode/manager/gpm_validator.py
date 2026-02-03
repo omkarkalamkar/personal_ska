@@ -194,6 +194,7 @@ class GPMValidator:
                 gpm_previous_version = self.component_manager.gpm_version.get(
                     band_found
                 )
+
                 apm_cmd_obj = ApplyPointingModel(
                     self.component_manager,
                     self.component_manager.op_state_model,

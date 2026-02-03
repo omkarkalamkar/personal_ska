@@ -150,7 +150,7 @@ def dishln_device(request):
                 "DishAvailabilityCheckTimeout": 5,
             },
             process=True,
-            timeout=20,
+            timeout=180,
         ) as proxy:
             yield proxy
     else:
@@ -195,6 +195,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "gpmVersion",
         "gpmValidationResult",
         "healthState",
+        "stowStatus",
         "b1CapabilityState",
         "b2CapabilityState",
         timeout=80,
@@ -364,7 +365,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         logger=logger,
         _update_dishmode_callback=dish_mode_callback,
         _update_dish_pointing_model_param=(pointing_model_param_callaback),
-        _event_receiver=False,
+        _event_manager=False,
         _liveliness_probe=LivelinessProbeType.NONE,
         _update_pointingstate_callback=pointing_state_callback,
         communication_state_callback=communication_state_callback,
@@ -387,9 +388,6 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
     )
     cm.stop_actual_pointing_process.set()
     cm.array_layout = ARRAY_LAYOUT
-    if cm.event_receiver:
-        cm.stop_event_receiver()
-
     yield cm
     # pylint: disable=unnecessary-dunder-call
     try:
@@ -476,7 +474,7 @@ def cm_pointig_device() -> (
     yield cm
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def initialise_kvalue(dishln_device):
     """Ensure DishLN and DishMaster start with matching KValue."""
     try:

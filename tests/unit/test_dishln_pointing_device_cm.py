@@ -261,7 +261,7 @@ def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
     real_scheduler = sched.scheduler(time.time, time.sleep)
     with patch(
         "ska_dishln_pointing_device.dishlnpd_component_manager."
-        "dishlnpd_component_manager.sched.scheduler",
+        "component_manager.sched.scheduler",
         return_value=real_scheduler,
     ):
         generate_program_track_table = GenerateProgramTrackTable(

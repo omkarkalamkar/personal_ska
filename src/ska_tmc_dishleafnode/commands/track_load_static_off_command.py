@@ -10,7 +10,6 @@ from typing import Dict, Tuple, Union
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.executor import TaskStatus
-from ska_tmc_common import TimeKeeper
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )
@@ -43,10 +42,6 @@ class TrackLoadStaticOff(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.is_configure_command = is_configure_command
-        self.timekeeper = TimeKeeper(
-            self.component_manager.command_timeout, logger
-        )
-        self.command_uniq_id: str = ""
 
     def update_task_status(
         self,

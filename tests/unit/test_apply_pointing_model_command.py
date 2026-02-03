@@ -3,13 +3,11 @@ from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import tango
 from ska_tango_base.commands import ResultCode, TaskStatus
 
 from ska_tmc_dishleafnode.commands.apply_pointing_model import (
     ApplyPointingModel,
 )
-from ska_tmc_dishleafnode.manager.event_receiver import DishLNEventReceiver
 from ska_tmc_dishleafnode.manager.gpm_validator import GPMValidator
 
 interface = "https://schema.skao.int/ska-mid-cbf-initsysparam/1.0"
@@ -47,7 +45,7 @@ def test_apply_pointing_model_command(
     """Test to check the global pointing model command
     functionality"""
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     global_pointing_tm_data_path = json_factory("global_pointing_model")
     cm.apply_pointing_model(
@@ -78,7 +76,7 @@ def test_apply_pointing_model_command_with_faulty_path(
     gets detected.
     """
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     global_pointing_tm_model_path = json_factory("global_pointing_model")
     global_pointing_tm_model_path = json.loads(global_pointing_tm_model_path)
@@ -119,7 +117,7 @@ def test_apply_pointing_model_command_with_faulty_json(
     gets detected.
     """
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     global_pointing_tm_model_path = json_factory(
         "global_pointing_model_faulty"
@@ -156,7 +154,7 @@ def test_apply_pointing_model_command_file_not_found(
     found on the repo.
     """
     cm = cm_without_er_lp
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     gpm_json = json.dumps(
         {
@@ -419,17 +417,6 @@ def test_to_check_get_band_info_failure(cm_without_er_lp):
     assert not version
     assert not band
     cm.logger.exception.assert_called_once()
-
-
-def test_handler_puts_event_in_queue(cm):
-    cm.event_queues = MagicMock()
-    event_receiver = DishLNEventReceiver(cm, cm.logger)
-    queue_key = "band2pointingmodelparams"
-    mock_event_data = MagicMock(spec=tango.EventData)
-    handler = event_receiver._create_pointing_model_handler(queue_key)
-    handler(mock_event_data)
-    cm.event_queues.__getitem__.assert_called_once_with(queue_key)
-    cm.event_queues[queue_key].put.assert_called_once_with(mock_event_data)
 
 
 def test_update_dish_pointing_model_param_calls(

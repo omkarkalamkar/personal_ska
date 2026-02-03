@@ -11,6 +11,7 @@ from ska_tmc_common.enum import DishMode, PointingState
 
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
+from ska_tmc_dishleafnode.manager.event_manager import DishLNEventManager
 from tests.settings import (
     COMMAND_COMPLETED,
     DISH_MASTER_DEVICE,
@@ -30,7 +31,7 @@ def test_trackloadstaticoff_command(
     """Test the successful completion of the TrackLoadStaticOff command."""
     cm = cm_without_er_lp
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
-    cm.get_device()._unresponsive = False
+    cm.get_device(cm.dish_dev_name)._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
     dish_device.subscribe_event(
         "longRunningCommandResult",
@@ -79,7 +80,7 @@ def test_trackloadstaticoff_command_invalid_input(
     """Test the failure scenario while invoking
     TrackLoadStaticOff command."""
     cm = cm_without_er_lp
-    cm.get_device()._unresponsive = False
+    cm.get_device(cm.dish_dev_name)._unresponsive = False
     assert cm.is_trackloadstaticoff_allowed()
 
     status, message = cm.track_load_static_off(
@@ -166,7 +167,7 @@ def test_configure_command_completed_with_correction_key_update(
     group_callback,
 ):
     """Test configure command with correction key as UPDATE"""
-    cm.get_device().update_unresponsive(False, "")
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     dish_device.subscribe_event(
         "longRunningCommandResult",
@@ -182,6 +183,10 @@ def test_configure_command_completed_with_correction_key_update(
         f"{SDP_QUEUE_CONNECTOR_DEVICE}/" "pointing_cal_{dish_id}"
     )
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+
+    cm.event_manager = True
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
+
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
     unique_id = ""
@@ -286,6 +291,9 @@ def test_correction_key_update_partial_config(
     )
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     cm.dish_id = "SKA001"
+    cm.event_manager = True
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
+
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
@@ -331,6 +339,9 @@ def test_correction_key_maintain_empty_partial_main_config(
     )
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
     cm.dish_id = "SKA001"
+    cm.event_manager = True
+    cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
+
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
 
     with pytest.raises(AssertionError):

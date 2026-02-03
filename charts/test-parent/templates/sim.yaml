@@ -1,0 +1,50 @@
+{{- if .Values.simulator.enabled }}
+{{- range $i, $station_id := .Values.mid_wms.deviceServers.wms.station_ids }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Values.simulator.name }}-{{ $station_id }}
+  labels:
+    component: {{ $.Values.simulator.name }}-{{ $station_id }}
+spec:
+  type: LoadBalancer
+  selector:
+    component: {{ $.Values.simulator.name }}-{{ $station_id }}
+  ports:
+    - name: sim-modbus-{{ $station_id }}
+      protocol: TCP
+      port: 1502
+      targetPort: 1502
+    - name: sim-modbusui-{{ $station_id }}
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $.Values.simulator.name }}-{{ $station_id }}
+  labels:
+    component: {{ $.Values.simulator.name }}-{{ $station_id }}
+spec:
+  serviceName: {{ $.Values.simulator.name }}-{{ $station_id }}
+  selector:
+    matchLabels:
+      component: {{ $.Values.simulator.name }}-{{ $station_id }}
+  template:
+    metadata:
+      labels:
+        component: {{ $.Values.simulator.name }}-{{ $station_id }}
+    spec:
+      containers:
+        - name: {{ $.Values.simulator.name }}-{{ $station_id }}
+          image: "{{ $.Values.simulator.containers.registry }}/{{ $.Values.simulator.containers.image }}:{{ $.Values.simulator.containers.tag }}"
+          imagePullPolicy: {{ $.Values.simulator.containers.pullPolicy }}
+          env:
+            - name: WMS_SIM_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+---
+{{- end }}
+{{- end }}
