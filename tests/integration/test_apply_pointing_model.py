@@ -9,7 +9,7 @@ from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common.dev_factory import DevFactory
 
-from ska_tmc_dishleafnode.enums import CapabilityStates
+from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
