@@ -36,3 +36,4 @@ class CapabilityStates(IntEnum):
     OPERATE_DEGRADED = 3
     OPERATE_FULL = 4
     UNKNOWN = 5
+    INIT = 6

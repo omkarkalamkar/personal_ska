@@ -269,6 +269,7 @@ def test_evaluate_health_state_degraded_when_any_gpm_failed(cm_without_er_lp):
     assert hm.evaluate_health_state(dh) == HealthState.DEGRADED
 
 
+@pytest.mark.health1
 @pytest.mark.parametrize(
     "b1_state,expected_health",
     [
@@ -319,7 +320,6 @@ def test_evaluate_health_state_band1_configured_b2_unavailable(
     assert hm.evaluate_health_state(dh) == expected_health
 
 
-@pytest.mark.p1
 @pytest.mark.parametrize(
     "b2_state,b1_state,expected_health",
     [
