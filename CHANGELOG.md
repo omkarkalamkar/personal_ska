@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
 
+
+
 [0.30.1]
 ********
 Added
@@ -29,10 +31,9 @@ Updated
 
 [0.29.5]
 ********
-Added
+Fixed
 -----
-* Unknown Capability will be treated a negative indicator.
-* DISH Capabilities transition to UNKNOWN will  be ignored when Dish is not in OPERATE mode.
+* Release tag 0.29.5 as tag 0.29.4 has incorrect code base.
 
 [0.29.4]
 ********
