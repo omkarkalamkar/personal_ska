@@ -692,6 +692,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "b4CapabilityState",
             "b5aCapabilityState",
             "b5bCapabilityState",
+            "healthState",
         ]
 
         device_attribute_map[self.dishln_pointing_dev_name] = [
