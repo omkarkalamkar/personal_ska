@@ -49,12 +49,12 @@ class DishBandCapabilityStateData:
 
     band_capabilities: Dict[str, CapabilityStates] = field(
         default_factory=lambda: {
-            "B1": CapabilityStates.UNKNOWN,
-            "B2": CapabilityStates.UNKNOWN,
-            "B3": CapabilityStates.UNKNOWN,
-            "B4": CapabilityStates.UNKNOWN,
-            "B5a": CapabilityStates.UNKNOWN,
-            "B5b": CapabilityStates.UNKNOWN,
+            "B1": CapabilityStates.INIT,
+            "B2": CapabilityStates.INIT,
+            "B3": CapabilityStates.INIT,
+            "B4": CapabilityStates.INIT,
+            "B5a": CapabilityStates.INIT,
+            "B5b": CapabilityStates.INIT,
         }
     )
 
@@ -287,7 +287,6 @@ class DishHealthStateAndInfoManager:
             "CONFIGURING",
             "OPERATE_FULL",
             "OPERATE_DEGRADED",
-            "UNKNOWN",
         }
 
         requested = self.health_data.receiver_band

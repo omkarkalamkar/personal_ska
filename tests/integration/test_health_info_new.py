@@ -68,6 +68,19 @@ def observation_workflow(
         lookahead=6,
     )
 
+    capabiity_argin = json.dumps(
+        {
+            "B1": CapabilityStates.OPERATE_FULL,
+            "B2": CapabilityStates.OPERATE_FULL,
+            "B3": CapabilityStates.OPERATE_FULL,
+            "B4": CapabilityStates.OPERATE_FULL,
+            "B5a": CapabilityStates.OPERATE_FULL,
+            "B5b": CapabilityStates.OPERATE_FULL,
+        }
+    )
+    dish_master.SetDirectCapabilityState(capabiity_argin)
+    wait_for_attribute_health_value(dish_leaf_node, "healthState", 0)
+
     log_and_assert_health(
         dish_leaf_node,
         dish_master,
