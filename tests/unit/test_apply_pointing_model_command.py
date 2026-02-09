@@ -3,7 +3,8 @@ from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 
 from ska_tmc_dishleafnode.commands.apply_pointing_model import (
     ApplyPointingModel,
@@ -51,9 +52,14 @@ def test_apply_pointing_model_command(
     cm.apply_pointing_model(
         global_pointing_tm_data_path, task_callback=task_callback
     )
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+    # cm.apply_pointing_model(
+    #     global_pointing_tm_data_path, task_callback=task_callback,
+    #     task_abort_event=threading.Event(),
+    # )
+
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -65,6 +71,7 @@ def test_apply_pointing_model_command(
                 "Successfully wrote the GPM values",
             ),
         },
+        lookahead=5,
     )
 
 
@@ -85,9 +92,9 @@ def test_apply_pointing_model_command_with_faulty_path(
         json.dumps(global_pointing_tm_model_path), task_callback=task_callback
     )
 
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -165,9 +172,9 @@ def test_apply_pointing_model_command_file_not_found(
     )
     cm.apply_pointing_model(gpm_json, task_callback=task_callback)
 
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

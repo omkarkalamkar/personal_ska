@@ -11,10 +11,9 @@ import time
 from typing import Tuple
 
 import tango
-from ska_control_model import HealthState
+from ska_control_model import HealthState, TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     DishMode,
     PointingState,
@@ -80,6 +79,8 @@ class Configure(DishLNCommand):
     def invoke_configure(
         self: Configure,
         argin: str,
+        # task_callback: TaskCallbackType,
+        # task_abort_event: Optional[threading.Event] = None,
     ) -> Tuple[ResultCode, str]:
         """This is a long running method for Configure command, it
         executes do hook, invokes Configure command on Dish Master.
@@ -92,7 +93,7 @@ class Configure(DishLNCommand):
         self.component_manager.command_id = self.timeout_id
         self.component_manager.is_configure_command = True
         self.component_manager.command_in_progress = "Configure"
-        self.task_callback(status=TaskStatus.IN_PROGRESS)
+        # self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
 
         array_layout = json_argument.get("layout_data")

@@ -5,15 +5,13 @@ from __future__ import annotations
 
 import logging
 import threading
-
-# import threading
 from functools import partial
 from typing import Callable, Dict, Optional, Tuple, Union
 
-from ska_control_model import HealthState
+# from ska_tango_base.executor import TaskStatus
+from ska_control_model import HealthState, TaskStatus
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode, SlowCommand
-from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import DishMode
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,

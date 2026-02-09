@@ -1,7 +1,8 @@
 from unittest import mock
 
 import pytest
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 

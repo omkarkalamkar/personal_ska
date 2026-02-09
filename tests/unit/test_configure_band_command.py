@@ -2,10 +2,12 @@
 """
 
 import json
+import threading
 from unittest import mock
 
 import pytest
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
@@ -35,10 +37,13 @@ def test_configure_band_command_completed(task_callback, cm):
     assert cm.is_configureband_allowed()
 
     argin = json.dumps({"dish": {"receiver_band": "1"}})
-    cm.configureband(argin, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configureband(argin, task_callback=task_callback)
+    cm.configureband(
+        argin, task_callback=task_callback, task_abort_event=threading.Event()
     )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -60,11 +65,14 @@ def test_configureband_command_adapter_none(task_callback, cm_without_er_lp):
     assert cm.is_configureband_allowed()
     argin = json.dumps({"dish": {"receiver_band": "1"}})
 
-    cm.configureband(argin, task_callback=task_callback)
-
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configureband(argin, task_callback=task_callback)
+    cm.configureband(
+        argin, task_callback=task_callback, task_abort_event=threading.Event()
     )
+
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -100,10 +108,15 @@ def test_configureband_command_with_spfrx_params(task_callback, cm):
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_configureband_allowed()
 
-    cm.configureband(DISH_CONFIGURE_1_0, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configureband(DISH_CONFIGURE_1_0, task_callback=task_callback)
+    cm.configureband(
+        DISH_CONFIGURE_1_0,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

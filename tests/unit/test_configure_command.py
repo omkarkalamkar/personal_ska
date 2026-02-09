@@ -1,9 +1,11 @@
 import json
+import threading
 import time
 from unittest import mock
 
 import pytest
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common import FaultType, PointingState
 from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
@@ -53,11 +55,16 @@ def test_configure_command_completed(
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
-    cm.configure(configure_input_str, task_callback=task_callback)
-    time.sleep(0.5)  # Ensure configure command is waiting for events.
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+    time.sleep(0.5)  # Ensure configure command is waiting for events.
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -105,10 +112,15 @@ def test_configure_command_completed_partial_config(
     cm.update_device_configured_band("2")
     cm.update_device_pointing_state(PointingState.TRACK)
 
-    cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -122,6 +134,7 @@ def test_configure_command_completed_partial_config(
     )
 
 
+@pytest.mark.config_test_d
 def test_delta_configure_command_completed(
     cm_without_er_lp, task_callback, json_factory
 ):
@@ -143,10 +156,15 @@ def test_delta_configure_command_completed(
     cm.update_device_configured_band("1")
     cm.update_device_pointing_state(PointingState.TRACK)
 
-    cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -188,11 +206,16 @@ def test_configure_command_completed_partial_config_missing_key(
     del config_json["pointing"]["target"]["ca_offset_arcsec"]
     configure_input_str = json.dumps(config_json)
 
-    cm.configure(configure_input_str, task_callback=task_callback)
-
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -215,11 +238,16 @@ def test_configure_command_adapter_none(
     wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     configure_input_str = json_factory("dishleafnode_configure")
-    cm.configure(configure_input_str, task_callback=task_callback)
-
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -252,6 +280,7 @@ def test_configure_command_not_allowed(cm_without_er_lp):
         cm.is_configure_allowed()
 
 
+@pytest.mark.test_config_pr
 def test_configure_command_status_not_allowed(
     cm_without_er_lp,
     task_callback,
@@ -276,12 +305,17 @@ def test_configure_command_status_not_allowed(
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
-    cm.configure(configure_input_str, task_callback=task_callback)
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
+    )
     cm.update_device_configured_band("2")
     cm.update_device_dish_mode(DishMode.UNKNOWN)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         status=TaskStatus.REJECTED,
         result=(ResultCode.NOT_ALLOWED, "Command is not allowed"),
@@ -309,11 +343,16 @@ def test_configure_timeout(
     assert cm.is_configure_allowed()
 
     dish_master.SetDefective(json.dumps(defect))
-    cm.configure(configure_input_str, task_callback=task_callback)
-
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

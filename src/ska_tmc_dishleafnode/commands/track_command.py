@@ -6,9 +6,9 @@ import logging
 import time
 from typing import Callable, Optional, Tuple
 
+from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
@@ -66,7 +66,13 @@ class Track(DishLNCommand):
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker("get_track_result_code", [ResultCode.OK])
-    def track(self: Track, argin: dict, **kwargs) -> Tuple[ResultCode, str]:
+    def track(
+        self: Track,
+        argin: dict,
+        # task_callback: Optional[TaskCallbackType] = None,
+        # task_abort_event: Optional[threading.Event] = None,
+        **kwargs,
+    ) -> Tuple[ResultCode, str]:
         """This is a long running method for Track command, it
         executes the do hook, invoking Track command on Dish Master
 

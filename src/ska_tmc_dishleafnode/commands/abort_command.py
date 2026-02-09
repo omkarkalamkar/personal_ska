@@ -7,10 +7,12 @@ import logging
 import threading
 from typing import Dict, Optional, Tuple, Union
 
+from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
+
+# from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
 )

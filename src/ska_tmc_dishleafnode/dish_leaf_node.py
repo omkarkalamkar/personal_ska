@@ -3,14 +3,22 @@
 from __future__ import annotations
 
 import json
+from threading import Event
 from typing import List, Tuple, Union
 
 import tango
 from numpy import isnan
 from numpy import nan as NaN
 from ska_control_model import HealthState
-from ska_tango_base import SKABaseDevice
+
+# from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
+from ska_tango_base.long_running_commands import (
+    LRCReqType,
+    long_running_command,
+)
+from ska_tango_base.software_bus import Signal, attribute_from_signal
+from ska_tango_base.type_hints import TaskCallbackType
 from ska_tmc_common import (
     CommandNotAllowed,
     DeviceUnresponsive,
@@ -19,22 +27,27 @@ from ska_tmc_common import (
     PointingState,
 )
 from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
-from tango import (
+from tango import (  # TimeVal,
     ArgType,
     AttrDataFormat,
     AttrQuality,
     AttrWriteType,
     Database,
     DebugIt,
-    TimeVal,
 )
 from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
+
+# from ska_tmc_dishleafnode.commands.set_kvalue import (
+#     SetKValue as SetKValueCommand,
+# )
 from ska_tmc_dishleafnode.commands.setstowmode import StowCommand
 from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
+
+# from ska_control_model.control_model import HealthState
 
 
 # pylint: disable = attribute-defined-outside-init
@@ -188,37 +201,183 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ_WRITE,
     )
 
-    trackTableErrors = attribute(
-        dtype=("str",),
+    # trackTableErrors = attribute(
+    #     dtype=("str",),
+    #     max_dim_x=1024,
+    #     access=AttrWriteType.READ,
+    # )
+
+    _errors_to_be_reported: Signal[str] = Signal[str](
+        stored=True, initial_value=""
+    )
+
+    trackTableErrors = attribute_from_signal(
+        _errors_to_be_reported,
+        dtype=str,
         max_dim_x=1024,
         access=AttrWriteType.READ,
+        description="TrackTable errors to be reported",
     )
 
-    isSubsystemAvailable = attribute(
-        dtype=bool,
+    # isSubsystemAvailable = attribute(
+    #     dtype=bool,
+    #     access=AttrWriteType.READ,
+    # )
+
+    _is_subsystem_available: Signal[bool] = Signal[bool](
+        stored=True, initial_value=False
+    )
+
+    isSubsystemAvailable: attribute_from_signal = attribute_from_signal(
+        _is_subsystem_available,
         access=AttrWriteType.READ,
+        dtype="DevBoolean",
+        description="Boolean Flag for sub system available",
     )
 
-    actualPointing = attribute(
+    # actualPointing = attribute(
+    #     dtype=str,
+    #     access=AttrWriteType.READ,
+    # )
+
+    _actual_pointing: Signal[str] = Signal[str](stored=True, initial_value="")
+
+    actualPointing = attribute_from_signal(
+        _actual_pointing,
+        access=AttrWriteType.READ,
         dtype=str,
-        access=AttrWriteType.READ,
+        description="Gets the actualPointing attribute value",
     )
 
-    dishMode = attribute(
+    # dishMode = attribute(
+    #     dtype=DishMode,
+    #     access=AttrWriteType.READ,
+    # )
+
+    _dishMode: Signal[DishMode] = Signal[DishMode](
+        stored=True, initial_value=""
+    )
+
+    dishMode = attribute_from_signal(
+        _dishMode,
+        access=AttrWriteType.READ,
         dtype=DishMode,
-        access=AttrWriteType.READ,
+        description="current value of the dishMode attribute",
     )
 
-    pointingState = attribute(
-        dtype=PointingState,
-        access=AttrWriteType.READ,
+    # pointingState = attribute(
+    #     dtype=PointingState,
+    #     access=AttrWriteType.READ,
+    # )
+
+    _pointingState: Signal[PointingState] = Signal[PointingState](
+        stored=True, initial_value=""
     )
+
+    pointingState = attribute_from_signal(
+        _pointingState,
+        access=AttrWriteType.READ,
+        dtype=PointingState,
+        description="current value of the dishMode attribute",
+    )
+
+    # _kValueValidationResult: Signal[str] = Signal[str](
+    #     stored=True, initial_value=""
+    # )
+
+    # kValueValidationResult = attribute_from_signal(
+    #     _kValueValidationResult,
+    #     access=AttrWriteType.READ,
+    #     dtype=str,
+    #     description="k-value validation result",
+    # )
+
+    # _sdpQueueConnectorFqdn: Signal[str] = Signal[str](
+    #     stored=True, initial_value=""
+
+    # sdpQueueConnectorFqdn = attribute_from_signal(
+    #     _sdpQueueConnectorFqdn,
+    #     dtype=ArgType.DevString,
+    #     dformat=AttrDataFormat.SCALAR,
+    #     access=AttrWriteType.READ_WRITE,
+    #     dtype=str,
+    #     description="SDP queue connector FQDN from subarray node",
+    # )
+
+    # @attribute(
+    #     dtype=ArgType.DevString,
+    #     dformat=AttrDataFormat.SCALAR,
+    #     access=AttrWriteType.READ_WRITE,
+    # )
+
+    _sourceOffset: Signal[float] = Signal[float](stored=True, initial_value="")
+
+    sourceOffset = attribute_from_signal(
+        _sourceOffset,
+        dtype=ArgType.DevDouble,
+        dformat=AttrDataFormat.SPECTRUM,
+        access=AttrWriteType.READ,
+        max_dim_x=2,
+        description="Stores offsets from delta/partial configuration",
+    )
+
+    # @attribute(
+    #     dtype=ArgType.DevDouble,
+    #     dformat=AttrDataFormat.SPECTRUM,
+    #     access=AttrWriteType.READ,
+    #     max_dim_x=2,
+    # )
+
+    _lastPointingData: Signal[str] = Signal[str](stored=True, initial_value="")
+
+    lastPointingData = attribute_from_signal(
+        _lastPointingData,
+        dtype=ArgType.DevString,
+        dformat=AttrDataFormat.SCALAR,
+        access=AttrWriteType.READ,
+        description="storing pointing data received in calibration scan",
+    )
+
+    # @attribute(
+    #     dtype=ArgType.DevString,
+    #     dformat=AttrDataFormat.SCALAR,
+    #     access=AttrWriteType.READ,
+    # )
+
+    # _kValue: Signal[int] = Signal[int](stored=True, initial_value="")
+
+    # kValue = attribute_from_signal(
+    #     _kValue,
+    #     dtype="DevLong",
+    #     access=AttrWriteType.READ_WRITE,
+    #     memorized=True,
+    #     hw_memorized=True,
+    #     description="k-value attribute value",
+    # )
+
+    # @attribute(
+    #     dtype="DevLong",
+    #     access=AttrWriteType.READ_WRITE,
+    #     memorized=True,
+    #     hw_memorized=True,
+    # )
+
+    InitCommand = None
 
     # ---------------
     # General methods
     # ---------------
 
     def init_device(self: MidTmcLeafNodeDish):
+        super().init_device()
+
+        # device = self._device
+        self._build_state = f"""{release.name},{release.version},
+        {release.description}"""
+        self._version_id = release.version
+        self._dishln_name = self.get_name()
+        self._update_health_state(HealthState.DEGRADED)
+        self.op_state_model.perform_action("component_on")
         self._isSubsystemAvailable = True
         self.stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
         self.mean_wind_speed: float = 0.0
@@ -235,7 +394,17 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
-        super().init_device()
+        # super().init_device()
+
+        # device = self._device
+        # device._build_state = f"""{release.name},{release.version},
+        # {release.description}"""
+        # device._version_id = release.version
+        # device._dishln_name = device.get_name()
+        # device._update_health_state(HealthState.DEGRADED)
+        # device.op_state_model.perform_action("component_on")
+        # return (ResultCode.OK, "")
+
         for attribute_name in [
             "healthState",
             "healthInfo",
@@ -261,32 +430,33 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
+        self.init_completed()
 
-    class InitCommand(SKABaseDevice.InitCommand):
-        """
-        A class for the TMC DishLeafNode init_device() method.
-        """
+    # class InitCommand(SKABaseDevice.InitCommand):
+    #     """
+    #     A class for the TMC DishLeafNode init_device() method.
+    #     """
 
-        # pylint: disable=W0221
-        def do(self):
-            """
-            Initializes the attributes and properties of the
-            MidTmcLeafNodeDish.
+    #     # pylint: disable=W0221
+    #     def do(self):
+    #         """
+    #         Initializes the attributes and properties of the
+    #         MidTmcLeafNodeDish.
 
-            Returns:
-                tuple: A tuple containing a return code and a string message
-                indicating status. The message is for information purpose only.
+    #         Returns:
+    #             tuple: A tuple containing a return code and a string message
+    #           indicating status. The message is for information purpose only.
 
-            """
-            super().do()
-            device = self._device
-            device._build_state = f"""{release.name},{release.version},
-            {release.description}"""
-            device._version_id = release.version
-            device._dishln_name = device.get_name()
-            device._update_health_state(HealthState.DEGRADED)
-            device.op_state_model.perform_action("component_on")
-            return (ResultCode.OK, "")
+    #         """
+    #         super().do()
+    #         device = self._device
+    #         device._build_state = f"""{release.name},{release.version},
+    #         {release.description}"""
+    #         device._version_id = release.version
+    #         device._dishln_name = device.get_name()
+    #         device._update_health_state(HealthState.DEGRADED)
+    #         device.op_state_model.perform_action("component_on")
+    #         return (ResultCode.OK, "")
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -303,13 +473,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             healthState (HealthState): New health state to be set.
         """
         self._health_state = healthState
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events("healthState", self._health_state)
-        self.logger.info(
-            "Updated HealthState of %s is: %s",
-            self._dishln_name,
-            self._health_state,
-        )
+        # with tango.EnsureOmniThread():
+        #   self.push_change_archive_events("healthState", self._health_state)
+        # self.logger.info(
+        #     "Updated HealthState of %s is: %s",
+        #     self._dishln_name,
+        #     self._health_state,
+        # )
 
     def update_health_info_callback(self, health_info: dict) -> None:
         """Change event callback for healthInfo attribute
@@ -317,14 +487,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             health_info (dict): New health info to be set.
         """
         self.component_manager.health_info = health_info
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "healthInfo", json.dumps(self.component_manager.health_info)
-            )
-        self.logger.info(
-            "Updated HealthInfo is: %s",
-            json.dumps(self.component_manager.health_info),
-        )
+        # with tango.EnsureOmniThread():
+        #     self.push_change_archive_events(
+        #         "healthInfo", json.dumps(self.component_manager.health_info)
+        #     )
+        # self.logger.info(
+        #     "Updated HealthInfo is: %s",
+        #     json.dumps(self.component_manager.health_info),
+        # )
 
     def update_gpm_paths_data_callback(
         self, source_path: str, file_path: str
@@ -422,13 +592,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
         self._sourceOffset = source_offset
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events("sourceOffset", self._sourceOffset)
-        self.logger.info(
-            "Updated sourceOffset of %s is: %s",
-            self._dishln_name,
-            self._sourceOffset,
-        )
+        # with tango.EnsureOmniThread():
+        #   self.push_change_archive_events("sourceOffset", self._sourceOffset)
+        # self.logger.info(
+        #     "Updated sourceOffset of %s is: %s",
+        #     self._dishln_name,
+        #     self._sourceOffset,
+        # )
 
     def update_last_pointing_data_cb(self, last_pointing_data: List) -> None:
         """Change event callback for lastPointingData attribute"""
@@ -440,11 +610,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self._last_pointing_data_attr_quality = getattr(
                 AttrQuality, "ATTR_VALID"
             )
-        self._lastPointingData = json.dumps(last_pointing_data.tolist())
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "lastPointingData", self._lastPointingData
-            )
+        # self._lastPointingData = json.dumps(last_pointing_data.tolist())
+        # with tango.EnsureOmniThread():
+        #     self.push_change_archive_events(
+        #         "lastPointingData", self._lastPointingData
+        #     )
         self.logger.info(
             "Updated lastPointingData of %s is: %s ",
             self._dishln_name,
@@ -455,17 +625,17 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Change event callback for isSubsystemAvailable"""
         if self._isSubsystemAvailable != availability:
             self._isSubsystemAvailable = availability
-            with tango.EnsureOmniThread():
-                self.push_change_archive_events(
-                    "isSubsystemAvailable", availability
-                )
+            # with tango.EnsureOmniThread():
+            #     self.push_change_archive_events(
+            #         "isSubsystemAvailable", availability
+            #     )
 
     def pointing_callback(self, actual_pointing: list) -> None:
         """Push an event for the actualPointing attribute."""
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "actualPointing", json.dumps(actual_pointing)
-            )
+        # with tango.EnsureOmniThread():
+        #     self.push_change_archive_events(
+        #         "actualPointing", json.dumps(actual_pointing)
+        #     )
 
     def update_track_table_errors_callback(self, value: list) -> None:
         """Push an event for the trackTableErrors attribute."""
@@ -473,8 +643,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "TrackTable errors to be reported: %s",
             self.component_manager.errors_to_be_reported,
         )
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events("trackTableErrors", value)
+        # with tango.EnsureOmniThread():
+        #     self.push_change_archive_events("trackTableErrors", value)
         self.logger.debug("Pushed the trackTableErrors event: %s", value)
 
     def update_global_pointing_param_callback(
@@ -494,8 +664,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
         self._dishMode = dish_mode
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events("dishMode", self._dishMode)
+        # with tango.EnsureOmniThread():
+        #     self.push_change_archive_events("dishMode", self._dishMode)
 
     def update_pointingstate_callback(
         self, pointing_state: PointingState
@@ -508,14 +678,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         # In order to avoid same below filtering criteria has been applied.
 
         self._pointingState = pointing_state
-        if (
-            self.component_manager.is_configure_command
-            or self.component_manager.command_in_progress
-        ):
-            with tango.EnsureOmniThread():
-                self.push_change_archive_events(
-                    "pointingState", self._pointingState
-                )
+        # if (
+        #     self.component_manager.is_configure_command
+        #     or self.component_manager.command_in_progress
+        # ):
+        #     with tango.EnsureOmniThread():
+        #         self.push_change_archive_events(
+        #             "pointingState", self._pointingState
+        #         )
 
     def kvalue_validation_callback(self) -> None:
         """Push an event for the kValueValidationResult attribute."""
@@ -535,11 +705,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "kValue",
-                int(self.component_manager.kValue),
-            )
+        # with tango.EnsureOmniThread():
+        #     self.push_change_archive_events(
+        #         "kValue",
+        #         int(self.component_manager.kValue),
+        #     )
         self.logger.debug(
             "k-value is updated to: %s",
             self.component_manager.kValue,
@@ -719,51 +889,51 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "sdpQueueConnectorFqdn", self._sdpQueueConnectorFqdn
         )
 
-    @attribute(
-        dtype=ArgType.DevDouble,
-        dformat=AttrDataFormat.SPECTRUM,
-        access=AttrWriteType.READ,
-        max_dim_x=2,
-    )
-    def sourceOffset(self: MidTmcLeafNodeDish) -> list[float]:
-        """
-        This attribute is used for storing the commanded offsets
-        received as a part of delta/partial configuration.
-        This attribute is subscribed by SDP queue connector
-        device.
-        delta/partial configuration values like ca_offset_arcsec
-        and ie_offset_arcsec are provided in the partial configuration
-        json.
+    # @attribute(
+    #     dtype=ArgType.DevDouble,
+    #     dformat=AttrDataFormat.SPECTRUM,
+    #     access=AttrWriteType.READ,
+    #     max_dim_x=2,
+    # )
+    # def sourceOffset(self: MidTmcLeafNodeDish) -> list[float]:
+    #     """
+    #     This attribute is used for storing the commanded offsets
+    #     received as a part of delta/partial configuration.
+    #     This attribute is subscribed by SDP queue connector
+    #     device.
+    #     delta/partial configuration values like ca_offset_arcsec
+    #     and ie_offset_arcsec are provided in the partial configuration
+    #     json.
 
-        source offset example:
-        [cross_elevation_offset, elevation_offset]
-        [0, .5]
-        [.5, 0]
-        [0, -.5], etc
+    #     source offset example:
+    #     [cross_elevation_offset, elevation_offset]
+    #     [0, .5]
+    #     [.5, 0]
+    #     [0, -.5], etc
 
-        :return: list[float]
-        """
-        return self._sourceOffset
+    #     :return: list[float]
+    #     """
+    #     return self._sourceOffset
 
-    @attribute(
-        dtype=ArgType.DevString,
-        dformat=AttrDataFormat.SCALAR,
-        access=AttrWriteType.READ,
-    )
-    def lastPointingData(self: MidTmcLeafNodeDish):
-        """
-        This attribute is used to store the recent
-        pointing data received in calibration scan
+    # @attribute(
+    #     dtype=ArgType.DevString,
+    #     dformat=AttrDataFormat.SCALAR,
+    #     access=AttrWriteType.READ,
+    # )
+    # def lastPointingData(self: MidTmcLeafNodeDish):
+    #     """
+    #     This attribute is used to store the recent
+    #     pointing data received in calibration scan
 
-        :return: str
-        """
-        if self._last_pointing_data_attr_quality is AttrQuality.ATTR_VALID:
-            return self._lastPointingData
-        return (
-            self._lastPointingData,
-            TimeVal.totime(TimeVal.now()),
-            self._last_pointing_data_attr_quality,
-        )
+    #     :return: str
+    #     """
+    #     if self._last_pointing_data_attr_quality is AttrQuality.ATTR_VALID:
+    #         return self._lastPointingData
+    #     return (
+    #         self._lastPointingData,
+    #         TimeVal.totime(TimeVal.now()),
+    #         self._last_pointing_data_attr_quality,
+    #     )
 
     @attribute(
         dtype="str",
@@ -1411,7 +1581,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         return [result_code], [str(unique_id)]
 
-    def is_SetStandbyLPMode_allowed(self: MidTmcLeafNodeDish) -> bool:
+    # pylint: disable=unused-argument
+    def is_SetStandbyLPMode_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -1422,17 +1596,31 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_setstandbylpmode_allowed()
 
+    @long_running_command
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyLPMode(self: MidTmcLeafNodeDish):
         """Invokes SetStandbyLPMode command on DishMaster (Standby-Low power)
         mode."""
-        handler = self.get_command_object("SetStandbyLPMode")
-        result_code, unique_id = handler()
+        # handler = self.get_command_object("SetStandbyLPMode")
+        # result_code, unique_id = handler()
 
-        return [result_code], [str(unique_id)]
+        # return [result_code], [str(unique_id)]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.setstandbylpmode(
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
 
-    def is_SetStandbyFPMode_allowed(self: MidTmcLeafNodeDish) -> bool:
+        return task
+
+    # pylint: disable=unused-argument
+    def is_SetStandbyFPMode_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -1444,6 +1632,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_setstandbyfpmode_allowed()
 
+    @long_running_command
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetStandbyFPMode(
@@ -1453,11 +1642,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         mode.
 
         """
-        handler = self.get_command_object("SetStandbyFPMode")
-        result_code, unique_id = handler()
+        # handler = self.get_command_object("SetStandbyFPMode")
+        # result_code, unique_id = handler()
 
-        return [result_code], [str(unique_id)]
+        # return [result_code], [str(unique_id)]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.setstandbyfpmode(
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
 
+        return task
+
+    @long_running_command
     @command(
         dtype_in="DevString",
         doc_in="The scan_id in string",
@@ -1473,12 +1672,26 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        handler = self.get_command_object("Scan")
-        result_code, unique_id = handler(argin)
-        return [result_code], [str(unique_id)]
 
+        # handler = self.get_command_object("Scan")
+        # result_code, unique_id = handler(argin)
+        # return [result_code], [str(unique_id)]
+
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.scan(
+                argin=argin,
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
+
+        return task
+
+    # pylint: disable=unused-argument
     def is_Scan_allowed(
         self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
     ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
@@ -1492,8 +1705,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_scan_allowed()
 
+    # pylint: disable=unused-argument
     def is_EndScan_allowed(
         self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
     ) -> Union[bool, CommandNotAllowed, DeviceUnresponsive]:
         """
         Checks whether this command is allowed to be run in the current
@@ -1507,6 +1722,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_endscan_allowed()
 
+    @long_running_command
     @command(
         dtype_in="DevVoid",
         dtype_out="DevVarLongStringArray",
@@ -1521,12 +1737,26 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        handler = self.get_command_object("EndScan")
-        result_code, unique_id = handler()
+        # handler = self.get_command_object("EndScan")
+        # result_code, unique_id = handler()
 
-        return [result_code], [str(unique_id)]
+        # return [result_code], [str(unique_id)]
 
-    def is_off_allowed(self: MidTmcLeafNodeDish):
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.endscan(
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
+
+        return task
+
+    # pylint: disable=unused-argument
+    def is_off_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ):
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -1538,17 +1768,32 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_off_allowed()
 
+    @long_running_command
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def Off(self: MidTmcLeafNodeDish) -> tuple:
         """
         Invokes On command on Dish Master.
         """
-        handler = self.get_command_object("Off")
-        result_code, unique_id = handler()
-        return [result_code], [unique_id]
 
-    def is_Configure_allowed(self: MidTmcLeafNodeDish) -> bool:
+        # handler = self.get_command_object("Off")
+        # result_code, unique_id = handler()
+        # return [result_code], [unique_id]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.off(
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
+
+        return task
+
+    # pylint: disable=unused-argument
+    def is_Configure_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         dish mode.
@@ -1560,6 +1805,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_configure_allowed()
 
+    @long_running_command
     @command(
         dtype_in="str",
         doc_in="The string in JSON format",
@@ -1570,10 +1816,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def Configure(self: MidTmcLeafNodeDish, argin) -> tuple:
         """
         Invokes Configure command on Dish Master.
-        """
-        handler = self.get_command_object("Configure")
-        result_code, unique_id = handler(argin)
-        return [result_code], [unique_id]
+        #"""
+
+        # handler = self.get_command_object("Configure")
+        # result_code, unique_id = handler(argin)
+        # return [result_code], [unique_id]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.configure(
+                argin=argin,
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
+
+        return task
 
     def is_StartCapture_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
@@ -1631,7 +1888,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ["StopCapture command will be refactored in later PI's"],
         ]
 
-    def is_Track_allowed(self: MidTmcLeafNodeDish) -> bool:
+    # pylint: disable=unused-argument
+    def is_Track_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -1643,6 +1904,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_track_allowed()
 
+    @long_running_command
     @command(
         dtype_in="str",
         doc_in="The JSON input string contains dish and pointing information.",
@@ -1652,11 +1914,25 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def Track(self: MidTmcLeafNodeDish, argin) -> tuple:
         """Invokes Track command on the DishMaster."""
 
-        handler = self.get_command_object("Track")
-        result_code, unique_id = handler(argin)
-        return [result_code], [unique_id]
+        # handler = self.get_command_object("Track")
+        # result_code, unique_id = handler(argin)
+        # return [result_code], [unique_id]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.track(
+                argin=argin,
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
 
-    def is_ConfigureBand_allowed(self: MidTmcLeafNodeDish) -> bool:
+        return task
+
+    # pylint: disable=unused-argument
+    def is_ConfigureBand_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -1669,6 +1945,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self.logger.debug("Checking if ConfigureBand is allowed")
         return self.component_manager.is_configureband_allowed()
 
+    @long_running_command
     @command(
         dtype_in="str",
         doc_in="The input string contains dish receiver band.",
@@ -1678,10 +1955,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def ConfigureBand(self: MidTmcLeafNodeDish, argin) -> tuple:
         """Invokes ConfigureBand command on the DishMaster."""
 
-        handler = self.get_command_object("ConfigureBand")
-        result_code, unique_id = handler(argin)
-        return [result_code], [unique_id]
+        # handler = self.get_command_object("ConfigureBand")
+        # result_code, unique_id = handler(argin)
+        # return [result_code], [unique_id]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.configureband(
+                argin=argin,
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
 
+        return task
+
+    @long_running_command
     @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def TrackStop(
@@ -1692,12 +1980,26 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: tuple
         """
-        handler = self.get_command_object("TrackStop")
-        result_code, unique_id = handler()
 
-        return [result_code], [str(unique_id)]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.trackstop(
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
 
-    def is_TrackStop_allowed(self: MidTmcLeafNodeDish) -> bool:
+        return task
+        # handler = self.get_command_object("TrackStop")
+        # result_code, unique_id = handler()
+
+        # return [result_code], [str(unique_id)]
+
+    # pylint: disable=unused-argument
+    def is_TrackStop_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -1709,6 +2011,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_trackstop_allowed()
 
+    @long_running_command
     @command(
         dtype_in="str",
         doc_in="The JSON input string containing cross "
@@ -1724,12 +2027,27 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: tuple
         """
-        handler = self.get_command_object("TrackLoadStaticOff")
-        result_code, unique_id = handler(argin)
 
-        return [result_code], [str(unique_id)]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.track_load_static_off(
+                argin=argin,
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
 
-    def is_TrackLoadStaticOff_allowed(self: MidTmcLeafNodeDish) -> bool:
+        return task
+        # handler = self.get_command_object("TrackLoadStaticOff")
+        # result_code, unique_id = handler(argin)
+
+        # return [result_code], [str(unique_id)]
+
+    # pylint: disable=unused-argument
+    def is_TrackLoadStaticOff_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.
@@ -1805,7 +2123,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             ["ObsReset command will be refactored in later PI's"],
         ]
 
-    def is_SetKValue_allowed(self: MidTmcLeafNodeDish) -> bool:
+    # pylint: disable=unused-argument
+    def is_SetKValue_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in current
         device state
@@ -1817,6 +2139,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_set_kvalue_allowed()
 
+    @long_running_command
     @command(
         dtype_in="DevLong",
         doc_in="The k number in range [1-2222]",
@@ -1828,6 +2151,24 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self: MidTmcLeafNodeDish, k_value: int
     ) -> Tuple[List[ResultCode], List[str]]:
         """Invokes SetKValue command on the DishMaster."""
+
+        # def task(
+        #     task_callback: TaskCallbackType,
+        #     task_abort_event: Event,
+        # ) -> None:
+        #     set_kvalue_cmd = SetKValueCommand(
+        #         component_manager=self.component_manager,
+        #         logger=self.logger,
+        #     )
+
+        #     set_kvalue_cmd(
+        #         k_value=k_value,
+        #         task_callback=task_callback,
+        #         task_abort_event=task_abort_event,
+        #     )
+
+        # return task
+
         handler = self.get_command_object("SetKValue")
         result_code, unique_id = handler(k_value)
         if result_code == ResultCode.OK:
@@ -1846,6 +2187,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.update_kvalue_callback()
         return [result_code], [unique_id]
 
+    @long_running_command
     @command(
         dtype_in="str",
         doc_in="The JSON input string containing Global " + "pointing data",
@@ -1862,11 +2204,26 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: tuple
         """
-        handler = self.get_command_object("ApplyPointingModel")
-        result_code, unique_id = handler(argin)
-        return [result_code], [str(unique_id)]
 
-    def is_ApplyPointingModel_allowed(self: MidTmcLeafNodeDish) -> bool:
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.apply_pointing_model(
+                argin=argin,
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
+
+        return task
+        # handler = self.get_command_object("ApplyPointingModel")
+        # result_code, unique_id = handler(argin)
+        # return [result_code], [str(unique_id)]
+
+    # pylint: disable=unused-argument
+    def is_ApplyPointingModel_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
         """
         Checks whether this command is allowed to be run in the current
         device state.

@@ -4,7 +4,8 @@ import time
 from unittest import mock
 
 import pytest
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import DishMode, PointingState
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
@@ -88,10 +89,15 @@ def test_error_propagation_program_track_table(
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
-    cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -130,10 +136,13 @@ def test_error_propagation_stop_program_track_table(
     simulate_dish_mode_event(cm, DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()
-    cm.trackstop(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    # cm.trackstop(task_callback=task_callback)
+    cm.trackstop(
+        task_callback=task_callback, task_abort_event=threading.Event()
     )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

@@ -1,7 +1,9 @@
+import threading
 from unittest import mock
 
 import pytest
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
@@ -15,6 +17,7 @@ def test_off_command_in_lp(cm):
         cm.is_off_allowed()
 
 
+@pytest.mark.off_fp
 def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     attrs = {
@@ -36,9 +39,12 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     wait_for_dish_mode(cm, DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
     cm.setstandbyfpmode(task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+    # cm.setstandbyfpmode(
+    #     task_callback=task_callback, task_abort_event=threading.Event()
+    # )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -51,10 +57,11 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_off_allowed()
-    cm.off(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+    # cm.off(task_callback=task_callback)
+    cm.off(task_callback=task_callback, task_abort_event=threading.Event())
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -73,9 +80,9 @@ def test_off_command_adapter_none(cm_without_er_lp, task_callback):
     assert cm.is_off_allowed()
     cm.command_timeout = 2
     cm.off(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
