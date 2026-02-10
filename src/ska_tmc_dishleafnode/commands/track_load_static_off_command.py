@@ -71,10 +71,7 @@ class TrackLoadStaticOff(DishLNCommand):
         "get_track_load_static_off_result_code", [ResultCode.OK]
     )
     def invoke_track_load_static_off(
-        self: TrackLoadStaticOff,
-        argin: str,
-        task_callback: Optional[TaskCallbackType] = None,
-        task_abort_event: Optional[threading.Event] = None,
+        self: TrackLoadStaticOff, argin: str, **kwargs
     ) -> Tuple[ResultCode, str]:
         # pylint: enable=unused-argument
         """A method to invoke the do method of the TrackLoadStaticOff command

@@ -48,11 +48,7 @@ class EndScan(DishLNCommand):
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker("get_end_scan_result_code", [ResultCode.OK])
-    def endscan(
-        self: EndScan,
-        task_callback: Optional[TaskCallbackType] = None,
-        task_abort_event=None,
-    ) -> Tuple[ResultCode, str]:
+    def endscan(self: EndScan, **kwargs) -> Tuple[ResultCode, str]:
         """This is a method for long running command EndScan command, it
         executes the do hook, to set scanID attribute of Dish Master to empty
         string.

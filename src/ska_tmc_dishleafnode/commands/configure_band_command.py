@@ -11,7 +11,6 @@ from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 
 # from ska_tango_base.executor import TaskStatus
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
 from ska_tmc_common.v1.error_propagation_tracker import (
@@ -71,8 +70,6 @@ class ConfigureBand(DishLNCommand):
     def configure_band(
         self: ConfigureBand,
         argin: str,
-        task_callback: Optional[TaskCallbackType] = None,
-        task_abort_event=None,
         **kwargs,
     ) -> Tuple[ResultCode, str]:
         """This is a long running method for ConfigureBand command, it

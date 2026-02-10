@@ -53,11 +53,7 @@ class TrackStop(DishLNCommand):
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker("get_track_stop_result_code", [ResultCode.OK])
-    def trackstop(
-        self: TrackStop,
-        task_callback: Optional[TaskCallbackType] = None,
-        task_abort_event: Optional[threading.Event] = None,
-    ) -> Tuple[ResultCode, str]:
+    def trackstop(self: TrackStop, **kwargs) -> Tuple[ResultCode, str]:
         """This is a long running method for TrackStop command, it
         executes the do hook, invoking TrackStop command on Dish Master
 

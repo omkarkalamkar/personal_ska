@@ -1529,16 +1529,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_abort_event=task_abort_event,
         )
 
-        # task_status, response = self.submit_task(
-        #     off_command.invoke_off,
-        #     args=[self.logger],
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "Off command queued for execution on %s", self.dish_dev_name
-        # )
-        # return task_status, response
-
     def setstandbyfpmode(
         self: DishLNComponentManager,
         task_callback: TaskCallbackType,
@@ -1569,20 +1559,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_abort_event=task_abort_event,
         )
 
-        # task_status, response = self.submit_task(
-        #     setstandbyfpmode_command.set_standby_fp_mode,
-        #     args=[self.logger],
-        #     is_cmd_allowed=self.is_command_allowed_callable(
-        #         "SetStandbyFPMode"
-        #     ),
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "SetStandbyFPMode command queued for execution on %s",
-        #     self.dish_dev_name,
-        # )
-        # return task_status, response
-
     def setstandbylpmode(
         self: DishLNComponentManager,
         task_callback: TaskCallbackType,
@@ -1608,20 +1584,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
             task_abort_event=task_abort_event,
         )
-
-        # task_status, response = self.submit_task(
-        #     setstandbylpmode_command.set_standby_lp_mode,
-        #     args=[self.logger],
-        #     is_cmd_allowed=self.is_command_allowed_callable(
-        #         "SetStandbyLPMode"
-        #     ),
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "SetStandbyLPMode command queued for execution on %s",
-        #     self.dish_dev_name,
-        # )
-        # return task_status, response
 
     def setstowmode(
         self: DishLNComponentManager, task_callback: TaskCallbackType
@@ -1746,17 +1708,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_abort_event=task_abort_event,
         )
 
-        # task_status, response = self.submit_task(
-        #     scan_command.scan,
-        #     kwargs={"argin": argin},
-        #     is_cmd_allowed=self.is_command_allowed_callable("Scan"),
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "Scan command queued for execution on %s", self.dish_dev_name
-        # )
-        # return task_status, response
-
     def endscan(
         self: DishLNComponentManager,
         task_callback: TaskCallbackType,
@@ -1780,15 +1731,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
             task_abort_event=task_abort_event,
         )
-        # task_status, response = self.submit_task(
-        #     endscan_command.endscan,
-        #     is_cmd_allowed=self.is_command_allowed_callable("EndScan"),
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "EndScan command queued for execution on %s", self.dish_dev_name
-        # )
-        # return task_status, response
 
     def is_track_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
@@ -1862,17 +1804,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_abort_event=task_abort_event,
         )
 
-        # task_status, response = self.submit_task(
-        #     track_command.track,
-        #     kwargs={"argin": argin},
-        #     is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "Track command queued for execution on %s", self.dish_dev_name
-        # )
-        # return task_status, response
-
     def is_trackstop_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational
         state.
@@ -1917,15 +1848,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
             task_abort_event=task_abort_event,
         )
-        # task_status, response = self.submit_task(
-        #     trackstop_command.trackstop,
-        #     is_cmd_allowed=self.is_track_and_trackstop_command_allowed,
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "TrackStop command queued for execution on %s",self.dish_dev_name
-        # )
-        # return task_status, response
 
     def configureband(
         self: DishLNComponentManager,
@@ -1957,17 +1879,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_callback=task_callback,
             task_abort_event=task_abort_event,
         )
-        # task_status, response = self.submit_task(
-        #     configure_band_command.configure_band,
-        #     kwargs={"argin": argin},
-        #     is_cmd_allowed=self.is_command_allowed_callable("ConfigureBand"),
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "ConfigureBand command queued for execution on %s",
-        #     self.dish_dev_name,
-        # )
-        # return task_status, response
 
     def configure(
         self: DishLNComponentManager,
@@ -2030,22 +1941,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.correction_key = input_json["pointing"]["correction"]
 
         return configure_command.invoke_configure(
-            # self.logger,
             argin=argin,
             task_callback=task_callback,
             task_abort_event=task_abort_event,
         )
-        # submit the command to the queue
-        # task_status, response = self.submit_task(
-        #     configure_command.invoke_configure,
-        #     kwargs={"argin": argin},
-        #     is_cmd_allowed=self.is_command_allowed_callable("Configure"),
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "Configure command queued for execution on %s",self.dish_dev_name
-        # )
-        # return task_status, response
 
     def track_load_static_off(
         self: DishLNComponentManager,
@@ -2090,27 +1989,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         return track_load_static_off_command.invoke_track_load_static_off(
-            # self.logger,
             argin=argin,
             task_callback=task_callback,
             task_abort_event=task_abort_event,
         )
-
-        # task_status, response = self.submit_task(
-        #     track_load_static_off_command.invoke_track_load_static_off,
-        #     kwargs={"argin": argin},
-        #     is_cmd_allowed=self.is_command_allowed_callable(
-        #         "TrackLoadStaticOff"
-        #     ),
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "TrackLoadStaticOff command queued for "
-        #     + "execution with argin: %s on %s",
-        #     argin,
-        #     self.dish_dev_name,
-        # )
-        # return task_status, response
 
     def abort(self, task_callback: TaskCallbackType) -> Tuple:
         """
@@ -2245,24 +2127,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         return apply_pointing_model_command.invoke_apply_pointing_model(
-            # self.logger,
             argin=argin,
             task_callback=task_callback,
             task_abort_event=task_abort_event,
         )
-        # task_status, response = self.submit_task(
-        #     apply_pointing_model_command.invoke_apply_pointing_model,
-        #     kwargs={"argin": argin},
-        #     is_cmd_allowed=self.is_apply_pointing_model_allowed,
-        #     task_callback=task_callback,
-        # )
-        # self.logger.info(
-        #     "ApplyPointingModel command queued for "
-        #     + "execution with argin: %s on %s",
-        #     argin,
-        #     self.dish_dev_name,
-        # )
-        # return task_status, response
 
     def is_configure_allowed(self: DishLNComponentManager) -> bool:
         """Checks if the given command is allowed in current operational

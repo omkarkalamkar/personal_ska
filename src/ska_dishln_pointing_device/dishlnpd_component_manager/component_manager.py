@@ -740,11 +740,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             task_abort_event=task_abort_event,
         )
 
-        # return self.submit_task(
-        #     command.generate_program_track_table,
-        #     task_callback=task_callback,
-        # )
-
     def update_windspeed(self, wind_speed: float) -> None:
         """The method to update windspeed
 
