@@ -23,8 +23,6 @@ import numpy as np
 import tango
 from astropy.time import Time
 from astropy.utils import iers
-
-# from ska_tango_base.executor import TaskStatus
 from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
@@ -1899,6 +1897,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             tuple: a result code and message
 
         """
+        if not self.is_command_allowed_callable("Configure")():
+            result = (ResultCode.NOT_ALLOWED, "Command is not allowed")
+            task_callback(
+                status=TaskStatus.REJECTED,
+                result=result,
+            )
+            return result
         try:
             input_json = json.loads(argin)
             is_partial_configure = input_json.get("tmc", {}).get(

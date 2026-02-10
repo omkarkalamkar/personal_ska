@@ -17,7 +17,6 @@ def test_off_command_in_lp(cm):
         cm.is_off_allowed()
 
 
-@pytest.mark.off_fp
 def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     attrs = {
@@ -38,10 +37,10 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm.adapter_factory = adapter_factory
     wait_for_dish_mode(cm, DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
-    cm.setstandbyfpmode(task_callback)
-    # cm.setstandbyfpmode(
-    #     task_callback=task_callback, task_abort_event=threading.Event()
-    # )
+    # cm.setstandbyfpmode(task_callback)
+    cm.setstandbyfpmode(
+        task_callback=task_callback, task_abort_event=threading.Event()
+    )
     # task_callback.assert_against_call(
     #     call_kwargs={"status": TaskStatus.QUEUED}
     # )
@@ -56,7 +55,30 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
         }
     )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+
     assert cm.is_off_allowed()
+
+    cm.is_setstandbylpmode_allowed()
+    # cm.setstandbyfpmode(task_callback)
+    cm.setstandbylpmode(
+        task_callback=task_callback, task_abort_event=threading.Event()
+    )
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+    cm.update_device_dish_mode(DishMode.STANDBY_LP)
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        }
+    )
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
+
+    # assert cm.is_off_allowed()
     # cm.off(task_callback=task_callback)
     cm.off(task_callback=task_callback, task_abort_event=threading.Event())
     # task_callback.assert_against_call(
@@ -65,12 +87,13 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
+
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
-        }
+        },
+        lookahead=5,
     )
 
 

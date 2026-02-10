@@ -22,10 +22,13 @@ def test_attributes(dishln_device):
     dishln_device.dishMasterDevName = "dishmaster"
     assert dishln_device.dishMasterDevName == "dishmaster"
     assert dishln_device.versionId == release.version
-    assert (
-        dishln_device.buildState
-        == f"""{release.name},{release.version},
-            {release.description}"""
-    )
+
+    def normalize(s: str) -> str:
+        return "\n".join(line.strip() for line in s.strip().splitlines())
+
+    expected = f"{release.name},{release.version},\n" f"{release.description}"
+
+    assert normalize(dishln_device.buildState) == normalize(expected)
+
     assert dishln_device.dishMode == DishMode.UNKNOWN
     assert dishln_device.pointingState == PointingState.NONE

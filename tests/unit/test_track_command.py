@@ -23,7 +23,6 @@ def get_track_input_str(
     return config_str
 
 
-@pytest.mark.test_tr
 def test_track_command_completed(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     attrs = {
@@ -64,7 +63,6 @@ def test_track_command_completed(task_callback, cm_without_er_lp):
     )
 
 
-@pytest.mark.test_tr_1
 def test_track_command_adapter_none(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)

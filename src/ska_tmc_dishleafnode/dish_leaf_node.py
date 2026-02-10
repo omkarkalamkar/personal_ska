@@ -40,15 +40,9 @@ from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-
-# from ska_tmc_dishleafnode.commands.set_kvalue import (
-#     SetKValue as SetKValueCommand,
-# )
 from ska_tmc_dishleafnode.commands.setstowmode import StowCommand
 from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
-
-# from ska_control_model.control_model import HealthState
 
 
 # pylint: disable = attribute-defined-outside-init
@@ -1296,10 +1290,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def SetStandbyLPMode(self: MidTmcLeafNodeDish):
         """Invokes SetStandbyLPMode command on DishMaster (Standby-Low power)
         mode."""
-        # handler = self.get_command_object("SetStandbyLPMode")
-        # result_code, unique_id = handler()
 
-        # return [result_code], [str(unique_id)]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1335,10 +1326,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         mode.
 
         """
-        # handler = self.get_command_object("SetStandbyFPMode")
-        # result_code, unique_id = handler()
 
-        # return [result_code], [str(unique_id)]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1359,10 +1347,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-
-        # handler = self.get_command_object("Scan")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [str(unique_id)]
 
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
@@ -1453,9 +1437,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         Invokes On command on Dish Master.
         """
 
-        # handler = self.get_command_object("Off")
-        # result_code, unique_id = handler()
-        # return [result_code], [unique_id]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1577,9 +1558,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def Track(self: MidTmcLeafNodeDish, argin) -> tuple:
         """Invokes Track command on the DishMaster."""
 
-        # handler = self.get_command_object("Track")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [unique_id]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1613,9 +1591,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def ConfigureBand(self: MidTmcLeafNodeDish, argin: str) -> tuple:
         """Invokes ConfigureBand command on the DishMaster."""
 
-        # handler = self.get_command_object("ConfigureBand")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [unique_id]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1647,10 +1622,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             )
 
         return task
-        # handler = self.get_command_object("TrackStop")
-        # result_code, unique_id = handler()
-
-        # return [result_code], [str(unique_id)]
 
     # pylint: disable=unused-argument
     def is_TrackStop_allowed(
@@ -1689,10 +1660,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             )
 
         return task
-        # handler = self.get_command_object("TrackLoadStaticOff")
-        # result_code, unique_id = handler(argin)
-
-        # return [result_code], [str(unique_id)]
 
     # pylint: disable=unused-argument
     def is_TrackLoadStaticOff_allowed(
@@ -1843,9 +1810,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             )
 
         return task
-        # handler = self.get_command_object("ApplyPointingModel")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [str(unique_id)]
 
     # pylint: disable=unused-argument
     def is_ApplyPointingModel_allowed(

@@ -9,8 +9,6 @@ from typing import Callable, Optional, Tuple
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
-
-# from ska_tango_base.executor import TaskStatus
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
 from ska_tmc_common.v1.error_propagation_tracker import (

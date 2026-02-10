@@ -90,7 +90,7 @@ class Configure(DishLNCommand):
         self.component_manager.command_id = self.timeout_id
         self.component_manager.is_configure_command = True
         self.component_manager.command_in_progress = "Configure"
-        # self.task_callback(status=TaskStatus.IN_PROGRESS)
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
         json_argument = json.loads(argin)
 
         array_layout = json_argument.get("layout_data")

@@ -8,7 +8,6 @@ import threading
 from functools import partial
 from typing import Callable, Dict, Optional, Tuple, Union
 
-# from ska_tango_base.executor import TaskStatus
 from ska_control_model import HealthState, TaskStatus
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode, SlowCommand

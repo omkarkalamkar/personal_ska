@@ -1,4 +1,5 @@
 import json
+import threading
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
@@ -49,13 +50,14 @@ def test_apply_pointing_model_command(
     cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
     cm.is_apply_pointing_model_allowed()
     global_pointing_tm_data_path = json_factory("global_pointing_model")
-    cm.apply_pointing_model(
-        global_pointing_tm_data_path, task_callback=task_callback
-    )
     # cm.apply_pointing_model(
-    #     global_pointing_tm_data_path, task_callback=task_callback,
-    #     task_abort_event=threading.Event(),
+    #     global_pointing_tm_data_path, task_callback=task_callback
     # )
+    cm.apply_pointing_model(
+        global_pointing_tm_data_path,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
+    )
 
     # task_callback.assert_against_call(
     #     call_kwargs={"status": TaskStatus.QUEUED}
@@ -134,9 +136,6 @@ def test_apply_pointing_model_command_with_faulty_json(
         json.dumps(global_pointing_tm_model_path), task_callback=task_callback
     )
 
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
