@@ -108,7 +108,6 @@ def test_error_propagation_program_track_table(
     )
 
 
-@pytest.mark.test_errp
 def test_error_propagation_stop_program_track_table(
     task_callback, cm_without_er_lp
 ):

@@ -176,7 +176,6 @@ def test_process_actual_pointing_handles_layout_update(cm):
     assert cm.actual_pointing_process.is_alive()
 
 
-@pytest.mark.acp_test
 def test_process_actual_pointing_stops_on_event(cm_without_er_lp):
     """Test process_actual_pointing stops when event is set"""
     cm = cm_without_er_lp

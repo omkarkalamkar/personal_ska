@@ -17,8 +17,6 @@ def test_off_command_in_lp(cm):
         cm.is_off_allowed()
 
 
-@pytest.mark.off_fp
-# @pytest.mark.skip(reason="Skipping this test temporarily")
 def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     attrs = {

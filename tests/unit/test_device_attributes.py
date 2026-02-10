@@ -1,6 +1,5 @@
 from time import sleep
 
-import pytest
 from ska_tango_base.control_model import ControlMode, SimulationMode, TestMode
 from ska_tmc_common import DishMode, PointingState
 from tango import DevState
@@ -9,8 +8,6 @@ from ska_tmc_dishleafnode import release
 from tests.settings import SLEEP_TIME
 
 
-@pytest.mark.att_test
-# @pytest.mark.skip(reason="Skipping this test temporarily")
 def test_attributes(dishln_device):
     sleep(SLEEP_TIME)
     assert dishln_device.State() == DevState.ON
@@ -25,14 +22,13 @@ def test_attributes(dishln_device):
     dishln_device.dishMasterDevName = "dishmaster"
     assert dishln_device.dishMasterDevName == "dishmaster"
     assert dishln_device.versionId == release.version
-    # assert (
-    # dishln_device.buildState
-    # == f"{release.name},{release.version},{release.description.strip()}"
-    # )
-    assert (
-        dishln_device.buildState
-        == f"""{release.name},{release.version},
-            {release.description}"""
-    )
+
+    def normalize(s: str) -> str:
+        return "\n".join(line.strip() for line in s.strip().splitlines())
+
+    expected = f"{release.name},{release.version},\n" f"{release.description}"
+
+    assert normalize(dishln_device.buildState) == normalize(expected)
+
     assert dishln_device.dishMode == DishMode.UNKNOWN
     assert dishln_device.pointingState == PointingState.NONE

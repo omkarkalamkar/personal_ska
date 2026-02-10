@@ -13,7 +13,6 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import simulate_result_code_event
 
 
-@pytest.mark.test_stop
 def test_trackstop_command_completed(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     attrs = {
@@ -50,7 +49,6 @@ def test_trackstop_command_completed(task_callback, cm_without_er_lp):
     )
 
 
-@pytest.mark.test_trstp_n
 def test_trackstop_command_adapter_none(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.OPERATE)

@@ -9,7 +9,6 @@ from ska_tmc_common.exceptions import CommandNotAllowed
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 
 
-@pytest.mark.slp_test_2
 def test_setstandbyfpmode_command(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     attrs = {
@@ -42,7 +41,6 @@ def test_setstandbyfpmode_command(cm_without_er_lp, task_callback):
     )
 
 
-@pytest.mark.slp_test_1
 def test_setstandbyfpmode_command_adapter_none(
     task_callback, cm_without_er_lp
 ):

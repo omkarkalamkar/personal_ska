@@ -134,7 +134,6 @@ def test_configure_command_completed_partial_config(
     )
 
 
-@pytest.mark.config_test_d
 def test_delta_configure_command_completed(
     cm_without_er_lp, task_callback, json_factory
 ):
