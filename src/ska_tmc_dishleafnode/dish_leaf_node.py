@@ -273,10 +273,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     sourceOffset = attribute_from_signal(
         _sourceOffset,
-        dtype=ArgType.DevVarFloatArray,
+        dtype=ArgType.DevDouble,
+        dformat=AttrDataFormat.SPECTRUM,
         access=AttrWriteType.READ,
         max_dim_x=2,
         description="Stores offsets from delta/partial configuration",
+        abs_change=0.000001,
     )
 
     InitCommand = None
