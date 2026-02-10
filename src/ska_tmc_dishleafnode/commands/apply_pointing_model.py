@@ -120,7 +120,7 @@ class ApplyPointingModel(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_apply_pointing_model(
-        self: ApplyPointingModel, argin: str, **kwargs
+        self: ApplyPointingModel, argin: str, task_callback, task_abort_event
     ) -> None:
         """A method to invoke the do method of the ApplyPointingModel command
         class. This method also updates the task callback according to command
@@ -140,14 +140,14 @@ class ApplyPointingModel(DishLNCommand):
         # 1. QUEUED (MANDATORY)
         # task_callback(status=TaskStatus.QUEUED)
 
-        self.task_callback(status=TaskStatus.IN_PROGRESS)
+        task_callback(status=TaskStatus.IN_PROGRESS)
 
         self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)
         # result_code, message = self.do(argin=argin)
         # result_code, message = self.do(logger=self.logger, argin=argin)
         self.logger.info("ResultCode: %s Message: %s", result_code, message)
-        self.update_task_callback(result_code, message, self.task_callback)
+        self.update_task_callback(result_code, message, task_callback)
 
     # pylint: enable=unused-argument
 

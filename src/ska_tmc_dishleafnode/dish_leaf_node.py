@@ -273,7 +273,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     sourceOffset = attribute_from_signal(
         _sourceOffset,
-        dtype=ArgType.DevDouble,
+        dtype=ArgType.DevVarFloatArray,
         dformat=AttrDataFormat.SPECTRUM,
         access=AttrWriteType.READ,
         max_dim_x=2,
@@ -776,10 +776,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         _stow_status, dtype=StowStatus, access=AttrWriteType.READ
     )
 
-    @attribute(
-        dtype=StowStatus,
-        access=AttrWriteType.READ,
-    )
     def update_stow_status_callback(self, status: StowStatus):
         """Callback to update the stow status.
 
@@ -819,6 +815,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         _mean_ops_wind_speed,
         dtype=float,
         access=AttrWriteType.READ,
+        abs_change=0.0001,
     )
 
     def update_mean_operational_speed_callback(self, mean_speed: float):
@@ -834,6 +831,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         _ops_mean_wind_speed_diff,
         dtype=float,
         access=AttrWriteType.READ,
+        abs_change=0.0001,
     )
 
     def update_mean_operational_diff_callback(self, mean_speed: float):
@@ -850,6 +848,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         _rate_of_change_in_temperature,
         dtype=float,
         access=AttrWriteType.READ,
+        abs_change=0.0001,
     )
 
     def update_roc_temperature_callback(self, roc_temp: str):
