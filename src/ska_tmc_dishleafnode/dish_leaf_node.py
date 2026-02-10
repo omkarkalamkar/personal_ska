@@ -202,12 +202,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ_WRITE,
     )
 
-    # trackTableErrors = attribute(
-    #     dtype=("str",),
-    #     max_dim_x=1024,
-    #     access=AttrWriteType.READ,
-    # )
-
     _track_table_errors: Signal[str] = Signal[str](
         stored=True, initial_value=""
     )
@@ -218,12 +212,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         max_dim_x=1024,
         access=AttrWriteType.READ,
         description="TrackTable errors to be reported",
+        to_tango=json.dumps,
     )
-
-    # isSubsystemAvailable = attribute(
-    #     dtype=bool,
-    #     access=AttrWriteType.READ,
-    # )
 
     _is_subsystem_available: Signal[bool] = Signal[bool](
         stored=True, initial_value=False
@@ -234,15 +224,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ,
         dtype="DevBoolean",
         description="Boolean Flag for sub system available",
-    )
-
-    _actual_pointing: Signal[str] = Signal[str](stored=True, initial_value="")
-
-    actualPointing = attribute_from_signal(
-        _actual_pointing,
-        access=AttrWriteType.READ,
-        dtype=str,
-        description="Gets the actualPointing attribute value",
     )
 
     _dishMode: Signal[DishMode] = Signal[DishMode](
@@ -289,8 +270,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def init_device(self: MidTmcLeafNodeDish):
         super().init_device()
-
-        # device = self._device
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -313,6 +292,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "kValue",
             "gpmVersion",
             "gpmValidationResult",
+            "actualPointing",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -469,25 +449,39 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        if self._is_subsystem_available != availability:
-            self._is_subsystem_available = availability
+        self._is_subsystem_available = availability
+
+    def update_track_table_errors_callback(self, value: list):
+        """Push an event for the trackTableErrors attribute."""
+        self._track_table_errors = value
+        self.logger.debug("Pushed the trackTableErrors event: %s", value)
+
+    actualPointing = attribute(
+        dtype=str,
+        access=AttrWriteType.READ,
+    )
+
+    def read_actualPointing(self) -> str:
+        """Gets the actualPointing attribute value.
+
+        Returns:
+            str: actualPointing attribute value.
+        """
+        return json.dumps(self.component_manager.actual_pointing)
 
     def pointing_callback(self, actual_pointing: list) -> None:
         """Push an event for the actualPointing attribute."""
-        self._actual_pointing = json.dumps(actual_pointing)
-
-    def update_track_table_errors_callback(self, value: list) -> None:
-        """Push an event for the trackTableErrors attribute."""
-        self._track_table_errors = json.dumps(value)
-        self.logger.debug("Pushed the trackTableErrors event: %s", value)
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "actualPointing", json.dumps(actual_pointing)
+            )
 
     def update_global_pointing_param_callback(
         self, global_pointing_model_params: str
-    ) -> None:
+    ):
         """Push an event for the change of dishMode attribute."""
-        self._global_pointing_model_params = json.dumps(
-            global_pointing_model_params
-        )
+        self._global_pointing_model_params = global_pointing_model_params
+
         self.logger.info(
             "GPM PARAMS on Dish: %s", global_pointing_model_params
         )
@@ -559,14 +553,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Set the dishlnPointingDevName attribute."""
         self.component_manager.dish_pointing_dev_name = value
 
-    def read_actualPointing(self) -> str:
-        """Gets the actualPointing attribute value.
-
-        Returns:
-            str: actualPointing attribute value.
-        """
-        return json.dumps(self.component_manager.actual_pointing)
-
     @attribute(
         dtype="DevLong",
         access=AttrWriteType.READ_WRITE,
@@ -608,11 +594,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self.component_manager.kValue = k_value
 
-    _global_pointing_model_params = Signal(stored=True, initial_value="{}")
+    _global_pointing_model_params = Signal[str](
+        stored=True, initial_value="{}"
+    )
     globalPointingModelParams = attribute_from_signal(
         _global_pointing_model_params,
-        dtype="str",
+        dtype=str,
         access=AttrWriteType.READ,
+        to_tango=json.dumps,
     )
 
     @attribute(
@@ -770,7 +759,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return json.dumps(self.component_manager.gpm_validation_result)
 
-    _stow_status = Signal(
+    _stow_status = Signal[StowStatus](
         stored=True, initial_value=StowStatus.DISH_NOT_IN_STOW
     )
     stowStatus = attribute_from_signal(
@@ -785,7 +774,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self._stow_status = status
 
-    _mean_wind_speed = Signal(stored=True, initial_value=0.0)
+    _mean_wind_speed = Signal[float](stored=True, initial_value=0.0)
     meanWindSpeed = attribute_from_signal(
         _mean_wind_speed, dtype=float, access=AttrWriteType.READ
     )
@@ -798,7 +787,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self._mean_wind_speed = mean_speed
 
-    _mean_gust_speed = Signal(stored=True, initial_value=0.0)
+    _mean_gust_speed = Signal[float](stored=True, initial_value=0.0)
     meanGustSpeed = attribute_from_signal(
         _mean_gust_speed, dtype=float, access=AttrWriteType.READ
     )
@@ -811,7 +800,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self._mean_gust_speed = mean_speed
 
-    _mean_ops_wind_speed = Signal(stored=True, initial_value=0.0)
+    _mean_ops_wind_speed = Signal[float](stored=True, initial_value=0.0)
     meanOpsWindSpeed = attribute_from_signal(
         _mean_ops_wind_speed,
         dtype=float,
@@ -827,7 +816,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self._mean_ops_wind_speed = mean_speed
 
-    _ops_mean_wind_speed_diff = Signal(stored=True, initial_value=0.0)
+    _ops_mean_wind_speed_diff = Signal[float](stored=True, initial_value=0.0)
     opsMeanWindSpeedDifference = attribute_from_signal(
         _ops_mean_wind_speed_diff,
         dtype=float,
@@ -844,7 +833,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self._ops_mean_wind_speed_diff = mean_speed
 
-    _rate_of_change_in_temperature = Signal(stored=True, initial_value=0.0)
+    _rate_of_change_in_temperature = Signal[float](
+        stored=True, initial_value=0.0
+    )
     rateOfChangeTemperature = attribute_from_signal(
         _rate_of_change_in_temperature,
         dtype=float,
@@ -909,19 +900,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         unit="m/s",
         display_unit="m/s",
     )
-    def maxAllowedGustWindpeed(self: MidTmcLeafNodeDish) -> float:
-        """Reads the maxAllowedGustWindpeed attribute value.
+    def maxAllowedGustWindspeed(self: MidTmcLeafNodeDish) -> float:
+        """Reads the maxAllowedGustWindspeed attribute value.
 
         Returns:
-            float: maxAllowedGustWindpeed attribute value.
+            float: maxAllowedGustWindspeed attribute value.
         """
         return self.component_manager.auto_stow.gust_speed_threshold
 
-    @maxAllowedGustWindpeed.write
-    def maxAllowedGustWindpeed(
+    @maxAllowedGustWindspeed.write
+    def maxAllowedGustWindspeed(
         self: MidTmcLeafNodeDish, gust_speed_threshold: float
     ) -> None:
-        """Set the maxAllowedGustWindpeed attribute value.
+        """Set the maxAllowedGustWindspeed attribute value.
 
         Args:
             gust_speed_threshold(float): value to update

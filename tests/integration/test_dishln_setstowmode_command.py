@@ -177,7 +177,7 @@ def test_auto_stow_gust_speed(group_callback):
     )
     _reset_stow_mode(dish_leaf_node, group_callback)
 
-    dish_leaf_node.maxAllowedGustWindpeed = 22.0
+    dish_leaf_node.maxAllowedGustWindspeed = 22.0
     dish_leaf_node.gustWindspeedMeasurementTimeWindow = 4
     simulate_windspeed(22, 24, 4)
 
