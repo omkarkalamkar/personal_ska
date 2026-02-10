@@ -66,13 +66,7 @@ class Track(DishLNCommand):
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker("get_track_result_code", [ResultCode.OK])
-    def track(
-        self: Track,
-        argin: dict,
-        # task_callback: Optional[TaskCallbackType] = None,
-        # task_abort_event: Optional[threading.Event] = None,
-        **kwargs,
-    ) -> Tuple[ResultCode, str]:
+    def track(self: Track, argin: dict, **kwargs) -> Tuple[ResultCode, str]:
         """This is a long running method for Track command, it
         executes the do hook, invoking Track command on Dish Master
 

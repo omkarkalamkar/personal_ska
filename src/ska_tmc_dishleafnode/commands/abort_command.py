@@ -4,12 +4,10 @@ Abort command class for DishLeafNode.
 from __future__ import annotations
 
 import logging
-import threading
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Tuple, Union
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 
 # from ska_tango_base.executor import TaskStatus
@@ -18,10 +16,7 @@ from ska_tmc_common.v1.error_propagation_tracker import (
 )
 from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
-from ska_tmc_dishleafnode.commands.dish_ln_command import (
-    DishLNCommand,
-    task_callback_default,
-)
+from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import COMMAND_STARTED_MESSAGE
 
 configure_logging()
@@ -40,11 +35,7 @@ class Abort(DishLNCommand):
         "is_abort_completed",
         [True],
     )
-    def invoke_abort(
-        self,
-        task_callback: TaskCallbackType = task_callback_default,
-        task_abort_event: Optional[threading.Event] = None,
-    ):
+    def invoke_abort(self, **kwargs):
         """This method calls do for Abort command"""
         with self.component_manager.tango_operation_execution_lock:
             return self.do()

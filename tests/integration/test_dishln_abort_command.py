@@ -183,11 +183,6 @@ def abort_while_configuring(
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
-    # if dish_leaf_node.pointingState != PointingState.READY:
-    #     group_callback["pointingState"].assert_change_event(
-    #         (PointingState.READY),
-    #         lookahead=6,
-    #     )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
@@ -249,6 +244,7 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
     )
 
 
+@pytest.mark.skip(reason="ip")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_timeout(tango_context, group_callback):

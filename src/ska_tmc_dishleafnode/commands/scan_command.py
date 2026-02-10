@@ -70,12 +70,7 @@ class Scan(DishLNCommand):
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker("get_scan_result_code", [ResultCode.OK])
-    def scan(
-        self: Scan,
-        argin: str,
-        # task_callback: TaskCallbackType,
-        # task_abort_event: Optional[threading.Event] = None,
-    ) -> Tuple[ResultCode, str]:
+    def scan(self: Scan, argin: str, **kwargs) -> Tuple[ResultCode, str]:
         """This is a long running method for Scan command, it
         executes the do hook, invoking Scan command on Dish Master
 

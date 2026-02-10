@@ -77,10 +77,7 @@ class Configure(DishLNCommand):
         [True],
     )
     def invoke_configure(
-        self: Configure,
-        argin: str,
-        # task_callback: TaskCallbackType,
-        # task_abort_event: Optional[threading.Event] = None,
+        self: Configure, argin: str, **kwargs
     ) -> Tuple[ResultCode, str]:
         """This is a long running method for Configure command, it
         executes do hook, invokes Configure command on Dish Master.

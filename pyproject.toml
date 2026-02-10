@@ -21,7 +21,7 @@ url = 'https://pypi.org/simple'
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 numpy = "1.23.2"
-pytango = "10.1.0"
+pytango = "10.1.2"
 ska-ser-log-transactions = "0.2.2+ae0f5c92"
 fire = ">=0.5.0,<0.6.0"
 ska-tmc-simulators = "1.9.4"
