@@ -67,7 +67,7 @@ PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
 ADD_ARGS += -n12 --forked --count=$(PYTHON_TEST_COUNT)
 MARK = (not post_deployment and not acceptance)
-ADD_ARGS +=
+ADD_ARGS += -x
 endif
 
 K8S_TEST_COUNT ?= 1
@@ -79,7 +79,7 @@ endif
 # Applying exit at fail for k8s tests only
 ifeq ($(MAKECMDGOALS),k8s-test)
 ifeq ($(EXIT_AT_FAIL),true)
-ADD_ARGS +=
+ADD_ARGS += -x
 endif
 endif
 CLUSTER_DOMAIN ?= cluster.local

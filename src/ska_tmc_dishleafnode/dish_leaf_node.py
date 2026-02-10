@@ -34,6 +34,7 @@ from tango import (  # TimeVal,
     AttrWriteType,
     Database,
     DebugIt,
+    TimeVal,
 )
 from tango.server import attribute, command, device_property, run
 
@@ -195,12 +196,18 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ_WRITE,
     )
 
-    _errors_to_be_reported: Signal[str] = Signal[str](
+    # trackTableErrors = attribute(
+    #     dtype=("str",),
+    #     max_dim_x=1024,
+    #     access=AttrWriteType.READ,
+    # )
+
+    _track_table_errors: Signal[str] = Signal[str](
         stored=True, initial_value=""
     )
 
     trackTableErrors = attribute_from_signal(
-        _errors_to_be_reported,
+        _track_table_errors,
         dtype=str,
         max_dim_x=1024,
         access=AttrWriteType.READ,
@@ -249,7 +256,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         description="current value of the dishMode attribute",
     )
 
-    _sourceOffset: Signal[float] = Signal[float](stored=True, initial_value="")
+    _sourceOffset: Signal[float] = Signal[float](
+        stored=True, initial_value=[NaN, NaN]
+    )
 
     sourceOffset = attribute_from_signal(
         _sourceOffset,
@@ -258,16 +267,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ,
         max_dim_x=2,
         description="Stores offsets from delta/partial configuration",
-    )
-
-    _lastPointingData: Signal[str] = Signal[str](stored=True, initial_value="")
-
-    lastPointingData = attribute_from_signal(
-        _lastPointingData,
-        dtype=ArgType.DevString,
-        dformat=AttrDataFormat.SCALAR,
-        access=AttrWriteType.READ,
-        description="storing pointing data received in calibration scan",
+        abs_change=0.000001,
     )
 
     InitCommand = None
@@ -286,41 +286,22 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._dishln_name = self.get_name()
         self._update_health_state(HealthState.DEGRADED)
         self.op_state_model.perform_action("component_on")
-        self._isSubsystemAvailable = True
-        self.stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
-        self.mean_wind_speed: float = 0.0
-        self.mean_gust_speed: float = 0.0
-        self.mean_ops_wind_speed: float = 0.0
-        self.ops_mean_difference: float = 0.0
-        self.rate_of_change_in_temperature: float = 0.0
         self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
-        self._global_pointing_model_params = "{}"
         self._sdpQueueConnectorFqdn = ""
-        self._sourceOffset: List = [NaN, NaN]
         self._lastPointingData: str = "Not Set"
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
 
         for attribute_name in [
-            "healthState",
             "healthInfo",
             "kValueValidationResult",
             "sdpQueueConnectorFqdn",
-            "sourceOffset",
             "lastPointingData",
             "kValue",
-            "trackTableErrors",
-            "globalPointingModelParams",
             "gpmVersion",
             "gpmValidationResult",
-            "stowStatus",
-            "meanWindSpeed",
-            "meanGustSpeed",
-            "opsMeanWindSpeedDifference",
-            "meanOpsWindSpeed",
-            "rateOfChangeTemperature",
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
@@ -348,6 +329,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             health_info (dict): New health info to be set.
         """
         self.component_manager.health_info = health_info
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "healthInfo", json.dumps(self.component_manager.health_info)
+            )
+        self.logger.info(
+            "Updated HealthInfo is: %s",
+            json.dumps(self.component_manager.health_info),
+        )
 
     def update_gpm_paths_data_callback(
         self, source_path: str, file_path: str
@@ -456,7 +445,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self._last_pointing_data_attr_quality = getattr(
                 AttrQuality, "ATTR_VALID"
             )
-
+        self._lastPointingData = json.dumps(last_pointing_data.tolist())
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "lastPointingData", self._lastPointingData
+            )
         self.logger.info(
             "Updated lastPointingData of %s is: %s ",
             self._dishln_name,
@@ -474,25 +467,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_track_table_errors_callback(self, value: list) -> None:
         """Push an event for the trackTableErrors attribute."""
-        self.logger.debug(
-            "TrackTable errors to be reported: %s",
-            self.component_manager.errors_to_be_reported,
-        )
+        self._track_table_errors = json.dumps(value)
         self.logger.debug("Pushed the trackTableErrors event: %s", value)
 
     def update_global_pointing_param_callback(
         self, global_pointing_model_params: str
     ) -> None:
         """Push an event for the change of dishMode attribute."""
-        self._global_pointing_model_params = global_pointing_model_params
+        self._global_pointing_model_params = json.dumps(
+            global_pointing_model_params
+        )
         self.logger.info(
             "GPM PARAMS on Dish: %s", global_pointing_model_params
         )
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "globalPointingModelParams",
-                json.dumps(self._global_pointing_model_params),
-            )
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
@@ -523,6 +510,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
+        with tango.EnsureOmniThread():
+            self.push_change_archive_events(
+                "kValue",
+                int(self.component_manager.kValue),
+            )
         self.logger.debug(
             "k-value is updated to: %s",
             self.component_manager.kValue,
@@ -555,14 +547,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def write_dishlnPointingDevName(self, value: str) -> None:
         """Set the dishlnPointingDevName attribute."""
         self.component_manager.dish_pointing_dev_name = value
-
-    def read_trackTableErrors(self) -> list:
-        """Read method for trackTableErrors
-
-        Returns:
-            list: List of trackTableErrors.
-        """
-        return self.component_manager.errors_to_be_reported
 
     def read_actualPointing(self) -> str:
         """Gets the actualPointing attribute value.
@@ -613,18 +597,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self.component_manager.kValue = k_value
 
-    @attribute(
+    _global_pointing_model_params = Signal(stored=True, initial_value="{}")
+    globalPointingModelParams = attribute_from_signal(
+        _global_pointing_model_params,
         dtype="str",
         access=AttrWriteType.READ,
     )
-    def globalPointingModelParams(self: MidTmcLeafNodeDish) -> str:
-        """
-        Gets the globalpointingModelparam attribute value.
-
-        Returns:
-            str: globalpointingModelparam attribute value.
-        """
-        return json.dumps(self._global_pointing_model_params)
 
     @attribute(
         dtype="str",
@@ -670,6 +648,26 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self.component_manager.process_sqpqc_attribute_fqdn(sdpqc_fqdn)
         self.push_change_archive_events(
             "sdpQueueConnectorFqdn", self._sdpQueueConnectorFqdn
+        )
+
+    @attribute(
+        dtype=ArgType.DevString,
+        dformat=AttrDataFormat.SCALAR,
+        access=AttrWriteType.READ,
+    )
+    def lastPointingData(self: MidTmcLeafNodeDish):
+        """
+        This attribute is used to store the recent
+        pointing data received in calibration scan
+
+        :return: str
+        """
+        if self._last_pointing_data_attr_quality is AttrQuality.ATTR_VALID:
+            return self._lastPointingData
+        return (
+            self._lastPointingData,
+            TimeVal.totime(TimeVal.now()),
+            self._last_pointing_data_attr_quality,
         )
 
     @attribute(
@@ -761,18 +759,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return json.dumps(self.component_manager.gpm_validation_result)
 
-    @attribute(
-        dtype=StowStatus,
-        access=AttrWriteType.READ,
+    _stow_status = Signal(
+        stored=True, initial_value=StowStatus.DISH_NOT_IN_STOW
     )
-    def stowStatus(self: MidTmcLeafNodeDish) -> StowStatus:
-        """
-        Returns the stow status
-
-        :return: stow status
-        :rtype: StowStatus
-        """
-        return self.stow_status
+    stowStatus = attribute_from_signal(
+        _stow_status, dtype=StowStatus, access=AttrWriteType.READ
+    )
 
     def update_stow_status_callback(self, status: StowStatus):
         """Callback to update the stow status.
@@ -780,21 +772,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :param status: stow status.
         :type status: StowStatus
         """
-        self.stow_status = status
-        self.push_change_archive_events("stowStatus", status)
+        self._stow_status = status
 
-    @attribute(
-        dtype=float,
-        access=AttrWriteType.READ,
+    _mean_wind_speed = Signal(stored=True, initial_value=0.0)
+    meanWindSpeed = attribute_from_signal(
+        _mean_wind_speed, dtype=float, access=AttrWriteType.READ
     )
-    def meanWindSpeed(self: MidTmcLeafNodeDish) -> float:
-        """
-        Returns the mean wind speed for specified duration.
-
-        :return: mean wind speed
-        :rtype: mean_wind_speed
-        """
-        return self.mean_wind_speed
 
     def update_mean_wind_speed_callback(self, mean_speed: float):
         """Callback to update the mean wind speed.
@@ -802,21 +785,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :param mean_speed: mean wind speed.
         :type mean_speed: float
         """
-        self.mean_wind_speed = mean_speed
-        self.push_change_archive_events("meanWindSpeed", mean_speed)
+        self._mean_wind_speed = mean_speed
 
-    @attribute(
-        dtype=float,
-        access=AttrWriteType.READ,
+    _mean_gust_speed = Signal(stored=True, initial_value=0.0)
+    meanGustSpeed = attribute_from_signal(
+        _mean_gust_speed, dtype=float, access=AttrWriteType.READ
     )
-    def meanGustSpeed(self: MidTmcLeafNodeDish) -> float:
-        """
-        Returns the mean gust speed for specified duration.
-
-        :return: mean gust speed
-        :rtype: mean_gust_speed
-        """
-        return self.mean_gust_speed
 
     def update_mean_gust_speed_callback(self, mean_speed: float):
         """Callback to update the mean gust speed.
@@ -824,21 +798,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :param mean_speed: mean gust speed.
         :type mean_speed: float
         """
-        self.mean_gust_speed = mean_speed
-        self.push_change_archive_events("meanGustSpeed", mean_speed)
+        self._mean_gust_speed = mean_speed
 
-    @attribute(
+    _mean_ops_wind_speed = Signal(stored=True, initial_value=0.0)
+    meanOpsWindSpeed = attribute_from_signal(
+        _mean_ops_wind_speed,
         dtype=float,
         access=AttrWriteType.READ,
+        abs_change=0.0001,
     )
-    def meanOpsWindSpeed(self: MidTmcLeafNodeDish) -> float:
-        """
-        Returns the mean operational speed for specified duration.
-
-        :return: mean operational speed
-        :rtype: float
-        """
-        return self.mean_ops_wind_speed
 
     def update_mean_operational_speed_callback(self, mean_speed: float):
         """Callback to update the mean operational speed.
@@ -846,23 +814,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :param mean_speed: mean operational speed.
         :type mean_speed: float
         """
-        self.mean_ops_wind_speed = mean_speed
-        self.push_change_archive_events("meanOpsWindSpeed", mean_speed)
+        self._mean_ops_wind_speed = mean_speed
 
-    @attribute(
+    _ops_mean_wind_speed_diff = Signal(stored=True, initial_value=0.0)
+    opsMeanWindSpeedDifference = attribute_from_signal(
+        _ops_mean_wind_speed_diff,
         dtype=float,
         access=AttrWriteType.READ,
+        abs_change=0.0001,
     )
-    def opsMeanWindSpeedDifference(self: MidTmcLeafNodeDish) -> float:
-        """
-        Returns the mean operational wind speed mean
-        and 95th percentile difference
-        speed for specified duration.
-
-        :return: ops_mean_difference
-        :rtype: float
-        """
-        return self.ops_mean_difference
 
     def update_mean_operational_diff_callback(self, mean_speed: float):
         """Callback to update the mean operational wind speed
@@ -871,23 +831,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :param mean_speed: ops_mean_difference
         :type mean_speed: float
         """
-        self.ops_mean_difference = mean_speed
-        self.push_change_archive_events(
-            "opsMeanWindSpeedDifference", mean_speed
-        )
+        self._ops_mean_wind_speed_diff = mean_speed
 
-    @attribute(
-        dtype=str,
+    _rate_of_change_in_temperature = Signal(stored=True, initial_value=0.0)
+    rateOfChangeTemperature = attribute_from_signal(
+        _rate_of_change_in_temperature,
+        dtype=float,
         access=AttrWriteType.READ,
+        abs_change=0.0001,
     )
-    def rateOfChangeTemperature(self: MidTmcLeafNodeDish) -> str:
-        """
-        Returns the rate of change in temperature for specified duration.
-
-        :return: rate of change in temperature
-        :rtype: rate of change in temperature
-        """
-        return self.rate_of_change_in_temperature
 
     def update_roc_temperature_callback(self, roc_temp: str):
         """Callback to update the rate of change in temperature
@@ -895,8 +847,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         :param roc_temp: rate of change in temperature
         :type roc_temp: str
         """
-        self.rate_of_change_in_temperature = roc_temp
-        self.push_change_archive_events("rateOfChangeTemperature", roc_temp)
+        self._rate_of_change_in_temperature = roc_temp
 
     @attribute(
         dtype="str",
