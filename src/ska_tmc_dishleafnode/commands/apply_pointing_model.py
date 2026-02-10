@@ -14,7 +14,6 @@ import threading
 import urllib
 from typing import TYPE_CHECKING, Optional, Tuple
 
-# from ska_tango_base.executor import TaskStatus
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
@@ -140,15 +139,10 @@ class ApplyPointingModel(DishLNCommand):
         :rtype: None
         """
 
-        # 1. QUEUED (MANDATORY)
-        # task_callback(status=TaskStatus.QUEUED)
-
         task_callback(status=TaskStatus.IN_PROGRESS)
 
         self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)
-        # result_code, message = self.do(argin=argin)
-        # result_code, message = self.do(logger=self.logger, argin=argin)
         self.logger.info("ResultCode: %s Message: %s", result_code, message)
         self.update_task_callback(result_code, message, task_callback)
 

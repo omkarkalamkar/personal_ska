@@ -39,15 +39,9 @@ from tango.server import attribute, command, device_property, run
 
 from ska_tmc_dishleafnode import release
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-
-# from ska_tmc_dishleafnode.commands.set_kvalue import (
-#     SetKValue as SetKValueCommand,
-# )
 from ska_tmc_dishleafnode.commands.setstowmode import StowCommand
 from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
-
-# from ska_control_model.control_model import HealthState
 
 
 # pylint: disable = attribute-defined-outside-init
@@ -201,12 +195,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ_WRITE,
     )
 
-    # trackTableErrors = attribute(
-    #     dtype=("str",),
-    #     max_dim_x=1024,
-    #     access=AttrWriteType.READ,
-    # )
-
     _errors_to_be_reported: Signal[str] = Signal[str](
         stored=True, initial_value=""
     )
@@ -218,11 +206,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ,
         description="TrackTable errors to be reported",
     )
-
-    # isSubsystemAvailable = attribute(
-    #     dtype=bool,
-    #     access=AttrWriteType.READ,
-    # )
 
     _is_subsystem_available: Signal[bool] = Signal[bool](
         stored=True, initial_value=False
@@ -266,35 +249,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         description="current value of the dishMode attribute",
     )
 
-    # _kValueValidationResult: Signal[str] = Signal[str](
-    #     stored=True, initial_value=""
-    # )
-
-    # kValueValidationResult = attribute_from_signal(
-    #     _kValueValidationResult,
-    #     access=AttrWriteType.READ,
-    #     dtype=str,
-    #     description="k-value validation result",
-    # )
-
-    # _sdpQueueConnectorFqdn: Signal[str] = Signal[str](
-    #     stored=True, initial_value=""
-
-    # sdpQueueConnectorFqdn = attribute_from_signal(
-    #     _sdpQueueConnectorFqdn,
-    #     dtype=ArgType.DevString,
-    #     dformat=AttrDataFormat.SCALAR,
-    #     access=AttrWriteType.READ_WRITE,
-    #     dtype=str,
-    #     description="SDP queue connector FQDN from subarray node",
-    # )
-
-    # @attribute(
-    #     dtype=ArgType.DevString,
-    #     dformat=AttrDataFormat.SCALAR,
-    #     access=AttrWriteType.READ_WRITE,
-    # )
-
     _sourceOffset: Signal[float] = Signal[float](stored=True, initial_value="")
 
     sourceOffset = attribute_from_signal(
@@ -306,13 +260,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         description="Stores offsets from delta/partial configuration",
     )
 
-    # @attribute(
-    #     dtype=ArgType.DevDouble,
-    #     dformat=AttrDataFormat.SPECTRUM,
-    #     access=AttrWriteType.READ,
-    #     max_dim_x=2,
-    # )
-
     _lastPointingData: Signal[str] = Signal[str](stored=True, initial_value="")
 
     lastPointingData = attribute_from_signal(
@@ -322,30 +269,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         access=AttrWriteType.READ,
         description="storing pointing data received in calibration scan",
     )
-
-    # @attribute(
-    #     dtype=ArgType.DevString,
-    #     dformat=AttrDataFormat.SCALAR,
-    #     access=AttrWriteType.READ,
-    # )
-
-    # _kValue: Signal[int] = Signal[int](stored=True, initial_value="")
-
-    # kValue = attribute_from_signal(
-    #     _kValue,
-    #     dtype="DevLong",
-    #     access=AttrWriteType.READ_WRITE,
-    #     memorized=True,
-    #     hw_memorized=True,
-    #     description="k-value attribute value",
-    # )
-
-    # @attribute(
-    #     dtype="DevLong",
-    #     access=AttrWriteType.READ_WRITE,
-    #     memorized=True,
-    #     hw_memorized=True,
-    # )
 
     InitCommand = None
 
@@ -379,16 +302,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
-        # super().init_device()
-
-        # device = self._device
-        # device._build_state = f"""{release.name},{release.version},
-        # {release.description}"""
-        # device._version_id = release.version
-        # device._dishln_name = device.get_name()
-        # device._update_health_state(HealthState.DEGRADED)
-        # device.op_state_model.perform_action("component_on")
-        # return (ResultCode.OK, "")
 
         for attribute_name in [
             "healthState",
@@ -413,32 +326,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_archive_event(attribute_name, True)
         self.init_completed()
 
-    # class InitCommand(SKABaseDevice.InitCommand):
-    #     """
-    #     A class for the TMC DishLeafNode init_device() method.
-    #     """
-
-    #     # pylint: disable=W0221
-    #     def do(self):
-    #         """
-    #         Initializes the attributes and properties of the
-    #         MidTmcLeafNodeDish.
-
-    #         Returns:
-    #             tuple: A tuple containing a return code and a string message
-    #           indicating status. The message is for information purpose only.
-
-    #         """
-    #         super().do()
-    #         device = self._device
-    #         device._build_state = f"""{release.name},{release.version},
-    #         {release.description}"""
-    #         device._version_id = release.version
-    #         device._dishln_name = device.get_name()
-    #         device._update_health_state(HealthState.DEGRADED)
-    #         device.op_state_model.perform_action("component_on")
-    #         return (ResultCode.OK, "")
-
     def delete_device(self) -> None:
         # if the init is called more than once
         # I need to stop all threads
@@ -454,13 +341,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             healthState (HealthState): New health state to be set.
         """
         self._health_state = healthState
-        # with tango.EnsureOmniThread():
-        #   self.push_change_archive_events("healthState", self._health_state)
-        # self.logger.info(
-        #     "Updated HealthState of %s is: %s",
-        #     self._dishln_name,
-        #     self._health_state,
-        # )
 
     def update_health_info_callback(self, health_info: dict) -> None:
         """Change event callback for healthInfo attribute
@@ -468,14 +348,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             health_info (dict): New health info to be set.
         """
         self.component_manager.health_info = health_info
-        # with tango.EnsureOmniThread():
-        #     self.push_change_archive_events(
-        #         "healthInfo", json.dumps(self.component_manager.health_info)
-        #     )
-        # self.logger.info(
-        #     "Updated HealthInfo is: %s",
-        #     json.dumps(self.component_manager.health_info),
-        # )
 
     def update_gpm_paths_data_callback(
         self, source_path: str, file_path: str
@@ -573,13 +445,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def update_source_offset_callback(self, source_offset: List) -> None:
         """Change event callback for sourceOffset attribute"""
         self._sourceOffset = source_offset
-        # with tango.EnsureOmniThread():
-        #   self.push_change_archive_events("sourceOffset", self._sourceOffset)
-        # self.logger.info(
-        #     "Updated sourceOffset of %s is: %s",
-        #     self._dishln_name,
-        #     self._sourceOffset,
-        # )
 
     def update_last_pointing_data_cb(self, last_pointing_data: List) -> None:
         """Change event callback for lastPointingData attribute"""
@@ -591,11 +456,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self._last_pointing_data_attr_quality = getattr(
                 AttrQuality, "ATTR_VALID"
             )
-        # self._lastPointingData = json.dumps(last_pointing_data.tolist())
-        # with tango.EnsureOmniThread():
-        #     self.push_change_archive_events(
-        #         "lastPointingData", self._lastPointingData
-        #     )
+
         self.logger.info(
             "Updated lastPointingData of %s is: %s ",
             self._dishln_name,
@@ -617,8 +478,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             "TrackTable errors to be reported: %s",
             self.component_manager.errors_to_be_reported,
         )
-        # with tango.EnsureOmniThread():
-        #     self.push_change_archive_events("trackTableErrors", value)
         self.logger.debug("Pushed the trackTableErrors event: %s", value)
 
     def update_global_pointing_param_callback(
@@ -664,11 +523,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
-        # with tango.EnsureOmniThread():
-        #     self.push_change_archive_events(
-        #         "kValue",
-        #         int(self.component_manager.kValue),
-        #     )
         self.logger.debug(
             "k-value is updated to: %s",
             self.component_manager.kValue,
@@ -817,52 +671,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self.push_change_archive_events(
             "sdpQueueConnectorFqdn", self._sdpQueueConnectorFqdn
         )
-
-    # @attribute(
-    #     dtype=ArgType.DevDouble,
-    #     dformat=AttrDataFormat.SPECTRUM,
-    #     access=AttrWriteType.READ,
-    #     max_dim_x=2,
-    # )
-    # def sourceOffset(self: MidTmcLeafNodeDish) -> list[float]:
-    #     """
-    #     This attribute is used for storing the commanded offsets
-    #     received as a part of delta/partial configuration.
-    #     This attribute is subscribed by SDP queue connector
-    #     device.
-    #     delta/partial configuration values like ca_offset_arcsec
-    #     and ie_offset_arcsec are provided in the partial configuration
-    #     json.
-
-    #     source offset example:
-    #     [cross_elevation_offset, elevation_offset]
-    #     [0, .5]
-    #     [.5, 0]
-    #     [0, -.5], etc
-
-    #     :return: list[float]
-    #     """
-    #     return self._sourceOffset
-
-    # @attribute(
-    #     dtype=ArgType.DevString,
-    #     dformat=AttrDataFormat.SCALAR,
-    #     access=AttrWriteType.READ,
-    # )
-    # def lastPointingData(self: MidTmcLeafNodeDish):
-    #     """
-    #     This attribute is used to store the recent
-    #     pointing data received in calibration scan
-
-    #     :return: str
-    #     """
-    #     if self._last_pointing_data_attr_quality is AttrQuality.ATTR_VALID:
-    #         return self._lastPointingData
-    #     return (
-    #         self._lastPointingData,
-    #         TimeVal.totime(TimeVal.now()),
-    #         self._last_pointing_data_attr_quality,
-    #     )
 
     @attribute(
         dtype="str",
@@ -1535,10 +1343,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def SetStandbyLPMode(self: MidTmcLeafNodeDish):
         """Invokes SetStandbyLPMode command on DishMaster (Standby-Low power)
         mode."""
-        # handler = self.get_command_object("SetStandbyLPMode")
-        # result_code, unique_id = handler()
 
-        # return [result_code], [str(unique_id)]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1574,10 +1379,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         mode.
 
         """
-        # handler = self.get_command_object("SetStandbyFPMode")
-        # result_code, unique_id = handler()
 
-        # return [result_code], [str(unique_id)]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1598,10 +1400,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-
-        # handler = self.get_command_object("Scan")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [str(unique_id)]
 
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
@@ -1692,9 +1490,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         Invokes On command on Dish Master.
         """
 
-        # handler = self.get_command_object("Off")
-        # result_code, unique_id = handler()
-        # return [result_code], [unique_id]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1816,9 +1611,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def Track(self: MidTmcLeafNodeDish, argin) -> tuple:
         """Invokes Track command on the DishMaster."""
 
-        # handler = self.get_command_object("Track")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [unique_id]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1852,9 +1644,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def ConfigureBand(self: MidTmcLeafNodeDish, argin: str) -> tuple:
         """Invokes ConfigureBand command on the DishMaster."""
 
-        # handler = self.get_command_object("ConfigureBand")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [unique_id]
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event
         ) -> None:
@@ -1886,10 +1675,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             )
 
         return task
-        # handler = self.get_command_object("TrackStop")
-        # result_code, unique_id = handler()
-
-        # return [result_code], [str(unique_id)]
 
     # pylint: disable=unused-argument
     def is_TrackStop_allowed(
@@ -1928,10 +1713,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             )
 
         return task
-        # handler = self.get_command_object("TrackLoadStaticOff")
-        # result_code, unique_id = handler(argin)
-
-        # return [result_code], [str(unique_id)]
 
     # pylint: disable=unused-argument
     def is_TrackLoadStaticOff_allowed(
@@ -2082,9 +1863,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             )
 
         return task
-        # handler = self.get_command_object("ApplyPointingModel")
-        # result_code, unique_id = handler(argin)
-        # return [result_code], [str(unique_id)]
 
     # pylint: disable=unused-argument
     def is_ApplyPointingModel_allowed(
