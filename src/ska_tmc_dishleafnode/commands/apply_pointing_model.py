@@ -12,7 +12,7 @@ import logging
 import re
 import threading
 import urllib
-from typing import TYPE_CHECKING, Tuple, Optional
+from typing import TYPE_CHECKING, Optional, Tuple
 
 # from ska_tango_base.executor import TaskStatus
 from ska_control_model import TaskStatus
@@ -120,8 +120,8 @@ class ApplyPointingModel(DishLNCommand):
 
     # pylint: disable=unused-argument
     def invoke_apply_pointing_model(
-        self: ApplyPointingModel, 
-        argin: str, 
+        self: ApplyPointingModel,
+        argin: str,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
     ) -> None:

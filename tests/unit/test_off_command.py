@@ -17,8 +17,8 @@ def test_off_command_in_lp(cm):
         cm.is_off_allowed()
 
 
-# @pytest.mark.off_fp
-@pytest.mark.skip(reason="Skipping this test temporarily")
+@pytest.mark.off_fp
+# @pytest.mark.skip(reason="Skipping this test temporarily")
 def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     attrs = {
@@ -57,16 +57,39 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
         }
     )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+
     assert cm.is_off_allowed()
-    cm.off(task_callback=task_callback)
-    # cm.off(task_callback=task_callback, task_abort_event=threading.Event())
+
+    cm.is_setstandbylpmode_allowed()
+    # cm.setstandbyfpmode(task_callback)
+    cm.setstandbylpmode(
+        task_callback=task_callback, task_abort_event=threading.Event()
+    )
     # task_callback.assert_against_call(
     #     call_kwargs={"status": TaskStatus.QUEUED}
     # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
+    cm.update_device_dish_mode(DishMode.STANDBY_LP)
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        }
+    )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
+
+    # assert cm.is_off_allowed()
+    # cm.off(task_callback=task_callback)
+    cm.off(task_callback=task_callback, task_abort_event=threading.Event())
+    # task_callback.assert_against_call(
+    #     call_kwargs={"status": TaskStatus.QUEUED}
+    # )
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

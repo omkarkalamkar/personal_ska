@@ -8,12 +8,11 @@ import json
 import logging
 import threading
 import time
-from typing import Optional, Tuple
+from typing import Tuple
 
 import tango
 from ska_control_model import HealthState, TaskStatus
 from ska_ser_logging import configure_logging
-from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import (
     DishMode,
@@ -34,9 +33,6 @@ from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
 )
 from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
 from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
-
-# from typing import Tuple
-
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)

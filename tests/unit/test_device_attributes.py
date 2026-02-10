@@ -9,8 +9,8 @@ from ska_tmc_dishleafnode import release
 from tests.settings import SLEEP_TIME
 
 
-# @pytest.mark.att_test
-@pytest.mark.skip(reason="Skipping this test temporarily")
+@pytest.mark.att_test
+# @pytest.mark.skip(reason="Skipping this test temporarily")
 def test_attributes(dishln_device):
     sleep(SLEEP_TIME)
     assert dishln_device.State() == DevState.ON
@@ -25,6 +25,10 @@ def test_attributes(dishln_device):
     dishln_device.dishMasterDevName = "dishmaster"
     assert dishln_device.dishMasterDevName == "dishmaster"
     assert dishln_device.versionId == release.version
+    # assert (
+    # dishln_device.buildState
+    # == f"{release.name},{release.version},{release.description.strip()}"
+    # )
     assert (
         dishln_device.buildState
         == f"""{release.name},{release.version},
