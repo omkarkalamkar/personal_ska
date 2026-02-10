@@ -44,6 +44,7 @@ def test_scan_command(cm_without_er_lp, task_callback):
     )
 
 
+@pytest.mark.test_scan
 def test_scan_command_adapter_none(cm_without_er_lp, task_callback):
     cm = cm_without_er_lp
     cm.update_device_dish_mode(DishMode.STANDBY_FP)

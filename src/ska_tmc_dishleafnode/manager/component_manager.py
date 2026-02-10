@@ -1742,8 +1742,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         return scan_command.scan(
             argin=argin,
-            # task_callback=task_callback,
-            # task_abort_event=task_abort_event,
+            task_callback=task_callback,
+            task_abort_event=task_abort_event,
         )
 
         # task_status, response = self.submit_task(
@@ -1777,8 +1777,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         return endscan_command.endscan(
-            # task_callback=task_callback,
-            # task_abort_event=task_abort_event,
+            task_callback=task_callback,
+            task_abort_event=task_abort_event,
         )
         # task_status, response = self.submit_task(
         #     endscan_command.endscan,
@@ -1914,8 +1914,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         return trackstop_command.trackstop(
-            # task_callback=task_callback,
-            # task_abort_event=task_abort_event,
+            task_callback=task_callback,
+            task_abort_event=task_abort_event,
         )
         # task_status, response = self.submit_task(
         #     trackstop_command.trackstop,
@@ -1988,6 +1988,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             tuple: a result code and message
 
         """
+        if not self.is_command_allowed_callable("Configure")():
+            result = (ResultCode.NOT_ALLOWED, "Command is not allowed")
+            task_callback(
+                status=TaskStatus.REJECTED,
+                result=result,
+            )
+            return result
         try:
             input_json = json.loads(argin)
             is_partial_configure = input_json.get("tmc", {}).get(
@@ -2025,8 +2032,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return configure_command.invoke_configure(
             # self.logger,
             argin=argin,
-            # task_callback=task_callback,
-            # task_abort_event=task_abort_event,
+            task_callback=task_callback,
+            task_abort_event=task_abort_event,
         )
         # submit the command to the queue
         # task_status, response = self.submit_task(
@@ -2085,8 +2092,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         return track_load_static_off_command.invoke_track_load_static_off(
             # self.logger,
             argin=argin,
-            # task_callback=task_callback,
-            # task_abort_event=task_abort_event,
+            task_callback=task_callback,
+            task_abort_event=task_abort_event,
         )
 
         # task_status, response = self.submit_task(

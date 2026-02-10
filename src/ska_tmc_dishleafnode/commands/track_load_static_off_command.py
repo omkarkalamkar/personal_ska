@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Dict, Tuple, Union
+import threading
+from typing import Dict, Optional, Tuple, Union
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
@@ -71,8 +73,8 @@ class TrackLoadStaticOff(DishLNCommand):
     def invoke_track_load_static_off(
         self: TrackLoadStaticOff,
         argin: str,
-        # task_callback: TaskCallbackType,
-        # task_abort_event: Optional[threading.Event] = None,
+        task_callback: Optional[TaskCallbackType] = None,
+        task_abort_event: Optional[threading.Event] = None,
     ) -> Tuple[ResultCode, str]:
         # pylint: enable=unused-argument
         """A method to invoke the do method of the TrackLoadStaticOff command

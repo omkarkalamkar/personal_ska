@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Tuple, Union
+import threading
+from typing import Dict, Optional, Tuple, Union
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
+from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
@@ -53,8 +55,8 @@ class TrackStop(DishLNCommand):
     @error_propagation_tracker("get_track_stop_result_code", [ResultCode.OK])
     def trackstop(
         self: TrackStop,
-        # task_callback: TaskCallbackType,
-        # task_abort_event: Optional[threading.Event] = None,
+        task_callback: Optional[TaskCallbackType] = None,
+        task_abort_event: Optional[threading.Event] = None,
     ) -> Tuple[ResultCode, str]:
         """This is a long running method for TrackStop command, it
         executes the do hook, invoking TrackStop command on Dish Master

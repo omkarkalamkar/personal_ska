@@ -280,7 +280,6 @@ def test_configure_command_not_allowed(cm_without_er_lp):
         cm.is_configure_allowed()
 
 
-@pytest.mark.test_config_pr
 def test_configure_command_status_not_allowed(
     cm_without_er_lp,
     task_callback,

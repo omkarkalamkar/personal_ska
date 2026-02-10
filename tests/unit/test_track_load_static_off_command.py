@@ -96,6 +96,7 @@ def test_trackloadstaticoff_command_invalid_input(
     )
 
 
+@pytest.mark.test_key
 def test_configure_command_completed_with_correction_key_reset(
     cm_without_er_lp,
     task_callback,
@@ -139,7 +140,12 @@ def test_configure_command_completed_with_correction_key_reset(
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "RESET"
     configure_input_str = json.dumps(configure_input_str)
-    cm.configure(configure_input_str, task_callback=task_callback)
+    # cm.configure(configure_input_str, task_callback=task_callback)
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
+    )
     # task_callback.assert_against_call(
     #     call_kwargs={"status": TaskStatus.QUEUED}
     # )
