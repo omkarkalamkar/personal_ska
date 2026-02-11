@@ -123,7 +123,6 @@ class ApplyPointingModel(DishLNCommand):
         argin: str,
         task_callback: TaskCallbackType,
         task_abort_event: Optional[threading.Event] = None,
-        # self: ApplyPointingModel, argin: str, task_callback, task_abort_event
     ) -> None:
         """A method to invoke the do method of the ApplyPointingModel command
         class. This method also updates the task callback according to command

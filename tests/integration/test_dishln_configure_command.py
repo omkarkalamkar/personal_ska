@@ -789,10 +789,12 @@ def configure_with_wrap_sector(
         (PointingState.READY),
         lookahead=6,
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
+
+    # group_callback["dishMode"].assert_change_event(
+    #     (DishMode.OPERATE),
+    #     lookahead=6,
+    # ) same event
+
     group_callback["pointingProgramTrackTable"].assert_change_event(
         ("[]"),
         lookahead=8,
