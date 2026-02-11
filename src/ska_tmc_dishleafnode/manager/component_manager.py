@@ -1358,67 +1358,68 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Runs in a child process. Rebuilds the observer when the parent updates
         `array_layout` (signalled via `self.layout_updated`).
         """
-        self.logger.info("Main Process ID: %s", os.getppid())
-        self.logger.info("Sub-Process ID: %s", os.getpid())
+        with tango.EnsureOmniThread():
+            self.logger.info("Main Process ID: %s", os.getppid())
+            self.logger.info("Sub-Process ID: %s", os.getpid())
 
-        # Initial setup
-        try:
-            self.create_converter_obj_and_antenna_obj()
-        except Exception as e:
-            self.logger.exception(
-                "Failed to create initial antenna object: %s", e
-            )
-
-        try:
-            self.download_iers_data()
-        except Exception as e:
-            self.logger.exception("Failed to download IERS data: %s", e)
-
-        # Keep running while the Event is NOT set
-        while not self.stop_actual_pointing_process.is_set():
-            # Handle layout updates
+            # Initial setup
             try:
-                if (
-                    hasattr(self, "layout_updated")
-                    and self.layout_updated.is_set()
-                ):
-                    self.logger.debug(
-                        "array_layout update detected; rebuilding antenna."
-                    )
-                    try:
-                        self.create_converter_obj_and_antenna_obj()
-                    finally:
-                        self.layout_updated.clear()
+                self.create_converter_obj_and_antenna_obj()
             except Exception as e:
                 self.logger.exception(
-                    "Error while handling layout update: %s", e
+                    "Failed to create initial antenna object: %s", e
                 )
-
-            # Read queue with timeout — never block forever
-            try:
-                item = self.achieved_pointing_data.get(timeout=0.5)
-            except queue.Empty:
-                continue  # recheck event and loop
-
-            # Shutdown sentinel
-            if item is None:
-                break
 
             try:
-                value_list = item.tolist()
-                self.perform_reverse_transform(value_list)
-            except ValueError as value_error:
-                self.logger.error(
-                    "Value error occurred in actual pointing process: %s",
-                    value_error,
-                )
-            except Exception as exception:
-                self.logger.exception(
-                    "Exception occurred in actual pointing process: %s",
-                    str(exception),
-                )
+                self.download_iers_data()
+            except Exception as e:
+                self.logger.exception("Failed to download IERS data: %s", e)
 
-        self.logger.info("Actual pointing process exiting cleanly.")
+            # Keep running while the Event is NOT set
+            while not self.stop_actual_pointing_process.is_set():
+                # Handle layout updates
+                try:
+                    if (
+                        hasattr(self, "layout_updated")
+                        and self.layout_updated.is_set()
+                    ):
+                        self.logger.debug(
+                            "array_layout update detected; rebuilding antenna."
+                        )
+                        try:
+                            self.create_converter_obj_and_antenna_obj()
+                        finally:
+                            self.layout_updated.clear()
+                except Exception as e:
+                    self.logger.exception(
+                        "Error while handling layout update: %s", e
+                    )
+
+                # Read queue with timeout — never block forever
+                try:
+                    item = self.achieved_pointing_data.get(timeout=0.5)
+                except queue.Empty:
+                    continue  # recheck event and loop
+
+                # Shutdown sentinel
+                if item is None:
+                    break
+
+                try:
+                    value_list = item.tolist()
+                    self.perform_reverse_transform(value_list)
+                except ValueError as value_error:
+                    self.logger.error(
+                        "Value error occurred in actual pointing process: %s",
+                        value_error,
+                    )
+                except Exception as exception:
+                    self.logger.exception(
+                        "Exception occurred in actual pointing process: %s",
+                        str(exception),
+                    )
+
+            self.logger.info("Actual pointing process exiting cleanly.")
 
     def perform_reverse_transform(
         self: DishLNComponentManager, value_list
