@@ -370,7 +370,11 @@ def test_auto_stow_temp_delta(group_callback):
         lookahead=5,
     )
     dish_leaf_node.set_timeout_millis(5000)
-
+    # inflating values so that other tests are not
+    # affected.
+    dish_leaf_node.temperatureDelta = 100.0
+    dish_leaf_node.maxTemperatureThreshold = 100.0
+    dish_leaf_node.minTemperatureThreshold = -100.0
     dish_leaf_node.timeDelta = 1000.0
     dish_leaf_node.unsubscribe_event(stow_status_id)
     dish_leaf_node.unsubscribe_event(dish_mode_id)

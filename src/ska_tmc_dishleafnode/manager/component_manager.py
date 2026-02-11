@@ -692,6 +692,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "b4CapabilityState",
             "b5aCapabilityState",
             "b5bCapabilityState",
+            "healthState",
         ]
 
         device_attribute_map[self.dishln_pointing_dev_name] = [
@@ -2447,6 +2448,24 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 normalized_band = "B5a"
             elif normalized_band == "B5B":
                 normalized_band = "B5b"
+
+            # Always record raw capability state
+            self.band_capability_state[normalized_band] = band_capability_state
+
+            # But suppress UNKNOWN for health when not OPERATE
+            if (
+                band_capability_state == CapabilityStates.UNKNOWN
+                and self.dishMode != DishMode.OPERATE
+            ):
+                self.logger.debug(
+                    "%s is UNKNOWN, skipping health data update "
+                    "because dishMode=%s (not OPERATE).",
+                    normalized_band,
+                    self.dishMode,
+                )
+                return
+
+            # Forward to health aggregation
             self.band_capability_state[normalized_band] = band_capability_state
             self.health_manager.update_health_data_and_aggregate(
                 (normalized_band, band_capability_state),
