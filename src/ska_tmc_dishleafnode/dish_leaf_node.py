@@ -1554,8 +1554,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         return self.component_manager.is_track_allowed()
 
     @long_running_command
+    # @command(dtype_in="DevString", dtype_out="DevVarLongStringArray")
     @DebugIt()
-    def Track(self: MidTmcLeafNodeDish, argin) -> tuple:
+    # def Track(self: MidTmcLeafNodeDish, argin) -> tuple:
+    def Track(self: MidTmcLeafNodeDish, argin: str) -> tuple:
         """Invokes Track command on the DishMaster."""
 
         def task(

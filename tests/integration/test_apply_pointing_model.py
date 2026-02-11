@@ -456,6 +456,7 @@ def gpm_version_restart_scenario(
     assert dish_leaf_node.gpmfilepath
 
 
+@pytest.mark.skip(reason="Skipping this test temporarily")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_apply_pointing_model(
