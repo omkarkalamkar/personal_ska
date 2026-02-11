@@ -832,9 +832,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     )
     rateOfChangeTemperature = attribute_from_signal(
         _rate_of_change_in_temperature,
-        dtype=float,
+        dtype=str,
         access=AttrWriteType.READ,
-        abs_change=0.0001,
     )
 
     def update_roc_temperature_callback(self, roc_temp: str):
