@@ -804,9 +804,6 @@ def configure_with_wrap_sector(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-# @pytest.mark.xfail(
-#     reason="Test is failing due to mismatch of " "expected and actual values"
-# )
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(
