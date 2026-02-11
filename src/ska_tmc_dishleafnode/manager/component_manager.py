@@ -1359,7 +1359,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Runs in a child process. Rebuilds the observer when the parent updates
         `array_layout` (signalled via `self.layout_updated`).
         """
-        tango.ApiUtil.cleanup()
         self.logger.info("Main Process ID: %s", os.getppid())
         self.logger.info("Sub-Process ID: %s", os.getpid())
 
