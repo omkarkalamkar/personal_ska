@@ -1762,7 +1762,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_set_kvalue_allowed()
 
-    @long_running_command
+    @command(dtype_out="DevVarLongStringArray")
     @DebugIt()
     def SetKValue(
         self: MidTmcLeafNodeDish, k_value: int
