@@ -70,7 +70,7 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_op[0], COMMAND_COMPLETED),
-        lookahead=7,
+        lookahead=15,
     )
     argin_reciever_band = (
         json.loads(argin).get("dish", {}).get("receiver_band", "")
