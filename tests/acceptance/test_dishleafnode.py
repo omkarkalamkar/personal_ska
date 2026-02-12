@@ -120,10 +120,13 @@ def check_command(
             )
 
     # assert str(dish_master_proxy.state()) == resultant_state
-    assert dish_master_proxy.dishMode in (
-        DishMode.STANDBY_LP,
-        DishMode.STANDBY_FP,
-    )
+    if "Configure" in unique_id:
+        assert dish_master_proxy.dishMode == DishMode.OPERATE
+    else:
+        assert dish_master_proxy.dishMode in (
+            DishMode.STANDBY_LP,
+            DishMode.STANDBY_FP,
+        )
     dishleaf_node.unsubscribe_event(lrcr_event_id)
 
 
