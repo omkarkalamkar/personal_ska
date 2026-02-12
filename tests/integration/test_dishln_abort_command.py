@@ -245,7 +245,7 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
 
 
 @pytest.mark.skip(reason="ip")
-# @pytest.mark.test_abort
+@pytest.mark.test_abort
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_timeout(tango_context, group_callback):
@@ -257,6 +257,7 @@ def abort_timeout(
     dishln_name,
     group_callback,
 ):
+    logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
@@ -266,10 +267,13 @@ def abort_timeout(
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
     )
+
+    # assert dish_leaf_node.dishMode == DishMode.STANDBY_LP
 
     result, unique_id = dish_leaf_node.SetStandbyFPMode()
 

@@ -457,6 +457,7 @@ def gpm_version_restart_scenario(
 
 
 @pytest.mark.skip(reason="Skipping this test temporarily")
+@pytest.mark.test_apm_p
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_apply_pointing_model(
