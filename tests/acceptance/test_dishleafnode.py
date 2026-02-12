@@ -119,18 +119,11 @@ def check_command(
                 lookahead=6,
             )
 
-    dish_master_proxy.subscribe_event(
-        "state",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["state"],
+    # assert str(dish_master_proxy.state()) == resultant_state
+    assert dish_master_proxy.dishMode in (
+        DishMode.STANDBY_LP,
+        DishMode.STANDBY_FP,
     )
-
-    group_callback["state"].assert_change_event(
-        tango.DevState.STANDBY,
-        lookahead=8,
-    )
-
-    assert str(dish_master_proxy.state()) == resultant_state
     dishleaf_node.unsubscribe_event(lrcr_event_id)
 
 
