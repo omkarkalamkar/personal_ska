@@ -273,8 +273,6 @@ def abort_timeout(
         lookahead=2,
     )
 
-    # assert dish_leaf_node.dishMode == DishMode.STANDBY_LP
-
     result, unique_id = dish_leaf_node.SetStandbyFPMode()
 
     logger.debug("Command id: %s | Returned result: %s", unique_id, result)
@@ -294,6 +292,7 @@ def abort_timeout(
         (DishMode.STANDBY_FP),
         lookahead=5,
     )
+    # assert dish_leaf_node.dishMode == DishMode.STANDBY_LP
 
     dish_master.SetDelayInfo(json.dumps({"Abort": 35}))
     result, unique_id = dish_leaf_node.Abort()
@@ -310,10 +309,12 @@ def abort_timeout(
         group_callback["longRunningCommandResult"],
     )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=5,
-    )
+    # group_callback["dishMode"].assert_change_event(
+    #     (DishMode.STANDBY_FP),
+    #     lookahead=5,
+    # )
+
+    assert DishMode.STANDBY_FP == dish_leaf_node.dishMode
 
     # dish master ABORT LRCR OK is asserted
     group_callback["longRunningCommandResult"].assert_change_event(

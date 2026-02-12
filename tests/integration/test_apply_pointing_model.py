@@ -456,7 +456,7 @@ def gpm_version_restart_scenario(
     assert dish_leaf_node.gpmfilepath
 
 
-@pytest.mark.skip(reason="Skipping this test temporarily")
+# @pytest.mark.skip(reason="Skipping this test temporarily")
 @pytest.mark.test_apm_p
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid

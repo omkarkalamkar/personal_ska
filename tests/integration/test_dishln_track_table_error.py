@@ -244,6 +244,11 @@ def configure_dish_leaf_node_unknown_source(
         dish_leaf_node, track_table_error_before_configure
     )
 
+    # expected_message = (
+    #     "Target description 'Pluto, special' contains unknown"
+    #     + " *special* body 'Pluto'"
+    # )
+
     expected_message = (
         "Target description 'Pluto, special' contains unknown"
         + " *special* body 'Pluto'"
@@ -255,12 +260,13 @@ def configure_dish_leaf_node_unknown_source(
         "track_table_error after configure: %s",
         track_table_error,
     )
-    result = any(expected_message in message for message in track_table_error)
+
+    assert expected_message in track_table_error
     group_callback["programTrackTableError"].assert_change_event(
         expected_message,
         lookahead=8,
     )
-    assert result
+    # assert result
 
     assert wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
 
@@ -314,7 +320,7 @@ def configure_dish_leaf_node_unknown_source(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.skip(reason="ip")
+# @pytest.mark.skip(reason="ip")
 @pytest.mark.com_unk
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid

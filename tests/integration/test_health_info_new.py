@@ -220,6 +220,8 @@ def observation_workflow(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+# @pytest.mark.skip(reason="ip")
+@pytest.mark.new_health_test
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_healthInfo(tango_context, group_callback, json_factory):

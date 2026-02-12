@@ -827,8 +827,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self._ops_mean_wind_speed_diff = mean_speed
 
+    # _rate_of_change_in_temperature = Signal[float](
+    #     stored=True, initial_value=0.0
+    # )
     _rate_of_change_in_temperature = Signal[float](
-        stored=True, initial_value=0.0
+        stored=True, initial_value="{}"
     )
     rateOfChangeTemperature = attribute_from_signal(
         _rate_of_change_in_temperature,
