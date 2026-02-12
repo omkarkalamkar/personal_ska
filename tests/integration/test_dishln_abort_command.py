@@ -245,6 +245,7 @@ def test_abort_while_configuring(tango_context, group_callback, json_factory):
 
 
 @pytest.mark.skip(reason="ip")
+# @pytest.mark.test_abort
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_abort_timeout(tango_context, group_callback):
