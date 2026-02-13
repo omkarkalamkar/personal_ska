@@ -25,12 +25,12 @@ def gpm_validation_result(
     group_callback, band_name: str, band_result: str
 ) -> str:
     """Method to set gpm result for comparision in event callback"""
-    timeout = 2
+    timeout = 5
     flag = False
     while timeout >= 0:
         attribute_value = group_callback[
             "gpmValidationResult"
-        ].assert_change_event(Anything, lookahead=5,)["attribute_value"]
+        ].assert_change_event(Anything, lookahead=1,)["attribute_value"]
         gpm_validation_result = json.loads(attribute_value)
         if gpm_validation_result[band_name] == band_result:
             flag = True
