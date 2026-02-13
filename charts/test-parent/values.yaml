@@ -55,9 +55,9 @@ ska-tmc-simulators:
     app: ska-tmc-dishleafnode
   ska_tmc_simulators:
     image:
-      registry: artefact.skao.int
+      registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
       image: ska-tmc-simulators
-      tag: 1.9.5-dirty
+      tag: 1.9.5-dev.ca19ea590
       pullPolicy: IfNotPresent
   enabled: true
   telescope: SKA-mid
