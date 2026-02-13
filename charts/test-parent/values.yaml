@@ -57,7 +57,7 @@ ska-tmc-simulators:
     image:
       registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
       image: ska-tmc-simulators
-      tag: 
+      tag: 1.9.5-dev.c2c36bf00
       pullPolicy: IfNotPresent
   enabled: true
   telescope: SKA-mid
