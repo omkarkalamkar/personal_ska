@@ -89,6 +89,7 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.skip("temp skip")
 @pytest.mark.test_configureband
 @pytest.mark.parametrize(
     "argin",

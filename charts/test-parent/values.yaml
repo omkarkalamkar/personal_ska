@@ -74,6 +74,12 @@ ska-taranta:
 
 simulator:
   enabled: true
+  ska_tmc_simulators:
+    image:
+      registry: registry.gitlab.com/ska-telescope/ska-tmc/ska-tmc-simulators
+      image: ska-tmc-simulators
+      tag: 1.9.5-dev.c2c36bf00
+      pullPolicy: IfNotPresent
   name: wms-sim
   containers:
     registry: registry.gitlab.com
