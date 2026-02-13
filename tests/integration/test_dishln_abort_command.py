@@ -33,11 +33,21 @@ def abort_on_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
+    dish_mode_event = dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_COMPLETED),
         lookahead=7,
     )
+    group_callback["dishMode"].assert_change_event(
+        DishMode.STANDBY_FP,
+        lookahead=7,
+    )
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_event)
 
 
 def abort_when_configured(
@@ -307,12 +317,13 @@ def abort_timeout(
         group_callback["longRunningCommandResult"],
     )
 
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.STANDBY_FP),
-    #     lookahead=5,
-    # )
+    wait_and_validate_attribute_value_available(
+        dish_master, "dishMode", DishMode.STANDBY_FP
+    )
 
-    assert DishMode.STANDBY_FP == dish_leaf_node.dishMode
+    wait_and_validate_attribute_value_available(
+        dish_master, "pointingState", PointingState.READY
+    )
 
     # dish master ABORT LRCR OK is asserted
     group_callback["longRunningCommandResult"].assert_change_event(
