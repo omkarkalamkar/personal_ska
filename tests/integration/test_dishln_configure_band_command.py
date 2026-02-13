@@ -89,7 +89,6 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.test_configureband
 @pytest.mark.parametrize(
     "argin",
     ["1", "2", "3", "4", "5a", "5b", DISH_CONFIGURE_1_0],
