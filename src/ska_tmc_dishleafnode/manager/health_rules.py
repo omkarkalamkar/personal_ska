@@ -54,12 +54,6 @@ HEALTH_RULES = {
             "band_capability_data.band_capability_values])"
         ),
         Rule("is_program_track_table_error"),
-        # Rule(
-        #     "is_program_track_table_error and "
-        #     "k_value_validation_result.result_code == 'OK' and "
-        #     "$all([gpm != 'FAILED' for gpm in gpm_validation_result.
-        # result]) "
-        # ),
     ],
     HealthState.FAILED: [
         # KValue validation failed (critical)

@@ -27,9 +27,7 @@ def test_setstandbyfpmode_command(cm_without_er_lp, task_callback):
     assert cm.is_setstandbyfpmode_allowed()
 
     cm.setstandbyfpmode(task_callback=task_callback)
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -49,9 +47,7 @@ def test_setstandbyfpmode_command_adapter_none(
     assert cm.is_setstandbyfpmode_allowed()
 
     cm.setstandbyfpmode(task_callback=task_callback)
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

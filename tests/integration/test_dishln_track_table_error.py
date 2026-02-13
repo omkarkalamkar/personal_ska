@@ -244,11 +244,6 @@ def configure_dish_leaf_node_unknown_source(
         dish_leaf_node, track_table_error_before_configure
     )
 
-    # expected_message = (
-    #     "Target description 'Pluto, special' contains unknown"
-    #     + " *special* body 'Pluto'"
-    # )
-
     expected_message = (
         "Target description 'Pluto, special' contains unknown"
         + " *special* body 'Pluto'"
@@ -266,7 +261,6 @@ def configure_dish_leaf_node_unknown_source(
         expected_message,
         lookahead=8,
     )
-    # assert result
 
     assert wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
 

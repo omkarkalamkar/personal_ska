@@ -138,19 +138,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
             self.component_manager.target_data.get("array_layout", {})
         )
 
-    # @attribute(
-    #     dtype=ArgType.DevString,
-    #     dformat=AttrDataFormat.SCALAR,
-    #     access=AttrWriteType.READ,
-    # )
-    # def pointingProgramTrackTable(self) -> str:
-    #     """
-    #     This attribute is used for storing calculated tracktable.
-
-    #     :return: str
-    #     """
-    #     return json.dumps(self.pointing_program_track_table)
-
     def update_pointing_program_track_table_callback(
         self, pointing_program_track_table: list
     ) -> None:
@@ -181,10 +168,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        # handler = self.get_command_object("GenerateProgramTrackTable")
-        # result_code, message = handler()
-
-        # return [result_code], [message]
 
         def task(
             task_callback: TaskCallbackType, task_abort_event: Event

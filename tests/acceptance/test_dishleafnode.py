@@ -119,7 +119,6 @@ def check_command(
                 lookahead=6,
             )
 
-    # assert str(dish_master_proxy.state()) == resultant_state
     if "Configure" in unique_id:
         assert dish_master_proxy.dishMode == DishMode.OPERATE
     else:

@@ -1336,7 +1336,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :rtype: string
         """
         try:
-            # return datetime.datetime.fromtimestamp(
             return datetime.datetime.utcfromtimestamp(
                 Time(
                     float(timestamp_tai_ska_epoch)

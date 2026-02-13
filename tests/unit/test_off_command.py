@@ -37,13 +37,11 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm.adapter_factory = adapter_factory
     wait_for_dish_mode(cm, DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
-    # cm.setstandbyfpmode(task_callback)
+
     cm.setstandbyfpmode(
         task_callback=task_callback, task_abort_event=threading.Event()
     )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -59,13 +57,11 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     assert cm.is_off_allowed()
 
     cm.is_setstandbylpmode_allowed()
-    # cm.setstandbyfpmode(task_callback)
+
     cm.setstandbylpmode(
         task_callback=task_callback, task_abort_event=threading.Event()
     )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -78,12 +74,8 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
 
-    # assert cm.is_off_allowed()
-    # cm.off(task_callback=task_callback)
     cm.off(task_callback=task_callback, task_abort_event=threading.Event())
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -103,9 +95,7 @@ def test_off_command_adapter_none(cm_without_er_lp, task_callback):
     assert cm.is_off_allowed()
     cm.command_timeout = 2
     cm.off(task_callback=task_callback)
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

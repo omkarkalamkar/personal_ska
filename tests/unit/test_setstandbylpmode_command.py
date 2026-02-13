@@ -27,9 +27,7 @@ def test_setstandbylpmode_command(cm_without_er_lp, task_callback):
     assert cm.is_setstandbylpmode_allowed()
 
     cm.setstandbylpmode(task_callback=task_callback)
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -49,9 +47,7 @@ def test_setstandbylpmode_command_adapter_none(
     assert cm.is_setstandbylpmode_allowed()
 
     cm.setstandbylpmode(task_callback=task_callback)
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

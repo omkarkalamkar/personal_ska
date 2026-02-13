@@ -300,7 +300,6 @@ def abort_timeout(
         (DishMode.STANDBY_FP),
         lookahead=5,
     )
-    # assert dish_leaf_node.dishMode == DishMode.STANDBY_LP
 
     dish_master.SetDelayInfo(json.dumps({"Abort": 35}))
     result, unique_id = dish_leaf_node.Abort()

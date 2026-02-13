@@ -253,7 +253,6 @@ def test_kvalue_dln_restart_dm_unavailable(tango_context, group_callback):
     assert dish_leaf_node.kValue == dish_master.kValue
 
 
-@pytest.mark.test_kvalue_deg
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_kvalue_runtime_mismatch_updates_health_to_degraded(

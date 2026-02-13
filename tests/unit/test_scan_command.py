@@ -28,9 +28,7 @@ def test_scan_command(cm_without_er_lp, task_callback):
     cm.scan(
         "1", task_callback=task_callback, task_abort_event=threading.Event()
     )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -49,9 +47,7 @@ def test_scan_command_adapter_none(cm_without_er_lp, task_callback):
     assert cm.is_scan_allowed()
 
     cm.scan("1", task_callback=task_callback)
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

@@ -41,15 +41,13 @@ def test_track_command_completed(task_callback, cm_without_er_lp):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     cm.is_track_allowed()
-    # cm.track(track_input_str, task_callback=task_callback)
+
     cm.track(
         track_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
     )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -71,9 +69,6 @@ def test_track_command_adapter_none(task_callback, cm_without_er_lp):
     track_input_str = get_track_input_str()
     cm.track(track_input_str, task_callback=task_callback)
 
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

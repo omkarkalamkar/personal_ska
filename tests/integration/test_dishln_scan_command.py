@@ -81,11 +81,6 @@ def scan_command_timeout(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
 
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=6,
-    # )
-
     assert dish_leaf_node.dishMode == DishMode.OPERATE
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -219,10 +214,6 @@ def scan_command_error_propagation(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
 
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=6,
-    # )
     assert dish_leaf_node.dishMode == DishMode.OPERATE
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -281,7 +272,6 @@ def scan_command_error_propagation(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.scan_err
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_scan_command_error_propagation(
@@ -354,10 +344,7 @@ def scan_command(
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=6,
-    # )
+
     assert dish_leaf_node.dishMode == DishMode.OPERATE
 
     group_callback["longRunningCommandResult"].assert_change_event(
@@ -398,7 +385,6 @@ def scan_command(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.test_scan_com
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_scan_command(tango_context, group_callback, json_factory):

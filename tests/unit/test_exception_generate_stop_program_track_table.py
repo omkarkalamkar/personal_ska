@@ -89,15 +89,13 @@ def test_error_propagation_program_track_table(
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
     configure_input_str = json_factory("dishleafnode_configure")
-    # cm.configure(configure_input_str, task_callback=task_callback)
+
     cm.configure(
         configure_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
     )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -136,13 +134,11 @@ def test_error_propagation_stop_program_track_table(
     simulate_dish_mode_event(cm, DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()
-    # cm.trackstop(task_callback=task_callback)
+
     cm.trackstop(
         task_callback=task_callback, task_abort_event=threading.Event()
     )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

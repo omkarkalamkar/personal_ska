@@ -24,11 +24,9 @@ def test_endscan_command(cm_without_er_lp, task_callback):
     cm.adapter_factory = adapter_factory
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert cm.is_endscan_allowed()
-    # cm.endscan(task_callback=task_callback)
+
     cm.endscan(task_callback=task_callback, task_abort_event=threading.Event())
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -47,10 +45,7 @@ def test_endscan_command_adapter_none(cm_without_er_lp, task_callback):
     assert cm.is_endscan_allowed()
 
     cm.endscan(task_callback=task_callback, task_abort_event=threading.Event())
-    # cm.endscan(task_callback=task_callback)
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
