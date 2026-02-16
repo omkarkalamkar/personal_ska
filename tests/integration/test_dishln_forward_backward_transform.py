@@ -77,11 +77,6 @@ def forward_backward_transform(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
 
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=6,
-    # )
-
     assert dish_leaf_node.dishMode == DishMode.OPERATE
 
     # Waiting for some time, to let the Track Thread Run.

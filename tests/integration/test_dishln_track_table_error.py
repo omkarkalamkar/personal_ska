@@ -255,12 +255,12 @@ def configure_dish_leaf_node_unknown_source(
         "track_table_error after configure: %s",
         track_table_error,
     )
-    result = any(expected_message in message for message in track_table_error)
+
+    assert expected_message in track_table_error
     group_callback["programTrackTableError"].assert_change_event(
         expected_message,
         lookahead=8,
     )
-    assert result
 
     assert wait_for_attribute_health_value(dish_leaf_node, "healthState", 1)
 

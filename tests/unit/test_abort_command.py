@@ -2,7 +2,6 @@
 import threading
 from unittest import mock
 
-# from ska_tango_base.executor import TaskStatus
 from ska_control_model import TaskStatus
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState

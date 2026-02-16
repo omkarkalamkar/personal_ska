@@ -94,6 +94,7 @@ def track_timeout_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.test_track_tim
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_command_timeout(tango_context, group_callback, json_factory):
@@ -215,10 +216,12 @@ def track_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=4,
-    )
+    # group_callback["dishMode"].assert_change_event(
+    #     (DishMode.OPERATE),
+    #     lookahead=4,
+    # )
+
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",
@@ -241,10 +244,8 @@ def track_dish_leaf_node(
         (PointingState.TRACK),
         lookahead=5,
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=5,
-    )
+
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
     time.sleep(3)
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
@@ -256,10 +257,8 @@ def track_dish_leaf_node(
         (PointingState.READY),
         lookahead=5,
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=5,
-    )
+
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)

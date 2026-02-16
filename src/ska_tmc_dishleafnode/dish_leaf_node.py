@@ -10,8 +10,6 @@ import tango
 from numpy import isnan
 from numpy import nan as NaN
 from ska_control_model import HealthState
-
-# from ska_tango_base import SKABaseDevice
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.long_running_commands import (
     LRCReqType,
@@ -27,7 +25,7 @@ from ska_tmc_common import (
     PointingState,
 )
 from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
-from tango import (  # TimeVal,
+from tango import (
     ArgType,
     AttrDataFormat,
     AttrQuality,
@@ -828,7 +826,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._ops_mean_wind_speed_diff = mean_speed
 
     _rate_of_change_in_temperature = Signal[float](
-        stored=True, initial_value=0.0
+        stored=True, initial_value="{}"
     )
     rateOfChangeTemperature = attribute_from_signal(
         _rate_of_change_in_temperature,
@@ -1554,7 +1552,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     @long_running_command
     @DebugIt()
-    def Track(self: MidTmcLeafNodeDish, argin) -> tuple:
+    def Track(self: MidTmcLeafNodeDish, argin: str) -> tuple:
         """Invokes Track command on the DishMaster."""
 
         def task(

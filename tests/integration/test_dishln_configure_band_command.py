@@ -23,7 +23,8 @@ def configureband_command(tango_context, dishln_name, group_callback, argin):
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
+    if dish_master.dishmode != DishMode.STANDBY_LP:
+        dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
         tango.EventType.CHANGE_EVENT,
