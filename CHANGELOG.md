@@ -9,7 +9,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 *******
 Updated
 -------
-* Base classes v1.4.0.
+* Base classes v1.4.0 and pytango v10.1.2.
 
 [0.30.1]
 ********
