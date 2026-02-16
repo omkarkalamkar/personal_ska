@@ -251,7 +251,7 @@ def pointing_callback(argin):
     """An empty pointing callback"""
 
 
-def kvalue_validation_callback():
+def kvalue_validation_callback(*args):
     """An empty kvalue_validation callback"""
 
 

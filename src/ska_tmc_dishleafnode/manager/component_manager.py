@@ -275,6 +275,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.band_capability_state: Dict[str, CapabilityStates] = {}
         self._kValueValidationResult = ResultCode.STARTED
         self.kvalue_validation_callback = kvalue_validation_callback
+        self.kvalue_validation_callback(self.kValueValidationResult)
         self.dish_availability_check_timeout = dish_availability_check_timeout
         self.iers_a = None
         self.observer = None
@@ -1318,7 +1319,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.dish_kvalue_validation_manager.validate_dish_kvalue()
             elif self.kvalue_validation_callback:
                 self.kValueValidationResult = ResultCode.NOT_ALLOWED
-                self.kvalue_validation_callback()
+                self.kvalue_validation_callback(self.kValueValidationResult)
+                self.update_kvalue_data_for_health_aggregation()
+
             self.initialization_complete.set()
 
     def convert_timestamp(

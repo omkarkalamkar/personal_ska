@@ -117,7 +117,9 @@ class DishkValueValidationManager:
             self.logger.debug("kValue not set")
             self.component_manager.kValueValidationResult = ResultCode.UNKNOWN
             if self.component_manager.kvalue_validation_callback:
-                self.component_manager.kvalue_validation_callback()
+                self.component_manager.kvalue_validation_callback(
+                    ResultCode.UNKNOWN
+                )
         elif dish_manager_kvalue == dish_ln_kvalue:
             if self.component_manager.kValueValidationResult == ResultCode.OK:
                 return
@@ -126,7 +128,9 @@ class DishkValueValidationManager:
             )
             self.component_manager.kValueValidationResult = ResultCode.OK
             if self.component_manager.kvalue_validation_callback:
-                self.component_manager.kvalue_validation_callback()
+                self.component_manager.kvalue_validation_callback(
+                    ResultCode.OK
+                )
         else:
             if (
                 self.component_manager.kValueValidationResult
@@ -139,4 +143,7 @@ class DishkValueValidationManager:
             )
             self.component_manager.kValueValidationResult = ResultCode.FAILED
             if self.component_manager.kvalue_validation_callback:
-                self.component_manager.kvalue_validation_callback()
+                self.component_manager.kvalue_validation_callback(
+                    ResultCode.FAILED
+                )
+        self.component_manager.update_kvalue_data_for_health_aggregation()

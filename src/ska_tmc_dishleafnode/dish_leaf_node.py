@@ -277,8 +277,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         )
 
         for attribute_name in [
-            "healthInfo",
-            "kValueValidationResult",
             "sdpQueueConnectorFqdn",
             "lastPointingData",
             "kValue",
@@ -311,14 +309,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         Args:
             health_info (dict): New health info to be set.
         """
-        self.component_manager.health_info = health_info
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "healthInfo", json.dumps(self.component_manager.health_info)
-            )
+        self._health_info = json.dumps(health_info)
+
         self.logger.info(
             "Updated HealthInfo is: %s",
-            json.dumps(self.component_manager.health_info),
+            self._health_info,
         )
 
     def update_gpm_paths_data_callback(
@@ -489,21 +484,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
         self._pointingState = pointing_state
 
-    def kvalue_validation_callback(self) -> None:
+    def kvalue_validation_callback(self, result: ResultCode) -> None:
         """Push an event for the kValueValidationResult attribute."""
+        self._kvalue_validation_result = str(int(result))
 
-        with tango.EnsureOmniThread():
-            self.push_change_archive_events(
-                "kValueValidationResult",
-                str(int(self.component_manager.kValueValidationResult)),
-            )
         self.logger.info(
             "k-value validation Result for %s is : %s",
             self._dishln_name,
-            ResultCode(self.component_manager.kValueValidationResult).name,
+            ResultCode(result).name,
         )
-
-        self.component_manager.update_kvalue_data_for_health_aggregation()
 
     def update_kvalue_callback(self) -> None:
         """Push an event for the kValue attribute."""
@@ -596,17 +585,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         to_tango=json.dumps,
     )
 
-    @attribute(
+    _kvalue_validation_result = Signal[str](
+        stored=True, initial_value=str(int(ResultCode.UNKNOWN))
+    )
+    kValueValidationResult = attribute_from_signal(
+        _kvalue_validation_result,
         dtype="str",
         access=AttrWriteType.READ,
     )
-    def kValueValidationResult(self: MidTmcLeafNodeDish) -> str:
-        """Read method to get the k-value validation result
-
-        Returns:
-            str: k-value validation result.
-        """
-        return str(int(self.component_manager.kValueValidationResult))
 
     @attribute(
         dtype=ArgType.DevString,
@@ -842,17 +828,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         self._rate_of_change_in_temperature = roc_temp
 
-    @attribute(
-        dtype="str",
+    _health_info = Signal[str](stored=True, initial_value=json.dumps({}))
+    healthInfo = attribute_from_signal(
+        _health_info,
+        dtype=str,
         access=AttrWriteType.READ,
     )
-    def healthInfo(self: MidTmcLeafNodeDish) -> str:
-        """Reads the healthInfo attribute value.
-
-        Returns:
-            str: healthInfo attribute value.
-        """
-        return json.dumps(self.component_manager.health_info)
 
     @attribute(
         dtype=float,
@@ -1780,8 +1761,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 self._dishln_name,
                 value,
             )
-            self.kvalue_validation_callback()
+            self.kvalue_validation_callback(
+                self.component_manager.kValueValidationResult
+            )
             self.update_kvalue_callback()
+            self.component_manager.update_kvalue_data_for_health_aggregation()
         return [result_code], [unique_id]
 
     @long_running_command
