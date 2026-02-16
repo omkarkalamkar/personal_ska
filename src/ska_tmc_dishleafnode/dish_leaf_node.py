@@ -261,11 +261,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     # ---------------
 
     def init_device(self: MidTmcLeafNodeDish):
+        self._dishln_name = self.get_name()
         super().init_device()
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
-        self._dishln_name = self.get_name()
         self._update_health_state(HealthState.DEGRADED)
         self.op_state_model.perform_action("component_on")
         self._dishMode = DishMode.UNKNOWN
