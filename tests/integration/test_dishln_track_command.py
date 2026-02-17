@@ -94,7 +94,6 @@ def track_timeout_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.test_track_tim
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_command_timeout(tango_context, group_callback, json_factory):
@@ -216,10 +215,6 @@ def track_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["pointingState"],
     )
-    # group_callback["dishMode"].assert_change_event(
-    #     (DishMode.OPERATE),
-    #     lookahead=4,
-    # )
 
     assert dish_leaf_node.dishMode == DishMode.OPERATE
 
