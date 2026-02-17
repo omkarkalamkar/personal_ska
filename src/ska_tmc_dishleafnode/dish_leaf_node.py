@@ -586,7 +586,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     )
 
     _kvalue_validation_result = Signal[str](
-        stored=True, initial_value=str(int(ResultCode.UNKNOWN))
+        stored=True, initial_value=str(ResultCode.UNKNOWN.value)
     )
     kValueValidationResult = attribute_from_signal(
         _kvalue_validation_result,
