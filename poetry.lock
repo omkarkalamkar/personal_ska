@@ -823,13 +823,13 @@ reference = "PyPI-public"
 
 [[package]]
 name = "filelock"
-version = "3.21.2"
+version = "3.24.2"
 description = "A platform independent file lock."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "filelock-3.21.2-py3-none-any.whl", hash = "sha256:d6cd4dbef3e1bb63bc16500fc5aa100f16e405bbff3fb4231711851be50c1560"},
-    {file = "filelock-3.21.2.tar.gz", hash = "sha256:cfd218cfccf8b947fce7837da312ec3359d10ef2a47c8602edd59e0bacffb708"},
+    {file = "filelock-3.24.2-py3-none-any.whl", hash = "sha256:667d7dc0b7d1e1064dd5f8f8e80bdac157a6482e8d2e02cd16fd3b6b33bd6556"},
+    {file = "filelock-3.24.2.tar.gz", hash = "sha256:c22803117490f156e59fafce621f0550a7a853e2bbf4f87f112b11d469b6c81b"},
 ]
 
 [package.source]
@@ -1762,13 +1762,13 @@ reference = "PyPI-public"
 
 [[package]]
 name = "platformdirs"
-version = "4.7.0"
+version = "4.9.2"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "platformdirs-4.7.0-py3-none-any.whl", hash = "sha256:1ed8db354e344c5bb6039cd727f096af975194b508e37177719d562b2b540ee6"},
-    {file = "platformdirs-4.7.0.tar.gz", hash = "sha256:fd1a5f8599c85d49b9ac7d6e450bc2f1aaf4a23f1fe86d09952fe20ad365cf36"},
+    {file = "platformdirs-4.9.2-py3-none-any.whl", hash = "sha256:9170634f126f8efdae22fb58ae8a0eaa86f38365bc57897a6c4f781d1f5875bd"},
+    {file = "platformdirs-4.9.2.tar.gz", hash = "sha256:9a33809944b9db043ad67ca0db94b14bf452cc6aeaac46a88ea55b26e2e9d291"},
 ]
 
 [package.source]
@@ -3078,13 +3078,13 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-tmc-simulators"
-version = "1.9.5"
+version = "1.9.6"
 description = "SKA TMC Simulators contains helper classes required for Telescope Monitoring and Control(TMC)."
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "ska_tmc_simulators-1.9.5-py3-none-any.whl", hash = "sha256:65677e0a320dbeba8d0a1d74a64853ff4a3d0681c7308a8d57a6c325c559df19"},
-    {file = "ska_tmc_simulators-1.9.5.tar.gz", hash = "sha256:c11c49a8ca775b5a777a8540bba7153ffed7fa9067201f431d3c16bbc228b731"},
+    {file = "ska_tmc_simulators-1.9.6-py3-none-any.whl", hash = "sha256:fe1bd1e3d092055cd30efded01fe7e23c67ed9946d4e9c9e6452266214553fd1"},
+    {file = "ska_tmc_simulators-1.9.6.tar.gz", hash = "sha256:9097301145e9e7059a2be7ae4800e228fe2a484932a6077f53594365253431bf"},
 ]
 
 [package.dependencies]
@@ -3685,13 +3685,13 @@ reference = "PyPI-public"
 
 [[package]]
 name = "winregistry"
-version = "2.1.2"
+version = "2.1.4"
 description = "A Python library for interacting with the Windows registry"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "winregistry-2.1.2-py3-none-any.whl", hash = "sha256:e142548f56fc1fc6b83ddf88baca2e9e18cd6a266d9e00f111e54977dee768cf"},
-    {file = "winregistry-2.1.2.tar.gz", hash = "sha256:50260e1aaba4116f707f86a4e287ffcb1eeae7dc0a0883c6d1776017e693fc69"},
+    {file = "winregistry-2.1.4-py3-none-any.whl", hash = "sha256:8a2ead541bf9737d2cf4aa7c36363054a792a9f5c8fdaf0f7e3739ff9ddb092f"},
+    {file = "winregistry-2.1.4.tar.gz", hash = "sha256:c557e6ec26a2827625451bbcee394b2d4c1fbccb6d7dca066335f397c0be1f89"},
 ]
 
 [package.source]
@@ -3752,4 +3752,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "5c6b1520ba6a4356b6569386c230163ccca22b2164b54faf40dce324126b5f99"
+content-hash = "e76875e04c947ea272bd436fd09ae4661514dbbedeb1a35a6dcfa0ae19e9f4c0"
