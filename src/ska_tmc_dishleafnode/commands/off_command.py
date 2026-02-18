@@ -5,9 +5,9 @@ import threading
 from logging import Logger
 from typing import Optional, Tuple
 
+from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
 from ska_tmc_common.enum import DishMode
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand

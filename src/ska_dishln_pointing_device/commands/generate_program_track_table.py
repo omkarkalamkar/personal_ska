@@ -4,8 +4,9 @@ import logging
 import threading
 from typing import Any, Optional, Tuple
 
+from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_tango_base.commands import ResultCode
 
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
     FixedMappingScan,

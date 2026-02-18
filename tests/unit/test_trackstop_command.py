@@ -1,9 +1,11 @@
 """Unit Tests for TrackStop command
 """
+import threading
 from unittest import mock
 
 import pytest
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
@@ -28,10 +30,11 @@ def test_trackstop_command_completed(task_callback, cm_without_er_lp):
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()
-    cm.trackstop(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+
+    cm.trackstop(
+        task_callback=task_callback, task_abort_event=threading.Event()
     )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -51,9 +54,6 @@ def test_trackstop_command_adapter_none(task_callback, cm_without_er_lp):
     assert cm.is_trackstop_allowed()
     cm.trackstop(task_callback=task_callback)
 
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

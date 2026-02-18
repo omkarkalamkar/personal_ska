@@ -75,10 +75,8 @@ def track_stop_timeout_dish_leaf_node(
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=5,
-    )
+
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
     time.sleep(3)
 
     TIMEOUT_DEFECT = json.dumps(
@@ -122,6 +120,7 @@ def track_stop_timeout_dish_leaf_node(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.track_stop
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_track_stop_command_timeout(
@@ -190,10 +189,8 @@ def track_stop_error_propagation_dish_leaf_node(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=5,
-    )
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
+
     time.sleep(3)
 
     ERROR_PROPAGATION_DEFECT = json.dumps(

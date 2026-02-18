@@ -146,6 +146,7 @@ class DishHealthStateAndInfoManager:
             if info_changed:
                 self._cached_health_info = health_info
                 if self.component_manager._update_health_info_callback:
+                    self.component_manager.health_info = health_info
                     self.component_manager._update_health_info_callback(
                         health_info
                     )

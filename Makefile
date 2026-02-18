@@ -34,7 +34,7 @@ PYTHON_SWITCHES_FOR_ISORT ?=
 
 CI_REGISTRY ?= gitlab.com
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.tag=$(VERSION)
-K8S_TEST_IMAGE_TO_TEST=$(CAR_OCI_REGISTRY_HOST)/ska-build-python:0.3.1
+K8S_TEST_IMAGE_TO_TEST=$(CAR_OCI_REGISTRY_HOST)/ska-build-python:0.3.2
 ifneq ($(CI_JOB_ID),)
 CUSTOM_VALUES = --set tmc-dishleafnode.dishleafnode.image.image=$(PROJECT) \
 	--set tmc-dishleafnode.dishleafnode.image.registry=$(CI_REGISTRY)/ska-telescope/ska-tmc/$(PROJECT) \
@@ -65,7 +65,7 @@ EXIT_AT_FAIL ?= true
 
 PYTHON_TEST_COUNT ?= 1
 ifeq ($(MAKECMDGOALS),python-test)
-ADD_ARGS += -n12 --forked --count=$(PYTHON_TEST_COUNT)
+ADD_ARGS += --forked --count=$(PYTHON_TEST_COUNT)
 MARK = (not post_deployment and not acceptance)
 ADD_ARGS += -x
 endif

@@ -14,10 +14,10 @@ import threading
 import urllib
 from typing import TYPE_CHECKING, Optional, Tuple
 
+from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
 from ska_telmodel.data import TMData
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
@@ -140,6 +140,7 @@ class ApplyPointingModel(DishLNCommand):
         """
 
         task_callback(status=TaskStatus.IN_PROGRESS)
+
         self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)
         self.logger.info("ResultCode: %s Message: %s", result_code, message)
@@ -249,7 +250,12 @@ class ApplyPointingModel(DishLNCommand):
         try:
             result_code = ResultCode.UNKNOWN
             message = ""
-            gpm_json_data = json.loads(argin)
+            # gpm_json_data = json.loads(argin)
+            try:
+                gpm_json_data = json.loads(argin)
+            except (json.JSONDecodeError, TypeError) as exc:
+                self.logger.error("JSON parsing failed: %s", exc)
+                return ResultCode.FAILED, f"JSON Error: {exc}"
             tm_data_sources = gpm_json_data.get("tm_data_sources", None)
             tm_data_filepath = gpm_json_data.get("tm_data_filepath", None)
             self.logger.info(

@@ -4,9 +4,9 @@ from __future__ import annotations
 import logging
 from typing import Dict, Tuple, Union
 
+from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import TimeKeeper
 from ska_tmc_common.v1.error_propagation_tracker import (
     error_propagation_tracker,
@@ -70,10 +70,7 @@ class Scan(DishLNCommand):
     # pylint: disable=unused-argument
     @timeout_tracker
     @error_propagation_tracker("get_scan_result_code", [ResultCode.OK])
-    def scan(
-        self: Scan,
-        argin: str,
-    ) -> Tuple[ResultCode, str]:
+    def scan(self: Scan, argin: str, **kwargs) -> Tuple[ResultCode, str]:
         """This is a long running method for Scan command, it
         executes the do hook, invoking Scan command on Dish Master
 

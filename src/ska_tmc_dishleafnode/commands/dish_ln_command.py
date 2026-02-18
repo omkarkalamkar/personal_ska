@@ -5,9 +5,9 @@ import logging
 import time
 from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Union
 
+from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     AdapterFactory,
     AdapterType,

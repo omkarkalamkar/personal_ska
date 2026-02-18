@@ -1,10 +1,12 @@
 import json
+import threading
 import time
 from unittest import mock
 
 import pytest
 import tango
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
@@ -136,10 +138,13 @@ def test_configure_command_completed_with_correction_key_reset(
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "RESET"
     configure_input_str = json.dumps(configure_input_str)
-    cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -238,10 +243,12 @@ def test_correction_key_reset_partial_config(
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "RESET"
     configure_input_str = json.dumps(configure_input_str)
-    cm.configure(configure_input_str, task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+    cm.configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
     )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

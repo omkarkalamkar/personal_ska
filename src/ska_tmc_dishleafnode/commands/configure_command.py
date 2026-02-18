@@ -11,10 +11,9 @@ import time
 from typing import Tuple
 
 import tango
-from ska_control_model import HealthState
+from ska_control_model import HealthState, TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.executor import TaskStatus
 from ska_tmc_common import (
     DishMode,
     PointingState,
@@ -78,8 +77,7 @@ class Configure(DishLNCommand):
         [True],
     )
     def invoke_configure(
-        self: Configure,
-        argin: str,
+        self: Configure, argin: str, **kwargs
     ) -> Tuple[ResultCode, str]:
         """This is a long running method for Configure command, it
         executes do hook, invokes Configure command on Dish Master.

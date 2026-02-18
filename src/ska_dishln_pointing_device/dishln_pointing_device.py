@@ -1,13 +1,17 @@
 """ A DishLeaf Node pointing device."""
 
 import json
+from threading import Event
 from typing import List, Tuple
 
 from ska_tango_base.base.base_device import SKABaseDevice
-from ska_tango_base.commands import ResultCode, SubmittedSlowCommand
+from ska_tango_base.commands import ResultCode
 from ska_tango_base.control_model import HealthState
+from ska_tango_base.long_running_commands import long_running_command
+from ska_tango_base.software_bus import Signal, attribute_from_signal
+from ska_tango_base.type_hints import TaskCallbackType
 from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
-from tango import ArgType, AttrDataFormat, AttrWriteType, DevState
+from tango import ArgType, AttrDataFormat, AttrWriteType
 from tango.server import attribute, command, device_property, run
 
 from ska_dishln_pointing_device import DishlnPointingDataComponentManager
@@ -64,29 +68,40 @@ class DishPointingDevice(TMCBaseLeafDevice):
         default_value=tuple(),
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.pointing_program_track_table: list = []
-        self.program_track_table_error: str = ""
-        self._update_state(DevState.ON)
+    _pointing_program_track_table: Signal[str] = Signal(
+        stored=False, initial_value="[]"
+    )
+
+    _program_track_table_error: Signal[str] = Signal(
+        stored=False, initial_value=""
+    )
+
+    pointingProgramTrackTable = attribute_from_signal(
+        _pointing_program_track_table,
+        access=AttrWriteType.READ,
+        dtype=str,
+    )
+
+    programTrackTableError = attribute_from_signal(
+        _program_track_table_error,
+        access=AttrWriteType.READ,
+        dtype=str,
+    )
+
+    InitCommand = None
 
     def init_device(self: SKABaseDevice) -> None:
         super().init_device()
         self._health_state = HealthState.OK
         self.dev_name = self.get_name()
-        self.set_change_event("pointingProgramTrackTable", True, False)
-        self.set_archive_event("pointingProgramTrackTable", True)
-        self.set_change_event("programTrackTableError", True, False)
-        self.set_archive_event("programTrackTableError", True)
-
-    class InitCommand(SKABaseDevice.InitCommand):
-        """A class for the DishPointingDevice's init_device() command."""
-
-        # pylint: disable=W0221
-        def do(self) -> Tuple[ResultCode, str]:
-            """Change device state to INIT."""
-            super().do()
-            return (ResultCode.OK, "DishPointingDevice Initialized")
+        self.op_state_model.perform_action("component_on")
+        for attr in [
+            "pointingProgramTrackTable",
+            "programTrackTableError",
+        ]:
+            self.set_change_event(attr, True, False)
+            self.set_archive_event(attr, True)
+        self.init_completed()
 
     @attribute(
         dtype=ArgType.DevString,
@@ -101,16 +116,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: str
         """
         return self.dev_name
-
-    @attribute(dtype=str, access=AttrWriteType.READ)
-    def programTrackTableError(self) -> str:
-        """
-        This attribute is used for storing error
-        occurred during program track table calculation
-
-        :return: str
-        """
-        return self.program_track_table_error
 
     @attribute(dtype=str, access=AttrWriteType.READ_WRITE)
     def targetData(self) -> str:
@@ -133,19 +138,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
             self.component_manager.target_data.get("array_layout", {})
         )
 
-    @attribute(
-        dtype=ArgType.DevString,
-        dformat=AttrDataFormat.SCALAR,
-        access=AttrWriteType.READ,
-    )
-    def pointingProgramTrackTable(self) -> str:
-        """
-        This attribute is used for storing calculated tracktable.
-
-        :return: str
-        """
-        return json.dumps(self.pointing_program_track_table)
-
     def update_pointing_program_track_table_callback(
         self, pointing_program_track_table: list
     ) -> None:
@@ -154,10 +146,8 @@ class DishPointingDevice(TMCBaseLeafDevice):
         Args:
             pointing_program_track_table (dict): data of program track table.
         """
-        self.pointing_program_track_table = pointing_program_track_table
-        self.push_change_archive_events(
-            "pointingProgramTrackTable",
-            json.dumps(pointing_program_track_table),
+        self._pointing_program_track_table = json.dumps(
+            pointing_program_track_table
         )
 
     def update_program_track_table_error_callback(
@@ -167,17 +157,9 @@ class DishPointingDevice(TMCBaseLeafDevice):
 
         :param program_track_table_error: program track table error.
         """
-        self.program_track_table_error = program_track_table_error
-        self.push_change_archive_events(
-            "programTrackTableError",
-            program_track_table_error,
-        )
+        self._program_track_table_error = program_track_table_error
 
-    @command(
-        dtype_in="DevVoid",
-        dtype_out="DevVarLongStringArray",
-        doc_out="(ReturnType, 'informational message')",
-    )
+    @long_running_command
     def GenerateProgramTrackTable(self) -> Tuple[List[ResultCode], List[str]]:
         """
         This command instructs dish pointing device to start generating program
@@ -186,10 +168,16 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        handler = self.get_command_object("GenerateProgramTrackTable")
-        result_code, message = handler()
 
-        return [result_code], [message]
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.generate_program_track_table(
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
+
+        return task
 
     @command(
         dtype_in="DevVoid",
@@ -204,7 +192,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         :return: ResultCode and message
         :rtype: Tuple[List[ResultCode], List[str]]
         """
-        handler = self.get_command_object("StopProgramTrackTable")
+        handler = StopProgramTrackTable(self.logger, self.component_manager).do
         result_code, message = handler()
 
         return [result_code], [message]
@@ -258,27 +246,6 @@ class DishPointingDevice(TMCBaseLeafDevice):
             event_subscription_check_period=self.EventSubscriptionCheckPeriod,
         )
         return dish_pointing_device_component_manager
-
-    def init_command_objects(self) -> None:
-        """
-        Initializes the command handlers for commands supported by this device.
-        """
-        super().init_command_objects()
-
-        self.register_command_object(
-            "GenerateProgramTrackTable",
-            SubmittedSlowCommand(
-                "GenerateProgramTrackTable",
-                self._command_tracker,
-                self.component_manager,
-                method_name="generate_program_track_table",
-                logger=self.logger,
-            ),
-        )
-        self.register_command_object(
-            "StopProgramTrackTable",
-            StopProgramTrackTable(self.logger, self.component_manager),
-        )
 
 
 def main(args=None, **kwargs):

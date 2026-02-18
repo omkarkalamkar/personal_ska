@@ -19,8 +19,8 @@ from typing import Callable, List, Optional, Tuple
 import tango
 from astropy.time import Time
 from astropy.utils import iers
+from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
-from ska_tango_base.commands import TaskStatus
 from ska_tmc_common.v2.tmc_component_manager import TmcLeafNodeComponentManager
 
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
@@ -713,7 +713,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.current_track_table_error = str(exception)
 
     def generate_program_track_table(
-        self, task_callback: TaskCallbackType
+        self, task_callback: TaskCallbackType, task_abort_event=None
     ) -> Tuple[TaskStatus, str]:
         """
         Submit GenerateProgramTrackTable as a long-running background task.
@@ -730,14 +730,14 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Submitting GenerateProgramTrackTable as slow command"
         )
 
-        command = GenerateProgramTrackTable(
+        command_object = GenerateProgramTrackTable(
             component_manager=self,
             logger=self.logger,
         )
 
-        return self.submit_task(
-            command.generate_program_track_table,
+        return command_object.generate_program_track_table(
             task_callback=task_callback,
+            task_abort_event=task_abort_event,
         )
 
     def update_windspeed(self, wind_speed: float) -> None:

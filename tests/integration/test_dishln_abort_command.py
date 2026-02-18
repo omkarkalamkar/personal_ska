@@ -33,11 +33,21 @@ def abort_on_dish_leaf_node(
         tango.EventType.CHANGE_EVENT,
         group_callback["longRunningCommandResult"],
     )
+    dish_mode_event = dish_leaf_node.subscribe_event(
+        "dishMode",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["dishMode"],
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_COMPLETED),
         lookahead=7,
     )
+    group_callback["dishMode"].assert_change_event(
+        DishMode.STANDBY_FP,
+        lookahead=7,
+    )
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
+    dish_leaf_node.unsubscribe_event(dish_mode_event)
 
 
 def abort_when_configured(
@@ -183,11 +193,6 @@ def abort_while_configuring(
     logger.info(
         f"Command ID: {unique_id_config} Returned result: {result_config}"
     )
-    # if dish_leaf_node.pointingState != PointingState.READY:
-    #     group_callback["pointingState"].assert_change_event(
-    #         (PointingState.READY),
-    #         lookahead=6,
-    #     )
 
     group_callback["dishMode"].assert_change_event(
         (DishMode.OPERATE),
@@ -260,6 +265,7 @@ def abort_timeout(
     dishln_name,
     group_callback,
 ):
+    logger.info(f"{tango_context}")
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
@@ -269,6 +275,7 @@ def abort_timeout(
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
+
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -309,9 +316,12 @@ def abort_timeout(
         group_callback["longRunningCommandResult"],
     )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.STANDBY_FP),
-        lookahead=5,
+    wait_and_validate_attribute_value_available(
+        dish_master, "dishMode", DishMode.STANDBY_FP
+    )
+
+    wait_and_validate_attribute_value_available(
+        dish_master, "pointingState", PointingState.READY
     )
 
     # dish master ABORT LRCR OK is asserted

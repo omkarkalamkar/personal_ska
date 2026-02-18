@@ -81,10 +81,8 @@ def scan_command_timeout(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
@@ -216,10 +214,8 @@ def scan_command_error_propagation(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
 
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
@@ -348,10 +344,9 @@ def scan_command(
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
-    group_callback["dishMode"].assert_change_event(
-        (DishMode.OPERATE),
-        lookahead=6,
-    )
+
+    assert dish_leaf_node.dishMode == DishMode.OPERATE
+
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,

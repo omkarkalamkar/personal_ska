@@ -1,7 +1,9 @@
+import threading
 from unittest import mock
 
 import pytest
-from ska_tango_base.commands import ResultCode, TaskStatus
+from ska_control_model import TaskStatus
+from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
@@ -35,10 +37,11 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
     cm.adapter_factory = adapter_factory
     wait_for_dish_mode(cm, DishMode.STANDBY_LP)
     cm.is_setstandbyfpmode_allowed()
-    cm.setstandbyfpmode(task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+
+    cm.setstandbyfpmode(
+        task_callback=task_callback, task_abort_event=threading.Event()
     )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
@@ -50,20 +53,39 @@ def test_off_command_in_fp(cm_without_er_lp, task_callback):
         }
     )
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+
     assert cm.is_off_allowed()
-    cm.off(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
+
+    cm.is_setstandbylpmode_allowed()
+
+    cm.setstandbylpmode(
+        task_callback=task_callback, task_abort_event=threading.Event()
     )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
+    cm.update_device_dish_mode(DishMode.STANDBY_LP)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         }
+    )
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_LP)
+
+    cm.off(task_callback=task_callback, task_abort_event=threading.Event())
+
+    task_callback.assert_against_call(
+        call_kwargs={"status": TaskStatus.IN_PROGRESS}
+    )
+
+    task_callback.assert_against_call(
+        call_kwargs={
+            "status": TaskStatus.COMPLETED,
+            "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
+        },
+        lookahead=5,
     )
 
 
@@ -73,9 +95,7 @@ def test_off_command_adapter_none(cm_without_er_lp, task_callback):
     assert cm.is_off_allowed()
     cm.command_timeout = 2
     cm.off(task_callback=task_callback)
-    task_callback.assert_against_call(
-        call_kwargs={"status": TaskStatus.QUEUED}
-    )
+
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
