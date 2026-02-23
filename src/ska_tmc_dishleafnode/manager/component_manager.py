@@ -2399,6 +2399,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"dishMode value updated to {DishMode(dish_mode).name}"
             )
             self.observable.notify_observers(attribute_value_change=True)
+            self.logger.info(
+                "dishmode callback %s", self._update_dishmode_callback
+            )
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
 
