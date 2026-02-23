@@ -268,7 +268,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._version_id = release.version
         self._update_health_state(HealthState.DEGRADED)
         self.op_state_model.perform_action("component_on")
-        self._dishMode = DishMode.UNKNOWN
         self._pointingState = PointingState.NONE
         self._sdpQueueConnectorFqdn = ""
         self._lastPointingData: str = "Not Set"
@@ -475,9 +474,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
-        self.logger.info(
-            "Updating dish mode new %s and old %s", dish_mode, self._dishMode
-        )
+        self.logger.info("Updating dish mode new %s", dish_mode)
         self._dishMode = dish_mode
 
     def update_pointingstate_callback(
