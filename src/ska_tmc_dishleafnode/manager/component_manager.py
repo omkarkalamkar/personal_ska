@@ -256,6 +256,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.reset_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
+        if self._update_dishmode_callback:
+            self._update_dishmode_callback(DishMode.UNKNOWN)
         self._update_dish_pointing_model_param = (
             _update_dish_pointing_model_param
         )
@@ -404,8 +406,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
-        if self._update_dishmode_callback:
-            self._update_dishmode_callback(DishMode.UNKNOWN)
         # this is temporary variable
         # which can be utilised to expose failure in future.
 
