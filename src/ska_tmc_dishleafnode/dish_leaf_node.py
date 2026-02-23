@@ -218,9 +218,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         description="Boolean Flag for sub system available",
     )
 
-    _dishMode: Signal[DishMode] = Signal[DishMode](
-        stored=True, initial_value=DishMode.UNKNOWN
-    )
+    _dishMode: Signal[DishMode] = Signal[DishMode](stored=True)
 
     dishMode = attribute_from_signal(
         _dishMode,

@@ -404,6 +404,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+        if self._update_dishmode_callback:
+            self._update_dishmode_callback(DishMode.UNKNOWN)
         # this is temporary variable
         # which can be utilised to expose failure in future.
 
