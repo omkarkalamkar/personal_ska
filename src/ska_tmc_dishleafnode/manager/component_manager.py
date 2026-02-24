@@ -256,6 +256,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.reset_command_result_values()
         self.pointing_callback = pointing_callback
         self._update_dishmode_callback = _update_dishmode_callback
+        if self._update_dishmode_callback:
+            self._update_dishmode_callback(DishMode.UNKNOWN)
         self._update_dish_pointing_model_param = (
             _update_dish_pointing_model_param
         )
