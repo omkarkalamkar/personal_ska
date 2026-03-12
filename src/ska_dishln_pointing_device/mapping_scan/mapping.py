@@ -117,7 +117,7 @@ class BaseScanMapping:
         projection_name = (
             self.component_manager.target_data.get('pointing', {})
             .get('projection', {})
-            .get('name', "SIN")
+            .get('name', "SSN")
         )
         projection_alignment = (
             self.component_manager.target_data.get('pointing', {})

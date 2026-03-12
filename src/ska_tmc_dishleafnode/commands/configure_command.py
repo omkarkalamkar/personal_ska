@@ -37,6 +37,8 @@ from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
+DEFAULT_PROJECTION = {"name": "SSN", "alignment": "ICRS"}
+
 
 class Configure(DishLNCommand):
     """
@@ -158,6 +160,62 @@ class Configure(DishLNCommand):
             self.component_manager.primary_configuration["dish"][
                 "receiver_band"
             ] = new_receiver_band
+
+    def normalise_pointing_data(self, config_json: dict) -> dict:
+        """Normalise configure JSON to support both old and ADR-63 formats.
+
+        - Converts legacy offsets ``ca_offset_arcsec`` / ``ie_offset_arcsec``
+          to ``pointing.trajectory.attrs.x`` / ``y`` when trajectory offsets
+          are not already present.
+        - Applies default projection ``SSN`` (with ``ICRS`` alignment)
+          when projection is not provided.
+
+        Args:
+            config_json (dict): Input configure JSON as dictionary.
+
+        Returns:
+            dict: Normalised configure JSON.
+        """
+        pointing_data = config_json.get("pointing")
+        if not isinstance(pointing_data, dict):
+            return config_json
+
+        projection_data = pointing_data.get("projection")
+        if not isinstance(projection_data, dict):
+            projection_data = {}
+        projection_data.setdefault("name", DEFAULT_PROJECTION["name"])
+        projection_data.setdefault(
+            "alignment", DEFAULT_PROJECTION["alignment"]
+        )
+        pointing_data["projection"] = projection_data
+
+        x_offset = y_offset = None
+        target_data = pointing_data.get("target", {})
+        if isinstance(target_data, dict) and (
+            "ca_offset_arcsec" in target_data
+            or "ie_offset_arcsec" in target_data
+        ):
+            x_offset = target_data.get("ca_offset_arcsec", 0.0)
+            y_offset = target_data.get("ie_offset_arcsec", 0.0)
+        elif "ca_offset_arcsec" in pointing_data or "ie_offset_arcsec" in pointing_data:
+            x_offset = pointing_data.get("ca_offset_arcsec", 0.0)
+            y_offset = pointing_data.get("ie_offset_arcsec", 0.0)
+
+        if x_offset is not None and y_offset is not None:
+            trajectory = pointing_data.get("trajectory")
+            if not isinstance(trajectory, dict):
+                trajectory = {}
+            trajectory.setdefault("name", "fixed")
+            attrs = trajectory.get("attrs")
+            if not isinstance(attrs, dict):
+                attrs = {}
+            attrs.setdefault("x", x_offset)
+            attrs.setdefault("y", y_offset)
+            trajectory["attrs"] = attrs
+            pointing_data["trajectory"] = trajectory
+
+        config_json["pointing"] = pointing_data
+        return config_json
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -327,12 +385,12 @@ class Configure(DishLNCommand):
                 )
                 self.component_manager.is_tracktable_provided.clear()
 
-            json_argument = json.loads(argin)
+            input_json = self.normalise_pointing_data(json.loads(argin))
             if not self.component_manager.partial_configure:
-                self.component_manager.primary_configuration = json_argument
+                self.component_manager.primary_configuration = input_json
                 json_argument = self.component_manager.primary_configuration
             else:
-                self.update_primary_configuration(json_argument)
+                self.update_primary_configuration(input_json)
                 json_argument = self.component_manager.primary_configuration
 
             self.logger.info("Primary config is %s", json_argument)
@@ -341,7 +399,9 @@ class Configure(DishLNCommand):
                 == CORRECTION_KEY.RESET.value
             )
             collimation_offsets = self.get_ie_ca_offsets_if_provided(
-                json.loads(argin), reset_offset
+                input_json,
+                reset_offset,
+                self.component_manager.partial_configure,
             )
             # Invoke track load static off when collimation offsets
             # provided and correction key is provided as RESET
@@ -553,7 +613,10 @@ class Configure(DishLNCommand):
         return ResultCode.QUEUED, ""
 
     def get_ie_ca_offsets_if_provided(
-        self, config_json: dict, reset_offset: bool
+        self,
+        config_json: dict,
+        reset_offset: bool,
+        include_trajectory_offsets: bool = False,
     ) -> list:
         """This check if ca_offset_arcsec or ie_offset_arcsec provided
         in config json and return offsets
@@ -562,12 +625,30 @@ class Configure(DishLNCommand):
         :type config_json: dict
         :param reset_offset: Bool value
         :type reset_offset: bool
+        :param include_trajectory_offsets: whether trajectory based offsets
+            (x, y) should be considered.
+        :type include_trajectory_offsets: bool
         :return: Offset list
         """
         if reset_offset:
             return RESET_OFFSETS
         offsets = []
         pointing_data = config_json.get("pointing", {})
+        if include_trajectory_offsets:
+            trajectory_attrs = (
+                pointing_data.get("trajectory", {}).get("attrs", {})
+            )
+            if (
+                isinstance(trajectory_attrs, dict)
+                and (
+                    "x" in trajectory_attrs
+                    or "y" in trajectory_attrs
+                )
+            ):
+                offsets.append(trajectory_attrs.get("x", 0.0))
+                offsets.append(trajectory_attrs.get("y", 0.0))
+                return offsets
+
         if pointing_data:
             target_data = pointing_data.get("target", {})
             if (
