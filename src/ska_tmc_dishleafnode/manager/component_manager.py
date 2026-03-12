@@ -2981,26 +2981,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                     event_data.attr_value.value[2],
                                 ]
                             )
-
-                            track_load_static_off_command = TrackLoadStaticOff(
-                                self,
-                                self.op_state_model,
-                                self.adapter_factory,
-                                self.logger,
-                                is_configure_command=False,
-                            )
-                            (
-                                result_code,
-                                message,
-                            ) = track_load_static_off_command.do(offsets)
-                            self.logger.debug(
-                                f"result code : {result_code}"
-                                + f"message : {message}"
-                            )
-
-                            self.logger.debug(
-                                "Pointing offsets are Updated to %s",
-                                offsets,
+                            self._invoke_generate_prgm_track_table(
+                                offsets, event_data
                             )
             elif self.correction_key in [
                 CORRECTION_KEY.MAINTAIN.value,
@@ -3022,6 +3004,107 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"Error while processing {event_data.attr_value.value}"
                 f"Exception Message is: {e}"
             )
+
+    def _invoke_generate_prgm_track_table(self, offsets, event_data):
+        """Generate target data and innvoke generate program track
+        table
+        """
+        try:
+            dish_poin_adtr = self.dishln_pointing_device_adapter
+            target_data = self._generate_pointing_data(
+                [
+                    event_data.attr_value.value[1],
+                    event_data.attr_value.value[2],
+                ]
+            )
+            dish_poin_adtr.targetData = json.dumps(target_data)
+
+            (
+                result_code,
+                msg,
+            ) = dish_poin_adtr.GenerateProgramTrackTable()
+            err_msg = "GProgramTrackTable failed {0}: {1}"
+            if result_code != ResultCode.OK:
+                error_msg = err_msg.format(result_code, msg)
+                self.logger.error(error_msg)
+
+        except Exception as e:
+            error_msg = f"Error in pointing operation: {str(e)}"
+            self.logger.error(error_msg)
+        else:
+            self.logger.debug(
+                "Pointing offsets are Updated to %s",
+                offsets,
+            )
+
+    def _generate_pointing_data(self, offsets):
+        """Generate Pointing data based on offsets
+        Args:
+            offsets (list): pointing offsets
+        """
+        data = {
+            "pointing": {
+                "trajectory": {
+                    "name": "fixed",
+                    "attrs": {"x": offsets[0], "y": offsets[1]},
+                },
+                "projection": {"name": "SIN", "alignment": "ICRS"},
+            }
+        }
+        return data
+
+    # def _create_dishln_pointing_adapter(self):
+    #     """Create DishLn pointing device adapter
+    #     """
+    #     elapsed_time = 0
+    #     start_time = time.time()
+    #     dishln_pointing_device_adapter = None
+    #     dev_name = self.dishln_pointing_dev_name
+    #     while (
+    #             dishln_pointing_device_adapter is None
+    #             and elapsed_time <= self.adapter_timeout
+    #     ):
+    #         try:
+    #             dishln_pointing_device_adapter = (
+    #                 self.adapter_factory.get_or_create_adapter(
+    #                     dev_name,
+    #                     AdapterType.DISHLN_POINTING_DEVICE,
+    #                 )
+    #             )
+    #             dishln_pointing_device_adapter.proxy.set_timeout_millis(
+    #                 5000
+    #             )
+    #             self.logger.debug(
+    #                 "Adapter for Dishleafnode pointing device"
+    #                 + " created successfully",
+    #             )
+    #             self.set_dishln_pointing_device_adapter(
+    #                 self.dishln_pointing_device_adapter
+    #             )
+    #         except ConnectionFailed as connection_failed:
+    #             elapsed_time = time.time() - start_time
+    #             if elapsed_time > self.adapter_timeout:
+    #                 return (
+    #                     ResultCode.FAILED,
+    #                     f"Error in creating adapter for "
+    #                     f"{dev_name}: {connection_failed}",
+    #                 )
+    #         except DevFailed as device_failed:
+    #             elapsed_time = time.time() - start_time
+    #             if elapsed_time > self.adapter_timeout:
+    #                 return (
+    #                     ResultCode.FAILED,
+    #                     f"Error in creating adapter for "
+    #                     f"{dev_name}: {device_failed}",
+    #                 )
+    #
+    #         except (AttributeError, ValueError, TypeError) as exception:
+    #             return (
+    #                 ResultCode.FAILED,
+    #                 f"Error in creating adapter for "
+    #                 f"{dev_name}: {exception}",
+    #             )
+    #     return dishln_pointing_device_adapter
 
     def validate_float_list(
         self: DishLNComponentManager, lst: list, number_of_values: int
