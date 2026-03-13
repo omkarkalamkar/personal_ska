@@ -3011,11 +3011,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             dish_poin_adtr = self.dishln_pointing_device_adapter
+            existing_target_data = json.loads(dish_poin_adtr.targetData)
             target_data = self._generate_pointing_data(
+                existing_target_data,
                 [
                     event_data.attr_value.value[1],
                     event_data.attr_value.value[2],
-                ]
+                ],
             )
             dish_poin_adtr.targetData = json.dumps(target_data)
 
@@ -3037,74 +3039,19 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 offsets,
             )
 
-    def _generate_pointing_data(self, offsets):
+    def _generate_pointing_data(
+        self, target_data: dict, offsets: list
+    ) -> dict:
         """Generate Pointing data based on offsets
         Args:
+            target_data (dict): existing target data to update
             offsets (list): pointing offsets
         """
-        data = {
-            "pointing": {
-                "trajectory": {
-                    "name": "fixed",
-                    "attrs": {"x": offsets[0], "y": offsets[1]},
-                },
-                "projection": {"name": "SIN", "alignment": "ICRS"},
-            }
+        target_data["pointing"]["trajectory"] = {
+            'name': 'fixed',
+            'attrs': {'x': offsets[0], 'y': offsets[1]},
         }
-        return data
-
-    # def _create_dishln_pointing_adapter(self):
-    #     """Create DishLn pointing device adapter
-    #     """
-    #     elapsed_time = 0
-    #     start_time = time.time()
-    #     dishln_pointing_device_adapter = None
-    #     dev_name = self.dishln_pointing_dev_name
-    #     while (
-    #             dishln_pointing_device_adapter is None
-    #             and elapsed_time <= self.adapter_timeout
-    #     ):
-    #         try:
-    #             dishln_pointing_device_adapter = (
-    #                 self.adapter_factory.get_or_create_adapter(
-    #                     dev_name,
-    #                     AdapterType.DISHLN_POINTING_DEVICE,
-    #                 )
-    #             )
-    #             dishln_pointing_device_adapter.proxy.set_timeout_millis(
-    #                 5000
-    #             )
-    #             self.logger.debug(
-    #                 "Adapter for Dishleafnode pointing device"
-    #                 + " created successfully",
-    #             )
-    #             self.set_dishln_pointing_device_adapter(
-    #                 self.dishln_pointing_device_adapter
-    #             )
-    #         except ConnectionFailed as connection_failed:
-    #             elapsed_time = time.time() - start_time
-    #             if elapsed_time > self.adapter_timeout:
-    #                 return (
-    #                     ResultCode.FAILED,
-    #                     f"Error in creating adapter for "
-    #                     f"{dev_name}: {connection_failed}",
-    #                 )
-    #         except DevFailed as device_failed:
-    #             elapsed_time = time.time() - start_time
-    #             if elapsed_time > self.adapter_timeout:
-    #                 return (
-    #                     ResultCode.FAILED,
-    #                     f"Error in creating adapter for "
-    #                     f"{dev_name}: {device_failed}",
-    #                 )
-    #
-    #         except (AttributeError, ValueError, TypeError) as exception:
-    #             return (
-    #                 ResultCode.FAILED,
-    #                 f"Error in creating adapter for "
-    #                 f"{dev_name}: {exception}",
-    #             )
-    #     return dishln_pointing_device_adapter
+        return target_data
 
     def validate_float_list(
         self: DishLNComponentManager, lst: list, number_of_values: int
