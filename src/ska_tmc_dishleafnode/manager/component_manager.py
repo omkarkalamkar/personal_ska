@@ -2975,32 +2975,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.last_pointing_data = (
                                 event_data.attr_value.value
                             )
-                            offsets = json.dumps(
+                            self._invoke_generate_prgm_track_table(
                                 [
                                     event_data.attr_value.value[1],
                                     event_data.attr_value.value[2],
                                 ]
-                            )
-
-                            track_load_static_off_command = TrackLoadStaticOff(
-                                self,
-                                self.op_state_model,
-                                self.adapter_factory,
-                                self.logger,
-                                is_configure_command=False,
-                            )
-                            (
-                                result_code,
-                                message,
-                            ) = track_load_static_off_command.do(offsets)
-                            self.logger.debug(
-                                f"result code : {result_code}"
-                                + f"message : {message}"
-                            )
-
-                            self.logger.debug(
-                                "Pointing offsets are Updated to %s",
-                                offsets,
                             )
             elif self.correction_key in [
                 CORRECTION_KEY.MAINTAIN.value,
@@ -3022,6 +3001,51 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"Error while processing {event_data.attr_value.value}"
                 f"Exception Message is: {e}"
             )
+
+    def _invoke_generate_prgm_track_table(self, offsets):
+        """Generate target data and innvoke generate program track
+        table
+        """
+        try:
+            dish_poin_adtr = self.dishln_pointing_device_adapter
+            existing_target_data = json.loads(dish_poin_adtr.targetData)
+            target_data = self._generate_pointing_data(
+                existing_target_data,
+                offsets,
+            )
+            dish_poin_adtr.targetData = json.dumps(target_data)
+
+            (
+                result_code,
+                msg,
+            ) = dish_poin_adtr.GenerateProgramTrackTable()
+            err_msg = "GProgramTrackTable failed {0}: {1}"
+            if result_code != ResultCode.OK:
+                error_msg = err_msg.format(result_code, msg)
+                self.logger.error(error_msg)
+
+        except Exception as e:
+            error_msg = f"Error in pointing operation: {str(e)}"
+            self.logger.error(error_msg)
+        else:
+            self.logger.debug(
+                "Pointing offsets are Updated to %s",
+                offsets,
+            )
+
+    def _generate_pointing_data(
+        self, target_data: dict, offsets: list
+    ) -> dict:
+        """Generate Pointing data based on offsets
+        Args:
+            target_data (dict): existing target data to update
+            offsets (list): pointing offsets
+        """
+        target_data["pointing"]["trajectory"] = {
+            'name': 'fixed',
+            'attrs': {'x': offsets[0], 'y': offsets[1]},
+        }
+        return target_data
 
     def validate_float_list(
         self: DishLNComponentManager, lst: list, number_of_values: int
