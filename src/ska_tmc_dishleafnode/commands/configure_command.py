@@ -37,8 +37,6 @@ from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
 configure_logging()
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_PROJECTION = {"name": "SSN", "alignment": "ICRS"}
-
 
 class Configure(DishLNCommand):
     """
@@ -167,8 +165,6 @@ class Configure(DishLNCommand):
         - Converts legacy offsets ``ca_offset_arcsec`` / ``ie_offset_arcsec``
           to ``pointing.trajectory.attrs.x`` / ``y`` when trajectory offsets
           are not already present.
-        - Applies default projection ``SSN`` (with ``ICRS`` alignment)
-          when projection is not provided.
 
         Args:
             config_json (dict): Input configure JSON as dictionary.
@@ -179,15 +175,6 @@ class Configure(DishLNCommand):
         pointing_data = config_json.get("pointing")
         if not isinstance(pointing_data, dict):
             return config_json
-
-        projection_data = pointing_data.get("projection")
-        if not isinstance(projection_data, dict):
-            projection_data = {}
-        projection_data.setdefault("name", DEFAULT_PROJECTION["name"])
-        projection_data.setdefault(
-            "alignment", DEFAULT_PROJECTION["alignment"]
-        )
-        pointing_data["projection"] = projection_data
 
         x_offset = y_offset = None
         target_data = pointing_data.get("target", {})
