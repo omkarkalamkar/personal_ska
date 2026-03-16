@@ -12,9 +12,11 @@ from tests.settings import (
     COMMAND_COMPLETED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
     logger,
     tear_down,
+    wait_for_target_data,
 )
 
 POINTING_CAL = [1.1, 1.1, 1.2]
@@ -133,6 +135,14 @@ def test_main_config_with_correction_key_update_reset(
 
     if correction_key == "UPDATE":
         sdp_queue_connector.SetPointingCalSka001(POINTING_CAL)
+        dish_pd = DevFactory().get_device(DISHLN_POINTING_DEVICE)
+        # Wait for targetData contain [1.1, 1.2]
+        assert wait_for_target_data(
+            dish_pd, expected_x=POINTING_CAL[1], expected_y=POINTING_CAL[2]
+        ), (
+            "Time Out while waiting for target data to contain"
+            f" {POINTING_CAL} . Current target Data {dish_pd.targetData}"
+        )
         # validate_trackloadstaticoff_invoked(dish_master, group_callback)
         # command_info_data = dish_master.commandCallInfo
         # assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
@@ -160,6 +170,7 @@ def test_partial_configure_with_update_reset_correction_key(
     dish_leaf_node = dev_factory.get_device(DISH_LEAF_NODE_DEVICE)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     sdp_queue_connector = dev_factory.get_device(SDP_QUEUE_CONNECTOR_DEVICE)
+    dish_pd = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     device_host = tango.Database().get_db_host()
     device_port = tango.Database().get_db_port()
@@ -252,9 +263,12 @@ def test_partial_configure_with_update_reset_correction_key(
         )
         dish_leaf_node.unsubscribe_event(lrcr_event_id)
         sdp_queue_connector.SetPointingCalSka001(POINTING_CAL)
-        # validate_trackloadstaticoff_invoked(dish_master, group_callback)
-        # command_info_data = dish_master.commandCallInfo
-        # assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
+        assert wait_for_target_data(
+            dish_pd, expected_x=POINTING_CAL[1], expected_y=POINTING_CAL[2]
+        ), (
+            "Time Out while waiting for target data to contain"
+            f" {POINTING_CAL} . Current target Data {dish_pd.targetData}"
+        )
 
     lrcr_event_id = dish_leaf_node.subscribe_event(
         "longRunningCommandResult",

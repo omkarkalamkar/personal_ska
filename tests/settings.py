@@ -359,6 +359,46 @@ def wait_for_attribute_health_value(
     return True
 
 
+def wait_for_target_data(device, expected_x, expected_y, timeout=20):
+    """
+    Waits for the targetData attribute to contain the
+    specified x and y values under the trajectory key.
+
+    Args:
+        device (DeviceProxy): The Tango device proxy object.
+        expected_x (float): The expected x value under the trajectory key.
+        expected_y (float): The expected y value under the trajectory key.
+        timeout (int, optional): The maximum time to wait in seconds.
+
+    Returns:
+        bool: True if the expected values are found within the timeout
+    """
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        target_data = device.targetData
+        try:
+            target_data_dict = json.loads(target_data)
+            trajectory = target_data_dict.get("pointing", {}).get(
+                "trajectory", {}
+            )
+            if (
+                trajectory.get("attrs", {}).get("x") == expected_x
+                and trajectory.get("attrs", {}).get("y") == expected_y
+            ):
+                return True
+        except (json.JSONDecodeError, AttributeError) as e:
+            logger.debug("Error reading targetData: %s", e)
+        time.sleep(1)
+
+    logger.warning(
+        "Timeout after %s  waiting for targetData to contain x=%s, y=%s",
+        timeout,
+        expected_x,
+        expected_y,
+    )
+    return False
+
+
 def wait_for_attribute_value(
     device: DeviceProxy, attribute_name: str, value: str = "[]"
 ) -> bool:
