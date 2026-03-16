@@ -2975,14 +2975,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                             self.last_pointing_data = (
                                 event_data.attr_value.value
                             )
-                            offsets = json.dumps(
+                            self._invoke_generate_prgm_track_table(
                                 [
                                     event_data.attr_value.value[1],
                                     event_data.attr_value.value[2],
                                 ]
-                            )
-                            self._invoke_generate_prgm_track_table(
-                                offsets, event_data
                             )
             elif self.correction_key in [
                 CORRECTION_KEY.MAINTAIN.value,
@@ -3005,7 +3002,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 f"Exception Message is: {e}"
             )
 
-    def _invoke_generate_prgm_track_table(self, offsets, event_data):
+    def _invoke_generate_prgm_track_table(self, offsets):
         """Generate target data and innvoke generate program track
         table
         """
@@ -3014,10 +3011,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             existing_target_data = json.loads(dish_poin_adtr.targetData)
             target_data = self._generate_pointing_data(
                 existing_target_data,
-                [
-                    event_data.attr_value.value[1],
-                    event_data.attr_value.value[2],
-                ],
+                offsets,
             )
             dish_poin_adtr.targetData = json.dumps(target_data)
 
