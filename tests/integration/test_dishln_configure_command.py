@@ -969,6 +969,8 @@ def configure_command_with_trajectory_and_ie_ce(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
+@pytest.mark.post_deployment
+@pytest.mark.SKA_mid
 @pytest.mark.parametrize(
     "partial_type",
     ["with_trajectory", "with_ie_ce", "both_trajectory_ie_ce"],
