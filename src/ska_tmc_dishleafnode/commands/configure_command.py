@@ -28,9 +28,6 @@ from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.commands.track_command import Track
-from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
-    TrackLoadStaticOff,
-)
 from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
 from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
 
@@ -389,11 +386,18 @@ class Configure(DishLNCommand):
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value
             )
-            # collimation_offsets = self.get_ie_ca_offsets_if_provided(
-            #     input_json,
-            #     reset_offset,
-            #     self.component_manager.partial_configure,
-            # )
+            collimation_offsets = self.get_ie_ca_offsets_if_provided(
+                input_json,
+                reset_offset,
+                self.component_manager.partial_configure,
+            )
+
+            # Invoke track load static off when collimation offsets
+            # provided and correction key is provided as RESET
+            if collimation_offsets:
+                self.component_manager.update_source_offset_callback(
+                    collimation_offsets
+                )
 
             try:
                 pointing_device_conf_json = copy.deepcopy(json_argument)
@@ -650,100 +654,6 @@ class Configure(DishLNCommand):
                 offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
                 offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
         return offsets
-
-    def invoke_trackloadstaticoff(
-        self: Configure,
-        input_json: dict,
-        collimation_offsets: list,
-    ) -> Tuple[ResultCode, str]:
-        """Extracts the offsets from input json and invokes the
-        TrackLoadStaticOff command on DishMaster device.
-
-        :param input_json: Input json for Configure command
-        :type input_json: dict
-
-        :returns: Tuple[ResultCode, str]
-        """
-        offsets_argin = collimation_offsets
-
-        # pylint: disable=unused-argument
-        def _invoke_trackstaticloadoff_callback(
-            status=None,
-            progress=None,
-            result=None,
-            exception=None,
-        ):
-            """
-            Method for invoking TrackStaticLoadOff callback
-            """
-            if result is None:
-                pass
-            else:
-                result_code, message = result
-                self.component_manager.set_track_load_static_off_result_dict(
-                    result_code, message, exception, status
-                )
-                self.component_manager.partial_configure_lrcr = result_code
-                self.logger.info(
-                    "Command ID: %s | "
-                    "Result code for Track load: %s  "
-                    ",Correction Key: %s ,"
-                    "Partial Configure: %s",
-                    self.component_manager.command_id,
-                    str(result_code),
-                    self.component_manager.correction_key,
-                    self.component_manager.partial_configure,
-                )
-                if self.component_manager.abort_event.is_set():
-                    return
-                if result_code == ResultCode.OK:
-                    self.invoke_configure_band_on_dish(input_json)
-                elif result_code == ResultCode.FAILED:
-                    # If timed out has occurred for trackload
-                    # static off then update
-                    # exception message for configure command
-                    if "Timeout has occurred" in exception:
-                        exception_message = (
-                            "Timeout occurred while waiting for "
-                            "TrackStaticLoadOff command"
-                            " to be completed in Configure command."
-                        )
-                        self.set_failure_for_configure(exception_message)
-                        self.logger.exception(exception_message)
-                    else:
-                        self.component_manager.observable.notify_observers(
-                            command_exception=True
-                        )
-                self.component_manager.command_in_progress = "Configure"
-
-        # pylint: enable=unused-argument
-        # Call the TrackStaticLoadOff command
-        track_load_static_off_command = TrackLoadStaticOff(
-            self.component_manager,
-            self.op_state_model,
-            self._adapter_factory,
-            self.logger,
-            is_configure_command=True,
-        )
-        # pylint: disable=E1123
-        track_load_static_off_command.invoke_track_load_static_off(
-            argin=json.dumps(offsets_argin),
-            logger=self.logger,
-            task_callback=_invoke_trackstaticloadoff_callback,
-            task_abort_event=self.component_manager.abort_event,
-        )
-        if (
-            self.component_manager.get_track_load_static_off_result_code()
-            == ResultCode.FAILED
-        ):
-            return (
-                self.component_manager.get_track_load_static_off_result_code(),
-                self.component_manager.get_track_load_static_off_result_dict()[
-                    "exception"
-                ],
-            )
-        self.component_manager.update_source_offset_callback(offsets_argin)
-        return ResultCode.QUEUED, ""
 
     def start_dish_tracking(self: Configure, json_argument: dict):
         """
