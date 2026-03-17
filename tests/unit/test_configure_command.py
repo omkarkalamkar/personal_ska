@@ -264,6 +264,7 @@ def test_configure_command_not_allowed(cm_without_er_lp):
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()
 
+
 @pytest.mark.aki
 def test_normalise_pointing_data_legacy_offsets(cm_without_er_lp):
     """Verify legacy offset keys are normalised to trajectory attrs."""
@@ -291,6 +292,7 @@ def test_normalise_pointing_data_legacy_offsets(cm_without_er_lp):
         "name": "fixed",
         "attrs": {"x": 1.1, "y": -2.2},
     }
+
 
 @pytest.mark.aki
 def test_get_offsets_from_trajectory_for_partial(cm_without_er_lp):

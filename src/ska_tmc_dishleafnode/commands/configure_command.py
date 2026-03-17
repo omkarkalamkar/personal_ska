@@ -184,7 +184,10 @@ class Configure(DishLNCommand):
         ):
             x_offset = target_data.get("ca_offset_arcsec", 0.0)
             y_offset = target_data.get("ie_offset_arcsec", 0.0)
-        elif "ca_offset_arcsec" in pointing_data or "ie_offset_arcsec" in pointing_data:
+        elif (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
             x_offset = pointing_data.get("ca_offset_arcsec", 0.0)
             y_offset = pointing_data.get("ie_offset_arcsec", 0.0)
 
@@ -392,11 +395,11 @@ class Configure(DishLNCommand):
             )
             # Invoke track load static off when collimation offsets
             # provided and correction key is provided as RESET
-            if collimation_offsets:
-                self.component_manager.is_trackloadstatic_off = True
-                self.invoke_trackloadstaticoff(
-                    json_argument, collimation_offsets
-                )
+            # if collimation_offsets:
+            #     self.component_manager.is_trackloadstatic_off = True
+            #     self.invoke_trackloadstaticoff(
+            #         json_argument, collimation_offsets
+            #     )
 
             try:
                 pointing_device_conf_json = copy.deepcopy(json_argument)
@@ -622,15 +625,11 @@ class Configure(DishLNCommand):
         offsets = []
         pointing_data = config_json.get("pointing", {})
         if include_trajectory_offsets:
-            trajectory_attrs = (
-                pointing_data.get("trajectory", {}).get("attrs", {})
+            trajectory_attrs = pointing_data.get("trajectory", {}).get(
+                "attrs", {}
             )
-            if (
-                isinstance(trajectory_attrs, dict)
-                and (
-                    "x" in trajectory_attrs
-                    or "y" in trajectory_attrs
-                )
+            if isinstance(trajectory_attrs, dict) and (
+                "x" in trajectory_attrs or "y" in trajectory_attrs
             ):
                 offsets.append(trajectory_attrs.get("x", 0.0))
                 offsets.append(trajectory_attrs.get("y", 0.0))
