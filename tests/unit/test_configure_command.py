@@ -22,6 +22,7 @@ from tests.settings import (
     simulate_result_code_event,
     simulate_track_table_event,
     wait_for_dish_mode,
+    wait_for_target_data,
 )
 
 
@@ -86,6 +87,7 @@ def test_configure_command_completed(
     )
 
 
+@pytest.mark.aki
 def test_configure_command_completed_partial_config(
     cm_without_er_lp, task_callback, json_factory
 ):
@@ -120,13 +122,23 @@ def test_configure_command_completed_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+
+    # simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    # dev_factory = DevFactory()
+    # dish_pd = dev_factory.get_device(DISHLN_POINTING_DEVICE)
+    assert wait_for_target_data(
+        cm.dishln_pointing_device_adapter, expected_x=0.0, expected_y=5.0
+    ), (
+        "Time Out while waiting for target data to contain"
+        f" {[0.0,5.0]} . \n"
+        f"Current target Data {cm.dishln_pointing_device_adapter.targetData}"
+    )
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=6,
+        lookahead=3,
     )
 
 

@@ -3380,11 +3380,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
             and self.configure_band_lrcr == ResultCode.OK
             and self.configure_track_lrcr == ResultCode.OK
-            and (
-                self.partial_configure_lrcr == ResultCode.OK
-                if self.is_trackloadstatic_off
-                else True
-            )
+            # and (
+            #     self.partial_configure_lrcr == ResultCode.OK
+            #     if self.is_trackloadstatic_off
+            #     else True
+            # )
         )
 
     def update_windspeed(self, wind_speed: float, wms: str = "") -> None:
