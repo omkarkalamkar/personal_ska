@@ -359,7 +359,7 @@ def wait_for_attribute_health_value(
     return True
 
 
-def wait_for_target_data(device, expected_x, expected_y, timeout=20):
+def wait_for_target_data(device, expected_x, expected_y, timeout=5):
     """
     Waits for the targetData attribute to contain the
     specified x and y values under the trajectory key.

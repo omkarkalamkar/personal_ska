@@ -389,18 +389,11 @@ class Configure(DishLNCommand):
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value
             )
-            collimation_offsets = self.get_ie_ca_offsets_if_provided(
-                input_json,
-                reset_offset,
-                self.component_manager.partial_configure,
-            )
-            # Invoke track load static off when collimation offsets
-            # provided and correction key is provided as RESET
-            # if collimation_offsets:
-            #     self.component_manager.is_trackloadstatic_off = True
-            #     self.invoke_trackloadstaticoff(
-            #         json_argument, collimation_offsets
-            #     )
+            # collimation_offsets = self.get_ie_ca_offsets_if_provided(
+            #     input_json,
+            #     reset_offset,
+            #     self.component_manager.partial_configure,
+            # )
 
             try:
                 pointing_device_conf_json = copy.deepcopy(json_argument)
@@ -460,8 +453,8 @@ class Configure(DishLNCommand):
                         exception,
                     ),
                 )
-            if not reset_offset and not collimation_offsets:
-                return self.invoke_configure_band_on_dish(json_argument)
+
+            return self.invoke_configure_band_on_dish(json_argument)
 
         except Exception as exception:
             self.logger.exception(
