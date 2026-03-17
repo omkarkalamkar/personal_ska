@@ -265,7 +265,6 @@ def test_configure_command_not_allowed(cm_without_er_lp):
         cm.is_configure_allowed()
 
 
-@pytest.mark.aki
 def test_normalise_pointing_data_legacy_offsets(cm_without_er_lp):
     """Verify legacy offset keys are normalised to trajectory attrs."""
     cm = cm_without_er_lp
@@ -294,7 +293,6 @@ def test_normalise_pointing_data_legacy_offsets(cm_without_er_lp):
     }
 
 
-@pytest.mark.aki
 def test_get_offsets_from_trajectory_for_partial(cm_without_er_lp):
     """Verify offsets are extracted from trajectory attrs for ADR-63."""
     cm = cm_without_er_lp
