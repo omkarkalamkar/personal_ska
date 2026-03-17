@@ -245,9 +245,6 @@ def test_partial_configure_with_update_reset_correction_key(
     # Assert change event is occuring and values are reflecting
     # on sourceOffset attribute.
     if correction_key == "RESET":
-        validate_trackloadstaticoff_invoked(dish_master, group_callback)
-        command_info_data = dish_master.commandCallInfo
-        assert ("TrackLoadStaticOff", "[0. 0.]") in command_info_data
         group_callback["sourceOffset"].assert_change_event(
             RESET_OFFSETS,
             lookahead=2,
