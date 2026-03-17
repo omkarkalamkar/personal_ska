@@ -3009,7 +3009,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             dish_poin_adtr = self.dishln_pointing_device_adapter
             existing_target_data = json.loads(dish_poin_adtr.targetData)
-            target_data = self._generate_pointing_data(
+            target_data = self.generate_pointing_data(
                 existing_target_data,
                 offsets,
             )
@@ -3033,9 +3033,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 offsets,
             )
 
-    def _generate_pointing_data(
-        self, target_data: dict, offsets: list
-    ) -> dict:
+    def generate_pointing_data(self, target_data: dict, offsets: list) -> dict:
         """Generate Pointing data based on offsets
         Args:
             target_data (dict): existing target data to update
