@@ -302,35 +302,36 @@ class Configure(DishLNCommand):
 
         """
 
+        # pointing must be present
         if "pointing" not in input_argin:
             return (
                 ResultCode.REJECTED,
                 "pointing key is not present in the configure input json.",
             )
 
-        if "tmc" in input_argin and input_argin["tmc"].get(
-            "partial_configuration"
-        ):
+        # partial configuration case: ensure target provided inside pointing
+        if input_argin.get("tmc", {}).get("partial_configuration"):
             if "target" not in input_argin["pointing"]:
                 return (
                     ResultCode.REJECTED,
                     "target key is not present in the input json argument.",
                 )
-        else:
-            if "dish" not in input_argin:
-                return (
-                    ResultCode.REJECTED,
-                    "dish key is not present in the input json argument.",
-                )
+            return ResultCode.OK, ""
 
-            if "receiver_band" not in input_argin["dish"]:
-                return (
-                    ResultCode.REJECTED,
-                    "receiverBand key is not present in the input json "
-                    + "argument.",
-                )
+        # non-partial case: ensure dish and receiver_band present
+        if "dish" not in input_argin:
+            return (
+                ResultCode.REJECTED,
+                "dish key is not present in the input json argument.",
+            )
 
-        return (ResultCode.OK, "")
+        if "receiver_band" not in input_argin["dish"]:
+            return (
+                ResultCode.REJECTED,
+                "receiverBand key is not present in the input json argument.",
+            )
+
+        return ResultCode.OK, ""
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
