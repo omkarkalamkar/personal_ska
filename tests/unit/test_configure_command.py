@@ -24,13 +24,20 @@ from tests.settings import (
 )
 
 
+@pytest.mark.parametrize(
+    "json_input",
+    [
+        "dishleafnode_configure",
+        "dishleafnode_configure_tle_adr63",
+    ],
+)
 def test_configure_command_completed(
     cm_without_er_lp,
     task_callback,
     json_factory,
+    json_input,
 ):
     cm = cm_without_er_lp
-
     attr = {
         'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
         'ConfigureBand2.return_value': (
@@ -54,25 +61,22 @@ def test_configure_command_completed(
     set_kvalue_command._adapter_factory = adapter_factory
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-    configure_input_str = json_factory("dishleafnode_configure")
+    configure_input_str = json_factory(json_input)
 
     cm.configure(
         configure_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
     )
-    time.sleep(0.5)  # Ensure configure command is waiting for events.
-
+    time.sleep(0.5)
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     simulate_result_code_event(cm, "GenerateProgramTrackTable", ResultCode.OK)
     simulate_track_table_event(cm)
-
     cm.update_device_configured_band("2")
     cm.update_device_dish_mode(DishMode.OPERATE)
     simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
-
     cm.update_device_pointing_state(PointingState.TRACK)
     simulate_result_code_event(cm, "Track", ResultCode.OK)
     cm.observable.notify_observers(attribute_value_change=True)
