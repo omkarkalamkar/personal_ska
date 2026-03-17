@@ -478,20 +478,20 @@ def build_partial_configure_data(
     configurations = []
     partial_config = json.loads(partial_config)
 
-    partial_config["pointing"]["target"]["ca_offset_arcsec"] = offset
-    partial_config["pointing"]["target"]["ie_offset_arcsec"] = 0.0
+    partial_config["pointing"]["ca_offset_arcsec"] = offset
+    partial_config["pointing"]["ie_offset_arcsec"] = 0.0
     configurations.append(json.dumps(partial_config))
 
-    partial_config["pointing"]["target"]["ca_offset_arcsec"] = 0.0
-    partial_config["pointing"]["target"]["ie_offset_arcsec"] = offset
+    partial_config["pointing"]["ca_offset_arcsec"] = 0.0
+    partial_config["pointing"]["ie_offset_arcsec"] = offset
     configurations.append(json.dumps(partial_config))
 
-    partial_config["pointing"]["target"]["ca_offset_arcsec"] = -offset
-    partial_config["pointing"]["target"]["ie_offset_arcsec"] = 0.0
+    partial_config["pointing"]["ca_offset_arcsec"] = -offset
+    partial_config["pointing"]["ie_offset_arcsec"] = 0.0
     configurations.append(json.dumps(partial_config))
 
-    partial_config["pointing"]["target"]["ca_offset_arcsec"] = 0.0
-    partial_config["pointing"]["target"]["ie_offset_arcsec"] = -offset
+    partial_config["pointing"]["ca_offset_arcsec"] = 0.0
+    partial_config["pointing"]["ie_offset_arcsec"] = -offset
     configurations.append(json.dumps(partial_config))
 
     return configurations

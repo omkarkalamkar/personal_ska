@@ -274,8 +274,8 @@ def partial_configure_dish_leaf_node(
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
-        ca_offset = load_conf["pointing"]["target"]["ca_offset_arcsec"]
-        ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
+        ca_offset = load_conf["pointing"]["ca_offset_arcsec"]
+        ie_offset = load_conf["pointing"]["ie_offset_arcsec"]
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], COMMAND_COMPLETED),
             lookahead=8,
