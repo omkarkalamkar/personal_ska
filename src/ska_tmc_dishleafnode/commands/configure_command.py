@@ -411,6 +411,12 @@ class Configure(DishLNCommand):
                     "pointing": pointing_device_conf_json["pointing"],
                     "tmc": pointing_device_conf_json.get("tmc", {}),
                 }
+                if reset_offset:
+                    target_payload = (
+                        self.component_manager.generate_pointing_data(
+                            target_payload, RESET_OFFSETS
+                        )
+                    )
                 if array_layout is not None:
                     target_payload["array_layout"] = array_layout
                 target_data = json.dumps(target_payload)
