@@ -30,7 +30,7 @@ from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.commands.track_command import Track
 from ska_tmc_dishleafnode.constants import (
     ADJUST_TIMEOUT,
-    FIXED_TRAJECTORY_NAME,
+    FIXED_TRAJECTORY,
     RESET_OFFSETS,
 )
 from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
@@ -196,7 +196,7 @@ class Configure(DishLNCommand):
             trajectory = pointing_data.get("trajectory")
             if not isinstance(trajectory, dict):
                 trajectory = {}
-            trajectory.setdefault("name", FIXED_TRAJECTORY_NAME)
+            trajectory.setdefault("name", FIXED_TRAJECTORY)
             attrs = trajectory.get("attrs")
             if not isinstance(attrs, dict):
                 attrs = {}
@@ -631,7 +631,7 @@ class Configure(DishLNCommand):
         pointing_data = config_json.get("pointing", {})
         is_trajectory_key_present = (
             pointing_data.get("trajectory", {}).get("name", "").lower()
-            == FIXED_TRAJECTORY_NAME
+            == FIXED_TRAJECTORY
         )
         if is_trajectory_key_present:
             trajectory_attrs = pointing_data.get("trajectory", {}).get(
