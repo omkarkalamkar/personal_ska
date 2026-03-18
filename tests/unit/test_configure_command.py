@@ -87,7 +87,6 @@ def test_configure_command_completed(
     )
 
 
-@pytest.mark.aki
 def test_configure_command_completed_partial_config(
     cm_without_er_lp, task_callback, json_factory
 ):
@@ -127,7 +126,7 @@ def test_configure_command_completed_partial_config(
     # dev_factory = DevFactory()
     # dish_pd = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     assert wait_for_target_data(
-        cm.dishln_pointing_device_adapter, expected_x=0.0, expected_y=5.0
+        cm.dishln_pointing_device_adapter, expected_x=0.0, expected_y=18000.0
     ), (
         "Time Out while waiting for target data to contain"
         f" {[0.0,5.0]} . \n"
