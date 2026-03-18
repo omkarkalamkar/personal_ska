@@ -64,6 +64,7 @@ from ska_tmc_dishleafnode.commands import (
 )
 from ska_tmc_dishleafnode.constants import (
     ALLOWED_BANDS,
+    FIXED_TRAJECTORY_NAME,
     IERS_DATA_STORAGE_PATH,
     SKA_EPOCH,
 )
@@ -3040,7 +3041,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             offsets (list): pointing offsets
         """
         target_data["pointing"]["trajectory"] = {
-            'name': 'fixed',
+            'name': FIXED_TRAJECTORY_NAME,
             'attrs': {'x': offsets[0], 'y': offsets[1]},
         }
         return target_data
