@@ -62,12 +62,12 @@ class BaseScanMapping:
             self.logger.error("Exception: %s", exception)
             raise exception
 
-    def _handle_tle_target(self, target_section: dict) -> str:
-        """Build exact katpoint TLE string for legacy OR ADR-63 JSON."""
-        name = target_section.get("target_name").strip()
-        attrs = target_section.get("attrs", {})
-        line1 = attrs.get("line1", "").strip()
-        line2 = attrs.get("line2", "").strip()
+    def _handle_tle_target(self, target_key: dict) -> str:
+        """Build exact katpoint TLE string"""
+        name = target_key.get("target_name")
+        attrs = target_key.get("attrs", {})
+        line1 = attrs.get("line1")
+        line2 = attrs.get("line2")
         if not name or not line1 or not line2:
             raise InvalidTargetDataError(
                 "TLE requires target_name + line1 + line2"
@@ -92,18 +92,21 @@ class BaseScanMapping:
                 or field_dict.get("reference_frame", "")
             ).lower()
             if ref_frame == "tle":
-                section = (
+                key = (
                     target_dict
                     if target_dict.get("reference_frame") == "tle"
                     else field_dict
                 )
-                self.component_manager.target = self._handle_tle_target(
-                    section
-                )
+                self.component_manager.target = self._handle_tle_target(key)
                 return
             ra, dec = target_dict.get("ra", ""), target_dict.get("dec", "")
             # Get c1 and c2 values
-            c1, c2 = field_dict.get("c1", nan), field_dict.get("c2", nan)
+            c1, c2 = (
+                field_dict.get("attrs", {}).get("c1")
+                or field_dict.get("c1", nan),
+                field_dict.get("attrs", {}).get("c2")
+                or field_dict.get("c2", nan),
+            )
 
             # Set target using the first non-empty value
             target = (
