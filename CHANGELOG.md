@@ -5,6 +5,13 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.41.0]
+********
+Updated
+--------
+* Support for Trajectory in case of Five Point scan added.
+* Invocation of TrackLoadStaticOff is removed from Configure command
+
 [0.40.1]
 ********
 Updated
