@@ -177,7 +177,7 @@ class Configure(DishLNCommand):
         if not isinstance(pointing_data, dict):
             return config_json
 
-        x_offset = y_offset = 0.0
+        x_offset = y_offset = None
         target_data = pointing_data.get("target", {})
         if isinstance(target_data, dict) and (
             "ca_offset_arcsec" in target_data
