@@ -61,3 +61,67 @@ def test_radec_to_azel(
     logger.info("Elevation is: %s", el)
     assert az == expected_az
     assert el == expected_el
+
+
+@pytest.mark.parametrize(
+    "tle_field, timestamp, expected_az, expected_el",
+    [
+        (
+            {
+                "target_name": "ISS (ZARYA)",
+                "reference_frame": "tle",
+                "attrs": {
+                    "line1": "1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927",  # noqa: E501
+                    "line2": "2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",  # noqa: E501
+                },
+            },
+            "2022-03-19 18:21:50",
+            25.388043,
+            -6.984832,
+        ),
+    ],
+)
+def test_tle_forward_transform(
+    tle_field: dict,
+    timestamp: str,
+    expected_az: float,
+    expected_el: float,
+    cm_without_er_lp,
+):
+    """Forward transform test for TLE to AzEl conversion."""
+    name = tle_field["target_name"]
+    line1 = tle_field["attrs"]["line1"]
+    line2 = tle_field["attrs"]["line2"]
+    tle_description = f"{name}, tle, {line1}, {line2}"
+
+    cm = cm_without_er_lp
+    cm.array_layout = ARRAY_LAYOUT
+    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
+    cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
+
+    converter = AzElConverter(component_manager=cm)
+
+    retry = 0
+    while retry <= 3:
+        try:
+            converter.create_antenna_obj()
+            break
+        except Exception as e:
+            logger.exception(
+                "Exception occurred while creating antenna object: %s", e
+            )
+            if retry == 2:
+                pytest.fail(f"{e}")
+            retry += 1
+            sleep(0.1)
+
+    az, el = converter.point_to_body(tle_description, timestamp)
+
+    az = round(az, 6)
+    el = round(el, 6)
+
+    logger.info("TLE Azimuth is: %s", az)
+    logger.info("TLE Elevation is: %s", el)
+
+    assert az == expected_az
+    assert el == expected_el
