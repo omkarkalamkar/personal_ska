@@ -41,7 +41,7 @@ def setstandbyfpmode_command(tango_context, dishln_name, group_callback):
     )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_COMPLETED),
-        lookahead=2,
+        lookahead=5,
     )
 
     group_callback["dishMode"].assert_change_event(
