@@ -389,15 +389,7 @@ class Configure(DishLNCommand):
             collimation_offsets = self.get_ie_ca_offsets_if_provided(
                 input_json,
                 reset_offset,
-                self.component_manager.partial_configure,
             )
-
-            # Invoke track load static off when collimation offsets
-            # provided and correction key is provided as RESET
-            if collimation_offsets:
-                self.component_manager.update_source_offset_callback(
-                    collimation_offsets
-                )
 
             try:
                 pointing_device_conf_json = copy.deepcopy(json_argument)
@@ -427,6 +419,12 @@ class Configure(DishLNCommand):
                 result_code, _ = self.invoke_generate_program_track_table(
                     target_data
                 )
+                # Invoke track load static off when collimation offsets
+                # provided and correction key is provided as RESET
+                if collimation_offsets:
+                    self.component_manager.update_source_offset_callback(
+                        collimation_offsets
+                    )
             except Exception as exception:
                 self.logger.exception(
                     "Command ID: %s | Failed to generate "
@@ -610,7 +608,6 @@ class Configure(DishLNCommand):
         self,
         config_json: dict,
         reset_offset: bool,
-        include_trajectory_offsets: bool = False,
     ) -> list:
         """This check if ca_offset_arcsec or ie_offset_arcsec provided
         in config json and return offsets
@@ -628,7 +625,11 @@ class Configure(DishLNCommand):
             return RESET_OFFSETS
         offsets = []
         pointing_data = config_json.get("pointing", {})
-        if include_trajectory_offsets:
+        is_trajectory = (
+            pointing_data.get("trajectory", {}).get("name", "").lower()
+            == "fixed"
+        )
+        if is_trajectory:
             trajectory_attrs = pointing_data.get("trajectory", {}).get(
                 "attrs", {}
             )
@@ -638,8 +639,7 @@ class Configure(DishLNCommand):
                 offsets.append(trajectory_attrs.get("x", 0.0))
                 offsets.append(trajectory_attrs.get("y", 0.0))
                 return offsets
-
-        if pointing_data:
+        else:
             target_data = pointing_data.get("target", {})
             if (
                 "ca_offset_arcsec" in target_data

@@ -274,8 +274,8 @@ def partial_configure_dish_leaf_node(
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
-        ca_offset = load_conf["pointing"]["ca_offset_arcsec"]
-        ie_offset = load_conf["pointing"]["ie_offset_arcsec"]
+        ca_offset = load_conf["pointing"]["target"]["ca_offset_arcsec"]
+        ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_config[0], COMMAND_COMPLETED),
             lookahead=8,
@@ -993,6 +993,10 @@ def test_partial_configure_with_ie_wo_ie(
         )
     elif partial_type == "with_ie_ce":
         partial_configure = json_factory("partial_configure")
+        partial_json = json.loads(partial_configure)
+        partial_json["pointing"].pop("target")
+        partial_json["pointing"]["ca_offset_arcsec"] = 0.0
+        partial_json["pointing"]["ie_offset_arcsec"] = 5.0
         configure_command_with_trajectory_and_ie_ce(
             DISH_LEAF_NODE_DEVICE,
             group_callback,
