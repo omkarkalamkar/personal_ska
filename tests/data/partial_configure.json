@@ -7928,10 +7928,8 @@
     ]
 },
 	"pointing": {
-		"target": {
 			"ca_offset_arcsec": 0.0,
 			"ie_offset_arcsec": 5.0
-		}
 	},
 	"tmc": {
 		"partial_configuration": true
