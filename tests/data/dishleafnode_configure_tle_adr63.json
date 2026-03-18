@@ -30,7 +30,7 @@
         "station_id": 65
     },
     "pointing": {
-        "wrap_sector": 0,
+        "wrap_sector": -1,
         "field": {
             "reference_frame": "tle",
             "target_name": "ISS (ZARYA)",

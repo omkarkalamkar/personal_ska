@@ -104,41 +104,28 @@ class AzElConverter:
         """
         refraction_corrected_azel = []
         try:
-            pointing_section = getattr(
-                self.component_manager, "target_data", {}
-            ).get("pointing", {})
-            target_dict = pointing_section.get(
-                "field"
-            ) or pointing_section.get("target", {})
-            frame = target_dict.get("reference_frame", "").lower()
+            desc = target_name.strip()
+            if "tle" not in desc.lower() and "special" not in desc.lower():
+                desc = f"{desc}, special"
 
-            if frame == "tle":
-                attrs = target_dict.get("attrs", {})
-                line1 = attrs.get("line1") or attrs.get("tle_line1", "")
-                line2 = attrs.get("line2") or attrs.get("tle_line2", "")
-                if line1 and line2:
-                    return self.tle_to_azel(
-                        line1, line2, timestamp, target_name
-                    )
+            non_sidereal_target = Target(desc)
+            logger.debug("Target created: %s", non_sidereal_target)
 
-            non_sidereal_target = Target(f"{target_name}, special")
-            logger.debug(" %s", non_sidereal_target)
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
                 azel = non_sidereal_target.azel(
                     timestamp, self.component_manager.observer
                 )
-
             refraction_corrected_azel = self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
             message = str(value_error)
             raise Exception(message) from value_error
-
         except Exception as exception:
             message = str(exception)
             raise Exception(message) from exception
+
         return refraction_corrected_azel
 
     def point(
@@ -258,41 +245,5 @@ class AzElConverter:
             message = str(exception)
             logger.exception(
                 "Failed to convert RA/Dec to Az/El, Exception: %s ", message
-            )
-            raise Exception(message) from exception
-
-    def tle_to_azel(
-        self: AzElConverter,
-        line1: str,
-        line2: str,
-        timestamp: str,
-        target_name: str = "TLE_Object",
-    ) -> List[float]:
-        """
-        Convert TLE lines to Az/El using katpoint.
-        """
-        refraction_corrected_azel = []
-        try:
-            description = f"{target_name}, tle, {line1}, {line2}"
-            non_sidereal_target = Target(description)
-            logger.debug("TLE target created: %s", non_sidereal_target)
-
-            with iers.earth_orientation_table.set(
-                self.component_manager.iers_a
-            ):
-                azel = non_sidereal_target.azel(
-                    timestamp, self.component_manager.observer
-                )
-            refraction_corrected_azel = self.apply_refraction_correction(azel)
-            return refraction_corrected_azel
-
-        except ValueError as value_error:
-            message = str(value_error)
-            logger.error("Invalid TLE lines provided: %s", message)
-            raise Exception(message) from value_error
-        except Exception as exception:
-            message = str(exception)
-            logger.exception(
-                "Failed to convert TLE to Az/El, Exception: %s", message
             )
             raise Exception(message) from exception

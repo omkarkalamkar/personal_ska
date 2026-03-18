@@ -1,5 +1,4 @@
 import datetime
-import json
 import sched
 import time
 
@@ -25,20 +24,8 @@ def test_calculate_time_stamp_array(cm_pointig_device):
     assert len(tai_timestamp_array) == PROGRAM_TRACK_TABLE_SIZE
 
 
-@pytest.mark.parametrize(
-    "json_input",
-    [
-        "dishleafnode_configure",
-        "dishleafnode_configure_tle_adr63",
-    ],
-)
-def test_calculate_program_track_table(
-    cm_pointig_device, json_factory, json_input
-):
+def test_calculate_program_track_table(cm_pointig_device):
     cm = cm_pointig_device
-    configure_data = json.loads(json_factory(json_input))
-    cm.target_data = configure_data
-
     wait_for_iers_data_available(cm)
     azel_converter = AzElConverter(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
@@ -53,12 +40,15 @@ def test_calculate_program_track_table(
             azel_converter.create_antenna_obj()
             break
         except Exception as e:
-            logger.exception("Exception while creating antenna object: %s", e)
+            logger.exception(
+                "Exception occurred while creating antenna object: %s", e
+            )
             if retry == 2:
                 pytest.fail(f"{e}")
             retry += 1
         time.sleep(0.1)
 
+    # Given Ra and Dec are of polaris australis
     program_track_table = track_table_calculator.calculate_program_track_table(
         ["21:27:51.5", "-88:51:08.8"], azel_converter
     )
