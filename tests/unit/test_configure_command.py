@@ -327,7 +327,6 @@ def test_get_offsets_from_trajectory_for_partial(cm_without_er_lp):
     offsets = configure_command.get_ie_ca_offsets_if_provided(
         input_json,
         reset_offset=False,
-        include_trajectory_offsets=True,
     )
     assert offsets == [2.5, -1.25]
 
