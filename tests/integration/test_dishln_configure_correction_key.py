@@ -14,43 +14,12 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
-    logger,
     tear_down,
     wait_for_target_data,
 )
 
 POINTING_CAL = [1.1, 1.1, 1.2]
 POINTING_CAL_RESET = [1.1, 0.0, 0.0]
-
-
-def validate_trackloadstaticoff_invoked(dish_master, group_callback):
-    """Method to check TrackLoadStaticOff invoked"""
-    lrcr_event_id_dish_master = dish_master.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
-    count = 0
-    timeout = 20
-    unique_id = ""
-    message = ""
-    while "TrackLoadStaticOff" not in unique_id and count < timeout:
-        unique_id, message = group_callback[
-            "longRunningCommandResult"
-        ].assert_change_event(
-            (Anything, COMMAND_COMPLETED),
-            lookahead=10,
-        )[
-            "attribute_value"
-        ]
-        count = count + 1
-        sleep(1)
-    try:
-        assert "Command Completed" in message
-        dish_master.unsubscribe_event(lrcr_event_id_dish_master)
-    except Exception as e:
-        logger.exception("Exception occurred: %s", e)
-        assert 0  # To abort the test execution
 
 
 @pytest.mark.post_deployment
@@ -143,9 +112,6 @@ def test_main_config_with_correction_key_update_reset(
             "Time Out while waiting for target data to contain"
             f" {POINTING_CAL} . Current target Data {dish_pd.targetData}"
         )
-        # validate_trackloadstaticoff_invoked(dish_master, group_callback)
-        # command_info_data = dish_master.commandCallInfo
-        # assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
 
     dish_leaf_node.unsubscribe_event(source_offset_event_id)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
@@ -376,7 +342,6 @@ def test_configure_with_maintain_notset_correction_key(
     )
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
-    # Assert that no TrackLoadStaticOff invoked
     with pytest.raises(AssertionError):
         lrcr_event_id = dish_master.subscribe_event(
             "longRunningCommandResult",
@@ -393,7 +358,6 @@ def test_configure_with_maintain_notset_correction_key(
         )[
             "attribute_value"
         ]
-        assert "TrackLoadStaticOff" in unique_id
         dish_master.unsubscribe_event(lrcr_event_id)
 
     lrcr_event_id = dish_leaf_node.subscribe_event(

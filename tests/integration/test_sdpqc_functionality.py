@@ -113,7 +113,6 @@ def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
         )[
             "attribute_value"
         ]
-        assert "TrackLoadStaticOff" in unique_id
     assert isnan(json.loads(dish_leaf_node.lastPointingData)).any()
     assert (
         dish_leaf_node.read_attribute("lastPointingData").quality

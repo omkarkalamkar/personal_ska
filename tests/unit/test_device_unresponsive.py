@@ -13,11 +13,3 @@ def test_abort_command_fail_check_allowed_with_device_unresponsive(
         DeviceUnresponsive, match=f"{DISH_MASTER_DEVICE} not available"
     ):
         cm.is_abort_allowed()
-
-
-def test_trackloadstaticoff_command_not_allowed(cm_without_er_lp):
-    cm = cm_without_er_lp
-    """Test the command not allowed when the device is unresponsive."""
-    cm.get_device(cm.dish_dev_name).update_unresponsive(True, "Not available")
-    with pytest.raises(DeviceUnresponsive):
-        cm.is_trackloadstaticoff_allowed()
