@@ -28,7 +28,11 @@ from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.commands.track_command import Track
-from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
+from ska_tmc_dishleafnode.constants import (
+    ADJUST_TIMEOUT,
+    FIXED_TRAJECTORY_NAME,
+    RESET_OFFSETS,
+)
 from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
 
 configure_logging()
@@ -173,7 +177,7 @@ class Configure(DishLNCommand):
         if not isinstance(pointing_data, dict):
             return config_json
 
-        x_offset = y_offset = None
+        x_offset = y_offset = 0.0
         target_data = pointing_data.get("target", {})
         if isinstance(target_data, dict) and (
             "ca_offset_arcsec" in target_data
@@ -192,7 +196,7 @@ class Configure(DishLNCommand):
             trajectory = pointing_data.get("trajectory")
             if not isinstance(trajectory, dict):
                 trajectory = {}
-            trajectory.setdefault("name", "fixed")
+            trajectory.setdefault("name", FIXED_TRAJECTORY_NAME)
             attrs = trajectory.get("attrs")
             if not isinstance(attrs, dict):
                 attrs = {}
@@ -625,11 +629,11 @@ class Configure(DishLNCommand):
             return RESET_OFFSETS
         offsets = []
         pointing_data = config_json.get("pointing", {})
-        is_trajectory = (
+        is_trajectory_key_present = (
             pointing_data.get("trajectory", {}).get("name", "").lower()
-            == "fixed"
+            == FIXED_TRAJECTORY_NAME
         )
-        if is_trajectory:
+        if is_trajectory_key_present:
             trajectory_attrs = pointing_data.get("trajectory", {}).get(
                 "attrs", {}
             )
