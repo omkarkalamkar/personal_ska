@@ -4,7 +4,6 @@ from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 from ska_control_model import TaskStatus
 from ska_tango_base.commands import ResultCode
 
@@ -388,7 +387,6 @@ def test_to_check_validate_gpm_version_with_exception(cm_without_er_lp):
     assert cm.logger.exception.call_count >= 1
 
 
-@pytest.mark.test1
 def test_to_check_get_band_info_success(cm_without_er_lp):
     cm = cm_without_er_lp
     cm.logger = MagicMock()
