@@ -9,8 +9,8 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 ********
 Updated
 --------
-* Support for Trajectory in case of Five Point scan added.
-* Invocation of TrackLoadStaticOff is removed from Configure command
+* TMC can perform calibration scans using the trajectory data specified under the pointing key in the configure JSON.
+* The invocation of the TrackLoadStaticOff command has been removed for calibration scans.
 
 [0.40.1]
 ********
