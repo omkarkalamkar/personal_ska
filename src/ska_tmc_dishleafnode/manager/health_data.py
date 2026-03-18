@@ -219,7 +219,7 @@ class DishHealthStateAndInfoManager:
                 key = f"program_track_table_{err_type.lower()}"
                 error_msg = f"Program_Track_Table Process Failed :{err_msg}"
                 self._active_issues[key] = error_msg
-        self.logger.debug("Updated active  issues: %s", self._active_issues)
+        self.logger.debug("Updated active issues: %s", self._active_issues)
 
     def _update_kvalue_validation(self, data) -> None:
         """Update K-value validation result and related issues."""
@@ -258,7 +258,9 @@ class DishHealthStateAndInfoManager:
         self.health_data.band_capability_data.band_capabilities[
             band_name
         ] = capability_state
-        self.logger.info("Updated band capability → %s", str(self.health_data))
+        self.logger.debug(
+            "Updated band capability → %s", str(self.health_data)
+        )
 
         self._update_band_issues()
 
@@ -428,7 +430,7 @@ class DishHealthStateAndInfoManager:
             #     error_msg = f"GPM validation failed for GPM index {idx}."
             #     self._active_issues[f"gpm_{idx}"] = error_msg
 
-        self.logger.info(
+        self.logger.debug(
             "Active GPM-related issues after update: %s", self._active_issues
         )
 

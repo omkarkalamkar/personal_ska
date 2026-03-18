@@ -107,8 +107,8 @@ class ConfigureBand(DishLNCommand):
         )
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.debug(
-                "Command ID: %s | Failed to find adapter for device: %s",
+            self.logger.error(
+                "Command ID: %s | Adapter not found for %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
@@ -133,11 +133,6 @@ class ConfigureBand(DishLNCommand):
             command_name: str = f"ConfigureBand{receiver_band}"
             adapter_args = True
 
-        self.logger.debug(
-            "Command ID: %s | Preparing to execute command: %s",
-            self.component_manager.command_id,
-            command_name,
-        )
         self.logger.debug(
             "Command ID: %s | Command: %s will be executed on %s",
             self.component_manager.command_id,

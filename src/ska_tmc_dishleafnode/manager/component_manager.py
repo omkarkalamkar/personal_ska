@@ -664,7 +664,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.start_event_manager(
                 self.build_device_attribute_map(), timeout=1000
             )
-            self.logger.debug("Successfully subscribed the events")
+            self.logger.debug("Successfully subscribed to the events.")
 
     def build_device_attribute_map(self) -> Dict[str, list[str]]:
         """
@@ -715,7 +715,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 ]
 
         self.logger.debug(
-            "Device attribute map dictionary : %s", device_attribute_map
+            "Device attribute map dictionary: %s", device_attribute_map
         )
         return device_attribute_map
 
@@ -937,7 +937,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "exception": None,
                 "status": None,
             }
-        self.logger.info("Cleared the command result dictionaries.")
+        self.logger.debug("Cleared the command result dictionaries.")
 
     def clear_configure_command_events_flags(self: DishLNComponentManager):
         """Method to reset the command result dictionaries, events and flags
@@ -952,10 +952,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # exception handling can be removed.
         try:
             self.converter.create_antenna_obj()
-            self.logger.debug("Antenna object created")
         except Exception as exp:
             self.logger.exception(
-                "Error while creating antenna obj , Exception: %s", str(exp)
+                "Error while creating antenna obj, Exception: %s", str(exp)
             )
 
     def is_command_allowed_callable(
@@ -1303,8 +1302,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.iers_a = iers.IERS_A.open(iers.IERS_A_URL_MIRROR)
         except Exception as exception:
             self.logger.exception(
-                "Failed to download IERS_A data: %s. Will use the locally "
-                + "stored data.",
+                "Failed to download IERS_A data: %s. Locally stored "
+                + "data will be used.",
                 str(exception),
             )
             self.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
@@ -1351,7 +1350,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ).strftime("%Y-%m-%d %H:%M:%S")
         except Exception as e:
             self.logger.exception(
-                "Received invalid achieved pointing timestamp %s from dish."
+                "Received invalid achieved pointing timestamp %s from dish. "
                 "Exception: %s",
                 timestamp_tai_ska_epoch,
                 str(e),
@@ -1363,8 +1362,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Runs in a child process. Rebuilds the observer when the parent updates
         `array_layout` (signalled via `self.layout_updated`).
         """
-        self.logger.info("Main Process ID: %s", os.getppid())
-        self.logger.info("Sub-Process ID: %s", os.getpid())
+        self.logger.debug("Main Process ID: %s", os.getppid())
+        self.logger.debug("Sub-Process ID: %s", os.getpid())
 
         # Initial setup
         try:
@@ -1423,7 +1422,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     str(exception),
                 )
 
-        self.logger.info("Actual pointing process exiting cleanly.")
+        self.logger.debug("Exited actual pointing process cleanly.")
 
     def perform_reverse_transform(
         self: DishLNComponentManager, value_list
@@ -2397,9 +2396,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
-            self.logger.info(
-                f"dishMode value updated to {DishMode(dish_mode).name}"
-            )
+            self.logger.info(f"Updated dishMode to {DishMode(dish_mode).name}")
             self.observable.notify_observers(attribute_value_change=True)
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
@@ -2617,13 +2614,10 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug("TrackTable is empty.")
             return
 
-        self.logger.debug(
-            "ProgramTrackTable will be updated, "
-            "will acquire tango lock for same"
-        )
-
         with self.tango_operation_execution_lock:
-            self.logger.debug("Acquired  tango lock")
+            self.logger.debug(
+                "Tango lock will be acquired to update ProgramTrackTable."
+            )
             for retry in range(0, self.max_track_table_retry):
                 self.logger.debug("Retry is: %s", retry)
                 try:
@@ -2665,7 +2659,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dish_adapter (DishAdapter): dish Adapter to be set,
                 used to write programTrackTable on the dish.
         """
-        self.logger.info("Setting dish adapter in component manager")
         self.dish_adapter = dish_adapter
 
     def set_dishln_pointing_device_adapter(
@@ -2703,9 +2696,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         for wms in self.weather_station_device_names:
                             if device_info.dev_name in wms:
                                 self.logger.info(
-                                    "Invoking auto stow due to connection"
+                                    "Invoking auto stow due to connection "
                                     "failure with weather station."
-                                    "Exception: %s",
+                                    " Exception: %s",
                                     exception,
                                 )
                                 self.auto_stow.invoke_auto_stow()
@@ -2762,7 +2755,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
             with self.command_result_update_lock:
                 is_notify_observer = False
-                self.logger.debug("Checking unique_id- %s", unique_id)
                 if self.command_unique_id_dict[command_name] == unique_id:
                     if "ConfigureBand" in unique_id:
                         self.configure_band_result["result_code"] = result_code
@@ -2848,7 +2840,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         "TrackLoadStaticOff" in unique_id
                     ):
                         self.logger.debug(
-                            "LRCR Callback is: %s",
+                            "Long result command command callback is: %s",
                             self.long_running_result_callback,
                         )
                         self.long_running_result_callback(
@@ -2858,8 +2850,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         )
                 else:
                     self.logger.info(
-                        "Updating LRCR Callback with value: %s for %s"
-                        + " for device: %s ",
+                        "Updating long result command command callback with "
+                        + "value: %s for command id %s for device: %s",
                         value,
                         unique_id,
                         device_name,
@@ -3090,13 +3082,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 self.logger.debug("Child still alive -> SIGKILL")
                 os.kill(self.actual_pointing_process.pid, signal.SIGKILL)
 
-            self.logger.debug("Actual pointing process exited")
+            self.logger.debug("Exited actual pointing process.")
 
         del self._actual_pointing
         del self.received_pointing_data
         del self.achieved_pointing_data
         self.process_manager.shutdown()
-        self.logger.debug("stop_executors_and_cleanup_memory successful")
+        self.logger.debug("Stopped executors and cleaned memory successfully.")
 
     def get_dish_state(
         self,

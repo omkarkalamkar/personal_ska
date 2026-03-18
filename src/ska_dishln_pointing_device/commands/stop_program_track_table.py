@@ -32,10 +32,6 @@ class StopProgramTrackTable(FastCommand):
         """This method stops program track table generation."""
         try:
             self.component_manager.stop_track_called.set()
-            self.logger.info(
-                "Executing StopProgramTrackTable command on %s",
-                self.component_manager.dishln_pointing_device_name,
-            )
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.set()
             if (

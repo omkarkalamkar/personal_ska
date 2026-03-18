@@ -116,13 +116,13 @@ class Abort(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(
-                "Adapter for device : %s is not found.",
+                "Adapter not found for %s.",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
 
         self.logger.debug(
-            "Dish Abort commands device property is: %s",
+            "IsDishAbortEnabled property value is %s",
             self.component_manager.is_dish_abort_commands_enabled,
         )
 

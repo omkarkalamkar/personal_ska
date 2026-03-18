@@ -60,7 +60,7 @@ class AzElConverter:
             return
 
         self.component_manager.observer = antenna
-        logger.info(
+        logger.debug(
             "Observer set to %s", getattr(antenna, "name", "<antenna>")
         )
 

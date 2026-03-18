@@ -242,7 +242,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.start_event_manager(
             self.build_device_attribute_map(), timeout=1000
         )
-        self.logger.debug("Successfully subscribed the events")
+        self.logger.debug("Successfully subscribed to the events.")
 
     def build_device_attribute_map(self) -> dict[str, list[str]]:
         """
@@ -374,8 +374,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self.array_layout = layout
                 try:
                     self.converter.create_antenna_obj()
-                    self.logger.info(
-                        "observer rebuilt from received array_layout."
+                    self.logger.debug(
+                        "Observer rebuilt from received array_layout."
                     )
                 except Exception as exp:
                     self.logger.exception(
@@ -597,7 +597,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self.converter.point(ra, dec, timestamp)
 
             self.update_program_track_table_error_callback("")
-            self.logger.debug("Converter Object Updated")
 
             utc_now = datetime.datetime.utcnow()
 
@@ -695,10 +694,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             len(track_table_scheduler.queue),
                         )
 
-            self.logger.debug("Program TrackTable Calculation stopped.")
+            self.logger.debug("Program trackTable calculation stopped.")
         except Exception as value_error:
             self.logger.error(
-                "Error occured during track_thread execution: %s",
+                "Error occurred during track_thread execution: %s",
                 str(value_error),
             )
             self.update_program_track_table_error_callback(str(value_error))
@@ -726,7 +725,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             Tuple[TaskStatus, str]: The final status of the
             task and a status message.
         """
-        self.logger.info(
+        self.logger.debug(
             "Submitting GenerateProgramTrackTable as slow command"
         )
 

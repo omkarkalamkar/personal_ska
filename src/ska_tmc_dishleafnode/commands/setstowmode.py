@@ -156,8 +156,8 @@ class SetStowMode(DishLNCommand):
         try:
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
-                self.logger.debug(
-                    "Command ID: %s | Adapter for : %s is not found ",
+                self.logger.error(
+                    "Command ID: %s | Adapter not found for %s",
                     self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
                 )
@@ -178,12 +178,12 @@ class SetStowMode(DishLNCommand):
             self.component_manager.abort_event.clear()
         except Exception as exception:
             message = (
-                "Exception has occured while invoking setstowmode: %s",
+                "Exception occurred while invoking setstowmode: %s",
                 exception,
             )
             self.logger.exception(message)
             return ResultCode.FAILED, message
-        return ResultCode.OK, "Command Invocation Completed"
+        return ResultCode.OK, "Command invocation completed"
 
     def stop_program_track_table(self) -> Tuple[ResultCode, str]:
         """Method to invoke StopProgramTrackTable() when abort command is

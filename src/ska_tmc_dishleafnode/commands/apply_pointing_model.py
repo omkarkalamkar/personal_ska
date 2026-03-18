@@ -91,7 +91,7 @@ class ApplyPointingModel(DishLNCommand):
             else:
                 self.logger.info(
                     "ApplyPointingModel command invoked successfully"
-                    " on %s for band: %s, version: %s and "
+                    " on %s for band: %s, version: %s and"
                     " message received is: %s",
                     self.component_manager.dish_dev_name,
                     self.band,
@@ -99,19 +99,21 @@ class ApplyPointingModel(DishLNCommand):
                     message,
                 )
 
-                self.logger.debug(
-                    "Updating GPM version: %s",
-                    self.component_manager.gpm_version,
-                )
                 self.component_manager.handle_gpm_version_callback(
                     json.dumps(self.component_manager.gpm_version)
+                )
+                self.logger.debug(
+                    "GPM version updated to: %s",
+                    self.component_manager.gpm_version,
                 )
                 task_callback(
                     status=TaskStatus.COMPLETED,
                     result=(ResultCode(result_code), message),
                 )
         except Exception as e:
-            self.logger.exception("Error updating GPM version: %s", str(e))
+            self.logger.exception(
+                "Error while updating the GPM version: %s", str(e)
+            )
         self.component_manager.command_in_progress = ""
         self.previous_band_version = ""
         self.band = ""
@@ -172,9 +174,11 @@ class ApplyPointingModel(DishLNCommand):
                 tmdata = TMData(tm_data_sources)
                 file_name = tm_data_filepath.split('/')[-1]
                 gpm_dir_path = tm_data_filepath.rsplit('/', 1)[0]
-                self.logger.debug("GPM dir path: %s", gpm_dir_path)
+                self.logger.debug("GPM directory path: %s", gpm_dir_path)
                 gpm_dir = tmdata[gpm_dir_path]
-                self.logger.debug("Files found on GPM repo: %s", list(gpm_dir))
+                self.logger.debug(
+                    "Files found on the GPM repository: %s", list(gpm_dir)
+                )
                 matches = [
                     f for f in list(gpm_dir) if f.lower() == file_name.lower()
                 ]
@@ -183,7 +187,7 @@ class ApplyPointingModel(DishLNCommand):
                         f"{file_name} not found on "
                         f"{tm_data_sources[0]}/{gpm_dir_path}"
                     )
-                    self.logger.error("Error: %s", message)
+                    self.logger.error(message)
                     return
                 if len(matches) > 1:
                     if file_name in matches:
@@ -198,12 +202,12 @@ class ApplyPointingModel(DishLNCommand):
                 result, message = gpm_file.get_dict(), ""
             except json.JSONDecodeError as json_error:
                 self.logger.error(
-                    "Failed to parse JSON ,Error: %s", str(json_error)
+                    "Failed to parse JSON, Error: %s", str(json_error)
                 )
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
-                    "Exception occured in loading global pointing data "
+                    "Exception occurred in loading global pointing data "
                     + "JSON file. Exception: %s",
                     str(exception),
                 )
@@ -273,8 +277,8 @@ class ApplyPointingModel(DishLNCommand):
                 )
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
-                self.logger.debug(
-                    "Failed to find adapter for device: %s",
+                self.logger.error(
+                    "Adapter not found for %s",
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message
@@ -346,7 +350,7 @@ class ApplyPointingModel(DishLNCommand):
         except Exception as e:
             self.logger.exception(
                 "Exception occurred while executing Apply Pointing Model"
-                + "on dish: %s",
+                + " on dish: %s",
                 str(e),
             )
             result_code = ResultCode.FAILED
@@ -375,7 +379,7 @@ class ApplyPointingModel(DishLNCommand):
             if band_match:
                 band = band_match.group()
         except Exception as e:
-            self.logger.exception(f"Error extracting band: {e}")
+            self.logger.exception(f"Error while extracting the GPM band: {e}")
         try:
             # Version from tm_data_sources
             sources = gpm_data.get("tm_data_sources", [])
@@ -383,5 +387,7 @@ class ApplyPointingModel(DishLNCommand):
                 sources = [sources]
             version = urllib.parse.urlparse(sources[0]).query
         except Exception as e:
-            self.logger.exception(f"Error extracting version: {e}")
+            self.logger.exception(
+                f"Error while extracting the GPM version: {e}"
+            )
         return band, version

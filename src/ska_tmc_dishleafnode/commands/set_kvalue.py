@@ -57,10 +57,9 @@ class SetKValue(DishLNCommand, FastCommand):
 
         """
         result_code, message = self.init_adapter()
-        self.logger.info("Initialized adapter for SetKValue command.")
         if result_code == ResultCode.FAILED:
-            self.logger.debug(
-                "Adapter for : %s is not found ",
+            self.logger.error(
+                "Adapter not found for %s",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
