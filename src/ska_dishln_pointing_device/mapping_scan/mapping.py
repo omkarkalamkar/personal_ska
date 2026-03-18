@@ -102,10 +102,8 @@ class BaseScanMapping:
             ra, dec = target_dict.get("ra", ""), target_dict.get("dec", "")
             # Get c1 and c2 values
             c1, c2 = (
-                field_dict.get("attrs", {}).get("c1")
-                or field_dict.get("c1", nan),
-                field_dict.get("attrs", {}).get("c2")
-                or field_dict.get("c2", nan),
+                field_dict.get("attrs", {}).get("c1", nan),
+                field_dict.get("attrs", {}).get("c2", nan),
             )
 
             # Set target using the first non-empty value
