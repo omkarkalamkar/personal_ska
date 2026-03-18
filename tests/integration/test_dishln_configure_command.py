@@ -914,7 +914,7 @@ def configure_command_with_trajectory_and_ie_ce(
     is_trajectory = "trajectory" in delta_json.get("pointing", {})
     is_ie_offset = "ie_offset_arcsec" in delta_json.get("pointing", {})
     logger.info(f"is {is_trajectory} and {is_ie_offset} and {delta_json}")
-    if is_trajectory and is_ie_offset:
+    if is_trajectory:
         collimation_offsets = [
             delta_json["pointing"]["trajectory"]["attrs"]["x"],
             delta_json["pointing"]["trajectory"]["attrs"]["y"],
@@ -934,10 +934,10 @@ def configure_command_with_trajectory_and_ie_ce(
             collimation_offsets[0],
             collimation_offsets[1],
         )
-        group_callback["sourceOffset"].assert_change_event(
-            collimation_offsets,
-            lookahead=2,
-        )
+    group_callback["sourceOffset"].assert_change_event(
+        collimation_offsets,
+        lookahead=2,
+    )
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
@@ -1001,7 +1001,7 @@ def test_partial_configure_with_ie_wo_ie(
             DISH_LEAF_NODE_DEVICE,
             group_callback,
             main_configure,
-            partial_configure,
+            json.dumps(partial_json),
         )
     else:
         configure_command_with_trajectory_and_ie_ce(
