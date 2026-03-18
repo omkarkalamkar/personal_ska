@@ -310,6 +310,15 @@ class Configure(DishLNCommand):
                 "pointing key is not present in the configure input json.",
             )
 
+        # partial configuration case: ensure target provided inside pointing
+        if input_argin.get("tmc", {}).get("partial_configuration"):
+            if "target" not in input_argin["pointing"]:
+                return (
+                    ResultCode.REJECTED,
+                    "target key is not present in the input json argument.",
+                )
+            return ResultCode.OK, ""
+
         # non-partial case: ensure dish and receiver_band present
         if "dish" not in input_argin:
             return (
