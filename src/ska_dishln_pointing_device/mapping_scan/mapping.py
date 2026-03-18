@@ -72,7 +72,7 @@ class BaseScanMapping:
             raise InvalidTargetDataError(
                 "TLE requires target_name + line1 + line2"
             )
-        desc = f"{name}, tle, {line1}, {line2}"
+        desc = f"{name.strip()},tle,{line1.strip()},{line2.strip()}"
         return desc
 
     def extract_target_from_config(self):
