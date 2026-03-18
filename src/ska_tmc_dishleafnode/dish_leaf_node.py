@@ -1615,6 +1615,44 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """
         return self.component_manager.is_trackstop_allowed()
 
+    @long_running_command
+    @DebugIt()
+    def TrackLoadStaticOff(
+        self: MidTmcLeafNodeDish, argin: str
+    ) -> Tuple[List[ResultCode], List[str]]:
+        """
+        Invokes TrackLoadStaticOff command on DishMaster
+
+        :rtype: tuple
+        """
+
+        def task(
+            task_callback: TaskCallbackType, task_abort_event: Event
+        ) -> None:
+            self.component_manager.track_load_static_off(
+                argin=argin,
+                task_callback=task_callback,
+                task_abort_event=task_abort_event,
+            )
+
+        return task
+
+    # pylint: disable=unused-argument
+    def is_TrackLoadStaticOff_allowed(
+        self: MidTmcLeafNodeDish,
+        request_type: LRCReqType = LRCReqType.ENQUEUE_REQ,
+    ) -> bool:
+        """
+        Checks whether this command is allowed to be run in the current
+        device state.
+
+        :return: True if this command is allowed to be run in current
+            device state.
+
+        :rtype: boolean
+        """
+        return self.component_manager.is_trackloadstaticoff_allowed()
+
     def is_Abort_allowed(self: MidTmcLeafNodeDish) -> bool:
         """
         Checks whether this command is allowed to be run in current

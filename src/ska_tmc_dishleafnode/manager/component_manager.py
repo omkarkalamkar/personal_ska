@@ -59,6 +59,7 @@ from ska_tmc_dishleafnode.commands import (
     SetStandbyLPMode,
     SetStowMode,
     Track,
+    TrackLoadStaticOff,
     TrackStop,
 )
 from ska_tmc_dishleafnode.constants import (
@@ -330,6 +331,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "Track",
             "EndScan",
             "Scan",
+            "TrackLoadStaticOff",
             "TrackStop",
             "Abort",
             "ApplyPointingModel",
@@ -890,7 +892,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
     def reset_command_result_values(self: DishLNComponentManager):
         """Method to reset the command result dictionaries for the commands
-        ConfigureBand and Track
+        ConfigureBand, Track and TrackLoadStaticOff
         """
         with self.command_result_update_lock:
             self.track_result = {
@@ -1005,6 +1007,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     DishMode.OPERATE,
                     DishMode.STOW,
                     DishMode.MAINTENANCE,
+                ],
+                "TrackLoadStaticOff": [
+                    DishMode.STANDBY_FP,
+                    DishMode.OPERATE,
+                    DishMode.STANDBY_LP,
+                    DishMode.CONFIG,
+                    DishMode.MAINTENANCE,
+                    DishMode.STARTUP,
+                    DishMode.SHUTDOWN,
+                    DishMode.UNKNOWN,
                 ],
                 "TrackStop": [DishMode.OPERATE],
                 "Scan": [
@@ -1937,6 +1949,54 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             task_abort_event=task_abort_event,
         )
 
+    def track_load_static_off(
+        self: DishLNComponentManager,
+        argin: str,
+        task_callback: TaskCallbackType,
+        task_abort_event=None,
+    ) -> Tuple[TaskStatus, str]:
+        """Submits the TrackLoadStaticOff command for execution
+
+        :param argin: JSON string containing offsets in the form of param.
+        :type argin: str
+        :task_callback: Callback function to handle task status.
+        :type task_callback: TaskCallbackType
+
+        :return: A tuple containing TaskStatus and a message string.
+        :rtype: Tuple
+        """
+        try:
+            offsets = json.loads(argin)
+            if len(offsets) != 2:
+                raise ValueError(
+                    f"The input string contains {len(offsets)} values,"
+                    + "but should have 2."
+                )
+        except Exception as exception:
+            self.logger.exception(
+                "Exception occured while validating the argin for "
+                + "TrackLoadStaticOff command: %s",
+                str(exception),
+            )
+            return (
+                TaskStatus.REJECTED,
+                "Input argument is incorrect for TrackLoadStaticOff command.",
+            )
+
+        track_load_static_off_command = TrackLoadStaticOff(
+            self,
+            self.op_state_model,
+            self.adapter_factory,
+            self.logger,
+            is_configure_command=False,
+        )
+
+        return track_load_static_off_command.invoke_track_load_static_off(
+            argin=argin,
+            task_callback=task_callback,
+            task_abort_event=task_abort_event,
+        )
+
     def abort(self, task_callback: TaskCallbackType) -> Tuple:
         """
         Abort the Dish.
@@ -2033,6 +2093,17 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # pylint: enable=unused-argument
         self.command_in_progress = "Abort"
         return self.abort_tasks(task_callback=_abort_commands_callback)
+
+    def is_trackloadstaticoff_allowed(self: DishLNComponentManager) -> bool:
+        """Checks if the command TrackLoadStaticOff is allowed.
+
+        :return: True if the command 'TrackLoadStaticOff' is allowed,
+            False otherwise.
+        :rtype: boolean
+        """
+
+        self.check_device_responsive()
+        return True
 
     def apply_pointing_model(
         self: DishLNComponentManager,
@@ -2719,6 +2790,16 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                         )
                         is_notify_observer = True
 
+                    elif "TrackLoadStaticOff" in unique_id:
+                        self.track_load_static_off_result[
+                            "result_code"
+                        ] = result_code
+                        self.track_load_static_off_result["message"] = message
+                        self.logger.debug(
+                            "TrackLoadStaticOff result: %s",
+                            self.track_load_static_off_result,
+                        )
+                        is_notify_observer = True
                     elif "TrackStop" in unique_id:
                         self.track_stop_result["result_code"] = result_code
                         self.track_stop_result["message"] = message
@@ -2754,6 +2835,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             ]:
                 # If the Configure command is executed, below LRCR callback
                 # for the commands ConfigureBand and
+                # TrackLoadStaticOff is set via is invoke_configure method.
                 self.logger.debug(
                     "Observer %s",
                     [
@@ -2762,7 +2844,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     ],
                 )
                 if self.command_in_progress == "Configure":
-                    if "ConfigureBand" in unique_id:
+                    if ("ConfigureBand" in unique_id) or (
+                        "TrackLoadStaticOff" in unique_id
+                    ):
                         self.logger.debug(
                             "LRCR Callback is: %s",
                             self.long_running_result_callback,
@@ -3058,6 +3142,52 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.get_configure_band_result_code(),
             self.get_track_result_code(),
         ]
+
+    def get_track_load_static_off_result_code(self: DishLNComponentManager):
+        """
+        Return the result of the trackLoadStaticOff command execution
+
+        :return: track_load_static_off_result
+        :rtype: dict
+        """
+        with self.command_result_update_lock:
+            return self.track_load_static_off_result["result_code"]
+
+    def get_track_load_static_off_result_dict(self: DishLNComponentManager):
+        """
+        Return the dictionary containing TrackLoadStaticOff command execution
+        status
+
+        :return: track_load_static_off_result dictionary
+        :rtype: dict
+        """
+        with self.command_result_update_lock:
+            return self.track_load_static_off_result
+
+    def set_track_load_static_off_result_dict(
+        self: DishLNComponentManager,
+        result_code=None,
+        message=None,
+        exception=None,
+        status=None,
+    ):
+        """
+        Set the dictionary containing TrackLoadStaticOff command execution
+        status
+
+        Args:
+            result_code (ResultCode): ResultCode to be set in
+                track_load_static_off_result.
+            message (str): message to be set in track_load_static_off_result.
+            exception (str): exception to be set in
+                track_load_static_off_result.
+            status (str): status to be set in track_load_static_off_result.
+        """
+        with self.command_result_update_lock:
+            self.track_load_static_off_result["result_code"] = result_code
+            self.track_load_static_off_result["message"] = message
+            self.track_load_static_off_result["exception"] = exception
+            self.track_load_static_off_result["status"] = status
 
     def get_configure_band_result_code(self: DishLNComponentManager):
         """

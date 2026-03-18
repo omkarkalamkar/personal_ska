@@ -123,6 +123,9 @@ def test_configure_command_completed_partial_config(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
 
+    # simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    # dev_factory = DevFactory()
+    # dish_pd = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     assert wait_for_target_data(
         cm.dishln_pointing_device_adapter, expected_x=0.0, expected_y=5.0
     ), (

@@ -22,14 +22,22 @@ Configure
 
     5. The **command execution** involves below **key operations** :-
 
+        A. **TrackLoadStaticOff  Command**
 
-        A. :term:`ProgramTrackTable` generation process is started .If this process **fails**, the command updates the health state to **DEGRADED** and returns a failure result.
-        B. The command invokes several sub-commands based on the input JSON and the current state:
+            - If input json contains **'ca_offset_arcsec'** and **'ie_offset_arcsec'** or if the correction key is **RESET** , TrackLoadStaticOff is invoked on Dish Master.
+            - **sourceOffset** attribute of TMC Dish Leaf node is updated with **ca_offset_arcsec** and **ie_offset_arcsec** information.
+            - Result Handling:
+
+                i. If the TrackLoadStaticOff command completes successfully (**ResultCode.OK**), the callback proceeds to invoke the **ConfigureBand** command.
+                ii. If the command fails (**ResultCode.FAILED**), it logs the failure and updates the Configure command's status accordingly.
+
+        B. :term:`ProgramTrackTable` generation process is started .If this process **fails**, the command updates the health state to **DEGRADED** and returns a failure result.
+        C. The command invokes several sub-commands based on the input JSON and the current state:
 
             - **ConfigureBand**: Invoked to configure the receiver band on the Dish Master.
             - **Track**: Invoked to start tracking after ensuring that PointingState is not **Track** or **SLEW** and :term:`ProgramTrackTable` has been sent to Dish Master.
 
-        C. When each command is invoked on the Dish Master Subarray :-
+        D. When each command is invoked on the Dish Master Subarray :-
 
             - If Dish Master **raises exception** , command failure is reported as **'RESULT_CODE - FAILED'** on Long Running Command Result attribute of the TMC Dish leaf node .
             - If Dish Master **accepts command** , the TMC DISH leaf node will wait for command completion.
@@ -41,6 +49,7 @@ Configure
             - DishMode is **OPERATE**
             - PointingState is any of the **TRACK** or **SLEW**
             - For each of the command **ConfigureBand,Track** , Dish Master reports **'RESULT_CODE - OK'** on long running command attribute.
+            - In case of partial configure TrackLoadStaticOff , Dish Master reports **'RESULT_CODE - OK'** on long running command attribute.
 
         B. Command failure is reported in any of the below cases as **'RESULT_CODE - FAILED'** on Long Running Command Result attribute of the TMC Dish leaf node.
 
