@@ -911,10 +911,12 @@ def configure_command_with_trajectory_and_ie_ce(
     # if collimation offsets provided then validate source offset
     delta_json = json.loads(delta_config_str)
     # Check if both ie,ce and trajectory present
-    is_trajectory = "trajectory" in delta_json.get("pointing", {})
+    is_trajectory_key_present = "trajectory" in delta_json.get("pointing", {})
     is_ie_offset = "ie_offset_arcsec" in delta_json.get("pointing", {})
-    logger.info(f"is {is_trajectory} and {is_ie_offset} and {delta_json}")
-    if is_trajectory:
+    logger.info(
+        f"is {is_trajectory_key_present} and {is_ie_offset} and {delta_json}"
+    )
+    if is_trajectory_key_present:
         collimation_offsets = [
             delta_json["pointing"]["trajectory"]["attrs"]["x"],
             delta_json["pointing"]["trajectory"]["attrs"]["y"],
