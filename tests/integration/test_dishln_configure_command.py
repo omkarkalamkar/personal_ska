@@ -176,7 +176,7 @@ def configure_dish_leaf_node(
     [
         "dishleafnode_configure",
         "non_sidereal_tracking",
-        "dishleafnode_configure",
+        "dishleafnode_configure_tle_adr63",
     ],
 )
 def test_configure_command(
