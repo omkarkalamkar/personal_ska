@@ -633,10 +633,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
             while not is_track_thread_stop:
                 self.logger.debug(
-                    "Current Thread ID: %s", threading.get_native_id()
-                )
-                self.logger.debug(
-                    "Target used to calculate trackTable: %s", self.target
+                    "Target used to calculate trackTable: %s "
+                    "with thread id: %s",
+                    self.target,
+                    threading.get_native_id(),
                 )
 
                 with self.track_thread_lock:
@@ -669,9 +669,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     scheduled_time
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
-                self.logger.debug("Actual Time: %s", actual_time_readable)
                 self.logger.debug(
-                    "Scheduled time: %s", scheduled_time_readable
+                    "Actual Time: %s, Scheduled time: %s",
+                    actual_time_readable,
+                    scheduled_time_readable,
                 )
 
                 with self.track_thread_lock:
@@ -687,10 +688,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             argument=(program_track_table,),
                         )
                         self.logger.debug(
-                            "Scheduled trackTable write operation"
-                        )
-                        self.logger.debug(
-                            "Scheduler Length: %s",
+                            "Scheduled trackTable write operation with "
+                            "scheduler Length: %s",
                             len(track_table_scheduler.queue),
                         )
 
