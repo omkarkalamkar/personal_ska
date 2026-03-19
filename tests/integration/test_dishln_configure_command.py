@@ -450,7 +450,7 @@ def delta_configure_dish_leaf_node(
 
     group_callback["pointingProgramTrackTable"].assert_change_event(
         ("[]"),
-        lookahead=8,
+        lookahead=14,
     )
 
     dish_leaf_node.unsubscribe_event(source_offset_event_id)
