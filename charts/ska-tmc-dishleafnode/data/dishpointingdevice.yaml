@@ -51,7 +51,7 @@ server:
                 - "tango::logger"
             - name: "LoggingLevelDefault"
               values:
-                - "5"
+                - "4"
             - name: "SkaLevel"
               values:
                 - "4"
