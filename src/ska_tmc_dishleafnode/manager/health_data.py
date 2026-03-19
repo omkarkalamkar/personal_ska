@@ -283,8 +283,6 @@ class DishHealthStateAndInfoManager:
         Update band-related issues in _active_issues
         based on current receiver band and capability states.
         """
-        self.logger.debug("Updating band issues")
-
         good_states = {
             "STANDBY",
             "CONFIGURING",

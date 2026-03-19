@@ -1362,8 +1362,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Runs in a child process. Rebuilds the observer when the parent updates
         `array_layout` (signalled via `self.layout_updated`).
         """
-        self.logger.debug("Main Process ID: %s", os.getppid())
-        self.logger.debug("Sub-Process ID: %s", os.getpid())
+        self.logger.debug(
+            "Main and sub-process IDs: %s, %s", os.getppid(), os.getpid()
+        )
 
         # Initial setup
         try:
@@ -2396,7 +2397,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
-            self.logger.info(f"Updated dishMode to {DishMode(dish_mode).name}")
+            self.logger.info(
+                "Dish mode is updated to %s", DishMode(dish_mode).name
+            )
             self.observable.notify_observers(attribute_value_change=True)
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
@@ -2623,7 +2626,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 try:
                     self.dish_adapter.programTrackTable = program_track_table
                     self.is_tracktable_provided.set()
-                    self.logger.debug("ProgramTrackTable Updated")
+                    self.logger.debug(
+                        "ProgramTrackTable is provided to the Dish Manager."
+                    )
                     if (
                         self.trackTableLoadMode
                         is not TrackTableLoadMode.APPEND
@@ -2954,7 +2959,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                                 event_data.attr_value.value
                             )
                             self.logger.error(
-                                "NaN value found in %s received pointing data",
+                                "NaN value found in received pointing"
+                                + " data: %s",
                                 self.last_pointing_data,
                             )
                         else:

@@ -207,7 +207,7 @@ class ApplyPointingModel(DishLNCommand):
                 result, message = {}, f"JSON Error: {json_error}"
             except Exception as exception:
                 self.logger.exception(
-                    "Exception occurred in loading global pointing data "
+                    "Exception occurred while loading global pointing data "
                     + "JSON file. Exception: %s",
                     str(exception),
                 )

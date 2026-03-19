@@ -840,7 +840,7 @@ class Configure(DishLNCommand):
                 if self.component_manager.abort_event.is_set():
                     self.logger.debug(
                         "Command ID: %s | "
-                        + "Abort() command is invoked while configuring the"
+                        + "Abort command is invoked while configuring the"
                         + " dish.",
                         self.component_manager.command_id,
                     )

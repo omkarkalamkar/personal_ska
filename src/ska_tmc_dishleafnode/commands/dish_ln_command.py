@@ -100,7 +100,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
                 self.dish_master_adapter.proxy.set_timeout_millis(5000)
                 self.logger.debug(
-                    "Dish Master adapter created successfully",
+                    "Dish Manager adapter created successfully",
                 )
                 self.component_manager.set_dish_adapter(
                     self.dish_master_adapter
