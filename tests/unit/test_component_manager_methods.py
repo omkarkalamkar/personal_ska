@@ -1,8 +1,11 @@
 """
 Unit tests for DishLNComponentManager methods:
 """
+# python
+import json
 import signal
 import time
+from types import SimpleNamespace
 from unittest import mock
 
 import numpy as np
@@ -14,6 +17,7 @@ from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_data import (
     DishBandCapabilityStateData,
 )
+from src.ska_tmc_dishleafnode.manager import component_manager
 
 
 def test_stop_executors_with_event_receiver(cm_without_er_lp):
@@ -276,3 +280,82 @@ def test_health_evaluation_and_update(
     # --- Update path ---
 
     mock_callback.assert_called_once_with(expected_health_states)
+
+
+def test_invoke_generate_prgm_track_table_success():
+    adapter = mock.Mock()
+    existing_target = {"targets": []}
+    adapter.targetData = json.dumps(existing_target)
+    adapter.GenerateProgramTrackTable = mock.Mock(
+        return_value=(ResultCode.OK, "ok")
+    )
+
+    logger = mock.Mock()
+    fake_self = SimpleNamespace(
+        dishln_pointing_device_adapter=adapter,
+        logger=logger,
+    )
+    # generate_pointing_data should be called and produce the new target data
+    fake_self.generate_pointing_data = mock.Mock(
+        return_value={"targets": ["updated"]}
+    )
+
+    component_manager.DishLNComponentManager._invoke_generate_prgm_track_table(
+        fake_self, [1.1, 2.2]
+    )
+
+    # Ensure targetData was updated with the
+    # returned value from generate_pointing_data
+    assert json.loads(adapter.targetData) == {"targets": ["updated"]}
+    # Ensure debug path executed
+    assert logger.debug.called
+
+
+def test_invoke_generate_prgm_track_table_generate_failed_logs_error():
+    adapter = mock.Mock()
+    adapter.targetData = json.dumps({"targets": []})
+    adapter.GenerateProgramTrackTable = mock.Mock(
+        return_value=(ResultCode.FAILED, "generate failed")
+    )
+
+    logger = mock.Mock()
+    fake_self = SimpleNamespace(
+        dishln_pointing_device_adapter=adapter,
+        logger=logger,
+    )
+    fake_self.generate_pointing_data = mock.Mock(
+        return_value={"targets": ["x"]}
+    )
+
+    component_manager.DishLNComponentManager._invoke_generate_prgm_track_table(
+        fake_self, [0.0, 0.0]
+    )
+
+    # Error should be logged for failed GenerateProgramTrackTable
+    assert any(
+        "GProgramTrackTable failed" in str(call.args[0])
+        for call in logger.error.call_args_list
+    )
+
+
+def test_invoke_generate_prgm_track_table_malformed_targetdata_logs_error():
+    adapter = mock.Mock()
+    adapter.targetData = "not-a-json"  # cause json.loads to raise
+
+    logger = mock.Mock()
+    fake_self = SimpleNamespace(
+        dishln_pointing_device_adapter=adapter,
+        logger=logger,
+    )
+    # generate_pointing_data should not be reached, but safe to provide
+    fake_self.generate_pointing_data = mock.Mock()
+
+    component_manager.DishLNComponentManager._invoke_generate_prgm_track_table(
+        fake_self, [0.0, 0.0]
+    )
+
+    # check that an error mentioning pointing operation was logged
+    assert any(
+        "Error in pointing operation" in str(call.args[0])
+        for call in logger.error.call_args_list
+    )
