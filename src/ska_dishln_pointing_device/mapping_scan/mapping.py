@@ -95,44 +95,52 @@ class BaseScanMapping:
     
     def build_data_for_observation(self):
         """"""
-        target_data = self.component_manager.target_data.get(
-                "pointing", {}
-        )
-        target_dict = target_data.get("target", {})
-        if target_dict:
-            target_name = target_dict.get("target_name","target")
-            reference_frame = target_dict.get("reference_frame", "ICRS")
-            if reference_frame.lower() == "special":
-                target = Target(f"{target_name}, special")
-            elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
-                ra = target_dict.get("ra", "")
-                dec = target_dict.get("dec", "")
-                target = Target(f"{target_name}, radec, {ra}, {dec}")
-        field_dict = target_data.get("field", {})
-        if field_dict:
-            target_name = field_dict.get("target_name","target")
-            reference_frame = field_dict.get("reference_frame", "ICRS")
-            if reference_frame.lower() == "special":
-                target = Target(f"{target_name}, special")
-            elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
-                c1 = field_dict.get("attrs").get("c1", "")
-                c2 = field_dict.get("attrs").get("c2", "")
-                ra = Angle(c1 * u.deg)
-                ra_hms = ra.to_string(unit=u.hour, sep=':')
-                dec = Angle(c2 * u.deg)
-                dec_dms = dec.to_string(unit=u.deg, sep=':')
-                target = Target(f"{target_name}, radec, {ra_hms}, {dec_dms}")
-            elif reference_frame.lower() == "tle":
-                line1 = field_dict.get("attrs", {}).get("line1", "")
-                line2 = field_dict.get("attrs", {}).get("line2", "")
-                target = Target(f"{target_name}, {reference_frame.lower()}, {line1}, {line2}")
-            elif reference_frame.lower() == "altaz":
-                c1 = field_dict.get("attrs", {}).get("c1", "")
-                c2 = field_dict.get("attrs", {}).get("c2", "")
-                target = Target(f"{target_name}, azel, {c1}, {c2}")
-        
-        target.antenna = self.component_manager.observer
-        self.component_manager.antenna_target = target     
+        try:
+            target_data = self.component_manager.target_data.get(
+                    "pointing", {}
+            )
+            target_dict = target_data.get("target", {})
+            if target_dict:
+                target_name = target_dict.get("target_name","target")
+                reference_frame = target_dict.get("reference_frame", "ICRS")
+                if reference_frame.lower() == "special":
+                    target = Target(f"{target_name}, special")
+                elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
+                    ra = target_dict.get("ra", "")
+                    dec = target_dict.get("dec", "")
+                    target = Target(f"{target_name}, radec, {ra}, {dec}")
+            field_dict = target_data.get("field", {})
+            if field_dict:
+                target_name = field_dict.get("target_name","target")
+                reference_frame = field_dict.get("reference_frame", "ICRS")
+                if reference_frame.lower() == "special":
+                    target = Target(f"{target_name}, special")
+                elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
+                    c1 = field_dict.get("attrs").get("c1", "")
+                    c2 = field_dict.get("attrs").get("c2", "")
+                    ra = Angle(c1 * u.deg)
+                    ra_hms = ra.to_string(unit=u.hour, sep=':')
+                    dec = Angle(c2 * u.deg)
+                    dec_dms = dec.to_string(unit=u.deg, sep=':')
+                    target = Target(f"{target_name}, radec, {ra_hms}, {dec_dms}")
+                elif reference_frame.lower() == "tle":
+                    line1 = field_dict.get("attrs", {}).get("line1", "")
+                    line2 = field_dict.get("attrs", {}).get("line2", "")
+                    target = Target(f"{target_name}, {reference_frame.lower()}, {line1}, {line2}")
+                elif reference_frame.lower() == "altaz":
+                    c1 = field_dict.get("attrs", {}).get("c1", "")
+                    c2 = field_dict.get("attrs", {}).get("c2", "")
+                    target = Target(f"{target_name}, azel, {c1}, {c2}")
+            
+            target.antenna = self.component_manager.observer
+            self.component_manager.antenna_target = target 
+        except Exception as exp:
+            self.logger.exception(
+                " Failed to set target for fixed/mosaic mapping "
+                + "scan due to exception: %s",
+                str(exp),
+            )
+            raise exp   
 
     def extract_target_from_config(self):
         """
@@ -214,7 +222,7 @@ class BaseScanMapping:
             projection_alignment = "radec"
         else:
             projection_alignment = "azel"
-        self.logger.info(">>>>>>>> %s %s", projection_name, projection_alignment)
+        self.logger.info("Projection Name: %s, Alignment: %s", projection_name, projection_alignment)
         return [projection_name, projection_alignment]
 
     def set_trajectory_and_duration(self):
