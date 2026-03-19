@@ -90,16 +90,25 @@ class GenerateProgramTrackTable:
             self.component_manager.dishln_pointing_device_name,
         )
 
-        with self.component_manager.track_thread_lock:
-            self.component_manager.mapping_scan_event.clear()
+        try:
+            with self.component_manager.track_thread_lock:
+                self.component_manager.mapping_scan_event.clear()
 
-        self.component_manager.current_mapping_scan_obj = FixedMappingScan(
-            pattern_name="fixed",
-            component_manager=self.component_manager,
-            logger=self.logger,
-        )
+            self.component_manager.current_mapping_scan_obj = FixedMappingScan(
+                pattern_name="fixed",
+                component_manager=self.component_manager,
+                logger=self.logger,
+            )
 
-        current_scan_obj = self.component_manager.current_mapping_scan_obj
-        current_scan_obj.set_target_and_start_process()
+            current_scan_obj = self.component_manager.current_mapping_scan_obj
+            current_scan_obj.set_target_and_start_process()
 
-        return ResultCode.OK, "Command Completed"
+            return ResultCode.OK, "Command Completed"
+
+        except Exception as exception:
+            self.logger.error(
+                "Error in GenerateProgramTrackTable: %s", str(exception)
+            )
+
+            self.component_manager._current_track_table_error = str(exception)
+            return ResultCode.FAILED, str(exception)
