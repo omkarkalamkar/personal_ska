@@ -338,7 +338,7 @@ def test_invoke_generate_prgm_track_table_generate_failed_logs_error():
 
     # Error should be logged for failed GenerateProgramTrackTable
     assert any(
-        "GProgramTrackTable failed" in str(call.args[0])
+        "GenerateProgramTrackTable failed" in str(call.args[0])
         for call in logger.error.call_args_list
     )
 
