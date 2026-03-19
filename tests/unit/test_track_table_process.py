@@ -2,8 +2,12 @@ import datetime
 
 import pytest
 from astropy.time import Time
+from katpoint import Target
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter,
+    AzElConverter_v2,
+)
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
@@ -78,13 +82,18 @@ def test_error_in_track_table_point_method(tango_context, cm_pointig_device):
         "Urenus",
         "Neptune",
     ]
-    azel_converter = AzElConverter(cm)
+
     result = None
     for nsr_obj in non_side_real_objects:
         try:
+            target = Target(f"{nsr_obj}, special")
+            target.antenna = cm.observer
+            cm.antenna_target = target
+            cm.projection_and_fixed_trajectory_data = ["SIN", "azel", 0.0, 0.0]
+
+            azel_converter = AzElConverter_v2(cm)
             track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
             track_table_calculator.azel_converter = azel_converter
-            track_table_calculator.target_name = nsr_obj
             timestamp = Time(datetime.datetime.utcnow(), scale="utc")
             result = track_table_calculator.point(str(timestamp))
             if result:
