@@ -50,30 +50,89 @@ class BaseScanMapping:
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
         try:
-            self.extract_target_from_config()
-            if isinstance(self.component_manager.target, list):
-                self.setup_observation_target()
-                self.component_manager.target = (
-                    self.get_radec_from_plane_to_sphere()
-                )
+            # self.extract_target_from_config()
+            # if isinstance(self.component_manager.target, list):
+            #     data1, _ = self.component_manager.target
+            #     first_token = data1.split(maxsplit=1)[0]
+            #     if first_token == "1":
+            #         self.logger.info("Starting TLE observation")
+            #     else:
+            #         self.setup_observation_target()
+            #         self.component_manager.target = (
+            #             self.get_radec_from_plane_to_sphere()
+            #         )
+            self.build_data_for_observation()
+            projection_name, projection_alignment = self.get_projection()
+            if self.get_trajectory_name() == "fixed":
+                x_offset, y_offset = self.get_fixed_trajectory_offsets()
+            self.component_manager.projection_and_fixed_trajectory_data = [
+                projection_name,
+                projection_alignment,
+                x_offset,
+                y_offset,
+            ]
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
             self.logger.error("Exception: %s", exception)
             raise exception
+    
+    def get_trajectory_name(self):
+        """Create Trajectory Object and set duration"""
 
-    def _handle_tle_target(self, target_key: dict) -> str:
-        """Build exact katpoint TLE string"""
-        name = target_key.get("target_name")
-        attrs = target_key.get("attrs", {})
-        line1 = attrs.get("line1")
-        line2 = attrs.get("line2")
-        if not name or not line1 or not line2:
-            raise InvalidTargetDataError(
-                "TLE requires target_name + line1 + line2"
-            )
-        desc = f"{name.strip()},tle,{line1.strip()},{line2.strip()}"
-        return desc
+        trajectory = self.component_manager.target_data.get(
+            'pointing', {}
+        ).get("trajectory", {})
+        trajectory_name = trajectory.get("name", "fixed").lower()
+        return trajectory_name
+    
+    def get_fixed_trajectory_offsets(self):
+        trajectory = self.component_manager.target_data.get(
+            'pointing', {}
+        ).get("trajectory", {})
+        trajectory_attrs = trajectory.get("attrs", {}) or {'x': 0.0, 'y': 0.0}
+        return trajectory_attrs['x'], trajectory_attrs['y']
+    
+    def build_data_for_observation(self):
+        """"""
+        target_data = self.component_manager.target_data.get(
+                "pointing", {}
+        )
+        target_dict = target_data.get("target", {})
+        if target_dict:
+            target_name = target_dict.get("target_name","target")
+            reference_frame = target_dict.get("reference_frame", "ICRS")
+            if reference_frame.lower() == "special":
+                target = Target(f"{target_name}, special")
+            elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
+                ra = target_dict.get("ra", "")
+                dec = target_dict.get("dec", "")
+                target = Target(f"{target_name}, radec, {ra}, {dec}")
+        field_dict = target_data.get("field", {})
+        if field_dict:
+            target_name = field_dict.get("target_name","target")
+            reference_frame = field_dict.get("reference_frame", "ICRS")
+            if reference_frame.lower() == "special":
+                target = Target(f"{target_name}, special")
+            elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
+                c1 = field_dict.get("attrs").get("c1", "")
+                c2 = field_dict.get("attrs").get("c2", "")
+                ra = Angle(c1 * u.deg)
+                ra_hms = ra.to_string(unit=u.hour, sep=':')
+                dec = Angle(c2 * u.deg)
+                dec_dms = dec.to_string(unit=u.deg, sep=':')
+                target = Target(f"{target_name}, radec, {ra_hms}, {dec_dms}")
+            elif reference_frame.lower() == "tle":
+                line1 = field_dict.get("attrs", {}).get("line1", "")
+                line2 = field_dict.get("attrs", {}).get("line2", "")
+                target = Target(f"{target_name}, {reference_frame.lower()}, {line1}, {line2}")
+            elif reference_frame.lower() == "altaz":
+                c1 = field_dict.get("attrs", {}).get("c1", "")
+                c2 = field_dict.get("attrs", {}).get("c2", "")
+                target = Target(f"{target_name}, azel, {c1}, {c2}")
+        
+        target.antenna = self.component_manager.observer
+        self.component_manager.antenna_target = target     
 
     def extract_target_from_config(self):
         """
@@ -91,14 +150,6 @@ class BaseScanMapping:
                 target_dict.get("reference_frame")
                 or field_dict.get("reference_frame", "")
             ).lower()
-            if ref_frame == "tle":
-                key = (
-                    target_dict
-                    if target_dict.get("reference_frame") == "tle"
-                    else field_dict
-                )
-                self.component_manager.target = self._handle_tle_target(key)
-                return
             ra, dec = target_dict.get("ra", ""), target_dict.get("dec", "")
             # Get c1 and c2 values
             c1, c2 = (
@@ -106,10 +157,16 @@ class BaseScanMapping:
                 field_dict.get("attrs", {}).get("c2", nan),
             )
 
+            # Get TLE line1 and line2 values
+            tle_line1, tle_line2 =  (
+                field_dict.get("attrs", {}).get("line1", ""),
+                field_dict.get("attrs", {}).get("line2", ""),
+            )
             # Set target using the first non-empty value
             target = (
                 ([ra, dec] if ra != "" and dec != "" else [])
                 or ([c1, c2] if not (isnan(c1) or isnan(c2)) else [])
+                or ([tle_line1, tle_line2] if tle_line1 != "" and tle_line2 != "" else [])
                 or (target_dict.get("target_name"))
                 or (target_data.get("field", {}).get("target_name", ""))
             )
@@ -128,10 +185,10 @@ class BaseScanMapping:
     def setup_observation_target(self) -> None:
         """Set target required for mapping scan"""
 
-        ra, dec = self.component_manager.target
-        if isinstance(ra, float):
-            ra = Angle(ra, unit=u.degree)
-            dec = Angle(dec, unit=u.degree)
+        data1, data2 = self.component_manager.target
+        if isinstance(data1, float):
+            ra = Angle(data1, unit=u.degree)
+            dec = Angle(data2, unit=u.degree)
         self.ra_dec_target = Target.from_radec(ra, dec)
         self.ra_dec_target.antenna = self.component_manager.observer
 
@@ -147,15 +204,17 @@ class BaseScanMapping:
             .get('projection', {})
             .get('name', "SIN")
         )
+        
         projection_alignment = (
             self.component_manager.target_data.get('pointing', {})
             .get('projection', {})
-            .get('alignment', "ICRS")
+            .get('alignment', "altaz")
         )
         if projection_alignment.lower() == "icrs":
             projection_alignment = "radec"
         else:
             projection_alignment = "azel"
+        self.logger.info(">>>>>>>> %s %s", projection_name, projection_alignment)
         return [projection_name, projection_alignment]
 
     def set_trajectory_and_duration(self):

@@ -58,7 +58,8 @@ class AzElConverter:
         except Exception as e:
             logger.exception("Cannot build antenna from layout: %s", e)
             return
-
+        
+        logger.info("********* %s\n", antenna)
         self.component_manager.observer = antenna
         logger.info(
             "Observer set to %s", getattr(antenna, "name", "<antenna>")
@@ -104,29 +105,26 @@ class AzElConverter:
         """
         refraction_corrected_azel = []
         try:
-            desc = target_name.strip()
-            if "tle" not in desc.lower() and "special" not in desc.lower():
-                desc = f"{desc}, special"
-
-            non_sidereal_target = Target(desc)
-            logger.debug("Target created: %s", non_sidereal_target)
-
+            non_sidereal_target = Target(f"{target_name}, special")
+            logger.debug(" %s", non_sidereal_target)
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
                 azel = non_sidereal_target.azel(
                     timestamp, self.component_manager.observer
                 )
+
             refraction_corrected_azel = self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
             message = str(value_error)
             raise Exception(message) from value_error
+
         except Exception as exception:
             message = str(exception)
             raise Exception(message) from exception
-
         return refraction_corrected_azel
+
 
     def point(
         self: AzElConverter,
@@ -247,3 +245,63 @@ class AzElConverter:
                 "Failed to convert RA/Dec to Az/El, Exception: %s ", message
             )
             raise Exception(message) from exception
+
+
+
+class AzElConverter_v2(AzElConverter):
+    """Class to convert Right ascension(Ra) and Declination(Dec)
+    values into Azimuth(Az) and Elevation(El).
+    This class addressed the missing projection and trajectory functionality
+    in older class.
+    """
+
+    def __init__(self, component_manager):
+        super().__init__(component_manager=component_manager)
+
+    def point(
+        self: AzElConverter, timestamp: str
+    ) -> List[float]:
+        """
+        Get Az/El for a TLE object and apply refraction correction.
+
+        :param tle1: First line of the TLE
+        :param tle2: Second line of the TLE
+        :param timestamp: Timestamp for observation
+        """
+        
+        refraction_corrected_azel = []
+        try:
+            projection_name, projection_alignment, x_offset, y_offset = (
+                self.component_manager.projection_and_fixed_trajectory_data )
+            x_in_rad, y_in_rad = self.get_offset_in_rad(x_offset, y_offset)
+            with iers.earth_orientation_table.set(
+                self.component_manager.iers_a
+            ):
+                az, el = self.component_manager.antenna_target.plane_to_sphere(
+                    x_in_rad,
+                    y_in_rad,
+                    timestamp=timestamp,
+                    antenna=self.component_manager.observer,
+                    projection_type=projection_name.upper(),
+                    coord_system=projection_alignment,
+                )
+            azel = AltAz(az=Angle(az, u.rad), alt=Angle(el, u.rad))
+            refraction_corrected_azel = self.apply_refraction_correction(azel)
+
+        except ValueError as value_error:
+            message = str(value_error)
+            raise Exception(message) from value_error
+
+        except Exception as exception:
+            message = str(exception)
+            raise Exception(message) from exception
+        return refraction_corrected_azel
+
+    def get_offset_in_rad(self, x: float, y: float) -> tuple:
+        """Get the offset in radian
+
+        Returns:
+            tuple: offset in radian.
+        """
+        return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
+

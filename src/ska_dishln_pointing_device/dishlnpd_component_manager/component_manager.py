@@ -27,7 +27,7 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
 from ska_dishln_pointing_device.event_manager import DishLNPDEventManager
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2 as AzElConverter
 from ska_tmc_dishleafnode.constants import (
     IERS_DATA_STORAGE_PATH,
     PROGRAM_TRACK_TABLE_SIZE,
@@ -79,6 +79,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.event_manager = _event_manager
         self.target: list | str | None = None
+        self.antenna_target = None
+        self.projection_and_fixed_trajectory_data = []
         self._current_track_table_error = ""
         self.__target_data: dict = {}
         # This event can be used by on going process to change the offset
@@ -515,6 +517,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
+            self.logger.info(">>>>>>> >>>%s", program_track_table)
             self.pointing_program_track_table = program_track_table
             self.update_pointing_program_track_table_callback(
                 self.pointing_program_track_table
@@ -587,17 +590,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
-            # This is dummy calculation because first
-            #  time calculation takes
-            # time due to IERS file downloads
-            if isinstance(self.target, str):
-                self.converter.point_to_body(self.target, timestamp)
-            else:
-                ra, dec = self.target  # pylint: disable=E0633
-                self.converter.point(ra, dec, timestamp)
-
+            self.converter.point(timestamp)
             self.update_program_track_table_error_callback("")
-            self.logger.debug("Converter Object Updated")
+            self.logger.info("Converter Object Updated")
 
             utc_now = datetime.datetime.utcnow()
 
@@ -644,9 +639,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
-                        self.target, self.converter
+                        azel_converter=self.converter
                     )
                 )
+                
                 first_entry_timestamp: float = program_track_table[0]
 
                 # advance_time is subtracted to provide
@@ -697,6 +693,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
             self.logger.debug("Program TrackTable Calculation stopped.")
         except Exception as value_error:
+            import traceback
+            self.logger.info(">>>>>>>>>>>>> %s", traceback.print_exc())
             self.logger.error(
                 "Error occured during track_thread execution: %s",
                 str(value_error),
