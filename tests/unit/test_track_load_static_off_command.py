@@ -275,6 +275,9 @@ def test_correction_key_update_partial_config(
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
+    cm.primary_configuration = json.loads(
+        json_factory("dishleafnode_configure")
+    )
     configure_input_str = json_factory("partial_configure")
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "UPDATE"
@@ -289,12 +292,11 @@ def test_correction_key_update_partial_config(
     cm.dish_id = "SKA001"
     cm.event_manager = True
     cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
-
-    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
-    sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
     cm.dishln_pointing_device_adapter.targetData = json.dumps(
         {"pointing": {"trajectory": {"name": "fixed", "x": 1, "y": 2}}}
     )
+    cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
+    sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
 
     assert wait_for_target_data(
         cm.dishln_pointing_device_adapter,
