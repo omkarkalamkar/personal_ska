@@ -5,6 +5,13 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.41.0]
+********
+Updated
+--------
+* TMC can perform calibration scans using the trajectory data specified under the pointing key in the configure JSON.
+* The invocation of the TrackLoadStaticOff command has been removed for calibration scans.
+
 [0.40.1]
 ********
 Updated

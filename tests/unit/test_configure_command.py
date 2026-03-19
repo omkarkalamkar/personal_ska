@@ -11,6 +11,7 @@ from ska_tmc_common.dev_factory import DevFactory
 from ska_tmc_common.enum import DishMode
 from ska_tmc_common.exceptions import CommandNotAllowed
 
+from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
@@ -21,6 +22,7 @@ from tests.settings import (
     simulate_result_code_event,
     simulate_track_table_event,
     wait_for_dish_mode,
+    wait_for_target_data,
 )
 
 
@@ -119,13 +121,23 @@ def test_configure_command_completed_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+
+    # simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
+    # dev_factory = DevFactory()
+    # dish_pd = dev_factory.get_device(DISHLN_POINTING_DEVICE)
+    assert wait_for_target_data(
+        cm.dishln_pointing_device_adapter, expected_x=0.0, expected_y=18000.0
+    ), (
+        "Time Out while waiting for target data to contain"
+        f" {[0.0,5.0]} . \n"
+        f"Current target Data {cm.dishln_pointing_device_adapter.targetData}"
+    )
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
             "result": (ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
         },
-        lookahead=6,
+        lookahead=3,
     )
 
 
@@ -262,6 +274,60 @@ def test_configure_command_not_allowed(cm_without_er_lp):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_configure_allowed()
+
+
+def test_normalise_pointing_data_legacy_offsets(cm_without_er_lp):
+    """Verify legacy offset keys are normalised to trajectory attrs."""
+    cm = cm_without_er_lp
+    configure_command = Configure(
+        cm,
+        cm.op_state_model,
+        cm.adapter_factory,
+        logger=logger,
+    )
+
+    input_json = {
+        "pointing": {
+            "target": {
+                "ca_offset_arcsec": 1.1,
+                "ie_offset_arcsec": -2.2,
+            }
+        }
+    }
+
+    normalised_json = configure_command.normalise_pointing_data(input_json)
+
+    assert "projection" not in normalised_json["pointing"]
+    assert normalised_json["pointing"]["trajectory"] == {
+        "name": "fixed",
+        "attrs": {"x": 1.1, "y": -2.2},
+    }
+
+
+def test_get_offsets_from_trajectory_for_partial(cm_without_er_lp):
+    """Verify offsets are extracted from trajectory attrs for ADR-63."""
+    cm = cm_without_er_lp
+    configure_command = Configure(
+        cm,
+        cm.op_state_model,
+        cm.adapter_factory,
+        logger=logger,
+    )
+
+    input_json = {
+        "pointing": {
+            "trajectory": {
+                "name": "fixed",
+                "attrs": {"x": 2.5, "y": -1.25},
+            }
+        }
+    }
+
+    offsets = configure_command.get_ie_ca_offsets_if_provided(
+        input_json,
+        reset_offset=False,
+    )
+    assert offsets == [2.5, -1.25]
 
 
 def test_configure_command_status_not_allowed(
