@@ -50,7 +50,7 @@ def test_calculate_program_track_table(cm_pointig_device):
 
     # Given Ra and Dec are of polaris australis
     program_track_table = track_table_calculator.calculate_program_track_table(
-        ["21:27:51.5", "-88:51:08.8"], azel_converter
+        azel_converter
     )
 
     TIMEOUT = 10

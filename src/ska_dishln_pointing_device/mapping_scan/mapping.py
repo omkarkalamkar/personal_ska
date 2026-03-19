@@ -65,18 +65,18 @@ class BaseScanMapping:
             projection_name, projection_alignment = self.get_projection()
             if self.get_trajectory_name() == "fixed":
                 x_offset, y_offset = self.get_fixed_trajectory_offsets()
-            self.component_manager.projection_and_fixed_trajectory_data = [
-                projection_name,
-                projection_alignment,
-                x_offset,
-                y_offset,
-            ]
+                self.component_manager.projection_and_fixed_trajectory_data = [
+                    projection_name,
+                    projection_alignment,
+                    x_offset,
+                    y_offset,
+                ]
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
             self.logger.error("Exception: %s", exception)
             raise exception
-    
+
     def get_trajectory_name(self):
         """Create Trajectory Object and set duration"""
 
@@ -85,62 +85,77 @@ class BaseScanMapping:
         ).get("trajectory", {})
         trajectory_name = trajectory.get("name", "fixed").lower()
         return trajectory_name
-    
+
     def get_fixed_trajectory_offsets(self):
+        """Get Fixed Trajectory Offsets"""
         trajectory = self.component_manager.target_data.get(
             'pointing', {}
         ).get("trajectory", {})
         trajectory_attrs = trajectory.get("attrs", {}) or {'x': 0.0, 'y': 0.0}
         return trajectory_attrs['x'], trajectory_attrs['y']
-    
+
     def build_data_for_observation(self):
-        """"""
+        """Build Data for Observation based
+        on the target data provided in the dish configure input.
+        """
+        target = None
         try:
             target_data = self.component_manager.target_data.get(
-                    "pointing", {}
+                "pointing", {}
             )
             target_dict = target_data.get("target", {})
             if target_dict:
-                target_name = target_dict.get("target_name","target")
+                target_name = target_dict.get("target_name", "target")
                 reference_frame = target_dict.get("reference_frame", "ICRS")
                 if reference_frame.lower() == "special":
                     target = Target(f"{target_name}, special")
-                elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
+                elif (
+                    reference_frame.lower() == "icrs"
+                    or reference_frame.lower() == "radec"
+                ):
                     ra = target_dict.get("ra", "")
                     dec = target_dict.get("dec", "")
                     target = Target(f"{target_name}, radec, {ra}, {dec}")
             field_dict = target_data.get("field", {})
             if field_dict:
-                target_name = field_dict.get("target_name","target")
+                target_name = field_dict.get("target_name", "target")
                 reference_frame = field_dict.get("reference_frame", "ICRS")
                 if reference_frame.lower() == "special":
                     target = Target(f"{target_name}, special")
-                elif reference_frame.lower() == "icrs" or reference_frame.lower() == "radec":
+                elif (
+                    reference_frame.lower() == "icrs"
+                    or reference_frame.lower() == "radec"
+                ):
                     c1 = field_dict.get("attrs").get("c1", "")
                     c2 = field_dict.get("attrs").get("c2", "")
                     ra = Angle(c1 * u.deg)
                     ra_hms = ra.to_string(unit=u.hour, sep=':')
                     dec = Angle(c2 * u.deg)
                     dec_dms = dec.to_string(unit=u.deg, sep=':')
-                    target = Target(f"{target_name}, radec, {ra_hms}, {dec_dms}")
+                    target = Target(
+                        f"{target_name}, radec, {ra_hms}, {dec_dms}"
+                    )
                 elif reference_frame.lower() == "tle":
                     line1 = field_dict.get("attrs", {}).get("line1", "")
                     line2 = field_dict.get("attrs", {}).get("line2", "")
-                    target = Target(f"{target_name}, {reference_frame.lower()}, {line1}, {line2}")
+                    target = Target(
+                        f"{target_name}, {reference_frame.lower()}, "
+                        f"{line1}, {line2}"
+                    )
                 elif reference_frame.lower() == "altaz":
                     c1 = field_dict.get("attrs", {}).get("c1", "")
                     c2 = field_dict.get("attrs", {}).get("c2", "")
                     target = Target(f"{target_name}, azel, {c1}, {c2}")
-            
-            target.antenna = self.component_manager.observer
-            self.component_manager.antenna_target = target 
+            if target:
+                target.antenna = self.component_manager.observer
+                self.component_manager.antenna_target = target
         except Exception as exp:
             self.logger.exception(
                 " Failed to set target for fixed/mosaic mapping "
                 + "scan due to exception: %s",
                 str(exp),
             )
-            raise exp   
+            raise exp
 
     def extract_target_from_config(self):
         """
@@ -154,10 +169,6 @@ class BaseScanMapping:
             )
             target_dict = target_data.get("target", {})
             field_dict = target_data.get("field", {})
-            ref_frame = (
-                target_dict.get("reference_frame")
-                or field_dict.get("reference_frame", "")
-            ).lower()
             ra, dec = target_dict.get("ra", ""), target_dict.get("dec", "")
             # Get c1 and c2 values
             c1, c2 = (
@@ -166,7 +177,7 @@ class BaseScanMapping:
             )
 
             # Get TLE line1 and line2 values
-            tle_line1, tle_line2 =  (
+            tle_line1, tle_line2 = (
                 field_dict.get("attrs", {}).get("line1", ""),
                 field_dict.get("attrs", {}).get("line2", ""),
             )
@@ -174,7 +185,11 @@ class BaseScanMapping:
             target = (
                 ([ra, dec] if ra != "" and dec != "" else [])
                 or ([c1, c2] if not (isnan(c1) or isnan(c2)) else [])
-                or ([tle_line1, tle_line2] if tle_line1 != "" and tle_line2 != "" else [])
+                or (
+                    [tle_line1, tle_line2]
+                    if tle_line1 != "" and tle_line2 != ""
+                    else []
+                )
                 or (target_dict.get("target_name"))
                 or (target_data.get("field", {}).get("target_name", ""))
             )
@@ -193,10 +208,10 @@ class BaseScanMapping:
     def setup_observation_target(self) -> None:
         """Set target required for mapping scan"""
 
-        data1, data2 = self.component_manager.target
-        if isinstance(data1, float):
-            ra = Angle(data1, unit=u.degree)
-            dec = Angle(data2, unit=u.degree)
+        ra, dec = self.component_manager.target
+        if isinstance(ra, float):
+            ra = Angle(ra, unit=u.degree)
+            dec = Angle(dec, unit=u.degree)
         self.ra_dec_target = Target.from_radec(ra, dec)
         self.ra_dec_target.antenna = self.component_manager.observer
 
@@ -212,7 +227,7 @@ class BaseScanMapping:
             .get('projection', {})
             .get('name', "SIN")
         )
-        
+
         projection_alignment = (
             self.component_manager.target_data.get('pointing', {})
             .get('projection', {})
@@ -222,7 +237,11 @@ class BaseScanMapping:
             projection_alignment = "radec"
         else:
             projection_alignment = "azel"
-        self.logger.info("Projection Name: %s, Alignment: %s", projection_name, projection_alignment)
+        self.logger.info(
+            "Projection Name: %s, Alignment: %s",
+            projection_name,
+            projection_alignment,
+        )
         return [projection_name, projection_alignment]
 
     def set_trajectory_and_duration(self):

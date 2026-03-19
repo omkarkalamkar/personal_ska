@@ -53,9 +53,7 @@ def test_error_in_calculate_program_track_table(
         track_table_calculator.track_table_time_stamp = (
             datetime.datetime.utcnow()
         )
-        track_table_calculator.calculate_program_track_table(
-            "Pluto", az_el_convarter
-        )
+        track_table_calculator.calculate_program_track_table(az_el_convarter)
 
 
 def test_timestamp_error_in_track_table_point_method(cm_pointig_device):

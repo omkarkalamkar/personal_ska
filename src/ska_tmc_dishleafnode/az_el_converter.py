@@ -58,7 +58,7 @@ class AzElConverter:
         except Exception as e:
             logger.exception("Cannot build antenna from layout: %s", e)
             return
-        
+
         logger.info("********* %s\n", antenna)
         self.component_manager.observer = antenna
         logger.info(
@@ -125,12 +125,9 @@ class AzElConverter:
             raise Exception(message) from exception
         return refraction_corrected_azel
 
-
     def point(
         self: AzElConverter,
-        right_ascension: str | float,
-        declination: str | float,
-        timestamp: str,
+        *args,
     ) -> list[float]:
         """Convert RA/Dec to Az/El and apply refraction.
 
@@ -142,6 +139,7 @@ class AzElConverter:
         Returns:
             [Az deg, El deg]
         """
+        right_ascension, declination, timestamp = args
         az_el_coordinates = []
         try:
             logger.debug(
@@ -247,7 +245,6 @@ class AzElConverter:
             raise Exception(message) from exception
 
 
-
 class AzElConverter_v2(AzElConverter):
     """Class to convert Right ascension(Ra) and Declination(Dec)
     values into Azimuth(Az) and Elevation(El).
@@ -258,9 +255,7 @@ class AzElConverter_v2(AzElConverter):
     def __init__(self, component_manager):
         super().__init__(component_manager=component_manager)
 
-    def point(
-        self: AzElConverter, timestamp: str
-    ) -> List[float]:
+    def point(self: AzElConverter, *args) -> List[float]:
         """
         Get Az/El for a TLE object and apply refraction correction.
 
@@ -268,11 +263,15 @@ class AzElConverter_v2(AzElConverter):
         :param tle2: Second line of the TLE
         :param timestamp: Timestamp for observation
         """
-        
+        timestamp = args[0]
         refraction_corrected_azel = []
         try:
-            projection_name, projection_alignment, x_offset, y_offset = (
-                self.component_manager.projection_and_fixed_trajectory_data )
+            (
+                projection_name,
+                projection_alignment,
+                x_offset,
+                y_offset,
+            ) = self.component_manager.projection_and_fixed_trajectory_data
             x_in_rad, y_in_rad = self.get_offset_in_rad(x_offset, y_offset)
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
@@ -281,7 +280,7 @@ class AzElConverter_v2(AzElConverter):
                     x_in_rad,
                     y_in_rad,
                     timestamp=timestamp,
-                    antenna=self.component_manager.observer,
+                    # antenna=self.component_manager.observer,
                     projection_type=projection_name.upper(),
                     coord_system=projection_alignment,
                 )
@@ -304,4 +303,3 @@ class AzElConverter_v2(AzElConverter):
             tuple: offset in radian.
         """
         return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
-

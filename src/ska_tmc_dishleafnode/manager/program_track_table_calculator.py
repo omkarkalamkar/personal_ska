@@ -5,11 +5,12 @@ from __future__ import annotations
 import datetime
 import operator
 from logging import Logger
-from typing import List, Union
 
 from astropy.time import Time
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2 as AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter_v2 as AzElConverter,
+)
 from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
 
 
@@ -49,7 +50,6 @@ class ProgramTrackTableCalculator:
 
     def calculate_program_track_table(
         self: ProgramTrackTableCalculator,
-        target_data: Union[str, List[str]],
         azel_converter: AzElConverter,
     ) -> list:
         """This method calculates programTrackTable.
@@ -60,18 +60,6 @@ class ProgramTrackTableCalculator:
             El2,,,,,,TAIn, Azn, Eln].
         :rtype: list
         """
-
-        # if isinstance(target_data, str):
-        #     self.target_name = target_data
-        # else:
-        #     data1, data2 = target_data
-        #     first_token = data1.split(maxsplit=1)[0]
-        #     if first_token == "1":
-        #         self.tle1, self.tle2 = data1, data2
-        #         self.logger.info("<<<<<<<<<<< Starting TLE observation with TLE1: %s and TLE2: %s", self.tle1, self.tle2)
-        #     else:
-        #         self.right_ascension, self.declination = data1, data2
-        
         self.azel_converter = azel_converter
         program_track_table = []
 
@@ -140,7 +128,6 @@ class ProgramTrackTableCalculator:
         :return: False if elevation is within the limit.
         :rtype: bool
         """
-        #self.logger.info(" &&&&&& %s %s %s", self.component_manager.elevation_min_limit, self.component_manager.elevation_max_limit, el_value)
         if (
             not self.component_manager.elevation_min_limit
             <= el_value
@@ -215,7 +202,7 @@ class ProgramTrackTableCalculator:
         :return: Azimuth and Elevation coordinates (Az, El) of source.
         :rtype: list
         """
-        try:         
+        try:
             result = self.azel_converter.point(
                 timestamp,
             )

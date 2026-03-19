@@ -27,7 +27,9 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
 from ska_dishln_pointing_device.event_manager import DishLNPDEventManager
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2 as AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter_v2 as AzElConverter,
+)
 from ska_tmc_dishleafnode.constants import (
     IERS_DATA_STORAGE_PATH,
     PROGRAM_TRACK_TABLE_SIZE,
@@ -639,10 +641,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
-                        azel_converter=self.converter
+                        azel_converter=self.converter,
                     )
                 )
-                
+
                 first_entry_timestamp: float = program_track_table[0]
 
                 # advance_time is subtracted to provide
@@ -693,8 +695,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
 
             self.logger.debug("Program TrackTable Calculation stopped.")
         except Exception as value_error:
-            import traceback
-            self.logger.info(">>>>>>>>>>>>> %s", traceback.print_exc())
             self.logger.error(
                 "Error occured during track_thread execution: %s",
                 str(value_error),
