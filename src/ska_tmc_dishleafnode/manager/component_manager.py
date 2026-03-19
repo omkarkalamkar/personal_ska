@@ -3020,7 +3020,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 result_code,
                 msg,
             ) = dish_poin_adtr.GenerateProgramTrackTable()
-            err_msg = "GProgramTrackTable failed {0}: {1}"
+            err_msg = "GenerateProgramTrackTable failed {0}: {1}"
             if result_code != ResultCode.OK:
                 error_msg = err_msg.format(result_code, msg)
                 self.logger.error(error_msg)
