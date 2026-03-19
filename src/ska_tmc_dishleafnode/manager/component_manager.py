@@ -2733,7 +2733,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.logger.info(
             "Received longRunningCommandResult event for device: %s, "
             + "with value: %s",
-            device_name,
+            device_name.dev_name,
             value,
         )
         if value == ("", "") or not value:
@@ -2747,7 +2747,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         if (unique_id not in self.command_unique_id_dict.values()) or (
             not unique_id.endswith(self.supported_commands)
         ):
-            self.logger.info(
+            self.logger.debug(
                 "LRCR event for id %s will be ignored %s",
                 unique_id,
                 self.command_unique_id_dict,

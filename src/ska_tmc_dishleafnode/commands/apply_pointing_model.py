@@ -263,7 +263,7 @@ class ApplyPointingModel(DishLNCommand):
             tm_data_sources = gpm_json_data.get("tm_data_sources", None)
             tm_data_filepath = gpm_json_data.get("tm_data_filepath", None)
             self.logger.info(
-                "GPM paths received -> tm_data_sources: %s "
+                "GPM paths received -> tm_data_sources: %s, "
                 "tm_data_filepath: %s",
                 tm_data_sources,
                 tm_data_filepath,
