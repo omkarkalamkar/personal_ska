@@ -13,6 +13,11 @@ import pytest
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 
+from ska_tmc_dishleafnode.commands.configure_command import (
+    FIXED_TRAJECTORY,
+    RESET_OFFSETS,
+    Configure,
+)
 from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from ska_tmc_dishleafnode.manager.health_data import (
     DishBandCapabilityStateData,
@@ -359,3 +364,59 @@ def test_invoke_generate_prgm_track_table_malformed_targetdata_logs_error():
         "Error in pointing operation" in str(call.args[0])
         for call in logger.error.call_args_list
     )
+
+
+def _make_configure_instance():
+    # Bypass __init__ to avoid needing a full component_manager
+    return object.__new__(Configure)
+
+
+@pytest.mark.parametrize(
+    "payload, reset_offset, expected",
+    [
+        ({}, True, RESET_OFFSETS),
+        (
+            {
+                "pointing": {
+                    "trajectory": {
+                        "name": FIXED_TRAJECTORY.upper(),
+                        "attrs": {"x": 1.2, "y": -3.4},
+                    }
+                }
+            },
+            False,
+            [1.2, -3.4],
+        ),
+        (
+            {
+                "pointing": {
+                    "target": {
+                        "ca_offset_arcsec": 2.0,
+                        "ie_offset_arcsec": -2.5,
+                    }
+                }
+            },
+            False,
+            [2.0, -2.5],
+        ),
+        (
+            {"pointing": {"ca_offset_arcsec": 5.5, "ie_offset_arcsec": -6.6}},
+            False,
+            [5.5, -6.6],
+        ),
+        ({"pointing": {}}, False, []),
+    ],
+    ids=[
+        "reset_offsets",
+        "trajectory_offsets_preferred",
+        "target_offsets_when_present",
+        "pointing_level_offsets_when_present",
+        "no_offsets_returns_empty_list",
+    ],
+)
+def test_get_ie_ca_offsets_if_provided_param(payload, reset_offset, expected):
+    inst = _make_configure_instance()
+    result = inst.get_ie_ca_offsets_if_provided(
+        payload, reset_offset=reset_offset
+    )
+    assert result == expected
