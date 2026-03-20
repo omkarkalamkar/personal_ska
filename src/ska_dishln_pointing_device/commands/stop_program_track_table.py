@@ -42,7 +42,7 @@ class StopProgramTrackTable(FastCommand):
                 self.component_manager.track_table_thread
                 and self.component_manager.track_table_thread.is_alive()
             ):
-                self.component_manager.track_table_thread.join()
+                self.component_manager.track_table_thread.join(timeout=2.8)
             self.component_manager.update_pointing_program_track_table([])
             self.component_manager.current_mapping_scan_obj = None
             self.logger.info(
