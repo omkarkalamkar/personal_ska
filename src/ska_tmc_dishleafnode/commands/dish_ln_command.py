@@ -204,9 +204,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 return flag
             elapsed_time = time.time() - start_time
 
-        self.logger.info(
-            "Dish mode is %s", self.component_manager.dishMode
-        )
+        self.logger.info("Dish mode is %s", self.component_manager.dishMode)
         return flag
 
     def init_adapter_mid(self: DishLNCommand):

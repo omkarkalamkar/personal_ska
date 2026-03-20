@@ -535,9 +535,7 @@ class DishHealthStateAndInfoManager:
         ):
             for rule in HEALTH_RULES.get(health_state, []):
                 if rule.matches(context_dict):
-                    self.logger.debug(
-                        "HealthState: %s", health_state.name
-                    )
+                    self.logger.debug("HealthState: %s", health_state.name)
                     return health_state
 
         # Unreachable due to UNKNOWN fallback, but log

@@ -2589,7 +2589,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.dish_adapter.trackTableLoadMode = load_mode
-            self.logger.debug("Updated trackTableLoadMode to %s", load_mode.value)
+            self.logger.debug(
+                "Updated trackTableLoadMode to %s", load_mode.value
+            )
         except (tango.DevFailed, Exception) as exception:
             self.logger.exception(
                 "Exception occured while setting trackTableLoadMode on"
