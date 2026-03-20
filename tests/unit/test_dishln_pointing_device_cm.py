@@ -3,6 +3,8 @@ import sched
 import time
 from unittest.mock import patch
 
+import pytest
+
 from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
@@ -24,14 +26,18 @@ def test_dish_pointing_device_cm(cm_pointig_device):
     assert cm_pointig_device.target_data == [1, 2]
 
 
+@pytest.mark.parametrize(
+    "json_input,wait_time",
+    [("dishleafnode_configure", 5), ("dishleafnode_configure_tle_adr63", 15)],
+)
 def test_dish_pointing_device_generate_program_track_table_command(
-    cm_pointig_device, json_factory
+    cm_pointig_device, json_factory, json_input, wait_time
 ):
     """Test to check programTrackTable generation on dish leaf
     node pointing device"""
     timeout = 0
     cm = cm_pointig_device
-    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json_factory(json_input)
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
     cm.target_data = configure_data
@@ -39,7 +45,7 @@ def test_dish_pointing_device_generate_program_track_table_command(
         logger=logger, component_manager=cm
     )
     generate_program_track_table.do()
-    while not cm.pointing_program_track_table and timeout < 5:
+    while not cm.pointing_program_track_table and timeout < wait_time:
         time.sleep(1)
         timeout += 1
 
@@ -63,14 +69,21 @@ def test_is_fixed_mapping_scan(cm_pointig_device, json_factory):
     assert not cm.is_fixed_mapping_scan()
 
 
+@pytest.mark.parametrize(
+    "json_input,wait_time",
+    [
+        ("dishleafnode_configure", 5),
+        ("dishleafnode_configure_tle_adr63", 10),
+    ],
+)
 def test_dish_pointing_device_stop_program_track_table_command(
-    cm_pointig_device, json_factory
+    cm_pointig_device, json_factory, json_input, wait_time
 ):
     """Test to check stop programTrackTable generation on dish leaf
     node pointing device"""
     timeout = 0
     cm = cm_pointig_device
-    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json_factory(json_input)
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
     cm.target_data = configure_data
@@ -82,12 +95,12 @@ def test_dish_pointing_device_stop_program_track_table_command(
     )
 
     generate_program_track_table.do()
-    while not cm.pointing_program_track_table and timeout < 5:
+    while not cm.pointing_program_track_table and timeout < wait_time:
         time.sleep(1)
         timeout += 1
 
     stop_program_track_table.do()
-    while cm.pointing_program_track_table and timeout < 5:
+    while cm.pointing_program_track_table and timeout < wait_time:
         time.sleep(1)
         timeout += 1
     assert len(cm.pointing_program_track_table) == 0
@@ -114,8 +127,15 @@ def test_dish_pointing_device_program_track_table_error(
     assert "unknown *special* body" in cm.current_track_table_error.lower()
 
 
+@pytest.mark.parametrize(
+    "json_input",
+    [
+        "dishleafnode_configure",
+        "dishleafnode_configure_tle_adr63",
+    ],
+)
 def test_dish_pointing_device_multi_command_scenarios(
-    cm_pointig_device, json_factory
+    cm_pointig_device, json_factory, json_input
 ):
     """
     This test tests following scenarios:
@@ -129,7 +149,7 @@ def test_dish_pointing_device_multi_command_scenarios(
 
     """
     cm = cm_pointig_device
-    configure_data = json_factory("dishleafnode_configure")
+    configure_data = json_factory(json_input)
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
     cm.target_data = configure_data
