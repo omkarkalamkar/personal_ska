@@ -2397,9 +2397,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                     )
             dev_info.dish_mode = dish_mode
             dev_info.last_event_arrived = time.time()
-            self.logger.info(
-                "Dish mode is updated to %s", DishMode(dish_mode).name
-            )
             self.observable.notify_observers(attribute_value_change=True)
             if self._update_dishmode_callback:
                 self._update_dishmode_callback(dish_mode)
@@ -2590,7 +2587,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         try:
             self.dish_adapter.trackTableLoadMode = load_mode
             self.logger.debug(
-                "Updated trackTableLoadMode to %s", load_mode.value
+                "Updated trackTableLoadMode to %s", load_mode.name
             )
         except (tango.DevFailed, Exception) as exception:
             self.logger.exception(
@@ -2624,12 +2621,13 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
                 "Tango lock will be acquired to update ProgramTrackTable."
             )
             for retry in range(0, self.max_track_table_retry):
-                self.logger.debug("Retry is: %s", retry)
                 try:
                     self.dish_adapter.programTrackTable = program_track_table
                     self.is_tracktable_provided.set()
                     self.logger.debug(
-                        "ProgramTrackTable is provided to the Dish Manager."
+                        "Track table is provided to the Dish Manager in "
+                        + "retry: %s.",
+                        retry,
                     )
                     if (
                         self.trackTableLoadMode
@@ -2743,18 +2741,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         unique_id, result_code_message = value
         self.logger.debug(
-            "Current command unique dictionary: %s",
+            "Command and its unique id dictionary: %s",
             self.command_unique_id_dict,
         )
-        if (unique_id not in self.command_unique_id_dict.values()) or (
-            not unique_id.endswith(self.supported_commands)
-        ):
-            self.logger.debug(
-                "LRCR event for id %s will be ignored %s",
-                unique_id,
-                self.command_unique_id_dict,
-            )
-            return
 
         try:
             command_name = unique_id.split('_')[-1]

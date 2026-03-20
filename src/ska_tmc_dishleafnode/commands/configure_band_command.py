@@ -100,11 +100,6 @@ class ConfigureBand(DishLNCommand):
         Returns:
             Tuple[ResultCode, str]: Tuple of ResultCode and message.
         """
-        self.logger.debug(
-            "Command ID: %s | Input argument for ConfigureBand command is: %s",
-            self.component_manager.command_id,
-            argin,
-        )
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.error(

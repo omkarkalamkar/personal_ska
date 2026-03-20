@@ -15,6 +15,7 @@ from ska_control_model import HealthState, TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import (
+    Band,
     DishMode,
     PointingState,
     TimeKeeper,
@@ -96,7 +97,7 @@ class Configure(DishLNCommand):
         array_layout = json_argument.get("layout_data")
         if array_layout is not None:
             self.component_manager.array_layout = array_layout
-            self.logger.debug("Set array layout to %s", array_layout)
+            self.logger.debug("Array layout set to %s", array_layout)
 
         if json_argument.get("tmc") and json_argument["tmc"].get(
             "partial_configuration", False
@@ -364,11 +365,6 @@ class Configure(DishLNCommand):
                     target_payload["array_layout"] = array_layout
                 target_data = json.dumps(target_payload)
 
-                # Keep or remove?
-                self.logger.debug(
-                    "Main/Delta Configuration: Calling "
-                    "GenerateProgramTrackTable()"
-                )
                 result_code, _ = self.invoke_generate_program_track_table(
                     target_data
                 )
@@ -461,7 +457,7 @@ class Configure(DishLNCommand):
 
         """
         receiver_band = json_argument.get("dish", {}).get("receiver_band", "")
-        self.logger.info("Receiver band is %s", receiver_band)
+        self.logger.info("Receiver band is %s", Band(receiver_band).name)
 
         def _invoke_configure_band_callback(
             status=None,
@@ -854,16 +850,11 @@ class Configure(DishLNCommand):
                 time.sleep(0.1)
                 elapsed_time = time.time() - start_time
 
-            self.logger.debug(
-                "Command ID: %s | "
-                + "Exited the loop that waits to supply the tracktable before"
-                + " invoking the Track command.",
-                self.component_manager.command_id,
-            )
             if not self.component_manager.is_tracktable_provided.is_set():
                 # Set Failure for configure
                 self.logger.debug(
-                    "Command ID: %s | Timed out occurred for track table",
+                    "Command ID: %s | Timed out occurred for track table write"
+                    " operation",
                     self.component_manager.command_id,
                 )
                 self.set_failure_for_configure(
