@@ -151,7 +151,7 @@ class BaseScanMapping:
         Returns:
             tuple: offset in radian.
         """
-        return Angle(x, u.deg).rad, Angle(y, u.deg).rad
+        return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
 
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
         """Convert plane coordinates to RA/Dec using spherical projection.

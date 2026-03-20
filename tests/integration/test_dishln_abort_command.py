@@ -356,6 +356,11 @@ def abort_exception(tango_context, dishln_name, group_callback):
         tango.EventType.CHANGE_EVENT,
         group_callback["dishMode"],
     )
+    lrcr_event_id = dish_leaf_node.subscribe_event(
+        "longRunningCommandResult",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["longRunningCommandResult"],
+    )
     group_callback["dishMode"].assert_change_event(
         (DishMode.STANDBY_LP),
         lookahead=2,
@@ -365,15 +370,9 @@ def abort_exception(tango_context, dishln_name, group_callback):
 
     logger.debug("Command id: %s | Returned result: %s", unique_id, result)
     assert result[0] == ResultCode.QUEUED
-
-    lrcr_event_id = dish_leaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id[0], COMMAND_COMPLETED),
-        lookahead=2,
+        lookahead=5,
     )
 
     group_callback["dishMode"].assert_change_event(
