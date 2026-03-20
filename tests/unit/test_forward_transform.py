@@ -1,9 +1,14 @@
 from time import sleep
 
 import pytest
+from astropy.time import Time
 from astropy.utils import iers
+from katpoint import Target
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter,
+    AzElConverter_v2,
+)
 from ska_tmc_dishleafnode.constants import IERS_DATA_STORAGE_PATH
 from tests.settings import ARRAY_LAYOUT, logger
 
@@ -64,64 +69,45 @@ def test_radec_to_azel(
 
 
 @pytest.mark.parametrize(
-    "tle_field, timestamp, expected_az, expected_el",
+    "target_name, line1, line2, expected_az, expected_el, timestamp",
     [
         (
-            {
-                "target_name": "ISS (ZARYA)",
-                "reference_frame": "tle",
-                "attrs": {
-                    "line1": "1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927",  # noqa: E501
-                    "line2": "2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",  # noqa: E501
-                },
-            },
-            "2022-03-19 18:21:50",
+            "ISS (ZARYA)",
+            "1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927",  # noqa: E501
+            "2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",  # noqa: E501
             25.388043,
             -6.984832,
+            "2022-03-19 18:21:50",
         ),
     ],
 )
-def test_tle_forward_transform(
-    tle_field: dict,
-    timestamp: str,
+def test_tle_to_azel_v2(
+    target_name: str,
+    line1: str,
+    line2: str,
     expected_az: float,
     expected_el: float,
-    cm_without_er_lp,
+    timestamp: str,
+    cm_pointig_device,
 ):
-    """Forward transform test for TLE to AzEl conversion."""
-    name = tle_field["target_name"]
-    line1 = tle_field["attrs"]["line1"]
-    line2 = tle_field["attrs"]["line2"]
-    tle_description = f"{name}, tle, {line1}, {line2}"
-
-    cm = cm_without_er_lp
-    cm.array_layout = ARRAY_LAYOUT
-    cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
+    """Test that AzElConverter_v2.point converts TLE to AzEl."""
+    cm = cm_pointig_device
     cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
-    converter = AzElConverter(component_manager=cm)
+    tle_description = f"{target_name}, tle, {line1}, {line2}"
+    target = Target(tle_description)
+    target.antenna = cm.observer
+    cm.antenna_target = target
+    cm.projection_and_fixed_trajectory_data = ["SIN", "azel", 0.0, 0.0]
 
-    retry = 0
-    while retry <= 3:
-        try:
-            converter.create_antenna_obj()
-            break
-        except Exception as e:
-            logger.exception(
-                "Exception occurred while creating antenna object: %s", e
-            )
-            if retry == 2:
-                pytest.fail(f"{e}")
-            retry += 1
-            sleep(0.1)
-
-    az, el = converter.point_to_body(tle_description, timestamp)
-
+    converter = AzElConverter_v2(component_manager=cm)
+    timestamp_obj = Time(timestamp, scale="utc")
+    az, el = converter.point(timestamp_obj)
     az = round(az, 6)
     el = round(el, 6)
 
-    logger.info("TLE Azimuth is: %s", az)
-    logger.info("TLE Elevation is: %s", el)
+    logger.info("Azimuth is: %s", az)
+    logger.info("Elevation is: %s", el)
 
     assert az == expected_az
     assert el == expected_el
