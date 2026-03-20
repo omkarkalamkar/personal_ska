@@ -168,28 +168,15 @@ class BaseScanMapping:
                 "pointing", {}
             )
             target_dict = target_data.get("target", {})
-            field_dict = target_data.get("field", {})
+            field_dict = target_data.get("field", {}).get("attrs", {})
             ra, dec = target_dict.get("ra", ""), target_dict.get("dec", "")
             # Get c1 and c2 values
-            c1, c2 = (
-                field_dict.get("attrs", {}).get("c1", nan),
-                field_dict.get("attrs", {}).get("c2", nan),
-            )
+            c1, c2 = field_dict.get("c1", nan), field_dict.get("c2", nan)
 
-            # Get TLE line1 and line2 values
-            tle_line1, tle_line2 = (
-                field_dict.get("attrs", {}).get("line1", ""),
-                field_dict.get("attrs", {}).get("line2", ""),
-            )
             # Set target using the first non-empty value
             target = (
                 ([ra, dec] if ra != "" and dec != "" else [])
                 or ([c1, c2] if not (isnan(c1) or isnan(c2)) else [])
-                or (
-                    [tle_line1, tle_line2]
-                    if tle_line1 != "" and tle_line2 != ""
-                    else []
-                )
                 or (target_dict.get("target_name"))
                 or (target_data.get("field", {}).get("target_name", ""))
             )
