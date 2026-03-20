@@ -245,8 +245,8 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     expected_message = (
-        "Target description 'Pluto, special' contains unknown"
-        + " *special* body 'Pluto'"
+        "Target description 'Kepler, special' contains unknown"
+        + " *special* body 'Kepler'"
     )
 
     track_table_error = dish_leaf_node.trackTableErrors
@@ -269,7 +269,7 @@ def configure_dish_leaf_node_unknown_source(
         dish_master,
         dishln_pointing_device,
         HealthState.DEGRADED,
-        "Target description 'Pluto, special' contains unknown ",
+        "Target description 'Kepler, special' contains unknown ",
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
