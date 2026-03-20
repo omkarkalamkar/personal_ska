@@ -2499,7 +2499,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             dev_info.pointing_state = pointingState
             dev_info.last_event_arrived = time.time()
             self.logger.debug(
-                "PointingState value updated to "
+                "PointingState set to "
                 + f"{PointingState(pointingState).name}"
             )
 
@@ -2589,7 +2589,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             self.dish_adapter.trackTableLoadMode = load_mode
-            self.logger.debug("Updated trackTableLoadMode to %s", load_mode)
+            self.logger.debug("Updated trackTableLoadMode to %s", load_mode.value)
         except (tango.DevFailed, Exception) as exception:
             self.logger.exception(
                 "Exception occured while setting trackTableLoadMode on"

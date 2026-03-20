@@ -205,7 +205,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             elapsed_time = time.time() - start_time
 
         self.logger.info(
-            "Current Dishmode is %s", self.component_manager.dishMode
+            "Dish mode is %s", self.component_manager.dishMode
         )
         return flag
 

@@ -318,14 +318,14 @@ class DishHealthStateAndInfoManager:
 
             if state.name not in good_states:
                 msg = (
-                    f"Requested band {requested.name} is in state "
-                    f"{state.name} (not fully available)"
+                    f"Band {requested.name} state: {state.name} "
+                    "(not fully available)"
                 )
                 self._active_issues[f"band_requested_{requested.name}"] = msg
                 self.logger.info(msg)
             else:
                 self.logger.debug(
-                    "Requested band %s is in acceptable state: %s",
+                    "Band %s state: %s",
                     requested.name,
                     state.name,
                 )
@@ -536,7 +536,7 @@ class DishHealthStateAndInfoManager:
             for rule in HEALTH_RULES.get(health_state, []):
                 if rule.matches(context_dict):
                     self.logger.debug(
-                        "HealthState decided as %s", health_state.name
+                        "HealthState: %s", health_state.name
                     )
                     return health_state
 
