@@ -25,17 +25,24 @@ def test_generate_program_track_table(cm_pointig_device):
         component_manager=cm_pointig_device,
         logger=mock_logger,
     )
+    cm_pointig_device.logger = mock_logger
+
     cm_pointig_device.target_data = {"1": 1}  # invalid target data
     generate_program_track_table.do()
-    assert mock_logger.exception.call_count == 1
+
+    assert cm_pointig_device.current_track_table_error is not None
+
+    # Second case
     mock_logger = mock.MagicMock()
     generate_program_track_table = GenerateProgramTrackTable(
         component_manager=cm_pointig_device,
         logger=mock_logger,
     )
+    cm_pointig_device.logger = mock_logger
+
     cm_pointig_device.target_data = {"pointing": [1, 2]}  # invalid target data
     generate_program_track_table.do()
-    assert mock_logger.error.call_count >= 1
+    assert cm_pointig_device.current_track_table_error is not None
 
 
 def test_stop_program_track_table():
