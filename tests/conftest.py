@@ -449,7 +449,7 @@ def cm_new() -> Generator[DishLNComponentManager, None, None]:
 
 
 @pytest.fixture
-def cm_pointig_device() -> (
+def cm_pointing_device() -> (
     Generator[DishlnPointingDataComponentManager, None, None]
 ):
     """Create DishLeaf Node Pointing Device component manager"""
@@ -460,7 +460,10 @@ def cm_pointig_device() -> (
             update_pointing_program_track_table_callback
         ),
         update_program_track_table_error_callback=(
-            update_program_track_table_error_callback
+            lambda temp: logger.debug(temp)
+            or setattr(
+                cm, "current_track_table_error", str(temp) if temp else ""
+            )
         ),
         track_table_update_rate=50,
         elevation_max_limit=90.0,

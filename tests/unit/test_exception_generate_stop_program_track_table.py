@@ -19,30 +19,32 @@ from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
 
 
-def test_generate_program_track_table(cm_pointig_device):
+def test_generate_program_track_table(cm_pointing_device):
     mock_logger = mock.MagicMock()
     generate_program_track_table = GenerateProgramTrackTable(
-        component_manager=cm_pointig_device,
+        component_manager=cm_pointing_device,
         logger=mock_logger,
     )
-    cm_pointig_device.logger = mock_logger
+    cm_pointing_device.logger = mock_logger
 
-    cm_pointig_device.target_data = {"1": 1}  # invalid target data
+    cm_pointing_device.target_data = {"1": 1}  # invalid target data
     generate_program_track_table.do()
 
-    assert cm_pointig_device.current_track_table_error is not None
+    assert cm_pointing_device.current_track_table_error is not None
 
     # Second case
     mock_logger = mock.MagicMock()
     generate_program_track_table = GenerateProgramTrackTable(
-        component_manager=cm_pointig_device,
+        component_manager=cm_pointing_device,
         logger=mock_logger,
     )
-    cm_pointig_device.logger = mock_logger
+    cm_pointing_device.logger = mock_logger
 
-    cm_pointig_device.target_data = {"pointing": [1, 2]}  # invalid target data
+    cm_pointing_device.target_data = {
+        "pointing": [1, 2]
+    }  # invalid target data
     generate_program_track_table.do()
-    assert cm_pointig_device.current_track_table_error is not None
+    assert cm_pointing_device.current_track_table_error is not None
 
 
 def test_stop_program_track_table():

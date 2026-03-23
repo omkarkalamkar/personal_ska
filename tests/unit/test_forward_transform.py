@@ -91,12 +91,12 @@ def test_tle_to_azel_v2(
     expected_az: float,
     expected_el: float,
     timestamp: str,
-    cm_pointig_device,
+    cm_pointing_device,
 ):
     """Test TLE satellite target → Az/El using AzElConverter_v2.
     Validates Skyfield TLE parsing, antenna observer,
     and refraction."""
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
     tle_description = f"{target_name}, tle, {line1}, {line2}"

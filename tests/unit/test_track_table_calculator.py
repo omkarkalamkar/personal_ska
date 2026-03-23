@@ -11,8 +11,8 @@ from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
 from tests.settings import logger
 
 
-def test_calculate_time_stamp_array(cm_pointig_device):
-    cm = cm_pointig_device
+def test_calculate_time_stamp_array(cm_pointing_device):
+    cm = cm_pointing_device
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
     (
@@ -23,12 +23,12 @@ def test_calculate_time_stamp_array(cm_pointig_device):
     assert len(tai_timestamp_array) == PROGRAM_TRACK_TABLE_SIZE
 
 
-def test_calculate_program_track_table(cm_pointig_device):
+def test_calculate_program_track_table(cm_pointing_device):
     from katpoint import Target
 
     from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2
 
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     wait_for_iers_data_available(cm)
 
     target = Target("Polaris Australis, radec, 21:08:47.92, -88:57:22.9")
@@ -82,25 +82,25 @@ def wait_for_iers_data_available(cm):
         time.sleep(0.5)
 
 
-def test_azimuth_range(cm_pointig_device):
+def test_azimuth_range(cm_pointing_device):
     track_table_calculator = ProgramTrackTableCalculator(
-        cm_pointig_device, logger=logger
+        cm_pointing_device, logger=logger
     )
     assert (
-        cm_pointig_device.azimuth_min_limit
+        cm_pointing_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(500.0)
-        < cm_pointig_device.azimuth_max_limit
+        < cm_pointing_device.azimuth_max_limit
     )
     assert (
-        cm_pointig_device.azimuth_min_limit
+        cm_pointing_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(-500.0)
-        < cm_pointig_device.azimuth_max_limit
+        < cm_pointing_device.azimuth_max_limit
     )
 
 
-def test_azimuth_range_exception(cm_pointig_device):
+def test_azimuth_range_exception(cm_pointing_device):
     track_table_calculator = ProgramTrackTableCalculator(
-        cm_pointig_device, logger=logger
+        cm_pointing_device, logger=logger
     )
     with pytest.raises(Exception):
         track_table_calculator.fit_azimuth_in_observable_range()
