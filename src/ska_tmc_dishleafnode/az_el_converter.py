@@ -58,7 +58,7 @@ class AzElConverter:
         except Exception as e:
             logger.exception("Cannot build antenna from layout: %s", e)
             return
-        
+
         self.component_manager.observer = antenna
         logger.info(
             "Observer set to %s", getattr(antenna, "name", "<antenna>")
