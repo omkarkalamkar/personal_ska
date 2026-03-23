@@ -3,10 +3,13 @@ import json
 import logging
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
+import katpoint
 import tango
+from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.time import Time
 from ska_control_model import HealthState
 
@@ -15,6 +18,7 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState
 from ska_tmc_common.adapters import AdapterFactory as HelperAdapterFactory
+from ska_tmc_common.v3.dish_utils import DishHelper
 from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.enums.stow_status import StowStatus
@@ -640,30 +644,42 @@ def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
     return None
 
 
-def get_non_sidereal_json_for_source_not_visible(non_side_real_json) -> str:
+def get_non_sidereal_json_for_source_not_visible() -> str:
     """Return the json for Configure command with non-visible non-sidereal
     object according to current time.
     """
+
     current_time = int(datetime.utcnow().strftime("%H"))
     logging.info("CURRENT TIME: %s", current_time)
-    configure_input_json = json.loads(non_side_real_json)
-
-    if 8 <= current_time <= 14:
-        configure_input_json["pointing"]["target"]["target_name"] = "Uranus"
-        return json.dumps(configure_input_json)
-    if 3 <= current_time <= 8:
-        configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
-        return json.dumps(configure_input_json)
-    if current_time <= 3 or current_time >= 21:
-        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
-        return json.dumps(configure_input_json)
-    if 17 <= current_time <= 21:
-        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
-        return json.dumps(configure_input_json)
-    if 14 <= current_time <= 15:
-        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
-        return json.dumps(configure_input_json)
-    return ""
+    antenna_ska001 = DishHelper(antenna_data=ARRAY_LAYOUT)
+    ska001 = antenna_ska001.get_dish_antenna()
+    solar_system_objects = [
+        "Mercury",
+        "Venus",
+        "Mars",
+        "Jupiter",
+        "Saturn",
+        "Uranus",
+        "Neptune",
+        "Sun",
+    ]
+    object_not_visible = None
+    timestamp = datetime.now(timezone.utc).timestamp()
+    for solar_system_object in solar_system_objects:
+        target = katpoint.Target(f"{solar_system_object} , special")
+        target.antenna = ska001
+        _, el = target.plane_to_sphere(
+            0.0,
+            0.0,
+            timestamp,
+            projection_type="SSN",
+            coord_system="ICRS",
+        )
+        el = Angle(el, u.rad).deg
+        if el <= 16.5 or el >= 90.0:
+            object_not_visible = solar_system_object
+            break
+    return object_not_visible
 
 
 def get_non_sidereal_json_for_source_unknown(non_side_real_json) -> str:

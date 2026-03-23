@@ -48,6 +48,8 @@ def configure_dish_leaf_node_source_not_visible(
     dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
+    dish_master.SetDirectCapabilityState(capability_dict)
+    dish_leaf_node.SetKValue(1)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
@@ -109,11 +111,10 @@ def configure_dish_leaf_node_source_not_visible(
         dish_leaf_node, track_table_error_before_configure
     )
     expected_message = (
-        "Exception occurred while calculating track table: "
-        + "Minimum/maximum elevation limit has been reached."
-        + "Source is not visible currently."
+        "Minimum/maximum elevation limit has been reached."
+        "Source is not visible currently."
     )
-    track_table_error = dish_leaf_node.trackTableErrors
+    track_table_error = json.loads(dish_leaf_node.trackTableErrors)[0]
     group_callback["programTrackTableError"].assert_change_event(
         expected_message,
         lookahead=8,
@@ -122,9 +123,8 @@ def configure_dish_leaf_node_source_not_visible(
         "track_table_error after configure: %s",
         track_table_error,
     )
-    result = any(expected_message in message for message in track_table_error)
 
-    assert result
+    assert expected_message in track_table_error
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (
@@ -165,22 +165,27 @@ def configure_dish_leaf_node_source_not_visible(
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
-@pytest.mark.xfail(reason="Test fails if the source is not visible.")
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
 def test_configure_command_source_not_visible(
     tango_context, group_callback, json_factory, json_to_use
 ):
-    json_to_use = get_non_sidereal_json_for_source_not_visible(
-        json_factory(json_to_use)
-    )
-    if json_to_use is not None:
-        configure_dish_leaf_node_source_not_visible(
-            tango_context,
-            DISH_LEAF_NODE_DEVICE,
-            group_callback,
-            json_to_use,
+    object_not_visible = get_non_sidereal_json_for_source_not_visible()
+    if object_not_visible:
+        json_to_use = transform_config(
+            config=json_factory(json_to_use), object=object_not_visible
+        )
+        if json_to_use is not None:
+            configure_dish_leaf_node_source_not_visible(
+                tango_context,
+                DISH_LEAF_NODE_DEVICE,
+                group_callback,
+                json_to_use,
+            )
+    else:
+        logger.info(
+            "All planets are visible currently. Test cannot be executed."
         )
 
 
@@ -347,7 +352,7 @@ def test_configure_command_unknown_source(
     json_to_use = get_non_sidereal_json_for_source_unknown(
         json_factory(json_to_use)
     )
-    json_to_use = transform_config(json_to_use)
+    json_to_use = transform_config(json_to_use, object="Sirius")
     configure_dish_leaf_node_unknown_source(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
@@ -356,7 +361,7 @@ def test_configure_command_unknown_source(
     )
 
 
-def transform_config(config):
+def transform_config(config, object="Sun"):
     """Transforms the input configuration JSON to adr-63"""
     result = json.loads(config).copy()
 
@@ -364,7 +369,8 @@ def transform_config(config):
         pointing = result["pointing"].copy()
         if "target" in pointing:
             pointing["field"] = pointing.pop("target")
-        pointing["projection"] = {"name": "SSN", "alignment": "icrs"}
+        pointing["field"]["target_name"] = object
+        pointing["projection"] = {"name": "SSN", "alignment": "ICRS"}
         result["pointing"] = pointing
 
     return json.dumps(result)

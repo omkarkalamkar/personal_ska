@@ -96,6 +96,7 @@ class BaseScanMapping:
             target_dict = target_data.get("target", {})
             if target_dict:
                 target_name = target_dict.get("target_name", "target")
+                self.component_manager.target = target_name
                 reference_frame = target_dict.get("reference_frame", "ICRS")
                 if reference_frame.lower() == "special":
                     target = Target(f"{target_name}, special")
@@ -109,6 +110,7 @@ class BaseScanMapping:
             field_dict = target_data.get("field", {})
             if field_dict:
                 target_name = field_dict.get("target_name", "target")
+                self.component_manager.target = target_name
                 reference_frame = field_dict.get("reference_frame", "ICRS")
                 if reference_frame.lower() == "special":
                     target = Target(f"{target_name}, special")
