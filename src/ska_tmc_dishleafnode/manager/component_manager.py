@@ -2746,6 +2746,11 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             self.command_unique_id_dict,
         )
 
+        if (unique_id not in self.command_unique_id_dict.values()) or (
+            not unique_id.endswith(self.supported_commands)
+        ):
+            return
+
         try:
             command_name = unique_id.split('_')[-1]
             result_code, message = json.loads(result_code_message)

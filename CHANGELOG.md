@@ -5,6 +5,12 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.41.2]
+********
+Fixed
+-----
+* A condition used to track command IDs was mistakenly removed in the previous tag. Reverting the change. 
+
 [0.41.1]
 ********
 Updated
