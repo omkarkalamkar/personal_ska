@@ -1,3 +1,4 @@
+import json
 import time
 
 import pytest
@@ -251,7 +252,7 @@ def configure_dish_leaf_node_unknown_source(
 
     start_time = time.time()
     while time.time() - start_time < 15:
-        track_table_error = dish_leaf_node.trackTableErrors
+        track_table_error = json.loads(dish_leaf_node.trackTableErrors)[0]
         logger.info("track_table_error after configure: %s", track_table_error)
         if expected_message in str(track_table_error):
             logger.info(
@@ -333,9 +334,24 @@ def test_configure_command_unknown_source(
     json_to_use = get_non_sidereal_json_for_source_unknown(
         json_factory(json_to_use)
     )
+    json_to_use = transform_config(json_to_use)
     configure_dish_leaf_node_unknown_source(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
         json_to_use,
     )
+
+
+def transform_config(config):
+    """Transforms the input configuration JSON to adr-63"""
+    result = json.loads(config).copy()
+
+    if "pointing" in result:
+        pointing = result["pointing"].copy()
+        if "target" in pointing:
+            pointing["field"] = pointing.pop("target")
+        pointing["projection"] = {"name": "SSN", "alignment": "icrs"}
+        result["pointing"] = pointing
+
+    return json.dumps(result)

@@ -110,5 +110,7 @@ class GenerateProgramTrackTable:
                 "Error in GenerateProgramTrackTable: %s", str(exception)
             )
 
-            self.component_manager._current_track_table_error = str(exception)
+            self.component_manager.update_program_track_table_error_callback(
+                str(exception)
+            )
             return ResultCode.FAILED, str(exception)
