@@ -15,7 +15,6 @@ from ska_control_model import HealthState, TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import (
-    Band,
     DishMode,
     PointingState,
     TimeKeeper,
@@ -513,7 +512,7 @@ class Configure(DishLNCommand):
 
         """
         receiver_band = json_argument.get("dish", {}).get("receiver_band", "")
-        self.logger.info("Receiver band is %s", Band(receiver_band).name)
+        self.logger.info("Receiver band is %s", receiver_band)
 
         def _invoke_configure_band_callback(
             status=None,
