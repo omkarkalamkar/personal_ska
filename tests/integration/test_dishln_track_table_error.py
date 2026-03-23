@@ -7,6 +7,7 @@ from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DevFactory, DishMode
 
+from ska_tmc_dishleafnode.enums.enums import CapabilityStates
 from tests.settings import (
     COMMAND_COMPLETED,
     COMMAND_FAILED_WITH_TRACK,
@@ -23,6 +24,17 @@ from tests.settings import (
 )
 
 OFFSET = 5.0
+
+capability_dict = json.dumps(
+    {
+        "B1": CapabilityStates.STANDBY,
+        "B2": CapabilityStates.STANDBY,
+        "B3": CapabilityStates.STANDBY,
+        "B4": CapabilityStates.STANDBY,
+        "B5a": CapabilityStates.STANDBY,
+        "B5b": CapabilityStates.STANDBY,
+    }
+)
 
 
 def configure_dish_leaf_node_source_not_visible(
@@ -183,7 +195,8 @@ def configure_dish_leaf_node_unknown_source(
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
-
+    dish_master.SetDirectCapabilityState(capability_dict)
+    dish_leaf_node.SetKValue(1)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
 
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -327,6 +340,7 @@ def configure_dish_leaf_node_unknown_source(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.test
 @pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
 def test_configure_command_unknown_source(
     tango_context, group_callback, json_factory, json_to_use
