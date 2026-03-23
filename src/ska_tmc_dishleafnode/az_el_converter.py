@@ -266,13 +266,10 @@ class AzElConverter_v2(AzElConverter):
         timestamp = args[0]
         refraction_corrected_azel = []
         try:
-            (
-                projection_name,
-                projection_alignment,
-                x_offset,
-                y_offset,
-            ) = self.component_manager.projection_and_fixed_trajectory_data
-            x_in_rad, y_in_rad = self.get_offset_in_rad(x_offset, y_offset)
+            x_in_rad, y_in_rad = self.get_offset_in_rad(
+                self.component_manager.fixed_x_offset,
+                self.component_manager.fixed_y_offset,
+            )
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
@@ -281,8 +278,8 @@ class AzElConverter_v2(AzElConverter):
                     y_in_rad,
                     timestamp=timestamp,
                     # antenna=self.component_manager.observer,
-                    projection_type=projection_name.upper(),
-                    coord_system=projection_alignment,
+                    projection_type=self.component_manager.projection_name,
+                    coord_system=self.component_manager.projection_alignment,
                 )
             azel = AltAz(az=Angle(az, u.rad), alt=Angle(el, u.rad))
             refraction_corrected_azel = self.apply_refraction_correction(azel)

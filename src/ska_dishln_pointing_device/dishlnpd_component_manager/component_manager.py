@@ -82,6 +82,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.event_manager = _event_manager
         self.target: list | str | None = None
         self.antenna_target = None
+        self.projection_name: str = "SIN"
+        self.projection_alignment = "AltAz"
+        self.fixed_x_offset: float = 0.0
+        self.fixed_y_offset: float = 0.0
         self.projection_and_fixed_trajectory_data = []
         self._current_track_table_error = ""
         self.__target_data: dict = {}

@@ -40,7 +40,7 @@
             }
         },
         "trajectory": {"name": "fixed", "attrs": {"x": 0.0, "y": 0.0}},
-        "projection": {"name": "SIN", "alignment": "AltAz"}
+        "projection": {"name": "SSN", "alignment": "AltAz"}
     },
     "dish": {"receiver_band": "2"},
     "tmc": {"scan_duration": 5}

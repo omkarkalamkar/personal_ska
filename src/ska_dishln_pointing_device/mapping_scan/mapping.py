@@ -62,15 +62,16 @@ class BaseScanMapping:
             #             self.get_radec_from_plane_to_sphere()
             #         )
             self.build_data_for_observation()
-            projection_name, projection_alignment = self.get_projection()
+            (
+                self.component_manager.projection_name,
+                self.component_manager.projection_alignment,
+            ) = self.get_projection()
             if self.get_trajectory_name() == "fixed":
-                x_offset, y_offset = self.get_fixed_trajectory_offsets()
-                self.component_manager.projection_and_fixed_trajectory_data = [
-                    projection_name,
-                    projection_alignment,
-                    x_offset,
-                    y_offset,
-                ]
+                (
+                    self.component_manager.fixed_x_offset,
+                    self.component_manager.fixed_y_offset,
+                ) = self.get_fixed_trajectory_offsets()
+
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
@@ -138,10 +139,7 @@ class BaseScanMapping:
                 elif reference_frame.lower() == "tle":
                     line1 = field_dict.get("attrs", {}).get("line1", "")
                     line2 = field_dict.get("attrs", {}).get("line2", "")
-                    target = Target(
-                        f"{target_name}, {reference_frame.lower()}, "
-                        f"{line1}, {line2}"
-                    )
+                    target = Target(f"{target_name}, tle, {line1}, {line2}")
                 elif reference_frame.lower() == "altaz":
                     c1 = field_dict.get("attrs", {}).get("c1", "")
                     c2 = field_dict.get("attrs", {}).get("c2", "")
@@ -149,6 +147,8 @@ class BaseScanMapping:
             if target:
                 target.antenna = self.component_manager.observer
                 self.component_manager.antenna_target = target
+            else:
+                raise InvalidTargetDataError()
         except Exception as exp:
             self.logger.exception(
                 " Failed to set target for fixed/mosaic mapping "
@@ -229,7 +229,7 @@ class BaseScanMapping:
             projection_name,
             projection_alignment,
         )
-        return [projection_name, projection_alignment]
+        return [projection_name.upper(), projection_alignment]
 
     def set_trajectory_and_duration(self):
         """Create Trajectory Object and set duration"""
