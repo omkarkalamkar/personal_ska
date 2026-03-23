@@ -69,7 +69,7 @@ class GenerateProgramTrackTable:
             return ResultCode.FAILED, str(ex)
 
         self.logger.debug(
-            "Updating Task status with Result: %s , Message: %s",
+            "Updating Task status with Result: %s, Message: %s",
             return_code,
             message,
         )
@@ -85,11 +85,6 @@ class GenerateProgramTrackTable:
         """
         Executes the GenerateProgramTrackTable command logic.
         """
-        self.logger.info(
-            "Executing GenerateProgramTrackTable command on %s",
-            self.component_manager.dishln_pointing_device_name,
-        )
-
         with self.component_manager.track_thread_lock:
             self.component_manager.mapping_scan_event.clear()
 
@@ -101,5 +96,10 @@ class GenerateProgramTrackTable:
 
         current_scan_obj = self.component_manager.current_mapping_scan_obj
         current_scan_obj.set_target_and_start_process()
+
+        self.logger.info(
+            "GenerateProgramTrackTable command invoked on %s",
+            self.component_manager.dishln_pointing_device_name,
+        )
 
         return ResultCode.OK, "Command Completed"

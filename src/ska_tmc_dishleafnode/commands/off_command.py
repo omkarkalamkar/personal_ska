@@ -79,8 +79,8 @@ class Off(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.debug(
-                "Adapter for : %s is not found ",
+            self.logger.error(
+                "Adapter not found for %s",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
