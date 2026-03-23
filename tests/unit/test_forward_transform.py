@@ -40,7 +40,10 @@ def test_radec_to_azel(
     expected_el: float,
     cm_without_er_lp,
 ):
-    """Function to test AzEl conversion"""
+    """Test RA/Dec → Az/El conversion using the AzElConverter.
+    Verifies equatorial to horizon coordinate transformation
+    with IERS data."""
+
     cm = cm_without_er_lp
     cm.array_layout = ARRAY_LAYOUT
     cm.get_device(cm.dish_dev_name).update_unresponsive(False, "")
@@ -90,7 +93,9 @@ def test_tle_to_azel_v2(
     timestamp: str,
     cm_pointig_device,
 ):
-    """Test that AzElConverter_v2.point converts TLE to AzEl."""
+    """Test TLE satellite target → Az/El using AzElConverter_v2.
+    Validates Skyfield TLE parsing, antenna observer,
+    and refraction."""
     cm = cm_pointig_device
     cm.iers_a = iers.IERS_A.open(IERS_DATA_STORAGE_PATH)
 
