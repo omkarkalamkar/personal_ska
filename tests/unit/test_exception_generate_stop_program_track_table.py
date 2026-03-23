@@ -14,25 +14,35 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
-from ska_dishln_pointing_device.mapping_scan.utils import (
-    InvalidTargetDataError,
-)
 from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
 
 
 def test_generate_program_track_table(cm_pointig_device):
+    mock_logger = mock.MagicMock()
     generate_program_track_table = GenerateProgramTrackTable(
         component_manager=cm_pointig_device,
-        logger=logger,
+        logger=mock_logger,
     )
+    cm_pointig_device.logger = mock_logger
+
     cm_pointig_device.target_data = {"1": 1}  # invalid target data
-    with pytest.raises(InvalidTargetDataError):
-        generate_program_track_table.do()
+    generate_program_track_table.do()
+
+    assert cm_pointig_device.current_track_table_error is not None
+
+    # Second case
+    mock_logger = mock.MagicMock()
+    generate_program_track_table = GenerateProgramTrackTable(
+        component_manager=cm_pointig_device,
+        logger=mock_logger,
+    )
+    cm_pointig_device.logger = mock_logger
+
     cm_pointig_device.target_data = {"pointing": [1, 2]}  # invalid target data
-    with pytest.raises(Exception):
-        generate_program_track_table.do()
+    generate_program_track_table.do()
+    assert cm_pointig_device.current_track_table_error is not None
 
 
 def test_stop_program_track_table():

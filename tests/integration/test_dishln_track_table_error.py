@@ -245,18 +245,28 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     expected_message = (
-        "Target description 'Pluto, special' contains unknown"
-        + " *special* body 'Pluto'"
+        "Target description 'Kepler, special' contains unknown"
+        + " *special* body 'Kepler'"
     )
 
-    track_table_error = dish_leaf_node.trackTableErrors
+    start_time = time.time()
+    while time.time() - start_time < 15:
+        track_table_error = dish_leaf_node.trackTableErrors
+        logger.info("track_table_error after configure: %s", track_table_error)
+        if expected_message in str(track_table_error):
+            logger.info(
+                "Unknown source error correctly received in trackTableErrors"
+            )
+            break
+        time.sleep(1)
+    else:
+        pytest.fail(
+            f"Expected error not found in trackTableErrors. "
+            f"Got: {track_table_error}"
+        )
 
-    logger.info(
-        "track_table_error after configure: %s",
-        track_table_error,
-    )
+    assert expected_message in str(track_table_error)
 
-    assert expected_message in track_table_error
     group_callback["programTrackTableError"].assert_change_event(
         expected_message,
         lookahead=8,
@@ -269,7 +279,7 @@ def configure_dish_leaf_node_unknown_source(
         dish_master,
         dishln_pointing_device,
         HealthState.DEGRADED,
-        "Target description 'Pluto, special' contains unknown ",
+        "Target description 'Kepler, special' contains unknown ",
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(

@@ -4,7 +4,6 @@ import time
 
 import pytest
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
 from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
@@ -25,9 +24,19 @@ def test_calculate_time_stamp_array(cm_pointig_device):
 
 
 def test_calculate_program_track_table(cm_pointig_device):
+    from katpoint import Target
+
+    from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2
+
     cm = cm_pointig_device
     wait_for_iers_data_available(cm)
-    azel_converter = AzElConverter(cm)
+
+    target = Target("Polaris Australis, radec, 21:08:47.92, -88:57:22.9")
+    target.antenna = cm.observer
+    cm.antenna_target = target
+    cm.projection_and_fixed_trajectory_data = ["SIN", "azel", 0.0, 0.0]
+
+    azel_converter = AzElConverter_v2(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
     track_table_calculator.track_table_scheduler = sched.scheduler(
@@ -48,7 +57,6 @@ def test_calculate_program_track_table(cm_pointig_device):
             retry += 1
         time.sleep(0.1)
 
-    # Given Ra and Dec are of polaris australis
     program_track_table = track_table_calculator.calculate_program_track_table(
         azel_converter
     )
@@ -61,9 +69,7 @@ def test_calculate_program_track_table(cm_pointig_device):
         time.sleep(0.5)
 
     logger.info(f"ProgramTrackTable: {program_track_table}")
-
     assert len(program_track_table) > 0 and len(program_track_table) % 3 == 0
-
     for item in program_track_table:
         assert isinstance(item, float)
 
