@@ -50,17 +50,6 @@ class BaseScanMapping:
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
         try:
-            # self.extract_target_from_config()
-            # if isinstance(self.component_manager.target, list):
-            #     data1, _ = self.component_manager.target
-            #     first_token = data1.split(maxsplit=1)[0]
-            #     if first_token == "1":
-            #         self.logger.info("Starting TLE observation")
-            #     else:
-            #         self.setup_observation_target()
-            #         self.component_manager.target = (
-            #             self.get_radec_from_plane_to_sphere()
-            #         )
             self.build_data_for_observation()
             (
                 self.component_manager.projection_name,

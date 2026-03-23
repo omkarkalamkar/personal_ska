@@ -523,7 +523,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            self.logger.info(">>>>>>> >>>%s", program_track_table)
             self.pointing_program_track_table = program_track_table
             self.update_pointing_program_track_table_callback(
                 self.pointing_program_track_table
@@ -598,7 +597,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             self.converter.point(timestamp)
             self.update_program_track_table_error_callback("")
-            self.logger.info("Converter Object Updated")
+            self.logger.debug("Converter Object Updated")
 
             utc_now = datetime.datetime.utcnow()
 
