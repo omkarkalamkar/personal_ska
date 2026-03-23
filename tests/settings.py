@@ -670,7 +670,7 @@ def get_non_sidereal_json_for_source_unknown(non_side_real_json) -> str:
     """Return the json for Configure command with unknown non-sidereal
     object."""
     configure_input_json = json.loads(non_side_real_json)
-    configure_input_json["pointing"]["target"]["target_name"] = "Kepler"
+    configure_input_json["pointing"]["target"]["target_name"] = "Sirius"
     return json.dumps(configure_input_json)
 
 

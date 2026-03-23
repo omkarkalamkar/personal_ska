@@ -245,8 +245,8 @@ def configure_dish_leaf_node_unknown_source(
     )
 
     expected_message = (
-        "Target description 'Kepler, special' contains unknown"
-        + " *special* body 'Kepler'"
+        "Target description 'Sirius, special' contains unknown"
+        + " *special* body 'Sirius'"
     )
 
     start_time = time.time()
@@ -279,7 +279,7 @@ def configure_dish_leaf_node_unknown_source(
         dish_master,
         dishln_pointing_device,
         HealthState.DEGRADED,
-        "Target description 'Kepler, special' contains unknown ",
+        "Target description 'Sirius, special' contains unknown ",
     )
 
     group_callback["longRunningCommandResult"].assert_change_event(
