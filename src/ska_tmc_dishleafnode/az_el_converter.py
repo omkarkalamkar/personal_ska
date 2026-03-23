@@ -37,7 +37,6 @@ class AzElConverter:
     def create_antenna_obj(self) -> None:
         """Create antenna object from array layout and set observer."""
         layout = getattr(self.component_manager, "array_layout", None)
-        logger.info(layout)
         if not layout:
             logger.warning("No array_layout found; observer will not be set.")
             return
@@ -60,7 +59,7 @@ class AzElConverter:
             return
 
         self.component_manager.observer = antenna
-        logger.info(
+        logger.debug(
             "Observer set to %s", getattr(antenna, "name", "<antenna>")
         )
 

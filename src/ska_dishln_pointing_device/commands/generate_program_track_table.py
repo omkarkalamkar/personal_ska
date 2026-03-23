@@ -69,7 +69,7 @@ class GenerateProgramTrackTable:
             return ResultCode.FAILED, str(ex)
 
         self.logger.debug(
-            "Updating Task status with Result: %s , Message: %s",
+            "Updating Task status with Result: %s, Message: %s",
             return_code,
             message,
         )

@@ -5,6 +5,29 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.41.2]
+********
+Fixed
+-----
+* A condition used to track command IDs was mistakenly removed in the previous tag. Reverting the change. 
+
+[0.41.1]
+********
+Updated
+-------
+* Logging improvements
+  - Improved existing log statements.
+  - Removed unnecessary log statements.
+  - Changed log level from INFO to DEBUG where appropriate.
+* Updated version of ska-tmc-common to 1.7.0.
+
+[0.41.0]
+********
+Updated
+--------
+* TMC can perform calibration scans using the trajectory data specified under the pointing key in the configure JSON.
+* The invocation of the TrackLoadStaticOff command has been removed for calibration scans.
+
 [0.40.1]
 ********
 Updated

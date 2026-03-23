@@ -1127,9 +1127,7 @@ def test_bandcap_unknown_handling_sequential_health_and_info(
         assert evaluated == HealthState.FAILED
         hi = cm.health_manager.generate_health_info()
         summary = hi["HealthSummary"]
-        assert any(
-            "Requested band B1" in s for s in summary
-        ), f"HealthSummary={summary}"
+        assert any("Band B1" in s for s in summary), f"HealthSummary={summary}"
         assert any(
             "not fully available" in s.lower() for s in summary
         ), f"HealthSummary={summary}"

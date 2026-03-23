@@ -100,7 +100,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
                 self.dish_master_adapter.proxy.set_timeout_millis(5000)
                 self.logger.debug(
-                    "Dish Master adapter created successfully",
+                    "Dish Manager adapter created successfully",
                 )
                 self.component_manager.set_dish_adapter(
                     self.dish_master_adapter
@@ -204,9 +204,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 return flag
             elapsed_time = time.time() - start_time
 
-        self.logger.info(
-            "Current Dishmode is %s", self.component_manager.dishMode
-        )
+        self.logger.info("Dish mode is %s", self.component_manager.dishMode)
         return flag
 
     def init_adapter_mid(self: DishLNCommand):

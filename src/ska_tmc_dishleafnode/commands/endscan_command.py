@@ -68,7 +68,7 @@ class EndScan(DishLNCommand):
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
             self.logger.debug(
-                "Command ID: %s | Error while creating adapter for %s",
+                "Command ID: %s | Adapter not found for %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
@@ -85,7 +85,7 @@ class EndScan(DishLNCommand):
                 self.command_uniq_id = message[0]
             self.logger.info(
                 "Command ID: %s |"
-                + " EndScan command executed on %s "
+                + " EndScan command invoked on %s "
                 + "ResultCode: %s, Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,

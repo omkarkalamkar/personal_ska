@@ -250,7 +250,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.start_event_manager(
             self.build_device_attribute_map(), timeout=1000
         )
-        self.logger.debug("Successfully subscribed the events")
+        self.logger.debug("Successfully subscribed to the events.")
 
     def build_device_attribute_map(self) -> dict[str, list[str]]:
         """
@@ -382,8 +382,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self.array_layout = layout
                 try:
                     self.converter.create_antenna_obj()
-                    self.logger.info(
-                        "observer rebuilt from received array_layout."
+                    self.logger.debug(
+                        "Observer rebuilt from received array_layout."
                     )
                 except Exception as exp:
                     self.logger.exception(
@@ -597,7 +597,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
             self.converter.point(timestamp)
             self.update_program_track_table_error_callback("")
-            self.logger.debug("Converter Object Updated")
 
             utc_now = datetime.datetime.utcnow()
 
@@ -634,10 +633,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
             while not is_track_thread_stop:
                 self.logger.debug(
-                    "Current Thread ID: %s", threading.get_native_id()
-                )
-                self.logger.debug(
-                    "Target used to calculate trackTable: %s", self.target
+                    "Target used to calculate trackTable: %s "
+                    "with thread id: %s",
+                    self.target,
+                    threading.get_native_id(),
                 )
 
                 with self.track_thread_lock:
@@ -671,9 +670,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     scheduled_time
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
-                self.logger.debug("Actual Time: %s", actual_time_readable)
                 self.logger.debug(
-                    "Scheduled time: %s", scheduled_time_readable
+                    "Actual Time: %s, Scheduled time: %s",
+                    actual_time_readable,
+                    scheduled_time_readable,
                 )
 
                 with self.track_thread_lock:
@@ -689,17 +689,15 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             argument=(program_track_table,),
                         )
                         self.logger.debug(
-                            "Scheduled trackTable write operation"
-                        )
-                        self.logger.debug(
-                            "Scheduler Length: %s",
+                            "Scheduled trackTable write operation with "
+                            "scheduler Length: %s",
                             len(track_table_scheduler.queue),
                         )
 
-            self.logger.debug("Program TrackTable Calculation stopped.")
+            self.logger.debug("Program trackTable calculation stopped.")
         except Exception as value_error:
             self.logger.error(
-                "Error occured during track_thread execution: %s",
+                "Error occurred during track_thread execution: %s",
                 str(value_error),
             )
             self.update_program_track_table_error_callback(str(value_error))
@@ -727,10 +725,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             Tuple[TaskStatus, str]: The final status of the
             task and a status message.
         """
-        self.logger.info(
-            "Submitting GenerateProgramTrackTable as slow command"
-        )
-
         command_object = GenerateProgramTrackTable(
             component_manager=self,
             logger=self.logger,

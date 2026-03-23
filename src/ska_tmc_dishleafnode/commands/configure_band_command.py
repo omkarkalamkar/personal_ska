@@ -100,15 +100,10 @@ class ConfigureBand(DishLNCommand):
         Returns:
             Tuple[ResultCode, str]: Tuple of ResultCode and message.
         """
-        self.logger.debug(
-            "Command ID: %s | Input argument for ConfigureBand command is: %s",
-            self.component_manager.command_id,
-            argin,
-        )
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.debug(
-                "Command ID: %s | Failed to find adapter for device: %s",
+            self.logger.error(
+                "Command ID: %s | Adapter not found for %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
@@ -134,11 +129,6 @@ class ConfigureBand(DishLNCommand):
             adapter_args = True
 
         self.logger.debug(
-            "Command ID: %s | Preparing to execute command: %s",
-            self.component_manager.command_id,
-            command_name,
-        )
-        self.logger.debug(
             "Command ID: %s | Command: %s will be executed on %s",
             self.component_manager.command_id,
             command_name,
@@ -163,7 +153,7 @@ class ConfigureBand(DishLNCommand):
 
             self.logger.info(
                 "Command ID: %s |"
-                + " %s Command executed on %s "
+                + " %s Command invoked on %s "
                 + "with Result: %s, Message: %s",
                 self.component_manager.command_id,
                 command_name,

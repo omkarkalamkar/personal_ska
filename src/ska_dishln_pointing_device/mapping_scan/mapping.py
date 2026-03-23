@@ -243,7 +243,7 @@ class BaseScanMapping:
         Returns:
             tuple: offset in radian.
         """
-        return Angle(x, u.deg).rad, Angle(y, u.deg).rad
+        return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
 
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
         """Convert plane coordinates to RA/Dec using spherical projection.
@@ -258,11 +258,6 @@ class BaseScanMapping:
             self.set_trajectory_and_duration()
             x, y, _, _, _ = self.traj.posn(self.traj.start)
             x_rad, y_rad = self.get_offset_in_rad(x, y)
-            self.logger.info(
-                "Calling plane to sphere with %s and %s",
-                x_rad,
-                y_rad,
-            )
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):
