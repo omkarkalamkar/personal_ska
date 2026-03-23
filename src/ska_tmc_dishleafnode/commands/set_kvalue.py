@@ -73,7 +73,7 @@ class SetKValue(DishLNCommand, FastCommand):
 
         self.logger.info(
             "Command ID: %s |"
-            + " SetKValue command executed on %s "
+            + " SetKValue command invoked on %s "
             + "ResultCode: %s, Message: %s",
             self.component_manager.command_id,
             self.component_manager.dish_dev_name,

@@ -95,7 +95,7 @@ class TrackStop(DishLNCommand):
                 self.command_uniq_id = msg[0]
             self.logger.info(
                 "Command ID: %s | "
-                + "TrackStop command executed on %s, "
+                + "TrackStop command invoked on %s, "
                 + "with ResultCode: %s, Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,

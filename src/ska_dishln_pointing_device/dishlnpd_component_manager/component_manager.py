@@ -724,10 +724,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             Tuple[TaskStatus, str]: The final status of the
             task and a status message.
         """
-        self.logger.debug(
-            "Submitting GenerateProgramTrackTable as slow command"
-        )
-
         command_object = GenerateProgramTrackTable(
             component_manager=self,
             logger=self.logger,

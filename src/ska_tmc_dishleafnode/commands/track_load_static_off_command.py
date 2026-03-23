@@ -130,7 +130,7 @@ class TrackLoadStaticOff(DishLNCommand):
             self.logger.info(
                 "Command ID: %s | "
                 + "TrackLoadStaticOff command "
-                + "executed on %s with ResultCode: %s,"
+                + "invoked on %s with ResultCode: %s,"
                 + " Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,

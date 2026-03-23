@@ -121,11 +121,6 @@ class Abort(DishLNCommand):
             )
             return result_code, message
 
-        self.logger.debug(
-            "IsDishAbortEnabled property value is %s",
-            self.component_manager.is_dish_abort_commands_enabled,
-        )
-
         if self.component_manager.is_dish_abort_commands_enabled:
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Abort"
@@ -157,7 +152,7 @@ class Abort(DishLNCommand):
         self.component_manager.clear_track_table_errors()
 
         self.logger.info(
-            "Abort command executed successfully on the DishLeafNode."
+            "Abort command invoked successfully on the DishLeafNode."
         )
         return ResultCode.STARTED, COMMAND_STARTED_MESSAGE
 

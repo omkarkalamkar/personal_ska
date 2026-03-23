@@ -85,7 +85,7 @@ class EndScan(DishLNCommand):
                 self.command_uniq_id = message[0]
             self.logger.info(
                 "Command ID: %s |"
-                + " EndScan command executed on %s "
+                + " EndScan command invoked on %s "
                 + "ResultCode: %s, Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,

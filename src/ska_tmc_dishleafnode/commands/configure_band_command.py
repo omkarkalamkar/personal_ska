@@ -153,7 +153,7 @@ class ConfigureBand(DishLNCommand):
 
             self.logger.info(
                 "Command ID: %s |"
-                + " %s Command executed on %s "
+                + " %s Command invoked on %s "
                 + "with Result: %s, Message: %s",
                 self.component_manager.command_id,
                 command_name,

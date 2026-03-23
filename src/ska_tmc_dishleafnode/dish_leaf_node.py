@@ -307,10 +307,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             health_info (dict): New health info to be set.
         """
         self._health_info = json.dumps(health_info)
-        self.logger.info(
-            "Updated HealthInfo is: %s",
-            self._health_info,
-        )
 
     def update_gpm_paths_data_callback(
         self, source_path: str, file_path: str
