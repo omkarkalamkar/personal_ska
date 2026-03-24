@@ -716,7 +716,7 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
             coord_system="ICRS",
         )
         el = Angle(el, u.rad).deg
-        if el <= 16.5 or el >= 90.0:
+        if el <= 7.5 or el >= 90.0:
             object_not_visible = solar_system_object
             break
     return object_not_visible
