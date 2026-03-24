@@ -374,3 +374,76 @@ def test_array_layout_getter_returns_top_level_copy(
     view["new_top_level_key"] = 123
     assert "new_top_level_key" not in cm._array_layout
     assert cm._array_layout["stations"]["SKA004"]["lat"] == 12.3
+
+
+def test_generate_program_track_table_supports_adr106_field_key(
+    cm_pointing_device, json_factory
+):
+    """Verify ADR-106 'field' key support in GenerateProgramTrackTable
+    (covers BaseScanMapping.set_target_and_start_process +
+    build_data_for_observation in mapping.py)."""
+    cm = cm_pointing_device
+    configure_data = json.loads(json_factory("dishleafnode_configure_adr106"))
+    del configure_data["dish"]
+    cm.target_data = configure_data
+
+    generate = GenerateProgramTrackTable(
+        logger=cm.logger, component_manager=cm
+    )
+    generate.do()
+
+    assert cm.current_mapping_scan_obj is not None
+
+
+def test_stop_program_track_table_cleans_up_resources(cm_pointing_device):
+    """Test StopProgramTrackTable command to cover thread cleanup
+    and stop_event_processing_threads logic in component_manager.py."""
+    cm = cm_pointing_device
+    stop_cmd = StopProgramTrackTable(logger=cm.logger, component_manager=cm)
+    stop_cmd.do()
+    assert (
+        cm.track_table_thread is None or not cm.track_table_thread.is_alive()
+    )
+
+
+def test_mapping_scan_adr106_additional_paths(
+    cm_pointing_device, json_factory
+):
+    """Cover remaining branches in BaseScanMapping for ADR-106
+    (get_projection and get_trajectory_name paths)."""
+    cm = cm_pointing_device
+    configure_data = json.loads(json_factory("dishleafnode_configure_adr106"))
+    del configure_data["dish"]
+    cm.target_data = configure_data
+
+    GenerateProgramTrackTable(logger=cm.logger, component_manager=cm).do()
+
+    mapping_obj = cm.current_mapping_scan_obj
+    assert mapping_obj is not None
+
+    assert mapping_obj.get_projection() is not None
+    assert mapping_obj.get_trajectory_name() == "fixed"
+
+
+def test_generate_program_track_table_handles_adr106_error_path(
+    cm_pointing_device, json_factory
+):
+    """Verify error path in GenerateProgramTrackTable for ADR-106 field key"""
+    cm = cm_pointing_device
+    # Force an error by using invalid target data
+    bad_data = {
+        "pointing": {
+            "field": {
+                "reference_frame": "icrs",
+                "target_name": "InvalidPlanet",
+            }
+        }
+    }
+    cm.target_data = bad_data
+
+    generate = GenerateProgramTrackTable(
+        logger=cm.logger, component_manager=cm
+    )
+    result = generate.do()
+
+    assert result is not None

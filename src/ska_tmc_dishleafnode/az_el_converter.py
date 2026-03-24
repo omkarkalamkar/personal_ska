@@ -244,10 +244,8 @@ class AzElConverter:
 
 
 class AzElConverter_v2(AzElConverter):
-    """Class to convert Right ascension(Ra) and Declination(Dec)
-    values into Azimuth(Az) and Elevation(El).
-    This class addressed the missing projection and trajectory functionality
-    in older class.
+    """Extends AzElConverter with projection, trajectory, and atmospheric
+    refraction correction support when computing Azimuth(Az) and Elevation(El)
     """
 
     def __init__(self, component_manager):
@@ -257,9 +255,12 @@ class AzElConverter_v2(AzElConverter):
         """
         Get Az/El for a TLE object and apply refraction correction.
 
-        :param tle1: First line of the TLE
-        :param tle2: Second line of the TLE
-        :param timestamp: Timestamp for observation
+        Args:
+            timestamp: Timestamp for observation.
+
+        Returns:
+            List[float]: Azimuth and Elevation in degrees after refraction
+            correction.
         """
         timestamp = args[0]
         refraction_corrected_azel = []
@@ -294,7 +295,10 @@ class AzElConverter_v2(AzElConverter):
     def get_offset_in_rad(self, x: float, y: float) -> tuple:
         """Get the offset in radian
 
+        Args:
+            x: Offset in arcseconds along x-axis.
+            y: Offset in arcseconds along y-axis.
         Returns:
-            tuple: offset in radian.
+            tuple[float, float]: Offset values in radians.
         """
         return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad

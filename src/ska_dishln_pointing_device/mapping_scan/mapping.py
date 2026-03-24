@@ -68,7 +68,11 @@ class BaseScanMapping:
             raise exception
 
     def get_trajectory_name(self):
-        """Create Trajectory Object and set duration"""
+        """Create Trajectory Object and set duration
+
+        Returns:
+            str: Name of the trajectory
+        """
 
         trajectory = self.component_manager.target_data.get(
             'pointing', {}
@@ -77,7 +81,11 @@ class BaseScanMapping:
         return trajectory_name
 
     def get_fixed_trajectory_offsets(self):
-        """Get Fixed Trajectory Offsets"""
+        """Get Fixed Trajectory Offsets
+
+        Returns:
+            tuple[float, float]: Tuple containing x and y offsets.
+        """
         trajectory = self.component_manager.target_data.get(
             'pointing', {}
         ).get("trajectory", {})
@@ -87,6 +95,10 @@ class BaseScanMapping:
     def build_data_for_observation(self):
         """Build Data for Observation based
         on the target data provided in the dish configure input.
+
+        Raises:
+            InvalidTargetDataError: If target data is missing or invalid.
+            Exception: If target construction fails.
         """
         target = None
         try:

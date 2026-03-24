@@ -1,3 +1,4 @@
+from datetime import datetime
 from time import sleep
 
 import pytest
@@ -116,3 +117,29 @@ def test_tle_to_azel_v2(
 
     assert az == expected_az
     assert el == expected_el
+
+
+def test_azel_converter_v2_supports_projection_and_fixed_offsets(
+    cm_pointing_device,
+):
+    """Test the new AzElConverter_v2.point() implementation (ADR-106) that
+    supports projection and fixed trajectory offsets using plane_to_sphere
+    conversion for mapping scans."""
+    cm = cm_pointing_device
+
+    cm.array_layout = ARRAY_LAYOUT
+    cm.fixed_x_offset = 0.0
+    cm.fixed_y_offset = 5.0
+    cm.projection_name = "SIN"
+    cm.projection_alignment = "azel"
+
+    target = Target("dummy_target, radec, 0:00:00, 0:00:00")
+    target.antenna = cm.observer
+    cm.antenna_target = target
+
+    converter = AzElConverter_v2(component_manager=cm)
+    timestamp = Time(datetime.utcnow(), scale="utc")
+    az, el = converter.point(timestamp)
+
+    assert isinstance(az, float)
+    assert isinstance(el, float)
