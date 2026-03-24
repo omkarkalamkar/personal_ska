@@ -111,8 +111,8 @@ class ProgramTrackTableCalculator:
 
         except Exception as exception:
             self.logger.exception(
-                "Exception occured to calculate "
-                + "program track table , Exception: %s",
+                "Exception occurred to calculate "
+                + "program track table, Exception: %s",
                 str(exception),
             )
             raise Exception(str(exception)) from exception

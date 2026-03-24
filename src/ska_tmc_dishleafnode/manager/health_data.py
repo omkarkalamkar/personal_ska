@@ -219,7 +219,7 @@ class DishHealthStateAndInfoManager:
                 key = f"program_track_table_{err_type.lower()}"
                 error_msg = f"Program_Track_Table Process Failed :{err_msg}"
                 self._active_issues[key] = error_msg
-        self.logger.debug("Updated active  issues: %s", self._active_issues)
+        self.logger.debug("Updated active issues: %s", self._active_issues)
 
     def _update_kvalue_validation(self, data) -> None:
         """Update K-value validation result and related issues."""
@@ -258,7 +258,9 @@ class DishHealthStateAndInfoManager:
         self.health_data.band_capability_data.band_capabilities[
             band_name
         ] = capability_state
-        self.logger.info("Updated band capability → %s", str(self.health_data))
+        self.logger.debug(
+            "Updated band capability → %s", str(self.health_data)
+        )
 
         self._update_band_issues()
 
@@ -281,8 +283,6 @@ class DishHealthStateAndInfoManager:
         Update band-related issues in _active_issues
         based on current receiver band and capability states.
         """
-        self.logger.debug("Updating band issues")
-
         good_states = {
             "STANDBY",
             "CONFIGURING",
@@ -318,14 +318,14 @@ class DishHealthStateAndInfoManager:
 
             if state.name not in good_states:
                 msg = (
-                    f"Requested band {requested.name} is in state "
-                    f"{state.name} (not fully available)"
+                    f"Band {requested.name} state: {state.name} "
+                    "(not fully available)"
                 )
                 self._active_issues[f"band_requested_{requested.name}"] = msg
                 self.logger.info(msg)
             else:
                 self.logger.debug(
-                    "Requested band %s is in acceptable state: %s",
+                    "Band %s state: %s",
                     requested.name,
                     state.name,
                 )
@@ -341,14 +341,13 @@ class DishHealthStateAndInfoManager:
             if bad_bands:
                 msg = f"Unavailable bands: {', '.join(bad_bands)}"
                 self._active_issues["band_unavailable"] = msg
-                self.logger.info(msg)
             else:
                 self.logger.debug(
                     "No specific band requested and all bands are healthy"
                 )
 
         if self._active_issues:
-            self.logger.debug(
+            self.logger.info(
                 "Active band-related issues after update: %s",
                 {
                     k: v
@@ -428,7 +427,7 @@ class DishHealthStateAndInfoManager:
             #     error_msg = f"GPM validation failed for GPM index {idx}."
             #     self._active_issues[f"gpm_{idx}"] = error_msg
 
-        self.logger.info(
+        self.logger.debug(
             "Active GPM-related issues after update: %s", self._active_issues
         )
 
@@ -535,9 +534,7 @@ class DishHealthStateAndInfoManager:
         ):
             for rule in HEALTH_RULES.get(health_state, []):
                 if rule.matches(context_dict):
-                    self.logger.debug(
-                        "HealthState decided as %s", health_state.name
-                    )
+                    self.logger.debug("HealthState: %s", health_state.name)
                     return health_state
 
         # Unreachable due to UNKNOWN fallback, but log

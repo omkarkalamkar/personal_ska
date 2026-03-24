@@ -48,7 +48,7 @@ class DishkValueValidationManager:
             time.sleep(1)
         if exception:
             self.logger.exception(
-                "Dish manager is unresponsive , Exception: %s", str(exception)
+                "Dish manager is unresponsive, Exception: %s", str(exception)
             )
         return False
 
@@ -73,8 +73,11 @@ class DishkValueValidationManager:
         """
         dish_manager_kvalue = self.get_dish_manager_kvalue()
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
-        self.logger.info("Dish Manager k-value: %s", dish_manager_kvalue)
-        self.logger.info("Dish Leaf Node k-value: %s", dish_ln_kvalue)
+        self.logger.info(
+            "Dish Manager and Dish Leaf Node k-values: %s, %s",
+            dish_manager_kvalue,
+            dish_ln_kvalue,
+        )
         with self.kvalue_validation_lock:
             self.kvalue_validation_update(dish_manager_kvalue, dish_ln_kvalue)
 
@@ -87,7 +90,7 @@ class DishkValueValidationManager:
         :param kvalue: kValue received from the dish event.
         :return: None
         """
-        self.logger.info("Validating k-value from event.")
+        self.logger.debug("Validating k-value from event.")
         dish_ln_kvalue = self.get_dish_ln_memorized_kvalue()
         with self.kvalue_validation_lock:
             self.kvalue_validation_update(dish_ln_kvalue, kvalue)

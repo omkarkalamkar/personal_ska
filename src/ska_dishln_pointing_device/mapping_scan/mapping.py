@@ -68,7 +68,11 @@ class BaseScanMapping:
             raise exception
 
     def get_trajectory_name(self):
-        """Create Trajectory Object and set duration"""
+        """Create Trajectory Object and set duration
+
+        Returns:
+            str: Name of the trajectory
+        """
 
         trajectory = self.component_manager.target_data.get(
             'pointing', {}
@@ -77,7 +81,11 @@ class BaseScanMapping:
         return trajectory_name
 
     def get_fixed_trajectory_offsets(self):
-        """Get Fixed Trajectory Offsets"""
+        """Get Fixed Trajectory Offsets
+
+        Returns:
+            tuple[float, float]: Tuple containing x and y offsets.
+        """
         trajectory = self.component_manager.target_data.get(
             'pointing', {}
         ).get("trajectory", {})
@@ -87,6 +95,10 @@ class BaseScanMapping:
     def build_data_for_observation(self):
         """Build Data for Observation based
         on the target data provided in the dish configure input.
+
+        Raises:
+            InvalidTargetDataError: If target data is missing or invalid.
+            Exception: If target construction fails.
         """
         target = None
         try:
@@ -243,7 +255,7 @@ class BaseScanMapping:
         Returns:
             tuple: offset in radian.
         """
-        return Angle(x, u.deg).rad, Angle(y, u.deg).rad
+        return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
 
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
         """Convert plane coordinates to RA/Dec using spherical projection.
@@ -258,11 +270,6 @@ class BaseScanMapping:
             self.set_trajectory_and_duration()
             x, y, _, _, _ = self.traj.posn(self.traj.start)
             x_rad, y_rad = self.get_offset_in_rad(x, y)
-            self.logger.info(
-                "Calling plane to sphere with %s and %s",
-                x_rad,
-                y_rad,
-            )
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):

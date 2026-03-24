@@ -398,7 +398,6 @@ def test_to_check_get_band_info_success(cm_without_er_lp):
     version, band = gpm_validator.get_band_info(band_name)
     assert version == band_5b_version
     assert band == set_band
-    cm.logger.info.assert_called_once()
     cm.logger.debug.assert_called_once()
 
 

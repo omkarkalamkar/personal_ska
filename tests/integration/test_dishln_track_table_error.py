@@ -119,7 +119,7 @@ def configure_dish_leaf_node_source_not_visible(
         expected_message,
         lookahead=8,
     )
-    logger.info(
+    logger.error(
         "track_table_error after configure: %s",
         track_table_error,
     )
@@ -271,7 +271,9 @@ def configure_dish_leaf_node_unknown_source(
     start_time = time.time()
     while time.time() - start_time < 15:
         track_table_error = json.loads(dish_leaf_node.trackTableErrors)[0]
-        logger.info("track_table_error after configure: %s", track_table_error)
+        logger.error(
+            "track_table_error after configure: %s", track_table_error
+        )
         if expected_message in str(track_table_error):
             logger.info(
                 "Unknown source error correctly received in trackTableErrors"

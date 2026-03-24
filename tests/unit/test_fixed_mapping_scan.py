@@ -10,9 +10,9 @@ from ska_dishln_pointing_device.mapping_scan.point_mapping import (
 from tests.settings import logger
 
 
-def test_wrap_sector_key(cm_pointig_device, json_factory):
+def test_wrap_sector_key(cm_pointing_device, json_factory):
     """Test to check wrap key"""
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory("dishleafnode_configure_adr106")
     configure_data = json.loads(configure_data)
     cm.target_data = configure_data
@@ -26,10 +26,10 @@ def test_wrap_sector_key(cm_pointig_device, json_factory):
     assert cm.is_fixed_mapping_scan()
 
 
-def test_fixed_mapping_scan(cm_pointig_device, json_factory):
+def test_fixed_mapping_scan(cm_pointing_device, json_factory):
     """Test to check all the functions and variables implemented
     in FixedMappingScan class"""
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     cm.entries_tt_schedular_queue = 20
     configure_data = json_factory("dishleafnode_configure_adr106")
     configure_data = json.loads(configure_data)
@@ -63,9 +63,9 @@ def test_fixed_mapping_scan(cm_pointig_device, json_factory):
         fms_obj.extract_target_from_config()
 
 
-def test_wrap_key_set_with_pointing_scan(cm_pointig_device, json_factory):
+def test_wrap_key_set_with_pointing_scan(cm_pointing_device, json_factory):
     """Test to check wrap sector also gets set with normal configure"""
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory("dishleafnode_configure_adr106")
     configure_data = json.loads(configure_data)
     # Add wrap sector key to normal configure

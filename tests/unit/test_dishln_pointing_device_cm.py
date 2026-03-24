@@ -18,12 +18,12 @@ from tests.settings import (
 )
 
 
-def test_dish_pointing_device_cm(cm_pointig_device):
+def test_dish_pointing_device_cm(cm_pointing_device):
     """Test dish pointing device component manager"""
-    assert cm_pointig_device.pointing_program_track_table == []
-    assert cm_pointig_device.target_data == {}
-    cm_pointig_device.target_data = [1, 2]
-    assert cm_pointig_device.target_data == [1, 2]
+    assert cm_pointing_device.pointing_program_track_table == []
+    assert cm_pointing_device.target_data == {}
+    cm_pointing_device.target_data = [1, 2]
+    assert cm_pointing_device.target_data == [1, 2]
 
 
 @pytest.mark.parametrize(
@@ -31,12 +31,12 @@ def test_dish_pointing_device_cm(cm_pointig_device):
     [("dishleafnode_configure", 5), ("dishleafnode_configure_tle_adr63", 15)],
 )
 def test_dish_pointing_device_generate_program_track_table_command(
-    cm_pointig_device, json_factory, json_input, wait_time
+    cm_pointing_device, json_factory, json_input, wait_time
 ):
     """Test to check programTrackTable generation on dish leaf
     node pointing device"""
     timeout = 0
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory(json_input)
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
@@ -55,11 +55,11 @@ def test_dish_pointing_device_generate_program_track_table_command(
     )
 
 
-def test_is_fixed_mapping_scan(cm_pointig_device, json_factory):
+def test_is_fixed_mapping_scan(cm_pointing_device, json_factory):
     """Tests that is fixed mapping scan return true or false
     based on target data set
     """
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory("delta_configure")
     configure_data = json.loads(configure_data)
     cm.target_data = configure_data
@@ -77,12 +77,12 @@ def test_is_fixed_mapping_scan(cm_pointig_device, json_factory):
     ],
 )
 def test_dish_pointing_device_stop_program_track_table_command(
-    cm_pointig_device, json_factory, json_input, wait_time
+    cm_pointing_device, json_factory, json_input, wait_time
 ):
     """Test to check stop programTrackTable generation on dish leaf
     node pointing device"""
     timeout = 0
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory(json_input)
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
@@ -107,11 +107,11 @@ def test_dish_pointing_device_stop_program_track_table_command(
 
 
 def test_dish_pointing_device_program_track_table_error(
-    cm_pointig_device, json_factory
+    cm_pointing_device, json_factory
 ):
     """Test to check program track table error"""
     timeout = 0
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory("non_sidereal_tracking")
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
@@ -124,7 +124,7 @@ def test_dish_pointing_device_program_track_table_error(
     while not cm.current_track_table_error and timeout < 5:
         time.sleep(1)
         timeout += 1
-    assert "unknown *special* body" in cm.current_track_table_error.lower()
+    assert "unknown *special* body 'Urenus'" in cm.current_track_table_error
 
 
 @pytest.mark.parametrize(
@@ -135,7 +135,7 @@ def test_dish_pointing_device_program_track_table_error(
     ],
 )
 def test_dish_pointing_device_multi_command_scenarios(
-    cm_pointig_device, json_factory, json_input
+    cm_pointing_device, json_factory, json_input
 ):
     """
     This test tests following scenarios:
@@ -148,7 +148,7 @@ def test_dish_pointing_device_multi_command_scenarios(
     GenerateProgramTrackTable
 
     """
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory(json_input)
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
@@ -226,9 +226,9 @@ def test_dish_pointing_device_multi_command_scenarios(
     assert len(cm.pointing_program_track_table) == 0
 
 
-def test_track_table_min_frequency(cm_pointig_device, json_factory):
+def test_track_table_min_frequency(cm_pointing_device, json_factory):
     timeout = 0
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory("dishleafnode_configure")
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
@@ -247,10 +247,10 @@ def test_track_table_min_frequency(cm_pointig_device, json_factory):
     assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
 
 
-def test_track_table_max_frequency(cm_pointig_device, json_factory):
+def test_track_table_max_frequency(cm_pointing_device, json_factory):
     """Test to check max track table frequency"""
     timeout = 0
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory("dishleafnode_configure")
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
@@ -269,11 +269,11 @@ def test_track_table_max_frequency(cm_pointig_device, json_factory):
     assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
 
 
-def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
+def test_dish_pointing_schedular_length(cm_pointing_device, json_factory):
     """Test to check programTrackTable generation and scheduler queue length
     on dish leaf node pointing device."""
     timeout = 0
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     configure_data = json_factory("dishleafnode_configure")
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
@@ -303,9 +303,9 @@ def test_dish_pointing_schedular_length(cm_pointig_device, json_factory):
 
 
 def test_array_layout_set_with_dict_updates_and_calls_converter(
-    cm_pointig_device, monkeypatch
+    cm_pointing_device, monkeypatch
 ):
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     calls = {"n": 0}
 
     def _fake_create_antenna_obj():
@@ -321,9 +321,9 @@ def test_array_layout_set_with_dict_updates_and_calls_converter(
 
 
 def test_array_layout_set_with_json_string_parses_and_updates(
-    cm_pointig_device, monkeypatch
+    cm_pointing_device, monkeypatch
 ):
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     calls = {"n": 0}
 
     def _fake_create_antenna_obj():
@@ -342,9 +342,9 @@ def test_array_layout_set_with_json_string_parses_and_updates(
 
 
 def test_array_layout_idempotent_when_setting_same_value(
-    cm_pointig_device, monkeypatch
+    cm_pointing_device, monkeypatch
 ):
-    cm = cm_pointig_device
+    cm = cm_pointing_device
 
     calls = {"n": 0}
 
@@ -362,9 +362,9 @@ def test_array_layout_idempotent_when_setting_same_value(
 
 
 def test_array_layout_getter_returns_top_level_copy(
-    cm_pointig_device, monkeypatch
+    cm_pointing_device, monkeypatch
 ):
-    cm = cm_pointig_device
+    cm = cm_pointing_device
     monkeypatch.setattr(cm.converter, "create_antenna_obj", lambda: None)
     layout = {
         "stations": {"SKA004": {"lat": 12.3, "lon": 45.6, "elev": 789.0}}

@@ -37,7 +37,6 @@ class AzElConverter:
     def create_antenna_obj(self) -> None:
         """Create antenna object from array layout and set observer."""
         layout = getattr(self.component_manager, "array_layout", None)
-        logger.info(layout)
         if not layout:
             logger.warning("No array_layout found; observer will not be set.")
             return
@@ -60,7 +59,7 @@ class AzElConverter:
             return
 
         self.component_manager.observer = antenna
-        logger.info(
+        logger.debug(
             "Observer set to %s", getattr(antenna, "name", "<antenna>")
         )
 
@@ -247,7 +246,7 @@ class AzElConverter:
 
 
 class AzElConverter_v2(AzElConverter):
-    """Class to convert ICRS, special, TLE, altaz reference frame
+    """Class to convert ICRS, special, TLE, altaz, etc reference frame
     values into Azimuth(Az) and Elevation(El).
     This class addressed the missing projection and trajectory functionality
     in older class.
@@ -263,13 +262,14 @@ class AzElConverter_v2(AzElConverter):
         timestamp: str | None = None,
     ) -> List[float]:
         """
-        Get Az/El for a TLE object and apply refraction correction.
+        Get Az, El and apply refraction correction.
 
         Args:
-            timestamp: Timestamp for observation
+            timestamp: Timestamp for observation.
 
         Returns:
-            [Az deg, El deg]
+            List[float]: Azimuth and Elevation in degrees after refraction
+            correction.
         """
 
         refraction_corrected_azel = []
@@ -304,7 +304,10 @@ class AzElConverter_v2(AzElConverter):
     def get_offset_in_rad(self, x: float, y: float) -> tuple:
         """Get the offset in radian
 
+        Args:
+            x: Offset in arcseconds along x-axis.
+            y: Offset in arcseconds along y-axis.
         Returns:
-            tuple: offset in radian.
+            tuple[float, float]: Offset values in radians.
         """
         return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
