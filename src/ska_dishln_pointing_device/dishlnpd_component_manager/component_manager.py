@@ -86,7 +86,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.projection_alignment = "AltAz"
         self.fixed_x_offset: float = 0.0
         self.fixed_y_offset: float = 0.0
-        self.projection_and_fixed_trajectory_data = []
         self._current_track_table_error = ""
         self.__target_data: dict = {}
         # This event can be used by on going process to change the offset

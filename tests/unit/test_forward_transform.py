@@ -104,11 +104,12 @@ def test_tle_to_azel_v2(
     target = Target(tle_description)
     target.antenna = cm.observer
     cm.antenna_target = target
-    cm.projection_and_fixed_trajectory_data = ["SIN", "azel", 0.0, 0.0]
-
+    cm.projection_name = "SIN"
+    cm.projection_alignment = "AltAz"
+    cm.fixed_x_offset = 0.0
+    cm.fixed_y_offset = 0.0
     converter = AzElConverter_v2(component_manager=cm)
-    timestamp_obj = Time(timestamp, scale="utc")
-    az, el = converter.point(timestamp_obj)
+    az, el = converter.point(timestamp=timestamp)
     az = round(az, 6)
     el = round(el, 6)
 

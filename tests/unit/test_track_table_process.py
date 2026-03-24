@@ -89,8 +89,11 @@ def test_error_in_track_table_point_method(tango_context, cm_pointing_device):
             target = Target(f"{nsr_obj}, special")
             target.antenna = cm.observer
             cm.antenna_target = target
-            cm.projection_and_fixed_trajectory_data = ["SIN", "azel", 0.0, 0.0]
-
+            cm.antenna_target = target
+            cm.projection_name = "SIN"
+            cm.projection_alignment = "AltAz"
+            cm.fixed_x_offset = 0.0
+            cm.fixed_y_offset = 0.0
             azel_converter = AzElConverter_v2(cm)
             track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
             track_table_calculator.azel_converter = azel_converter

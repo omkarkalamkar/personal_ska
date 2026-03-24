@@ -3,7 +3,9 @@ import sched
 import time
 
 import pytest
+from katpoint import Target
 
+from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2
 from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
@@ -24,18 +26,15 @@ def test_calculate_time_stamp_array(cm_pointing_device):
 
 
 def test_calculate_program_track_table(cm_pointing_device):
-    from katpoint import Target
-
-    from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2
-
     cm = cm_pointing_device
     wait_for_iers_data_available(cm)
-
     target = Target("Polaris Australis, radec, 21:08:47.92, -88:57:22.9")
     target.antenna = cm.observer
     cm.antenna_target = target
-    cm.projection_and_fixed_trajectory_data = ["SIN", "azel", 0.0, 0.0]
-
+    cm.projection_name = "SIN"
+    cm.projection_alignment = "AltAz"
+    cm.fixed_x_offset = 0.0
+    cm.fixed_y_offset = 0.0
     azel_converter = AzElConverter_v2(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
     track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
