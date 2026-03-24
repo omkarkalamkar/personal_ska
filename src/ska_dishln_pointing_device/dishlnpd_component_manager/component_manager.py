@@ -595,7 +595,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
-            self.converter.point(timestamp)
+            self.converter.point(timestamp=timestamp)
             self.update_program_track_table_error_callback("")
             self.logger.debug("Converter Object Updated")
 

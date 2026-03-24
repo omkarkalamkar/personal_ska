@@ -204,7 +204,7 @@ class ProgramTrackTableCalculator:
         """
         try:
             result = self.azel_converter.point(
-                timestamp,
+                timestamp=timestamp,
             )
             return result
         except Exception as exception:

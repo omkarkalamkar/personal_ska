@@ -126,7 +126,9 @@ class AzElConverter:
 
     def point(
         self: AzElConverter,
-        *args,
+        right_ascension: str | float,
+        declination: str | float,
+        timestamp: str,
     ) -> list[float]:
         """Convert RA/Dec to Az/El and apply refraction.
 
@@ -138,7 +140,7 @@ class AzElConverter:
         Returns:
             [Az deg, El deg]
         """
-        right_ascension, declination, timestamp = args
+
         az_el_coordinates = []
         try:
             logger.debug(
@@ -245,7 +247,7 @@ class AzElConverter:
 
 
 class AzElConverter_v2(AzElConverter):
-    """Class to convert Right ascension(Ra) and Declination(Dec)
+    """Class to convert ICRS, special, TLE, altaz reference frame
     values into Azimuth(Az) and Elevation(El).
     This class addressed the missing projection and trajectory functionality
     in older class.
@@ -254,15 +256,22 @@ class AzElConverter_v2(AzElConverter):
     def __init__(self, component_manager):
         super().__init__(component_manager=component_manager)
 
-    def point(self: AzElConverter, *args) -> List[float]:
+    def point(
+        self: AzElConverter_v2,
+        right_ascension: str | float | None = None,
+        declination: str | float | None = None,
+        timestamp: str | None = None,
+    ) -> List[float]:
         """
         Get Az/El for a TLE object and apply refraction correction.
 
-        :param tle1: First line of the TLE
-        :param tle2: Second line of the TLE
-        :param timestamp: Timestamp for observation
+        Args:
+            timestamp: Timestamp for observation
+
+        Returns:
+            [Az deg, El deg]
         """
-        timestamp = args[0]
+
         refraction_corrected_azel = []
         try:
             x_in_rad, y_in_rad = self.get_offset_in_rad(
