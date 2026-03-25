@@ -173,14 +173,23 @@ def configure_dish_leaf_node(
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 @pytest.mark.parametrize(
-    "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
+    "json_to_use",
+    [
+        "dishleafnode_configure",
+        "non_sidereal_tracking",
+        "dishleafnode_configure_tle_adr63",
+    ],
 )
 def test_configure_command(
-    tango_context, group_callback, json_factory, json_to_use, cm_pointig_device
+    tango_context,
+    group_callback,
+    json_factory,
+    json_to_use,
+    cm_pointing_device,
 ):
     if json_to_use == "non_sidereal_tracking":
         json_to_use = get_non_sidereal_json_for_now(
-            json_factory(json_to_use), cm_pointig_device
+            json_factory(json_to_use), cm_pointing_device
         )
         # It was found that some times targets are not visible,during specific
         # IST morning hours

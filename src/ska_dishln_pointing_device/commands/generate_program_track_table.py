@@ -85,21 +85,32 @@ class GenerateProgramTrackTable:
         """
         Executes the GenerateProgramTrackTable command logic.
         """
-        with self.component_manager.track_thread_lock:
-            self.component_manager.mapping_scan_event.clear()
-
-        self.component_manager.current_mapping_scan_obj = FixedMappingScan(
-            pattern_name="fixed",
-            component_manager=self.component_manager,
-            logger=self.logger,
-        )
-
-        current_scan_obj = self.component_manager.current_mapping_scan_obj
-        current_scan_obj.set_target_and_start_process()
-
         self.logger.info(
-            "GenerateProgramTrackTable command invoked on %s",
+            "Executing GenerateProgramTrackTable command on %s",
             self.component_manager.dishln_pointing_device_name,
         )
 
-        return ResultCode.OK, "Command Completed"
+        try:
+            with self.component_manager.track_thread_lock:
+                self.component_manager.mapping_scan_event.clear()
+
+            self.component_manager.current_mapping_scan_obj = FixedMappingScan(
+                pattern_name="fixed",
+                component_manager=self.component_manager,
+                logger=self.logger,
+            )
+
+            current_scan_obj = self.component_manager.current_mapping_scan_obj
+            current_scan_obj.set_target_and_start_process()
+
+            return ResultCode.OK, "Command Completed"
+
+        except Exception as exception:
+            self.logger.error(
+                "Error in GenerateProgramTrackTable: %s", str(exception)
+            )
+
+            self.component_manager.update_program_track_table_error_callback(
+                str(exception)
+            )
+            return ResultCode.FAILED, str(exception)

@@ -50,17 +50,115 @@ class BaseScanMapping:
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
         try:
-            self.extract_target_from_config()
-            if isinstance(self.component_manager.target, list):
-                self.setup_observation_target()
-                self.component_manager.target = (
-                    self.get_radec_from_plane_to_sphere()
-                )
+            self.build_data_for_observation()
+            (
+                self.component_manager.projection_name,
+                self.component_manager.projection_alignment,
+            ) = self.get_projection()
+            if self.get_trajectory_name() == "fixed":
+                (
+                    self.component_manager.fixed_x_offset,
+                    self.component_manager.fixed_y_offset,
+                ) = self.get_fixed_trajectory_offsets()
+
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
             self.logger.error("Exception: %s", exception)
             raise exception
+
+    def get_trajectory_name(self):
+        """Create Trajectory Object and set duration
+
+        Returns:
+            str: Name of the trajectory
+        """
+
+        trajectory = self.component_manager.target_data.get(
+            'pointing', {}
+        ).get("trajectory", {})
+        trajectory_name = trajectory.get("name", "fixed").lower()
+        return trajectory_name
+
+    def get_fixed_trajectory_offsets(self):
+        """Get Fixed Trajectory Offsets
+
+        Returns:
+            tuple[float, float]: Tuple containing x and y offsets.
+        """
+        trajectory = self.component_manager.target_data.get(
+            'pointing', {}
+        ).get("trajectory", {})
+        trajectory_attrs = trajectory.get("attrs", {}) or {'x': 0.0, 'y': 0.0}
+        return trajectory_attrs['x'], trajectory_attrs['y']
+
+    def build_data_for_observation(self):
+        """Build Data for Observation based
+        on the target data provided in the dish configure input.
+
+        Raises:
+            InvalidTargetDataError: If target data is missing or invalid.
+            Exception: If target construction fails.
+        """
+        target = None
+        try:
+            target_data = self.component_manager.target_data.get(
+                "pointing", {}
+            )
+            target_dict = target_data.get("target", {})
+            if target_dict:
+                target_name = target_dict.get("target_name", "target")
+                self.component_manager.target = target_name
+                reference_frame = target_dict.get("reference_frame", "ICRS")
+                if reference_frame.lower() == "special":
+                    target = Target(f"{target_name}, special")
+                elif (
+                    reference_frame.lower() == "icrs"
+                    or reference_frame.lower() == "radec"
+                ):
+                    ra = target_dict.get("ra", "")
+                    dec = target_dict.get("dec", "")
+                    target = Target(f"{target_name}, radec, {ra}, {dec}")
+            field_dict = target_data.get("field", {})
+            if field_dict:
+                target_name = field_dict.get("target_name", "target")
+                self.component_manager.target = target_name
+                reference_frame = field_dict.get("reference_frame", "ICRS")
+                if reference_frame.lower() == "special":
+                    target = Target(f"{target_name}, special")
+                elif (
+                    reference_frame.lower() == "icrs"
+                    or reference_frame.lower() == "radec"
+                ):
+                    c1 = field_dict.get("attrs").get("c1", "")
+                    c2 = field_dict.get("attrs").get("c2", "")
+                    ra = Angle(c1 * u.deg)
+                    ra_hms = ra.to_string(unit=u.hour, sep=':')
+                    dec = Angle(c2 * u.deg)
+                    dec_dms = dec.to_string(unit=u.deg, sep=':')
+                    target = Target(
+                        f"{target_name}, radec, {ra_hms}, {dec_dms}"
+                    )
+                elif reference_frame.lower() == "tle":
+                    line1 = field_dict.get("attrs", {}).get("line1", "")
+                    line2 = field_dict.get("attrs", {}).get("line2", "")
+                    target = Target(f"{target_name}, tle, {line1}, {line2}")
+                elif reference_frame.lower() == "altaz":
+                    c1 = field_dict.get("attrs", {}).get("c1", "")
+                    c2 = field_dict.get("attrs", {}).get("c2", "")
+                    target = Target(f"{target_name}, azel, {c1}, {c2}")
+            if target:
+                target.antenna = self.component_manager.observer
+                self.component_manager.antenna_target = target
+            else:
+                raise InvalidTargetDataError()
+        except Exception as exp:
+            self.logger.exception(
+                " Failed to set target for fixed/mosaic mapping "
+                + "scan due to exception: %s",
+                str(exp),
+            )
+            raise exp
 
     def extract_target_from_config(self):
         """
@@ -119,16 +217,22 @@ class BaseScanMapping:
             .get('projection', {})
             .get('name', "SIN")
         )
+
         projection_alignment = (
             self.component_manager.target_data.get('pointing', {})
             .get('projection', {})
-            .get('alignment', "ICRS")
+            .get('alignment', "altaz")
         )
         if projection_alignment.lower() == "icrs":
             projection_alignment = "radec"
         else:
             projection_alignment = "azel"
-        return [projection_name, projection_alignment]
+        self.logger.info(
+            "Projection Name: %s, Alignment: %s",
+            projection_name,
+            projection_alignment,
+        )
+        return [projection_name.upper(), projection_alignment]
 
     def set_trajectory_and_duration(self):
         """Create Trajectory Object and set duration"""

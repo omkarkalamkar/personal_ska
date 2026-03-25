@@ -139,6 +139,7 @@ class AzElConverter:
         Returns:
             [Az deg, El deg]
         """
+
         az_el_coordinates = []
         try:
             logger.debug(
@@ -242,3 +243,71 @@ class AzElConverter:
                 "Failed to convert RA/Dec to Az/El, Exception: %s ", message
             )
             raise Exception(message) from exception
+
+
+class AzElConverter_v2(AzElConverter):
+    """Class to convert ICRS, special, TLE, altaz, etc reference frame
+    values into Azimuth(Az) and Elevation(El).
+    This class addressed the missing projection and trajectory functionality
+    in older class.
+    """
+
+    def __init__(self, component_manager):
+        super().__init__(component_manager=component_manager)
+
+    def point(
+        self: AzElConverter_v2,
+        right_ascension: str | float | None = None,
+        declination: str | float | None = None,
+        timestamp: str | None = None,
+    ) -> List[float]:
+        """
+        Get Az, El and apply refraction correction.
+
+        Args:
+            timestamp: Timestamp for observation.
+
+        Returns:
+            List[float]: Azimuth and Elevation in degrees after refraction
+            correction.
+        """
+
+        refraction_corrected_azel = []
+        try:
+            x_in_rad, y_in_rad = self.get_offset_in_rad(
+                self.component_manager.fixed_x_offset,
+                self.component_manager.fixed_y_offset,
+            )
+            with iers.earth_orientation_table.set(
+                self.component_manager.iers_a
+            ):
+                az, el = self.component_manager.antenna_target.plane_to_sphere(
+                    x_in_rad,
+                    y_in_rad,
+                    timestamp=timestamp,
+                    # antenna=self.component_manager.observer,
+                    projection_type=self.component_manager.projection_name,
+                    coord_system=self.component_manager.projection_alignment,
+                )
+            azel = AltAz(az=Angle(az, u.rad), alt=Angle(el, u.rad))
+            refraction_corrected_azel = self.apply_refraction_correction(azel)
+
+        except ValueError as value_error:
+            message = str(value_error)
+            raise Exception(message) from value_error
+
+        except Exception as exception:
+            message = str(exception)
+            raise Exception(message) from exception
+        return refraction_corrected_azel
+
+    def get_offset_in_rad(self, x: float, y: float) -> tuple:
+        """Get the offset in radian
+
+        Args:
+            x: Offset in arcseconds along x-axis.
+            y: Offset in arcseconds along y-axis.
+        Returns:
+            tuple[float, float]: Offset values in radians.
+        """
+        return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad

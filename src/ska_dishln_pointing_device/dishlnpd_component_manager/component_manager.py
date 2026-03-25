@@ -27,7 +27,9 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
     GenerateProgramTrackTable,
 )
 from ska_dishln_pointing_device.event_manager import DishLNPDEventManager
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter_v2 as AzElConverter,
+)
 from ska_tmc_dishleafnode.constants import (
     IERS_DATA_STORAGE_PATH,
     PROGRAM_TRACK_TABLE_SIZE,
@@ -79,6 +81,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.event_manager = _event_manager
         self.target: list | str | None = None
+        self.antenna_target = None
+        self.projection_name: str = "SIN"
+        self.projection_alignment = "AltAz"
+        self.fixed_x_offset: float = 0.0
+        self.fixed_y_offset: float = 0.0
         self._current_track_table_error = ""
         self.__target_data: dict = {}
         # This event can be used by on going process to change the offset
@@ -587,15 +594,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
-            # This is dummy calculation because first
-            #  time calculation takes
-            # time due to IERS file downloads
-            if isinstance(self.target, str):
-                self.converter.point_to_body(self.target, timestamp)
-            else:
-                ra, dec = self.target  # pylint: disable=E0633
-                self.converter.point(ra, dec, timestamp)
-
+            self.converter.point(timestamp=timestamp)
             self.update_program_track_table_error_callback("")
 
             utc_now = datetime.datetime.utcnow()
@@ -643,9 +642,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
-                        self.target, self.converter
+                        azel_converter=self.converter,
                     )
                 )
+
                 first_entry_timestamp: float = program_track_table[0]
 
                 # advance_time is subtracted to provide

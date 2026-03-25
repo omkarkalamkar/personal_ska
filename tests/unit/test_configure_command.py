@@ -26,10 +26,18 @@ from tests.settings import (
 )
 
 
+@pytest.mark.parametrize(
+    "json_input",
+    [
+        "dishleafnode_configure",
+        "dishleafnode_configure_tle_adr63",
+    ],
+)
 def test_configure_command_completed(
     cm_without_er_lp,
     task_callback,
     json_factory,
+    json_input,
 ):
     cm = cm_without_er_lp
 
@@ -56,7 +64,7 @@ def test_configure_command_completed(
     set_kvalue_command._adapter_factory = adapter_factory
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
-    configure_input_str = json_factory("dishleafnode_configure")
+    configure_input_str = json_factory(json_input)
 
     cm.configure(
         configure_input_str,
@@ -64,7 +72,6 @@ def test_configure_command_completed(
         task_abort_event=threading.Event(),
     )
     time.sleep(0.5)  # Ensure configure command is waiting for events.
-
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )

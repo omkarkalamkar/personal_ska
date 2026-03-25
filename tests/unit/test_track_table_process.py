@@ -2,8 +2,12 @@ import datetime
 
 import pytest
 from astropy.time import Time
+from katpoint import Target
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter,
+    AzElConverter_v2,
+)
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
@@ -42,32 +46,30 @@ def test_error_in_point_method(cm_without_er_lp):
 
 
 def test_error_in_calculate_program_track_table(
-    cm_without_er_lp, cm_pointig_device
+    cm_without_er_lp, cm_pointing_device
 ):
     cm = cm_without_er_lp
     az_el_convarter = AzElConverter(cm)
     track_table_calculator = ProgramTrackTableCalculator(
-        cm_pointig_device, cm_pointig_device.logger
+        cm_pointing_device, cm_pointing_device.logger
     )
     with pytest.raises(Exception):
         track_table_calculator.track_table_time_stamp = (
             datetime.datetime.utcnow()
         )
-        track_table_calculator.calculate_program_track_table(
-            "Pluto", az_el_convarter
-        )
+        track_table_calculator.calculate_program_track_table(az_el_convarter)
 
 
-def test_timestamp_error_in_track_table_point_method(cm_pointig_device):
-    cm = cm_pointig_device
+def test_timestamp_error_in_track_table_point_method(cm_pointing_device):
+    cm = cm_pointing_device
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
     with pytest.raises(Exception):
         track_table_calculator.point(str(timestamp))
 
 
-def test_error_in_track_table_point_method(tango_context, cm_pointig_device):
-    cm = cm_pointig_device
+def test_error_in_track_table_point_method(tango_context, cm_pointing_device):
+    cm = cm_pointing_device
     cm.create_converter_obj_and_antenna_obj()
     non_side_real_objects = [
         "Sun",
@@ -80,13 +82,21 @@ def test_error_in_track_table_point_method(tango_context, cm_pointig_device):
         "Urenus",
         "Neptune",
     ]
-    azel_converter = AzElConverter(cm)
+
     result = None
     for nsr_obj in non_side_real_objects:
         try:
+            target = Target(f"{nsr_obj}, special")
+            target.antenna = cm.observer
+            cm.antenna_target = target
+            cm.antenna_target = target
+            cm.projection_name = "SIN"
+            cm.projection_alignment = "AltAz"
+            cm.fixed_x_offset = 0.0
+            cm.fixed_y_offset = 0.0
+            azel_converter = AzElConverter_v2(cm)
             track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
             track_table_calculator.azel_converter = azel_converter
-            track_table_calculator.target_name = nsr_obj
             timestamp = Time(datetime.datetime.utcnow(), scale="utc")
             result = track_table_calculator.point(str(timestamp))
             if result:
@@ -97,15 +107,15 @@ def test_error_in_track_table_point_method(tango_context, cm_pointig_device):
     assert result is not None
 
 
-def test_error_in_utc_to_tai_method(cm_pointig_device):
-    cm = cm_pointig_device
+def test_error_in_utc_to_tai_method(cm_pointing_device):
+    cm = cm_pointing_device
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
     with pytest.raises(Exception):
         track_table_calculator.convert_utc_to_tai(0.0)
 
 
-def test_is_elevation_within_limits_method(tango_context, cm_pointig_device):
-    cm = cm_pointig_device
+def test_is_elevation_within_limits_method(tango_context, cm_pointing_device):
+    cm = cm_pointing_device
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
 
     result = track_table_calculator._is_elevation_within_mechanical_limits(

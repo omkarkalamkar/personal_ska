@@ -5,11 +5,12 @@ from __future__ import annotations
 import datetime
 import operator
 from logging import Logger
-from typing import List, Union
 
 from astropy.time import Time
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter_v2 as AzElConverter,
+)
 from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
 
 
@@ -45,10 +46,10 @@ class ProgramTrackTableCalculator:
         )
         self.ptt_buffer_set = False
         self.track_table_scheduler = None
+        self.tle_data = ["", ""]
 
     def calculate_program_track_table(
         self: ProgramTrackTableCalculator,
-        target_data: Union[str, List[str]],
         azel_converter: AzElConverter,
     ) -> list:
         """This method calculates programTrackTable.
@@ -59,11 +60,6 @@ class ProgramTrackTableCalculator:
             El2,,,,,,TAIn, Azn, Eln].
         :rtype: list
         """
-
-        if isinstance(target_data, str):
-            self.target_name = target_data
-        else:
-            self.right_ascension, self.declination = target_data
         self.azel_converter = azel_converter
         program_track_table = []
 
@@ -207,16 +203,8 @@ class ProgramTrackTableCalculator:
         :rtype: list
         """
         try:
-            if self.target_name:
-                result = self.azel_converter.point_to_body(
-                    self.target_name, timestamp
-                )
-                return result
-
-            result = self.azel_converter.radec_to_azel(
-                self.right_ascension,
-                self.declination,
-                timestamp,
+            result = self.azel_converter.point(
+                timestamp=timestamp,
             )
             return result
         except Exception as exception:

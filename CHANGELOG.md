@@ -5,6 +5,15 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.42.0]
+********
+Added
+-------
+* Full support for pointing.field key in the Configure command .
+* AzElConverter_v2 class implementing plane_to_sphere conversion and fixed x/y offset support for mapping scans.
+* BaseScanMapping logic (including build_data_for_observation()and get_radec_from_plane_to_sphere()).
+* Added fixed_x_offset, fixed_y_offset, projection_name, projection_alignment, and antenna_target handling in DishlnPointingDataComponentManager.
+
 [0.41.2]
 ********
 Fixed

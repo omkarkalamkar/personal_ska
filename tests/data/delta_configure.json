@@ -12,7 +12,7 @@
     },
     "projection": {
       "name": "SIN",
-      "alignment": "ICRS"
+      "alignment": "AltAz"
     }
   },
   "tmc": {
