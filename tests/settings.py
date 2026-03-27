@@ -704,7 +704,7 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
         "Sun",
     ]
     object_not_visible = None
-    timestamp = datetime.now(timezone.utc).timestamp
+    timestamp = datetime.now(timezone.utc).timestamp()
     # timestamp = datetime.utcnow()
     for solar_system_object in solar_system_objects:
         target = katpoint.Target(f"{solar_system_object} , special")
