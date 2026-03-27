@@ -2,6 +2,7 @@
 
 import logging
 import threading
+import traceback
 from typing import Any, Optional, Tuple
 
 from ska_control_model import TaskStatus
@@ -10,6 +11,9 @@ from ska_tango_base.commands import ResultCode
 
 from ska_dishln_pointing_device.mapping_scan.point_mapping import (
     FixedMappingScan,
+)
+from ska_dishln_pointing_device.mapping_scan.pvt_mapping_scan import (
+    PositionVelocityTimeMappingScan,
 )
 
 
@@ -93,23 +97,27 @@ class GenerateProgramTrackTable:
         try:
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.clear()
-
-            self.component_manager.current_mapping_scan_obj = FixedMappingScan(
-                pattern_name="fixed",
-                component_manager=self.component_manager,
-                logger=self.logger,
-            )
-
-            current_scan_obj = self.component_manager.current_mapping_scan_obj
-            current_scan_obj.set_target_and_start_process()
-
-            return ResultCode.OK, "Command Completed"
-
+                scan_classes = {
+                    "fixed": FixedMappingScan,
+                    "pos_vel_time": PositionVelocityTimeMappingScan,
+                }
+                name = self.component_manager.trajectory_name
+                scan_class = scan_classes.get(name)
+                self.component_manager.current_mapping_scan_obj = scan_class(
+                    pattern_name=name,
+                    component_manager=self.component_manager,
+                    logger=self.logger,
+                )
+                current_scan_obj = (
+                    self.component_manager.current_mapping_scan_obj
+                )
+                current_scan_obj.set_target_and_start_process()
+                return ResultCode.OK, "Command Completed"
         except Exception as exception:
             self.logger.error(
                 "Error in GenerateProgramTrackTable: %s", str(exception)
             )
-
+            self.logger.error(traceback.print_exc())
             self.component_manager.update_program_track_table_error_callback(
                 str(exception)
             )

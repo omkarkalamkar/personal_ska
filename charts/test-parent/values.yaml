@@ -49,6 +49,7 @@ tmc-dishleafnode:
       AzimuthMinLimit: -270.0
       AzimuthMaxLimit: 270.0
       SchedularQueuePreEntries: 5
+      ProgramTrackTableSize: 50
 
 ska-tmc-simulators:
   labels:

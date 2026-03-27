@@ -150,6 +150,11 @@ class BaseScanMapping:
             if target:
                 target.antenna = self.component_manager.observer
                 self.component_manager.antenna_target = target
+                self.logger.info(
+                    "Target set to: %s with reference frame: %s",
+                    target.description,
+                    reference_frame,
+                )
             else:
                 raise InvalidTargetDataError()
         except Exception as exp:

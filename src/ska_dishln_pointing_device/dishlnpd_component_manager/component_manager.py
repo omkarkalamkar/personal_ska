@@ -54,6 +54,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         track_table_update_rate: float,
         elevation_max_limit: float = 90.0,
         elevation_min_limit: float = 15.0,
+        program_track_table_size: int = 50,
         track_table_advance_sec: int = 6,
         azimuth_min_limit: float = -270.0,
         azimuth_max_limit: float = 270.0,
@@ -83,9 +84,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.target: list | str | None = None
         self.antenna_target = None
         self.projection_name: str = "SIN"
-        self.projection_alignment = "AltAz"
+        self.projection_alignment = "radec"
         self.fixed_x_offset: float = 0.0
         self.fixed_y_offset: float = 0.0
+        self.trajectory_name = "fixed"
         self._current_track_table_error = ""
         self.__target_data: dict = {}
         # This event can be used by on going process to change the offset
@@ -94,6 +96,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.set_change_pointing_event = threading.Event()
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
+        self.program_track_table_size = program_track_table_size
         self._array_layout = {}
         self.azimuth_min_limit = azimuth_min_limit
         self.azimuth_max_limit = azimuth_max_limit
@@ -120,7 +123,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
         self.track_table_thread = None
-        self._wrap_sector: int
+        self._wrap_sector: int = 0
         self._wrap_sector_key: bool = False
         self.__humidity: float = 0.10
         self.__pressure: float = 900.0
@@ -388,6 +391,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     self.logger.exception(
                         "Failed to rebuild observer: %s", str(exp)
                     )
+                self.set_trajectory_name()
         except Exception as exception:
             self.logger.exception(
                 "Failed to update target data due to exception: %s",
@@ -418,21 +422,21 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         self._current_track_table_error = value
 
-    def is_fixed_mapping_scan(self) -> bool:
-        """Method to check is current scan is fixed mapping scan
+    def set_trajectory_name(self) -> str:
+        """Method to get the trajectory name
 
-        :return: True/False
-        :rtype: boolean
+        :return: Trajectory name
+        :rtype: str
         """
-        if (
+        self.trajectory_name = (
             self.target_data.get("pointing", {})
             .get("trajectory", {})
             .get("name", "")
             .lower()
-            == "fixed"
-        ):
-            return True
-        return False
+        )
+        if not self.trajectory_name:
+            self.trajectory_name = "fixed"
+        return self.trajectory_name
 
     def set_wrap_sector_data(self) -> None:
         """
