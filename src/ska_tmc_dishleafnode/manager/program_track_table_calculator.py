@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import operator
+import sched
 from logging import Logger
 
 from astropy.time import Time
@@ -11,7 +12,7 @@ from astropy.time import Time
 from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
+from ska_tmc_dishleafnode.constants import SKA_EPOCH
 
 
 class ProgramTrackTableCalculator:
@@ -40,10 +41,7 @@ class ProgramTrackTableCalculator:
         self.component_manager = component_manager
         self.logger = logger
         self.track_table_time_stamp: datetime.datetime | None = None
-        self.pointing_calculation_period: float = operator.truediv(
-            self.component_manager.track_table_update_rate,
-            PROGRAM_TRACK_TABLE_SIZE,
-        )
+        self.pointing_calculation_period: float = 0.0
         self.ptt_buffer_set = False
         self.track_table_scheduler = None
         self.tle_data = ["", ""]
@@ -51,6 +49,7 @@ class ProgramTrackTableCalculator:
     def calculate_program_track_table(
         self: ProgramTrackTableCalculator,
         azel_converter: AzElConverter,
+        program_track_table_size: int,
     ) -> list:
         """This method calculates programTrackTable.
 
@@ -67,7 +66,7 @@ class ProgramTrackTableCalculator:
             (
                 time_stamp_list,
                 tai_timestamp_list,
-            ) = self.calculate_time_stamp_list()
+            ) = self.calculate_time_stamp_list(program_track_table_size)
             results: list = list(map(self.point, time_stamp_list))
             for result in results:
                 if not self._is_elevation_within_mechanical_limits(result[1]):
@@ -96,6 +95,10 @@ class ProgramTrackTableCalculator:
                     [round(result[0], 12), round(result[1], 12)]
                 )
                 self.track_table_scheduler.run(blocking=False)
+                # self.logger.info(
+                #     "Pointing calculation period set to: %s",
+                #     self.pointing_calculation_period,
+                # )
                 if (
                     self.ptt_buffer_set
                     and self.component_manager.mapping_scan_event.wait(
@@ -143,7 +146,9 @@ class ProgramTrackTableCalculator:
         self.elevation_limit = False
         return True
 
-    def calculate_time_stamp_list(self: ProgramTrackTableCalculator) -> tuple:
+    def calculate_time_stamp_list(
+        self: ProgramTrackTableCalculator, program_track_table_size: int
+    ) -> tuple:
         """
         This methods calculates an list of requested timestamps
         (TrackTableEntries) with a requested time difference
@@ -157,14 +162,13 @@ class ProgramTrackTableCalculator:
         time_stamp_list = []
         tai_timestamp_list = []
         try:
-            for _ in range(PROGRAM_TRACK_TABLE_SIZE):
+            for _ in range(program_track_table_size):
                 timestamp_time_obj = Time(
                     self.track_table_time_stamp, scale="utc"
                 )
                 time_stamp_list.append(timestamp_time_obj)
                 tai_time = self.convert_utc_to_tai(timestamp_time_obj)
                 tai_timestamp_list.append(tai_time)
-
                 self.track_table_time_stamp = (
                     self.track_table_time_stamp
                     + datetime.timedelta(
@@ -274,3 +278,67 @@ class ProgramTrackTableCalculator:
             self.logger.exception(exception_message)
             raise Exception(exception_message) from exception
         return azimuth
+
+    def build_scheduled_time(self, timestamp):
+        """This method builds the scheduled time for the track table
+        calculation. It converts the given timestamp to TAI and
+        adds the advance time to it."""
+        # advance_time is subtracted to provide
+        # programTrackTable few
+        # seconds in advance
+        actual_time = (
+            timestamp - self.component_manager.track_table_advance_sec
+        )
+        scheduled_time = Time(
+            float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
+            format="unix_tai",
+            scale="tai",
+        ).unix
+        # Convert to human-readable format
+        actual_time_readable = datetime.datetime.utcfromtimestamp(
+            actual_time
+        ).strftime("%Y-%m-%d %H:%M:%S")
+        scheduled_time_readable = datetime.datetime.utcfromtimestamp(
+            scheduled_time
+        ).strftime("%Y-%m-%d %H:%M:%S")
+        self.logger.debug(
+            "Actual Time: %s, Scheduled time: %s",
+            actual_time_readable,
+            scheduled_time_readable,
+        )
+        return scheduled_time
+
+    def add_program_track_table_in_schedular(
+        self: ProgramTrackTableCalculator,
+        track_table_scheduler: sched.scheduler,
+        event_priority: int,
+        scheduled_time: float,
+        program_track_table: list,
+        update_pointing_program_track_table: callable,
+    ) -> None:
+        """Metho to add program track table in schedular"""
+
+        track_table_scheduler.enterabs(
+            scheduled_time,
+            event_priority,
+            update_pointing_program_track_table,
+            argument=(program_track_table,),
+        )
+        self.logger.info(
+            "Scheduled trackTable write operation with "
+            "scheduler Length: %s",
+            len(track_table_scheduler.queue),
+        )
+        track_table_scheduler.run(blocking=False)
+
+    def set_pointing_calculation_period(self, program_track_table_size: int):
+        """Set the pointing calculation period"""
+
+        self.pointing_calculation_period = operator.truediv(
+            self.component_manager.track_table_update_rate,
+            program_track_table_size,
+        )
+        self.logger.info(
+            "Pointing calculation period set to: %s",
+            self.pointing_calculation_period,
+        )

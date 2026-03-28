@@ -33,7 +33,6 @@ from ska_tmc_dishleafnode.az_el_converter import (
 from ska_tmc_dishleafnode.constants import (
     IERS_DATA_STORAGE_PATH,
     PROGRAM_TRACK_TABLE_SIZE,
-    SKA_EPOCH,
 )
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
@@ -534,8 +533,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             message = "Exception while writing trackTable: %s" + str(exception)
             self.logger.exception(message)
             raise Exception(message) from exception
-        self.logger.debug(
-            "Calculated ProgramTrackTable: %s",
+        self.logger.info(
+            "length: %s\nCalculated ProgramTrackTable: %s",
+            len(program_track_table),
             program_track_table,
         )
 
@@ -634,6 +634,33 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.track_table_scheduler = (
                 track_table_scheduler
             )
+            # Generate first 50 entries of PTT.
+            # Each entry is one second apart
+            track_table_calculator.pointing_calculation_period = 1
+            program_track_table: list = (
+                track_table_calculator.calculate_program_track_table(
+                    azel_converter=self.converter,
+                    program_track_table_size=PROGRAM_TRACK_TABLE_SIZE,
+                )
+            )
+            scheduled_time = track_table_calculator.build_scheduled_time(
+                program_track_table[0]
+            )
+            track_table_calculator.add_program_track_table_in_schedular(
+                track_table_scheduler=track_table_scheduler,
+                event_priority=event_priority,
+                scheduled_time=scheduled_time,
+                program_track_table=program_track_table,
+                # pylint: disable=line-too-long
+                update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
+            )
+            pre_entries_of_ptt_in_schedular -= 1
+            # Calculate the cadence as per track table update rate set
+            # at deployment time. That is time difference between two entries
+            # of timestamp, azimuth and elevation
+            track_table_calculator.set_pointing_calculation_period(
+                self.program_track_table_size
+            )
             while not is_track_thread_stop:
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
@@ -647,36 +674,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
                         azel_converter=self.converter,
+                        program_track_table_size=self.program_track_table_size,
                     )
                 )
-
-                first_entry_timestamp: float = program_track_table[0]
-
-                # advance_time is subtracted to provide
-                #  programTrackTable few
-                # seconds in advance
-                actual_time = (
-                    first_entry_timestamp - self.track_table_advance_sec
-                )
-
-                scheduled_time = Time(
-                    float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
-                    format="unix_tai",
-                    scale="tai",
-                ).unix
-
-                # Convert to human-readable format
-                actual_time_readable = datetime.datetime.utcfromtimestamp(
-                    actual_time
-                ).strftime("%Y-%m-%d %H:%M:%S")
-                scheduled_time_readable = datetime.datetime.utcfromtimestamp(
-                    scheduled_time
-                ).strftime("%Y-%m-%d %H:%M:%S")
-
-                self.logger.debug(
-                    "Actual Time: %s, Scheduled time: %s",
-                    actual_time_readable,
-                    scheduled_time_readable,
+                scheduled_time = track_table_calculator.build_scheduled_time(
+                    program_track_table[0]
                 )
 
                 with self.track_thread_lock:
@@ -685,16 +687,14 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             pre_entries_of_ptt_in_schedular -= 1
                         else:
                             track_table_calculator.ptt_buffer_set = True
-                        track_table_scheduler.enterabs(
-                            scheduled_time,
-                            event_priority,
-                            self.update_pointing_program_track_table,
-                            argument=(program_track_table,),
-                        )
-                        self.logger.debug(
-                            "Scheduled trackTable write operation with "
-                            "scheduler Length: %s",
-                            len(track_table_scheduler.queue),
+                        # pylint: disable=line-too-long
+                        track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                            track_table_scheduler=track_table_scheduler,
+                            event_priority=event_priority,
+                            scheduled_time=scheduled_time,
+                            program_track_table=program_track_table,
+                            # pylint: disable=line-too-long
+                            update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
                         )
 
             self.logger.debug("Program trackTable calculation stopped.")

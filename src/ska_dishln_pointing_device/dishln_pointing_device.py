@@ -36,12 +36,12 @@ class DishPointingDevice(TMCBaseLeafDevice):
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=15.0)
     ProgramTrackTableSize = device_property(
         dtype="DevLong",
-        default_value=50,
+        default_value=1000,
         doc="Number of entries in program track table.",
     )
     TrackTableUpdateRate = device_property(
         dtype="DevFloat",
-        default_value=50,
+        default_value=1000,
         doc="The rate at which a tracktable is provided. It is one"
         + "tracktable per specified number of seconds.",
     )

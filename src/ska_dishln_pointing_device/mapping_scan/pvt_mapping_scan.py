@@ -23,7 +23,7 @@ from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
 from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE, SKA_EPOCH
+from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
@@ -200,13 +200,21 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
                 program_track_table_size=PROGRAM_TRACK_TABLE_SIZE * 3,
             )
             if program_track_table:
-                scheduled_time = self.build_scheduled_time(
-                    program_track_table[0]
+                scheduled_time = (
+                    self.track_table_calculator.build_scheduled_time(
+                        program_track_table[0]
+                    )
                 )
-                self.add_program_track_table_entry_in_schedular(
-                    program_track_table=program_track_table,
-                    scheduled_time=scheduled_time,
+                # pylint: disable=line-too-long
+                self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                    track_table_scheduler=self.track_table_scheduler,
                     event_priority=event_priority,
+                    scheduled_time=scheduled_time,
+                    program_track_table=program_track_table,
+                    update_pointing_program_track_table=(
+                        # pylint: disable=line-too-long
+                        self.component_manager.update_pointing_program_track_table  # noqa: E501
+                    ),
                 )
                 pre_entries_of_ptt_in_schedular -= 1
             else:
@@ -230,8 +238,10 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
                     program_track_table_size=(self.program_track_table_size),
                 )
                 if program_track_table:
-                    scheduled_time = self.build_scheduled_time(
-                        program_track_table[0]
+                    scheduled_time = (
+                        self.track_table_calculator.build_scheduled_time(
+                            program_track_table[0]
+                        )
                     )
                     with self.track_thread_lock:
                         if not self.mapping_scan_event.is_set():
@@ -239,12 +249,18 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
                                 pre_entries_of_ptt_in_schedular -= 1
                             else:
                                 ptt_buffer_set = True
-                            self.add_program_track_table_entry_in_schedular(
-                                program_track_table=program_track_table,
-                                scheduled_time=scheduled_time,
+                            # pylint: disable=line-too-long
+                            self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                                # pylint: disable=line-too-long
+                                track_table_scheduler=self.track_table_scheduler,  # noqa: E501
                                 event_priority=event_priority,
+                                scheduled_time=scheduled_time,
+                                program_track_table=program_track_table,
+                                update_pointing_program_track_table=(
+                                    # pylint: disable=line-too-long
+                                    self.component_manager.update_pointing_program_track_table  # noqa: E501
+                                ),
                             )
-
                 else:
                     while self.track_table_scheduler.queue:
                         self.track_table_scheduler.run(blocking=False)
@@ -334,58 +350,3 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
                 str(exception),
             )
         return program_track_table
-
-    def build_scheduled_time(self, timestamp):
-        """This method builds the scheduled time for the track table
-        calculation. It converts the given timestamp to TAI and
-        adds the advance time to it."""
-        # advance_time is subtracted to provide
-        # programTrackTable few
-        # seconds in advance
-        actual_time = (
-            timestamp - self.component_manager.track_table_advance_sec
-        )
-        scheduled_time = Time(
-            float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
-            format="unix_tai",
-            scale="tai",
-        ).unix
-        # Convert to human-readable format
-        actual_time_readable = datetime.utcfromtimestamp(actual_time).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-        scheduled_time_readable = datetime.utcfromtimestamp(
-            scheduled_time
-        ).strftime("%Y-%m-%d %H:%M:%S")
-        self.logger.debug(
-            "Actual Time: %s, Scheduled time: %s",
-            actual_time_readable,
-            scheduled_time_readable,
-        )
-        return scheduled_time
-
-    def add_program_track_table_entry_in_schedular(
-        self,
-        program_track_table,
-        scheduled_time,
-        event_priority,
-    ):
-        """This method adds an entry to the program track table."""
-        try:
-            self.track_table_scheduler.enterabs(
-                scheduled_time,
-                event_priority,
-                self.component_manager.update_pointing_program_track_table,
-                argument=(program_track_table,),
-            )
-            self.logger.debug(
-                "Scheduled trackTable write operation with "
-                "scheduler Length: %s",
-                len(self.track_table_scheduler.queue),
-            )
-        except Exception as exception:
-            self.logger.exception(
-                "Failed to add entry to program track table due"
-                " to exception: %s",
-                str(exception),
-            )
