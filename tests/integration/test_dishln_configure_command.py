@@ -145,6 +145,17 @@ def configure_dish_leaf_node(
         len(json.loads(dishln_pointing_device.pointingProgramTrackTable))
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
+    configure_str = json.loads(configure_input_str)
+    if (
+        configure_str.get("pointing")
+        .get("field")
+        .get("reference_frame")
+        .lower()
+    ) == "tle":
+        # Allow some time for 5 PTT to get generated for TLE tracking
+        # For 50 enrtries of one track table, its taking around
+        # 2+ seconds
+        time.sleep(15)
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
