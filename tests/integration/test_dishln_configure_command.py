@@ -151,6 +151,7 @@ def configure_dish_leaf_node(
         # For 50 enrtries of one track table, its taking around
         # 2+ seconds
         time.sleep(15)
+        dishln_pointing_device.StopProgramTrackTable()
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
@@ -178,7 +179,6 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 @pytest.mark.parametrize(
     "json_to_use",
     [

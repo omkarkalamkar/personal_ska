@@ -3,7 +3,7 @@ import json
 import logging
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List
 
 import katpoint
@@ -690,7 +690,7 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
     """
 
     current_time = int(datetime.utcnow().strftime("%H"))
-    logging.info("CURRENT TIME: %s", current_time)
+    logger.info("CURRENT TIME: %s", current_time)
     antenna_ska001 = DishHelper(antenna_data=ARRAY_LAYOUT)
     ska001 = antenna_ska001.get_dish_antenna()
     solar_system_objects = [
@@ -704,7 +704,7 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
         "Sun",
     ]
     object_not_visible = None
-    timestamp = datetime.now(timezone.utc).timestamp()
+    timestamp = datetime.utcnow()
     for solar_system_object in solar_system_objects:
         target = katpoint.Target(f"{solar_system_object} , special")
         target.antenna = ska001
@@ -712,8 +712,8 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
             0.0,
             0.0,
             timestamp,
-            projection_type="SSN",
-            coord_system="ICRS",
+            projection_type="SIN",
+            coord_system="radec",
         )
         el = Angle(el, u.rad).deg
         if el <= 7.5 or el >= 90.0:
