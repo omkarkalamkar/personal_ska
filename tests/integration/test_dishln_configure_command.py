@@ -146,12 +146,7 @@ def configure_dish_leaf_node(
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
     configure_str = json.loads(configure_input_str)
-    if (
-        configure_str.get("pointing")
-        .get("field")
-        .get("reference_frame")
-        .lower()
-    ) == "tle":
+    if configure_str.get("pointing", {}).get("field", ""):
         # Allow some time for 5 PTT to get generated for TLE tracking
         # For 50 enrtries of one track table, its taking around
         # 2+ seconds
@@ -183,6 +178,7 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.test
 @pytest.mark.parametrize(
     "json_to_use",
     [
