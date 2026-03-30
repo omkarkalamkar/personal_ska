@@ -405,7 +405,6 @@ def delta_configure_dish_leaf_node(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-    time.sleep(5)
     if not delta_only_once:
         delta_configurations = build_delta_configure_data(
             delta_config=delta_config_str,
@@ -414,6 +413,8 @@ def delta_configure_dish_leaf_node(
         )
         count = 0
         for input_str in delta_configurations:
+            # Give a pause before invoking next configuration
+            time.sleep(5)
             result_config, unique_id_config = dish_leaf_node.Configure(
                 input_str
             )
@@ -422,8 +423,6 @@ def delta_configure_dish_leaf_node(
                 (unique_id_config[0], COMMAND_COMPLETED),
                 lookahead=8,
             )
-            # Give a pause before invoking next configuration
-            time.sleep(5)
             count += 1
     else:
         result_config, unique_id_config = dish_leaf_node.Configure(
