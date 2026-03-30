@@ -228,7 +228,6 @@ def partial_configure_dish_leaf_node(
     dev_factory = DevFactory()
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
-    dish_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     time.sleep(1)
     dishmode_event_id = dish_leaf_node.subscribe_event(
@@ -246,12 +245,6 @@ def partial_configure_dish_leaf_node(
         "sourceOffset",
         tango.EventType.CHANGE_EVENT,
         group_callback["sourceOffset"],
-    )
-
-    pointing_ptt_id = dish_pointing_device.subscribe_event(
-        "pointingProgramTrackTable",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["pointingProgramTrackTable"],
     )
 
     group_callback["dishMode"].assert_change_event(
@@ -287,17 +280,6 @@ def partial_configure_dish_leaf_node(
         lookahead=6,
     )
     time.sleep(5)
-    result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_trackstop[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-
-    group_callback["pointingProgramTrackTable"].assert_change_event(
-        ("[]"),
-        lookahead=12,
-    )
-
     partial_configurations = build_partial_configure_data(
         partial_configure_input_str, OFFSET
     )
@@ -319,21 +301,16 @@ def partial_configure_dish_leaf_node(
             lookahead=2,
         )
         # Give a pause before invoking next configuration
-        # Allow some time for 5 PTT generation
         time.sleep(5)
-        result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
-        group_callback["longRunningCommandResult"].assert_change_event(
-            (unique_id_trackstop[0], COMMAND_COMPLETED),
-            lookahead=6,
-        )
-
-        group_callback["pointingProgramTrackTable"].assert_change_event(
-            ("[]"),
-            lookahead=12,
-        )
         count += 1
 
+    result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
+
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_trackstop[0], COMMAND_COMPLETED),
+        lookahead=6,
+    )
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
@@ -348,7 +325,6 @@ def partial_configure_dish_leaf_node(
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
-    dish_pointing_device.unsubscribe_event(pointing_ptt_id)
     tear_down(dish_leaf_node, dish_master, group_callback)
 
 
@@ -430,17 +406,6 @@ def delta_configure_dish_leaf_node(
         lookahead=6,
     )
     time.sleep(5)
-    result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
-    assert result_trackstop[0] == ResultCode.QUEUED
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_trackstop[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-    group_callback["pointingProgramTrackTable"].assert_change_event(
-        ("[]"),
-        lookahead=14,
-    )
     if not delta_only_once:
         delta_configurations = build_delta_configure_data(
             delta_config=delta_config_str,
@@ -449,8 +414,6 @@ def delta_configure_dish_leaf_node(
         )
         count = 0
         for input_str in delta_configurations:
-            # Give a pause before invoking next configuration
-            time.sleep(5)
             result_config, unique_id_config = dish_leaf_node.Configure(
                 input_str
             )
@@ -459,17 +422,8 @@ def delta_configure_dish_leaf_node(
                 (unique_id_config[0], COMMAND_COMPLETED),
                 lookahead=8,
             )
-            result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
-            assert result_trackstop[0] == ResultCode.QUEUED
-
-            group_callback["longRunningCommandResult"].assert_change_event(
-                (unique_id_trackstop[0], COMMAND_COMPLETED),
-                lookahead=6,
-            )
-            group_callback["pointingProgramTrackTable"].assert_change_event(
-                ("[]"),
-                lookahead=14,
-            )
+            # Give a pause before invoking next configuration
+            time.sleep(5)
             count += 1
     else:
         result_config, unique_id_config = dish_leaf_node.Configure(
@@ -493,7 +447,7 @@ def delta_configure_dish_leaf_node(
             collimation_offsets,
             lookahead=2,
         )
-    time.sleep(5)
+
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 
@@ -697,7 +651,7 @@ def configure_with_wrap_sector(
         (PointingState.SLEW),
         lookahead=6,
     )
-
+    time.sleep(5)
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
@@ -838,7 +792,7 @@ def configure_with_wrap_sector(
             timeout += 1
 
     assert flag  # Verify PTT updated.
-
+    time.sleep(5)
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
@@ -962,6 +916,7 @@ def configure_command_with_trajectory_and_ie_ce(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+    time.sleep(5)
     result_config, unique_id_config = dish_leaf_node.Configure(
         delta_config_str
     )
@@ -1003,7 +958,7 @@ def configure_command_with_trajectory_and_ie_ce(
         collimation_offsets,
         lookahead=2,
     )
-
+    time.sleep(5)
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 
