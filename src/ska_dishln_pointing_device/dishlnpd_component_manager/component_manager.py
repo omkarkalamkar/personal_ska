@@ -625,10 +625,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self, self.logger
             )
             track_table_calculator.track_table_time_stamp = extended_time
-
-            with self.track_thread_lock:
-                is_track_thread_stop = self.mapping_scan_event.is_set()
-
             track_table_scheduler = sched.scheduler(time.time, time.sleep)
             event_priority: int = 1
             track_table_calculator.track_table_scheduler = (
@@ -661,7 +657,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.set_pointing_calculation_period(
                 self.program_track_table_size
             )
-            while not is_track_thread_stop:
+            while not self.mapping_scan_event.is_set:
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
                     "with thread id: %s",
@@ -669,14 +665,15 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     threading.get_native_id(),
                 )
 
-                with self.track_thread_lock:
-                    is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
                         azel_converter=self.converter,
                         program_track_table_size=self.program_track_table_size,
                     )
                 )
+                if not program_track_table:
+                    break
+
                 scheduled_time = track_table_calculator.build_scheduled_time(
                     program_track_table[0]
                 )

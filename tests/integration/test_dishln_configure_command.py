@@ -150,30 +150,27 @@ def configure_dish_leaf_node(
         # Allow some time for 5 PTT to get generated for TLE tracking
         # For 50 enrtries of one track table, its taking around
         # 2+ seconds
-        dishln_pointing_device.StopProgramTrackTable()
+        dish_leaf_node.TrackStop()
         wait_and_validate_attribute_value_available(
             dishln_pointing_device,
             "pointingProgramTrackTable",
             "[]",
             timeout=60,
         )
-
-    result_config, unique_id_config = dish_leaf_node.TrackStop()
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-
-    group_callback["pointingState"].assert_change_event(
-        (PointingState.READY),
-        lookahead=6,
-    )
-
-    group_callback["pointingProgramTrackTable"].assert_change_event(
-        ("[]"),
-        lookahead=8,
-    )
+    else:
+        result_config, unique_id_config = dish_leaf_node.TrackStop()
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id_config[0], COMMAND_COMPLETED),
+            lookahead=6,
+        )
+        group_callback["pointingState"].assert_change_event(
+            (PointingState.READY),
+            lookahead=6,
+        )
+        group_callback["pointingProgramTrackTable"].assert_change_event(
+            ("[]"),
+            lookahead=8,
+        )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
@@ -284,12 +281,13 @@ def partial_configure_dish_leaf_node(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-    time.sleep(5)
     partial_configurations = build_partial_configure_data(
         partial_configure_input_str, OFFSET
     )
     count = 0
     for input_str in partial_configurations:
+        # Give a pause before invoking next configuration
+        time.sleep(3)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
@@ -305,8 +303,6 @@ def partial_configure_dish_leaf_node(
             [ca_offset, ie_offset],
             lookahead=2,
         )
-        # Give a pause before invoking next configuration
-        time.sleep(5)
         count += 1
 
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()

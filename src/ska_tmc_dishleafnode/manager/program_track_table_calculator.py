@@ -95,10 +95,6 @@ class ProgramTrackTableCalculator:
                     [round(result[0], 12), round(result[1], 12)]
                 )
                 self.track_table_scheduler.run(blocking=False)
-                # self.logger.info(
-                #     "Pointing calculation period set to: %s",
-                #     self.pointing_calculation_period,
-                # )
                 if (
                     self.ptt_buffer_set
                     and self.component_manager.mapping_scan_event.wait(
@@ -108,7 +104,7 @@ class ProgramTrackTableCalculator:
                     self.logger.debug(
                         "Stopping the ProgramTrackTable calculation."
                     )
-                    break
+                    return []
 
             return program_track_table
 

@@ -90,6 +90,11 @@ class BaseScanMapping:
             'pointing', {}
         ).get("trajectory", {})
         trajectory_attrs = trajectory.get("attrs", {}) or {'x': 0.0, 'y': 0.0}
+        self.logger.debug(
+            "Fixed trajectory offsets -> x: %s arcsec, y: %s arcsec",
+            trajectory_attrs['x'],
+            trajectory_attrs['y'],
+        )
         return trajectory_attrs['x'], trajectory_attrs['y']
 
     def build_data_for_observation(self):
