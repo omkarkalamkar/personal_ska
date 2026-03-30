@@ -286,7 +286,7 @@ def partial_configure_dish_leaf_node(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-
+    time.sleep(5)
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_trackstop[0], COMMAND_COMPLETED),
@@ -303,8 +303,6 @@ def partial_configure_dish_leaf_node(
     )
     count = 0
     for input_str in partial_configurations:
-        # Give a pause before invoking next configuration
-        time.sleep(3)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
@@ -320,6 +318,9 @@ def partial_configure_dish_leaf_node(
             [ca_offset, ie_offset],
             lookahead=2,
         )
+        # Give a pause before invoking next configuration
+        # Allow some time for 5 PTT generation
+        time.sleep(5)
         result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
         group_callback["longRunningCommandResult"].assert_change_event(
             (unique_id_trackstop[0], COMMAND_COMPLETED),
@@ -428,6 +429,7 @@ def delta_configure_dish_leaf_node(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+    time.sleep(5)
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 
@@ -448,7 +450,7 @@ def delta_configure_dish_leaf_node(
         count = 0
         for input_str in delta_configurations:
             # Give a pause before invoking next configuration
-            time.sleep(3)
+            time.sleep(5)
             result_config, unique_id_config = dish_leaf_node.Configure(
                 input_str
             )
@@ -491,7 +493,7 @@ def delta_configure_dish_leaf_node(
             collimation_offsets,
             lookahead=2,
         )
-
+    time.sleep(5)
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 
