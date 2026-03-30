@@ -40,7 +40,8 @@ class StopProgramTrackTable(FastCommand):
             ):
                 # The track_table_thread is joined with a short timeout to
                 # prevent the Stop command from triggering a Tango timeout
-                self.component_manager.track_table_thread.join(timeout=1.0)
+                self.logger.info("Event set")
+                # self.component_manager.track_table_thread.join(timeout=1.0)
             self.component_manager.update_pointing_program_track_table([])
             self.component_manager.current_mapping_scan_obj = None
             self.logger.info(
