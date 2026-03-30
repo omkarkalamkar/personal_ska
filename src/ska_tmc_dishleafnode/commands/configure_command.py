@@ -619,9 +619,7 @@ class Configure(DishLNCommand):
         return ResultCode.QUEUED, ""
 
     def get_ie_ca_offsets_if_provided(
-        self,
-        config_json: dict,
-        reset_offset: bool,
+        self, config_json: dict, reset_offset: bool
     ) -> list:
         """This check if ca_offset_arcsec or ie_offset_arcsec provided
         in config json and return offsets
@@ -648,7 +646,7 @@ class Configure(DishLNCommand):
         ):
             offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
             offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
-            self.logger.debug("Using legacy collimation offsets: %s", offsets)
+            LOGGER.debug("Using legacy collimation offsets: %s", offsets)
             return offsets
 
         # Fall back to trajectory (new ADR-63 path)
@@ -665,7 +663,7 @@ class Configure(DishLNCommand):
             ):
                 offsets.append(trajectory_attrs.get("x", 0.0))
                 offsets.append(trajectory_attrs.get("y", 0.0))
-                self.logger.debug("Using trajectory offsets: %s", offsets)
+                LOGGER.debug("Using trajectory offsets: %s", offsets)
                 return offsets
 
         # Legacy target / pointing-level path (unchanged)
