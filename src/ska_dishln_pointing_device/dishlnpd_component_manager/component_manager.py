@@ -657,7 +657,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.set_pointing_calculation_period(
                 self.program_track_table_size
             )
-            while not self.mapping_scan_event.is_set:
+            while not self.mapping_scan_event.is_set():
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
                     "with thread id: %s",
@@ -671,6 +671,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         program_track_table_size=self.program_track_table_size,
                     )
                 )
+
                 if not program_track_table:
                     break
 
