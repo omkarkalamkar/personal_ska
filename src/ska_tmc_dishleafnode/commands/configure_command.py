@@ -135,23 +135,39 @@ class Configure(DishLNCommand):
             self.component_manager.primary_configuration["pointing"][
                 "field"
             ] = field
+
         # Update trajectory
         if "trajectory" in pointing_data:
             trajectory = pointing_data["trajectory"]
             self.component_manager.primary_configuration["pointing"][
                 "trajectory"
             ] = trajectory
-        # update projection
+
+        # Update projection
         if "projection" in pointing_data:
             projection = pointing_data["projection"]
             self.component_manager.primary_configuration["pointing"][
                 "projection"
             ] = projection
+
         # Update wrap_sector key
         if "wrap_sector" in pointing_data:
             self.component_manager.primary_configuration["pointing"][
                 "wrap_sector"
             ] = pointing_data["wrap_sector"]
+
+        for offset_key in ("ca_offset_arcsec", "ie_offset_arcsec"):
+            if offset_key in pointing_data:
+                self.component_manager.primary_configuration["pointing"][
+                    offset_key
+                ] = pointing_data[offset_key]
+                self.logger.info(
+                    "Partial config: applied legacy collimation "
+                    "offset %s = %s",
+                    offset_key,
+                    pointing_data[offset_key],
+                )
+
         # Update receiver band
         dish_data = new_configuration.get("dish", {})
         if "receiver_band" in dish_data:
@@ -621,8 +637,21 @@ class Configure(DishLNCommand):
         """
         if reset_offset:
             return RESET_OFFSETS
+
         offsets = []
         pointing_data = config_json.get("pointing", {})
+
+        # Legacy collimation keys always take precedence
+        if (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+            self.logger.debug("Using legacy collimation offsets: %s", offsets)
+            return offsets
+
+        # Fall back to trajectory (new ADR-63 path)
         is_trajectory_key_present = (
             pointing_data.get("trajectory", {}).get("name", "").lower()
             == FIXED_TRAJECTORY
@@ -636,21 +665,24 @@ class Configure(DishLNCommand):
             ):
                 offsets.append(trajectory_attrs.get("x", 0.0))
                 offsets.append(trajectory_attrs.get("y", 0.0))
+                self.logger.debug("Using trajectory offsets: %s", offsets)
                 return offsets
-        else:
-            target_data = pointing_data.get("target", {})
-            if (
-                "ca_offset_arcsec" in target_data
-                or "ie_offset_arcsec" in target_data
-            ):
-                offsets.append(target_data.get("ca_offset_arcsec", 0.0))
-                offsets.append(target_data.get("ie_offset_arcsec", 0.0))
-            elif (
-                "ca_offset_arcsec" in pointing_data
-                or "ie_offset_arcsec" in pointing_data
-            ):
-                offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
-                offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+
+        # Legacy target / pointing-level path (unchanged)
+        target_data = pointing_data.get("target", {})
+        if (
+            "ca_offset_arcsec" in target_data
+            or "ie_offset_arcsec" in target_data
+        ):
+            offsets.append(target_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(target_data.get("ie_offset_arcsec", 0.0))
+        elif (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+
         return offsets
 
     def start_dish_tracking(self: Configure, json_argument: dict):
