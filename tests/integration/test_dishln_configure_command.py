@@ -150,8 +150,13 @@ def configure_dish_leaf_node(
         # Allow some time for 5 PTT to get generated for TLE tracking
         # For 50 enrtries of one track table, its taking around
         # 2+ seconds
-        time.sleep(15)
         dishln_pointing_device.StopProgramTrackTable()
+        wait_and_validate_attribute_value_available(
+            dishln_pointing_device,
+            "pointingProgramTrackTable",
+            "[]",
+            timeout=60,
+        )
 
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
