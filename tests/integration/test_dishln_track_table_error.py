@@ -372,7 +372,7 @@ def transform_config(config, object="Sun"):
         if "target" in pointing:
             pointing["field"] = pointing.pop("target")
         pointing["field"]["target_name"] = object
-        pointing["projection"] = {"name": "SIN", "alignment": "radec"}
+        pointing["projection"] = {"name": "SSN", "alignment": "ICRS"}
         result["pointing"] = pointing
 
     return json.dumps(result)
