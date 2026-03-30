@@ -287,6 +287,17 @@ def partial_configure_dish_leaf_node(
         lookahead=6,
     )
 
+    result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
+    group_callback["longRunningCommandResult"].assert_change_event(
+        (unique_id_trackstop[0], COMMAND_COMPLETED),
+        lookahead=6,
+    )
+
+    group_callback["pointingProgramTrackTable"].assert_change_event(
+        ("[]"),
+        lookahead=12,
+    )
+
     partial_configurations = build_partial_configure_data(
         partial_configure_input_str, OFFSET
     )
@@ -309,20 +320,19 @@ def partial_configure_dish_leaf_node(
             [ca_offset, ie_offset],
             lookahead=2,
         )
+        result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
+        group_callback["longRunningCommandResult"].assert_change_event(
+            (unique_id_trackstop[0], COMMAND_COMPLETED),
+            lookahead=6,
+        )
+
+        group_callback["pointingProgramTrackTable"].assert_change_event(
+            ("[]"),
+            lookahead=12,
+        )
         count += 1
 
-    result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
-
-    group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_trackstop[0], COMMAND_COMPLETED),
-        lookahead=6,
-    )
-
-    group_callback["pointingProgramTrackTable"].assert_change_event(
-        ("[]"),
-        lookahead=12,
-    )
 
     group_callback["pointingState"].assert_change_event(
         (PointingState.READY),
