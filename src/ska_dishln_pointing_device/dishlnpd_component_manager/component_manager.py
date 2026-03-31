@@ -594,7 +594,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
-            track_thread_stop_event = self.mapping_scan_event.is_set()
             pre_entries_of_ptt_in_schedular = self.entries_tt_schedular_queue
             self.logger.info(
                 "Starting ProgramTrackTable calculation.",
@@ -634,7 +633,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
             # Generate first 50 entries of PTT.
             # Each entry is one second apart
-            track_table_calculator.pointing_calculation_period = 1
             program_track_table: list = (
                 track_table_calculator.calculate_program_track_table(
                     azel_converter=self.converter,
@@ -659,7 +657,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.set_pointing_calculation_period(
                 self.program_track_table_size
             )
-            while not track_thread_stop_event:
+            while not self.mapping_scan_event.wait(timeout=0.1):
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
                     "with thread id: %s",
@@ -695,7 +693,6 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                         # pylint: disable=line-too-long
                         update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
                     )
-                track_thread_stop_event = self.mapping_scan_event.is_set()
             self.logger.info("Program trackTable calculation stopped.")
         except Exception as value_error:
             self.logger.error(

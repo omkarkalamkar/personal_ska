@@ -330,9 +330,12 @@ class ProgramTrackTableCalculator:
     def set_pointing_calculation_period(self, program_track_table_size: int):
         """Set the pointing calculation period"""
 
-        self.pointing_calculation_period = operator.truediv(
-            self.component_manager.track_table_update_rate,
-            program_track_table_size,
+        self.pointing_calculation_period = (
+            operator.truediv(
+                self.component_manager.track_table_update_rate,
+                program_track_table_size,
+            )
+            - 0.1
         )
         self.logger.info(
             "Pointing calculation period set to: %s",
