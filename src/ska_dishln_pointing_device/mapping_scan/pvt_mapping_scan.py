@@ -1,4 +1,5 @@
-"""Module for generating program track table for normal scans"""
+"""Module for generating program track table for position velocity
+time mappiing scans"""
 
 from __future__ import annotations
 
