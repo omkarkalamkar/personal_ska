@@ -34,7 +34,6 @@ from ska_tmc_dishleafnode.constants import (
     FIRST_PROGRAM_TRACK_TABLE_SIZE,
     IERS_DATA_STORAGE_PATH,
     TIME_DELTA_IN_SECONDS,
-    WAIT_TIME_IN_SECONDS,
 )
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
@@ -635,7 +634,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
             # Generate first 50 entries of PTT.
             # Each entry is one second apart
-            track_table_calculator.time_delta = TIME_DELTA_IN_SECONDS
+            track_table_calculator.pointing_calculation_period = (
+                TIME_DELTA_IN_SECONDS
+            )
             program_track_table: list = (
                 track_table_calculator.calculate_program_track_table(
                     azel_converter=self.converter,
@@ -661,9 +662,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 self.program_track_table_size
             )
 
-            while not self.mapping_scan_event.wait(
-                timeout=WAIT_TIME_IN_SECONDS
-            ):
+            while not self.mapping_scan_event.is_set():
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
                     "with thread id: %s",
