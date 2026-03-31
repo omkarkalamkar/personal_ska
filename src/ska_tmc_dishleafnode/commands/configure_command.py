@@ -193,6 +193,39 @@ class Configure(DishLNCommand):
         if not isinstance(pointing_data, dict):
             return config_json
 
+        groups = pointing_data.get("groups")
+        primary_group = (
+            groups[0]
+            if isinstance(groups, list)
+            and groups
+            and isinstance(groups[0], dict)
+            else {}
+        )
+
+        field = pointing_data.get("field")
+        if not isinstance(field, dict):
+            field = primary_group.get("field")
+            if isinstance(field, dict):
+                pointing_data["field"] = field
+
+        trajectory = pointing_data.get("trajectory")
+        if not isinstance(trajectory, dict):
+            if isinstance(field, dict):
+                trajectory = field.get("trajectory")
+            if not isinstance(trajectory, dict):
+                trajectory = primary_group.get("trajectory")
+            if isinstance(trajectory, dict):
+                pointing_data["trajectory"] = trajectory
+
+        projection = pointing_data.get("projection")
+        if not isinstance(projection, dict):
+            if isinstance(field, dict):
+                projection = field.get("projection")
+            if not isinstance(projection, dict):
+                projection = primary_group.get("projection")
+            if isinstance(projection, dict):
+                pointing_data["projection"] = projection
+
         x_offset = y_offset = None
         target_data = pointing_data.get("target", {})
         if isinstance(target_data, dict) and (
@@ -327,11 +360,6 @@ class Configure(DishLNCommand):
 
         # partial configuration case: ensure target provided inside pointing
         if input_argin.get("tmc", {}).get("partial_configuration"):
-            if "target" not in input_argin["pointing"]:
-                return (
-                    ResultCode.REJECTED,
-                    "target key is not present in the input json argument.",
-                )
             return ResultCode.OK, ""
 
         # non-partial case: ensure dish and receiver_band present
