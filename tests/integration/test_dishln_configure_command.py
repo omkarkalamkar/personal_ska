@@ -415,7 +415,7 @@ def delta_configure_dish_leaf_node(
         count = 0
         for input_str in delta_configurations:
             # Give a pause before invoking next configuration
-            time.sleep(5)
+            time.sleep(3)
             result_config, unique_id_config = dish_leaf_node.Configure(
                 input_str
             )
@@ -652,7 +652,7 @@ def configure_with_wrap_sector(
         (PointingState.SLEW),
         lookahead=6,
     )
-    time.sleep(5)
+
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
@@ -793,7 +793,7 @@ def configure_with_wrap_sector(
             timeout += 1
 
     assert flag  # Verify PTT updated.
-    time.sleep(5)
+
     result_config, unique_id_config = dish_leaf_node.TrackStop()
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id_config[0], COMMAND_COMPLETED),
@@ -917,7 +917,6 @@ def configure_command_with_trajectory_and_ie_ce(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-    time.sleep(5)
     result_config, unique_id_config = dish_leaf_node.Configure(
         delta_config_str
     )
@@ -959,7 +958,7 @@ def configure_command_with_trajectory_and_ie_ce(
         collimation_offsets,
         lookahead=2,
     )
-    time.sleep(5)
+
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 

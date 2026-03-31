@@ -24,7 +24,7 @@ from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
 from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
+from ska_tmc_dishleafnode.constants import FIRST_PROGRAM_TRACK_TABLE_SIZE
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
@@ -188,7 +188,7 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
             RaDec_AzEl_conversion_time = 0.02
             time_to_add: float = (
                 operator.mul(
-                    PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
+                    FIRST_PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
                 )
                 + self.component_manager.track_table_advance_sec
             )
@@ -198,7 +198,7 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
             program_track_table: list = self.calculate_program_track_table(
                 time_offsets=time_offsets,
                 ptt_buffer_set=ptt_buffer_set,
-                program_track_table_size=PROGRAM_TRACK_TABLE_SIZE * 3,
+                program_track_table_size=FIRST_PROGRAM_TRACK_TABLE_SIZE * 3,
             )
             if program_track_table:
                 scheduled_time = (

@@ -12,7 +12,7 @@ from astropy.time import Time
 from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
-from ska_tmc_dishleafnode.constants import SKA_EPOCH
+from ska_tmc_dishleafnode.constants import SKA_EPOCH, WAIT_TIME_IN_SECONDS
 
 
 class ProgramTrackTableCalculator:
@@ -42,6 +42,7 @@ class ProgramTrackTableCalculator:
         self.logger = logger
         self.track_table_time_stamp: datetime.datetime | None = None
         self.pointing_calculation_period: float = 0.0
+        self.time_delta = 0.0
         self.ptt_buffer_set = False
         self.track_table_scheduler = None
         self.tle_data = ["", ""]
@@ -167,9 +168,7 @@ class ProgramTrackTableCalculator:
                 tai_timestamp_list.append(tai_time)
                 self.track_table_time_stamp = (
                     self.track_table_time_stamp
-                    + datetime.timedelta(
-                        seconds=(self.pointing_calculation_period)
-                    )
+                    + datetime.timedelta(seconds=self.time_delta)
                 )
 
         except ValueError as value_error:
@@ -330,12 +329,12 @@ class ProgramTrackTableCalculator:
     def set_pointing_calculation_period(self, program_track_table_size: int):
         """Set the pointing calculation period"""
 
+        self.time_delta = operator.truediv(
+            self.component_manager.track_table_update_rate,
+            program_track_table_size,
+        )
         self.pointing_calculation_period = (
-            operator.truediv(
-                self.component_manager.track_table_update_rate,
-                program_track_table_size,
-            )
-            - 0.1
+            self.time_delta - WAIT_TIME_IN_SECONDS
         )
         self.logger.info(
             "Pointing calculation period set to: %s",

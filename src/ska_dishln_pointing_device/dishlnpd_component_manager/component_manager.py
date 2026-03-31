@@ -31,8 +31,10 @@ from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
 from ska_tmc_dishleafnode.constants import (
+    FIRST_PROGRAM_TRACK_TABLE_SIZE,
     IERS_DATA_STORAGE_PATH,
-    PROGRAM_TRACK_TABLE_SIZE,
+    TIME_DELTA_IN_SECONDS,
+    WAIT_TIME_IN_SECONDS,
 )
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
@@ -614,7 +616,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             RaDec_AzEl_conversion_time = 0.02
             time_to_add: float = (
                 operator.mul(
-                    PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
+                    FIRST_PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
                 )
                 + self.track_table_advance_sec
             )
@@ -633,10 +635,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             )
             # Generate first 50 entries of PTT.
             # Each entry is one second apart
+            track_table_calculator.time_delta = TIME_DELTA_IN_SECONDS
             program_track_table: list = (
                 track_table_calculator.calculate_program_track_table(
                     azel_converter=self.converter,
-                    program_track_table_size=PROGRAM_TRACK_TABLE_SIZE,
+                    program_track_table_size=FIRST_PROGRAM_TRACK_TABLE_SIZE,
                 )
             )
             scheduled_time = track_table_calculator.build_scheduled_time(
@@ -657,7 +660,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.set_pointing_calculation_period(
                 self.program_track_table_size
             )
-            while not self.mapping_scan_event.wait(timeout=0.1):
+
+            while not self.mapping_scan_event.wait(
+                timeout=WAIT_TIME_IN_SECONDS
+            ):
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
                     "with thread id: %s",
