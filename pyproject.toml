@@ -9,7 +9,9 @@ packages = [{ include = "ska_tmc_dishleafnode", from = "src" }]
 include = [{ path = 'tests' }]
 
 [tool.poetry.scripts]
-DishLeafNodeDS = 'ska_tmc_dishleafnode.dish_leaf_node:main'
+MidTmcLeafNodeDish = 'ska_tmc_dishleafnode.dish_leaf_node:main'
+DishPointingDevice = 'ska_dishln_pointing_device.dishln_pointing_device:main'
+
 
 [[tool.poetry.source]]
 name = 'ska-nexus'
@@ -72,6 +74,10 @@ line-length = 79
 target-version = ['py38', 'py39', 'py310']
 skip-string-normalization = true
 
+[tool.tangodifdoc]
+MidTmcLeafNodeDish = { properties = { foo = "bar", baz = [1, 2, 3] } }
+DishPointingDevice = { properties = { foo = "bar", baz = [1, 2, 3] } }
+
 
 [tool.poetry.group.docs.dependencies]
 docutils = "^0.18.1"
@@ -83,6 +89,7 @@ typing_extensions = "^4.3.0"
 sphinx-rtd-theme = "^1.2.2"
 recommonmark = "^0.7.1"
 snowballstemmer = "2.2.0"
+ska-tango-difdoc = "^0.3.0"
 
 
 [build-system]

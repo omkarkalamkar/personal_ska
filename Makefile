@@ -116,6 +116,17 @@ K8S_TEST_TEST_COMMAND = $(PYTHON_VARS_BEFORE_PYTEST) $(PYTHON_RUNNER) \
 -include .make/oci.mk
 -include PrivateRules.mak
 
+DOCGEN_TARGETS := html singlehtml
+
+# Run tangodocgen for specific build targets
+ifneq (,$(filter $(DOCS_TARGET_ARGS),$(DOCGEN_TARGETS)))
+docs-pre-build:
+	@if [ -v CI_JOB_TOKEN ]; then \
+		poetry install --only-root; \
+	fi
+	tangodocgen --auto -o docs/src/developer_guide/dishleafnode --timeout 100
+endif
+
 cred:
 	make k8s-namespace
 	curl -s https://gitlab.com/ska-telescope/templates-repository/-/raw/master/scripts/namespace_auth.sh | bash -s $(SERVICE_ACCOUNT) $(KUBE_NAMESPACE) || true
