@@ -101,7 +101,7 @@ class ProgramTrackTableCalculator:
                         self.pointing_calculation_period
                     )
                 ):
-                    self.logger.debug(
+                    self.logger.info(
                         "Stopping the ProgramTrackTable calculation."
                     )
                     return []

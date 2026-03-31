@@ -545,7 +545,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.mapping_scan_event.set()
         if self.track_table_thread and self.track_table_thread.is_alive():
             self.track_table_thread.join()
-            self.logger.debug("Track Table thread stopped")
+            self.logger.info("Track Table thread stopped")
 
     def start_track_table_calculation(self) -> None:
         """This method creates and starts a thread for the programTrackTable
@@ -594,7 +594,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             pre_entries_of_ptt_in_schedular = self.entries_tt_schedular_queue
-            self.logger.debug(
+            self.logger.info(
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
@@ -695,7 +695,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                             update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
                         )
 
-            self.logger.debug("Program trackTable calculation stopped.")
+            self.logger.info("Program trackTable calculation stopped.")
         except Exception as value_error:
             self.logger.error(
                 "Error occurred during track_thread execution: %s",
@@ -803,3 +803,54 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "temperature": self.update_temperature,
         }
         return {**attributes}
+
+    def cleanup(self) -> None:
+        """Stop background threads and cleanup resources.
+
+        Ensures event threads, track-table thread and downloader thread are
+        signalled to stop and joined where appropriate before delegating to
+        the superclass cleanup which shuts down the task executor.
+        """
+        try:
+            try:
+                # stop event processing threads (signals them and joins)
+                if hasattr(self, "stop_event_processing_threads"):
+                    self.stop_event_processing_threads()
+            except Exception:
+                self.logger.exception(
+                    "Error stopping event processing threads during cleanup"
+                )
+
+            try:
+                # stop any running track table thread
+                if hasattr(self, "stop_track_table_thread"):
+                    self.stop_track_table_thread()
+            except Exception:
+                self.logger.exception(
+                    "Error stopping track table thread during cleanup"
+                )
+
+            # signal mapping scan event to help any loops exit
+            try:
+                if hasattr(self, "mapping_scan_event"):
+                    self.mapping_scan_event.set()
+            except Exception:
+                pass
+
+            # join the downloader thread if it's alive
+            # (it is daemon by default)
+            try:
+                dt = getattr(self, "data_download_thread", None)
+                if dt is not None and dt.is_alive():
+                    dt.join(timeout=1)
+            except Exception:
+                self.logger.exception(
+                    "Error joining data download thread during cleanup"
+                )
+
+        finally:
+            # delegate to superclass to shutdown executor and other resources
+            try:
+                super().cleanup()
+            except Exception:
+                self.logger.exception("Superclass cleanup raised an exception")

@@ -108,6 +108,12 @@ class DishPointingDevice(TMCBaseLeafDevice):
             self.set_archive_event(attr, True)
         self.init_completed()
 
+    def delete_device(self) -> None:
+        """This method is used to perform cleanup when the device
+        is deleted."""
+        self.component_manager.cleanup()
+        super().delete_device()
+
     @attribute(
         dtype=ArgType.DevString,
         dformat=AttrDataFormat.SCALAR,

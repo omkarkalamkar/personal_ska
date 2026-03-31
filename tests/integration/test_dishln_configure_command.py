@@ -287,7 +287,7 @@ def partial_configure_dish_leaf_node(
     count = 0
     for input_str in partial_configurations:
         # Give a pause before invoking next configuration
-        time.sleep(3)
+        time.sleep(5)
         result_config, unique_id_config = dish_leaf_node.Configure(input_str)
         assert result_config[0] == ResultCode.QUEUED
         load_conf = json.loads(input_str)
