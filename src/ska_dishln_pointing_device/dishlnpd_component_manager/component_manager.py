@@ -562,6 +562,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     self.mapping_scan_event.clear()
                     self.create_track_table_thread()
                     self.track_table_thread.start()
+                    self.stop_track_called.clear()
 
         except Exception as exception:
             self.logger.exception(
