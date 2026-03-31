@@ -10,7 +10,6 @@ include = [{ path = 'tests' }]
 
 [tool.poetry.scripts]
 MidTmcLeafNodeDish = 'ska_tmc_dishleafnode.dish_leaf_node:main'
-DishPointingDevice = 'ska_dishln_pointing_device.dishln_pointing_device:main'
 
 
 [[tool.poetry.source]]
@@ -76,7 +75,6 @@ skip-string-normalization = true
 
 [tool.tangodifdoc]
 MidTmcLeafNodeDish = { properties = { foo = "bar", baz = [1, 2, 3] } }
-DishPointingDevice = { properties = { foo = "bar", baz = [1, 2, 3] } }
 
 
 [tool.poetry.group.docs.dependencies]
