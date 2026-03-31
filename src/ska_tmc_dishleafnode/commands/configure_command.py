@@ -678,17 +678,6 @@ class Configure(DishLNCommand):
         offsets = []
         pointing_data = config_json.get("pointing", {})
 
-        # Legacy collimation keys always take precedence
-        if (
-            "ca_offset_arcsec" in pointing_data
-            or "ie_offset_arcsec" in pointing_data
-        ):
-            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
-            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
-            LOGGER.debug("Using legacy collimation offsets: %s", offsets)
-            return offsets
-
-        # Fall back to trajectory (new ADR-63 path)
         is_trajectory_key_present = (
             pointing_data.get("trajectory", {}).get("name", "").lower()
             == FIXED_TRAJECTORY
@@ -704,6 +693,15 @@ class Configure(DishLNCommand):
                 offsets.append(trajectory_attrs.get("y", 0.0))
                 LOGGER.debug("Using trajectory offsets: %s", offsets)
                 return offsets
+
+        if (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+            LOGGER.debug("Using legacy collimation offsets: %s", offsets)
+            return offsets
 
         # Legacy target / pointing-level path (unchanged)
         target_data = pointing_data.get("target", {})

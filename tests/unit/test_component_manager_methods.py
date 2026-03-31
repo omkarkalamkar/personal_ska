@@ -390,6 +390,20 @@ def _make_configure_instance():
         (
             {
                 "pointing": {
+                    "trajectory": {
+                        "name": FIXED_TRAJECTORY,
+                        "attrs": {"x": 0.0, "y": 900.0},
+                    },
+                    "ca_offset_arcsec": 0.0,
+                    "ie_offset_arcsec": 5.0,
+                }
+            },
+            False,
+            [0.0, 900.0],
+        ),
+        (
+            {
+                "pointing": {
                     "target": {
                         "ca_offset_arcsec": 2.0,
                         "ie_offset_arcsec": -2.5,
@@ -409,6 +423,7 @@ def _make_configure_instance():
     ids=[
         "reset_offsets",
         "trajectory_offsets_preferred",
+        "trajectory_offsets_preferred_when_legacy_offsets_also_present",
         "target_offsets_when_present",
         "pointing_level_offsets_when_present",
         "no_offsets_returns_empty_list",
