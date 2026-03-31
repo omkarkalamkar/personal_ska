@@ -426,6 +426,7 @@ def delta_configure_dish_leaf_node(
             )
             count += 1
     else:
+        time.sleep(5)
         result_config, unique_id_config = dish_leaf_node.Configure(
             delta_config_str
         )
@@ -447,7 +448,7 @@ def delta_configure_dish_leaf_node(
             collimation_offsets,
             lookahead=2,
         )
-    time.sleep(5)
+
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
 
