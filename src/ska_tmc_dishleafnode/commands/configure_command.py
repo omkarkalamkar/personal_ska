@@ -419,7 +419,18 @@ class Configure(DishLNCommand):
                 )
                 # Invoke track load static off when collimation offsets
                 # provided and correction key is provided as RESET
+                self.logger.debug(
+                    "Command ID: %s |"
+                    " Result code for invoking GenerateProgramTrackTable: %s",
+                    self.component_manager.command_id,
+                    result_code,
+                )
                 if collimation_offsets:
+                    self.logger.debug(
+                        "Command ID: %s | Collimation offsets provided: %s",
+                        self.component_manager.command_id,
+                        collimation_offsets,
+                    )
                     self.component_manager.update_source_offset_callback(
                         collimation_offsets
                     )
