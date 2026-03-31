@@ -106,11 +106,12 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Dish leaf node pointing device name is: %s",
             self.dishln_pointing_device_name,
         )
-        self.dish_id = re.findall(
+        match = re.findall(
             "\\b(?:SKA|MKT)\\d{3}\\b",
             self.dishln_pointing_device_name,
             flags=re.IGNORECASE,
-        )[0]
+        )
+        self.dish_id = match[0] if match else self.dishln_pointing_device_name
 
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
