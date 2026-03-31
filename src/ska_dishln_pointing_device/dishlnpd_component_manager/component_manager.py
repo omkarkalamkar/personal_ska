@@ -594,6 +594,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         :rtype: None
         """
         try:
+            track_thread_stop_event = self.mapping_scan_event.is_set()
             pre_entries_of_ptt_in_schedular = self.entries_tt_schedular_queue
             self.logger.info(
                 "Starting ProgramTrackTable calculation.",
@@ -658,7 +659,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             track_table_calculator.set_pointing_calculation_period(
                 self.program_track_table_size
             )
-            while not self.mapping_scan_event.is_set():
+            while not track_thread_stop_event:
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
                     "with thread id: %s",
@@ -681,21 +682,20 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 )
 
                 with self.track_thread_lock:
-                    if not self.mapping_scan_event.is_set():
-                        if pre_entries_of_ptt_in_schedular > 0:
-                            pre_entries_of_ptt_in_schedular -= 1
-                        else:
-                            track_table_calculator.ptt_buffer_set = True
+                    if pre_entries_of_ptt_in_schedular > 0:
+                        pre_entries_of_ptt_in_schedular -= 1
+                    else:
+                        track_table_calculator.ptt_buffer_set = True
+                    # pylint: disable=line-too-long
+                    track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                        track_table_scheduler=track_table_scheduler,
+                        event_priority=event_priority,
+                        scheduled_time=scheduled_time,
+                        program_track_table=program_track_table,
                         # pylint: disable=line-too-long
-                        track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
-                            track_table_scheduler=track_table_scheduler,
-                            event_priority=event_priority,
-                            scheduled_time=scheduled_time,
-                            program_track_table=program_track_table,
-                            # pylint: disable=line-too-long
-                            update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
-                        )
-
+                        update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
+                    )
+                track_thread_stop_event = self.mapping_scan_event.is_set()
             self.logger.info("Program trackTable calculation stopped.")
         except Exception as value_error:
             self.logger.error(
