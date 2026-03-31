@@ -6,7 +6,7 @@ import pytest
 from katpoint import Target
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
+from ska_tmc_dishleafnode.constants import FIRST_PROGRAM_TRACK_TABLE_SIZE
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
@@ -21,8 +21,8 @@ def test_calculate_time_stamp_array(cm_pointing_device):
         time_stamp_array,
         tai_timestamp_array,
     ) = track_table_calculator.calculate_time_stamp_list()
-    assert len(time_stamp_array) == PROGRAM_TRACK_TABLE_SIZE
-    assert len(tai_timestamp_array) == PROGRAM_TRACK_TABLE_SIZE
+    assert len(time_stamp_array) == FIRST_PROGRAM_TRACK_TABLE_SIZE
+    assert len(tai_timestamp_array) == FIRST_PROGRAM_TRACK_TABLE_SIZE
 
 
 def test_calculate_program_track_table(cm_pointing_device):
