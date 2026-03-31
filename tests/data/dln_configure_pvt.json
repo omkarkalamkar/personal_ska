@@ -35,8 +35,8 @@
             "reference_frame": "altaz",
             "target_name": "Test",
             "attrs": {
-                "line1": 45.42808336,
-                "line2": -41.71493321
+                "c2": 45.42808336,
+                "c1": -41.71493321
             }
         },
         "trajectory": {

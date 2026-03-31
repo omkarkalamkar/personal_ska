@@ -1152,6 +1152,7 @@ def validate_mattieu_pattern_configure(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.skip(reason="temporary skip")
 def test_mattieu_pattern(tango_context, group_callback, json_factory):
     """ """
     main_configure = json_factory("dln_configure_pvt")

@@ -126,7 +126,7 @@ def test_main_config_with_correction_key_update_reset(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-
+    sleep(5)
     if correction_key == "RESET":
         group_callback["sourceOffset"].assert_change_event(
             ([0.0, 0.0]),
@@ -143,9 +143,6 @@ def test_main_config_with_correction_key_update_reset(
             "Time Out while waiting for target data to contain"
             f" {POINTING_CAL} . Current target Data {dish_pd.targetData}"
         )
-        # validate_trackloadstaticoff_invoked(dish_master, group_callback)
-        # command_info_data = dish_master.commandCallInfo
-        # assert ("TrackLoadStaticOff", "[1.1 1.2]") in command_info_data
 
     dish_leaf_node.unsubscribe_event(source_offset_event_id)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
@@ -231,6 +228,7 @@ def test_partial_configure_with_update_reset_correction_key(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+    sleep(5)
     partial_configure_input_str = json_factory("partial_configure")
     load_conf = json.loads(partial_configure_input_str)
     load_conf["pointing"]["correction"] = correction_key
@@ -374,6 +372,7 @@ def test_configure_with_maintain_notset_correction_key(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
+    sleep(5)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     # Assert that no TrackLoadStaticOff invoked
