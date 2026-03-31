@@ -447,6 +447,7 @@ def tear_down(
     logger.info("Invoked tear_down")
     current_pointing_state = dish_master.pointingState
     if current_pointing_state == PointingState.TRACK:
+        time.sleep(5)  # allow to fill the PTT scheduler buffer.
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
