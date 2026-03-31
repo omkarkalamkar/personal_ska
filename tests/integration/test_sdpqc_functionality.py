@@ -92,7 +92,7 @@ def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-
+    sleep(5)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     # # Assert TrackLoadStaticOff command not invoked when NaN
