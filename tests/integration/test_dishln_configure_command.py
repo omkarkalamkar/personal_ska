@@ -1113,8 +1113,7 @@ def validate_mattieu_pattern_configure(
 
     # Validate number of program track table entries is 150
     assert (
-        len(json.loads(dishln_pointing_device.pointingProgramTrackTable))
-        == 15
+        len(json.loads(dishln_pointing_device.pointingProgramTrackTable)) == 15
     )
     configure_str = json.loads(configure_input_str)
     if configure_str.get("pointing", {}).get("field", ""):
