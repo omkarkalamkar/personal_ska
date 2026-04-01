@@ -25,6 +25,7 @@ TIMEOUT = 10
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.test
 def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
     """This test tests the NaN received from SDPQC functionality"""
     sdp_queue_connector = DevFactory().get_device(SDP_QUEUE_CONNECTOR_DEVICE)
@@ -92,7 +93,6 @@ def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-    sleep(5)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
 
     # # Assert TrackLoadStaticOff command not invoked when NaN
@@ -130,6 +130,7 @@ def test_sdpqc_nan_functionality(tango_context, json_factory, group_callback):
 
     # Reset pointing offsets
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL_RESET)
+    sleep(5)
     result_trackstop, unique_id_trackstop = dish_leaf_node.TrackStop()
     assert result_trackstop[0] == ResultCode.QUEUED
     group_callback["longRunningCommandResult"].assert_change_event(

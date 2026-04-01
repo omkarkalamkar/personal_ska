@@ -92,7 +92,6 @@ def configure_dish_leaf_node(
     logger.info("Sending Configure Command again")
     dish_master.ClearCommandCallInfo()
     sleep(5)
-
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
     )
@@ -111,7 +110,7 @@ def configure_dish_leaf_node(
     )
     logger.info("command_info - %s", command_info)
     assert "Track" not in command_info, "Track is unexpectedly found in result"
-
+    sleep(5)
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)
@@ -120,6 +119,7 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
+@pytest.mark.test
 @pytest.mark.parametrize(
     "json_to_use", ["dishleafnode_configure", "non_sidereal_tracking"]
 )
