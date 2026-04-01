@@ -3,8 +3,6 @@ ska\_tmc\_dishleafnode.manager
 
 Link to the TMC User documentation is here <https://confluence.skatelescope.org/display/UD/TMC+User+Documentation>_.
 
-Submodules
-==========
 component\_manager
 -------------------------------------------------------------
 
