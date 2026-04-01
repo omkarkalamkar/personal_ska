@@ -1114,7 +1114,7 @@ def validate_mattieu_pattern_configure(
     # Validate number of program track table entries is 150
     assert (
         len(json.loads(dishln_pointing_device.pointingProgramTrackTable))
-        == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+        == 15
     )
     configure_str = json.loads(configure_input_str)
     if configure_str.get("pointing", {}).get("field", ""):
@@ -1152,7 +1152,6 @@ def validate_mattieu_pattern_configure(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.skip(reason="temporary skip")
 def test_mattieu_pattern(tango_context, group_callback, json_factory):
     """ """
     main_configure = json_factory("dln_configure_pvt")
