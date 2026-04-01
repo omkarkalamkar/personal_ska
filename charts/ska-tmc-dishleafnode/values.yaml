@@ -104,7 +104,7 @@ deviceServers:
     ElevationMinLimit: 15.0
     AzimuthMinLimit: -270.0
     AzimuthMaxLimit: 270.0
-    SchedularQueuePreEntries: 3
+    SchedularQueuePreEntries: 5
     ProgramTrackTableSize: 50
 
     file: "data/dishpointingdevice.yaml"

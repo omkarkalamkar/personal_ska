@@ -12,15 +12,10 @@ from logging import Logger
 
 from astropy.time import Time
 
-# pylint: disable=unused-import
-from ska_trajectory.cubic_hermite_trajectory import (  # noqa: F401
-    CubicHermiteTrajectory,
-)
-
-# pylint: enable=unused-import
-from ska_trajectory.trajectory import TrajectoryName
-
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
+from ska_dishln_pointing_device.mapping_scan.trajectory import (
+    create_trajectory,
+)
 from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
@@ -30,7 +25,7 @@ from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
 )
 
 
-class PositionVelocityTimeMappingScan(BaseScanMapping):
+class TrajectoryMappingScan(BaseScanMapping):
     """
     PositionVelocityTimeMappingScan class inherits from BaseScanMapping class.
     It is used to generate program track table for scans like Mattieu pattern.
@@ -38,7 +33,6 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
 
     def __init__(
         self,
-        pattern_name: str,
         component_manager,
         logger: Logger,
     ):
@@ -49,7 +43,6 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
         :param logger (object, optional): An object for logging.
         """
         super().__init__(
-            pattern_name=pattern_name,
             component_manager=component_manager,
             logger=logger,
         )
@@ -57,7 +50,7 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
         self.trajectory_attrs = {}
         self.cadence = 0.0
         self.trajectory_name = ""
-        self.pvt_object = None
+        self.traj = None
         self.track_table_thread = None
         self.track_thread_lock = self.component_manager.track_thread_lock
         self.mapping_scan_event = self.component_manager.mapping_scan_event
@@ -87,8 +80,8 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
             self.component_manager.projection_alignment,
         ) = self.get_projection()
         self.set_trajectory_data()
-        self.pvt_object = TrajectoryName[self.trajectory_name](
-            **self.trajectory_attrs
+        self.traj = create_trajectory(
+            name=self.trajectory_name, **self.trajectory_attrs
         )
         self.cadence = self.time_offsets[1] - self.time_offsets[0]
         self.start_track_table_calculation()
@@ -102,22 +95,6 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
         self.trajectory_attrs = self.get_trajectory_attrs()
         self.trajectory_name = self.component_manager.trajectory_name
 
-    def get_time_offsets(self):
-        """
-        Get the time offsets for the scan.
-        :return: A list of time offsets.
-        """
-        time_offsets = (
-            self.component_manager.target_data.get("pointing", {})
-            .get("trajectory", {})
-            .get("attrs", {})
-            .get("time_offsets", [])
-        )
-        if not time_offsets:
-            self.logger.exception("Time offsets not found in target data")
-            raise ValueError("Time offsets not found in target data")
-        return time_offsets
-
     def get_trajectory_attrs(self):
         """
         Get the trajectory attributes for the scan.
@@ -129,10 +106,7 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
             .get("attrs", {})
         )
         if not trajectory_attrs:
-            self.logger.exception(
-                "Trajectory attributes not found in target data"
-            )
-            raise ValueError("Trajectory attributes not found in target data")
+            trajectory_attrs = {'x': 0.0, 'y': 0.0}
         return trajectory_attrs
 
     def start_track_table_calculation(self) -> None:
@@ -311,7 +285,7 @@ class PositionVelocityTimeMappingScan(BaseScanMapping):
                     _,
                     _,
                     _,
-                ) = self.pvt_object.posn(time_offset)
+                ) = self.traj.posn(time_offset)
                 # pylint: disable=unbalanced-tuple-unpacking
                 az, el = self.converter.point(timestamp)
                 # pylint: disable=line-too-long

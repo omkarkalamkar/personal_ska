@@ -15,7 +15,6 @@ class FixedMappingScan(BaseScanMapping):
 
     def __init__(
         self,
-        pattern_name: str,
         component_manager,
         logger: Logger,
     ):
@@ -25,7 +24,6 @@ class FixedMappingScan(BaseScanMapping):
         :param logger (object, optional): An object for logging.
         """
         super().__init__(
-            pattern_name=pattern_name,
             component_manager=component_manager,
             logger=logger,
         )

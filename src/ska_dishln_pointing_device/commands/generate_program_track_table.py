@@ -9,11 +9,8 @@ from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 
-from ska_dishln_pointing_device.mapping_scan.point_mapping import (
-    FixedMappingScan,
-)
-from ska_dishln_pointing_device.mapping_scan.pvt_mapping_scan import (
-    PositionVelocityTimeMappingScan,
+from ska_dishln_pointing_device.mapping_scan.trajectory_mapping_scan import (
+    TrajectoryMappingScan,
 )
 
 
@@ -97,16 +94,11 @@ class GenerateProgramTrackTable:
         try:
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.clear()
-                scan_classes = {
-                    "fixed": FixedMappingScan,
-                    "pos_vel_time": PositionVelocityTimeMappingScan,
-                }
-                name = self.component_manager.trajectory_name
-                scan_class = scan_classes.get(name)
-                self.component_manager.current_mapping_scan_obj = scan_class(
-                    pattern_name=name,
-                    component_manager=self.component_manager,
-                    logger=self.logger,
+                self.component_manager.current_mapping_scan_obj = (
+                    TrajectoryMappingScan(
+                        component_manager=self.component_manager,
+                        logger=self.logger,
+                    )
                 )
                 current_scan_obj = (
                     self.component_manager.current_mapping_scan_obj

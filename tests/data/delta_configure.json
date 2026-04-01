@@ -17,6 +17,6 @@
   },
   "tmc": {
     "partial_configuration": true,
-    "scan_duration": 10.0
+    "scan_duration": 300
   }
 }

@@ -21,11 +21,9 @@ class BaseScanMapping:
 
     def __init__(
         self,
-        pattern_name: str,
         component_manager,
         logger: Logger,
     ) -> None:
-        self.pattern_name = pattern_name
         self.target: str | None = None
         self.component_manager = component_manager
         self.logger = logger
@@ -79,6 +77,28 @@ class BaseScanMapping:
         ).get("trajectory", {})
         trajectory_name = trajectory.get("name", "fixed").lower()
         return trajectory_name
+
+    def get_time_offsets(self) -> list:
+        """
+        Get the time offsets for the scan.
+        :return: A list of time offsets.
+        """
+        if self.component_manager.trajectory_name == "fixed":
+            time_offsets = self.component_manager.target_data.get(
+                "tmc", {}
+            ).get("scan_duration", 0)
+            time_offsets = list(range(int(time_offsets)))
+        else:
+            time_offsets = (
+                self.component_manager.target_data.get("pointing", {})
+                .get("trajectory", {})
+                .get("attrs", {})
+                .get("time_offsets", [])
+            )
+        if not time_offsets:
+            self.logger.exception("Time offsets not found in target data")
+            raise ValueError("Time offsets not found in target data")
+        return time_offsets
 
     def get_fixed_trajectory_offsets(self):
         """Get Fixed Trajectory Offsets

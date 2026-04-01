@@ -10,6 +10,6 @@
     },
     "dish": {"receiver_band": "1"},
     "tmc": {
-        "scan_duration": 5
+        "scan_duration": 300
     }
 }

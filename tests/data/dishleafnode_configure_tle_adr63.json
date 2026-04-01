@@ -43,5 +43,5 @@
         "projection": {"name": "SSN", "alignment": "AltAz"}
     },
     "dish": {"receiver_band": "2"},
-    "tmc": {"scan_duration": 5}
+    "tmc": {"scan_duration": 300}
 }
