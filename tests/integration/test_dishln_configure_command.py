@@ -1110,13 +1110,22 @@ def validate_mattieu_pattern_configure(
     wait_and_validate_attribute_value_available(
         dish_leaf_node, "pointingState", PointingState.TRACK, timeout=30
     )
-
-    # Validate number of program track table entries is 150
-    assert (
-        len(json.loads(dishln_pointing_device.pointingProgramTrackTable)) == 15
+    # Take x offsets length from config string
+    configure_dict = json.loads(configure_input_str)
+    x_offsets = (
+        configure_dict.get("pointing", {})
+        .get("trajectory", {})
+        .get("attrs", {})
+        .get("x_offsets", [])
     )
-    configure_str = json.loads(configure_input_str)
-    if configure_str.get("pointing", {}).get("field", ""):
+    # Validate number of program track table entries
+    # Multiply by 3 because for each offset there will be 3 entries
+    assert (
+        len(json.loads(dishln_pointing_device.pointingProgramTrackTable))
+        == len(x_offsets) * 3
+    )
+
+    if configure_dict.get("pointing", {}).get("field", ""):
         # Allow some time for 5 PTT to get generated for TLE tracking
         # For 50 enrtries of one track table, its taking around
         # 2+ seconds
