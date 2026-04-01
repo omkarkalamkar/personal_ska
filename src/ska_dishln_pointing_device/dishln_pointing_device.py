@@ -19,8 +19,6 @@ from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
 
-__all__ = ["DishPointingDevice", "main"]
-
 
 class DishPointingDevice(TMCBaseLeafDevice):
     """
