@@ -89,10 +89,9 @@ def configure_dish_leaf_node(
         (DishMode.OPERATE),
         lookahead=6,
     )
-
     logger.info("Sending Configure Command again")
     dish_master.ClearCommandCallInfo()
-    sleep(2)
+    sleep(5)
 
     result_config, unique_id_config = dish_leaf_node.Configure(
         configure_input_str
@@ -106,7 +105,6 @@ def configure_dish_leaf_node(
         (unique_id_config[0], COMMAND_COMPLETED),
         lookahead=6,
     )
-    sleep(5)
     command_call_info = dish_master.read_attribute("commandCallInfo").value
     command_info = tuple(
         item for sublist in command_call_info for item in sublist
