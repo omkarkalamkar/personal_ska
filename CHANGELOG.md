@@ -5,6 +5,12 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.43.1]
+********
+Fixed
+-----
+* Fixed sourceOffset not getting updated for partial configuration. This resolves the failure in the calibration scan test case.
+
 [0.43.0]
 ********
 Added
