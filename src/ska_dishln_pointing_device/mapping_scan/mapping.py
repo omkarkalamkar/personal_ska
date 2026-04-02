@@ -4,12 +4,13 @@ from logging import Logger
 from typing import Any, List, Tuple
 
 import katpoint
+import numpy as np
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.utils import iers
 from katpoint import Target
 from numpy import isnan, nan
-from ska_trajectory.trajectory import TrajectoryName
+from ska_trajectory.trajectory_names import TrajectoryName
 
 from ska_dishln_pointing_device.mapping_scan.utils import (
     InvalidTargetDataError,
@@ -31,6 +32,7 @@ class BaseScanMapping:
         self.main_target_dec = None
         self.ra_dec_target = None
         self.traj = None
+        self.cadence = 0.0
 
     def set_target_and_start_process(self):
         """
@@ -78,26 +80,35 @@ class BaseScanMapping:
         trajectory_name = trajectory.get("name", "fixed").lower()
         return trajectory_name
 
-    def get_time_offsets(self) -> list:
+    def get_time_offsets_and_set_cadence(self) -> list:
         """
         Get the time offsets for the scan.
         :return: A list of time offsets.
         """
-        if self.component_manager.trajectory_name == "fixed":
-            time_offsets = self.component_manager.target_data.get(
+        time_offsets = (
+            self.component_manager.target_data.get("pointing", {})
+            .get("trajectory", {})
+            .get("attrs", {})
+            .get("time_offsets", [])
+        )
+        if not time_offsets:
+            scan_duration = self.component_manager.target_data.get(
                 "tmc", {}
             ).get("scan_duration", 0)
-            time_offsets = list(range(int(time_offsets)))
-        else:
-            time_offsets = (
-                self.component_manager.target_data.get("pointing", {})
-                .get("trajectory", {})
-                .get("attrs", {})
-                .get("time_offsets", [])
+            if not scan_duration:
+                raise ValueError(
+                    "Scan duration must be provided for trajectory scans."
+                )
+            self.cadence = (
+                self.component_manager.track_table_update_rate
+                / self.component_manager.program_track_table_size
             )
-        if not time_offsets:
-            self.logger.exception("Time offsets not found in target data")
-            raise ValueError("Time offsets not found in target data")
+            time_offsets = list(np.arange(0, scan_duration, self.cadence))
+        else:
+            self.cadence = time_offsets[1] - time_offsets[0]
+        self.logger.info(
+            "Cadence for the scan is set to: %s seconds", self.cadence
+        )
         return time_offsets
 
     def get_fixed_trajectory_offsets(self):

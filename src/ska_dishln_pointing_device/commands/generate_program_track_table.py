@@ -93,7 +93,7 @@ class GenerateProgramTrackTable:
 
         try:
             with self.component_manager.track_thread_lock:
-                self.component_manager.mapping_scan_event.clear()
+                self.component_manager.mapping_scan_event.set()
                 self.component_manager.current_mapping_scan_obj = (
                     TrajectoryMappingScan(
                         component_manager=self.component_manager,

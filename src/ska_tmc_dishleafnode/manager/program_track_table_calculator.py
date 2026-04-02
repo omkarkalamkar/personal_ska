@@ -2,12 +2,11 @@
 """Module for programTrackTable calculator."""
 from __future__ import annotations
 
-import datetime
 import operator
 import sched
 from logging import Logger
 
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 
 from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
@@ -40,7 +39,7 @@ class ProgramTrackTableCalculator:
         """
         self.component_manager = component_manager
         self.logger = logger
-        self.track_table_time_stamp: datetime.datetime | None = None
+        self.track_table_time_stamp: Time | None = None
         self.pointing_calculation_period: float = 0.0
         self.ptt_buffer_set = False
         self.track_table_scheduler = None
@@ -167,9 +166,7 @@ class ProgramTrackTableCalculator:
                 tai_timestamp_list.append(tai_time)
                 self.track_table_time_stamp = (
                     self.track_table_time_stamp
-                    + datetime.timedelta(
-                        seconds=self.pointing_calculation_period
-                    )
+                    + TimeDelta(self.pointing_calculation_period, format='sec')
                 )
 
         except ValueError as value_error:
@@ -291,12 +288,12 @@ class ProgramTrackTableCalculator:
             scale="tai",
         ).unix
         # Convert to human-readable format
-        actual_time_readable = datetime.datetime.utcfromtimestamp(
-            actual_time
-        ).strftime("%Y-%m-%d %H:%M:%S")
-        scheduled_time_readable = datetime.datetime.utcfromtimestamp(
-            scheduled_time
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        actual_time_readable = Time(
+            actual_time, format='unix', scale='utc'
+        ).strftime('%Y-%m-%d %H:%M:%S')
+        scheduled_time_readable = Time(
+            scheduled_time, format='unix_tai', scale='tai'
+        ).strftime('%Y-%m-%d %H:%M:%S')
         self.logger.debug(
             "Actual Time: %s, Scheduled time: %s",
             actual_time_readable,

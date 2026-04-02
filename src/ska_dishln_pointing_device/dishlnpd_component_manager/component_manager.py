@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import datetime
 import json
-import operator
 import re
 import sched
 import threading
@@ -33,6 +32,7 @@ from ska_tmc_dishleafnode.az_el_converter import (
 from ska_tmc_dishleafnode.constants import (
     FIRST_PROGRAM_TRACK_TABLE_SIZE,
     IERS_DATA_STORAGE_PATH,
+    RADEC_TO_AZEL_CONVERSION_TIME,
     TIME_DELTA_IN_SECONDS,
 )
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
@@ -612,13 +612,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             #  tracktable time are added to
             # the current timestamp to generate the future tracktable.
 
-            RaDec_AzEl_conversion_time = 0.02
             time_to_add: float = (
-                operator.mul(
-                    FIRST_PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
-                )
-                + self.track_table_advance_sec
-            )
+                FIRST_PROGRAM_TRACK_TABLE_SIZE * RADEC_TO_AZEL_CONVERSION_TIME
+            ) + self.track_table_advance_sec
 
             extended_time: datetime.datetime = utc_now + datetime.timedelta(
                 seconds=time_to_add

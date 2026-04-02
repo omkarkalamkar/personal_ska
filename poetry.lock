@@ -3309,7 +3309,7 @@ reference = "ska-nexus"
 
 [[package]]
 name = "ska-trajectory"
-version = "0.2.0"
+version = "0.3.0"
 description = "Trajectory classes for SKA telescope"
 optional = false
 python-versions = ">=3.10,<4.0.0"
@@ -3325,7 +3325,7 @@ scipy = "*"
 type = "git"
 url = "https://gitlab.com/ska-telescope/ska-trajectory.git"
 reference = "sp-5100-add-cubic-hermite-trajectory"
-resolved_reference = "f1c83b707b24cfe7428a6384a44b292715204197"
+resolved_reference = "d246f6b248eb1433ef2d223b5e4f4ed77b8ac259"
 
 [[package]]
 name = "smmap"

@@ -3,23 +3,23 @@ time mappiing scans"""
 
 from __future__ import annotations
 
-import operator
 import sched
 import threading
 import time
-from datetime import datetime, timedelta
 from logging import Logger
 
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
+from ska_trajectory.trajectory_names import TrajectoryName
 
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
-from ska_dishln_pointing_device.mapping_scan.trajectory import (
-    create_trajectory,
-)
 from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
-from ska_tmc_dishleafnode.constants import FIRST_PROGRAM_TRACK_TABLE_SIZE
+from ska_tmc_dishleafnode.constants import (
+    FIRST_PROGRAM_TRACK_TABLE_SIZE,
+    RADEC_TO_AZEL_CONVERSION_TIME,
+    TIME_DELTA_IN_SECONDS,
+)
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
@@ -27,8 +27,9 @@ from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
 
 class TrajectoryMappingScan(BaseScanMapping):
     """
-    PositionVelocityTimeMappingScan class inherits from BaseScanMapping class.
-    It is used to generate program track table for scans like Mattieu pattern.
+    TrajectoryMappingScan class inherits from BaseScanMapping class.
+    It is used to generate program track table for observations with
+    trajectory.
     """
 
     def __init__(
@@ -37,8 +38,7 @@ class TrajectoryMappingScan(BaseScanMapping):
         logger: Logger,
     ):
         """
-        Initialize the PositionVelocityTimeMappingScan object.
-        :param pattern_name (str): The name of the pattern.
+        Initialize the TrajectoryMappingScan object.
         :param component_manager: An object for managing components.
         :param logger (object, optional): An object for logging.
         """
@@ -48,11 +48,8 @@ class TrajectoryMappingScan(BaseScanMapping):
         )
         self.time_offsets = []
         self.trajectory_attrs = {}
-        self.cadence = 0.0
         self.trajectory_name = ""
         self.traj = None
-        self.track_table_thread = None
-        self.track_thread_lock = self.component_manager.track_thread_lock
         self.mapping_scan_event = self.component_manager.mapping_scan_event
         self.converter = AzElConverter(self.component_manager)
         self.track_table_calculator = ProgramTrackTableCalculator(
@@ -80,10 +77,9 @@ class TrajectoryMappingScan(BaseScanMapping):
             self.component_manager.projection_alignment,
         ) = self.get_projection()
         self.set_trajectory_data()
-        self.traj = create_trajectory(
-            name=self.trajectory_name, **self.trajectory_attrs
+        self.traj = TrajectoryName[self.trajectory_name](
+            **self.trajectory_attrs
         )
-        self.cadence = self.time_offsets[1] - self.time_offsets[0]
         self.start_track_table_calculation()
 
     def set_trajectory_data(self):
@@ -91,11 +87,11 @@ class TrajectoryMappingScan(BaseScanMapping):
         Set the trajectory data for the scan.
         """
         self.logger.info("Setting trajectory data for the scan.")
-        self.time_offsets = self.get_time_offsets()
+        self.time_offsets = self.get_time_offsets_and_set_cadence()
         self.trajectory_attrs = self.get_trajectory_attrs()
         self.trajectory_name = self.component_manager.trajectory_name
 
-    def get_trajectory_attrs(self):
+    def get_trajectory_attrs(self) -> dict:
         """
         Get the trajectory attributes for the scan.
         :return: A dictionary of trajectory attributes.
@@ -115,15 +111,28 @@ class TrajectoryMappingScan(BaseScanMapping):
 
         try:
             # Stop existing thread if alive
-            self.component_manager.stop_track_table_thread()
-            with self.track_thread_lock:
-                # added condition for edge case where tracktable start
-                # and stop are running parallely.
+            # self.component_manager.stop_track_table_thread()
+            with self.component_manager.track_thread_lock:
+                self.component_manager.mapping_scan_event.set()
+                if (
+                    self.component_manager.track_table_thread
+                    and self.component_manager.track_table_thread.is_alive()
+                ):
+                    self.component_manager.track_table_thread.join()
+                    self.component_manager.stop_track_called.clear()
+                    self.logger.info(
+                        "Existing trackTable thread stopped successfully"
+                    )
+
                 if not self.component_manager.stop_track_called.is_set():
                     # clear mapping scan event to start new thread
-                    self.mapping_scan_event.clear()
+                    self.logger.info(
+                        "Starting new trackTable thread for the scan."
+                    )
+                    self.component_manager.mapping_scan_event.clear()
                     self.create_track_table_thread()
-                    self.track_table_thread.start()
+                    self.component_manager.track_table_thread.start()
+                    self.component_manager.stop_track_called.clear()
 
         except Exception as exception:
             self.logger.exception(
@@ -134,7 +143,7 @@ class TrajectoryMappingScan(BaseScanMapping):
     def create_track_table_thread(self) -> None:
         """This creates thread for track table calculation."""
         try:
-            self.track_table_thread = threading.Thread(
+            self.component_manager.track_table_thread = threading.Thread(
                 target=self.track_thread
             )
         except Exception as exception:
@@ -159,16 +168,17 @@ class TrajectoryMappingScan(BaseScanMapping):
             )
             ptt_buffer_set = False
             time_offsets = self.time_offsets.copy()
-            RaDec_AzEl_conversion_time = 0.02
             time_to_add: float = (
-                operator.mul(
-                    FIRST_PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
-                )
-                + self.component_manager.track_table_advance_sec
+                FIRST_PROGRAM_TRACK_TABLE_SIZE * RADEC_TO_AZEL_CONVERSION_TIME
+            ) + self.component_manager.track_table_advance_sec
+
+            self.extended_time = Time.now() + TimeDelta(
+                time_to_add, format="sec"
             )
-            utc_now = datetime.utcnow()
-            self.extended_time = utc_now + timedelta(seconds=time_to_add)
             event_priority: int = 1
+            self.track_table_calculator.pointing_calculation_period = (
+                TIME_DELTA_IN_SECONDS
+            )
             program_track_table: list = self.calculate_program_track_table(
                 time_offsets=time_offsets,
                 ptt_buffer_set=ptt_buffer_set,
@@ -200,6 +210,9 @@ class TrajectoryMappingScan(BaseScanMapping):
                 raise ValueError(
                     "Initial program track table calculation failed."
                 )
+            self.track_table_calculator.pointing_calculation_period = (
+                self.cadence
+            )
             while not self.mapping_scan_event.is_set():
                 self.logger.info(
                     "Target used to calculate trackTable: %s "
@@ -218,24 +231,24 @@ class TrajectoryMappingScan(BaseScanMapping):
                             program_track_table[0]
                         )
                     )
-                    with self.track_thread_lock:
-                        if not self.mapping_scan_event.is_set():
-                            if pre_entries_of_ptt_in_schedular > 0:
-                                pre_entries_of_ptt_in_schedular -= 1
-                            else:
-                                ptt_buffer_set = True
+
+                    if not self.mapping_scan_event.is_set():
+                        if pre_entries_of_ptt_in_schedular > 0:
+                            pre_entries_of_ptt_in_schedular -= 1
+                        else:
+                            ptt_buffer_set = True
+                        # pylint: disable=line-too-long
+                        self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
                             # pylint: disable=line-too-long
-                            self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                            track_table_scheduler=self.track_table_scheduler,  # noqa: E501
+                            event_priority=event_priority,
+                            scheduled_time=scheduled_time,
+                            program_track_table=program_track_table,
+                            update_pointing_program_track_table=(
                                 # pylint: disable=line-too-long
-                                track_table_scheduler=self.track_table_scheduler,  # noqa: E501
-                                event_priority=event_priority,
-                                scheduled_time=scheduled_time,
-                                program_track_table=program_track_table,
-                                update_pointing_program_track_table=(
-                                    # pylint: disable=line-too-long
-                                    self.component_manager.update_pointing_program_track_table  # noqa: E501
-                                ),
-                            )
+                                self.component_manager.update_pointing_program_track_table  # noqa: E501
+                            ),
+                        )
                 else:
                     while self.track_table_scheduler.queue:
                         self.track_table_scheduler.run(blocking=False)
@@ -274,7 +287,9 @@ class TrajectoryMappingScan(BaseScanMapping):
                 and time_offsets
             ):
                 time_offset = time_offsets.pop(0)
-                timestamp = self.extended_time + timedelta(seconds=time_offset)
+                timestamp = self.extended_time + TimeDelta(
+                    time_offset, format="sec"
+                )
                 timestamp_time_obj = Time(timestamp, scale="utc")
                 tai_time = self.track_table_calculator.convert_utc_to_tai(
                     timestamp_time_obj
