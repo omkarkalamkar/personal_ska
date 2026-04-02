@@ -5,6 +5,16 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.43.0]
+********
+Added
+-----
+* ska-tango-difdoc v0.3.0 to automatically generate documentation for tango devices
+
+Updated
+-------
+* Updated ska-tango-util and ska-tango-base charts to v1.0.7
+
 [0.42.0]
 ********
 Added

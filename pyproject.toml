@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-tmc-dishleafnodes"
-version = "0.42.0"
+version = "0.43.0"
 description = """The Dish Leaf Node is a TMC component responsible to monitor and control the SKA dish."""
 authors = ["Team HIMALAYA", "Team SAHYADRI"]
 license = "BSD-3-Clause"
@@ -9,7 +9,8 @@ packages = [{ include = "ska_tmc_dishleafnode", from = "src" }]
 include = [{ path = 'tests' }]
 
 [tool.poetry.scripts]
-DishLeafNodeDS = 'ska_tmc_dishleafnode.dish_leaf_node:main'
+MidTmcLeafNodeDish = 'ska_tmc_dishleafnode.dish_leaf_node:main'
+
 
 [[tool.poetry.source]]
 name = 'ska-nexus'
@@ -72,6 +73,9 @@ line-length = 79
 target-version = ['py38', 'py39', 'py310']
 skip-string-normalization = true
 
+[tool.tangodifdoc]
+MidTmcLeafNodeDish = { properties = { foo = "bar", baz = [1, 2, 3] } }
+
 
 [tool.poetry.group.docs.dependencies]
 docutils = "^0.18.1"
@@ -83,6 +87,7 @@ typing_extensions = "^4.3.0"
 sphinx-rtd-theme = "^1.2.2"
 recommonmark = "^0.7.1"
 snowballstemmer = "2.2.0"
+ska-tango-difdoc = "^0.3.0"
 
 
 [build-system]
