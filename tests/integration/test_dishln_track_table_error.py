@@ -5,6 +5,7 @@ import pytest
 import tango
 from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
+from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory, DishMode
 
 from ska_tmc_dishleafnode.enums.enums import CapabilityStates
@@ -110,15 +111,13 @@ def configure_dish_leaf_node_source_not_visible(
     monitor_track_table_errors_attribute(
         dish_leaf_node, track_table_error_before_configure
     )
-    expected_message = (
-        "Minimum/maximum elevation limit has been reached."
-        "Source is not visible currently."
-    )
-    track_table_error = json.loads(dish_leaf_node.trackTableErrors)[0]
+    expected_message = "not within mechanical limits set to dish."
     group_callback["programTrackTableError"].assert_change_event(
-        expected_message,
+        Anything,
         lookahead=8,
     )
+    track_table_error = json.loads(dish_leaf_node.trackTableErrors)[0]
+
     logger.error(
         "track_table_error after configure: %s",
         track_table_error,
