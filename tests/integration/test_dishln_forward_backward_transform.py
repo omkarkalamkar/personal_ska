@@ -151,7 +151,6 @@ def actual_pointing_attr(tango_context):
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 def test_actual_pointing_attribute(
     tango_context, json_factory, group_callback
 ):
@@ -161,7 +160,6 @@ def test_actual_pointing_attribute(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 def test_forward_backward_transform(
     tango_context, json_factory, group_callback
 ):
