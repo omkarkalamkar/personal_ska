@@ -129,7 +129,6 @@ def partial_configure_dish_leaf_node_error_propagation(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 def test_partial_configure_error_propogation(
     tango_context, group_callback, json_factory
 ):
