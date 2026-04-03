@@ -1,8 +1,8 @@
-import datetime
 import sched
 import time
 
 import pytest
+from astropy.time import Time
 from katpoint import Target
 
 from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2
@@ -16,11 +16,11 @@ from tests.settings import logger
 def test_calculate_time_stamp_array(cm_pointing_device):
     cm = cm_pointing_device
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
-    track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
+    track_table_calculator.track_table_time_stamp = Time.now()
     (
         time_stamp_array,
         tai_timestamp_array,
-    ) = track_table_calculator.calculate_time_stamp_list()
+    ) = track_table_calculator.calculate_time_stamp_list(50)
     assert len(time_stamp_array) == FIRST_PROGRAM_TRACK_TABLE_SIZE
     assert len(tai_timestamp_array) == FIRST_PROGRAM_TRACK_TABLE_SIZE
 
@@ -37,7 +37,7 @@ def test_calculate_program_track_table(cm_pointing_device):
     cm.fixed_y_offset = 0.0
     azel_converter = AzElConverter_v2(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
-    track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
+    track_table_calculator.track_table_time_stamp = Time.now()
     track_table_calculator.track_table_scheduler = sched.scheduler(
         time.time, time.sleep
     )
@@ -57,7 +57,7 @@ def test_calculate_program_track_table(cm_pointing_device):
         time.sleep(0.1)
 
     program_track_table = track_table_calculator.calculate_program_track_table(
-        azel_converter
+        azel_converter, program_track_table_size=FIRST_PROGRAM_TRACK_TABLE_SIZE
     )
 
     TIMEOUT = 10

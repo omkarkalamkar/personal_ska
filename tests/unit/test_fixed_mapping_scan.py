@@ -23,7 +23,7 @@ def test_wrap_sector_key(cm_pointing_device, json_factory):
     cm.wrap_sector = 0
     assert not cm.wrap_sector_key
     assert cm.wrap_sector == 0
-    assert cm.is_fixed_mapping_scan()
+    assert cm.set_trajectory_name() == "fixed"
 
 
 def test_fixed_mapping_scan(cm_pointing_device, json_factory):
@@ -36,7 +36,7 @@ def test_fixed_mapping_scan(cm_pointing_device, json_factory):
     ra = configure_data['pointing']['field']['attrs']['c1']
     dec = configure_data['pointing']['field']['attrs']['c2']
     cm.target_data = configure_data
-    fms_obj = FixedMappingScan("fixed", cm, logger=logger)
+    fms_obj = FixedMappingScan(cm, logger=logger)
     fms_obj.extract_target_from_config()
     fms_obj.main_target_ra == ra
     fms_obj.main_target_dec == dec
@@ -71,6 +71,6 @@ def test_wrap_key_set_with_pointing_scan(cm_pointing_device, json_factory):
     # Add wrap sector key to normal configure
     configure_data['pointing']['wrap_sector'] = -1
     cm.target_data = configure_data
-    pointing_scan_obj = FixedMappingScan("point", cm, logger=logger)
+    pointing_scan_obj = FixedMappingScan(cm, logger=logger)
     pointing_scan_obj.set_target_and_start_process()
     assert cm.wrap_sector == -1

@@ -13,7 +13,7 @@ from tests.settings import logger
 
 def create_mapping_scan(cm_pointing_device):
     """Create a base mapping object for unit tests."""
-    return BaseScanMapping("fixed", cm_pointing_device, logger=logger)
+    return BaseScanMapping(cm_pointing_device, logger=logger)
 
 
 @pytest.mark.parametrize(

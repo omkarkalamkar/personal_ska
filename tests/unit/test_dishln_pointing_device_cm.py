@@ -168,7 +168,9 @@ def test_dish_pointing_device_multi_command_scenarios(
         len(cm.pointing_program_track_table)
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
-    track_table_thread1 = cm.current_mapping_scan_obj.track_table_thread
+    track_table_thread1 = (
+        cm.current_mapping_scan_obj.component_manager.track_table_thread
+    )
     generate_program_track_table.do()
 
     start_time = time.time()
@@ -182,7 +184,9 @@ def test_dish_pointing_device_multi_command_scenarios(
         len(cm.pointing_program_track_table)
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
-    track_table_thread2 = cm.current_mapping_scan_obj.track_table_thread
+    track_table_thread2 = (
+        cm.current_mapping_scan_obj.component_manager.track_table_thread
+    )
 
     assert track_table_thread1 is not track_table_thread2
 
@@ -212,7 +216,9 @@ def test_dish_pointing_device_multi_command_scenarios(
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
 
-    track_table_thread3 = cm.current_mapping_scan_obj.track_table_thread
+    track_table_thread3 = (
+        cm.current_mapping_scan_obj.component_manager.track_table_thread
+    )
     assert track_table_thread3 is not track_table_thread1
     assert track_table_thread3 is not track_table_thread2
 

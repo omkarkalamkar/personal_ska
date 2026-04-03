@@ -4,7 +4,6 @@ pointing device component manager.
 """
 from __future__ import annotations
 
-import datetime
 import json
 import re
 import sched
@@ -16,7 +15,7 @@ from queue import Queue
 from typing import Callable, List, Optional, Tuple
 
 import tango
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 from astropy.utils import iers
 from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
@@ -601,11 +600,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.info(
                 "Starting ProgramTrackTable calculation.",
             )
-            timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+            timestamp: Time = Time.now().utc
             self.converter.point(timestamp=timestamp)
             self.update_program_track_table_error_callback("")
 
-            utc_now = datetime.datetime.utcnow()
+            utc_now = Time.now()
 
             # The average time required to perform a
             # RaDec to AzEl conversion
@@ -618,8 +617,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                 FIRST_PROGRAM_TRACK_TABLE_SIZE * RADEC_TO_AZEL_CONVERSION_TIME
             ) + self.track_table_advance_sec
 
-            extended_time: datetime.datetime = utc_now + datetime.timedelta(
-                seconds=time_to_add
+            extended_time: Time = utc_now + TimeDelta(
+                time_to_add, format="sec"
             )
             track_table_calculator = ProgramTrackTableCalculator(
                 self, self.logger
