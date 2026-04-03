@@ -4,7 +4,6 @@ import json
 from threading import Event
 from typing import List, Tuple
 
-import tango
 from ska_tango_base.base.base_device import SKABaseDevice
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.control_model import HealthState
@@ -158,10 +157,10 @@ class DishPointingDevice(TMCBaseLeafDevice):
         Args:
             pointing_program_track_table (dict): data of program track table.
         """
-        with tango.EnsureOmniThread():
-            self._pointing_program_track_table = json.dumps(
-                pointing_program_track_table
-            )
+
+        self._pointing_program_track_table = json.dumps(
+            pointing_program_track_table
+        )
 
     def update_program_track_table_error_callback(
         self, program_track_table_error: str

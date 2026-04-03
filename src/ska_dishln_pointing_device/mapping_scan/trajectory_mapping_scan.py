@@ -8,6 +8,7 @@ import threading
 import time
 from logging import Logger
 
+import tango
 from astropy.time import Time, TimeDelta
 from ska_trajectory.trajectory_names import TrajectoryName
 
@@ -163,68 +164,30 @@ class TrajectoryMappingScan(BaseScanMapping):
         :return: None
         :rtype: None
         """
-        try:
-            pre_entries_of_ptt_in_schedular = (
-                self.component_manager.entries_tt_schedular_queue
-            )
-            ptt_buffer_set = False
-            time_offsets = self.time_offsets.copy()
-            time_to_add: float = (
-                FIRST_PROGRAM_TRACK_TABLE_SIZE * RADEC_TO_AZEL_CONVERSION_TIME
-            ) + self.component_manager.track_table_advance_sec
+        with tango.EnsureOmniThread():
+            try:
+                pre_entries_of_ptt_in_schedular = (
+                    self.component_manager.entries_tt_schedular_queue
+                )
+                ptt_buffer_set = False
+                time_offsets = self.time_offsets.copy()
+                time_to_add: float = (
+                    FIRST_PROGRAM_TRACK_TABLE_SIZE
+                    * RADEC_TO_AZEL_CONVERSION_TIME
+                ) + self.component_manager.track_table_advance_sec
 
-            self.extended_time = Time.now() + TimeDelta(
-                time_to_add, format="sec"
-            )
-            event_priority: int = 1
-            self.track_table_calculator.pointing_calculation_period = (
-                TIME_DELTA_IN_SECONDS
-            )
-            program_track_table: list = self.calculate_program_track_table(
-                time_offsets=time_offsets,
-                ptt_buffer_set=ptt_buffer_set,
-                program_track_table_size=FIRST_PROGRAM_TRACK_TABLE_SIZE * 3,
-            )
-            if program_track_table:
-                scheduled_time = (
-                    self.track_table_calculator.build_scheduled_time(
-                        program_track_table[0]
-                    )
+                self.extended_time = Time.now() + TimeDelta(
+                    time_to_add, format="sec"
                 )
-                # pylint: disable=line-too-long
-                self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
-                    track_table_scheduler=self.track_table_scheduler,
-                    event_priority=event_priority,
-                    scheduled_time=scheduled_time,
-                    program_track_table=program_track_table,
-                    update_pointing_program_track_table=(
-                        # pylint: disable=line-too-long
-                        self.component_manager.update_pointing_program_track_table  # noqa: E501
-                    ),
-                )
-                pre_entries_of_ptt_in_schedular -= 1
-            else:
-                self.logger.error(
-                    "Initial program track table calculation failed."
-                    " No entries to schedule."
-                )
-                raise ValueError(
-                    "Initial program track table calculation failed."
-                )
-            self.track_table_calculator.pointing_calculation_period = (
-                self.cadence
-            )
-            while not self.mapping_scan_event.is_set():
-                self.logger.info(
-                    "Target used to calculate trackTable: %s "
-                    "with thread id: %s",
-                    self.component_manager.target,
-                    threading.get_native_id(),
+                event_priority: int = 1
+                self.track_table_calculator.pointing_calculation_period = (
+                    TIME_DELTA_IN_SECONDS
                 )
                 program_track_table: list = self.calculate_program_track_table(
                     time_offsets=time_offsets,
                     ptt_buffer_set=ptt_buffer_set,
-                    program_track_table_size=(self.program_track_table_size),
+                    program_track_table_size=FIRST_PROGRAM_TRACK_TABLE_SIZE
+                    * 3,
                 )
                 if program_track_table:
                     scheduled_time = (
@@ -232,46 +195,92 @@ class TrajectoryMappingScan(BaseScanMapping):
                             program_track_table[0]
                         )
                     )
-
-                    if not self.mapping_scan_event.is_set():
-                        if pre_entries_of_ptt_in_schedular > 0:
-                            pre_entries_of_ptt_in_schedular -= 1
-                        else:
-                            ptt_buffer_set = True
-                        # pylint: disable=line-too-long
-                        self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                    # pylint: disable=line-too-long
+                    self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                        track_table_scheduler=self.track_table_scheduler,
+                        event_priority=event_priority,
+                        scheduled_time=scheduled_time,
+                        program_track_table=program_track_table,
+                        update_pointing_program_track_table=(
                             # pylint: disable=line-too-long
-                            track_table_scheduler=self.track_table_scheduler,  # noqa: E501
-                            event_priority=event_priority,
-                            scheduled_time=scheduled_time,
-                            program_track_table=program_track_table,
-                            update_pointing_program_track_table=(
-                                # pylint: disable=line-too-long
-                                self.component_manager.update_pointing_program_track_table  # noqa: E501
+                            self.component_manager.update_pointing_program_track_table  # noqa: E501
+                        ),
+                    )
+                    pre_entries_of_ptt_in_schedular -= 1
+                else:
+                    self.logger.error(
+                        "Initial program track table calculation failed."
+                        " No entries to schedule."
+                    )
+                    raise ValueError(
+                        "Initial program track table calculation failed."
+                    )
+                self.track_table_calculator.pointing_calculation_period = (
+                    self.cadence
+                )
+                while not self.mapping_scan_event.is_set():
+                    self.logger.info(
+                        "Target used to calculate trackTable: %s "
+                        "with thread id: %s",
+                        self.component_manager.target,
+                        threading.get_native_id(),
+                    )
+                    program_track_table: list = (
+                        self.calculate_program_track_table(
+                            time_offsets=time_offsets,
+                            ptt_buffer_set=ptt_buffer_set,
+                            program_track_table_size=(
+                                self.program_track_table_size
                             ),
                         )
-                else:
-                    self.logger.info(
-                        "Waiting to finish the scheduled PTT entries."
                     )
-                    while (
-                        not self.component_manager.mapping_scan_event.is_set()
-                        and self.track_table_scheduler.queue
-                    ):
-                        self.logger.info("Running scheduled PTT entries.")
-                        self.track_table_scheduler.run(blocking=False)
-                        self.component_manager.mapping_scan_event.wait(0.5)
-                if not self.track_table_scheduler.queue:
-                    self.logger.info(
-                        "No entries in scheduler queue. Stopping the "
-                        "trackTable calculation."
-                    )
-                    break
-        except Exception as exception:
-            self.logger.exception(
-                "Track thread failed to run due to exception: %s ",
-                str(exception),
-            )
+                    if program_track_table:
+                        scheduled_time = (
+                            self.track_table_calculator.build_scheduled_time(
+                                program_track_table[0]
+                            )
+                        )
+
+                        if not self.mapping_scan_event.is_set():
+                            if pre_entries_of_ptt_in_schedular > 0:
+                                pre_entries_of_ptt_in_schedular -= 1
+                            else:
+                                ptt_buffer_set = True
+                            # pylint: disable=line-too-long
+                            self.track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                                # pylint: disable=line-too-long
+                                track_table_scheduler=self.track_table_scheduler,  # noqa: E501
+                                event_priority=event_priority,
+                                scheduled_time=scheduled_time,
+                                program_track_table=program_track_table,
+                                update_pointing_program_track_table=(
+                                    # pylint: disable=line-too-long
+                                    self.component_manager.update_pointing_program_track_table  # noqa: E501
+                                ),
+                            )
+                    else:
+                        self.logger.info(
+                            "Waiting to finish the scheduled PTT entries."
+                        )
+                        while (
+                            # pylint: disable=line-too-long
+                            not self.component_manager.mapping_scan_event.is_set()  # noqa: E501
+                            and self.track_table_scheduler.queue
+                        ):
+                            self.logger.info("Running scheduled PTT entries.")
+                            self.track_table_scheduler.run(blocking=False)
+                            self.component_manager.mapping_scan_event.wait(0.5)
+                    if not self.track_table_scheduler.queue:
+                        self.logger.info(
+                            "No entries in scheduler queue. Stopping the "
+                            "trackTable calculation."
+                        )
+                        break
+            except Exception as exception:
+                self.logger.exception(
+                    "Track thread failed to run due to exception: %s ",
+                    str(exception),
+                )
 
     def calculate_program_track_table(
         self, time_offsets, ptt_buffer_set, program_track_table_size
