@@ -31,24 +31,24 @@ class StopProgramTrackTable(FastCommand):
     def do(self, *args, **kwargs) -> None:
         """This method stops program track table generation."""
         try:
-            self.component_manager.stop_track_called.set()
             with self.component_manager.track_thread_lock:
+                self.component_manager.stop_track_called.set()
                 self.component_manager.mapping_scan_event.set()
-            if (
-                self.component_manager.track_table_thread
-                and self.component_manager.track_table_thread.is_alive()
-            ):
-                # The track_table_thread is joined with a short timeout to
-                # prevent the Stop command from triggering a Tango timeout
-                self.component_manager.track_table_thread.join(timeout=2.8)
-            self.component_manager.update_pointing_program_track_table([])
-            self.component_manager.current_mapping_scan_obj = None
-            self.logger.info(
-                "StopProgramTrackTable command executed successfully"
-                + " on %s",
-                self.component_manager.dishln_pointing_device_name,
-            )
-            self.component_manager.stop_track_called.clear()
+                if (
+                    self.component_manager.track_table_thread
+                    and self.component_manager.track_table_thread.is_alive()
+                ):
+                    # The track_table_thread is joined with a short timeout to
+                    # prevent the Stop command from triggering a Tango timeout
+                    self.component_manager.track_table_thread.join(timeout=2.8)
+                self.component_manager.update_pointing_program_track_table([])
+                self.component_manager.current_mapping_scan_obj = None
+                self.logger.info(
+                    "StopProgramTrackTable command executed successfully"
+                    + " on %s",
+                    self.component_manager.dishln_pointing_device_name,
+                )
+                self.component_manager.stop_track_called.clear()
         except Exception as exception:
             self.logger.exception(
                 "Exception occurred in StopProgramTrackTable command "
