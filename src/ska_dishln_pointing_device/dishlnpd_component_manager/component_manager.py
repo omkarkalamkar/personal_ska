@@ -122,7 +122,9 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
-        self.track_table_thread = None
+        self.track_table_thread = threading.Thread(
+            target=self.set_trajectory_name
+        )
         self._wrap_sector: int = 0
         self._wrap_sector_key: bool = False
         self.__humidity: float = 0.10

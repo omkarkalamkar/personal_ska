@@ -114,10 +114,11 @@ class TrajectoryMappingScan(BaseScanMapping):
             # self.component_manager.stop_track_table_thread()
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.set()
-                if (
-                    self.component_manager.track_table_thread
-                    and self.component_manager.track_table_thread.is_alive()
-                ):
+                self.logger.info(
+                    "Is thread alive: %s",
+                    self.component_manager.track_table_thread.is_alive(),
+                )
+                if self.component_manager.track_table_thread.is_alive():
                     self.component_manager.track_table_thread.join()
                     self.component_manager.stop_track_called.clear()
                     self.logger.info(
@@ -318,11 +319,10 @@ class TrajectoryMappingScan(BaseScanMapping):
                         f"Elevation {el} not within mechanical limits"
                         " set to dish."
                     )
-
-                else:
-                    program_track_table.append(tai_time)
-                    az = az + 360 * self.component_manager.wrap_sector
-                    program_track_table.extend([round(az, 12), round(el, 12)])
+                    break
+                program_track_table.append(tai_time)
+                az = az + 360 * self.component_manager.wrap_sector
+                program_track_table.extend([round(az, 12), round(el, 12)])
                 self.track_table_scheduler.run(blocking=False)
                 if (
                     ptt_buffer_set
