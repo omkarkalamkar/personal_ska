@@ -135,23 +135,39 @@ class Configure(DishLNCommand):
             self.component_manager.primary_configuration["pointing"][
                 "field"
             ] = field
+
         # Update trajectory
         if "trajectory" in pointing_data:
             trajectory = pointing_data["trajectory"]
             self.component_manager.primary_configuration["pointing"][
                 "trajectory"
             ] = trajectory
-        # update projection
+
+        # Update projection
         if "projection" in pointing_data:
             projection = pointing_data["projection"]
             self.component_manager.primary_configuration["pointing"][
                 "projection"
             ] = projection
+
         # Update wrap_sector key
         if "wrap_sector" in pointing_data:
             self.component_manager.primary_configuration["pointing"][
                 "wrap_sector"
             ] = pointing_data["wrap_sector"]
+
+        for offset_key in ("ca_offset_arcsec", "ie_offset_arcsec"):
+            if offset_key in pointing_data:
+                self.component_manager.primary_configuration["pointing"][
+                    offset_key
+                ] = pointing_data[offset_key]
+                self.logger.info(
+                    "Partial config: applied legacy collimation "
+                    "offset %s = %s",
+                    offset_key,
+                    pointing_data[offset_key],
+                )
+
         # Update receiver band
         dish_data = new_configuration.get("dish", {})
         if "receiver_band" in dish_data:
@@ -419,7 +435,18 @@ class Configure(DishLNCommand):
                 )
                 # Invoke track load static off when collimation offsets
                 # provided and correction key is provided as RESET
+                self.logger.debug(
+                    "Command ID: %s |"
+                    " Result code for invoking GenerateProgramTrackTable: %s",
+                    self.component_manager.command_id,
+                    result_code,
+                )
                 if collimation_offsets:
+                    self.logger.debug(
+                        "Command ID: %s | Collimation offsets provided: %s",
+                        self.component_manager.command_id,
+                        collimation_offsets,
+                    )
                     self.component_manager.update_source_offset_callback(
                         collimation_offsets
                     )
@@ -603,9 +630,7 @@ class Configure(DishLNCommand):
         return ResultCode.QUEUED, ""
 
     def get_ie_ca_offsets_if_provided(
-        self,
-        config_json: dict,
-        reset_offset: bool,
+        self, config_json: dict, reset_offset: bool
     ) -> list:
         """This check if ca_offset_arcsec or ie_offset_arcsec provided
         in config json and return offsets
@@ -621,8 +646,10 @@ class Configure(DishLNCommand):
         """
         if reset_offset:
             return RESET_OFFSETS
+
         offsets = []
         pointing_data = config_json.get("pointing", {})
+
         is_trajectory_key_present = (
             pointing_data.get("trajectory", {}).get("name", "").lower()
             == FIXED_TRAJECTORY
@@ -636,21 +663,33 @@ class Configure(DishLNCommand):
             ):
                 offsets.append(trajectory_attrs.get("x", 0.0))
                 offsets.append(trajectory_attrs.get("y", 0.0))
+                LOGGER.debug("Using trajectory offsets: %s", offsets)
                 return offsets
-        else:
-            target_data = pointing_data.get("target", {})
-            if (
-                "ca_offset_arcsec" in target_data
-                or "ie_offset_arcsec" in target_data
-            ):
-                offsets.append(target_data.get("ca_offset_arcsec", 0.0))
-                offsets.append(target_data.get("ie_offset_arcsec", 0.0))
-            elif (
-                "ca_offset_arcsec" in pointing_data
-                or "ie_offset_arcsec" in pointing_data
-            ):
-                offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
-                offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+
+        if (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+            LOGGER.debug("Using legacy collimation offsets: %s", offsets)
+            return offsets
+
+        # Legacy target / pointing-level path (unchanged)
+        target_data = pointing_data.get("target", {})
+        if (
+            "ca_offset_arcsec" in target_data
+            or "ie_offset_arcsec" in target_data
+        ):
+            offsets.append(target_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(target_data.get("ie_offset_arcsec", 0.0))
+        elif (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+
         return offsets
 
     def start_dish_tracking(self: Configure, json_argument: dict):
