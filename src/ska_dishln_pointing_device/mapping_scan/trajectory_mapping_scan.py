@@ -251,12 +251,12 @@ class TrajectoryMappingScan(BaseScanMapping):
                             ),
                         )
                 else:
-                    while self.track_table_scheduler.queue:
-                        self.track_table_scheduler.run(blocking=False)
-                        time.sleep(0.5)
                     self.logger.info(
                         "Waiting to finish the scheduled PTT entries."
                     )
+                    while self.track_table_scheduler.queue:
+                        self.track_table_scheduler.run(blocking=False)
+                        self.component_manager.mapping_scan_event.wait(0.5)
                 if not self.track_table_scheduler.queue:
                     self.logger.info(
                         "No entries in scheduler queue. Stopping the "
