@@ -11,7 +11,7 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (  
     GenerateProgramTrackTable,
 )
 from ska_dishln_pointing_device.mapping_scan import (
-    trajectory_mapping_scan as pvt_module,
+    trajectory_mapping_scan as traj_module,
 )
 from ska_dishln_pointing_device.mapping_scan.trajectory_mapping_scan import (
     TrajectoryMappingScan,
@@ -29,7 +29,7 @@ def trajectory_mapping_scan(cm):
     )
 
 
-def test_pvt_init_sets_default_attributes(cm_pointing_device):
+def test_traj_init_sets_default_attributes(cm_pointing_device):
     """Test that the constructor initializes all default attributes."""
 
     cm_pointing_device.program_track_table_size = 50
@@ -218,7 +218,7 @@ def test_set_target_and_start_process_calls_build_and_start(
         lambda: start_called.update({"value": True}),
     )
     monkeypatch.setattr(
-        pvt_module, "TrajectoryName", {"pos_vel_time": DummyTrajectory}
+        traj_module, "TrajectoryName", {"pos_vel_time": DummyTrajectory}
     )
 
     trajectory_scan.set_target_and_start_process()
@@ -256,7 +256,7 @@ def test_set_target_and_start_process_sets_projection_on_cm(
         trajectory_scan, "start_track_table_calculation", lambda: None
     )
     monkeypatch.setattr(
-        pvt_module, "TrajectoryName", {"pos_vel_time": DummyTrajectory}
+        traj_module, "TrajectoryName", {"pos_vel_time": DummyTrajectory}
     )
 
     trajectory_scan.set_target_and_start_process()
@@ -295,7 +295,7 @@ def test_set_target_and_start_process_sets_cadence_from_offsets(
         trajectory_scan, "start_track_table_calculation", lambda: None
     )
     monkeypatch.setattr(
-        pvt_module, "TrajectoryName", {"pos_vel_time": DummyTrajectory}
+        traj_module, "TrajectoryName", {"pos_vel_time": DummyTrajectory}
     )
 
     trajectory_scan.set_target_and_start_process()
@@ -525,7 +525,7 @@ def test_calculate_ptt_returns_empty_list_on_exception(cm_pointing_device):
 
     class DummyTraj:
         def posn(self, t):
-            raise RuntimeError("pvt computation error")
+            raise RuntimeError("trajectory error")
 
     trajectory_scan.traj = DummyTraj()
     trajectory_scan.track_table_scheduler = MagicMock()
