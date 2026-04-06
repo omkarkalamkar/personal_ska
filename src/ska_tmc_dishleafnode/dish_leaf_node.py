@@ -42,6 +42,8 @@ from ska_tmc_dishleafnode.commands.setstowmode import StowCommand
 from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
+__all__ = ["MidTmcLeafNodeDish", "main"]
+
 
 # pylint: disable = attribute-defined-outside-init
 class MidTmcLeafNodeDish(TMCBaseLeafDevice):

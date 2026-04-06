@@ -53,6 +53,11 @@ def call_command(
             lookahead=8,
         )
         logger.info("Dish Mode is %s", dish_master_proxy.dishMode)
+        pytest.lrcr_event_id = dishleaf_node.subscribe_event(
+            "longRunningCommandResult",
+            tango.EventType.CHANGE_EVENT,
+            group_callback["longRunningCommandResult"],
+        )
         if command_name == "Configure":
             configure_string = json_factory("dishleafnode_configure")
             pytest.command_result = dishleaf_node.command_inout(
@@ -83,11 +88,6 @@ def check_command(
 
     assert pytest.command_result[0][0] == ResultCode.QUEUED
     unique_id = pytest.command_result[1][0]
-    lrcr_event_id = dishleaf_node.subscribe_event(
-        "longRunningCommandResult",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["longRunningCommandResult"],
-    )
 
     group_callback["longRunningCommandResult"].assert_change_event(
         (unique_id, COMMAND_COMPLETED), lookahead=8
@@ -126,7 +126,7 @@ def check_command(
             DishMode.STANDBY_LP,
             DishMode.STANDBY_FP,
         )
-    dishleaf_node.unsubscribe_event(lrcr_event_id)
+    dishleaf_node.unsubscribe_event(pytest.lrcr_event_id)
 
 
 scenarios("../features/dishleafnode.feature")
