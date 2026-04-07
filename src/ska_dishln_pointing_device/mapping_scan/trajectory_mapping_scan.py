@@ -116,7 +116,7 @@ class TrajectoryMappingScan(BaseScanMapping):
             with self.component_manager.track_thread_lock:
                 self.component_manager.mapping_scan_event.set()
                 self.logger.info(
-                    "Is thread alive: %s",
+                    "Is track table thread alive: %s",
                     self.component_manager.track_table_thread.is_alive(),
                 )
                 if self.component_manager.track_table_thread.is_alive():
