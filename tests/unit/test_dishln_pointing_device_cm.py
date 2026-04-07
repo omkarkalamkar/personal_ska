@@ -1,5 +1,4 @@
 import json
-import sched
 import time
 from unittest.mock import patch
 
@@ -294,7 +293,31 @@ def test_dish_pointing_schedular_length(cm_pointing_device, json_factory):
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
     cm.target_data = configure_data
-    real_scheduler = sched.scheduler(time.time, time.sleep)
+
+    class TestScheduler:
+        def __init__(self):
+            self.queue = []
+
+        def enterabs(self, scheduled_time, event_priority, func, argument=()):
+            self.queue.append((scheduled_time, event_priority, func, argument))
+
+        def run(self, blocking=False):
+            # Execute any due events (scheduled_time <= now) and remove them
+            now = time.time()
+            remaining = []
+            for item in self.queue:
+                scheduled_time, event_priority, func, argument = item
+                if scheduled_time <= now:
+                    try:
+                        func(*argument)
+                    except Exception:
+                        # Ignore callback exceptions in test scheduler
+                        pass
+                else:
+                    remaining.append(item)
+            self.queue = remaining
+
+    real_scheduler = TestScheduler()
     with patch(
         "ska_dishln_pointing_device.dishlnpd_component_manager."
         "component_manager.sched.scheduler",

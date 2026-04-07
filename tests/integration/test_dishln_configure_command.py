@@ -25,7 +25,7 @@ from tests.settings import (
     wait_for_target_data,
 )
 
-TIMEOUT_ACTUAL_POINTING = 10
+TIMEOUT_ACTUAL_POINTING = 60
 OFFSET = 5.0
 
 

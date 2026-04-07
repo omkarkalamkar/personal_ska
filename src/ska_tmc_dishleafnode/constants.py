@@ -12,6 +12,7 @@ COMMAND_STARTED_MESSAGE = "Command Started"
 IERS_DATA_STORAGE_PATH = join(
     dirname(__file__), "..", "..", "data", "iers_file.all"
 )
+THREAD_JOIN_TIMEOUT = 2.8
 RESET_OFFSETS = [0.0, 0.0]
 ADJUST_TIMEOUT = 10
 FIXED_TRAJECTORY = "fixed"
