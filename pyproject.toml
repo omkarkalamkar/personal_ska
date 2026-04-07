@@ -28,7 +28,7 @@ fire = ">=0.5.0,<0.6.0"
 ska-tmc-simulators = "1.9.6"
 ska-tmc-common = "1.7.0"
 ska-tango-base = "1.4.0"
-ska-trajectory = {git = "https://gitlab.com/ska-telescope/ska-trajectory.git", branch = "sp-5100-add-cubic-hermite-trajectory"}
+ska-trajectory = "0.3.0"
 astropy = "^5.0.4"
 katpoint = "1.0a3"
 pytz = "2021.3"

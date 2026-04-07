@@ -3336,18 +3336,19 @@ description = "Trajectory classes for SKA telescope"
 optional = false
 python-versions = ">=3.10,<4.0.0"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "ska_trajectory-0.3.0-py3-none-any.whl", hash = "sha256:43ccdc75a90f6d37dd9f7400718b98289b601feaea25981c9ad8692dec857559"},
+    {file = "ska_trajectory-0.3.0.tar.gz", hash = "sha256:d71cf340e68e251d503a21fbcfe7fd62bcc682aa860b9ec6eb065321076f970a"},
+]
 
 [package.dependencies]
 numpy = "*"
 scipy = "*"
 
 [package.source]
-type = "git"
-url = "https://gitlab.com/ska-telescope/ska-trajectory.git"
-reference = "sp-5100-add-cubic-hermite-trajectory"
-resolved_reference = "d246f6b248eb1433ef2d223b5e4f4ed77b8ac259"
+type = "legacy"
+url = "https://artefact.skao.int/repository/pypi-internal/simple"
+reference = "ska-nexus"
 
 [[package]]
 name = "smmap"
@@ -4002,4 +4003,4 @@ reference = "PyPI-public"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "a0f28eb51f40f83f3c58c09d2ac9e6e9342097ea7f9244864250677b61152524"
+content-hash = "d95d50b589b520edee9588004faa1fe3b78b5d8a684a4eb7f3b12e2424e19cdc"
