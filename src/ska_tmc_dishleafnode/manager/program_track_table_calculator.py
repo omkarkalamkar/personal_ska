@@ -100,7 +100,7 @@ class ProgramTrackTableCalculator:
                         self.pointing_calculation_period
                     )
                 ):
-                    self.logger.info(
+                    self.logger.debug(
                         "Stopping the ProgramTrackTable calculation."
                     )
                     return []
@@ -317,7 +317,7 @@ class ProgramTrackTableCalculator:
             update_pointing_program_track_table,
             argument=(program_track_table,),
         )
-        self.logger.info(
+        self.logger.debug(
             "Scheduled trackTable write operation with "
             "scheduler Length: %s",
             len(track_table_scheduler.queue),
@@ -332,7 +332,7 @@ class ProgramTrackTableCalculator:
             program_track_table_size,
         )
 
-        self.logger.info(
+        self.logger.debug(
             "Pointing calculation period set to: %s",
             self.pointing_calculation_period,
         )

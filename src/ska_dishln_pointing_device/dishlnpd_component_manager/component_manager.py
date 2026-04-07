@@ -535,8 +535,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             message = "Exception while writing trackTable: %s" + str(exception)
             self.logger.exception(message)
             raise Exception(message) from exception
-        self.logger.info(
-            "length: %s\nCalculated ProgramTrackTable: %s",
+        self.logger.debug(
+            "ProgramTrackTable length: %s\nCalculated ProgramTrackTable: %s",
             len(program_track_table),
             program_track_table,
         )
@@ -547,7 +547,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.mapping_scan_event.set()
             if self.track_table_thread and self.track_table_thread.is_alive():
                 self.track_table_thread.join()
-            self.logger.info("Track Table thread stopped")
+            self.logger.debug("Track Table thread stopped")
 
     def start_track_table_calculation(self) -> None:
         """This method creates and starts a thread for the programTrackTable
@@ -597,7 +597,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         try:
             pre_entries_of_ptt_in_schedular = self.entries_tt_schedular_queue
-            self.logger.info(
+            self.logger.debug(
                 "Starting ProgramTrackTable calculation.",
             )
             timestamp: Time = Time.now().utc
