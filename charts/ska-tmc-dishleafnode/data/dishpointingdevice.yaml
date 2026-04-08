@@ -17,6 +17,7 @@ entrypoints:
 {{- $prefixMember := .Values.deviceServers.dishln.prefix_member}}
 {{- $WeatherStationDeviceNames := .Values.deviceServers.dishln.weather_station_device_names}}
 {{- $EventSubscriptionCheckPeriod := .Values.deviceServers.dishln.EventSubscriptionCheckPeriod }}
+{{- $ProgramTrackTableSize := .Values.deviceServers.dishpointingdevice.ProgramTrackTableSize }}
 
 server:
   name: "dishpointing"
@@ -64,6 +65,9 @@ server:
             - name: "SchedularQueuePreEntries"
               values:
                 - "{{ $SchedularQueuePreEntries }}"
+            - name: "ProgramTrackTableSize"
+              values:
+                - "{{ $ProgramTrackTableSize }}"
             - name: "WeatherStationDeviceNames"
               values:
               {{- range $wms := $WeatherStationDeviceNames }}

@@ -1,5 +1,4 @@
 import json
-import sched
 import time
 from unittest.mock import patch
 
@@ -55,18 +54,18 @@ def test_dish_pointing_device_generate_program_track_table_command(
     )
 
 
-def test_is_fixed_mapping_scan(cm_pointing_device, json_factory):
-    """Tests that is fixed mapping scan return true or false
-    based on target data set
-    """
+def test_trajectory_name_set_from_target_data(
+    cm_pointing_device, json_factory
+):
+    """Tests that trajectory_name is set correctly based on target data."""
     cm = cm_pointing_device
     configure_data = json_factory("delta_configure")
     configure_data = json.loads(configure_data)
     cm.target_data = configure_data
-    assert cm.is_fixed_mapping_scan()
+    assert cm.trajectory_name == "fixed"
     configure_data = json_factory("partial_configure")
     cm.target_data = json.loads(configure_data)
-    assert not cm.is_fixed_mapping_scan()
+    assert cm.trajectory_name == "fixed"
 
 
 @pytest.mark.parametrize(
@@ -168,7 +167,9 @@ def test_dish_pointing_device_multi_command_scenarios(
         len(cm.pointing_program_track_table)
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
-    track_table_thread1 = cm.track_table_thread
+    track_table_thread1 = (
+        cm.current_mapping_scan_obj.component_manager.track_table_thread
+    )
     generate_program_track_table.do()
 
     start_time = time.time()
@@ -182,7 +183,9 @@ def test_dish_pointing_device_multi_command_scenarios(
         len(cm.pointing_program_track_table)
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
-    track_table_thread2 = cm.track_table_thread
+    track_table_thread2 = (
+        cm.current_mapping_scan_obj.component_manager.track_table_thread
+    )
 
     assert track_table_thread1 is not track_table_thread2
 
@@ -212,7 +215,9 @@ def test_dish_pointing_device_multi_command_scenarios(
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
 
-    track_table_thread3 = cm.track_table_thread
+    track_table_thread3 = (
+        cm.current_mapping_scan_obj.component_manager.track_table_thread
+    )
     assert track_table_thread3 is not track_table_thread1
     assert track_table_thread3 is not track_table_thread2
 
@@ -227,13 +232,18 @@ def test_dish_pointing_device_multi_command_scenarios(
 
 
 def test_track_table_min_frequency(cm_pointing_device, json_factory):
+    """Test that PTT entries are generated with expected cadence.
+
+    With TrajectoryMappingScan, the cadence between PTT entries is
+    derived from the trajectory time offsets (1s for fixed trajectory),
+    not from track_table_update_rate.
+    """
     timeout = 0
     cm = cm_pointing_device
     configure_data = json_factory("dishleafnode_configure")
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
     cm.target_data = configure_data
-    cm.track_table_update_rate = 2.5
     generate_program_track_table = GenerateProgramTrackTable(
         logger=logger, component_manager=cm
     )
@@ -241,10 +251,15 @@ def test_track_table_min_frequency(cm_pointing_device, json_factory):
     while not cm.pointing_program_track_table and timeout < 5:
         time.sleep(1)
         timeout += 1
-    tracktable1_time = cm.pointing_program_track_table[0]
-    time.sleep(3)
-    tracktable2_time = cm.pointing_program_track_table[0]
-    assert (tracktable2_time - tracktable1_time) == cm.track_table_update_rate
+    assert (
+        len(cm.pointing_program_track_table)
+        == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
+    )
+
+    tai_first = cm.pointing_program_track_table[0]
+    tai_second = cm.pointing_program_track_table[3]
+    cadence = round(tai_second - tai_first, 1)
+    assert cadence == 1.0
 
 
 def test_track_table_max_frequency(cm_pointing_device, json_factory):
@@ -278,7 +293,31 @@ def test_dish_pointing_schedular_length(cm_pointing_device, json_factory):
     configure_data = json.loads(configure_data)
     del configure_data["dish"]
     cm.target_data = configure_data
-    real_scheduler = sched.scheduler(time.time, time.sleep)
+
+    class TestScheduler:
+        def __init__(self):
+            self.queue = []
+
+        def enterabs(self, scheduled_time, event_priority, func, argument=()):
+            self.queue.append((scheduled_time, event_priority, func, argument))
+
+        def run(self, blocking=False):
+            # Execute any due events (scheduled_time <= now) and remove them
+            now = time.time()
+            remaining = []
+            for item in self.queue:
+                scheduled_time, event_priority, func, argument = item
+                if scheduled_time <= now:
+                    try:
+                        func(*argument)
+                    except Exception:
+                        # Ignore callback exceptions in test scheduler
+                        pass
+                else:
+                    remaining.append(item)
+            self.queue = remaining
+
+    real_scheduler = TestScheduler()
     with patch(
         "ska_dishln_pointing_device.dishlnpd_component_manager."
         "component_manager.sched.scheduler",

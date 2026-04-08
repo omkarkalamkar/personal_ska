@@ -447,6 +447,7 @@ def tear_down(
     logger.info("Invoked tear_down")
     current_pointing_state = dish_master.pointingState
     if current_pointing_state == PointingState.TRACK:
+        time.sleep(5)  # allow to fill the PTT scheduler buffer.
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
@@ -690,7 +691,7 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
     """
 
     current_time = int(datetime.utcnow().strftime("%H"))
-    logging.info("CURRENT TIME: %s", current_time)
+    logger.info("CURRENT TIME: %s", current_time)
     antenna_ska001 = DishHelper(antenna_data=ARRAY_LAYOUT)
     ska001 = antenna_ska001.get_dish_antenna()
     solar_system_objects = [

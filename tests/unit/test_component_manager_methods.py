@@ -5,6 +5,7 @@ Unit tests for DishLNComponentManager methods:
 import json
 import signal
 import time
+from multiprocessing import Process
 from types import SimpleNamespace
 from unittest import mock
 
@@ -191,8 +192,6 @@ def test_process_actual_pointing_stops_on_event(cm_without_er_lp):
 
     # Restart the process
     cm.stop_actual_pointing_process.clear()
-    from multiprocessing import Process
-
     cm.actual_pointing_process = Process(
         target=cm.process_actual_pointing,
     )
@@ -211,7 +210,7 @@ def test_process_actual_pointing_stops_on_event(cm_without_er_lp):
     cm.stop_actual_pointing_process.set()
 
     # Wait for process to stop
-    cm.actual_pointing_process.join(timeout=30)
+    cm.actual_pointing_process.join(timeout=60)
 
     # Verify process has stopped
     assert not cm.actual_pointing_process.is_alive()

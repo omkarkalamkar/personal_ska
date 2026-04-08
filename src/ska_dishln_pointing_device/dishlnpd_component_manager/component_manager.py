@@ -4,9 +4,7 @@ pointing device component manager.
 """
 from __future__ import annotations
 
-import datetime
 import json
-import operator
 import re
 import sched
 import threading
@@ -17,7 +15,7 @@ from queue import Queue
 from typing import Callable, List, Optional, Tuple
 
 import tango
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 from astropy.utils import iers
 from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
@@ -31,9 +29,10 @@ from ska_tmc_dishleafnode.az_el_converter import (
     AzElConverter_v2 as AzElConverter,
 )
 from ska_tmc_dishleafnode.constants import (
+    FIRST_PROGRAM_TRACK_TABLE_SIZE,
     IERS_DATA_STORAGE_PATH,
-    PROGRAM_TRACK_TABLE_SIZE,
-    SKA_EPOCH,
+    RADEC_TO_AZEL_CONVERSION_TIME,
+    TIME_DELTA_IN_SECONDS,
 )
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
@@ -54,6 +53,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         track_table_update_rate: float,
         elevation_max_limit: float = 90.0,
         elevation_min_limit: float = 15.0,
+        program_track_table_size: int = 50,
         track_table_advance_sec: int = 6,
         azimuth_min_limit: float = -270.0,
         azimuth_max_limit: float = 270.0,
@@ -83,9 +83,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.target: list | str | None = None
         self.antenna_target = None
         self.projection_name: str = "SIN"
-        self.projection_alignment = "AltAz"
+        self.projection_alignment = "radec"
         self.fixed_x_offset: float = 0.0
         self.fixed_y_offset: float = 0.0
+        self.trajectory_name = "fixed"
         self._current_track_table_error = ""
         self.__target_data: dict = {}
         # This event can be used by on going process to change the offset
@@ -94,6 +95,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.set_change_pointing_event = threading.Event()
         self.elevation_max_limit = elevation_max_limit
         self.elevation_min_limit = elevation_min_limit
+        self.program_track_table_size = program_track_table_size
         self._array_layout = {}
         self.azimuth_min_limit = azimuth_min_limit
         self.azimuth_max_limit = azimuth_max_limit
@@ -119,8 +121,10 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         )
         self.data_download_thread.start()
         self.track_thread_lock = threading.RLock()
-        self.track_table_thread = None
-        self._wrap_sector: int
+        self.track_table_thread = threading.Thread(
+            target=self.set_trajectory_name
+        )
+        self._wrap_sector: int = 0
         self._wrap_sector_key: bool = False
         self.__humidity: float = 0.10
         self.__pressure: float = 900.0
@@ -388,6 +392,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     self.logger.exception(
                         "Failed to rebuild observer: %s", str(exp)
                     )
+                self.set_trajectory_name()
         except Exception as exception:
             self.logger.exception(
                 "Failed to update target data due to exception: %s",
@@ -418,21 +423,21 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """
         self._current_track_table_error = value
 
-    def is_fixed_mapping_scan(self) -> bool:
-        """Method to check is current scan is fixed mapping scan
+    def set_trajectory_name(self) -> str:
+        """Method to get the trajectory name
 
-        :return: True/False
-        :rtype: boolean
+        :return: Trajectory name
+        :rtype: str
         """
-        if (
+        self.trajectory_name = (
             self.target_data.get("pointing", {})
             .get("trajectory", {})
             .get("name", "")
             .lower()
-            == "fixed"
-        ):
-            return True
-        return False
+        )
+        if not self.trajectory_name:
+            self.trajectory_name = "fixed"
+        return self.trajectory_name
 
     def set_wrap_sector_data(self) -> None:
         """
@@ -531,7 +536,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.exception(message)
             raise Exception(message) from exception
         self.logger.debug(
-            "Calculated ProgramTrackTable: %s",
+            "ProgramTrackTable length: %s\nCalculated ProgramTrackTable: %s",
+            len(program_track_table),
             program_track_table,
         )
 
@@ -539,8 +545,8 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         """Stop the track table thread if it is running"""
         with self.track_thread_lock:
             self.mapping_scan_event.set()
-        if self.track_table_thread and self.track_table_thread.is_alive():
-            self.track_table_thread.join()
+            if self.track_table_thread and self.track_table_thread.is_alive():
+                self.track_table_thread.join()
             self.logger.debug("Track Table thread stopped")
 
     def start_track_table_calculation(self) -> None:
@@ -558,6 +564,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     self.mapping_scan_event.clear()
                     self.create_track_table_thread()
                     self.track_table_thread.start()
+                    self.stop_track_called.clear()
 
         except Exception as exception:
             self.logger.exception(
@@ -593,11 +600,11 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             self.logger.debug(
                 "Starting ProgramTrackTable calculation.",
             )
-            timestamp: Time = Time(datetime.datetime.utcnow(), scale="utc")
+            timestamp: Time = Time.now().utc
             self.converter.point(timestamp=timestamp)
             self.update_program_track_table_error_callback("")
 
-            utc_now = datetime.datetime.utcnow()
+            utc_now = Time.now()
 
             # The average time required to perform a
             # RaDec to AzEl conversion
@@ -606,31 +613,53 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             #  tracktable time are added to
             # the current timestamp to generate the future tracktable.
 
-            RaDec_AzEl_conversion_time = 0.02
             time_to_add: float = (
-                operator.mul(
-                    PROGRAM_TRACK_TABLE_SIZE, RaDec_AzEl_conversion_time
-                )
-                + self.track_table_advance_sec
-            )
+                FIRST_PROGRAM_TRACK_TABLE_SIZE * RADEC_TO_AZEL_CONVERSION_TIME
+            ) + self.track_table_advance_sec
 
-            extended_time: datetime.datetime = utc_now + datetime.timedelta(
-                seconds=time_to_add
+            extended_time: Time = utc_now + TimeDelta(
+                time_to_add, format="sec"
             )
             track_table_calculator = ProgramTrackTableCalculator(
                 self, self.logger
             )
             track_table_calculator.track_table_time_stamp = extended_time
-
-            with self.track_thread_lock:
-                is_track_thread_stop = self.mapping_scan_event.is_set()
-
             track_table_scheduler = sched.scheduler(time.time, time.sleep)
             event_priority: int = 1
             track_table_calculator.track_table_scheduler = (
                 track_table_scheduler
             )
-            while not is_track_thread_stop:
+            # Generate first 50 entries of PTT.
+            # Each entry is one second apart
+            track_table_calculator.pointing_calculation_period = (
+                TIME_DELTA_IN_SECONDS
+            )
+            program_track_table: list = (
+                track_table_calculator.calculate_program_track_table(
+                    azel_converter=self.converter,
+                    program_track_table_size=FIRST_PROGRAM_TRACK_TABLE_SIZE,
+                )
+            )
+            scheduled_time = track_table_calculator.build_scheduled_time(
+                program_track_table[0]
+            )
+            track_table_calculator.add_program_track_table_in_schedular(
+                track_table_scheduler=track_table_scheduler,
+                event_priority=event_priority,
+                scheduled_time=scheduled_time,
+                program_track_table=program_track_table,
+                # pylint: disable=line-too-long
+                update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
+            )
+            pre_entries_of_ptt_in_schedular -= 1
+            # Calculate the cadence as per track table update rate set
+            # at deployment time. That is time difference between two entries
+            # of timestamp, azimuth and elevation
+            track_table_calculator.set_pointing_calculation_period(
+                self.program_track_table_size
+            )
+
+            while not self.mapping_scan_event.is_set():
                 self.logger.debug(
                     "Target used to calculate trackTable: %s "
                     "with thread id: %s",
@@ -638,62 +667,35 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
                     threading.get_native_id(),
                 )
 
-                with self.track_thread_lock:
-                    is_track_thread_stop = self.mapping_scan_event.is_set()
                 program_track_table: list = (
                     track_table_calculator.calculate_program_track_table(
                         azel_converter=self.converter,
+                        program_track_table_size=self.program_track_table_size,
                     )
                 )
 
-                first_entry_timestamp: float = program_track_table[0]
+                if not program_track_table:
+                    break
 
-                # advance_time is subtracted to provide
-                #  programTrackTable few
-                # seconds in advance
-                actual_time = (
-                    first_entry_timestamp - self.track_table_advance_sec
-                )
-
-                scheduled_time = Time(
-                    float(actual_time) + Time(SKA_EPOCH, scale="utc").unix_tai,
-                    format="unix_tai",
-                    scale="tai",
-                ).unix
-
-                # Convert to human-readable format
-                actual_time_readable = datetime.datetime.utcfromtimestamp(
-                    actual_time
-                ).strftime("%Y-%m-%d %H:%M:%S")
-                scheduled_time_readable = datetime.datetime.utcfromtimestamp(
-                    scheduled_time
-                ).strftime("%Y-%m-%d %H:%M:%S")
-
-                self.logger.debug(
-                    "Actual Time: %s, Scheduled time: %s",
-                    actual_time_readable,
-                    scheduled_time_readable,
+                scheduled_time = track_table_calculator.build_scheduled_time(
+                    program_track_table[0]
                 )
 
                 with self.track_thread_lock:
-                    if not self.mapping_scan_event.is_set():
-                        if pre_entries_of_ptt_in_schedular > 0:
-                            pre_entries_of_ptt_in_schedular -= 1
-                        else:
-                            track_table_calculator.ptt_buffer_set = True
-                        track_table_scheduler.enterabs(
-                            scheduled_time,
-                            event_priority,
-                            self.update_pointing_program_track_table,
-                            argument=(program_track_table,),
-                        )
-                        self.logger.debug(
-                            "Scheduled trackTable write operation with "
-                            "scheduler Length: %s",
-                            len(track_table_scheduler.queue),
-                        )
-
-            self.logger.debug("Program trackTable calculation stopped.")
+                    if pre_entries_of_ptt_in_schedular > 0:
+                        pre_entries_of_ptt_in_schedular -= 1
+                    else:
+                        track_table_calculator.ptt_buffer_set = True
+                    # pylint: disable=line-too-long
+                    track_table_calculator.add_program_track_table_in_schedular(  # noqa: E501
+                        track_table_scheduler=track_table_scheduler,
+                        event_priority=event_priority,
+                        scheduled_time=scheduled_time,
+                        program_track_table=program_track_table,
+                        # pylint: disable=line-too-long
+                        update_pointing_program_track_table=self.update_pointing_program_track_table,  # noqa: E501
+                    )
+            self.logger.info("Program trackTable calculation stopped.")
         except Exception as value_error:
             self.logger.error(
                 "Error occurred during track_thread execution: %s",
@@ -801,3 +803,54 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "temperature": self.update_temperature,
         }
         return {**attributes}
+
+    def cleanup(self) -> None:
+        """Stop background threads and cleanup resources.
+
+        Ensures event threads, track-table thread and downloader thread are
+        signalled to stop and joined where appropriate before delegating to
+        the superclass cleanup which shuts down the task executor.
+        """
+        try:
+            try:
+                # stop event processing threads (signals them and joins)
+                if hasattr(self, "stop_event_processing_threads"):
+                    self.stop_event_processing_threads()
+            except Exception:
+                self.logger.exception(
+                    "Error stopping event processing threads during cleanup"
+                )
+
+            try:
+                # stop any running track table thread
+                if hasattr(self, "stop_track_table_thread"):
+                    self.stop_track_table_thread()
+            except Exception:
+                self.logger.exception(
+                    "Error stopping track table thread during cleanup"
+                )
+
+            # signal mapping scan event to help any loops exit
+            try:
+                if hasattr(self, "mapping_scan_event"):
+                    self.mapping_scan_event.set()
+            except Exception:
+                pass
+
+            # join the downloader thread if it's alive
+            # (it is daemon by default)
+            try:
+                dt = getattr(self, "data_download_thread", None)
+                if dt is not None and dt.is_alive():
+                    dt.join(timeout=1)
+            except Exception:
+                self.logger.exception(
+                    "Error joining data download thread during cleanup"
+                )
+
+        finally:
+            # delegate to superclass to shutdown executor and other resources
+            try:
+                super().cleanup()
+            except Exception:
+                self.logger.exception("Superclass cleanup raised an exception")

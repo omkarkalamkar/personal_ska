@@ -43,7 +43,7 @@ dishleafnode:
   image:
     registry: artefact.skao.int
     image: ska-tmc-dishleafnode
-    tag: 0.43.1
+    tag: 0.44.0
     pullPolicy: IfNotPresent
 
 resources:
@@ -104,7 +104,8 @@ deviceServers:
     ElevationMinLimit: 15.0
     AzimuthMinLimit: -270.0
     AzimuthMaxLimit: 270.0
-    SchedularQueuePreEntries: 5
+    SchedularQueuePreEntries: 3
+    ProgramTrackTableSize: 50
 
     file: "data/dishpointingdevice.yaml"
 

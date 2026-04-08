@@ -285,7 +285,6 @@ class AzElConverter_v2(AzElConverter):
                     x_in_rad,
                     y_in_rad,
                     timestamp=timestamp,
-                    # antenna=self.component_manager.observer,
                     projection_type=self.component_manager.projection_name,
                     coord_system=self.component_manager.projection_alignment,
                 )

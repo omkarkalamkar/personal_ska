@@ -34,6 +34,11 @@ class DishPointingDevice(TMCBaseLeafDevice):
     # Dish Track command properties
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=15.0)
+    ProgramTrackTableSize = device_property(
+        dtype="DevLong",
+        default_value=50,
+        doc="Number of entries in program track table.",
+    )
     TrackTableUpdateRate = device_property(
         dtype="DevFloat",
         default_value=50,
@@ -103,6 +108,12 @@ class DishPointingDevice(TMCBaseLeafDevice):
             self.set_archive_event(attr, True)
         self.init_completed()
 
+    def delete_device(self) -> None:
+        """This method is used to perform cleanup when the device
+        is deleted."""
+        self.component_manager.cleanup()
+        super().delete_device()
+
     @attribute(
         dtype=ArgType.DevString,
         dformat=AttrDataFormat.SCALAR,
@@ -146,6 +157,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
         Args:
             pointing_program_track_table (dict): data of program track table.
         """
+
         self._pointing_program_track_table = json.dumps(
             pointing_program_track_table
         )
@@ -237,6 +249,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
             track_table_update_rate=self.TrackTableUpdateRate,
             elevation_max_limit=self.ElevationMaxLimit,
             elevation_min_limit=self.ElevationMinLimit,
+            program_track_table_size=self.ProgramTrackTableSize,
             track_table_advance_sec=self.TrackTableInAdvance,
             azimuth_min_limit=self.AzimuthMinLimit,
             azimuth_max_limit=self.AzimuthMaxLimit,

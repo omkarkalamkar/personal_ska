@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ska-tmc-dishleafnodes"
-version = "0.43.1"
+version = "0.44.0"
 description = """The Dish Leaf Node is a TMC component responsible to monitor and control the SKA dish."""
 authors = ["Team HIMALAYA", "Team SAHYADRI"]
 license = "BSD-3-Clause"
@@ -28,7 +28,7 @@ fire = ">=0.5.0,<0.6.0"
 ska-tmc-simulators = "1.9.6"
 ska-tmc-common = "1.7.0"
 ska-tango-base = "1.4.0"
-ska-trajectory = "0.2.0"
+ska-trajectory = "0.3.0"
 astropy = "^5.0.4"
 katpoint = "1.0a3"
 pytz = "2021.3"

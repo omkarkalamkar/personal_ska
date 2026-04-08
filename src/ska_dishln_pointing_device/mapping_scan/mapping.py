@@ -4,12 +4,13 @@ from logging import Logger
 from typing import Any, List, Tuple
 
 import katpoint
+import numpy as np
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.utils import iers
 from katpoint import Target
 from numpy import isnan, nan
-from ska_trajectory.trajectory import TrajectoryName
+from ska_trajectory.trajectory_names import TrajectoryName
 
 from ska_dishln_pointing_device.mapping_scan.utils import (
     InvalidTargetDataError,
@@ -21,11 +22,9 @@ class BaseScanMapping:
 
     def __init__(
         self,
-        pattern_name: str,
         component_manager,
         logger: Logger,
     ) -> None:
-        self.pattern_name = pattern_name
         self.target: str | None = None
         self.component_manager = component_manager
         self.logger = logger
@@ -33,6 +32,7 @@ class BaseScanMapping:
         self.main_target_dec = None
         self.ra_dec_target = None
         self.traj = None
+        self.cadence = 0.0
 
     def set_target_and_start_process(self):
         """
@@ -80,6 +80,37 @@ class BaseScanMapping:
         trajectory_name = trajectory.get("name", "fixed").lower()
         return trajectory_name
 
+    def get_time_offsets_and_set_cadence(self) -> list:
+        """
+        Get the time offsets for the scan.
+        :return: A list of time offsets.
+        """
+        time_offsets = (
+            self.component_manager.target_data.get("pointing", {})
+            .get("trajectory", {})
+            .get("attrs", {})
+            .get("time_offsets", [])
+        )
+        if not time_offsets:
+            scan_duration = self.component_manager.target_data.get(
+                "tmc", {}
+            ).get("scan_duration", 0)
+            if not scan_duration:
+                raise ValueError(
+                    "Scan duration must be provided for trajectory scans."
+                )
+            self.cadence = (
+                self.component_manager.track_table_update_rate
+                / self.component_manager.program_track_table_size
+            )
+            time_offsets = list(np.arange(0, scan_duration, self.cadence))
+        else:
+            self.cadence = time_offsets[1] - time_offsets[0]
+        self.logger.info(
+            "Cadence for the scan is set to: %s seconds", self.cadence
+        )
+        return time_offsets
+
     def get_fixed_trajectory_offsets(self):
         """Get Fixed Trajectory Offsets
 
@@ -90,6 +121,11 @@ class BaseScanMapping:
             'pointing', {}
         ).get("trajectory", {})
         trajectory_attrs = trajectory.get("attrs", {}) or {'x': 0.0, 'y': 0.0}
+        self.logger.debug(
+            "Fixed trajectory offsets -> x: %s arcsec, y: %s arcsec",
+            trajectory_attrs['x'],
+            trajectory_attrs['y'],
+        )
         return trajectory_attrs['x'], trajectory_attrs['y']
 
     def build_data_for_observation(self):
@@ -150,6 +186,11 @@ class BaseScanMapping:
             if target:
                 target.antenna = self.component_manager.observer
                 self.component_manager.antenna_target = target
+                self.logger.info(
+                    "Target set to: %s with reference frame: %s",
+                    target.description,
+                    reference_frame,
+                )
             else:
                 raise InvalidTargetDataError()
         except Exception as exp:

@@ -32,16 +32,25 @@
     "pointing": {
         "wrap_sector": -1,
         "field": {
-            "reference_frame": "tle",
-            "target_name": "ABS-3A",
+            "reference_frame": "altaz",
+            "target_name": "Test",
             "attrs": {
-                "line1": "1 40424U 15010A   26078.91608821 -.00000024  00000+0  00000+0 0  9994",
-                "line2": "2 40424   0.0017 177.1829 0001648 123.4315 203.6464  1.00270903 40480"
+                "c2": 45.42808336,
+                "c1": -41.71493321
             }
         },
-        "trajectory": {"name": "fixed", "attrs": {"x": 0.0, "y": 0.0}},
+        "trajectory": {
+            "name": "pos_vel_time",
+            "attrs": {
+                "time_offsets": [0, 1, 2, 3, 4],
+                "x_offsets": [0.0, 0.0, 0.0, 0.0, 0.0],
+                "y_offsets": [0.0, 0.0, 0.0, 0.0, 0.0],
+                "x_velocities": [0.0, 0.0, 0.0, 0.0, 0.0],
+                "y_velocities": [0.0, 0.0, 0.0, 0.0, 0.0]
+            }
+        },
         "projection": {"name": "SSN", "alignment": "AltAz"}
     },
     "dish": {"receiver_band": "2"},
-    "tmc": {"scan_duration": 300}
+    "tmc": {"scan_duration": 5}
 }
