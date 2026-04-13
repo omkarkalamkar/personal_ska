@@ -10,10 +10,6 @@ from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import TimeKeeper, TimeoutCallback, TimeoutState
-from ska_tmc_common.v1.error_propagation_tracker import (
-    error_propagation_tracker,
-)
-from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT
@@ -64,9 +60,15 @@ class Track(DishLNCommand):
             )
 
     # pylint: disable=unused-argument
-    @timeout_tracker
-    @error_propagation_tracker("get_track_result_code", [ResultCode.OK])
-    def track(self: Track, argin: dict, **kwargs) -> Tuple[ResultCode, str]:
+    # @timeout_tracker
+    # @error_propagation_tracker("get_track_result_code", [ResultCode.OK])
+    def track(
+        self: Track,
+        argin: dict,
+        task_callback: Callable = None,
+        task_abort_event: Optional[object] = None,
+        **kwargs,
+    ) -> Tuple[ResultCode, str]:
         """This is a long running method for Track command, it
         executes the do hook, invoking Track command on Dish Master
 
@@ -75,6 +77,8 @@ class Track(DishLNCommand):
         :return: : (ResultCode, str)
         :rtype: Tuple
         """
+        self.task_callback = task_callback
+        self.component_manager.abort_event = task_abort_event
         # Indicate that the task has started
         self.task_callback(status=TaskStatus.IN_PROGRESS)
         if self.is_configure_command is False:
@@ -82,7 +86,9 @@ class Track(DishLNCommand):
         else:
             self.component_manager.command_in_progress = "Configure"
 
-        return self.do(argin)
+        result_code, message = self.do(argin)
+        self.call_update_task_status(result_code, message)
+        return result_code, message
 
     def validate_json_argument(self: Track, input_argin: dict) -> tuple:
         """
@@ -135,7 +141,10 @@ class Track(DishLNCommand):
             result_code, message = self.call_adapter_method(
                 "Dish Master", self.dish_master_adapter, "Track"
             )
-            if ResultCode(result_code[0]) is ResultCode.QUEUED:
+            result_code, message = self.invoke_command_and_track(
+                self.dish_master_adapter, "Track"
+            )
+            if ResultCode(result_code) is ResultCode.QUEUED:
                 # Append command unique id
                 self.component_manager.command_unique_id_dict[
                     "Track"
@@ -146,7 +155,7 @@ class Track(DishLNCommand):
                 + "with ResultCode: %s, Message: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
-                ResultCode(result_code[0]),
+                ResultCode(result_code),
                 message,
             )
             self.logger.debug(
@@ -154,7 +163,9 @@ class Track(DishLNCommand):
                 self.component_manager.command_id,
             )
 
-        if result_code[0] == ResultCode.FAILED:
-            return result_code[0], message[0]
+        if result_code == ResultCode.FAILED:
+            return result_code, message
 
-        return result_code[0], message[0]
+        return self._wait_for_completion(
+            self.component_manager.get_track_result_code
+        )

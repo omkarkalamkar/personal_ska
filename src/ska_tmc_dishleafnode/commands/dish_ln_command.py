@@ -17,6 +17,10 @@ from ska_tmc_common import (
     TimeoutState,
     TmcLeafNodeCommand,
 )
+from ska_tmc_common.command_completion_tracker import (
+    CommandCompletionContext,
+    CommandCompletionTracker,
+)
 from tango import ConnectionFailed, DevFailed
 
 configure_logging()
@@ -81,6 +85,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             self.component_manager.command_timeout, logger
         )
         self.command_uniq_id: str = ""
+        self.is_aborted: bool = False
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
@@ -251,3 +256,34 @@ class DishLNCommand(TmcLeafNodeCommand):
         self.component_manager.command_in_progress = ""
         if not self.component_manager.is_configure_command:
             self.component_manager.clear_configure_command_events_flags()
+
+    def _wait_for_completion(
+        self,
+        state_getter: Callable[[], bool],
+        desired_state: bool = True,
+        device_length: int = 1,
+    ) -> Tuple[ResultCode, str]:
+        """Wait for command completion using CommandCompletionTracker
+        Args:
+            desired_obs_state (ObsState): Expected observation state after
+            command execution
+            device_length (int): Number of devices to wait for completion
+            (default is 1)
+        Returns:
+            Tuple[ResultCode, str]: Final result code and corresponding message
+        """
+        tracker = CommandCompletionTracker(self.logger)
+
+        context = CommandCompletionContext(
+            command_results=self.command_results,
+            completion_condition=(
+                self.component_manager.command_completion_cond
+            ),
+            timeout=self.component_manager.command_timeout,
+            device_length=device_length,
+            state_getter=state_getter,
+            desired_state=desired_state,
+            abort_checker=self.is_aborted,
+        )
+
+        return tracker.wait_for_command_completion(context)

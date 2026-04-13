@@ -407,6 +407,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         )
 
         self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+        self.command_completion_cond = threading.Condition()
         # this is temporary variable
         # which can be utilised to expose failure in future.
 
@@ -688,7 +689,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             "pointingState",
             "achievedPointing",
             "configuredBand",
-            "longRunningCommandResult",
             "kValue",
             "b1CapabilityState",
             "b2CapabilityState",
@@ -3205,11 +3205,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         """
         with self.command_result_update_lock:
-            result = (
-                self.configure_band_result["result_code"] == ResultCode.OK
-                and self.dishMode == DishMode.OPERATE
-            )
-            return result
+            return self.dishMode == DishMode.OPERATE
 
     def get_configure_band_result_dict(self: DishLNComponentManager):
         """
@@ -3284,9 +3280,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         :return: ResultCode from the track_result
         :rtype: ResultCode
         """
-
-        with self.command_result_update_lock:
-            return self.track_result["result_code"]
+        return self.pointingState in (PointingState.TRACK, PointingState.SLEW)
 
     def get_track_result_dict(self: DishLNComponentManager):
         """
