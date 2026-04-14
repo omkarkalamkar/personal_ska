@@ -3362,11 +3362,9 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
-        return (
-            self.dishMode == DishMode.OPERATE
-            and self.pointingState in (PointingState.TRACK, PointingState.SLEW)
-            and self.configure_band_lrcr == ResultCode.OK
-            and self.configure_track_lrcr == ResultCode.OK
+        return self.dishMode == DishMode.OPERATE and self.pointingState in (
+            PointingState.TRACK,
+            PointingState.SLEW,
         )
 
     def update_windspeed(self, wind_speed: float, wms: str = "") -> None:
