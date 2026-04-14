@@ -175,6 +175,6 @@ class ConfigureBand(DishLNCommand):
         if result_code == ResultCode.FAILED:
             return result_code, message
 
-        return self._wait_for_completion(
+        return self.wait_for_completion(
             self.component_manager.get_configure_band_result
         )

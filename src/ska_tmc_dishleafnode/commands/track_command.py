@@ -138,9 +138,6 @@ class Track(DishLNCommand):
                 "Command ID: %s | Acquired  tango lock",
                 self.component_manager.command_id,
             )
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "Track"
-            )
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, "Track"
             )
@@ -166,6 +163,4 @@ class Track(DishLNCommand):
         if result_code == ResultCode.FAILED:
             return result_code, message
 
-        return self._wait_for_completion(
-            self.component_manager.get_track_result_code
-        )
+        return self.wait_for_completion()

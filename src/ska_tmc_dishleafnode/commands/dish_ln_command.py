@@ -257,15 +257,17 @@ class DishLNCommand(TmcLeafNodeCommand):
         if not self.component_manager.is_configure_command:
             self.component_manager.clear_configure_command_events_flags()
 
-    def _wait_for_completion(
+    def wait_for_completion(
         self,
-        state_getter: Callable[[], bool],
+        state_getter: Callable[[], bool] = None,
         desired_state: bool = True,
         device_length: int = 1,
     ) -> Tuple[ResultCode, str]:
         """Wait for command completion using CommandCompletionTracker
         Args:
-            desired_obs_state (ObsState): Expected observation state after
+            state_getter (Callable[[], bool]): Function to get the
+            current state
+            desired_state (ObsState): Expected observation state after
             command execution
             device_length (int): Number of devices to wait for completion
             (default is 1)
