@@ -10,7 +10,6 @@ from ska_tmc_common import DevFactory, DishMode, FaultType, PointingState
 from tests.settings import (
     COMMAND_COMPLETED,
     COMMAND_CONFIGURE_BAND_TIMEOUT,
-    COMMAND_FAILED,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     build_partial_configure_data,
@@ -99,9 +98,14 @@ def partial_configure_dish_leaf_node_error_propagation(
 
     ca_offset = load_conf["pointing"]["target"]["ca_offset_arcsec"]
     ie_offset = load_conf["pointing"]["target"]["ie_offset_arcsec"]
-
+    FAILED_MESSAGE = (
+        '[3, '
+        '"Exception occurred on devices: '
+        'mid-dish/dish-manager/ska001: '
+        'Exception occured, command failed."]'
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_FAILED),
+        (unique_id_config[0], FAILED_MESSAGE),
         lookahead=8,
     )
     # Assert change event is occuring and values are reflecting
@@ -187,8 +191,14 @@ def configure_dish_leaf_node_error_propagation(
         group_callback["longRunningCommandResult"],
     )
     logging.info("lrcr_event_id: %s", lrcr_event_id)
+    FAILED_MESSAGE = (
+        '[3, '
+        '"Exception occurred on devices: '
+        'mid-dish/dish-manager/ska001: '
+        'Exception occured, command failed."]'
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], COMMAND_COMPLETED),
+        (unique_id_fp[0], FAILED_MESSAGE),
         lookahead=2,
     )
     group_callback["dishMode"].assert_change_event(
@@ -214,7 +224,7 @@ def configure_dish_leaf_node_error_propagation(
     assert result_config[0] == ResultCode.QUEUED
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_FAILED),
+        (unique_id_config[0], FAILED_MESSAGE),
         lookahead=8,
     )
 
