@@ -2011,7 +2011,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         # base classes set and clear immediately, so we set to
         # clear ongoing observers and timers.
         self.abort_event.set()
-        self.observable.notify_observers(attribute_value_change=True)
+        self.set_abort_flag_for_commands()
         self.abort_event.clear()
 
         def _invoke_abort_callback(
@@ -3258,10 +3258,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
 
         :return: boolean value indicating if the state change occurred or not
         """
-        return (
-            self.dishMode == DishMode.STANDBY_FP
-            and self.abort_result["result_code"] == ResultCode.OK
-        )
+        return self.dishMode == DishMode.STANDBY_FP
 
     def get_abort_result_dict(self: DishLNComponentManager) -> dict:
         """

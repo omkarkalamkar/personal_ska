@@ -4,18 +4,13 @@ Abort command class for DishLeafNode.
 from __future__ import annotations
 
 import logging
-from typing import Dict, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common.v1.error_propagation_tracker import (
-    error_propagation_tracker,
-)
-from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
-from ska_tmc_dishleafnode.constants import COMMAND_STARTED_MESSAGE
 
 configure_logging()
 LOGGER = logging.getLogger(__name__)
@@ -28,15 +23,22 @@ class Abort(DishLNCommand):
     """
 
     # pylint: disable=unused-argument
-    @timeout_tracker
-    @error_propagation_tracker(
-        "is_abort_completed",
-        [True],
-    )
-    def invoke_abort(self, **kwargs):
+    # @timeout_tracker
+    # @error_propagation_tracker(
+    #     "is_abort_completed",
+    #     [True],
+    # )
+    def invoke_abort(
+        self,
+        task_callback: Callable = None,
+        task_abort_event: Optional[object] = None,
+        **kwargs,
+    ):
         """This method calls do for Abort command"""
         with self.component_manager.tango_operation_execution_lock:
-            return self.do()
+            result_code, message = self.do()
+            self.call_update_task_status(result_code, message)
+            return result_code, message
 
     # pylint: enable=unused-argument
     def update_task_status(
@@ -122,26 +124,26 @@ class Abort(DishLNCommand):
             return result_code, message
 
         if self.component_manager.is_dish_abort_commands_enabled:
-            result_code, message = self.call_adapter_method(
-                "Dish Master", self.dish_master_adapter, "Abort"
+            result_code, message = self.invoke_command_and_track(
+                self.dish_master_adapter, "Abort"
             )
             # Append command unique id
-            self.component_manager.command_unique_id_dict["Abort"] = message[0]
-            self.command_uniq_id = message[0]
+            self.component_manager.command_unique_id_dict["Abort"] = message
+            self.command_uniq_id = message
             self.logger.info(
                 "Command ID: %s | "
                 + "Abort() command has been invoked with ResultCode:"
                 + " %s, Message: %s",
                 self.component_manager.command_id,
-                result_code[0],
-                message[0],
+                result_code,
+                message,
             )
-            if result_code[0] in [
+            if result_code in [
                 ResultCode.REJECTED,
                 ResultCode.NOT_ALLOWED,
                 ResultCode.ABORTED,
             ]:
-                return result_code[0], message[0]
+                return result_code, message
 
         # call stop_tracking_thread to stop live thread
         result_code, message = self.stop_program_track_table()
@@ -154,7 +156,10 @@ class Abort(DishLNCommand):
         self.logger.info(
             "Abort command invoked successfully on the DishLeafNode."
         )
-        return ResultCode.STARTED, COMMAND_STARTED_MESSAGE
+        return self.wait_for_completion(
+            state_getter=self.component_manager.is_abort_completed,
+            desired_state=True,
+        )
 
     def stop_program_track_table(self) -> Tuple[ResultCode, str]:
         """Method to invoke StopProgramTrackTable() when abort command is

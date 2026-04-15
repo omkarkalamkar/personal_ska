@@ -86,6 +86,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         self.command_uniq_id: str = ""
         self.is_aborted: bool = False
+        self.component_manager.command_in_progress_objects.append(self)
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
