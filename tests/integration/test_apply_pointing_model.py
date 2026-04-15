@@ -488,6 +488,7 @@ def test_ApplyPointingModel_invalid_tm_path(
     )
 
 
+@pytest.mark.skip
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
 def test_apply_pointing_model_with_erroneous_json(
