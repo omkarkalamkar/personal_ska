@@ -141,7 +141,9 @@ class ApplyPointingModel(DishLNCommand):
         :rtype: None
         """
 
-        task_callback(status=TaskStatus.IN_PROGRESS)
+        self.task_callback = task_callback
+        self.component_manager.abort_event = task_abort_event
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
 
         self.component_manager.command_in_progress = "ApplyPointingModel"
         result_code, message = self.do(argin)

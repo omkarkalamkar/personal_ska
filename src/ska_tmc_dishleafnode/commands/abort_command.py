@@ -34,7 +34,15 @@ class Abort(DishLNCommand):
         task_abort_event: Optional[object] = None,
         **kwargs,
     ):
-        """This method calls do for Abort command"""
+        """Invoke Abort on Dish Master and track its completion.
+        Args:
+            task_callback: A callback function to update the status
+            of the task.
+            task_abort_event: An event to signal task abortion.
+        """
+        self.task_callback = task_callback
+        self.component_manager.abort_event = task_abort_event
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
         with self.component_manager.tango_operation_execution_lock:
             result_code, message = self.do()
             self.call_update_task_status(result_code, message)
