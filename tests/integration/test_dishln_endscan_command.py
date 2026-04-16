@@ -9,7 +9,6 @@ from ska_tmc_common.enum import DishMode, FaultType, PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_FAILED,
     COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -260,8 +259,13 @@ def endscan_command_error_propogation(
     logger.info(
         f"Command ID: {unique_id_endscan} Returned result: {result_endscan}"
     )
+    failed_message = (
+        '[3, "Exception occurred on devices: '
+        'mid-dish/dish-manager/ska001: '
+        'Exception occured, command failed."]'
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_endscan[0], COMMAND_FAILED),
+        (unique_id_endscan[0], failed_message),
         lookahead=8,
     )
 
