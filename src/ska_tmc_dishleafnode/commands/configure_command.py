@@ -633,8 +633,8 @@ class Configure(DishLNCommand):
                 if "Timeout has occurred" in message:
                     exception_message = (
                         "Timeout occurred while waiting for "
-                        "Track command to"
-                        " be completed in Configure command."
+                        "configuredBand command to be completed in "
+                        "Configure command."
                     )
                     return result_code, exception_message
                 return result_code, message
