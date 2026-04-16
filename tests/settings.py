@@ -171,6 +171,13 @@ ARRAY_LAYOUT = {
     "station_id": 65,
 }
 
+COMMAND_FAILED_DISH = (
+    '[3, '
+    '"Exception occurred on devices: '
+    'mid-dish/dish-manager/ska001: '
+    'Exception occured, command failed."]'
+)
+
 
 def wait_for_ping(dishleafnode_cm):
     """Method waits for the device ping till timeout specified
