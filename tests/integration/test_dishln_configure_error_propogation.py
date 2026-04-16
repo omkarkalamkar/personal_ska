@@ -191,14 +191,8 @@ def configure_dish_leaf_node_error_propagation(
         group_callback["longRunningCommandResult"],
     )
     logging.info("lrcr_event_id: %s", lrcr_event_id)
-    FAILED_MESSAGE = (
-        '[3, '
-        '"Exception occurred on devices: '
-        'mid-dish/dish-manager/ska001: '
-        'Exception occured, command failed."]'
-    )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_fp[0], FAILED_MESSAGE),
+        (unique_id_fp[0], COMMAND_COMPLETED),
         lookahead=2,
     )
     group_callback["dishMode"].assert_change_event(
@@ -222,9 +216,14 @@ def configure_dish_leaf_node_error_propagation(
         configure_input_str
     )
     assert result_config[0] == ResultCode.QUEUED
-
+    failed_message = (
+        '[3, '
+        '"Exception occurred on devices: '
+        'mid-dish/dish-manager/ska001: '
+        'Exception occured, command failed."]'
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], FAILED_MESSAGE),
+        (unique_id_config[0], failed_message),
         lookahead=8,
     )
 
