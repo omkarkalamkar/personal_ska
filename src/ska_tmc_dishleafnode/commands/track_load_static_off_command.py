@@ -3,6 +3,7 @@ TrackLoadStaticOff command class for DishLeafNode.
 """
 from __future__ import annotations
 
+import json
 import logging
 from typing import Callable, Dict, Optional, Tuple, Union
 
@@ -111,7 +112,7 @@ class TrackLoadStaticOff(DishLNCommand):
                 self.component_manager.dish_dev_name,
             )
             return result_code, message
-
+        offsets = json.loads(argin)
         with self.component_manager.tango_operation_execution_lock:
             # result_code, message = self.call_adapter_method(
             #     "Dish Master",
@@ -120,7 +121,7 @@ class TrackLoadStaticOff(DishLNCommand):
             #     argin=offsets,
             # )
             result_code, message = self.invoke_command_and_track(
-                self.dish_master_adapter, "TrackLoadStaticOff", argin
+                self.dish_master_adapter, "TrackLoadStaticOff", offsets
             )
             if ResultCode(result_code) is ResultCode.QUEUED:
                 # Append command unique id
