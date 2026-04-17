@@ -111,10 +111,7 @@ class Abort(DishLNCommand):
             "Command ID: %s | Abort event set",
             self.component_manager.command_id,
         )
-        with self.component_manager.command_result_update_lock:
-            self.component_manager.observable.notify_observers(
-                attribute_value_change=True
-            )
+        self.component_manager.set_abort_flag_for_commands()
         self.component_manager.abort_event.clear()
         if not self.component_manager.command_in_progress:
             self.component_manager.abort_event.clear()

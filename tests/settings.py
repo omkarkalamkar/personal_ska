@@ -2,6 +2,7 @@
 import json
 import logging
 import re
+import threading
 import time
 from datetime import datetime
 from typing import List
@@ -642,6 +643,32 @@ def simulate_result_code_event(
         cm.update_command_result(command_result)
     except Exception as exception:
         logging.exception(exception)
+
+
+def simulate_events_on_dish_device(
+    component_manager, device_list, dish_mode=None, cmd_object=None
+):
+    """Simulate events on dish mode
+    Args:
+        component_manager: The DishLNComponentManager instance.
+        device_list: List of DeviceProxy instances to simulate events on.
+        dish_mode: Optional DishMode to simulate a dish mode event.
+        cmd_object: Optional command object to invoke command LRC callback.
+
+     :return: None
+     :rtype: None
+    """
+
+    def start_update():
+        for device in device_list:
+            logger.info("Device: %s", device)
+            if cmd_object:
+                cb = cmd_object.invoke_command_lrc_cb(device)
+                cb(result=[ResultCode.OK, "Command Completed"])
+        if dish_mode:
+            simulate_dish_mode_event(component_manager, dish_mode)
+
+    threading.Timer(0.5, start_update).start()
 
 
 def simulate_track_table_event(
