@@ -348,7 +348,7 @@ class ApplyPointingModel(DishLNCommand):
                     "ApplyPointingModel",
                     argin=json.dumps(global_pointing_data_json),
                 )
-                return result_code, message
+                return result_code[0], message[0]
         except Exception as e:
             self.logger.exception(
                 "Exception occurred while executing Apply Pointing Model"
@@ -357,7 +357,7 @@ class ApplyPointingModel(DishLNCommand):
             )
             result_code = ResultCode.FAILED
             message = f"Exception occurred: {e}"
-            return result_code, message
+        return result_code, message
 
     def extract_band_and_version(self, gpm_data: dict) -> Tuple[str, str]:
         """
