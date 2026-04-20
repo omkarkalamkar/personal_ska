@@ -1602,7 +1602,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         """
         self.stow_status = StowStatus.STOW_STARTED
         self.abort_event.set()
-        self.observable.notify_observers(attribute_value_change=True)
+        self.set_abort_flag_for_commands()
         self.abort_event.clear()
 
         def _invoke_stow_callback(

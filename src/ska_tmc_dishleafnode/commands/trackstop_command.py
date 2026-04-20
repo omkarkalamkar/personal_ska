@@ -59,6 +59,7 @@ class TrackStop(DishLNCommand):
         :rtype: Tuple[ResultCode, str]
         """
         self.task_callback = task_callback
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
         self.component_manager.abort_event = task_abort_event
         result_code, message = self.do()
         self.call_update_task_status(result_code, message)

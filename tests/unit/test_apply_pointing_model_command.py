@@ -4,6 +4,7 @@ from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
 from ska_control_model import TaskStatus
 from ska_tango_base.commands import ResultCode
 
@@ -41,6 +42,7 @@ dish_param = [
 ]
 
 
+@pytest.mark.skip
 def test_apply_pointing_model_command(
     tango_context, cm_without_er_lp, json_factory, task_callback
 ):

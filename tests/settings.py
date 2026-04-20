@@ -6,6 +6,7 @@ import threading
 import time
 from datetime import datetime
 from typing import List
+from unittest import mock
 
 import katpoint
 import tango
@@ -646,7 +647,12 @@ def simulate_result_code_event(
 
 
 def simulate_events_on_dish_device(
-    component_manager, device_list, dish_mode=None, cmd_object=None
+    component_manager,
+    device_list,
+    dish_mode=None,
+    cmd_object=None,
+    band=None,
+    pointing_state=None,
 ):
     """Simulate events on dish mode
     Args:
@@ -667,8 +673,28 @@ def simulate_events_on_dish_device(
                 cb(result=[ResultCode.OK, "Command Completed"])
         if dish_mode:
             simulate_dish_mode_event(component_manager, dish_mode)
+        if band:
+            component_manager.update_device_configured_band(band)
+        if pointing_state:
+            component_manager.update_device_pointing_state(pointing_state)
 
     threading.Timer(0.5, start_update).start()
+
+
+def get_mock_adapter_factory(command_id, **factorty_attrs):
+    """Returns a mock adapter factory with dish mock."""
+    attr = {
+        "get_attribute_list.return_value": ["lrcProtocolVersions"],
+        "lrcProtocolVersions": (1, 2),
+        "command_inout.return_value": ([ResultCode.QUEUED], [command_id]),
+    }
+    attr.update(**factorty_attrs)
+    dishMock = mock.Mock(**attr)
+    dishMock.dev_name = DISH_MASTER_DEVICE
+    dishMock._proxy = dishMock
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    return adapter_factory
 
 
 def simulate_track_table_event(

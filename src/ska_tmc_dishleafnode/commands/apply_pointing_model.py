@@ -342,13 +342,18 @@ class ApplyPointingModel(DishLNCommand):
                     self.band,
                     self.band_version,
                 )
-                result_code, message = self.call_adapter_method(
-                    "Dish Master",
+                # result_code, message = self.call_adapter_method(
+                #     "Dish Master",
+                #     self.dish_master_adapter,
+                #     "ApplyPointingModel",
+                #     argin=json.dumps(global_pointing_data_json),
+                # )
+                result_code, message = self.invoke_command_and_track(
                     self.dish_master_adapter,
                     "ApplyPointingModel",
-                    argin=json.dumps(global_pointing_data_json),
+                    command_input=json.dumps(global_pointing_data_json),
                 )
-                return result_code[0], message[0]
+                return result_code, message
         except Exception as e:
             self.logger.exception(
                 "Exception occurred while executing Apply Pointing Model"
@@ -357,7 +362,8 @@ class ApplyPointingModel(DishLNCommand):
             )
             result_code = ResultCode.FAILED
             message = f"Exception occurred: {e}"
-        return result_code, message
+            return result_code, message
+        return self.wait_for_completion()
 
     def extract_band_and_version(self, gpm_data: dict) -> Tuple[str, str]:
         """
