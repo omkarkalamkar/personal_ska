@@ -41,8 +41,6 @@ class EndScan(DishLNCommand):
             self.command_uniq_id = ""
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker("get_end_scan_result_code", [ResultCode.OK])
     def endscan(
         self: EndScan,
         task_callback: Callable = None,

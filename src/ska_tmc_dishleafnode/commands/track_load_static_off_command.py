@@ -114,12 +114,6 @@ class TrackLoadStaticOff(DishLNCommand):
             return result_code, message
         offsets = json.loads(argin)
         with self.component_manager.tango_operation_execution_lock:
-            # result_code, message = self.call_adapter_method(
-            #     "Dish Master",
-            #     self.dish_master_adapter,
-            #     "TrackLoadStaticOff",
-            #     argin=offsets,
-            # )
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, "TrackLoadStaticOff", offsets
             )

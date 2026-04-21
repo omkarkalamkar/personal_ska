@@ -32,9 +32,6 @@ class Scan(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-        # self.timekeeper = TimeKeeper(
-        #     self.component_manager.command_timeout, logger
-        # )
         self.command_uniq_id: str = ""
 
     def update_task_status(
@@ -54,17 +51,8 @@ class Scan(DishLNCommand):
         # be cleared from here.
         self.component_manager.command_unique_id_dict.clear()
         self.command_uniq_id = ""
-        # if self.component_manager.command_unique_id_dict.get(
-        #     self.command_uniq_id
-        # ):
-        #     del self.component_manager.command_unique_id_dict[
-        #         self.command_uniq_id
-        #     ]
-        #     self.command_uniq_id = ""
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker("get_scan_result_code", [ResultCode.OK])
     def scan(
         self: Scan,
         argin: str,

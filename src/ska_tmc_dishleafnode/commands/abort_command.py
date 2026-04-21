@@ -23,11 +23,6 @@ class Abort(DishLNCommand):
     """
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker(
-    #     "is_abort_completed",
-    #     [True],
-    # )
     def invoke_abort(
         self,
         task_callback: Callable = None,

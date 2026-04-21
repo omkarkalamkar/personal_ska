@@ -82,11 +82,6 @@ class SetStowMode(DishLNCommand):
     """
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker(
-    #     "get_dish_mode",
-    #     [DishMode.STOW],
-    # )
     def invoke_set_stow_mode(
         self: SetStowMode,
         task_callback: TaskCallbackType = task_callback_default,

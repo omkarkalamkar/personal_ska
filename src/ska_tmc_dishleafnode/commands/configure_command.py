@@ -62,11 +62,6 @@ class Configure(DishLNCommand):
         )
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker(
-    #     "is_configure_completed",
-    #     [True],
-    # )
     def invoke_configure(
         self: Configure,
         argin: str,
@@ -548,60 +543,6 @@ class Configure(DishLNCommand):
         receiver_band = json_argument.get("dish", {}).get("receiver_band", "")
         self.logger.info("Receiver band is %s", receiver_band)
 
-        # def _invoke_configure_band_callback(
-        #     status=None,
-        #     progress=None,
-        #     result=None,
-        #     exception=None,
-        # ):
-        #     """
-        #     Method for invoking ConfigureBand callback
-        #     """
-        #     return
-        #     self.logger.debug(
-        #         "Command ID: %s | "
-        #         + "Received result for ConfigureBand command"
-        #         + " Result: %s , Progress: %s ,Exception: %s",
-        #         self.component_manager.command_id,
-        #         result,
-        #         progress,
-        #         str(exception),
-        #     )
-        #     if result is None:
-        #         pass
-        #     else:
-        #         result_code, message = result
-        #         self.component_manager.set_configure_band_result_dict(
-        #             result_code, message, exception, status
-        #         )
-        #         self.component_manager.configure_band_lrcr = result_code
-        #         if self.component_manager.abort_event.is_set():
-        #             return
-        #         if result_code == ResultCode.OK:
-        #             self.start_dish_tracking(json_argument)
-        #         elif result_code == ResultCode.FAILED:
-        #             self.logger.info(
-        #                 "Command ID: %s | "
-        #                 + "Configure band command ResultCode: %s",
-        #                 self.component_manager.command_id,
-        #                 str(result_code),
-        #             )
-        #             # If timed out has occurred for configure band then
-        #             update
-        #             # exception message for configure command
-        #             if "Timeout has occurred" in exception:
-        #                 exception_message = (
-        #                     "Timeout occurred while waiting for "
-        #                     "configuredBand command to be completed in "
-        #                     "Configure command."
-        #                 )
-        #                 self.logger.exception(exception_message)
-        #                 self.set_failure_for_configure(exception_message)
-        #             else:
-        #                 self.component_manager.observable.notify_observers(
-        #                     command_exception=True
-        #                 )
-
         if (
             receiver_band == self.component_manager.dishConfiguredBand
             and self.component_manager.dishMode == DishMode.OPERATE
@@ -638,17 +579,6 @@ class Configure(DishLNCommand):
                     )
                     return result_code, exception_message
                 return result_code, message
-
-            # if (
-            #     self.component_manager.get_configure_band_result_code()
-            #     == ResultCode.FAILED
-            # ):
-            #     return (
-            #         self.component_manager.get_configure_band_result_code(),
-            #         self.component_manager.get_configure_band_result_dict()[
-            #             "exception"
-            #         ],
-            #     )
 
         return result_code, message
 
@@ -762,18 +692,6 @@ class Configure(DishLNCommand):
             )
             message = "Dish is already tracking/slewing."
             return ResultCode.OK, message
-            # self.component_manager.set_track_result_dict(
-            #     ResultCode.OK, message
-            # )
-            # self.logger.debug(
-            #     "Command ID: %s | Track command Result: %s",
-            #     self.component_manager.command_id,
-            #     self.component_manager.track_result,
-            # )
-            # self.component_manager.configure_track_lrcr = ResultCode.OK
-            # self.component_manager.observable.notify_observers(
-            #     attribute_value_change=True
-            # )
 
         return self.is_tracktable_provided(json_argument)
 
@@ -784,55 +702,6 @@ class Configure(DishLNCommand):
             json_argument (dict): json argument for invoking track command.
 
         """
-
-        # def _invoke_track_callback(
-        #     status=None,
-        #     progress=None,
-        #     result=None,
-        #     exception=None,
-        # ):
-        #     """
-        #     Method for invoking Track callback
-        #     """
-        #     return
-        #     if result is None:
-        #         pass
-        #     else:
-        #         self.logger.info(
-        #             "Command ID: %s | Track Command Result: %s "
-        #             + "and Progress: %s",
-        #             self.component_manager.command_id,
-        #             str(result),
-        #             progress,
-        #         )
-        #         result_code, message = result
-        #         self.component_manager.set_track_result_dict(
-        #             result_code, message, exception, status
-        #         )
-        #         if result_code == ResultCode.OK:
-        #             # Invoke Track command
-        #             self.component_manager.configure_track_lrcr =
-        #             ResultCode.OK
-        #             self.component_manager.observable.notify_observers(
-        #                 attribute_value_change=True
-        #             )
-        #         elif result_code == ResultCode.FAILED:
-        #             # If timed out has occurred for track
-        #             # then update exception message for
-        #             # configure command
-        #             if "Timeout has occurred" in exception:
-        #                 exception_message = (
-        #                     "Timeout occurred while waiting for "
-        #                     "Track command to"
-        #                     " be completed in Configure command."
-        #                 )
-        #                 self.set_failure_for_configure(exception_message)
-        #                 self.logger.exception(exception_message)
-        #             else:
-        #                 self.component_manager.observable.notify_observers(
-        #                     command_exception=True
-        #                 )
-
         # pylint: enable=unused-argument
         track_command = Track(
             self.component_manager,
@@ -900,10 +769,6 @@ class Configure(DishLNCommand):
                     "Dish manager did not receive TrackTable. "
                     "Track() command is not invoked on the Dish."
                 )
-                # self.set_failure_for_configure(
-                #     "Dish manager did not receive TrackTable. "
-                #     "Track() command is not invoked on the Dish."
-                # )
             return ResultCode.FAILED, error_message
 
     def set_failure_for_configure(self, message: str):

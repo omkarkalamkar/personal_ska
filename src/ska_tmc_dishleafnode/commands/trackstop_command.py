@@ -44,8 +44,6 @@ class TrackStop(DishLNCommand):
         self.component_manager.update_healthinfo_errors()
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker("get_track_stop_result_code", [ResultCode.OK])
     def trackstop(
         self: TrackStop,
         task_callback: Callable = None,

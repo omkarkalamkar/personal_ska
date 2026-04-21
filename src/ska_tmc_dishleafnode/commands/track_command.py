@@ -60,8 +60,6 @@ class Track(DishLNCommand):
             )
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker("get_track_result_code", [ResultCode.OK])
     def track(
         self: Track,
         argin: dict,

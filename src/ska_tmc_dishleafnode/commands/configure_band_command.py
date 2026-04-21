@@ -59,8 +59,6 @@ class ConfigureBand(DishLNCommand):
             )
 
     # pylint: disable=unused-argument
-    # @timeout_tracker
-    # @error_propagation_tracker("get_configure_band_result", [True])
     def configure_band(
         self: ConfigureBand,
         argin: str,
@@ -141,12 +139,6 @@ class ConfigureBand(DishLNCommand):
                 "Command ID: %s | Acquired tango lock",
                 self.component_manager.command_id,
             )
-            # result_code, message = self.call_adapter_method(
-            #     "Dish Master",
-            #     self.dish_master_adapter,
-            #     command_name,
-            #     adapter_args,
-            # )
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, command_name, adapter_args
             )
