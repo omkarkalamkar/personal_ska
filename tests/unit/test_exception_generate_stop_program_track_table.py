@@ -181,6 +181,7 @@ def test_error_propagation_abort_stop_program_track_table(
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
     adapter_factory = mock.Mock(**factory_attrs)
     cm = cm_without_er_lp
+    cm.is_dish_abort_commands_enabled = False
     abort_command = Abort(cm, cm.op_state_model, adapter_factory, logger)
     result_code, return_message = abort_command.do()
     exception_message = (
