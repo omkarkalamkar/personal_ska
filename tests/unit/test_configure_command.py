@@ -125,6 +125,38 @@ def test_configure_command_failed(
     assert "The invocation of the Configure command is failed" in message
 
 
+def test_is_track_table_provided(cm_without_er_lp, json_factory):
+    """Test that is_track_table_provided returns correct value
+    based on input json
+    """
+    cm = cm_without_er_lp
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(command_id)
+    configure_command = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    configure_input_str = json_factory("dishleafnode_configure")
+    configure_input = json.loads(configure_input_str)
+    configure_command.component_manager.is_tracktable_provided.set()
+    configure_command.invoke_track_command_on_dish = mock.Mock()
+    configure_command.invoke_track_command_on_dish.return_value = (
+        ResultCode.OK,
+        "Command Completed",
+    )
+    result_code, message = configure_command.is_tracktable_provided(
+        configure_input
+    )
+    assert result_code == ResultCode.OK
+    assert message == "Command Completed"
+    configure_command.component_manager.is_tracktable_provided.clear()
+
+    result_code, message = configure_command.is_tracktable_provided(
+        configure_input_str
+    )
+    assert result_code == ResultCode.FAILED
+    assert "Dish manager did not receive TrackTable" in message
+
+
 def test_configure_command_completed_partial_config(
     cm_without_er_lp, task_callback, json_factory
 ):
