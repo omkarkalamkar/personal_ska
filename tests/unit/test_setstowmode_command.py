@@ -65,3 +65,19 @@ def test_setstowmode_command_not_allowed(cm_without_er_lp):
     cm.update_device_dish_mode(DishMode.UNKNOWN)
     with pytest.raises(CommandNotAllowed):
         cm.is_setstowmode_allowed()
+
+
+def test_setstowmode_stop_program_track_table_failed(
+    cm_without_er_lp, task_callback
+):
+    """Test stop program track table failure in setstowmode command."""
+    cm = cm_without_er_lp
+    set_stow_mode = SetStowMode(
+        cm, cm.op_state_model, cm.adapter_factory, cm.logger
+    )
+    set_stow_mode.dishln_pointing_device_adapter = mock.Mock(
+        **{"StopProgramTrackTable.side_effect": Exception("Tango error")}
+    )
+    result_code, message = set_stow_mode.stop_program_track_table()
+    assert result_code == ResultCode.FAILED
+    assert "StopProgramTrackTable: There was an error while" in message

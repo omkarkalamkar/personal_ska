@@ -766,21 +766,3 @@ class Configure(DishLNCommand):
                     "Track() command is not invoked on the Dish."
                 )
             return ResultCode.FAILED, error_message
-
-    def set_failure_for_configure(self, message: str):
-        """Set failure for configure
-
-        Args:
-            message (str): Exception message
-
-        """
-        # pylint: disable=no-member
-        if hasattr(self, "ct"):
-            self.component_manager.long_running_result_callback(
-                self.ct.command_id,
-                ResultCode.FAILED,
-                exception_msg=message,
-            )
-            self.component_manager.observable.notify_observers(
-                command_exception=True
-            )
