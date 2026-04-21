@@ -88,6 +88,43 @@ def test_configure_command_completed(
     )
 
 
+def test_configure_command_failed(
+    cm_without_er_lp,
+    task_callback,
+    json_factory,
+):
+    cm = cm_without_er_lp
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{
+            'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+            "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+        },
+    )
+    simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    set_kvalue_command._adapter_factory = cm.adapter_factory
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+    configure_input_str = json_factory("dishleafnode_configure")
+    configure = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    configure.invoke_configure_band_on_dish = mock.Mock(
+        side_effect=Exception("Simulated adapter exception")
+    )
+    result_code, message = configure.invoke_configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
+    )
+    assert result_code == ResultCode.FAILED
+    assert "The invocation of the Configure command is failed" in message
+
+
 def test_configure_command_completed_partial_config(
     cm_without_er_lp, task_callback, json_factory
 ):
