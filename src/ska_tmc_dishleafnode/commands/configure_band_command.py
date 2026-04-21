@@ -142,11 +142,6 @@ class ConfigureBand(DishLNCommand):
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, command_name, adapter_args
             )
-            if result_code is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    command_name
-                ] = message
 
             self.logger.info(
                 "Command ID: %s |"

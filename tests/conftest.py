@@ -373,6 +373,7 @@ def cm_without_er_lp() -> Generator[DishLNComponentManager, None, None]:
         component_state_callback=communication_state_callback,
         pointing_callback=pointing_callback,
         kvalue_validation_callback=kvalue_validation_callback,
+        is_dish_abort_commands_enabled=True,
         _update_availablity_callback=update_availablity_callback,
         _update_source_offset_callback=update_source_offset_callback,
         _update_last_pointing_data_cb=update_last_pointing_data_callback,

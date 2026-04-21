@@ -53,10 +53,6 @@ class Configure(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-
-        # self.timekeeper = TimeKeeper(
-        #     self.component_manager.command_timeout, logger
-        # )
         self.component_manager.configure_command_timer_list.append(
             self.timekeeper
         )
