@@ -277,7 +277,7 @@ class Configure(DishLNCommand):
             ):
                 self.component_manager.correction_key = ""
             self.component_manager.clear_configure_command_events_flags()
-
+            self.component_manager.remove_command_in_progress_object(self)
             self.logger.debug(
                 "Command ID: %s | Configure command cleanup completed.",
                 self.component_manager.command_id,

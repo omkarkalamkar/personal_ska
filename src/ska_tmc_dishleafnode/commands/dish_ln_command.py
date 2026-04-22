@@ -70,6 +70,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
+        add_to_command_in_progress_list: bool = True,
     ):
         super().__init__(component_manager, logger)
         self.timeout_id = f"{time.time()}_{__class__.__name__}"
@@ -86,7 +87,8 @@ class DishLNCommand(TmcLeafNodeCommand):
         )
         self.command_uniq_id: str = ""
         self.is_aborted: bool = False
-        self.component_manager.command_in_progress_objects.append(self)
+        if add_to_command_in_progress_list:
+            self.component_manager.command_in_progress_objects.append(self)
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
@@ -255,14 +257,24 @@ class DishLNCommand(TmcLeafNodeCommand):
             else:
                 self.task_callback(status=status, result=result)
         self.component_manager.command_in_progress = ""
+        self.component_manager.remove_command_in_progress_object(self)
         if not self.component_manager.is_configure_command:
             self.component_manager.clear_configure_command_events_flags()
+
+    def is_abort_flag_set(self) -> bool:
+        """Check if the abort flag is set.
+
+        Returns:
+            bool: True if the abort flag is set, False otherwise.
+        """
+        return self.abort_flag
 
     def wait_for_completion(
         self,
         state_getter: Callable[[], bool] = None,
         desired_state: bool = True,
         device_length: int = 1,
+        check_abort: bool = True,
     ) -> Tuple[ResultCode, str]:
         """Wait for command completion using CommandCompletionTracker
         Args:
@@ -272,6 +284,7 @@ class DishLNCommand(TmcLeafNodeCommand):
             command execution
             device_length (int): Number of devices to wait for completion
             (default is 1)
+            check_abort (bool): Whether to check for abort signal
         Returns:
             Tuple[ResultCode, str]: Final result code and corresponding message
         """
@@ -284,9 +297,10 @@ class DishLNCommand(TmcLeafNodeCommand):
             ),
             timeout=self.component_manager.command_timeout,
             device_length=device_length,
+            check_abort=check_abort,
             state_getter=state_getter,
             desired_state=desired_state,
-            abort_checker=self.is_aborted,
+            abort_checker=self.is_abort_flag_set,
         )
 
         return tracker.wait_for_command_completion(context)

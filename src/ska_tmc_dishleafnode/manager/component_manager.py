@@ -17,7 +17,7 @@ from functools import partial
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import tango
@@ -367,7 +367,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.max_track_table_retry = max_track_table_retry
         self.track_table_retry_duration = track_table_retry_duration
         self.is_tracktable_provided = threading.Event()
-        self.command_unique_id_dict = {}
         self._primary_configuration: dict = {}
         self.is_trackloadstatic_off: bool = False
         self.event_processing_methods = self.get_attribute_dict()
@@ -3522,3 +3521,18 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             rb_norm,
             "receiver_band",
         )
+
+    def remove_command_in_progress_object(self, cmd_obj: Any) -> None:
+        """
+        Remove the command object from the component manager.
+        Args:
+            cmd_obj (Any): The command object to be removed.
+        """
+        if cmd_obj in self.command_in_progress_objects:
+            self.logger.debug(
+                "Removing the command object: %s from"
+                " command_in_progress_objects list: %s",
+                self,
+                self.command_in_progress_objects,
+            )
+            self.command_in_progress_objects.remove(cmd_obj)

@@ -63,6 +63,7 @@ class Off(DishLNCommand):
                 status=TaskStatus.COMPLETED,
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
+        self.component_manager.remove_command_in_progress_object(self)
 
     # pylint: disable=arguments-differ
     def do(self: Off) -> Tuple[ResultCode, str]:

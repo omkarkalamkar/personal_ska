@@ -77,6 +77,7 @@ class Abort(DishLNCommand):
         self.component_manager.receiver_band = ""
         self.component_manager.update_rxband_health_aggregation()
         self.component_manager.update_healthinfo_errors()
+        self.component_manager.remove_command_in_progress_object(self)
 
     # pylint: disable=arguments-differ
 
@@ -152,6 +153,7 @@ class Abort(DishLNCommand):
         return self.wait_for_completion(
             state_getter=self.component_manager.is_abort_completed,
             desired_state=True,
+            check_abort=False,
         )
 
     def stop_program_track_table(self) -> Tuple[ResultCode, str]:

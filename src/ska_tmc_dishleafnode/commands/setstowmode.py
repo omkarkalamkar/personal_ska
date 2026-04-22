@@ -138,6 +138,7 @@ class SetStowMode(DishLNCommand):
 
                 self.component_manager.stow_status = StowStatus.STOW_COMPLETED
         self.component_manager.command_in_progress = ""
+        self.component_manager.remove_command_in_progress_object(self)
         if not self.component_manager.is_configure_command:
             self.component_manager.clear_configure_command_events_flags()
 
