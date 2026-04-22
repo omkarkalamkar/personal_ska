@@ -57,6 +57,7 @@ class EndScan(DishLNCommand):
         self.task_callback = task_callback
         self.component_manager.abort_event = task_abort_event
         self.task_callback(status=TaskStatus.IN_PROGRESS)
+        self.set_command_id(__class__.__name__)
         result_code, message = self.do()
         self.call_update_task_status(result_code, message)
         return result_code, message

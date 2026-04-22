@@ -102,9 +102,8 @@ class Configure(DishLNCommand):
             self.component_manager.receiver_band = (
                 self.component_manager.dishConfiguredBand
             )
-
-        result_code, message = self.do(argin)
         self.set_command_id(__class__.__name__)
+        result_code, message = self.do(argin)
         self.call_update_task_status(result_code, message)
         return result_code, message
 

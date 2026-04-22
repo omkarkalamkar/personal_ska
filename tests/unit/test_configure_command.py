@@ -155,6 +155,11 @@ def test_is_track_table_provided(cm_without_er_lp, json_factory):
     )
     assert result_code == ResultCode.FAILED
     assert "Dish manager did not receive TrackTable" in message
+    configure_command.component_manager.abort_event.set()
+    result_code, message = configure_command.is_tracktable_provided(
+        configure_input_str
+    )
+    assert result_code == ResultCode.ABORTED
 
 
 def test_configure_command_completed_partial_config(
@@ -507,3 +512,24 @@ def test_configure_timeout(
         lookahead=6,
     )
     dish_master.SetDefective(json.dumps({"enabled": False}))
+
+
+def test_configure_invoke_track_command_timeout(
+    cm_without_er_lp, json_factory
+):
+    """Test that the configure command invokes track command"""
+    cm = cm_without_er_lp
+    cm.command_timeout = 2
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(command_id)
+    configure_command = Configure(
+        cm,
+        cm.op_state_model,
+        cm.adapter_factory,
+        logger=logger,
+    )
+    result_code, message = configure_command.invoke_track_command_on_dish(
+        json_factory("dishleafnode_configure")
+    )
+    assert result_code == ResultCode.FAILED
+    assert "Timeout has occurred" in message
