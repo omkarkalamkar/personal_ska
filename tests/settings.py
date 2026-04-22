@@ -620,32 +620,6 @@ def dln_can_communicate_with_dish_master(
     return flag
 
 
-def simulate_result_code_event(
-    cm: DishLNComponentManager,
-    command_name: str,
-    result: ResultCode,
-):
-    """Simulate LRCR event from given device for given result."""
-    try:
-        command_id = ""
-        command_id = f"{time.time()}_{command_name}"
-        cm.command_unique_id_dict[command_name] = command_id
-        logging.info("command_id  is: %s", command_id)
-        command_result = (
-            command_id,
-            json.dumps(
-                [
-                    result,
-                    f"{command_name} completed",
-                ]
-            ),
-        )
-        time.sleep(0.2)
-        cm.update_command_result(command_result)
-    except Exception as exception:
-        logging.exception(exception)
-
-
 def simulate_events_on_dish_device(
     component_manager,
     device_list,

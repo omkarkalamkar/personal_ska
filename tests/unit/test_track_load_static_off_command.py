@@ -24,7 +24,6 @@ from tests.settings import (
     logger,
     simulate_dish_mode_event,
     simulate_events_on_dish_device,
-    simulate_result_code_event,
     wait_for_dish_mode,
     wait_for_target_data,
 )
@@ -259,7 +258,6 @@ def test_correction_key_reset_partial_config(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     time.sleep(5)
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

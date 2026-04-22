@@ -139,11 +139,6 @@ class Track(DishLNCommand):
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, "Track"
             )
-            if ResultCode(result_code) is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    "Track"
-                ] = message[0]
             self.logger.info(
                 "Command ID: %s | "
                 + "Track command invoked on %s "

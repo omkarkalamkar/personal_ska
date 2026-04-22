@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
@@ -38,26 +38,6 @@ class TrackLoadStaticOff(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.is_configure_command = is_configure_command
-
-    def update_task_status(
-        self,
-        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
-    ) -> None:
-        """
-        Update the status of a task.
-
-        Args:
-            **kwargs: Keyword arguments for task status update.
-        """
-        super().update_task_status(**kwargs)
-        if (
-            self.command_uniq_id
-            in self.component_manager.command_unique_id_dict.values()
-        ):
-            del self.component_manager.command_unique_id_dict[
-                "TrackLoadStaticOff"
-            ]
-            self.command_uniq_id = ""
 
     # pylint: disable=unused-argument
     def invoke_track_load_static_off(
@@ -117,12 +97,6 @@ class TrackLoadStaticOff(DishLNCommand):
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, "TrackLoadStaticOff", offsets
             )
-            if ResultCode(result_code) is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    "TrackLoadStaticOff"
-                ] = message
-                self.command_uniq_id = message
             self.logger.info(
                 "Command ID: %s | "
                 + "TrackLoadStaticOff command "

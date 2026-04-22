@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
@@ -21,24 +21,6 @@ class EndScan(DishLNCommand):
 
     This command sets scanID attribute of Dish Master to empty string.
     """
-
-    def update_task_status(
-        self,
-        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
-    ) -> None:
-        """
-        Update the status of a task.
-
-        Args:
-            **kwargs: Keyword arguments for task status update.
-        """
-        super().update_task_status(**kwargs)
-        if (
-            self.command_uniq_id
-            in self.component_manager.command_unique_id_dict.values()
-        ):
-            del self.component_manager.command_unique_id_dict["EndScan"]
-            self.command_uniq_id = ""
 
     # pylint: disable=unused-argument
     def endscan(
@@ -79,18 +61,9 @@ class EndScan(DishLNCommand):
             )
             return result_code, message
         with self.component_manager.tango_operation_execution_lock:
-            # result_code, message = self.call_adapter_method(
-            #     "Dish Master", self.dish_master_adapter, "EndScan"
-            # )
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, "EndScan"
             )
-            if ResultCode(result_code) is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    "EndScan"
-                ] = message[0]
-                self.command_uniq_id = message[0]
             self.logger.info(
                 "Command ID: %s |"
                 + " EndScan command invoked on %s "

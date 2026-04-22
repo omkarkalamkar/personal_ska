@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 
 from ska_control_model import TaskStatus
 from ska_ser_logging import configure_logging
@@ -33,24 +33,6 @@ class Scan(DishLNCommand):
             component_manager, op_state_model, adapter_factory, logger
         )
         self.command_uniq_id: str = ""
-
-    def update_task_status(
-        self,
-        **kwargs: Dict[str, Union[Tuple[ResultCode, str], TaskStatus, str]],
-    ) -> None:
-        """
-        Update the status of a task.
-
-        Args:
-            **kwargs: Keyword arguments for task status update.
-        """
-        super().update_task_status(**kwargs)
-        # Previously configure command used to clear this dictionary
-        # But it was happening once Scan has started , causing entries
-        # of Scan command get erased , to avoid this dictionary will now
-        # be cleared from here.
-        self.component_manager.command_unique_id_dict.clear()
-        self.command_uniq_id = ""
 
     # pylint: disable=unused-argument
     def scan(
@@ -101,12 +83,6 @@ class Scan(DishLNCommand):
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, "Scan", argin
             )
-            if ResultCode(result_code) is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    "Scan"
-                ] = message[0]
-                self.command_uniq_id = message[0]
             self.logger.info(
                 "Command ID: %s |"
                 + " Scan command invoked on %s "

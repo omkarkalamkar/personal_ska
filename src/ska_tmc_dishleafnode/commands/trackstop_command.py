@@ -33,12 +33,6 @@ class TrackStop(DishLNCommand):
             **kwargs: Keyword arguments for task status update.
         """
         super().update_task_status(**kwargs)
-        if (
-            self.command_uniq_id
-            in self.component_manager.command_unique_id_dict.values()
-        ):
-            del self.component_manager.command_unique_id_dict["TrackStop"]
-            self.command_uniq_id = ""
         self.component_manager.receiver_band = ""
         self.component_manager.update_rxband_health_aggregation()
         self.component_manager.update_healthinfo_errors()
@@ -91,12 +85,6 @@ class TrackStop(DishLNCommand):
             result_code, message = self.invoke_command_and_track(
                 self.dish_master_adapter, "TrackStop"
             )
-            if ResultCode(result_code) is ResultCode.QUEUED:
-                # Append command unique id
-                self.component_manager.command_unique_id_dict[
-                    "TrackStop"
-                ] = message
-                self.command_uniq_id = message
             self.logger.info(
                 "Command ID: %s | "
                 + "TrackStop command invoked on %s, "

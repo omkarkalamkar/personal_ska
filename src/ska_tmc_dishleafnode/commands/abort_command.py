@@ -73,12 +73,6 @@ class Abort(DishLNCommand):
                     status=status, result=result, exception=message
                 )
         self.component_manager.command_in_progress = ""
-        if (
-            self.command_uniq_id
-            in self.component_manager.command_unique_id_dict.values()
-        ):
-            del self.component_manager.command_unique_id_dict["Abort"]
-            self.command_uniq_id = ""
         self.component_manager.clear_configure_command_events_flags()
         self.component_manager.receiver_band = ""
         self.component_manager.update_rxband_health_aggregation()
@@ -129,8 +123,6 @@ class Abort(DishLNCommand):
                 self.dish_master_adapter, "Abort"
             )
             # Append command unique id
-            self.component_manager.command_unique_id_dict["Abort"] = message
-            self.command_uniq_id = message
             self.logger.info(
                 "Command ID: %s | "
                 + "Abort() command has been invoked with ResultCode:"
