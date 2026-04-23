@@ -41,7 +41,7 @@ class DishPointingDevice(TMCBaseLeafDevice):
     )
     TrackTableUpdateRate = device_property(
         dtype="DevFloat",
-        default_value=50,
+        default_value=10,
         doc="The rate at which a tracktable is provided. It is one"
         + "tracktable per specified number of seconds.",
     )
