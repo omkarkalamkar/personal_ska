@@ -214,6 +214,13 @@ def abort_while_configuring(
         (unique_id_abort[0], COMMAND_COMPLETED),
         lookahead=5,
     )
+    config_id_index = dish_leaf_node.longRunningCommandStatus.index(
+        unique_id_config[0]
+    )
+    assert (
+        dish_leaf_node.longRunningCommandStatus[config_id_index + 1]
+        == 'ABORTED'
+    )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
