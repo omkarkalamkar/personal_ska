@@ -9,7 +9,7 @@ from typing import List, Tuple, Union
 import tango
 from numpy import isnan
 from numpy import nan as NaN
-from ska_control_model import HealthState, LoggingLevel
+from ska_control_model import HealthState
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.long_running_commands import (
     LRCReqType,
@@ -63,7 +63,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     MidDishControl = device_property(
         dtype="str",
         doc="FQDN of Dish Master Device",
-        default_value="tango://skancra004:30005/mid-dish/dish-manager/ska001#dbase=no",
     )
 
     DefaultArrayLayoutSourceUris = device_property(
@@ -81,14 +80,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     MidPointingDevice = device_property(
         dtype="str",
         doc="FQDN of DishLeaf Node Pointing Device",
-        default_value="tango://skancra004:30006/mid-tmc/dish-pointing/ska001#dbase=no",
     )
 
     DishAvailabilityCheckTimeout = device_property(
         dtype="DevUShort", default_value=3
     )
     IsDishAbortEnabled = device_property(
-        dtype="DevBoolean", default_value=True
+        dtype="DevBoolean", default_value=False
     )
 
     # Dish Track command properties
@@ -183,9 +181,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     )
     EnableAutoStow = device_property(
         dtype=bool, doc="Flag to enable AutoStow feature", default_value=True
-    )
-    LoggingLevelDefault = device_property(
-        dtype="uint16", default_value=LoggingLevel.DEBUG
     )
     # ----------
     # Attributes
