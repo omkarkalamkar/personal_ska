@@ -20,9 +20,9 @@ cache:
 
 stages:
   - lint
-  - join-reports
   - build
   - test
+  - join-reports
   - publish
   - pages
   - scan
