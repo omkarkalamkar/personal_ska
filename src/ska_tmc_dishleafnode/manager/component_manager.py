@@ -2502,7 +2502,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             )
 
             self._update_pointingstate_callback(pointingState)
-            self.observable.notify_observers(attribute_value_change=True)
+            with self.command_completion_cond:
+                self.command_completion_cond.notify_all()
 
     def update_device_configured_band(
         self: DishLNComponentManager, configured_band: Band
