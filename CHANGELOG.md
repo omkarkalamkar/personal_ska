@@ -8,7 +8,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 [0.45.0]
 *********
 -----
-* invoke_lrc api used for invoking command on Dish Master
+* invoke_lrc api used for invoking command on Dish Master.
 
 [0.44.0]
 ********
