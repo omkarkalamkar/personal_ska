@@ -11,6 +11,7 @@ from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
+from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from ska_tmc_dishleafnode.manager.event_manager import DishLNEventManager
@@ -19,9 +20,10 @@ from tests.settings import (
     DISH_MASTER_DEVICE,
     DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
+    get_mock_adapter_factory,
     logger,
     simulate_dish_mode_event,
-    simulate_result_code_event,
+    simulate_events_on_dish_device,
     wait_for_dish_mode,
     wait_for_target_data,
 )
@@ -93,6 +95,7 @@ def test_configure_command_completed_with_correction_key_reset(
 ):
     """Test Configure command with correction key as RESET"""
     cm = cm_without_er_lp
+    command_id = f"{time.time()}_configure"
     cm.kvalue_validation_thread.cancel()
     set_kvalue_command = SetKValue(cm, logger=logger)
     attrs = {
@@ -125,12 +128,31 @@ def test_configure_command_completed_with_correction_key_reset(
     simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{"GenerateProgramTrackTable.return_value": (ResultCode.STARTED, "")},
+    )
     configure_input_str = json_factory("dishleafnode_configure")
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "RESET"
     configure_input_str = json.dumps(configure_input_str)
-
-    cm.configure(
+    configure_obj = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, cm.logger
+    )
+    simulate_events_on_dish_device(
+        cm,
+        [DISH_MASTER_DEVICE],
+        dish_mode=DishMode.OPERATE,
+        band="2",
+        pointing_state=PointingState.TRACK,
+        cmd_object=configure_obj,
+    )
+    configure_obj.invoke_configure_band_on_dish = mock.Mock()
+    configure_obj.invoke_configure_band_on_dish.return_value = (
+        ResultCode.OK,
+        "Command Completed",
+    )
+    configure_obj.invoke_configure(
         configure_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
@@ -139,12 +161,6 @@ def test_configure_command_completed_with_correction_key_reset(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    cm.update_device_pointing_state(PointingState.TRACK)
-    cm.update_device_configured_band("2")
-    time.sleep(2)
-    simulate_dish_mode_event(cm, DishMode.OPERATE)
-    simulate_result_code_event(cm, "Track", ResultCode.OK)
-    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -242,7 +258,6 @@ def test_correction_key_reset_partial_config(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     time.sleep(5)
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

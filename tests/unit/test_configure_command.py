@@ -17,10 +17,10 @@ from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from tests.settings import (
     COMMAND_CONFIGURE_BAND_TIMEOUT,
     DISH_MASTER_DEVICE,
+    get_mock_adapter_factory,
     logger,
     simulate_dish_mode_event,
-    simulate_result_code_event,
-    simulate_track_table_event,
+    simulate_events_on_dish_device,
     wait_for_dish_mode,
     wait_for_target_data,
 )
@@ -40,51 +40,45 @@ def test_configure_command_completed(
     json_input,
 ):
     cm = cm_without_er_lp
-
-    attr = {
-        'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
-        'ConfigureBand2.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
-        'Track.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
-        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-    cm.adapter_factory = adapter_factory
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{
+            'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+            "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+        },
+    )
     simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
     set_kvalue_command = SetKValue(cm, logger=logger)
-    set_kvalue_command._adapter_factory = adapter_factory
+    set_kvalue_command._adapter_factory = cm.adapter_factory
     result_code, _ = set_kvalue_command.do(1)
     assert result_code == ResultCode.OK
     configure_input_str = json_factory(json_input)
-
-    cm.configure(
+    configure = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    simulate_events_on_dish_device(
+        cm,
+        [DISH_MASTER_DEVICE],
+        DishMode.OPERATE,
+        cmd_object=configure,
+        pointing_state=PointingState.TRACK,
+    )
+    configure.invoke_configure_band_on_dish = mock.Mock()
+    configure.invoke_configure_band_on_dish.return_value = (
+        ResultCode.OK,
+        "Command Completed",
+    )
+    configure.invoke_configure(
         configure_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
     )
-    time.sleep(0.5)  # Ensure configure command is waiting for events.
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    simulate_result_code_event(cm, "GenerateProgramTrackTable", ResultCode.OK)
-    simulate_track_table_event(cm)
-
-    cm.update_device_configured_band("2")
-    cm.update_device_dish_mode(DishMode.OPERATE)
-    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
-
-    cm.update_device_pointing_state(PointingState.TRACK)
-    simulate_result_code_event(cm, "Track", ResultCode.OK)
-    cm.observable.notify_observers(attribute_value_change=True)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -94,22 +88,93 @@ def test_configure_command_completed(
     )
 
 
+def test_configure_command_failed(
+    cm_without_er_lp,
+    task_callback,
+    json_factory,
+):
+    cm = cm_without_er_lp
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{
+            'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+            "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+        },
+    )
+    simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
+    assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
+    assert cm.is_configure_allowed()
+    set_kvalue_command = SetKValue(cm, logger=logger)
+    set_kvalue_command._adapter_factory = cm.adapter_factory
+    result_code, _ = set_kvalue_command.do(1)
+    assert result_code == ResultCode.OK
+    configure_input_str = json_factory("dishleafnode_configure")
+    configure = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    configure.invoke_configure_band_on_dish = mock.Mock(
+        side_effect=Exception("Simulated adapter exception")
+    )
+    result_code, message = configure.invoke_configure(
+        configure_input_str,
+        task_callback=task_callback,
+        task_abort_event=threading.Event(),
+    )
+    assert result_code == ResultCode.FAILED
+    assert "The invocation of the Configure command is failed" in message
+
+
+def test_is_track_table_provided(cm_without_er_lp, json_factory):
+    """Test that is_track_table_provided returns correct value
+    based on input json
+    """
+    cm = cm_without_er_lp
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(command_id)
+    configure_command = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    configure_input_str = json_factory("dishleafnode_configure")
+    configure_input = json.loads(configure_input_str)
+    configure_command.component_manager.is_tracktable_provided.set()
+    configure_command.invoke_track_command_on_dish = mock.Mock()
+    configure_command.invoke_track_command_on_dish.return_value = (
+        ResultCode.OK,
+        "Command Completed",
+    )
+    result_code, message = configure_command.is_tracktable_provided(
+        configure_input
+    )
+    assert result_code == ResultCode.OK
+    assert message == "Command Completed"
+    configure_command.component_manager.is_tracktable_provided.clear()
+
+    result_code, message = configure_command.is_tracktable_provided(
+        configure_input_str
+    )
+    assert result_code == ResultCode.FAILED
+    assert "Dish manager did not receive TrackTable" in message
+    configure_command.component_manager.abort_event.set()
+    result_code, message = configure_command.is_tracktable_provided(
+        configure_input_str
+    )
+    assert result_code == ResultCode.ABORTED
+
+
 def test_configure_command_completed_partial_config(
     cm_without_er_lp, task_callback, json_factory
 ):
     """Test partial configure functionality"""
     cm = cm_without_er_lp
-    attr = {
-        'TrackLoadStaticOff.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
-        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-    cm.adapter_factory = adapter_factory
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{
+            'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+            "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+        },
+    )
     cm.update_device_dish_mode(DishMode.OPERATE)
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
@@ -118,8 +183,22 @@ def test_configure_command_completed_partial_config(
     configure_input_str = json_factory("partial_configure")
     cm.update_device_configured_band("2")
     cm.update_device_pointing_state(PointingState.TRACK)
-
-    cm.configure(
+    configure = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    simulate_events_on_dish_device(
+        cm,
+        [DISH_MASTER_DEVICE],
+        DishMode.OPERATE,
+        cmd_object=configure,
+        pointing_state=PointingState.TRACK,
+    )
+    configure.invoke_configure_band_on_dish = mock.Mock()
+    configure.invoke_configure_band_on_dish.return_value = (
+        ResultCode.OK,
+        "Command Completed",
+    )
+    configure.invoke_configure(
         configure_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
@@ -128,10 +207,6 @@ def test_configure_command_completed_partial_config(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-
-    # simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
-    # dev_factory = DevFactory()
-    # dish_pd = dev_factory.get_device(DISHLN_POINTING_DEVICE)
     assert wait_for_target_data(
         cm.dishln_pointing_device_adapter, expected_x=0.0, expected_y=18000.0
     ), (
@@ -153,13 +228,14 @@ def test_delta_configure_command_completed(
 ):
     """Test that delta configure command completed"""
     cm = cm_without_er_lp
-    attr = {
-        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-    cm.adapter_factory = adapter_factory
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{
+            'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+            "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+        },
+    )
     cm.update_device_dish_mode(DishMode.OPERATE)
     assert wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
@@ -168,8 +244,17 @@ def test_delta_configure_command_completed(
     cm.primary_configuration = json.loads(primary_configure_input_str)
     cm.update_device_configured_band("1")
     cm.update_device_pointing_state(PointingState.TRACK)
-
-    cm.configure(
+    configure = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    simulate_events_on_dish_device(
+        cm,
+        [DISH_MASTER_DEVICE],
+        DishMode.OPERATE,
+        cmd_object=configure,
+        pointing_state=PointingState.TRACK,
+    )
+    configure.invoke_configure(
         configure_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
@@ -192,17 +277,14 @@ def test_configure_command_completed_partial_config_missing_key(
 ):
     """Test partial configure functionality"""
     cm = cm_without_er_lp
-    attr = {
-        'TrackLoadStaticOff.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
-        "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-    cm.adapter_factory = adapter_factory
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{
+            'SetKValue.return_value': ([ResultCode.OK], ["Command Completed"]),
+            "GenerateProgramTrackTable.return_value": (ResultCode.STARTED, ""),
+        },
+    )
     cm.update_device_dish_mode(DishMode.OPERATE)
     wait_for_dish_mode(cm, DishMode.OPERATE)
     assert cm.is_configure_allowed()
@@ -215,7 +297,16 @@ def test_configure_command_completed_partial_config_missing_key(
     config_json = json.loads(configure_input_str)
     del config_json["pointing"]["target"]["ca_offset_arcsec"]
     configure_input_str = json.dumps(config_json)
-
+    configure = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, logger=logger
+    )
+    simulate_events_on_dish_device(
+        cm,
+        [DISH_MASTER_DEVICE],
+        DishMode.OPERATE,
+        cmd_object=configure,
+        pointing_state=PointingState.TRACK,
+    )
     cm.configure(
         configure_input_str,
         task_callback=task_callback,
@@ -225,7 +316,6 @@ def test_configure_command_completed_partial_config_missing_key(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -418,3 +508,24 @@ def test_configure_timeout(
         lookahead=6,
     )
     dish_master.SetDefective(json.dumps({"enabled": False}))
+
+
+def test_configure_invoke_track_command_timeout(
+    cm_without_er_lp, json_factory
+):
+    """Test that the configure command invokes track command"""
+    cm = cm_without_er_lp
+    cm.command_timeout = 2
+    command_id = f"{time.time()}_Configure"
+    cm.adapter_factory = get_mock_adapter_factory(command_id)
+    configure_command = Configure(
+        cm,
+        cm.op_state_model,
+        cm.adapter_factory,
+        logger=logger,
+    )
+    result_code, message = configure_command.invoke_track_command_on_dish(
+        json_factory("dishleafnode_configure")
+    )
+    assert result_code == ResultCode.FAILED
+    assert "Timeout has occurred" in message

@@ -20,25 +20,12 @@ cache:
 
 stages:
   - lint
-  - join-reports
   - build
   - test
   - publish
   - pages
   - scan
   - lifecycle
-
-join_linting_reports:
-  stage: join-reports
-  tags:
-    - ska-k8s
-  script:
-    - echo "This step is needed as the artifacts can't be passed in the same stage"
-    - make join-lint-reports
-  artifacts:
-    paths:
-      - build/
-    when: always
 
 include:
 # # # Helm Chart linting and Publish

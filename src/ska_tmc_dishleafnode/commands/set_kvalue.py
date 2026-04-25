@@ -37,6 +37,7 @@ class SetKValue(DishLNCommand, FastCommand):
             op_state_model=op_state_model,
             adapter_factory=None,
             logger=logger,
+            add_to_command_in_progress_list=False,
         )
         self._validator = ArgumentValidator()
         self._name = "SetKValue"

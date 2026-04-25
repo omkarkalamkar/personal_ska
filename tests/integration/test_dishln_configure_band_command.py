@@ -8,7 +8,6 @@ from ska_tmc_common.enum import Band, DishMode, FaultType, PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_FAILED,
     COMMAND_TIMEOUT,
     DISH_CONFIGURE_1_0,
     DISH_LEAF_NODE_DEVICE,
@@ -154,9 +153,13 @@ def configureband_command_error_propogation(
     result_op, unique_id_op = dish_leaf_node.ConfigureBand(argin)
     assert result_op[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_op} Returned result: {result_op}")
-
+    FAILED_MESSAGE = (
+        '[3, "Exception occurred on devices: '
+        'mid-dish/dish-manager/ska001: '
+        'Exception occured, command failed."]'
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_op[0], COMMAND_FAILED),
+        (unique_id_op[0], FAILED_MESSAGE),
         lookahead=8,
     )
 

@@ -9,7 +9,7 @@ from ska_tmc_common.enum import DishMode, FaultType, PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_FAILED,
+    COMMAND_FAILED_DISH,
     COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -237,7 +237,7 @@ def scan_command_error_propagation(
     assert result_scan[0] == ResultCode.QUEUED
     logger.info(f"Command ID: {unique_id_scan} Returned result: {result_scan}")
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_scan[0], COMMAND_FAILED),
+        (unique_id_scan[0], COMMAND_FAILED_DISH),
         lookahead=8,
     )
 

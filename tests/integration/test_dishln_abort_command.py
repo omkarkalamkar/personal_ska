@@ -9,7 +9,6 @@ from ska_tmc_common.enum import DishMode, FaultType, PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_FAILED,
     COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -215,6 +214,13 @@ def abort_while_configuring(
         (unique_id_abort[0], COMMAND_COMPLETED),
         lookahead=5,
     )
+    config_id_index = dish_leaf_node.longRunningCommandStatus.index(
+        unique_id_config[0]
+    )
+    assert (
+        dish_leaf_node.longRunningCommandStatus[config_id_index + 1]
+        == 'ABORTED'
+    )
 
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
@@ -391,9 +397,13 @@ def abort_exception(tango_context, dishln_name, group_callback):
 
     dish_master.SetDefective(ERROR_PROPAGATION_DEFECT)
     _, unique_id = dish_leaf_node.Abort()
-
+    FAILED_MESSAGE = (
+        '[3, "Exception occurred on devices: '
+        'mid-dish/dish-manager/ska001: '
+        'Exception occured, command failed."]'
+    )
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id[0], COMMAND_FAILED),
+        (unique_id[0], FAILED_MESSAGE),
         lookahead=8,
     )
 

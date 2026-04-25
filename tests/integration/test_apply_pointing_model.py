@@ -114,7 +114,7 @@ def apply_pointing_model(
         lookahead=5,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
-    assert gpm_version['Band_1'] == 'main'
+    assert gpm_version['Band_1'] == '1.9.7'
 
     # Set other parameters positive
 
@@ -172,7 +172,7 @@ def apply_pointing_model(
         "GPM validation failed for GPM index 0.",
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
-    assert gpm_version['Band_1'] == 'main'
+    assert gpm_version['Band_1'] == '1.9.7'
 
     # Scenario 3:
     # Connection lost: Dish sent its event on band1PointingModelParams
@@ -190,7 +190,7 @@ def apply_pointing_model(
         lookahead=15,
     )
     gpm_version = json.loads(dish_leaf_node.gpmversion)
-    assert gpm_version['Band_1'] == 'main'
+    assert gpm_version['Band_1'] == '1.9.7'
 
     # Scenario 4:
     # GPM version on Band_3 is Unknown and Dish band3 sent pointing model
