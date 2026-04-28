@@ -13,9 +13,6 @@ from astropy.time import Time, TimeDelta
 from ska_trajectory.trajectory_names import TrajectoryName
 
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
-from ska_tmc_dishleafnode.az_el_converter import (
-    AzElConverter_v2 as AzElConverter,
-)
 from ska_tmc_dishleafnode.constants import (
     FIRST_PROGRAM_TRACK_TABLE_SIZE,
     RADEC_TO_AZEL_CONVERSION_TIME,
@@ -52,7 +49,6 @@ class TrajectoryMappingScan(BaseScanMapping):
         self.trajectory_name = ""
         self.traj = None
         self.mapping_scan_event = self.component_manager.mapping_scan_event
-        self.converter = AzElConverter(self.component_manager)
         self.track_table_calculator = ProgramTrackTableCalculator(
             self.component_manager, self.logger
         )
@@ -67,16 +63,12 @@ class TrajectoryMappingScan(BaseScanMapping):
         Set the target and start process for the scan.
         """
         self.logger.info("Setting target and start process for the scan.")
-        self.converter.create_antenna_obj()
         self.logger.debug(
             "Antenna object created for %s",
             self.component_manager.dishln_pointing_device_name,
         )
         self.build_data_for_observation()
-        (
-            self.component_manager.projection_name,
-            self.component_manager.projection_alignment,
-        ) = self.get_projection()
+        self.set_projection_type()
         self.set_trajectory_data()
         self.traj = TrajectoryName[self.trajectory_name](
             **self.trajectory_attrs
@@ -310,14 +302,14 @@ class TrajectoryMappingScan(BaseScanMapping):
                     timestamp_time_obj
                 )
                 (
-                    self.component_manager.fixed_x_offset,
-                    self.component_manager.fixed_y_offset,
+                    x,
+                    y,
                     _,
                     _,
                     _,
                 ) = self.traj.posn(time_offset)
                 # pylint: disable=unbalanced-tuple-unpacking
-                az, el = self.converter.point(timestamp)
+                az, el = self.reference_frame_handler(x,y,timestamp)
                 # pylint: disable=line-too-long
                 if not self.track_table_calculator._is_elevation_within_mechanical_limits(  # noqa: E501
                     el

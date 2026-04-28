@@ -13,7 +13,7 @@ from ska_tango_base.type_hints import TaskCallbackType
 from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import ArgType, AttrDataFormat, AttrWriteType
 from tango.server import attribute, command, device_property, run
-
+from ska_control_model import HealthState, LoggingLevel
 from ska_dishln_pointing_device import DishlnPointingDataComponentManager
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
@@ -32,16 +32,19 @@ class DishPointingDevice(TMCBaseLeafDevice):
     """
 
     # Dish Track command properties
+    LoggingLevelDefault = device_property(
+        dtype="uint16", default_value=LoggingLevel.DEBUG
+    )
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=15.0)
     ProgramTrackTableSize = device_property(
         dtype="DevLong",
-        default_value=50,
+        default_value=1000,
         doc="Number of entries in program track table.",
     )
     TrackTableUpdateRate = device_property(
         dtype="DevFloat",
-        default_value=50,
+        default_value=1000,
         doc="The rate at which a tracktable is provided. It is one"
         + "tracktable per specified number of seconds.",
     )
