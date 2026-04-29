@@ -62,7 +62,7 @@ class BaseScanMapping:
             .get('name', "SIN")
         )
 
-        projection_call = {
+        plane_to_sphere_handlers = {
             "SIN": plane_to_sphere_sin,
             "ARC": plane_to_sphere_arc,
             "TAN": plane_to_sphere_tan,
@@ -70,11 +70,13 @@ class BaseScanMapping:
             "SSN": plane_to_sphere_ssn,
             "STG": plane_to_sphere_stg,
         }
-
+        key = projection_name.lower()
+        if key not in plane_to_sphere_handlers:
+            raise KeyError(f"Unknown projection type: {projection_name}")
         self.logger.debug("Projection name: %s", projection_name)
-        self.component_manager.projection_call = projection_call[
-            projection_name.upper()
-        ]
+        self.component_manager.plane_to_sphere_handler = (
+            plane_to_sphere_handlers[projection_name.upper()]
+        )
 
     def set_reference_frame_handler(
         self, reference_frame_handler: str

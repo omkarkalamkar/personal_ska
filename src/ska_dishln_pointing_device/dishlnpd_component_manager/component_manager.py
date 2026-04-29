@@ -101,7 +101,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
         self.azimuth_max_limit = azimuth_max_limit
         self.iers_a = None
         self.observer = None
-        self.projection_call = None
+        self.plane_to_sphere_handler = None
         self.track_table_update_rate: float = track_table_update_rate
         self.track_table_advance_sec: float = track_table_advance_sec
         self.dishln_pointing_device_name = disln_pointing_device_name

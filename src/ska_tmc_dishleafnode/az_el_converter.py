@@ -337,7 +337,7 @@ class AzElConverter_v2(AzElConverter):
 
         x_rad, y_rad = self.get_offset_in_rad(x_offset, y_offset)
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
-            new_ra, new_dec = self.component_manager.projection_call(
+            new_ra, new_dec = self.component_manager.plane_to_sphere_handler(
                 ra, dec, x_rad, y_rad
             )
             target_str = (
@@ -376,7 +376,7 @@ class AzElConverter_v2(AzElConverter):
 
         x_rad, y_rad = self.get_offset_in_rad(x_offset, y_offset)
         with iers.earth_orientation_table.set(self.component_manager.iers_a):
-            new_az, new_el = self.component_manager.projection_call(
+            new_az, new_el = self.component_manager.plane_to_sphere_handler(
                 az, el, x_rad, y_rad
             )
             target_str = (

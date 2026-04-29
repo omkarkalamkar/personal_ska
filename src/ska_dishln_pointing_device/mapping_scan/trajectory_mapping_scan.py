@@ -63,10 +63,6 @@ class TrajectoryMappingScan(BaseScanMapping):
         Set the target and start process for the scan.
         """
         self.logger.info("Setting target and start process for the scan.")
-        self.logger.debug(
-            "Antenna object created for %s",
-            self.component_manager.dishln_pointing_device_name,
-        )
         self.build_data_for_observation()
         self.set_projection_type()
         self.set_trajectory_data()
