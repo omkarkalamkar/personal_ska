@@ -46,7 +46,6 @@ class BaseScanMapping:
         self.traj = None
         self.cadence = 0.0
         self.converter = AzElConverter(self.component_manager)
-        self.projection_alignment = None
         self.reference_frame_handler = None
         self.ra = None
         self.dec = None
@@ -180,8 +179,8 @@ class BaseScanMapping:
         """
 
         return self.converter.apply_offset_and_get_azel_from_icrs(
-            Angle(self.ra, u.deg).rad,
-            Angle(self.dec, u.deg).rad,
+            self.ra,
+            self.dec,
             x_offset,
             y_offset,
             timestamp,
@@ -311,8 +310,8 @@ class BaseScanMapping:
                 ):
                     ra = target_dict.get("ra", "")
                     dec = target_dict.get("dec", "")
-                    self.ra = Angle(ra, u.hourangle).deg
-                    self.dec = Angle(dec, u.deg).deg
+                    self.ra = Angle(ra, u.hourangle).rad
+                    self.dec = Angle(dec, u.deg).rad
                     self.set_reference_frame_handler("icrs")
                     target = True
             field_dict = target_data.get("field", {})
@@ -332,12 +331,8 @@ class BaseScanMapping:
                 ):
                     c1 = field_dict.get("attrs").get("c1", "")
                     c2 = field_dict.get("attrs").get("c2", "")
-                    ra = Angle(c1 * u.deg)
-                    ra_hms = ra.to_string(unit=u.hour, sep=':')
-                    dec = Angle(c2 * u.deg)
-                    dec_dms = dec.to_string(unit=u.deg, sep=':')
-                    self.ra = ra_hms
-                    self.dec = dec_dms
+                    self.ra = Angle(c1, u.deg).rad
+                    self.dec = Angle(c2, u.deg).rad
                     self.set_reference_frame_handler("icrs")
                     target = True
                 elif reference_frame.lower() == "tle":
