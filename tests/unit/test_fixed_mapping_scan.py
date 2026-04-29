@@ -42,6 +42,8 @@ def test_fixed_mapping_scan(cm_pointing_device, json_factory):
     fms_obj.main_target_dec == dec
     fms_obj.setup_observation_target()
     assert isinstance(fms_obj.ra_dec_target, katpoint.Target)
+    # Ensure component manager has antenna_target set for conversions
+    cm.antenna_target = fms_obj.ra_dec_target
     projection_name, projection_alignment = fms_obj.get_projection()
     assert projection_name == 'SIN'
     assert projection_alignment == 'azel'

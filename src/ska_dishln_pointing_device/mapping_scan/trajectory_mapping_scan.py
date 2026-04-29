@@ -309,7 +309,7 @@ class TrajectoryMappingScan(BaseScanMapping):
                     _,
                 ) = self.traj.posn(time_offset)
                 # pylint: disable=unbalanced-tuple-unpacking
-                az, el = self.reference_frame_handler(x,y,timestamp)
+                az, el = self.reference_frame_handler(x, y, timestamp)
                 # pylint: disable=line-too-long
                 if not self.track_table_calculator._is_elevation_within_mechanical_limits(  # noqa: E501
                     el

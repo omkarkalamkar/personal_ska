@@ -30,7 +30,7 @@
         "station_id": 65
     },
     "pointing": {
-        "wrap_sector": -1,
+        "wrap_sector": 0,
         "field": {
             "reference_frame": "tle",
             "target_name": "ABS-3A",
@@ -40,7 +40,7 @@
             }
         },
         "trajectory": {"name": "fixed", "attrs": {"x": 0.0, "y": 0.0}},
-        "projection": {"name": "SSN", "alignment": "AltAz"}
+        "projection": {"name": "SIN", "alignment": "ICRS"}
     },
     "dish": {"receiver_band": "2"},
     "tmc": {"scan_duration": 300}

@@ -4,16 +4,16 @@ import json
 from threading import Event
 from typing import List, Tuple
 
+from ska_control_model import HealthState, LoggingLevel
 from ska_tango_base.base.base_device import SKABaseDevice
 from ska_tango_base.commands import ResultCode
-from ska_tango_base.control_model import HealthState
 from ska_tango_base.long_running_commands import long_running_command
 from ska_tango_base.software_bus import Signal, attribute_from_signal
 from ska_tango_base.type_hints import TaskCallbackType
 from ska_tmc_common.v1.tmc_base_leaf_device import TMCBaseLeafDevice
 from tango import ArgType, AttrDataFormat, AttrWriteType
 from tango.server import attribute, command, device_property, run
-from ska_control_model import HealthState, LoggingLevel
+
 from ska_dishln_pointing_device import DishlnPointingDataComponentManager
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,

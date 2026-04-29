@@ -9,22 +9,22 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.utils import iers
 from katpoint import Target
+from katpoint.projection import (
+    plane_to_sphere_arc,
+    plane_to_sphere_car,
+    plane_to_sphere_sin,
+    plane_to_sphere_ssn,
+    plane_to_sphere_stg,
+    plane_to_sphere_tan,
+)
 from numpy import isnan, nan
 from ska_trajectory.trajectory_names import TrajectoryName
-from ska_tmc_dishleafnode.az_el_converter import (
-    AzElConverter_v2 as AzElConverter,
-)
+
 from ska_dishln_pointing_device.mapping_scan.utils import (
     InvalidTargetDataError,
 )
-
-from katpoint.projection import (
-    plane_to_sphere_arc,
-    plane_to_sphere_sin,
-    plane_to_sphere_tan,
-    plane_to_sphere_car,
-    plane_to_sphere_ssn,
-    plane_to_sphere_stg,
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter_v2 as AzElConverter,
 )
 
 
@@ -52,7 +52,7 @@ class BaseScanMapping:
         self.dec = None
         self.az = None
         self.el = None
-    
+
     def set_projection_type(self) -> None:
         """Method to set projection type for given observation."""
 
@@ -72,10 +72,12 @@ class BaseScanMapping:
         }
 
         self.logger.debug("Projection name: %s", projection_name)
-        self.component_manager.projection_call = projection_call[projection_name]
-    
+        self.component_manager.projection_call = projection_call[
+            projection_name.upper()
+        ]
+
     def set_reference_frame_handler(
-            self, reference_frame_handler: str
+        self, reference_frame_handler: str
     ) -> None:
         """Set the reference frame handler used for coordinate parsing.
 
@@ -99,8 +101,10 @@ class BaseScanMapping:
                 f"Unknown reference frame handler: {reference_frame_handler}"
             )
         self.reference_frame_handler = FRAME_HANDLERS[key]
-    
-    def handle_tle(self, x_offset: float, y_offset: float, timestamp: str) -> List[float]:
+
+    def handle_tle(
+        self, x_offset: float, y_offset: float, timestamp: str
+    ) -> List[float]:
         """Handle a TLE reference frame: compute Az/El for the TLE target.
 
         Args:
@@ -109,18 +113,18 @@ class BaseScanMapping:
             timestamp: UTC timestamp string for the observation.
 
         Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying offsets
-                and refraction correction.
+            List[float]: [Azimuth (deg), Elevation (deg)] after applying
+                offsets and refraction correction.
         """
 
-        self.logger.info(">>>>>>>>>.. %s", self.target)
-        radec = self.target.radec(timestamp)
-        self.logger.info(">>>>>>>>>.. %s", radec)
+        radec = self.target.radec(timestamp, self.component_manager.observer)
         return self.converter.apply_offset_and_get_azel_from_icrs(
             radec.ra.rad, radec.dec.rad, x_offset, y_offset, timestamp
         )
 
-    def handle_special(self, x_offset: float, y_offset: float, timestamp: str) -> List[float]:
+    def handle_special(
+        self, x_offset: float, y_offset: float, timestamp: str
+    ) -> List[float]:
         """Handle a special (non-sidereal) target: compute Az/El.
 
         Args:
@@ -129,16 +133,18 @@ class BaseScanMapping:
             timestamp: UTC timestamp string for the observation.
 
         Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying offsets
-                and refraction correction.
+            List[float]: [Azimuth (deg), Elevation (deg)] after applying
+                offsets and refraction correction.
         """
 
-        radec = self.target.radec(timestamp)
+        radec = self.target.radec(timestamp, self.component_manager.observer)
         return self.converter.apply_offset_and_get_azel_from_icrs(
             radec.ra.rad, radec.dec.rad, x_offset, y_offset, timestamp
         )
-    
-    def handle_altaz(self, x_offset: float, y_offset: float, timestamp: str) -> List[float]:
+
+    def handle_altaz(
+        self, x_offset: float, y_offset: float, timestamp: str
+    ) -> List[float]:
         """Handle an alt/az reference: apply offsets in the alt/az plane.
 
         Args:
@@ -147,16 +153,19 @@ class BaseScanMapping:
             timestamp: UTC timestamp string for the observation.
 
         Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying offsets
-                and refraction correction.
+            List[float]: [Azimuth (deg), Elevation (deg)] after applying
+                offsets and refraction correction.
         """
 
         return self.converter.apply_offset_and_get_azel_from_altaz(
             self.az, self.el, x_offset, y_offset, timestamp
         )
-    
-    def handle_icrs(self, x_offset: float, y_offset: float, timestamp: str) -> List[float]:
-        """Handle an ICRS/RaDec reference: apply spherical offsets to ICRS coords.
+
+    def handle_icrs(
+        self, x_offset: float, y_offset: float, timestamp: str
+    ) -> List[float]:
+        """Handle an ICRS/RaDec reference: apply spherical offsets to ICRS
+        coords.
 
         Args:
             x_offset: Offset along the x-axis in arcseconds.
@@ -164,8 +173,8 @@ class BaseScanMapping:
             timestamp: UTC timestamp string for the observation.
 
         Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying offsets
-                and refraction correction.
+            List[float]: [Azimuth (deg), Elevation (deg)] after applying
+                offsets and refraction correction.
         """
 
         return self.converter.apply_offset_and_get_azel_from_icrs(
@@ -333,7 +342,8 @@ class BaseScanMapping:
                     tle_line1 = field_dict.get("attrs", {}).get("line1", "")
                     tle_line2 = field_dict.get("attrs", {}).get("line2", "")
                     self.target = katpoint.Target(
-                        f"{self.component_manager.target}, tle, {tle_line1}, {tle_line2}"
+                        f"{self.component_manager.target}, tle,"
+                        f" {tle_line1}, {tle_line2}"
                     )
                     self.set_reference_frame_handler("tle")
                     target = True
@@ -347,7 +357,7 @@ class BaseScanMapping:
             if target:
                 self.logger.info(
                     "Target set to: %s with reference frame: %s",
-                    self.component_manager.target   ,
+                    self.component_manager.target,
                     reference_frame,
                 )
             else:

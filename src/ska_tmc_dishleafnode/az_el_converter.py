@@ -310,7 +310,7 @@ class AzElConverter_v2(AzElConverter):
             tuple[float, float]: Offset values in radians.
         """
         return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
-    
+
     def apply_offset_and_get_azel_from_icrs(
         self,
         ra: str | float,
@@ -322,31 +322,34 @@ class AzElConverter_v2(AzElConverter):
         """Apply spherical offsets to ICRS coordinates and return Az/El.
 
         Args:
-            ra: First coordinate (RA or longitude) as HMS/deg string or float 
+            ra: First coordinate (RA or longitude) as HMS/deg string or float
                 degrees.
-            dec: Second coordinate (Dec or latitude) as DMS/deg string or float 
+            dec: Second coordinate (Dec or latitude) as DMS/deg string or float
                 degrees.
             x_offset: Offset along the x-axis in arcseconds.
             y_offset: Offset along the y-axis in arcseconds.
             timestamp: UTC timestamp string for the observation.
 
         Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after refraction 
+            List[float]: [Azimuth (deg), Elevation (deg)] after refraction
                 correction.
         """
 
         x_rad, y_rad = self.get_offset_in_rad(x_offset, y_offset)
-        new_ra, new_dec = self.component_manager.projection_call(
-            ra, dec, x_rad, y_rad
-        )
-        target_str = (
-            f"{self.component_manager.target}, azel, "
-            f"{Angle(new_ra, u.rad).deg}, {Angle(new_dec, u.rad).deg}"
-        )
-        return self.apply_refraction_correction(
-            Target(target_str).azel(timestamp, self.component_manager.observer)
-        )
-    
+        with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            new_ra, new_dec = self.component_manager.projection_call(
+                ra, dec, x_rad, y_rad
+            )
+            target_str = (
+                f"{self.component_manager.target}, radec, "
+                f"{Angle(new_ra, u.rad).deg}, {Angle(new_dec, u.rad).deg}"
+            )
+            return self.apply_refraction_correction(
+                Target(target_str).azel(
+                    timestamp, self.component_manager.observer
+                )
+            )
+
     def apply_offset_and_get_azel_from_altaz(
         self,
         az: float,
@@ -358,33 +361,31 @@ class AzElConverter_v2(AzElConverter):
         """Apply spherical offsets to alt/az coordinates and return Az/El.
 
         Args:
-            az: Azimuth value (rad) as float, or input interpreted by 
+            az: Azimuth value (rad) as float, or input interpreted by
                 projection.
-            el: Elevation value (rad) as float, or input interpreted 
+            el: Elevation value (rad) as float, or input interpreted
                 by projection.
             x_offset: Offset along the x-axis in arcseconds.
             y_offset: Offset along the y-axis in arcseconds.
             timestamp: UTC timestamp string for the observation.
 
         Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after refraction 
+            List[float]: [Azimuth (deg), Elevation (deg)] after refraction
                 correction.
         """
 
         x_rad, y_rad = self.get_offset_in_rad(x_offset, y_offset)
-        new_az, new_el = self.component_manager.projection_call(
-            az, el, x_rad, y_rad
-        )
-        target_str = (
-            f"{self.component_manager.target}, azel, "
-            f"{Angle(new_az, u.rad).deg}, "
-            f"{Angle(new_el, u.rad).deg}"
-        )
-        return self.apply_refraction_correction(
-            Target(target_str).azel(timestamp, self.component_manager.observer)
-        )
-
-    
-    
-
-
+        with iers.earth_orientation_table.set(self.component_manager.iers_a):
+            new_az, new_el = self.component_manager.projection_call(
+                az, el, x_rad, y_rad
+            )
+            target_str = (
+                f"{self.component_manager.target}, azel, "
+                f"{Angle(new_az, u.rad).deg}, "
+                f"{Angle(new_el, u.rad).deg}"
+            )
+            return self.apply_refraction_correction(
+                Target(target_str).azel(
+                    timestamp, self.component_manager.observer
+                )
+            )
