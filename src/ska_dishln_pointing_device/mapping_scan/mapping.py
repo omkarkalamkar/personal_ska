@@ -70,7 +70,7 @@ class BaseScanMapping:
             "SSN": plane_to_sphere_ssn,
             "STG": plane_to_sphere_stg,
         }
-        key = projection_name.lower()
+        key = projection_name.upper()
         if key not in plane_to_sphere_handlers:
             raise KeyError(f"Unknown projection type: {projection_name}")
         self.logger.debug("Projection name: %s", projection_name)
