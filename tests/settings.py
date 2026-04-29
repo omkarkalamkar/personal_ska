@@ -10,8 +10,6 @@ from unittest import mock
 
 import katpoint
 import tango
-from astropy import units as u
-from astropy.coordinates import Angle
 from astropy.time import Time
 from ska_control_model import HealthState
 
@@ -742,16 +740,15 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
     timestamp = datetime.utcnow()
     for solar_system_object in solar_system_objects:
         target = katpoint.Target(f"{solar_system_object} , special")
-        target.antenna = ska001
-        _, el = target.plane_to_sphere(
-            0.0,
-            0.0,
-            timestamp,
-            projection_type="SIN",
-            coord_system="radec",
+        radec = target.radec(timestamp, ska001)
+        target = katpoint.Target(
+            f"object ,radec,{radec.ra.deg},{radec.dec.deg}"
         )
-        el = Angle(el, u.rad).deg
-        if el <= 7.5 or el >= 90.0:
+        azel = target.azel(
+            timestamp,
+            ska001,
+        )
+        if azel.alt.deg <= 7.5 or azel.alt.deg >= 90.0:
             object_not_visible = solar_system_object
             break
     return object_not_visible

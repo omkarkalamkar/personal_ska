@@ -11,8 +11,7 @@
       }
     },
     "projection": {
-      "name": "SIN",
-      "alignment": "AltAz"
+      "name": "SIN"
     }
   },
   "tmc": {

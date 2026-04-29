@@ -180,7 +180,6 @@ def configure_dish_leaf_node(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.test
 @pytest.mark.parametrize(
     "json_to_use",
     [
