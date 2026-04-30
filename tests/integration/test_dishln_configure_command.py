@@ -73,6 +73,7 @@ def configure_dish_leaf_node(
     dish_leaf_node = dev_factory.get_device(dishln_name)
     dish_master = dev_factory.get_device(DISH_MASTER_DEVICE)
     dishln_pointing_device = dev_factory.get_device(DISHLN_POINTING_DEVICE)
+    configure_str = json.loads(configure_input_str)
     dish_master.SetDirectDishMode(DishMode.STANDBY_LP)
     dishmode_event_id = dish_leaf_node.subscribe_event(
         "dishMode",
@@ -145,7 +146,6 @@ def configure_dish_leaf_node(
         len(json.loads(dishln_pointing_device.pointingProgramTrackTable))
         == NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES
     )
-    configure_str = json.loads(configure_input_str)
     if configure_str.get("pointing", {}).get("field", ""):
         # Allow some time for 5 PTT to get generated for TLE tracking
         # For 50 enrtries of one track table, its taking around
@@ -171,7 +171,6 @@ def configure_dish_leaf_node(
             ("[]"),
             lookahead=8,
         )
-
     dish_leaf_node.unsubscribe_event(dishmode_event_id)
     dish_leaf_node.unsubscribe_event(pointingstate_event_id)
     dish_leaf_node.unsubscribe_event(lrcr_event_id)

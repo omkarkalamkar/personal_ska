@@ -27,7 +27,7 @@
         "projection": 
         {
             "name": "SIN", 
-            "alignment": "AltAz"
+            "alignment": "ICRS"
         }
     },
     "dish": {"receiver_band": "1"},

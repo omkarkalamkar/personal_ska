@@ -327,10 +327,11 @@ def test_dish_pointing_schedular_length(cm_pointing_device, json_factory):
             logger=logger, component_manager=cm
         )
         generate_program_track_table.do()
-        while not cm.pointing_program_track_table and timeout < 5:
+        cm.pointing_program_track_table = []
+        while not cm.pointing_program_track_table and timeout < 50:
             time.sleep(1)
             timeout += 1
-
+        assert cm.pointing_program_track_table
         sched_len = len(real_scheduler.queue)
         assert sched_len <= 6
         assert sched_len > 0

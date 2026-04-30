@@ -370,8 +370,14 @@ def test_calculate_ptt_returns_correct_number_of_entries(
             return (10.5, 20.3, 0.0, 0.0, 0.0)
 
     trajectory_scan.traj = DummyTraj()
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
     monkeypatch.setattr(
-        trajectory_scan.converter, "point", lambda ts: (45.0, 30.0)
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
     )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,
@@ -395,44 +401,6 @@ def test_calculate_ptt_returns_correct_number_of_entries(
     assert result[0] == 12345.0
 
 
-def test_calculate_ptt_sets_fixed_offsets_on_cm(
-    cm_pointing_device, monkeypatch
-):
-    """Test that traj.posn() x/y results are set as fixed offsets on CM."""
-    cm_pointing_device.wrap_sector = 0
-    trajectory_scan = trajectory_mapping_scan(cm_pointing_device)
-    trajectory_scan.extended_time = Time.now()
-
-    class DummyTraj:
-        def posn(self, t):
-            return (10.5, 20.3, 0.0, 0.0, 0.0)
-
-    trajectory_scan.traj = DummyTraj()
-    monkeypatch.setattr(
-        trajectory_scan.converter, "point", lambda ts: (45.0, 30.0)
-    )
-    monkeypatch.setattr(
-        trajectory_scan.track_table_calculator,
-        "convert_utc_to_tai",
-        lambda ts: 12345.0,
-    )
-    monkeypatch.setattr(
-        trajectory_scan.track_table_calculator,
-        "_is_elevation_within_mechanical_limits",
-        lambda el: True,
-    )
-    trajectory_scan.track_table_scheduler = MagicMock()
-
-    trajectory_scan.calculate_program_track_table(
-        time_offsets=[0.0, 1.0, 2.0],
-        ptt_buffer_set=False,
-        program_track_table_size=10,
-    )
-
-    assert cm_pointing_device.fixed_x_offset == 10.5
-    assert cm_pointing_device.fixed_y_offset == 20.3
-
-
 def test_calculate_ptt_applies_wrap_sector_to_azimuth(
     cm_pointing_device, monkeypatch
 ):
@@ -447,8 +415,14 @@ def test_calculate_ptt_applies_wrap_sector_to_azimuth(
 
     trajectory_scan.traj = DummyTraj()
     raw_az = 45.0
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
     monkeypatch.setattr(
-        trajectory_scan.converter, "point", lambda ts: (raw_az, 30.0)
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
     )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,
@@ -490,8 +464,14 @@ def test_calculate_ptt_skips_entry_when_elevation_out_of_limits(
             return (0.0, 0.0, 0.0, 0.0, 0.0)
 
     trajectory_scan.traj = DummyTraj()
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
     monkeypatch.setattr(
-        trajectory_scan.converter, "point", lambda ts: (45.0, 5.0)
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
     )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,
@@ -554,8 +534,14 @@ def test_calculate_ptt_stops_when_buffer_set_and_event_signalled(
             return (0.0, 0.0, 0.0, 0.0, 0.0)
 
     trajectory_mapping_scan.traj = DummyTraj()
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
     monkeypatch.setattr(
-        trajectory_scan.converter, "point", lambda ts: (45.0, 30.0)
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
     )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,

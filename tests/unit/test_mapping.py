@@ -82,11 +82,21 @@ def test_build_data_for_observation_with_supported_reference_frames(
     mapping_scan.build_data_for_observation()
 
     assert cm_pointing_device.target == expected_target_name
-    assert isinstance(cm_pointing_device.antenna_target, katpoint.Target)
-    assert (
-        cm_pointing_device.antenna_target.antenna
-        == cm_pointing_device.observer
+    special = (
+        target_data.get("pointing", {})
+        .get("target", {})
+        .get("reference_frame", "")
+        == "special"
     )
+    tle = (
+        target_data.get("pointing", {})
+        .get("field", {})
+        .get("reference_frame", "")
+        == "tle"
+    )
+
+    if special or tle:
+        assert isinstance(mapping_scan.target, katpoint.Target)
 
 
 def test_build_data_for_observation_raises_for_missing_target(

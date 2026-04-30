@@ -91,7 +91,7 @@ def test_error_in_track_table_point_method(tango_context, cm_pointing_device):
             cm.antenna_target = target
             cm.antenna_target = target
             cm.projection_name = "SIN"
-            cm.projection_alignment = "AltAz"
+            cm.projection_alignment = "ICRS"
             cm.fixed_x_offset = 0.0
             cm.fixed_y_offset = 0.0
             azel_converter = AzElConverter_v2(cm)

@@ -28,11 +28,50 @@ class BaseScanMapping:
         self.target: str | None = None
         self.component_manager = component_manager
         self.logger = logger
+        self.target = None
         self.main_target_ra = None
         self.main_target_dec = None
         self.ra_dec_target = None
         self.traj = None
         self.cadence = 0.0
+
+    def set_projection_data(self) -> None:
+        """Method to set projection type for given observation."""
+
+        projection_name = (
+            self.component_manager.target_data.get('pointing', {})
+            .get('projection', {})
+            .get('name', "SIN")
+        ).upper()
+
+        projection_alignment = (
+            self.component_manager.target_data.get('pointing', {})
+            .get('projection', {})
+            .get('alignment', "icrs")
+        ).lower()
+
+        if projection_alignment not in ["icrs", "altaz"]:
+            raise KeyError(
+                f"Unknown projection alignment: {projection_alignment}"
+            )
+
+        if projection_name not in katpoint.plane_to_sphere:
+            raise KeyError(f"Unknown projection type: {projection_name}")
+
+        if projection_alignment == "icrs":
+            projection_alignment = "radec"
+        else:
+            projection_alignment = "azel"
+
+        self.component_manager.plane_to_sphere_handler = (
+            katpoint.plane_to_sphere[projection_name.upper()]
+        )
+        self.component_manager.projection_alignment = projection_alignment
+        self.logger.info(
+            "Projection Name: %s, Alignment: %s",
+            projection_name,
+            projection_alignment,
+        )
 
     def set_target_and_start_process(self):
         """
@@ -136,7 +175,6 @@ class BaseScanMapping:
             InvalidTargetDataError: If target data is missing or invalid.
             Exception: If target construction fails.
         """
-        target = None
         try:
             target_data = self.component_manager.target_data.get(
                 "pointing", {}
@@ -147,48 +185,54 @@ class BaseScanMapping:
                 self.component_manager.target = target_name
                 reference_frame = target_dict.get("reference_frame", "ICRS")
                 if reference_frame.lower() == "special":
-                    target = Target(f"{target_name}, special")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, special"
+                    )
                 elif (
                     reference_frame.lower() == "icrs"
                     or reference_frame.lower() == "radec"
                 ):
                     ra = target_dict.get("ra", "")
                     dec = target_dict.get("dec", "")
-                    target = Target(f"{target_name}, radec, {ra}, {dec}")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, radec, {ra}, {dec}"
+                    )
             field_dict = target_data.get("field", {})
             if field_dict:
-                target_name = field_dict.get("target_name", "target")
-                self.component_manager.target = target_name
+                self.component_manager.target = field_dict.get(
+                    "target_name", "target"
+                )
                 reference_frame = field_dict.get("reference_frame", "ICRS")
                 if reference_frame.lower() == "special":
-                    target = Target(f"{target_name}, special")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, special"
+                    )
                 elif (
                     reference_frame.lower() == "icrs"
                     or reference_frame.lower() == "radec"
                 ):
                     c1 = field_dict.get("attrs").get("c1", "")
                     c2 = field_dict.get("attrs").get("c2", "")
-                    ra = Angle(c1 * u.deg)
-                    ra_hms = ra.to_string(unit=u.hour, sep=':')
-                    dec = Angle(c2 * u.deg)
-                    dec_dms = dec.to_string(unit=u.deg, sep=':')
-                    target = Target(
-                        f"{target_name}, radec, {ra_hms}, {dec_dms}"
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, radec, {c1}, {c2}"
                     )
                 elif reference_frame.lower() == "tle":
-                    line1 = field_dict.get("attrs", {}).get("line1", "")
-                    line2 = field_dict.get("attrs", {}).get("line2", "")
-                    target = Target(f"{target_name}, tle, {line1}, {line2}")
+                    tle_line1 = field_dict.get("attrs", {}).get("line1", "")
+                    tle_line2 = field_dict.get("attrs", {}).get("line2", "")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, tle,"
+                        f" {tle_line1}, {tle_line2}"
+                    )
                 elif reference_frame.lower() == "altaz":
                     c1 = field_dict.get("attrs", {}).get("c1", "")
                     c2 = field_dict.get("attrs", {}).get("c2", "")
-                    target = Target(f"{target_name}, azel, {c1}, {c2}")
-            if target:
-                target.antenna = self.component_manager.observer
-                self.component_manager.antenna_target = target
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, azel, {c1}, {c2}"
+                    )
+            if self.target:
                 self.logger.info(
                     "Target set to: %s with reference frame: %s",
-                    target.description,
+                    self.target,
                     reference_frame,
                 )
             else:

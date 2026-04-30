@@ -229,7 +229,6 @@ class AzElConverter:
                 self.component_manager.iers_a
             ):
                 azel = target.azel(timestamp, self.component_manager.observer)
-
             return self.apply_refraction_correction(azel)
 
         except ValueError as value_error:
@@ -310,3 +309,83 @@ class AzElConverter_v2(AzElConverter):
             tuple[float, float]: Offset values in radians.
         """
         return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
+
+    def _calculate_azel_with_trajectory(
+        self: AzElConverter_v2,
+        target: Target,
+        x_offset: float,
+        y_offset: float,
+        timestamp: str | None = None,
+    ) -> List[float]:
+        """Calculate Azimuth and Elevation for a target with trajectory
+        offsets.
+        Compute the azimuth and elevation for the given `target` by
+        applying the provided trajectory offsets (x/y) and performing
+        atmospheric refraction correction.
+
+        Args:
+            target (Target): katpoint Target object representing the
+                reference target.
+            x_offset (float): X offset in arcseconds to apply to the target.
+            y_offset (float): Y offset in arcseconds to apply to the target.
+            timestamp (str | None): timestamp for the observation
+
+        Returns:
+            List[float]: [azimuth_deg, elevation_deg] in degrees after
+            refraction correction.
+        """
+
+        refraction_corrected_azel = []
+        try:
+            azel = None
+            x_in_rad, y_in_rad = self.get_offset_in_rad(
+                x_offset,
+                y_offset,
+            )
+            with iers.earth_orientation_table.set(
+                self.component_manager.iers_a
+            ):
+                match self.component_manager.projection_alignment:
+                    case "azel":
+                        ref_azel = target.azel(
+                            timestamp, self.component_manager.observer
+                        )
+                        (
+                            az,
+                            el,
+                        ) = self.component_manager.plane_to_sphere_handler(
+                            ref_azel.az.rad,
+                            ref_azel.alt.rad,
+                            x_in_rad,
+                            y_in_rad,
+                        )
+                        azel = AltAz(az=Angle(az, u.rad), alt=Angle(el, u.rad))
+
+                    case "radec":
+                        radec = target.radec(
+                            timestamp, self.component_manager.observer
+                        )
+
+                        (
+                            ra,
+                            dec,
+                        ) = self.component_manager.plane_to_sphere_handler(
+                            radec.ra.rad,
+                            radec.dec.rad,
+                            x_in_rad,
+                            y_in_rad,
+                        )
+                        temp_target = Target.from_radec(ra, dec)
+                        azel = temp_target.azel(
+                            timestamp, self.component_manager.observer
+                        )
+            refraction_corrected_azel = self.apply_refraction_correction(azel)
+
+        except ValueError as value_error:
+            message = str(value_error)
+            raise Exception(message) from value_error
+
+        except Exception as exception:
+            message = str(exception)
+            raise Exception(message) from exception
+        return refraction_corrected_azel

@@ -5,9 +5,17 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+
+[0.45.1]
+*********
+Fixed
+-----
+* Fixed SKB-1314, which is about programTrackTable calculations are broken.
+
 [0.45.0]
 *********
------
+Updated
+-------
 * invoke_lrc api used for invoking command on Dish Master
 
 [0.44.0]

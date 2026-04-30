@@ -209,15 +209,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         to_tango=json.dumps,
     )
 
-    _is_subsystem_available: Signal[bool] = Signal[bool](
-        stored=True, initial_value=False
-    )
-
-    isSubsystemAvailable: attribute_from_signal = attribute_from_signal(
-        _is_subsystem_available,
+    isSubsystemAvailable = attribute(
+        dtype=bool,
         access=AttrWriteType.READ,
-        dtype="DevBoolean",
-        description="Boolean Flag for sub system available",
     )
 
     _dishMode: Signal[DishMode] = Signal[DishMode](stored=True)
@@ -274,8 +268,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._last_pointing_data_attr_quality = getattr(
             AttrQuality, "ATTR_VALID"
         )
+        self._isSubsystemAvailable = False
 
         for attribute_name in [
+            "isSubsystemAvailable",
             "sdpQueueConnectorFqdn",
             "lastPointingData",
             "kValue",
@@ -434,7 +430,21 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        self._is_subsystem_available = availability
+        if self._isSubsystemAvailable != availability:
+            self._isSubsystemAvailable = availability
+            self.logger.info("Updating availability to %s", availability)
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events(
+                    "isSubsystemAvailable", availability
+                )
+
+    def read_isSubsystemAvailable(self) -> bool:
+        """Read method for isSubsystemAvailable
+
+        Returns:
+            bool: value of isSubsystemAvailable.
+        """
+        return self._isSubsystemAvailable
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""

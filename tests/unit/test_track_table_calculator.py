@@ -32,7 +32,7 @@ def test_calculate_program_track_table(cm_pointing_device):
     target.antenna = cm.observer
     cm.antenna_target = target
     cm.projection_name = "SIN"
-    cm.projection_alignment = "AltAz"
+    cm.projection_alignment = "ICRS"
     cm.fixed_x_offset = 0.0
     cm.fixed_y_offset = 0.0
     azel_converter = AzElConverter_v2(cm)

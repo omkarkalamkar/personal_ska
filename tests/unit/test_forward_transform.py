@@ -105,7 +105,7 @@ def test_tle_to_azel_v2(
     target.antenna = cm.observer
     cm.antenna_target = target
     cm.projection_name = "SIN"
-    cm.projection_alignment = "AltAz"
+    cm.projection_alignment = "ICRS"
     cm.fixed_x_offset = 0.0
     cm.fixed_y_offset = 0.0
     converter = AzElConverter_v2(component_manager=cm)
