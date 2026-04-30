@@ -354,6 +354,7 @@ class AzElConverter_v2(AzElConverter):
                             az,
                             el,
                         ) = self.component_manager.plane_to_sphere_handler(
+                            ref_azel.az.rad,
                             ref_azel.alt.rad,
                             x_in_rad,
                             y_in_rad,
