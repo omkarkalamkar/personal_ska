@@ -209,17 +209,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         to_tango=json.dumps,
     )
 
-    # _is_subsystem_available: Signal[bool] = Signal[bool](
-    #     stored=True, initial_value=False
-    # )
-
-    # isSubsystemAvailable: attribute_from_signal = attribute_from_signal(
-    #     _is_subsystem_available,
-    #     access=AttrWriteType.READ,
-    #     dtype="DevBoolean",
-    #     description="Boolean Flag for sub system available",
-    # )
-
     isSubsystemAvailable = attribute(
         dtype=bool,
         access=AttrWriteType.READ,
