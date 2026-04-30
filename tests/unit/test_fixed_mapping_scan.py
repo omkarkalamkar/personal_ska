@@ -33,6 +33,7 @@ def test_fixed_mapping_scan(cm_pointing_device, json_factory):
     cm.entries_tt_schedular_queue = 20
     configure_data = json_factory("dishleafnode_configure_adr106")
     configure_data = json.loads(configure_data)
+    configure_data['pointing']['projection']['alignment'] = "AltAz"
     ra = configure_data['pointing']['field']['attrs']['c1']
     dec = configure_data['pointing']['field']['attrs']['c2']
     cm.target_data = configure_data
@@ -46,7 +47,7 @@ def test_fixed_mapping_scan(cm_pointing_device, json_factory):
     cm.antenna_target = fms_obj.ra_dec_target
     projection_name, projection_alignment = fms_obj.get_projection()
     assert projection_name == 'SIN'
-    assert projection_alignment == 'radec'
+    assert projection_alignment == 'azel'
     configure_data['pointing']['projection']['name'] = "temp"
     with pytest.raises(Exception):
         assert cm.pointing_program_track_table
