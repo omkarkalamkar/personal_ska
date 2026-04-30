@@ -428,11 +428,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             last_pointing_data,
         )
 
-    # def update_availablity_callback(self, availability):
-    #     """Change event callback for isSubsystemAvailable"""
-    #     self.logger.info("Updating availability to %s", availability)
-    #     self._is_subsystem_available = availability
-
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
         if self._isSubsystemAvailable != availability:
