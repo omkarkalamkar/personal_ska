@@ -34,10 +34,6 @@ class BaseScanMapping:
         self.ra_dec_target = None
         self.traj = None
         self.cadence = 0.0
-        self.ra = None
-        self.dec = None
-        self.az = None
-        self.el = None
 
     def set_projection_data(self) -> None:
         """Method to set projection type for given observation."""

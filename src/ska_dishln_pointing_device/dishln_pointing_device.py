@@ -4,9 +4,9 @@ import json
 from threading import Event
 from typing import List, Tuple
 
-from ska_control_model import HealthState
 from ska_tango_base.base.base_device import SKABaseDevice
 from ska_tango_base.commands import ResultCode
+from ska_tango_base.control_model import HealthState
 from ska_tango_base.long_running_commands import long_running_command
 from ska_tango_base.software_bus import Signal, attribute_from_signal
 from ska_tango_base.type_hints import TaskCallbackType
