@@ -250,7 +250,7 @@ def test_set_target_and_start_process_sets_projection_on_cm(
         trajectory_scan, "build_data_for_observation", lambda: None
     )
     monkeypatch.setattr(
-        trajectory_scan, "get_projection", lambda: ["SIN", "radec"]
+        trajectory_scan, "get_projection", lambda: ["SIN", "azel"]
     )
     monkeypatch.setattr(
         trajectory_scan, "start_track_table_calculation", lambda: None
@@ -262,7 +262,7 @@ def test_set_target_and_start_process_sets_projection_on_cm(
     trajectory_scan.set_target_and_start_process()
 
     assert cm_pointing_device.projection_name == "SIN"
-    assert cm_pointing_device.projection_alignment == "radec"
+    assert cm_pointing_device.projection_alignment == "azel"
 
 
 def test_set_target_and_start_process_sets_cadence_from_offsets(
@@ -370,7 +370,15 @@ def test_calculate_ptt_returns_correct_number_of_entries(
             return (10.5, 20.3, 0.0, 0.0, 0.0)
 
     trajectory_scan.traj = DummyTraj()
-    trajectory_scan.reference_frame_handler = lambda x, y, ts: (45.0, 30.0)
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
+    monkeypatch.setattr(
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
+    )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,
         "convert_utc_to_tai",
@@ -407,7 +415,15 @@ def test_calculate_ptt_applies_wrap_sector_to_azimuth(
 
     trajectory_scan.traj = DummyTraj()
     raw_az = 45.0
-    trajectory_scan.reference_frame_handler = lambda x, y, ts: (raw_az, 30.0)
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
+    monkeypatch.setattr(
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
+    )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,
         "convert_utc_to_tai",
@@ -448,7 +464,15 @@ def test_calculate_ptt_skips_entry_when_elevation_out_of_limits(
             return (0.0, 0.0, 0.0, 0.0, 0.0)
 
     trajectory_scan.traj = DummyTraj()
-    trajectory_scan.reference_frame_handler = lambda x, y, ts: (45.0, 5.0)
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
+    monkeypatch.setattr(
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
+    )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,
         "convert_utc_to_tai",

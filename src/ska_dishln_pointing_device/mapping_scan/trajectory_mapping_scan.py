@@ -13,6 +13,9 @@ from astropy.time import Time, TimeDelta
 from ska_trajectory.trajectory_names import TrajectoryName
 
 from ska_dishln_pointing_device.mapping_scan.mapping import BaseScanMapping
+from ska_tmc_dishleafnode.az_el_converter import (
+    AzElConverter_v2 as AzElConverter,
+)
 from ska_tmc_dishleafnode.constants import (
     FIRST_PROGRAM_TRACK_TABLE_SIZE,
     RADEC_TO_AZEL_CONVERSION_TIME,
@@ -53,6 +56,7 @@ class TrajectoryMappingScan(BaseScanMapping):
             self.component_manager, self.logger
         )
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
+        self.converter = AzElConverter(self.component_manager)
         self.extended_time = 0.0
         self.program_track_table_size = (
             self.component_manager.program_track_table_size * 3
@@ -64,7 +68,7 @@ class TrajectoryMappingScan(BaseScanMapping):
         """
         self.logger.info("Setting target and start process for the scan.")
         self.build_data_for_observation()
-        self.set_projection_type()
+        self.set_projection_data()
         self.set_trajectory_data()
         self.traj = TrajectoryName[self.trajectory_name](
             **self.trajectory_attrs
@@ -305,7 +309,9 @@ class TrajectoryMappingScan(BaseScanMapping):
                     _,
                 ) = self.traj.posn(time_offset)
                 # pylint: disable=unbalanced-tuple-unpacking
-                az, el = self.reference_frame_handler(x, y, timestamp)
+                az, el = self.converter._calculate_azel_with_trajectory(
+                    self.target, x, y, timestamp
+                )
                 # pylint: disable=line-too-long
                 if not self.track_table_calculator._is_elevation_within_mechanical_limits(  # noqa: E501
                     el

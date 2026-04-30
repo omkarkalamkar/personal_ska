@@ -9,22 +9,11 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.utils import iers
 from katpoint import Target
-from katpoint.projection import (
-    plane_to_sphere_arc,
-    plane_to_sphere_car,
-    plane_to_sphere_sin,
-    plane_to_sphere_ssn,
-    plane_to_sphere_stg,
-    plane_to_sphere_tan,
-)
 from numpy import isnan, nan
 from ska_trajectory.trajectory_names import TrajectoryName
 
 from ska_dishln_pointing_device.mapping_scan.utils import (
     InvalidTargetDataError,
-)
-from ska_tmc_dishleafnode.az_el_converter import (
-    AzElConverter_v2 as AzElConverter,
 )
 
 
@@ -45,145 +34,48 @@ class BaseScanMapping:
         self.ra_dec_target = None
         self.traj = None
         self.cadence = 0.0
-        self.converter = AzElConverter(self.component_manager)
         self.reference_frame_handler = None
         self.ra = None
         self.dec = None
         self.az = None
         self.el = None
 
-    def set_projection_type(self) -> None:
+    def set_projection_data(self) -> None:
         """Method to set projection type for given observation."""
 
         projection_name = (
             self.component_manager.target_data.get('pointing', {})
             .get('projection', {})
             .get('name', "SIN")
-        )
+        ).upper()
 
-        plane_to_sphere_handlers = {
-            "SIN": plane_to_sphere_sin,
-            "ARC": plane_to_sphere_arc,
-            "TAN": plane_to_sphere_tan,
-            "CAR": plane_to_sphere_car,
-            "SSN": plane_to_sphere_ssn,
-            "STG": plane_to_sphere_stg,
-        }
-        key = projection_name.upper()
-        if key not in plane_to_sphere_handlers:
-            raise KeyError(f"Unknown projection type: {projection_name}")
-        self.logger.debug("Projection name: %s", projection_name)
-        self.component_manager.plane_to_sphere_handler = (
-            plane_to_sphere_handlers[projection_name.upper()]
-        )
+        projection_alignment = (
+            self.component_manager.target_data.get('pointing', {})
+            .get('projection', {})
+            .get('alignment', "icrs")
+        ).lower()
 
-    def set_reference_frame_handler(
-        self, reference_frame_handler: str
-    ) -> None:
-        """Set the reference frame handler used for coordinate parsing.
-
-        Args:
-            reference_frame_handler: Name of the reference frame handler to use
-                (e.g. 'tle', 'special', 'altaz', 'icrs'). Case-insensitive.
-
-        Raises:
-            KeyError: If the provided handler name is not recognised.
-        """
-
-        FRAME_HANDLERS = {
-            "tle": self.handle_tle,
-            "special": self.handle_special,
-            "altaz": self.handle_altaz,
-            "icrs": self.handle_icrs,
-        }
-        key = reference_frame_handler.lower()
-        if key not in FRAME_HANDLERS:
+        if projection_alignment not in ["icrs", "altaz"]:
             raise KeyError(
-                f"Unknown reference frame handler: {reference_frame_handler}"
+                f"Unknown projection alignment: {projection_alignment}"
             )
-        self.reference_frame_handler = FRAME_HANDLERS[key]
 
-    def handle_tle(
-        self, x_offset: float, y_offset: float, timestamp: str
-    ) -> List[float]:
-        """Handle a TLE reference frame: compute Az/El for the TLE target.
+        if projection_name not in katpoint.plane_to_sphere:
+            raise KeyError(f"Unknown projection type: {projection_name}")
 
-        Args:
-            x_offset: Offset along the x-axis in arcseconds.
-            y_offset: Offset along the y-axis in arcseconds.
-            timestamp: UTC timestamp string for the observation.
+        if projection_alignment == "icrs":
+            projection_alignment = "radec"
+        else:
+            projection_alignment = "azel"
 
-        Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying
-                offsets and refraction correction.
-        """
-
-        radec = self.target.radec(timestamp, self.component_manager.observer)
-        return self.converter.apply_offset_and_get_azel_from_icrs(
-            radec.ra.rad, radec.dec.rad, x_offset, y_offset, timestamp
+        self.component_manager.plane_to_sphere_handler = (
+            katpoint.plane_to_sphere[projection_name.upper()]
         )
-
-    def handle_special(
-        self, x_offset: float, y_offset: float, timestamp: str
-    ) -> List[float]:
-        """Handle a special (non-sidereal) target: compute Az/El.
-
-        Args:
-            x_offset: Offset along the x-axis in arcseconds.
-            y_offset: Offset along the y-axis in arcseconds.
-            timestamp: UTC timestamp string for the observation.
-
-        Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying
-                offsets and refraction correction.
-        """
-
-        radec = self.target.radec(timestamp, self.component_manager.observer)
-        return self.converter.apply_offset_and_get_azel_from_icrs(
-            radec.ra.rad, radec.dec.rad, x_offset, y_offset, timestamp
-        )
-
-    def handle_altaz(
-        self, x_offset: float, y_offset: float, timestamp: str
-    ) -> List[float]:
-        """Handle an alt/az reference: apply offsets in the alt/az plane.
-
-        Args:
-            x_offset: Offset along the x-axis in arcseconds.
-            y_offset: Offset along the y-axis in arcseconds.
-            timestamp: UTC timestamp string for the observation.
-
-        Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying
-                offsets and refraction correction.
-        """
-
-        return self.converter.apply_offset_and_get_azel_from_altaz(
-            self.az, self.el, x_offset, y_offset, timestamp
-        )
-
-    def handle_icrs(
-        self, x_offset: float, y_offset: float, timestamp: str
-    ) -> List[float]:
-        """Handle an ICRS/RaDec reference: apply spherical offsets to ICRS
-        coords.
-
-        Args:
-            x_offset: Offset along the x-axis in arcseconds.
-            y_offset: Offset along the y-axis in arcseconds.
-            timestamp: UTC timestamp string for the observation.
-
-        Returns:
-            List[float]: [Azimuth (deg), Elevation (deg)] after applying
-                offsets and refraction correction.
-        """
-
-        return self.converter.apply_offset_and_get_azel_from_icrs(
-            self.ra,
-            self.dec,
-            x_offset,
-            y_offset,
-            timestamp,
+        self.component_manager.projection_alignment = projection_alignment
+        self.logger.info(
+            "Projection Name: %s, Alignment: %s",
+            projection_name,
+            projection_alignment,
         )
 
     def set_target_and_start_process(self):
@@ -288,7 +180,6 @@ class BaseScanMapping:
             InvalidTargetDataError: If target data is missing or invalid.
             Exception: If target construction fails.
         """
-        target = False
         try:
             target_data = self.component_manager.target_data.get(
                 "pointing", {}
@@ -302,39 +193,34 @@ class BaseScanMapping:
                     self.target = katpoint.Target(
                         f"{self.component_manager.target}, special"
                     )
-                    self.set_reference_frame_handler("special")
-                    target = True
                 elif (
                     reference_frame.lower() == "icrs"
                     or reference_frame.lower() == "radec"
                 ):
                     ra = target_dict.get("ra", "")
                     dec = target_dict.get("dec", "")
-                    self.ra = Angle(ra, u.hourangle).rad
-                    self.dec = Angle(dec, u.deg).rad
-                    self.set_reference_frame_handler("icrs")
-                    target = True
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, radec, {ra}, {dec}"
+                    )
             field_dict = target_data.get("field", {})
             if field_dict:
-                target_name = field_dict.get("target_name", "target")
-                self.component_manager.target = target_name
+                self.component_manager.target = field_dict.get(
+                    "target_name", "target"
+                )
                 reference_frame = field_dict.get("reference_frame", "ICRS")
                 if reference_frame.lower() == "special":
                     self.target = katpoint.Target(
                         f"{self.component_manager.target}, special"
                     )
-                    self.set_reference_frame_handler("special")
-                    target = True
                 elif (
                     reference_frame.lower() == "icrs"
                     or reference_frame.lower() == "radec"
                 ):
                     c1 = field_dict.get("attrs").get("c1", "")
                     c2 = field_dict.get("attrs").get("c2", "")
-                    self.ra = Angle(c1, u.deg).rad
-                    self.dec = Angle(c2, u.deg).rad
-                    self.set_reference_frame_handler("icrs")
-                    target = True
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, radec, {c1}, {c2}"
+                    )
                 elif reference_frame.lower() == "tle":
                     tle_line1 = field_dict.get("attrs", {}).get("line1", "")
                     tle_line2 = field_dict.get("attrs", {}).get("line2", "")
@@ -342,19 +228,16 @@ class BaseScanMapping:
                         f"{self.component_manager.target}, tle,"
                         f" {tle_line1}, {tle_line2}"
                     )
-                    self.set_reference_frame_handler("tle")
-                    target = True
                 elif reference_frame.lower() == "altaz":
                     c1 = field_dict.get("attrs", {}).get("c1", "")
                     c2 = field_dict.get("attrs", {}).get("c2", "")
-                    self.az = Angle(c1, u.deg).rad
-                    self.el = Angle(c2, u.deg).rad
-                    self.set_reference_frame_handler("altaz")
-                    target = True
-            if target:
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, azel, {c1}, {c2}"
+                    )
+            if self.target:
                 self.logger.info(
                     "Target set to: %s with reference frame: %s",
-                    self.component_manager.target,
+                    self.target,
                     reference_frame,
                 )
             else:
