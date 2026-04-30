@@ -4,7 +4,7 @@ import json
 from threading import Event
 from typing import List, Tuple
 
-from ska_control_model import HealthState, LoggingLevel
+from ska_control_model import HealthState
 from ska_tango_base.base.base_device import SKABaseDevice
 from ska_tango_base.commands import ResultCode
 from ska_tango_base.long_running_commands import long_running_command
@@ -32,19 +32,16 @@ class DishPointingDevice(TMCBaseLeafDevice):
     """
 
     # Dish Track command properties
-    LoggingLevelDefault = device_property(
-        dtype="uint16", default_value=LoggingLevel.DEBUG
-    )
     ElevationMaxLimit = device_property(dtype="DevFloat", default_value=90.0)
     ElevationMinLimit = device_property(dtype="DevFloat", default_value=15.0)
     ProgramTrackTableSize = device_property(
         dtype="DevLong",
-        default_value=1000,
+        default_value=50,
         doc="Number of entries in program track table.",
     )
     TrackTableUpdateRate = device_property(
         dtype="DevFloat",
-        default_value=1000,
+        default_value=50,
         doc="The rate at which a tracktable is provided. It is one"
         + "tracktable per specified number of seconds.",
     )

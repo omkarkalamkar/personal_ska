@@ -34,7 +34,6 @@ class BaseScanMapping:
         self.ra_dec_target = None
         self.traj = None
         self.cadence = 0.0
-        self.reference_frame_handler = None
         self.ra = None
         self.dec = None
         self.az = None

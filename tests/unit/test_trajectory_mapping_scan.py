@@ -534,7 +534,15 @@ def test_calculate_ptt_stops_when_buffer_set_and_event_signalled(
             return (0.0, 0.0, 0.0, 0.0, 0.0)
 
     trajectory_mapping_scan.traj = DummyTraj()
-    trajectory_scan.reference_frame_handler = lambda x, y, ts: (45.0, 30.0)
+
+    def fake_calc_azel(target, x, y, ts):
+        return (45.0, 30.0)
+
+    monkeypatch.setattr(
+        trajectory_scan.converter,
+        "_calculate_azel_with_trajectory",
+        fake_calc_azel,
+    )
     monkeypatch.setattr(
         trajectory_scan.track_table_calculator,
         "convert_utc_to_tai",
