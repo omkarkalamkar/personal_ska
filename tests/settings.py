@@ -726,24 +726,10 @@ def get_non_sidereal_json_for_source_not_visible() -> str:
     logger.info("CURRENT TIME: %s", current_time)
     antenna_ska001 = DishHelper(antenna_data=ARRAY_LAYOUT)
     ska001 = antenna_ska001.get_dish_antenna()
-    solar_system_objects = [
-        "Mercury",
-        "Venus",
-        "Mars",
-        "Jupiter",
-        "Saturn",
-        "Uranus",
-        "Neptune",
-        "Sun",
-    ]
     object_not_visible = None
     timestamp = datetime.utcnow()
-    for solar_system_object in solar_system_objects:
+    for solar_system_object in NON_SIDEREAL_OBJECTS:
         target = katpoint.Target(f"{solar_system_object} , special")
-        radec = target.radec(timestamp, ska001)
-        target = katpoint.Target(
-            f"object ,radec,{radec.ra.deg},{radec.dec.deg}"
-        )
         azel = target.azel(
             timestamp,
             ska001,
