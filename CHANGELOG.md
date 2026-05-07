@@ -5,6 +5,12 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.40.2]
+********
+Fixed
+-----
+* Update availability attribute to fix SKB-1306.
+
 [0.40.1]
 ********
 Updated
