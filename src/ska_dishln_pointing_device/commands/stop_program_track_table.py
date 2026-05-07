@@ -8,6 +8,7 @@ from ska_tango_base.commands import FastCommand, ResultCode
 from ska_dishln_pointing_device.dishlnpd_component_manager import (
     component_manager as manager,
 )
+from ska_tmc_dishleafnode.constants import THREAD_JOIN_TIMEOUT
 
 
 class StopProgramTrackTable(FastCommand):
@@ -31,26 +32,26 @@ class StopProgramTrackTable(FastCommand):
     def do(self, *args, **kwargs) -> None:
         """This method stops program track table generation."""
         try:
-            self.component_manager.stop_track_called.set()
-            self.logger.info(
-                "Executing StopProgramTrackTable command on %s",
-                self.component_manager.dishln_pointing_device_name,
-            )
             with self.component_manager.track_thread_lock:
+                self.component_manager.stop_track_called.set()
                 self.component_manager.mapping_scan_event.set()
-            if (
-                self.component_manager.track_table_thread
-                and self.component_manager.track_table_thread.is_alive()
-            ):
-                self.component_manager.track_table_thread.join()
-            self.component_manager.update_pointing_program_track_table([])
-            self.component_manager.current_mapping_scan_obj = None
-            self.logger.info(
-                "StopProgramTrackTable command executed successfully"
-                + " on %s",
-                self.component_manager.dishln_pointing_device_name,
-            )
-            self.component_manager.stop_track_called.clear()
+                if (
+                    self.component_manager.track_table_thread
+                    and self.component_manager.track_table_thread.is_alive()
+                ):
+                    # The track_table_thread is joined with a short timeout to
+                    # prevent the Stop command from triggering a Tango timeout
+                    self.component_manager.track_table_thread.join(
+                        timeout=THREAD_JOIN_TIMEOUT
+                    )
+                self.component_manager.update_pointing_program_track_table([])
+                self.component_manager.current_mapping_scan_obj = None
+                self.logger.info(
+                    "StopProgramTrackTable command executed successfully"
+                    + " on %s",
+                    self.component_manager.dishln_pointing_device_name,
+                )
+                self.component_manager.stop_track_called.clear()
         except Exception as exception:
             self.logger.exception(
                 "Exception occurred in StopProgramTrackTable command "

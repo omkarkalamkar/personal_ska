@@ -67,9 +67,8 @@ class GPMValidator:
             gpm_version_for_given_band = self.component_manager.gpm_version[
                 band_found
             ]
-            self.logger.info("GPM validation started.")
             self.logger.debug(
-                "GPM Version: %s, Band_Found: %s",
+                "GPM version: %s, band: %s",
                 gpm_version_for_given_band,
                 band_found,
             )
@@ -161,7 +160,9 @@ class GPMValidator:
                     DISH_BANDPARAMS[band_found],
                 )
                 self.logger.debug(
-                    "Dish GPM: %s, DLN GPM: %s", dish_param, band_params
+                    "Dish GPM: %s, DishLeafNode GPM: %s",
+                    dish_param,
+                    band_params,
                 )
                 self.gpm_validation_update(band_found, ResultCode.FAILED.name)
             else:
@@ -240,7 +241,7 @@ class GPMValidator:
                     self.logger.debug(
                         "ApplyPointingModel command invoked successfully "
                         "during GPM validation"
-                        " on %s for band: %s, version: %s and "
+                        " on %s for band: %s, version: %s and"
                         " message received is: %s",
                         self.component_manager.dish_dev_name,
                         band_found,

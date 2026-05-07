@@ -63,6 +63,7 @@ class Off(DishLNCommand):
                 status=TaskStatus.COMPLETED,
                 result=(ResultCode.OK, COMMAND_COMPLETION_MESSAGE),
             )
+        self.component_manager.remove_command_in_progress_object(self)
 
     # pylint: disable=arguments-differ
     def do(self: Off) -> Tuple[ResultCode, str]:
@@ -79,8 +80,8 @@ class Off(DishLNCommand):
         """
         result_code, message = self.init_adapter()
         if result_code == ResultCode.FAILED:
-            self.logger.debug(
-                "Adapter for : %s is not found ",
+            self.logger.error(
+                "Adapter not found for %s",
                 self.component_manager.dish_dev_name,
             )
             return result_code, message

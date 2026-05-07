@@ -40,23 +40,12 @@ def _simulate_temp(
 
 
 def test_gust_auto_stow_completed(
+    tango_context,
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
-
-    attr = {
-        'SetStowMode.return_value': (
-            [ResultCode.STARTED],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-    cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     _simulate_wind_speed(cm, 21.0, 3)
-    assert wait_for_stow_status(cm, StowStatus.STOW_STARTED)
     simulate_dish_mode_event(cm, DishMode.STOW)
     assert wait_for_dish_mode(cm, DishMode.STOW)
     assert wait_for_stow_status(cm, StowStatus.STOW_COMPLETED)
@@ -114,20 +103,10 @@ def test_gust_auto_stow_failed(
 
 
 def test_wind_ops_auto_stow_completed(
+    tango_context,
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
-    attr = {
-        'SetStowMode.return_value': (
-            [ResultCode.STARTED],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-
-    cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     # updating duration from 1000s to 5s
     cm.auto_stow.operational_wind_speed_duration = 5.0
@@ -152,20 +131,21 @@ def test_wind_ops_auto_stow_completed(
 
 
 def test_wind_ops_perc_auto_stow_completed(
+    tango_context,
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
-    attr = {
-        'SetStowMode.return_value': (
-            [ResultCode.STARTED],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-
-    cm.adapter_factory = adapter_factory
+    # attr = {
+    #     'SetStowMode.return_value': (
+    #         [ResultCode.STARTED],
+    #         ["Command Completed"],
+    #     ),
+    # }
+    # dishMock = mock.Mock(**attr)
+    # factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    # adapter_factory = mock.Mock(**factory_attrs)
+    #
+    # cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     # updating duration from 600s to 5s
     cm.auto_stow.operational_perc_mean_diff_duration = 5.0
@@ -184,20 +164,21 @@ def test_wind_ops_perc_auto_stow_completed(
 
 
 def test_wind_auto_stow_completed(
+    tango_context,
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
-    attr = {
-        'SetStowMode.return_value': (
-            [ResultCode.STARTED],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-
-    cm.adapter_factory = adapter_factory
+    # attr = {
+    #     'SetStowMode.return_value': (
+    #         [ResultCode.STARTED],
+    #         ["Command Completed"],
+    #     ),
+    # }
+    # dishMock = mock.Mock(**attr)
+    # factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    # adapter_factory = mock.Mock(**factory_attrs)
+    #
+    # cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     # updating duration from 600s to 5s
     cm.auto_stow.mean_wind_speed_duration = 5.0
@@ -222,20 +203,21 @@ def test_wind_auto_stow_completed(
 
 
 def test_temp_auto_stow_completed(
+    tango_context,
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
-    attr = {
-        'SetStowMode.return_value': (
-            [ResultCode.STARTED],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
+    # attr = {
+    #     'SetStowMode.return_value': (
+    #         [ResultCode.STARTED],
+    #         ["Command Completed"],
+    #     ),
+    # }
+    # dishMock = mock.Mock(**attr)
+    # factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    # adapter_factory = mock.Mock(**factory_attrs)
 
-    cm.adapter_factory = adapter_factory
+    # cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     _simulate_temp(cm, 41, 1)
     assert wait_for_stow_status(cm, StowStatus.STOW_STARTED)
@@ -274,22 +256,23 @@ def test_temp_auto_stow_completed(
 
 
 def test_temp_roc_stow_completed(
+    tango_context,
     cm_without_er_lp,
 ):
     """Testing with time delta of 5s,
     the rate of change of temperature for duration of 5s"""
     cm = cm_without_er_lp
-    attr = {
-        'SetStowMode.return_value': (
-            [ResultCode.STARTED],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-
-    cm.adapter_factory = adapter_factory
+    # attr = {
+    #     'SetStowMode.return_value': (
+    #         [ResultCode.STARTED],
+    #         ["Command Completed"],
+    #     ),
+    # }
+    # dishMock = mock.Mock(**attr)
+    # factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    # adapter_factory = mock.Mock(**factory_attrs)
+    #
+    # cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     cm.auto_stow.time_delta = 5  # 5 seconds
     # simulate such that the temp delta in 5seconds is more than 4.5
@@ -310,20 +293,21 @@ def test_temp_roc_stow_completed(
 
 
 def test_auto_stow_not_invoked(
+    tango_context,
     cm_without_er_lp,
 ):
     cm = cm_without_er_lp
-    attr = {
-        'SetStowMode.return_value': (
-            [ResultCode.STARTED],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(**attr)
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-
-    cm.adapter_factory = adapter_factory
+    # attr = {
+    #     'SetStowMode.return_value': (
+    #         [ResultCode.STARTED],
+    #         ["Command Completed"],
+    #     ),
+    # }
+    # dishMock = mock.Mock(**attr)
+    # factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    # adapter_factory = mock.Mock(**factory_attrs)
+    #
+    # cm.adapter_factory = adapter_factory
     cm.weather_station_device_names = ["ska-mid/weather-monitoring/s1"]
     _simulate_wind_speed(cm, 13, 5)  # less than threshold
     assert wait_for_stow_status(cm, StowStatus.DISH_NOT_IN_STOW)

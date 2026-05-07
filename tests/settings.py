@@ -2,10 +2,13 @@
 import json
 import logging
 import re
+import threading
 import time
 from datetime import datetime
 from typing import List
+from unittest import mock
 
+import katpoint
 import tango
 from astropy.time import Time
 from ska_control_model import HealthState
@@ -15,6 +18,7 @@ from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
 from ska_tmc_common import DishMode, PointingState
 from ska_tmc_common.adapters import AdapterFactory as HelperAdapterFactory
+from ska_tmc_common.v3.dish_utils import DishHelper
 from tango import DeviceProxy
 
 from ska_tmc_dishleafnode.enums.stow_status import StowStatus
@@ -166,6 +170,13 @@ ARRAY_LAYOUT = {
     "station_label": "SKA001",
     "station_id": 65,
 }
+
+COMMAND_FAILED_DISH = (
+    '[3, '
+    '"Exception occurred on devices: '
+    'mid-dish/dish-manager/ska001: '
+    'Exception occured, command failed."]'
+)
 
 
 def wait_for_ping(dishleafnode_cm):
@@ -359,6 +370,46 @@ def wait_for_attribute_health_value(
     return True
 
 
+def wait_for_target_data(device, expected_x, expected_y, timeout=5):
+    """
+    Waits for the targetData attribute to contain the
+    specified x and y values under the trajectory key.
+
+    Args:
+        device (DeviceProxy): The Tango device proxy object.
+        expected_x (float): The expected x value under the trajectory key.
+        expected_y (float): The expected y value under the trajectory key.
+        timeout (int, optional): The maximum time to wait in seconds.
+
+    Returns:
+        bool: True if the expected values are found within the timeout
+    """
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        target_data = device.targetData
+        try:
+            target_data_dict = json.loads(target_data)
+            trajectory = target_data_dict.get("pointing", {}).get(
+                "trajectory", {}
+            )
+            if (
+                trajectory.get("attrs", {}).get("x") == expected_x
+                and trajectory.get("attrs", {}).get("y") == expected_y
+            ):
+                return True
+        except (json.JSONDecodeError, AttributeError) as e:
+            logger.debug("Error reading targetData: %s", e)
+        time.sleep(1)
+
+    logger.warning(
+        "Timeout after %s  waiting for targetData to contain x=%s, y=%s",
+        timeout,
+        expected_x,
+        expected_y,
+    )
+    return False
+
+
 def wait_for_attribute_value(
     device: DeviceProxy, attribute_name: str, value: str = "[]"
 ) -> bool:
@@ -403,6 +454,7 @@ def tear_down(
     logger.info("Invoked tear_down")
     current_pointing_state = dish_master.pointingState
     if current_pointing_state == PointingState.TRACK:
+        time.sleep(5)  # allow to fill the PTT scheduler buffer.
         result, unique_id = dish_leaf_node.TrackStop()
         assert result[0] == ResultCode.QUEUED
 
@@ -566,30 +618,55 @@ def dln_can_communicate_with_dish_master(
     return flag
 
 
-def simulate_result_code_event(
-    cm: DishLNComponentManager,
-    command_name: str,
-    result: ResultCode,
+def simulate_events_on_dish_device(
+    component_manager,
+    device_list,
+    dish_mode=None,
+    cmd_object=None,
+    band=None,
+    pointing_state=None,
 ):
-    """Simulate LRCR event from given device for given result."""
-    try:
-        command_id = ""
-        command_id = f"{time.time()}_{command_name}"
-        cm.command_unique_id_dict[command_name] = command_id
-        logging.info("command_id  is: %s", command_id)
-        command_result = (
-            command_id,
-            json.dumps(
-                [
-                    result,
-                    f"{command_name} completed",
-                ]
-            ),
-        )
-        time.sleep(0.2)
-        cm.update_command_result(command_result)
-    except Exception as exception:
-        logging.exception(exception)
+    """Simulate events on dish mode
+    Args:
+        component_manager: The DishLNComponentManager instance.
+        device_list: List of DeviceProxy instances to simulate events on.
+        dish_mode: Optional DishMode to simulate a dish mode event.
+        cmd_object: Optional command object to invoke command LRC callback.
+
+     :return: None
+     :rtype: None
+    """
+
+    def start_update():
+        for device in device_list:
+            logger.info("Device: %s", device)
+            if cmd_object:
+                cb = cmd_object.invoke_command_lrc_cb(device)
+                cb(result=[ResultCode.OK, "Command Completed"])
+        if dish_mode:
+            simulate_dish_mode_event(component_manager, dish_mode)
+        if band:
+            component_manager.update_device_configured_band(band)
+        if pointing_state:
+            component_manager.update_device_pointing_state(pointing_state)
+
+    threading.Timer(0.5, start_update).start()
+
+
+def get_mock_adapter_factory(command_id, **factorty_attrs):
+    """Returns a mock adapter factory with dish mock."""
+    attr = {
+        "get_attribute_list.return_value": ["lrcProtocolVersions"],
+        "lrcProtocolVersions": (1, 2),
+        "command_inout.return_value": ([ResultCode.QUEUED], [command_id]),
+    }
+    attr.update(**factorty_attrs)
+    dishMock = mock.Mock(**attr)
+    dishMock.dev_name = DISH_MASTER_DEVICE
+    dishMock._proxy = dishMock
+    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
+    adapter_factory = mock.Mock(**factory_attrs)
+    return adapter_factory
 
 
 def simulate_track_table_event(
@@ -640,37 +717,48 @@ def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
     return None
 
 
-def get_non_sidereal_json_for_source_not_visible(non_side_real_json) -> str:
+def get_non_sidereal_json_for_source_not_visible() -> str:
     """Return the json for Configure command with non-visible non-sidereal
     object according to current time.
     """
-    current_time = int(datetime.utcnow().strftime("%H"))
-    logging.info("CURRENT TIME: %s", current_time)
-    configure_input_json = json.loads(non_side_real_json)
 
-    if 8 <= current_time <= 14:
-        configure_input_json["pointing"]["target"]["target_name"] = "Uranus"
-        return json.dumps(configure_input_json)
-    if 3 <= current_time <= 8:
-        configure_input_json["pointing"]["target"]["target_name"] = "Saturn"
-        return json.dumps(configure_input_json)
-    if current_time <= 3 or current_time >= 21:
-        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
-        return json.dumps(configure_input_json)
-    if 17 <= current_time <= 21:
-        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
-        return json.dumps(configure_input_json)
-    if 14 <= current_time <= 15:
-        configure_input_json["pointing"]["target"]["target_name"] = "Mars"
-        return json.dumps(configure_input_json)
-    return ""
+    current_time = int(datetime.utcnow().strftime("%H"))
+    logger.info("CURRENT TIME: %s", current_time)
+    antenna_ska001 = DishHelper(antenna_data=ARRAY_LAYOUT)
+    ska001 = antenna_ska001.get_dish_antenna()
+    solar_system_objects = [
+        "Mercury",
+        "Venus",
+        "Mars",
+        "Jupiter",
+        "Saturn",
+        "Uranus",
+        "Neptune",
+        "Sun",
+    ]
+    object_not_visible = None
+    timestamp = datetime.utcnow()
+    for solar_system_object in solar_system_objects:
+        target = katpoint.Target(f"{solar_system_object} , special")
+        radec = target.radec(timestamp, ska001)
+        target = katpoint.Target(
+            f"object ,radec,{radec.ra.deg},{radec.dec.deg}"
+        )
+        azel = target.azel(
+            timestamp,
+            ska001,
+        )
+        if azel.alt.deg <= 7.5 or azel.alt.deg >= 90.0:
+            object_not_visible = solar_system_object
+            break
+    return object_not_visible
 
 
 def get_non_sidereal_json_for_source_unknown(non_side_real_json) -> str:
     """Return the json for Configure command with unknown non-sidereal
     object."""
     configure_input_json = json.loads(non_side_real_json)
-    configure_input_json["pointing"]["target"]["target_name"] = "Pluto"
+    configure_input_json["pointing"]["target"]["target_name"] = "Sirius"
     return json.dumps(configure_input_json)
 
 

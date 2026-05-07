@@ -14,25 +14,43 @@ from ska_dishln_pointing_device.commands.generate_program_track_table import (
 from ska_dishln_pointing_device.commands.stop_program_track_table import (
     StopProgramTrackTable,
 )
-from ska_dishln_pointing_device.mapping_scan.utils import (
-    InvalidTargetDataError,
-)
 from ska_tmc_dishleafnode.commands.abort_command import Abort
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
-from tests.settings import logger, simulate_dish_mode_event, wait_for_dish_mode
+from ska_tmc_dishleafnode.commands.trackstop_command import TrackStop
+from tests.settings import (
+    get_mock_adapter_factory,
+    logger,
+    simulate_dish_mode_event,
+    wait_for_dish_mode,
+)
 
 
-def test_generate_program_track_table(cm_pointig_device):
+def test_generate_program_track_table(cm_pointing_device):
+    mock_logger = mock.MagicMock()
     generate_program_track_table = GenerateProgramTrackTable(
-        component_manager=cm_pointig_device,
-        logger=logger,
+        component_manager=cm_pointing_device,
+        logger=mock_logger,
     )
-    cm_pointig_device.target_data = {"1": 1}  # invalid target data
-    with pytest.raises(InvalidTargetDataError):
-        generate_program_track_table.do()
-    cm_pointig_device.target_data = {"pointing": [1, 2]}  # invalid target data
-    with pytest.raises(Exception):
-        generate_program_track_table.do()
+    cm_pointing_device.logger = mock_logger
+
+    cm_pointing_device.target_data = {"1": 1}  # invalid target data
+    generate_program_track_table.do()
+
+    assert cm_pointing_device.current_track_table_error is not None
+
+    # Second case
+    mock_logger = mock.MagicMock()
+    generate_program_track_table = GenerateProgramTrackTable(
+        component_manager=cm_pointing_device,
+        logger=mock_logger,
+    )
+    cm_pointing_device.logger = mock_logger
+
+    cm_pointing_device.target_data = {
+        "pointing": [1, 2]
+    }  # invalid target data
+    generate_program_track_table.do()
+    assert cm_pointing_device.current_track_table_error is not None
 
 
 def test_stop_program_track_table():
@@ -109,6 +127,7 @@ def test_error_propagation_program_track_table(
 def test_error_propagation_stop_program_track_table(
     task_callback, cm_without_er_lp
 ):
+    command_id = f"{time.time()}_TrackStop"
     attrs = {
         'StopProgramTrackTable.side_effect': (Exception("error")),
         'TrackStop.return_value': ([ResultCode.OK], ["Command Completed"]),
@@ -116,17 +135,13 @@ def test_error_propagation_stop_program_track_table(
             [ResultCode.OK],
             ["Command Completed"],
         ),
-    }
-    dishMock = mock.Mock(
-        programTrackTable=[
+        "programTrackTable": [
             775853423.2247269,
             178.758613204265,
             31.165682681453,
         ],
-        **attrs,
-    )
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
+    }
+    adapter_factory = get_mock_adapter_factory(command_id, **attrs)
     cm = cm_without_er_lp
     cm.kvalue_validation_thread.cancel()
     cm.command_timeout = 5
@@ -134,8 +149,8 @@ def test_error_propagation_stop_program_track_table(
     simulate_dish_mode_event(cm, DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.TRACK)
     assert cm.is_trackstop_allowed()
-
-    cm.trackstop(
+    track_stop = TrackStop(cm, cm.op_state_model, adapter_factory, logger)
+    track_stop.trackstop(
         task_callback=task_callback, task_abort_event=threading.Event()
     )
 
@@ -166,6 +181,7 @@ def test_error_propagation_abort_stop_program_track_table(
     factory_attrs = {'get_or_create_adapter.return_value': dishMock}
     adapter_factory = mock.Mock(**factory_attrs)
     cm = cm_without_er_lp
+    cm.is_dish_abort_commands_enabled = False
     abort_command = Abort(cm, cm.op_state_model, adapter_factory, logger)
     result_code, return_message = abort_command.do()
     exception_message = (

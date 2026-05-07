@@ -17,6 +17,10 @@ from ska_tmc_common import (
     TimeoutState,
     TmcLeafNodeCommand,
 )
+from ska_tmc_common.command_completion_tracker import (
+    CommandCompletionContext,
+    CommandCompletionTracker,
+)
 from tango import ConnectionFailed, DevFailed
 
 configure_logging()
@@ -66,6 +70,7 @@ class DishLNCommand(TmcLeafNodeCommand):
         op_state_model,
         adapter_factory=None,
         logger: logging.Logger = LOGGER,
+        add_to_command_in_progress_list: bool = True,
     ):
         super().__init__(component_manager, logger)
         self.timeout_id = f"{time.time()}_{__class__.__name__}"
@@ -81,6 +86,9 @@ class DishLNCommand(TmcLeafNodeCommand):
             self.component_manager.command_timeout, logger
         )
         self.command_uniq_id: str = ""
+        self.is_aborted: bool = False
+        if add_to_command_in_progress_list:
+            self.component_manager.command_in_progress_objects.append(self)
 
     def init_adapter(self: DishLNCommand):
         """Creates adapter for underlying Dish device."""
@@ -100,7 +108,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 )
                 self.dish_master_adapter.proxy.set_timeout_millis(5000)
                 self.logger.debug(
-                    "Dish Master adapter created successfully",
+                    "Dish Manager adapter created successfully",
                 )
                 self.component_manager.set_dish_adapter(
                     self.dish_master_adapter
@@ -204,9 +212,7 @@ class DishLNCommand(TmcLeafNodeCommand):
                 return flag
             elapsed_time = time.time() - start_time
 
-        self.logger.info(
-            "Current Dishmode is %s", self.component_manager.dishMode
-        )
+        self.logger.info("Dish mode is %s", self.component_manager.dishMode)
         return flag
 
     def init_adapter_mid(self: DishLNCommand):
@@ -251,5 +257,50 @@ class DishLNCommand(TmcLeafNodeCommand):
             else:
                 self.task_callback(status=status, result=result)
         self.component_manager.command_in_progress = ""
+        self.component_manager.remove_command_in_progress_object(self)
         if not self.component_manager.is_configure_command:
             self.component_manager.clear_configure_command_events_flags()
+
+    def is_abort_flag_set(self) -> bool:
+        """Check if the abort flag is set.
+
+        Returns:
+            bool: True if the abort flag is set, False otherwise.
+        """
+        return self.abort_flag
+
+    def wait_for_completion(
+        self,
+        state_getter: Callable[[], bool] = None,
+        desired_state: bool = True,
+        device_length: int = 1,
+        check_abort: bool = True,
+    ) -> Tuple[ResultCode, str]:
+        """Wait for command completion using CommandCompletionTracker
+        Args:
+            state_getter (Callable[[], bool]): Function to get the
+            current state
+            desired_state (ObsState): Expected observation state after
+            command execution
+            device_length (int): Number of devices to wait for completion
+            (default is 1)
+            check_abort (bool): Whether to check for abort signal
+        Returns:
+            Tuple[ResultCode, str]: Final result code and corresponding message
+        """
+        tracker = CommandCompletionTracker(self.logger)
+
+        context = CommandCompletionContext(
+            command_results=self.command_results,
+            completion_condition=(
+                self.component_manager.command_completion_cond
+            ),
+            timeout=self.component_manager.command_timeout,
+            device_length=device_length,
+            check_abort=check_abort,
+            state_getter=state_getter,
+            desired_state=desired_state,
+            abort_checker=self.is_abort_flag_set,
+        )
+
+        return tracker.wait_for_command_completion(context)

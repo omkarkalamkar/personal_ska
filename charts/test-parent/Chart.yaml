@@ -10,13 +10,13 @@ maintainers:
     email: telmgt-internal@googlegroups.com
 dependencies:
   - name: ska-tango-base
-    version: 1.0.5
+    version: 1.0.7
     repository: https://artefact.skao.int/repository/helm-internal
   - name: ska-tango-util
-    version: 1.0.5
+    version: 1.0.7
     repository: https://artefact.skao.int/repository/helm-internal
   - name: ska-tmc-dishleafnode
-    version: 0.40.2
+    version: 0.45.1
     repository: file://../ska-tmc-dishleafnode
     alias: tmc-dishleafnode
   - name: ska-taranta

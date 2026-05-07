@@ -2,14 +2,15 @@
 
 import logging
 import threading
+import traceback
 from typing import Any, Optional, Tuple
 
 from ska_control_model import TaskStatus
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode
 
-from ska_dishln_pointing_device.mapping_scan.point_mapping import (
-    FixedMappingScan,
+from ska_dishln_pointing_device.mapping_scan.trajectory_mapping_scan import (
+    TrajectoryMappingScan,
 )
 
 
@@ -69,7 +70,7 @@ class GenerateProgramTrackTable:
             return ResultCode.FAILED, str(ex)
 
         self.logger.debug(
-            "Updating Task status with Result: %s , Message: %s",
+            "Updating Task status with Result: %s, Message: %s",
             return_code,
             message,
         )
@@ -90,16 +91,26 @@ class GenerateProgramTrackTable:
             self.component_manager.dishln_pointing_device_name,
         )
 
-        with self.component_manager.track_thread_lock:
-            self.component_manager.mapping_scan_event.clear()
-
-        self.component_manager.current_mapping_scan_obj = FixedMappingScan(
-            pattern_name="fixed",
-            component_manager=self.component_manager,
-            logger=self.logger,
-        )
-
-        current_scan_obj = self.component_manager.current_mapping_scan_obj
-        current_scan_obj.set_target_and_start_process()
-
-        return ResultCode.OK, "Command Completed"
+        try:
+            with self.component_manager.track_thread_lock:
+                self.component_manager.mapping_scan_event.set()
+                self.component_manager.current_mapping_scan_obj = (
+                    TrajectoryMappingScan(
+                        component_manager=self.component_manager,
+                        logger=self.logger,
+                    )
+                )
+                current_scan_obj = (
+                    self.component_manager.current_mapping_scan_obj
+                )
+                current_scan_obj.set_target_and_start_process()
+                return ResultCode.OK, "Command Completed"
+        except Exception as exception:
+            self.logger.error(
+                "Error in GenerateProgramTrackTable: %s", str(exception)
+            )
+            self.logger.error(traceback.print_exc())
+            self.component_manager.update_program_track_table_error_callback(
+                str(exception)
+            )
+            return ResultCode.FAILED, str(exception)

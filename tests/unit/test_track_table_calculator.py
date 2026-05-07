@@ -1,35 +1,43 @@
-import datetime
 import sched
 import time
 
 import pytest
+from astropy.time import Time
+from katpoint import Target
 
-from ska_tmc_dishleafnode.az_el_converter import AzElConverter
-from ska_tmc_dishleafnode.constants import PROGRAM_TRACK_TABLE_SIZE
+from ska_tmc_dishleafnode.az_el_converter import AzElConverter_v2
+from ska_tmc_dishleafnode.constants import FIRST_PROGRAM_TRACK_TABLE_SIZE
 from ska_tmc_dishleafnode.manager.program_track_table_calculator import (
     ProgramTrackTableCalculator,
 )
 from tests.settings import logger
 
 
-def test_calculate_time_stamp_array(cm_pointig_device):
-    cm = cm_pointig_device
+def test_calculate_time_stamp_array(cm_pointing_device):
+    cm = cm_pointing_device
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
-    track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
+    track_table_calculator.track_table_time_stamp = Time.now()
     (
         time_stamp_array,
         tai_timestamp_array,
-    ) = track_table_calculator.calculate_time_stamp_list()
-    assert len(time_stamp_array) == PROGRAM_TRACK_TABLE_SIZE
-    assert len(tai_timestamp_array) == PROGRAM_TRACK_TABLE_SIZE
+    ) = track_table_calculator.calculate_time_stamp_list(50)
+    assert len(time_stamp_array) == FIRST_PROGRAM_TRACK_TABLE_SIZE
+    assert len(tai_timestamp_array) == FIRST_PROGRAM_TRACK_TABLE_SIZE
 
 
-def test_calculate_program_track_table(cm_pointig_device):
-    cm = cm_pointig_device
+def test_calculate_program_track_table(cm_pointing_device):
+    cm = cm_pointing_device
     wait_for_iers_data_available(cm)
-    azel_converter = AzElConverter(cm)
+    target = Target("Polaris Australis, radec, 21:08:47.92, -88:57:22.9")
+    target.antenna = cm.observer
+    cm.antenna_target = target
+    cm.projection_name = "SIN"
+    cm.projection_alignment = "ICRS"
+    cm.fixed_x_offset = 0.0
+    cm.fixed_y_offset = 0.0
+    azel_converter = AzElConverter_v2(cm)
     track_table_calculator = ProgramTrackTableCalculator(cm, logger=logger)
-    track_table_calculator.track_table_time_stamp = datetime.datetime.utcnow()
+    track_table_calculator.track_table_time_stamp = Time.now()
     track_table_calculator.track_table_scheduler = sched.scheduler(
         time.time, time.sleep
     )
@@ -48,9 +56,8 @@ def test_calculate_program_track_table(cm_pointig_device):
             retry += 1
         time.sleep(0.1)
 
-    # Given Ra and Dec are of polaris australis
     program_track_table = track_table_calculator.calculate_program_track_table(
-        ["21:27:51.5", "-88:51:08.8"], azel_converter
+        azel_converter, program_track_table_size=FIRST_PROGRAM_TRACK_TABLE_SIZE
     )
 
     TIMEOUT = 10
@@ -61,9 +68,7 @@ def test_calculate_program_track_table(cm_pointig_device):
         time.sleep(0.5)
 
     logger.info(f"ProgramTrackTable: {program_track_table}")
-
     assert len(program_track_table) > 0 and len(program_track_table) % 3 == 0
-
     for item in program_track_table:
         assert isinstance(item, float)
 
@@ -76,25 +81,25 @@ def wait_for_iers_data_available(cm):
         time.sleep(0.5)
 
 
-def test_azimuth_range(cm_pointig_device):
+def test_azimuth_range(cm_pointing_device):
     track_table_calculator = ProgramTrackTableCalculator(
-        cm_pointig_device, logger=logger
+        cm_pointing_device, logger=logger
     )
     assert (
-        cm_pointig_device.azimuth_min_limit
+        cm_pointing_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(500.0)
-        < cm_pointig_device.azimuth_max_limit
+        < cm_pointing_device.azimuth_max_limit
     )
     assert (
-        cm_pointig_device.azimuth_min_limit
+        cm_pointing_device.azimuth_min_limit
         < track_table_calculator.fit_azimuth_in_observable_range(-500.0)
-        < cm_pointig_device.azimuth_max_limit
+        < cm_pointing_device.azimuth_max_limit
     )
 
 
-def test_azimuth_range_exception(cm_pointig_device):
+def test_azimuth_range_exception(cm_pointing_device):
     track_table_calculator = ProgramTrackTableCalculator(
-        cm_pointig_device, logger=logger
+        cm_pointing_device, logger=logger
     )
     with pytest.raises(Exception):
         track_table_calculator.fit_azimuth_in_observable_range()

@@ -6,32 +6,23 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import threading
 import time
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 
 import tango
 from ska_control_model import HealthState, TaskStatus
 from ska_ser_logging import configure_logging
 from ska_tango_base.commands import ResultCode
-from ska_tmc_common import (
-    DishMode,
-    PointingState,
-    TimeKeeper,
-    TrackTableLoadMode,
-)
-from ska_tmc_common.v1.error_propagation_tracker import (
-    error_propagation_tracker,
-)
-from ska_tmc_common.v1.timeout_tracker import timeout_tracker
+from ska_tmc_common import DishMode, PointingState, TrackTableLoadMode
 
 from ska_tmc_dishleafnode.commands.configure_band_command import ConfigureBand
 from ska_tmc_dishleafnode.commands.dish_ln_command import DishLNCommand
 from ska_tmc_dishleafnode.commands.track_command import Track
-from ska_tmc_dishleafnode.commands.track_load_static_off_command import (
-    TrackLoadStaticOff,
+from ska_tmc_dishleafnode.constants import (
+    ADJUST_TIMEOUT,
+    FIXED_TRAJECTORY,
+    RESET_OFFSETS,
 )
-from ska_tmc_dishleafnode.constants import ADJUST_TIMEOUT, RESET_OFFSETS
 from ska_tmc_dishleafnode.enums.enums import CORRECTION_KEY, CommandResult
 
 configure_logging()
@@ -62,22 +53,17 @@ class Configure(DishLNCommand):
         super().__init__(
             component_manager, op_state_model, adapter_factory, logger
         )
-
-        self.timekeeper = TimeKeeper(
-            self.component_manager.command_timeout, logger
-        )
         self.component_manager.configure_command_timer_list.append(
             self.timekeeper
         )
 
     # pylint: disable=unused-argument
-    @timeout_tracker
-    @error_propagation_tracker(
-        "is_configure_completed",
-        [True],
-    )
     def invoke_configure(
-        self: Configure, argin: str, **kwargs
+        self: Configure,
+        argin: str,
+        task_callback: Callable = None,
+        task_abort_event: Optional[object] = None,
+        **kwargs,
     ) -> Tuple[ResultCode, str]:
         """This is a long running method for Configure command, it
         executes do hook, invokes Configure command on Dish Master.
@@ -87,6 +73,8 @@ class Configure(DishLNCommand):
         :return: : (ResultCode, str)
         :rtype: Tuple
         """
+        self.task_callback = task_callback
+        self.component_manager.abort_event = task_abort_event
         self.component_manager.command_id = self.timeout_id
         self.component_manager.is_configure_command = True
         self.component_manager.command_in_progress = "Configure"
@@ -96,7 +84,7 @@ class Configure(DishLNCommand):
         array_layout = json_argument.get("layout_data")
         if array_layout is not None:
             self.component_manager.array_layout = array_layout
-            self.logger.debug("Set array layout to: %s", array_layout)
+            self.logger.debug("Array layout set to %s", array_layout)
 
         if json_argument.get("tmc") and json_argument["tmc"].get(
             "partial_configuration", False
@@ -107,16 +95,16 @@ class Configure(DishLNCommand):
         if receiver_band:
             self.component_manager.receiver_band = receiver_band
             self.logger.debug(
-                "Set receiver band to: %s",
+                "Set receiver band to %s",
                 self.component_manager.receiver_band,
             )
         else:
             self.component_manager.receiver_band = (
                 self.component_manager.dishConfiguredBand
             )
-
-        result_code, message = self.do(argin)
         self.set_command_id(__class__.__name__)
+        result_code, message = self.do(argin)
+        self.call_update_task_status(result_code, message)
         return result_code, message
 
     def update_primary_configuration(self, new_configuration: dict):
@@ -134,23 +122,39 @@ class Configure(DishLNCommand):
             self.component_manager.primary_configuration["pointing"][
                 "field"
             ] = field
+
         # Update trajectory
         if "trajectory" in pointing_data:
             trajectory = pointing_data["trajectory"]
             self.component_manager.primary_configuration["pointing"][
                 "trajectory"
             ] = trajectory
-        # update projection
+
+        # Update projection
         if "projection" in pointing_data:
             projection = pointing_data["projection"]
             self.component_manager.primary_configuration["pointing"][
                 "projection"
             ] = projection
+
         # Update wrap_sector key
         if "wrap_sector" in pointing_data:
             self.component_manager.primary_configuration["pointing"][
                 "wrap_sector"
             ] = pointing_data["wrap_sector"]
+
+        for offset_key in ("ca_offset_arcsec", "ie_offset_arcsec"):
+            if offset_key in pointing_data:
+                self.component_manager.primary_configuration["pointing"][
+                    offset_key
+                ] = pointing_data[offset_key]
+                self.logger.info(
+                    "Partial config: applied legacy collimation "
+                    "offset %s = %s",
+                    offset_key,
+                    pointing_data[offset_key],
+                )
+
         # Update receiver band
         dish_data = new_configuration.get("dish", {})
         if "receiver_band" in dish_data:
@@ -158,6 +162,54 @@ class Configure(DishLNCommand):
             self.component_manager.primary_configuration["dish"][
                 "receiver_band"
             ] = new_receiver_band
+
+    def normalise_pointing_data(self, config_json: dict) -> dict:
+        """Normalise configure JSON to support both old and ADR-63 formats.
+
+        - Converts legacy offsets ``ca_offset_arcsec`` / ``ie_offset_arcsec``
+          to ``pointing.trajectory.attrs.x`` / ``y`` when trajectory offsets
+          are not already present.
+
+        Args:
+            config_json (dict): Input configure JSON as dictionary.
+
+        Returns:
+            dict: Normalised configure JSON.
+        """
+        pointing_data = config_json.get("pointing")
+        if not isinstance(pointing_data, dict):
+            return config_json
+
+        x_offset = y_offset = None
+        target_data = pointing_data.get("target", {})
+        if isinstance(target_data, dict) and (
+            "ca_offset_arcsec" in target_data
+            or "ie_offset_arcsec" in target_data
+        ):
+            x_offset = target_data.get("ca_offset_arcsec", 0.0)
+            y_offset = target_data.get("ie_offset_arcsec", 0.0)
+        elif (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            x_offset = pointing_data.get("ca_offset_arcsec", 0.0)
+            y_offset = pointing_data.get("ie_offset_arcsec", 0.0)
+
+        if x_offset is not None and y_offset is not None:
+            trajectory = pointing_data.get("trajectory")
+            if not isinstance(trajectory, dict):
+                trajectory = {}
+            trajectory.setdefault("name", FIXED_TRAJECTORY)
+            attrs = trajectory.get("attrs")
+            if not isinstance(attrs, dict):
+                attrs = {}
+            attrs.setdefault("x", x_offset)
+            attrs.setdefault("y", y_offset)
+            trajectory["attrs"] = attrs
+            pointing_data["trajectory"] = trajectory
+
+        config_json["pointing"] = pointing_data
+        return config_json
 
     def update_task_status(self, **kwargs) -> None:
         """Method to update task status with result code and exception message
@@ -193,7 +245,7 @@ class Configure(DishLNCommand):
                 self.task_callback(result=result, status=status)
                 self.logger.info(
                     "Command ID: %s | "
-                    + "Successfully executed Configure command on %s",
+                    + "Configure command is executed Successfully on %s",
                     self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
                 )
@@ -212,10 +264,6 @@ class Configure(DishLNCommand):
                 )
 
                 self.component_manager.command_in_progress = ""
-            self.logger.debug(
-                "Command ID: %s | Performing Configure command cleanup",
-                self.component_manager.command_id,
-            )
             self.component_manager.command_id = ""
             self.component_manager.update_rxband_health_aggregation()
             self.component_manager.partial_configure = False
@@ -229,13 +277,16 @@ class Configure(DishLNCommand):
             ):
                 self.component_manager.correction_key = ""
             self.component_manager.clear_configure_command_events_flags()
-
-            self.logger.debug("Configure command cleanup completed.")
+            self.component_manager.remove_command_in_progress_object(self)
+            self.logger.debug(
+                "Command ID: %s | Configure command cleanup completed.",
+                self.component_manager.command_id,
+            )
 
         except Exception as e:
             self.logger.exception(
                 "Command ID: %s | Failed to update "
-                + "task status ,Exception: %s",
+                + "task status, Exception: %s",
                 self.component_manager.command_id,
                 str(e),
             )
@@ -254,35 +305,36 @@ class Configure(DishLNCommand):
 
         """
 
+        # pointing must be present
         if "pointing" not in input_argin:
             return (
                 ResultCode.REJECTED,
                 "pointing key is not present in the configure input json.",
             )
 
-        if "tmc" in input_argin and input_argin["tmc"].get(
-            "partial_configuration"
-        ):
+        # partial configuration case: ensure target provided inside pointing
+        if input_argin.get("tmc", {}).get("partial_configuration"):
             if "target" not in input_argin["pointing"]:
                 return (
                     ResultCode.REJECTED,
                     "target key is not present in the input json argument.",
                 )
-        else:
-            if "dish" not in input_argin:
-                return (
-                    ResultCode.REJECTED,
-                    "dish key is not present in the input json argument.",
-                )
+            return ResultCode.OK, ""
 
-            if "receiver_band" not in input_argin["dish"]:
-                return (
-                    ResultCode.REJECTED,
-                    "receiverBand key is not present in the input json "
-                    + "argument.",
-                )
+        # non-partial case: ensure dish and receiver_band present
+        if "dish" not in input_argin:
+            return (
+                ResultCode.REJECTED,
+                "dish key is not present in the input json argument.",
+            )
 
-        return (ResultCode.OK, "")
+        if "receiver_band" not in input_argin["dish"]:
+            return (
+                ResultCode.REJECTED,
+                "receiverBand key is not present in the input json argument.",
+            )
+
+        return ResultCode.OK, ""
 
     # pylint: disable=signature-differs
     # pylint: disable=arguments-differ
@@ -327,29 +379,23 @@ class Configure(DishLNCommand):
                 )
                 self.component_manager.is_tracktable_provided.clear()
 
-            json_argument = json.loads(argin)
+            input_json = self.normalise_pointing_data(json.loads(argin))
             if not self.component_manager.partial_configure:
-                self.component_manager.primary_configuration = json_argument
+                self.component_manager.primary_configuration = input_json
                 json_argument = self.component_manager.primary_configuration
             else:
-                self.update_primary_configuration(json_argument)
+                self.update_primary_configuration(input_json)
                 json_argument = self.component_manager.primary_configuration
 
-            self.logger.info("Primary config is %s", json_argument)
+            self.logger.info("Primary configuration is %s", json_argument)
             reset_offset = (
                 self.component_manager.correction_key
                 == CORRECTION_KEY.RESET.value
             )
             collimation_offsets = self.get_ie_ca_offsets_if_provided(
-                json.loads(argin), reset_offset
+                input_json,
+                reset_offset,
             )
-            # Invoke track load static off when collimation offsets
-            # provided and correction key is provided as RESET
-            if collimation_offsets:
-                self.component_manager.is_trackloadstatic_off = True
-                self.invoke_trackloadstaticoff(
-                    json_argument, collimation_offsets
-                )
 
             try:
                 pointing_device_conf_json = copy.deepcopy(json_argument)
@@ -361,22 +407,40 @@ class Configure(DishLNCommand):
                     "pointing": pointing_device_conf_json["pointing"],
                     "tmc": pointing_device_conf_json.get("tmc", {}),
                 }
+                if reset_offset:
+                    target_payload = (
+                        self.component_manager.generate_pointing_data(
+                            target_payload, RESET_OFFSETS
+                        )
+                    )
                 if array_layout is not None:
                     target_payload["array_layout"] = array_layout
                 target_data = json.dumps(target_payload)
 
-                self.logger.debug(
-                    "Main/Delta Config:"
-                    " Calling "
-                    "GenerateProgramTrackTable()"
-                )
                 result_code, _ = self.invoke_generate_program_track_table(
                     target_data
                 )
+                # Invoke track load static off when collimation offsets
+                # provided and correction key is provided as RESET
+                self.logger.debug(
+                    "Command ID: %s |"
+                    " Result code for invoking GenerateProgramTrackTable: %s",
+                    self.component_manager.command_id,
+                    result_code,
+                )
+                if collimation_offsets:
+                    self.logger.debug(
+                        "Command ID: %s | Collimation offsets provided: %s",
+                        self.component_manager.command_id,
+                        collimation_offsets,
+                    )
+                    self.component_manager.update_source_offset_callback(
+                        collimation_offsets
+                    )
             except Exception as exception:
                 self.logger.exception(
                     "Command ID: %s | Failed to generate "
-                    + "program track table for %s , Exception: %s",
+                    + "program track table for %s, Exception: %s",
                     self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
                     str(exception),
@@ -403,13 +467,24 @@ class Configure(DishLNCommand):
                         exception,
                     ),
                 )
-            if not reset_offset and not collimation_offsets:
-                return self.invoke_configure_band_on_dish(json_argument)
+
+            result_code, message = self.invoke_configure_band_on_dish(
+                json_argument
+            )
+            if result_code == ResultCode.OK:
+                self.command_results[self.dish_master_adapter.dev_name] = [
+                    ResultCode.OK,
+                    "",
+                ]
+                return self.wait_for_completion(
+                    self.component_manager.is_configure_completed
+                )
+            return result_code, message
 
         except Exception as exception:
             self.logger.exception(
                 "Command ID: %s | Failed to invoke Configure command on %s"
-                + "Exception: %s",
+                + " Exception: %s",
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
                 str(exception),
@@ -419,10 +494,9 @@ class Configure(DishLNCommand):
                 ResultCode.FAILED,
                 "The invocation of the Configure command is failed on"
                 + f" Dish Master Device {self.dish_master_adapter.dev_name}."
-                + "Reason: Error in calling the Configure command on"
+                + " Reason: Error in calling the Configure command on"
                 + f" Dish Master: {exception}",
             )
-        return ResultCode.QUEUED, ""
 
     def invoke_generate_program_track_table(
         self, target_data: str
@@ -464,64 +538,12 @@ class Configure(DishLNCommand):
         receiver_band = json_argument.get("dish", {}).get("receiver_band", "")
         self.logger.info("Receiver band is %s", receiver_band)
 
-        def _invoke_configure_band_callback(
-            status=None,
-            progress=None,
-            result=None,
-            exception=None,
-        ):
-            """
-            Method for invoking ConfigureBand callback
-            """
-            self.logger.debug(
-                "Command ID: %s | "
-                + "Received result for ConfigureBand command"
-                + " Result: %s , Progress: %s ,Exception: %s",
-                self.component_manager.command_id,
-                result,
-                progress,
-                str(exception),
-            )
-            if result is None:
-                pass
-            else:
-                result_code, message = result
-                self.component_manager.set_configure_band_result_dict(
-                    result_code, message, exception, status
-                )
-                self.component_manager.configure_band_lrcr = result_code
-                if self.component_manager.abort_event.is_set():
-                    return
-                if result_code == ResultCode.OK:
-                    self.start_dish_tracking(json_argument)
-                elif result_code == ResultCode.FAILED:
-                    self.logger.info(
-                        "Command ID: %s | "
-                        + "ResultCode: %s for configure band command",
-                        self.component_manager.command_id,
-                        str(result_code),
-                    )
-                    # If timed out has occurred for configure band then update
-                    # exception message for configure command
-                    if "Timeout has occurred" in exception:
-                        exception_message = (
-                            "Timeout occurred while waiting for "
-                            "configuredBand command to be completed in "
-                            "Configure command."
-                        )
-                        self.logger.exception(exception_message)
-                        self.set_failure_for_configure(exception_message)
-                    else:
-                        self.component_manager.observable.notify_observers(
-                            command_exception=True
-                        )
-
         if (
             receiver_band == self.component_manager.dishConfiguredBand
             and self.component_manager.dishMode == DishMode.OPERATE
         ):
             self.component_manager.configure_band_lrcr = ResultCode.OK
-            self.start_dish_tracking(json_argument)
+            result_code, message = self.start_dish_tracking(json_argument)
 
         # Otherwise, ConfigureBand is required
         else:
@@ -532,25 +554,28 @@ class Configure(DishLNCommand):
                 logger=self.logger,
                 is_configure_command=True,
             )
-            configure_band_command.configure_band(
+            result_code, message = configure_band_command.configure_band(
                 argin=json.dumps(json_argument),
                 logger=self.logger,
-                task_callback=_invoke_configure_band_callback,
+                task_callback=lambda *args, **kwargs: None,
                 task_abort_event=self.component_manager.abort_event,
             )
+            if result_code == ResultCode.OK:
+                result_code, message = self.start_dish_tracking(json_argument)
+            else:
+                # If timed out has occurred for track
+                # then update exception message for
+                # configure command
+                if "Timeout has occurred" in message:
+                    exception_message = (
+                        "Timeout occurred while waiting for "
+                        "configuredBand command to be completed in "
+                        "Configure command."
+                    )
+                    return result_code, exception_message
+                return result_code, message
 
-            if (
-                self.component_manager.get_configure_band_result_code()
-                == ResultCode.FAILED
-            ):
-                return (
-                    self.component_manager.get_configure_band_result_code(),
-                    self.component_manager.get_configure_band_result_dict()[
-                        "exception"
-                    ],
-                )
-
-        return ResultCode.QUEUED, ""
+        return result_code, message
 
     def get_ie_ca_offsets_if_provided(
         self, config_json: dict, reset_offset: bool
@@ -562,121 +587,58 @@ class Configure(DishLNCommand):
         :type config_json: dict
         :param reset_offset: Bool value
         :type reset_offset: bool
+        :param include_trajectory_offsets: whether trajectory based offsets
+            (x, y) should be considered.
+        :type include_trajectory_offsets: bool
         :return: Offset list
         """
         if reset_offset:
             return RESET_OFFSETS
+
         offsets = []
         pointing_data = config_json.get("pointing", {})
-        if pointing_data:
-            target_data = pointing_data.get("target", {})
-            if (
-                "ca_offset_arcsec" in target_data
-                or "ie_offset_arcsec" in target_data
-            ):
-                offsets.append(target_data.get("ca_offset_arcsec", 0.0))
-                offsets.append(target_data.get("ie_offset_arcsec", 0.0))
-            elif (
-                "ca_offset_arcsec" in pointing_data
-                or "ie_offset_arcsec" in pointing_data
-            ):
-                offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
-                offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
-        return offsets
 
-    def invoke_trackloadstaticoff(
-        self: Configure,
-        input_json: dict,
-        collimation_offsets: list,
-    ) -> Tuple[ResultCode, str]:
-        """Extracts the offsets from input json and invokes the
-        TrackLoadStaticOff command on DishMaster device.
-
-        :param input_json: Input json for Configure command
-        :type input_json: dict
-
-        :returns: Tuple[ResultCode, str]
-        """
-        offsets_argin = collimation_offsets
-
-        # pylint: disable=unused-argument
-        def _invoke_trackstaticloadoff_callback(
-            status=None,
-            progress=None,
-            result=None,
-            exception=None,
-        ):
-            """
-            Method for invoking TrackStaticLoadOff callback
-            """
-            if result is None:
-                pass
-            else:
-                result_code, message = result
-                self.component_manager.set_track_load_static_off_result_dict(
-                    result_code, message, exception, status
-                )
-                self.component_manager.partial_configure_lrcr = result_code
-                self.logger.info(
-                    "Command ID: %s | "
-                    "Result code for Track load: %s  "
-                    ",Correction Key: %s ,"
-                    "Partial Configure: %s",
-                    self.component_manager.command_id,
-                    str(result_code),
-                    self.component_manager.correction_key,
-                    self.component_manager.partial_configure,
-                )
-                if self.component_manager.abort_event.is_set():
-                    return
-                if result_code == ResultCode.OK:
-                    self.invoke_configure_band_on_dish(input_json)
-                elif result_code == ResultCode.FAILED:
-                    # If timed out has occurred for trackload
-                    # static off then update
-                    # exception message for configure command
-                    if "Timeout has occurred" in exception:
-                        exception_message = (
-                            "Timeout occurred while waiting for "
-                            "TrackStaticLoadOff command"
-                            " to be completed in Configure command."
-                        )
-                        self.set_failure_for_configure(exception_message)
-                        self.logger.exception(exception_message)
-                    else:
-                        self.component_manager.observable.notify_observers(
-                            command_exception=True
-                        )
-                self.component_manager.command_in_progress = "Configure"
-
-        # pylint: enable=unused-argument
-        # Call the TrackStaticLoadOff command
-        track_load_static_off_command = TrackLoadStaticOff(
-            self.component_manager,
-            self.op_state_model,
-            self._adapter_factory,
-            self.logger,
-            is_configure_command=True,
+        is_trajectory_key_present = (
+            pointing_data.get("trajectory", {}).get("name", "").lower()
+            == FIXED_TRAJECTORY
         )
-        # pylint: disable=E1123
-        track_load_static_off_command.invoke_track_load_static_off(
-            argin=json.dumps(offsets_argin),
-            logger=self.logger,
-            task_callback=_invoke_trackstaticloadoff_callback,
-            task_abort_event=self.component_manager.abort_event,
-        )
-        if (
-            self.component_manager.get_track_load_static_off_result_code()
-            == ResultCode.FAILED
-        ):
-            return (
-                self.component_manager.get_track_load_static_off_result_code(),
-                self.component_manager.get_track_load_static_off_result_dict()[
-                    "exception"
-                ],
+        if is_trajectory_key_present:
+            trajectory_attrs = pointing_data.get("trajectory", {}).get(
+                "attrs", {}
             )
-        self.component_manager.update_source_offset_callback(offsets_argin)
-        return ResultCode.QUEUED, ""
+            if isinstance(trajectory_attrs, dict) and (
+                "x" in trajectory_attrs or "y" in trajectory_attrs
+            ):
+                offsets.append(trajectory_attrs.get("x", 0.0))
+                offsets.append(trajectory_attrs.get("y", 0.0))
+                LOGGER.debug("Using trajectory offsets: %s", offsets)
+                return offsets
+
+        if (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+            LOGGER.debug("Using legacy collimation offsets: %s", offsets)
+            return offsets
+
+        # Legacy target / pointing-level path (unchanged)
+        target_data = pointing_data.get("target", {})
+        if (
+            "ca_offset_arcsec" in target_data
+            or "ie_offset_arcsec" in target_data
+        ):
+            offsets.append(target_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(target_data.get("ie_offset_arcsec", 0.0))
+        elif (
+            "ca_offset_arcsec" in pointing_data
+            or "ie_offset_arcsec" in pointing_data
+        ):
+            offsets.append(pointing_data.get("ca_offset_arcsec", 0.0))
+            offsets.append(pointing_data.get("ie_offset_arcsec", 0.0))
+
+        return offsets
 
     def start_dish_tracking(self: Configure, json_argument: dict):
         """
@@ -686,13 +648,14 @@ class Configure(DishLNCommand):
             json_argument (dict): json argument.
 
         """
+        result_code, message = ResultCode.OK, ""
         # Only invoke Track if dish is in OPERATE mode
         if self.component_manager.dishMode == DishMode.OPERATE:
             self.logger.info(
-                "Command ID: %s | Dish is already in DishMode OPERATE. ",
+                "Command ID: %s | Dish is already in DishMode OPERATE.",
                 self.component_manager.command_id,
             )
-            self.invoke_track_command(json_argument)
+            result_code, message = self.invoke_track_command(json_argument)
         else:
             self.logger.debug(
                 (
@@ -702,6 +665,7 @@ class Configure(DishLNCommand):
                 self.component_manager.command_id,
                 self.component_manager.dish_dev_name,
             )
+        return result_code, message
 
     def invoke_track_command(self: Configure, json_argument: dict):
         """Invoke Track command on dish
@@ -722,25 +686,9 @@ class Configure(DishLNCommand):
                 self.component_manager.dish_dev_name,
             )
             message = "Dish is already tracking/slewing."
-            self.component_manager.set_track_result_dict(
-                ResultCode.OK, message
-            )
-            self.logger.debug(
-                "Command ID: %s | Track command Result: %s",
-                self.component_manager.command_id,
-                self.component_manager.track_result,
-            )
-            self.component_manager.configure_track_lrcr = ResultCode.OK
-            self.component_manager.observable.notify_observers(
-                attribute_value_change=True
-            )
-        else:
-            track_table_provided_thread = threading.Thread(
-                target=self.is_tracktable_provided,
-                args=(json_argument,),
-                daemon=True,
-            )
-            track_table_provided_thread.start()
+            return ResultCode.OK, message
+
+        return self.is_tracktable_provided(json_argument)
 
     def invoke_track_command_on_dish(self, json_argument: dict):
         """Invoke Track command on dish
@@ -749,53 +697,6 @@ class Configure(DishLNCommand):
             json_argument (dict): json argument for invoking track command.
 
         """
-
-        def _invoke_track_callback(
-            status=None,
-            progress=None,
-            result=None,
-            exception=None,
-        ):
-            """
-            Method for invoking Track callback
-            """
-            if result is None:
-                pass
-            else:
-                self.logger.info(
-                    "Command ID: %s | Track Command Result: %s "
-                    + "and Progress: %s",
-                    self.component_manager.command_id,
-                    str(result),
-                    progress,
-                )
-                result_code, message = result
-                self.component_manager.set_track_result_dict(
-                    result_code, message, exception, status
-                )
-                if result_code == ResultCode.OK:
-                    # Invoke Track command
-                    self.component_manager.configure_track_lrcr = ResultCode.OK
-                    self.component_manager.observable.notify_observers(
-                        attribute_value_change=True
-                    )
-                elif result_code == ResultCode.FAILED:
-                    # If timed out has occurred for track
-                    # then update exception message for
-                    # configure command
-                    if "Timeout has occurred" in exception:
-                        exception_message = (
-                            "Timeout occurred while waiting for "
-                            "Track command to"
-                            " be completed in Configure command."
-                        )
-                        self.set_failure_for_configure(exception_message)
-                        self.logger.exception(exception_message)
-                    else:
-                        self.component_manager.observable.notify_observers(
-                            command_exception=True
-                        )
-
         # pylint: enable=unused-argument
         track_command = Track(
             self.component_manager,
@@ -804,17 +705,13 @@ class Configure(DishLNCommand):
             logger=self.logger,
             is_configure_command=True,
         )
-        track_command.track(
+        result_code, message = track_command.track(
             argin=json_argument,
             logger=self.logger,
-            task_callback=_invoke_track_callback,
+            task_callback=lambda *args, **kwargs: None,
             task_abort_event=self.component_manager.abort_event,
         )
-
-        if self.component_manager.get_track_result_code() == ResultCode.FAILED:
-            self.component_manager.observable.notify_observers(
-                command_exception=True
-            )
+        return result_code, message
 
     def is_tracktable_provided(self, json_argument: str) -> CommandResult:
         """
@@ -830,8 +727,8 @@ class Configure(DishLNCommand):
 
         """
         with tango.EnsureOmniThread():
-            track_table_status = CommandResult.NOT_ACHIEVED
-
+            # track_table_status = CommandResult.NOT_ACHIEVED
+            error_message = ""
             start_time = time.time()
             elapsed_time = 0
             while (
@@ -841,51 +738,30 @@ class Configure(DishLNCommand):
                 if self.component_manager.abort_event.is_set():
                     self.logger.debug(
                         "Command ID: %s | "
-                        + "Abort() command is invoked while configuring dish.",
+                        + "Abort command is invoked while configuring the"
+                        + " dish.",
                         self.component_manager.command_id,
                     )
-                    track_table_status = CommandResult.ABORTED
-                    break
+                    return ResultCode.ABORTED, ""
 
                 if self.component_manager.is_tracktable_provided.is_set():
-                    track_table_status = CommandResult.ACHIEVED
-                    self.invoke_track_command_on_dish(json_argument)
-                    break
+                    # track_table_status = CommandResult.ACHIEVED
+                    result_code, message = self.invoke_track_command_on_dish(
+                        json_argument
+                    )
+                    return result_code, message
                 time.sleep(0.1)
                 elapsed_time = time.time() - start_time
 
-            self.logger.debug(
-                "Command ID: %s | "
-                + "Exited the loop that waits to supply the tracktable before"
-                + " invoking the Track command.",
-                self.component_manager.command_id,
-            )
             if not self.component_manager.is_tracktable_provided.is_set():
                 # Set Failure for configure
                 self.logger.debug(
-                    "Command ID: %s | Timed out occurred for track table",
+                    "Command ID: %s | Timed out occurred for track table write"
+                    " operation",
                     self.component_manager.command_id,
                 )
-                self.set_failure_for_configure(
+                error_message = (
                     "Dish manager did not receive TrackTable. "
                     "Track() command is not invoked on the Dish."
                 )
-            return track_table_status
-
-    def set_failure_for_configure(self, message: str):
-        """Set failure for configure
-
-        Args:
-            message (str): Exception message
-
-        """
-        # pylint: disable=no-member
-        if hasattr(self, "ct"):
-            self.component_manager.long_running_result_callback(
-                self.ct.command_id,
-                ResultCode.FAILED,
-                exception_msg=message,
-            )
-            self.component_manager.observable.notify_observers(
-                command_exception=True
-            )
+            return ResultCode.FAILED, error_message

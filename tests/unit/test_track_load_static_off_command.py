@@ -11,17 +11,21 @@ from ska_tango_testing.mock.placeholders import Anything
 from ska_tmc_common import DevFactory
 from ska_tmc_common.enum import DishMode, PointingState
 
+from ska_tmc_dishleafnode.commands.configure_command import Configure
 from ska_tmc_dishleafnode.commands.set_kvalue import SetKValue
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
 from ska_tmc_dishleafnode.manager.event_manager import DishLNEventManager
 from tests.settings import (
     COMMAND_COMPLETED,
     DISH_MASTER_DEVICE,
+    DISHLN_POINTING_DEVICE,
     SDP_QUEUE_CONNECTOR_DEVICE,
+    get_mock_adapter_factory,
     logger,
     simulate_dish_mode_event,
-    simulate_result_code_event,
+    simulate_events_on_dish_device,
     wait_for_dish_mode,
+    wait_for_target_data,
 )
 
 POINTING_CAL1 = [1.1, 2.2, 3.3]
@@ -55,17 +59,6 @@ def test_trackloadstaticoff_command(
 
     assert "TrackLoadStaticOff" in unique_id
     assert "Command Completed" in message
-    # Task Callback is not stable.
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.QUEUED}
-    # )
-    # task_callback.assert_against_call(
-    #     call_kwargs={"status": TaskStatus.IN_PROGRESS}
-    # )
-    # task_callback.assert_against_call(
-    # call_kwargs={"status": TaskStatus.COMPLETED, "result": ResultCode.OK},
-    #  lookahead=4,
-    # )
 
 
 @pytest.mark.parametrize(
@@ -102,6 +95,7 @@ def test_configure_command_completed_with_correction_key_reset(
 ):
     """Test Configure command with correction key as RESET"""
     cm = cm_without_er_lp
+    command_id = f"{time.time()}_configure"
     cm.kvalue_validation_thread.cancel()
     set_kvalue_command = SetKValue(cm, logger=logger)
     attrs = {
@@ -134,12 +128,31 @@ def test_configure_command_completed_with_correction_key_reset(
     simulate_dish_mode_event(cm, DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
+    cm.adapter_factory = get_mock_adapter_factory(
+        command_id,
+        **{"GenerateProgramTrackTable.return_value": (ResultCode.STARTED, "")},
+    )
     configure_input_str = json_factory("dishleafnode_configure")
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "RESET"
     configure_input_str = json.dumps(configure_input_str)
-
-    cm.configure(
+    configure_obj = Configure(
+        cm, cm.op_state_model, cm.adapter_factory, cm.logger
+    )
+    simulate_events_on_dish_device(
+        cm,
+        [DISH_MASTER_DEVICE],
+        dish_mode=DishMode.OPERATE,
+        band="2",
+        pointing_state=PointingState.TRACK,
+        cmd_object=configure_obj,
+    )
+    configure_obj.invoke_configure_band_on_dish = mock.Mock()
+    configure_obj.invoke_configure_band_on_dish.return_value = (
+        ResultCode.OK,
+        "Command Completed",
+    )
+    configure_obj.invoke_configure(
         configure_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
@@ -148,13 +161,6 @@ def test_configure_command_completed_with_correction_key_reset(
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    cm.update_device_pointing_state(PointingState.TRACK)
-    cm.update_device_configured_band("2")
-    time.sleep(2)
-    simulate_dish_mode_event(cm, DishMode.OPERATE)
-    simulate_result_code_event(cm, "Track", ResultCode.OK)
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
-    simulate_result_code_event(cm, "ConfigureBand2", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -162,8 +168,6 @@ def test_configure_command_completed_with_correction_key_reset(
         },
         lookahead=2,
     )
-
-    dishMock.TrackLoadStaticOff.assert_called_once_with([0.0, 0.0])
 
 
 def test_configure_command_completed_with_correction_key_update(
@@ -191,22 +195,23 @@ def test_configure_command_completed_with_correction_key_update(
 
     cm.event_manager = True
     cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
-
+    cm.dishln_pointing_device_adapter = DevFactory().get_device(
+        DISHLN_POINTING_DEVICE
+    )
+    cm.dishln_pointing_device_adapter.targetData = json.dumps(
+        {"pointing": {"trajectory": {"name": "fixed", "x": 1, "y": 2}}}
+    )
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
-    unique_id = ""
-    count = 0
-    while "TrackLoadStaticOff" not in unique_id and count < 10:
-        unique_id, _ = group_callback[
-            "longRunningCommandResult"
-        ].assert_change_event(
-            (Anything, '[0, "Command Completed"]'),
-            lookahead=10,
-        )[
-            "attribute_value"
-        ]
-        count = count + 1
-        time.sleep(1)
+    assert wait_for_target_data(
+        cm.dishln_pointing_device_adapter,
+        expected_x=POINTING_CAL1[1],
+        expected_y=POINTING_CAL1[2],
+    ), (
+        "Time Out while waiting for target data to contain"
+        f" {POINTING_CAL1} . \n"
+        f"Current target Data {cm.dishln_pointing_device_adapter.targetData}"
+    )
 
 
 def test_correction_key_reset_partial_config(
@@ -253,7 +258,6 @@ def test_correction_key_reset_partial_config(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
     time.sleep(5)
-    simulate_result_code_event(cm, "TrackLoadStaticOff", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,
@@ -286,6 +290,9 @@ def test_correction_key_update_partial_config(
     cm.update_device_dish_mode(DishMode.STANDBY_FP)
     assert wait_for_dish_mode(cm, DishMode.STANDBY_FP)
     assert cm.is_configure_allowed()
+    cm.primary_configuration = json.loads(
+        json_factory("dishleafnode_configure")
+    )
     configure_input_str = json_factory("partial_configure")
     configure_input_str = json.loads(configure_input_str)
     configure_input_str["pointing"]["correction"] = "UPDATE"
@@ -300,26 +307,21 @@ def test_correction_key_update_partial_config(
     cm.dish_id = "SKA001"
     cm.event_manager = True
     cm.event_manager_object = DishLNEventManager(cm, logger=cm.logger)
-
+    cm.dishln_pointing_device_adapter.targetData = json.dumps(
+        {"pointing": {"trajectory": {"name": "fixed", "x": 1, "y": 2}}}
+    )
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN)
-    dish_device = DevFactory().get_device(DISH_MASTER_DEVICE)
     sdp_queue_connector.SetPointingCalSka001(POINTING_CAL1)
 
-    unique_id = ""
-    message = ""
-    count = 0
-    while "TrackLoadStaticOff" not in unique_id and count < 10:
-        unique_id, message = group_callback[
-            "longRunningCommandResult"
-        ].assert_change_event(
-            (Anything, '[0, "Command Completed"]'),
-            lookahead=10,
-        )[
-            "attribute_value"
-        ]
-        count = count + 1
-        time.sleep(1)
-    assert "Command Completed" in message
+    assert wait_for_target_data(
+        cm.dishln_pointing_device_adapter,
+        expected_x=POINTING_CAL1[1],
+        expected_y=POINTING_CAL1[2],
+    ), (
+        "Time Out while waiting for target data to contain"
+        f" {POINTING_CAL1} . \n"
+        f"Current target Data {cm.dishln_pointing_device_adapter.targetData}"
+    )
 
 
 @pytest.mark.parametrize("correction_key", ["", "MAINTAIN"])

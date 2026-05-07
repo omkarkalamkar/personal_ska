@@ -4,12 +4,13 @@ from logging import Logger
 from typing import Any, List, Tuple
 
 import katpoint
+import numpy as np
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.utils import iers
 from katpoint import Target
 from numpy import isnan, nan
-from ska_trajectory.trajectory import TrajectoryName
+from ska_trajectory.trajectory_names import TrajectoryName
 
 from ska_dishln_pointing_device.mapping_scan.utils import (
     InvalidTargetDataError,
@@ -21,18 +22,56 @@ class BaseScanMapping:
 
     def __init__(
         self,
-        pattern_name: str,
         component_manager,
         logger: Logger,
     ) -> None:
-        self.pattern_name = pattern_name
         self.target: str | None = None
         self.component_manager = component_manager
         self.logger = logger
+        self.target = None
         self.main_target_ra = None
         self.main_target_dec = None
         self.ra_dec_target = None
         self.traj = None
+        self.cadence = 0.0
+
+    def set_projection_data(self) -> None:
+        """Method to set projection type for given observation."""
+
+        projection_name = (
+            self.component_manager.target_data.get('pointing', {})
+            .get('projection', {})
+            .get('name', "SIN")
+        ).upper()
+
+        projection_alignment = (
+            self.component_manager.target_data.get('pointing', {})
+            .get('projection', {})
+            .get('alignment', "icrs")
+        ).lower()
+
+        if projection_alignment not in ["icrs", "altaz"]:
+            raise KeyError(
+                f"Unknown projection alignment: {projection_alignment}"
+            )
+
+        if projection_name not in katpoint.plane_to_sphere:
+            raise KeyError(f"Unknown projection type: {projection_name}")
+
+        if projection_alignment == "icrs":
+            projection_alignment = "radec"
+        else:
+            projection_alignment = "azel"
+
+        self.component_manager.plane_to_sphere_handler = (
+            katpoint.plane_to_sphere[projection_name.upper()]
+        )
+        self.component_manager.projection_alignment = projection_alignment
+        self.logger.info(
+            "Projection Name: %s, Alignment: %s",
+            projection_name,
+            projection_alignment,
+        )
 
     def set_target_and_start_process(self):
         """
@@ -50,17 +89,161 @@ class BaseScanMapping:
         #  it is for example, "special" or "icrs" and generates AzEl
         # accordingly
         try:
-            self.extract_target_from_config()
-            if isinstance(self.component_manager.target, list):
-                self.setup_observation_target()
-                self.component_manager.target = (
-                    self.get_radec_from_plane_to_sphere()
-                )
+            self.build_data_for_observation()
+            (
+                self.component_manager.projection_name,
+                self.component_manager.projection_alignment,
+            ) = self.get_projection()
+            if self.get_trajectory_name() == "fixed":
+                (
+                    self.component_manager.fixed_x_offset,
+                    self.component_manager.fixed_y_offset,
+                ) = self.get_fixed_trajectory_offsets()
+
             self.component_manager.start_track_table_calculation()
 
         except Exception as exception:
             self.logger.error("Exception: %s", exception)
             raise exception
+
+    def get_trajectory_name(self):
+        """Create Trajectory Object and set duration
+
+        Returns:
+            str: Name of the trajectory
+        """
+
+        trajectory = self.component_manager.target_data.get(
+            'pointing', {}
+        ).get("trajectory", {})
+        trajectory_name = trajectory.get("name", "fixed").lower()
+        return trajectory_name
+
+    def get_time_offsets_and_set_cadence(self) -> list:
+        """
+        Get the time offsets for the scan.
+        :return: A list of time offsets.
+        """
+        time_offsets = (
+            self.component_manager.target_data.get("pointing", {})
+            .get("trajectory", {})
+            .get("attrs", {})
+            .get("time_offsets", [])
+        )
+        if not time_offsets:
+            scan_duration = self.component_manager.target_data.get(
+                "tmc", {}
+            ).get("scan_duration", 0)
+            if not scan_duration:
+                raise ValueError(
+                    "Scan duration must be provided for trajectory scans."
+                )
+            self.cadence = (
+                self.component_manager.track_table_update_rate
+                / self.component_manager.program_track_table_size
+            )
+            time_offsets = list(np.arange(0, scan_duration, self.cadence))
+        else:
+            self.cadence = time_offsets[1] - time_offsets[0]
+        self.logger.info(
+            "Cadence for the scan is set to: %s seconds", self.cadence
+        )
+        return time_offsets
+
+    def get_fixed_trajectory_offsets(self):
+        """Get Fixed Trajectory Offsets
+
+        Returns:
+            tuple[float, float]: Tuple containing x and y offsets.
+        """
+        trajectory = self.component_manager.target_data.get(
+            'pointing', {}
+        ).get("trajectory", {})
+        trajectory_attrs = trajectory.get("attrs", {}) or {'x': 0.0, 'y': 0.0}
+        self.logger.debug(
+            "Fixed trajectory offsets -> x: %s arcsec, y: %s arcsec",
+            trajectory_attrs['x'],
+            trajectory_attrs['y'],
+        )
+        return trajectory_attrs['x'], trajectory_attrs['y']
+
+    def build_data_for_observation(self):
+        """Build Data for Observation based
+        on the target data provided in the dish configure input.
+
+        Raises:
+            InvalidTargetDataError: If target data is missing or invalid.
+            Exception: If target construction fails.
+        """
+        try:
+            target_data = self.component_manager.target_data.get(
+                "pointing", {}
+            )
+            target_dict = target_data.get("target", {})
+            if target_dict:
+                target_name = target_dict.get("target_name", "target")
+                self.component_manager.target = target_name
+                reference_frame = target_dict.get("reference_frame", "ICRS")
+                if reference_frame.lower() == "special":
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, special"
+                    )
+                elif (
+                    reference_frame.lower() == "icrs"
+                    or reference_frame.lower() == "radec"
+                ):
+                    ra = target_dict.get("ra", "")
+                    dec = target_dict.get("dec", "")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, radec, {ra}, {dec}"
+                    )
+            field_dict = target_data.get("field", {})
+            if field_dict:
+                self.component_manager.target = field_dict.get(
+                    "target_name", "target"
+                )
+                reference_frame = field_dict.get("reference_frame", "ICRS")
+                if reference_frame.lower() == "special":
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, special"
+                    )
+                elif (
+                    reference_frame.lower() == "icrs"
+                    or reference_frame.lower() == "radec"
+                ):
+                    c1 = field_dict.get("attrs").get("c1", "")
+                    c2 = field_dict.get("attrs").get("c2", "")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, radec, {c1}, {c2}"
+                    )
+                elif reference_frame.lower() == "tle":
+                    tle_line1 = field_dict.get("attrs", {}).get("line1", "")
+                    tle_line2 = field_dict.get("attrs", {}).get("line2", "")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, tle,"
+                        f" {tle_line1}, {tle_line2}"
+                    )
+                elif reference_frame.lower() == "altaz":
+                    c1 = field_dict.get("attrs", {}).get("c1", "")
+                    c2 = field_dict.get("attrs", {}).get("c2", "")
+                    self.target = katpoint.Target(
+                        f"{self.component_manager.target}, azel, {c1}, {c2}"
+                    )
+            if self.target:
+                self.logger.info(
+                    "Target set to: %s with reference frame: %s",
+                    self.target,
+                    reference_frame,
+                )
+            else:
+                raise InvalidTargetDataError()
+        except Exception as exp:
+            self.logger.exception(
+                " Failed to set target for fixed/mosaic mapping "
+                + "scan due to exception: %s",
+                str(exp),
+            )
+            raise exp
 
     def extract_target_from_config(self):
         """
@@ -119,16 +302,22 @@ class BaseScanMapping:
             .get('projection', {})
             .get('name', "SIN")
         )
+
         projection_alignment = (
             self.component_manager.target_data.get('pointing', {})
             .get('projection', {})
-            .get('alignment', "ICRS")
+            .get('alignment', "altaz")
         )
         if projection_alignment.lower() == "icrs":
             projection_alignment = "radec"
         else:
             projection_alignment = "azel"
-        return [projection_name, projection_alignment]
+        self.logger.info(
+            "Projection Name: %s, Alignment: %s",
+            projection_name,
+            projection_alignment,
+        )
+        return [projection_name.upper(), projection_alignment]
 
     def set_trajectory_and_duration(self):
         """Create Trajectory Object and set duration"""
@@ -151,7 +340,7 @@ class BaseScanMapping:
         Returns:
             tuple: offset in radian.
         """
-        return Angle(x, u.deg).rad, Angle(y, u.deg).rad
+        return Angle(x, u.arcsec).rad, Angle(y, u.arcsec).rad
 
     def get_radec_from_plane_to_sphere(self) -> Tuple[float, float]:
         """Convert plane coordinates to RA/Dec using spherical projection.
@@ -166,11 +355,6 @@ class BaseScanMapping:
             self.set_trajectory_and_duration()
             x, y, _, _, _ = self.traj.posn(self.traj.start)
             x_rad, y_rad = self.get_offset_in_rad(x, y)
-            self.logger.info(
-                "Calling plane to sphere with %s and %s",
-                x_rad,
-                y_rad,
-            )
             with iers.earth_orientation_table.set(
                 self.component_manager.iers_a
             ):

@@ -42,6 +42,8 @@ from ska_tmc_dishleafnode.commands.setstowmode import StowCommand
 from ska_tmc_dishleafnode.enums.stow_status import StowStatus
 from ska_tmc_dishleafnode.manager import DishLNComponentManager
 
+__all__ = ["MidTmcLeafNodeDish", "main"]
+
 
 # pylint: disable = attribute-defined-outside-init
 class MidTmcLeafNodeDish(TMCBaseLeafDevice):
@@ -303,7 +305,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             health_info (dict): New health info to be set.
         """
         self._health_info = json.dumps(health_info)
-
         self.logger.info(
             "Updated HealthInfo is: %s",
             self._health_info,
@@ -482,8 +483,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_dishmode_callback(self, dish_mode: DishMode) -> None:
         """Push an event for the change of dishMode attribute."""
-        self.logger.debug("Updating dish mode to: %s", dish_mode)
         self._dishMode = dish_mode
+        self.logger.debug(
+            "Dish mode is updated to %s", DishMode(dish_mode).name
+        )
 
     def update_pointingstate_callback(
         self, pointing_state: PointingState
@@ -510,7 +513,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 int(self.component_manager.kValue),
             )
         self.logger.debug(
-            "k-value is updated to: %s",
+            "Updated k-value to: %s",
             self.component_manager.kValue,
         )
 
@@ -570,7 +573,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         try:
             layout = json.loads(array_layout)
         except Exception as e:
-            self.logger.exception("arrayLayout must be valid JSON: %s", e)
+            self.logger.exception("Array layout must be valid JSON: %s", e)
             raise
         self.component_manager.array_layout = layout
 

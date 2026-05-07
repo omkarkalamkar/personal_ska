@@ -124,7 +124,7 @@ def configure_dish_leaf_node(
         dish_leaf_node, track_table_error_before_configure
     )
     track_table_error = dish_leaf_node.trackTableErrors
-    logger.info(
+    logger.error(
         "track_table_error after configure: %s",
         track_table_error,
     )

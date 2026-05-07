@@ -426,7 +426,7 @@ class AutoStow:
             self.logger.info("auto stow completed")
         elif result[0] == ResultCode.FAILED:
             message = (
-                "auto stow failed with result %s and exception %s",
+                "Auto stow failed with result %s and exception %s",
                 result,
                 exception,
             )
@@ -470,7 +470,7 @@ class AutoStow:
                     self.invoke_auto_stow()
             except Exception as exception:
                 message = (
-                    "Exception occured while calculating wind mean speed %s",
+                    "Exception occurred while calculating wind mean speed %s",
                     exception,
                 )
                 self.component_manager.update_auto_stow_failures(message)
@@ -579,7 +579,7 @@ class AutoStow:
                     self.rate_of_change_temp[wms] = roc
 
                     if roc > self.temp_delta:
-                        self.logger.info(
+                        self.logger.debug(
                             "rate of change :%s for station: %s", roc, wms
                         )
                         self.invoke_auto_stow()

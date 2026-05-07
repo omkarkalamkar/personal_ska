@@ -1,7 +1,7 @@
 {
-	"interface": "https://schema.skao.int/ska-tmc-configure/2.1",
-	"transaction_id": "txn-....-00002",
-	"array_layout" : {
+    "interface": "https://schema.skao.int/ska-tmc-configure/2.1",
+    "transaction_id": "txn-....-00002",
+    "layout_data": {
         "interface": "https://schema.skao.int/ska-telmodel-layout-receptor/1.1",
         "diameter": 15.0,
         "location": {
@@ -29,14 +29,19 @@
         "station_label": "SKA001",
         "station_id": 65
     },
-	"pointing": {
-        "target": {
-            "ca_offset_arcsec": 0.0,
-            "ie_offset_arcsec": 18000.0
-        }
-	},
-	"tmc": {
-		"partial_configuration": true,
-        "scan_duration": 50
-	}
+    "pointing": {
+        "wrap_sector": 0,
+        "field": {
+            "reference_frame": "tle",
+            "target_name": "ABS-3A",
+            "attrs": {
+                "line1": "1 40424U 15010A   26078.91608821 -.00000024  00000+0  00000+0 0  9994",
+                "line2": "2 40424   0.0017 177.1829 0001648 123.4315 203.6464  1.00270903 40480"
+            }
+        },
+        "trajectory": {"name": "fixed", "attrs": {"x": 0.0, "y": 0.0}},
+        "projection": {"name": "SIN", "alignment": "ICRS"}
+    },
+    "dish": {"receiver_band": "2"},
+    "tmc": {"scan_duration": 300}
 }

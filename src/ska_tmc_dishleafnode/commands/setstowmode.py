@@ -12,10 +12,6 @@ from ska_control_model import HealthState, TaskStatus
 from ska_tango_base.base import TaskCallbackType
 from ska_tango_base.commands import ResultCode, SlowCommand
 from ska_tmc_common import DishMode
-from ska_tmc_common.v1.error_propagation_tracker import (
-    error_propagation_tracker,
-)
-from ska_tmc_common.v1.timeout_tracker import timeout_tracker
 
 from ska_tmc_dishleafnode.commands.dish_ln_command import (
     DishLNCommand,
@@ -86,11 +82,6 @@ class SetStowMode(DishLNCommand):
     """
 
     # pylint: disable=unused-argument
-    @timeout_tracker
-    @error_propagation_tracker(
-        "get_dish_mode",
-        [DishMode.STOW],
-    )
     def invoke_set_stow_mode(
         self: SetStowMode,
         task_callback: TaskCallbackType = task_callback_default,
@@ -104,7 +95,13 @@ class SetStowMode(DishLNCommand):
         :param task_callback: Update task state, defaults to None
         :type task_callback: TaskCallbackType, optional
         """
-        return self.do()
+        self.task_callback = task_callback
+        self.component_manager.abort_event = task_abort_event
+        self.task_callback(status=TaskStatus.IN_PROGRESS)
+        self.set_command_id(__class__.__name__)
+        result_code, message = self.do()
+        self.call_update_task_status(result_code, message)
+        return result_code, message
 
     # pylint: enable=unused-argument
 
@@ -141,6 +138,7 @@ class SetStowMode(DishLNCommand):
 
                 self.component_manager.stow_status = StowStatus.STOW_COMPLETED
         self.component_manager.command_in_progress = ""
+        self.component_manager.remove_command_in_progress_object(self)
         if not self.component_manager.is_configure_command:
             self.component_manager.clear_configure_command_events_flags()
 
@@ -156,18 +154,18 @@ class SetStowMode(DishLNCommand):
         try:
             result_code, message = self.init_adapter()
             if result_code == ResultCode.FAILED:
-                self.logger.debug(
-                    "Command ID: %s | Adapter for : %s is not found ",
+                self.logger.error(
+                    "Command ID: %s | Adapter not found for %s",
                     self.component_manager.command_id,
                     self.component_manager.dish_dev_name,
                 )
                 return result_code, message
             with self.component_manager.tango_operation_execution_lock:
-                result_code, message = self.call_adapter_method(
-                    "Dish Master", self.dish_master_adapter, "SetStowMode"
+                result_code, message = self.invoke_command_and_track(
+                    self.dish_master_adapter, "SetStowMode"
                 )
-            if result_code[0] == ResultCode.FAILED:
-                return result_code[0], message[0]
+            if result_code == ResultCode.FAILED:
+                return result_code, message
 
             result_code, message = self.stop_program_track_table()
 
@@ -178,12 +176,15 @@ class SetStowMode(DishLNCommand):
             self.component_manager.abort_event.clear()
         except Exception as exception:
             message = (
-                "Exception has occured while invoking setstowmode: %s",
+                "Exception occurred while invoking setstowmode: %s",
                 exception,
             )
             self.logger.exception(message)
             return ResultCode.FAILED, message
-        return ResultCode.OK, "Command Invocation Completed"
+        return self.wait_for_completion(
+            state_getter=self.component_manager.get_dish_mode,
+            desired_state=DishMode.STOW,
+        )
 
     def stop_program_track_table(self) -> Tuple[ResultCode, str]:
         """Method to invoke StopProgramTrackTable() when abort command is

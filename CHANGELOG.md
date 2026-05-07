@@ -11,6 +11,72 @@ Fixed
 -----
 * Update availability attribute to fix SKB-1306.
 
+[0.45.1]
+*********
+Fixed
+-----
+* Fixed SKB-1314, which is about programTrackTable calculations are broken.
+
+[0.45.0]
+*********
+Updated
+-------
+* invoke_lrc api used for invoking command on Dish Master
+
+[0.44.0]
+********
+Added
+-----
+* Dish leaf node now supports position velocity time patterns.
+
+[0.43.1]
+********
+Fixed
+-----
+* Fixed sourceOffset not getting updated for partial configuration. This resolves the failure in the calibration scan test case.
+
+[0.43.0]
+********
+Added
+-----
+* ska-tango-difdoc v0.3.0 to automatically generate documentation for tango devices
+
+Updated
+-------
+* Updated ska-tango-util and ska-tango-base charts to v1.0.7
+
+[0.42.0]
+********
+Added
+-------
+* Full support for pointing.field key in the Configure command .
+* AzElConverter_v2 class implementing plane_to_sphere conversion and fixed x/y offset support for mapping scans.
+* BaseScanMapping logic (including build_data_for_observation()and get_radec_from_plane_to_sphere()).
+* Added fixed_x_offset, fixed_y_offset, projection_name, projection_alignment, and antenna_target handling in DishlnPointingDataComponentManager.
+
+[0.41.2]
+********
+Fixed
+-----
+* A condition used to track command IDs was mistakenly removed in the previous tag. Reverting the change. 
+
+[0.41.1]
+********
+Updated
+-------
+* Logging improvements
+  - Improved existing log statements.
+  - Removed unnecessary log statements.
+  - Changed log level from INFO to DEBUG where appropriate.
+* Updated version of ska-tmc-common to 1.7.0.
+
+[0.41.0]
+********
+Updated
+--------
+* TMC can perform calibration scans using the trajectory data specified under the pointing key in the configure JSON.
+* The invocation of the TrackLoadStaticOff command has been removed for calibration scans.
+
 [0.40.1]
 ********
 Updated

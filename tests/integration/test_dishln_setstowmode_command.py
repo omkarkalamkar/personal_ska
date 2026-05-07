@@ -387,7 +387,7 @@ def _reset_stow_mode(dish_leaf_node: tango.DeviceProxy, group_callback):
     if dish_leaf_node.stowStatus == StowStatus.STOW_STARTED:
         group_callback["stowStatus"].assert_change_event(
             StowStatus.STOW_COMPLETED,
-            lookahead=1,
+            lookahead=3,
         )
     if dish_leaf_node.stowStatus == StowStatus.STOW_COMPLETED:
         lrcr_event_id = dish_leaf_node.subscribe_event(

@@ -1,8 +1,8 @@
 """Unit Tests for Track command
 """
 import threading
+import time
 from os.path import dirname, join
-from unittest import mock
 
 import pytest
 from ska_control_model import TaskStatus
@@ -10,8 +10,13 @@ from ska_tango_base.commands import ResultCode
 from ska_tmc_common.enum import DishMode, PointingState
 from ska_tmc_common.exceptions import CommandNotAllowed
 
+from ska_tmc_dishleafnode.commands.track_command import Track
 from ska_tmc_dishleafnode.constants import COMMAND_COMPLETION_MESSAGE
-from tests.settings import simulate_result_code_event
+from tests.settings import (
+    DISH_MASTER_DEVICE,
+    get_mock_adapter_factory,
+    simulate_events_on_dish_device,
+)
 
 
 def get_track_input_str(
@@ -25,24 +30,17 @@ def get_track_input_str(
 
 def test_track_command_completed(task_callback, cm_without_er_lp):
     cm = cm_without_er_lp
-    attrs = {
-        'Track.return_value': (
-            [ResultCode.OK],
-            ["Command Completed"],
-        ),
-    }
-    dishMock = mock.Mock(
-        **attrs,
-    )
-    factory_attrs = {'get_or_create_adapter.return_value': dishMock}
-    adapter_factory = mock.Mock(**factory_attrs)
-    cm.adapter_factory = adapter_factory
+    command_id = f"{time.time()}_Track"
+    cm.adapter_factory = get_mock_adapter_factory(command_id)
     track_input_str = get_track_input_str()
     cm.update_device_dish_mode(DishMode.OPERATE)
     cm.update_device_pointing_state(PointingState.READY)
     cm.is_track_allowed()
-
-    cm.track(
+    track_obj = Track(cm, cm.op_state_model, cm.adapter_factory, cm.logger)
+    simulate_events_on_dish_device(
+        cm, [DISH_MASTER_DEVICE], DishMode.OPERATE, cmd_object=track_obj
+    )
+    track_obj.track(
         track_input_str,
         task_callback=task_callback,
         task_abort_event=threading.Event(),
@@ -51,7 +49,6 @@ def test_track_command_completed(task_callback, cm_without_er_lp):
     task_callback.assert_against_call(
         call_kwargs={"status": TaskStatus.IN_PROGRESS}
     )
-    simulate_result_code_event(cm, "Track", ResultCode.OK)
     task_callback.assert_against_call(
         call_kwargs={
             "status": TaskStatus.COMPLETED,

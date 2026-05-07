@@ -11,7 +11,7 @@ from ska_tmc_common.enum import DishMode, FaultType, PointingState
 
 from tests.settings import (
     COMMAND_COMPLETED,
-    COMMAND_FAILED,
+    COMMAND_FAILED_DISH,
     COMMAND_TIMEOUT,
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
@@ -208,7 +208,7 @@ def track_stop_error_propagation_dish_leaf_node(
     result_config, unique_id_config = dish_leaf_node.TrackStop()
 
     group_callback["longRunningCommandResult"].assert_change_event(
-        (unique_id_config[0], COMMAND_FAILED),
+        (unique_id_config[0], COMMAND_FAILED_DISH),
         lookahead=8,
     )
 

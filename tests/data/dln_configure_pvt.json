@@ -1,7 +1,7 @@
 {
-	"interface": "https://schema.skao.int/ska-tmc-configure/2.1",
-	"transaction_id": "txn-....-00002",
-	"array_layout" : {
+    "interface": "https://schema.skao.int/ska-tmc-configure/2.1",
+    "transaction_id": "txn-....-00002",
+    "layout_data": {
         "interface": "https://schema.skao.int/ska-telmodel-layout-receptor/1.1",
         "diameter": 15.0,
         "location": {
@@ -29,14 +29,28 @@
         "station_label": "SKA001",
         "station_id": 65
     },
-	"pointing": {
-        "target": {
-            "ca_offset_arcsec": 0.0,
-            "ie_offset_arcsec": 18000.0
-        }
-	},
-	"tmc": {
-		"partial_configuration": true,
-        "scan_duration": 50
-	}
+    "pointing": {
+        "wrap_sector": -1,
+        "field": {
+            "reference_frame": "altaz",
+            "target_name": "Test",
+            "attrs": {
+                "c2": 45.42808336,
+                "c1": -41.71493321
+            }
+        },
+        "trajectory": {
+            "name": "pos_vel_time",
+            "attrs": {
+                "time_offsets": [0, 1, 2, 3, 4],
+                "x_offsets": [0.0, 0.0, 0.0, 0.0, 0.0],
+                "y_offsets": [0.0, 0.0, 0.0, 0.0, 0.0],
+                "x_velocities": [0.0, 0.0, 0.0, 0.0, 0.0],
+                "y_velocities": [0.0, 0.0, 0.0, 0.0, 0.0]
+            }
+        },
+        "projection": {"name": "SSN", "alignment": "AltAz"}
+    },
+    "dish": {"receiver_band": "2"},
+    "tmc": {"scan_duration": 5}
 }
