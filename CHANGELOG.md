@@ -9,7 +9,7 @@ This project adheres to `Semantic Versioning <http://semver.org/>`_.
 ********
 Fixed
 -----
-* Update availability attribute to fix SKB-1306.
+* Revert availability attribute definition to fix SKB-1306.
 
 [0.45.1]
 *********
