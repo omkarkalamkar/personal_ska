@@ -48,7 +48,11 @@ class ApplyPointingModel(DishLNCommand):
         logger: logging.Logger = LOGGER,
     ):
         super().__init__(
-            component_manager, op_state_model, adapter_factory, logger
+            component_manager,
+            op_state_model,
+            adapter_factory,
+            logger,
+            add_to_command_in_progress_list=False,
         )
         self.band: str = ""
         self.band_version: str = ""
