@@ -85,11 +85,13 @@ def test_with_updated_sdpqc_fqdn(tango_context, cm):
     )
     dev_name = SDP_QUEUE_CONNECTOR_FQDN2.rsplit("/", 1)[0]
     cm.process_sqpqc_attribute_fqdn(SDP_QUEUE_CONNECTOR_FQDN2)
+    sleep(1.5)
     assert dev_name == cm.queue_connector_device_info.dev_name
     assert ATTRIBUTE_NAME == cm.queue_connector_device_info.attribute_name
     assert cm.queue_connector_device_info.subscribed_to_attribute
     cm.queue_connector_device_info.subscribed_to_attribute = True
     sdp_queue_connector2.SetPointingCalSka001(POINTING_CAL2)
+    sleep(1.5)
     sdp_queue_connector1.SetPointingCalSka001(POINTING_CAL1)
     assert np.array_equal(
         POINTING_CAL2, list(cm.queue_connector_device_info.pointing_data)

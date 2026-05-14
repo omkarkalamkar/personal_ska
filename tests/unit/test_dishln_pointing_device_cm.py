@@ -332,6 +332,7 @@ def test_dish_pointing_schedular_length(cm_pointing_device, json_factory):
             time.sleep(1)
             timeout += 1
         assert cm.pointing_program_track_table
+        time.sleep(3)
         sched_len = len(real_scheduler.queue)
         assert sched_len <= 6
         assert sched_len > 0
