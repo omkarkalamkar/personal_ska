@@ -326,35 +326,39 @@ class TrajectoryMappingScan(BaseScanMapping):
                 az, el = self.converter._calculate_azel_with_trajectory(
                     self.target, x, y, self.timestamp
                 )
-                # pylint: disable=line-too-long
-                if not self.track_table_calculator._is_elevation_within_mechanical_limits(  # noqa: E501
-                    el
-                ):
+                if not getattr(
+                    self.track_table_calculator,
+                    "_is_elevation_within_mechanical_limits",
+                )(el):
                     self.logger.error(
                         "Elevation %s not within mechanical limits set to dish"
                         " leaf node. Program track table will not be "
                         " calculated further.",
                         el,
                     )
-                    # pylint: disable=line-too-long
-                    self.component_manager.update_program_track_table_error_callback(  # noqa: E501
+                    getattr(
+                        self.component_manager,
+                        "update_program_track_table_error_callback",
+                    )(
                         f"Elevation {el} not within mechanical limits"
                         " set to dish."
                     )
                     break
                 az = az + 360 * self.component_manager.wrap_sector
-                # pylint: disable=line-too-long
-                if not self.track_table_calculator._is_azimuth_within_mechanical_limits(  # noqa: E501
-                    az
-                ):
+                if not getattr(
+                    self.track_table_calculator,
+                    "_is_azimuth_within_mechanical_limits",
+                )(az):
                     self.logger.error(
                         "Azimuth %s not within mechanical limits set to dish"
                         " leaf node. Program track table will not be "
                         " calculated further.",
                         az,
                     )
-                    # pylint: disable=line-too-long
-                    self.component_manager.update_program_track_table_error_callback(  # noqa: E501
+                    getattr(
+                        self.component_manager,
+                        "update_program_track_table_error_callback",
+                    )(
                         f"Azimuth {az} not within mechanical limits"
                         " set to dish."
                     )
