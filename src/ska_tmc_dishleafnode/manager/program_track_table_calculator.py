@@ -43,7 +43,8 @@ class ProgramTrackTableCalculator:
         self.pointing_calculation_period: float = 0.0
         self.ptt_buffer_set = False
         self.track_table_scheduler = None
-        self.tle_data = ["", ""]
+        self.elevation_limit: bool = False
+        self.azimuth_limit: bool = False
 
     def calculate_program_track_table(
         self: ProgramTrackTableCalculator,
@@ -139,6 +140,32 @@ class ProgramTrackTableCalculator:
             return False
 
         self.elevation_limit = False
+        return True
+
+    def _is_azimuth_within_mechanical_limits(
+        self: ProgramTrackTableCalculator,
+        az_value: float,
+    ) -> bool:
+        """Check if azimuth is within mechanical limit.
+
+        :param az_value: Azimuth of the source.
+        :type az_value: float
+        :return: False if azimuth is within the limit.
+        :rtype: bool
+        """
+        if (
+            not self.component_manager.azimuth_min_limit
+            <= az_value
+            <= self.component_manager.azimuth_max_limit
+        ):
+            self.azimuth_limit = True
+            message = "Minimum/maximum azimuth limit has been reached." + (
+                "Source is not visible currently."
+            )
+            self.logger.info(message)
+            return False
+
+        self.azimuth_limit = False
         return True
 
     def calculate_time_stamp_list(

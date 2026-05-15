@@ -717,10 +717,61 @@ def get_non_sidereal_json_for_now(non_side_real_json, cm) -> str:
     return None
 
 
+def get_azimuth_limit_reached_object() -> str:
+    """Return object which crossed azimuth limit"""
+
+    current_time = int(datetime.utcnow().strftime("%H"))
+    logger.info("CURRENT TIME: %s", current_time)
+    antenna_ska001 = DishHelper(antenna_data=ARRAY_LAYOUT)
+    ska001 = antenna_ska001.get_dish_antenna()
+    object_not_visible = None
+    timestamp = datetime.utcnow()
+    for solar_system_object in NON_SIDEREAL_OBJECTS:
+        target = katpoint.Target(f"{solar_system_object} , special")
+        target.antenna = ska001
+        azel = target.azel(timestamp, ska001)
+        if azel.az.deg <= -270 or azel.az.deg >= 270:
+            object_not_visible = solar_system_object
+            break
+    return object_not_visible
+
+
+def get_visible_object() -> str:
+    """Return object which is visible"""
+
+    current_time = int(datetime.utcnow().strftime("%H"))
+    logger.info("CURRENT TIME: %s", current_time)
+    antenna_ska001 = DishHelper(antenna_data=ARRAY_LAYOUT)
+    ska001 = antenna_ska001.get_dish_antenna()
+    object_is_visible = None
+    timestamp = datetime.utcnow()
+    for solar_system_object in NON_SIDEREAL_OBJECTS:
+        target = katpoint.Target(f"{solar_system_object} , special")
+        target.antenna = ska001
+        azel = target.azel(timestamp, ska001)
+        if azel.az.deg >= -270.0 and azel.az.deg <= 270.0:
+            if azel.alt.deg >= 17.5 and azel.alt.deg <= 90.0:
+                object_is_visible = solar_system_object
+                break
+    return object_is_visible
+
+
+def transform_config(config, object_name="Sun"):
+    """Transforms the input configuration JSON to adr-63"""
+    result = json.loads(config).copy()
+
+    if "pointing" in result:
+        pointing = result["pointing"].copy()
+        if "target" in pointing:
+            pointing["field"] = pointing.pop("target")
+        pointing["field"]["target_name"] = object_name
+        pointing["projection"] = {"name": "SIN", "alignment": "ICRS"}
+        result["pointing"] = pointing
+    return json.dumps(result)
+
+
 def get_non_sidereal_json_for_source_not_visible() -> str:
-    """Return the json for Configure command with non-visible non-sidereal
-    object according to current time.
-    """
+    """Return the solar object which is not within elevation limit."""
 
     current_time = int(datetime.utcnow().strftime("%H"))
     logger.info("CURRENT TIME: %s", current_time)

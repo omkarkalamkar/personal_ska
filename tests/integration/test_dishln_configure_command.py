@@ -18,9 +18,10 @@ from tests.settings import (
     NUMBER_OF_PROGRAM_TRACK_TABLE_ENTRIES,
     build_delta_configure_data,
     build_partial_configure_data,
-    get_non_sidereal_json_for_now,
+    get_visible_object,
     logger,
     tear_down,
+    transform_config,
     wait_and_validate_attribute_value_available,
     wait_for_target_data,
 )
@@ -196,19 +197,23 @@ def test_configure_command(
     cm_pointing_device,
 ):
     if json_to_use == "non_sidereal_tracking":
-        json_to_use = get_non_sidereal_json_for_now(
-            json_factory(json_to_use), cm_pointing_device
-        )
-        # It was found that some times targets are not visible,during specific
-        # IST morning hours
-        # so we can skip test in that case.
-        if json_to_use:
-            configure_dish_leaf_node(
-                tango_context,
-                DISH_LEAF_NODE_DEVICE,
-                group_callback,
-                json_to_use,
+        object_visible = get_visible_object()
+        if object_visible is None:
+            pytest.skip(
+                "No non-sidereal object is visible currently,skipping the test"
             )
+        else:
+            json_to_use = transform_config(
+                config=json_factory(json_to_use),
+                object_name=object_visible,
+            )
+            if json_to_use:
+                configure_dish_leaf_node(
+                    tango_context,
+                    DISH_LEAF_NODE_DEVICE,
+                    group_callback,
+                    json_to_use,
+                )
     else:
         configure_dish_leaf_node(
             tango_context,

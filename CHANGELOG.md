@@ -5,13 +5,12 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
-
 [0.45.2]
-********
+*********
 Fixed
 -----
-* Updated version of ska-tmc-common to `1.9.1`.
-* Added test case for abort command issue which fixed in common 1.9.1.
+Updated common to use the lock to command in progress list attribute.
+
 
 [0.40.2]
 ********
@@ -30,6 +29,18 @@ Fixed
 Updated
 -------
 * invoke_lrc api used for invoking command on Dish Master
+
+[0.44.2]
+********
+Branch release
+---------------
+* Generate program track table continuously.
+
+[0.44.1]
+********
+Branch release
+---------------
+* Fixed skb-1314.
 
 [0.44.0]
 ********
