@@ -22,6 +22,21 @@ class Abort(DishLNCommand):
     Command to abort the Dish Master and bring it to its ABORTED state.
     """
 
+    def __init__(
+        self,
+        component_manager,
+        op_state_model,
+        adapter_factory,
+        logger=LOGGER,
+    ):
+        super().__init__(
+            component_manager,
+            op_state_model,
+            adapter_factory,
+            logger,
+            add_to_command_in_progress_list=False,
+        )
+
     # pylint: disable=unused-argument
     def invoke_abort(
         self,

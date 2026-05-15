@@ -15,12 +15,14 @@ from tests.settings import (
     DISH_LEAF_NODE_DEVICE,
     DISH_MASTER_DEVICE,
     DISHLN_POINTING_DEVICE,
+    get_azimuth_limit_reached_object,
     get_non_sidereal_json_for_source_not_visible,
     get_non_sidereal_json_for_source_unknown,
     log_and_assert_health,
     logger,
     monitor_track_table_errors_attribute,
     tear_down,
+    transform_config,
     wait_for_attribute_health_value,
 )
 
@@ -166,14 +168,19 @@ def configure_dish_leaf_node_source_not_visible(
 
 @pytest.mark.post_deployment
 @pytest.mark.SKA_mid
-@pytest.mark.parametrize("json_to_use", ["non_sidereal_tracking"])
+@pytest.mark.parametrize("scenario", ["elevation_limit", "azimuth_limit"])
 def test_configure_command_source_not_visible(
-    tango_context, group_callback, json_factory, json_to_use
+    tango_context, group_callback, json_factory, scenario
 ):
-    object_not_visible = get_non_sidereal_json_for_source_not_visible()
+    non_sidereal_json = "non_sidereal_tracking"
+    if scenario == "elevation_limit":
+        object_not_visible = get_non_sidereal_json_for_source_not_visible()
+    else:
+        object_not_visible = get_azimuth_limit_reached_object()
     if object_not_visible:
         json_to_use = transform_config(
-            config=json_factory(json_to_use), object=object_not_visible
+            config=json_factory(non_sidereal_json),
+            object_name=object_not_visible,
         )
         if json_to_use is not None:
             configure_dish_leaf_node_source_not_visible(
@@ -353,24 +360,10 @@ def test_configure_command_unknown_source(
     json_to_use = get_non_sidereal_json_for_source_unknown(
         json_factory(json_to_use)
     )
-    json_to_use = transform_config(json_to_use, object="Sirius")
+    json_to_use = transform_config(json_to_use, object_name="Sirius")
     configure_dish_leaf_node_unknown_source(
         tango_context,
         DISH_LEAF_NODE_DEVICE,
         group_callback,
         json_to_use,
     )
-
-
-def transform_config(config, object="Sun"):
-    """Transforms the input configuration JSON to adr-63"""
-    result = json.loads(config).copy()
-
-    if "pointing" in result:
-        pointing = result["pointing"].copy()
-        if "target" in pointing:
-            pointing["field"] = pointing.pop("target")
-        pointing["field"]["target_name"] = object
-        pointing["projection"] = {"name": "SIN", "alignment": "ICRS"}
-        result["pointing"] = pointing
-    return json.dumps(result)

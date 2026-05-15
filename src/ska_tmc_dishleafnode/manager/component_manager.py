@@ -17,7 +17,7 @@ from functools import partial
 from logging import Logger
 from multiprocessing import Event, Lock, Manager, Process
 from queue import Queue
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import tango
@@ -3522,18 +3522,3 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             rb_norm,
             "receiver_band",
         )
-
-    def remove_command_in_progress_object(self, cmd_obj: Any) -> None:
-        """
-        Remove the command object from the component manager.
-        Args:
-            cmd_obj (Any): The command object to be removed.
-        """
-        if cmd_obj in self.command_in_progress_objects:
-            self.logger.debug(
-                "Removing the command object: %s from"
-                " command_in_progress_objects list: %s",
-                self,
-                self.command_in_progress_objects,
-            )
-            self.command_in_progress_objects.remove(cmd_obj)
