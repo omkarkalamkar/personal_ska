@@ -5,6 +5,15 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+
+[0.45.2]
+********
+Fixed
+-----
+* Updated version of ska-tmc-common to `1.9.1`.
+* Added test case for abort command issue which fixed in common 1.9.1.
+
+
 [0.40.2]
 ********
 Fixed
