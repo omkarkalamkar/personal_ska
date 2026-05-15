@@ -13,7 +13,6 @@ Fixed
 * Updated version of ska-tmc-common to `1.9.1`.
 * Added test case for abort command issue which fixed in common 1.9.1.
 
-
 [0.40.2]
 ********
 Fixed
