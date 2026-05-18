@@ -11,7 +11,6 @@ Fixed
 -----
 Updated common to use the lock to command in progress list attribute.
 
-
 [0.40.2]
 ********
 Fixed
