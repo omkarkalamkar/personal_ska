@@ -370,6 +370,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.__wind_speed: float = 10.0
         self.__temperature: float = 30.0
         self.initialization_complete = threading.Event()
+        self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+        self.command_completion_cond = threading.Condition()
         self.start_event_processing_threads()
         self.setup_event_subscription()
         self.kvalue_validation_thread.start()
@@ -397,9 +399,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_mean_operational_speed_callback,
             _update_mean_operational_diff_callback,
         )
-
-        self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
-        self.command_completion_cond = threading.Condition()
         # this is temporary variable
         # which can be utilised to expose failure in future.
 
