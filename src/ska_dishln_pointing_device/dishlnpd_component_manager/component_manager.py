@@ -108,7 +108,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Dish leaf node pointing device name is: %s",
             self.dishln_pointing_device_name,
         )
-        self.dish_id = self.dishln_pointing_device_name[-3:]
+        self.dish_id = self.dishln_pointing_device_name.split("/")[-1].upper()
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
         self.data_download_thread = threading.Thread(

@@ -226,7 +226,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dishln_pointing_dev_name = dishln_pointing_fqdn
-        self.dish_id = dish_dev_name[-3:]
+        self.dish_id = dish_dev_name.split("/")[-1].upper()
         self.dish_pointing_model_param: Dict[str, str] = {
             "band1pointingmodelparams": "",
             "band2pointingmodelparams": "",
@@ -2523,7 +2523,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Args:
             dish_master_fqdn (str): dish master
         """
-        self.dish_id = dish_master_fqdn[-3:]
+        self.dish_id = dish_master_fqdn.split("/")[-1].upper()
 
     def is_abort_allowed(self: DishLNComponentManager) -> bool:
         """
