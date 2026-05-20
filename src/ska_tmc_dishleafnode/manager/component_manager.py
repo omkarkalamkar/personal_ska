@@ -8,7 +8,6 @@ import datetime
 import json
 import os
 import queue
-import re
 import signal
 import threading
 import time
@@ -227,13 +226,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dishln_pointing_dev_name = dishln_pointing_fqdn
-        self.dish_id = (
-            re.findall(
-                "\\b(?:SKA|MKT)\\d{3}\\b", dish_dev_name, flags=re.IGNORECASE
-            )[0]
-            if dish_dev_name
-            else None
-        )
+        self.dish_id = dish_dev_name[-3:]
         self.dish_pointing_model_param: Dict[str, str] = {
             "band1pointingmodelparams": "",
             "band2pointingmodelparams": "",
@@ -2530,11 +2523,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Args:
             dish_master_fqdn (str): dish master
         """
-        self.dish_id = re.findall(
-            "\\b(?:SKA|MKT)\\d{3}\\b", dish_master_fqdn, flags=re.IGNORECASE
-        )[
-            0
-        ]  # station names in the layout json are in capital
+        self.dish_id = dish_master_fqdn[-3:]
 
     def is_abort_allowed(self: DishLNComponentManager) -> bool:
         """
