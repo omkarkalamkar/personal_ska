@@ -5,6 +5,12 @@ Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to `Semantic Versioning <http://semver.org/>`_.
 
+[0.45.3]
+********
+Updated
+--------
+* Updated dish id check to support MKE.
+
 [0.45.2]
 *********
 Fixed
