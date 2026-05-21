@@ -58,6 +58,7 @@ class TrajectoryMappingScan(BaseScanMapping):
         self.track_table_scheduler = sched.scheduler(time.time, time.sleep)
         self.converter = AzElConverter(self.component_manager)
         self.extended_time = 0.0
+        self.timestamp = 0.0
         self.program_track_table_size = (
             self.component_manager.program_track_table_size * 3
         )
@@ -199,6 +200,14 @@ class TrajectoryMappingScan(BaseScanMapping):
                         ),
                     )
                     pre_entries_of_ptt_in_schedular -= 1
+                    self.timestamp = (
+                        Time.now()
+                        + TimeDelta(time_to_add, format="sec")
+                        + TimeDelta(
+                            FIRST_PROGRAM_TRACK_TABLE_SIZE * self.cadence,
+                            format="sec",
+                        )
+                    )
                 else:
                     self.logger.error(
                         "Initial program track table calculation failed."
@@ -217,6 +226,11 @@ class TrajectoryMappingScan(BaseScanMapping):
                         self.component_manager.target,
                         threading.get_native_id(),
                     )
+                    if not time_offsets:
+                        self.extended_time = self.timestamp + TimeDelta(
+                            self.cadence, format="sec"
+                        )
+                        time_offsets = self.time_offsets.copy()
                     program_track_table: list = (
                         self.calculate_program_track_table(
                             time_offsets=time_offsets,
@@ -294,10 +308,10 @@ class TrajectoryMappingScan(BaseScanMapping):
                 and time_offsets
             ):
                 time_offset = time_offsets.pop(0)
-                timestamp = self.extended_time + TimeDelta(
+                self.timestamp = self.extended_time + TimeDelta(
                     time_offset, format="sec"
                 )
-                timestamp_time_obj = Time(timestamp, scale="utc")
+                timestamp_time_obj = Time(self.timestamp, scale="utc")
                 tai_time = self.track_table_calculator.convert_utc_to_tai(
                     timestamp_time_obj
                 )
@@ -310,26 +324,46 @@ class TrajectoryMappingScan(BaseScanMapping):
                 ) = self.traj.posn(time_offset)
                 # pylint: disable=unbalanced-tuple-unpacking
                 az, el = self.converter._calculate_azel_with_trajectory(
-                    self.target, x, y, timestamp
+                    self.target, x, y, self.timestamp
                 )
-                # pylint: disable=line-too-long
-                if not self.track_table_calculator._is_elevation_within_mechanical_limits(  # noqa: E501
-                    el
-                ):
+                if not getattr(
+                    self.track_table_calculator,
+                    "_is_elevation_within_mechanical_limits",
+                )(el):
                     self.logger.error(
                         "Elevation %s not within mechanical limits set to dish"
                         " leaf node. Program track table will not be "
                         " calculated further.",
                         el,
                     )
-                    # pylint: disable=line-too-long
-                    self.component_manager.update_program_track_table_error_callback(  # noqa: E501
+                    getattr(
+                        self.component_manager,
+                        "update_program_track_table_error_callback",
+                    )(
                         f"Elevation {el} not within mechanical limits"
                         " set to dish."
                     )
                     break
-                program_track_table.append(tai_time)
                 az = az + 360 * self.component_manager.wrap_sector
+                if not getattr(
+                    self.track_table_calculator,
+                    "_is_azimuth_within_mechanical_limits",
+                )(az):
+                    self.logger.error(
+                        "Azimuth %s not within mechanical limits set to dish"
+                        " leaf node. Program track table will not be "
+                        " calculated further.",
+                        az,
+                    )
+                    getattr(
+                        self.component_manager,
+                        "update_program_track_table_error_callback",
+                    )(
+                        f"Azimuth {az} not within mechanical limits"
+                        " set to dish."
+                    )
+                    break
+                program_track_table.append(tai_time)
                 program_track_table.extend([round(az, 12), round(el, 12)])
                 self.track_table_scheduler.run(blocking=False)
                 if (

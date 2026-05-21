@@ -114,7 +114,7 @@ def test_error_in_utc_to_tai_method(cm_pointing_device):
         track_table_calculator.convert_utc_to_tai(0.0)
 
 
-def test_is_elevation_within_limits_method(tango_context, cm_pointing_device):
+def test_is_elevation_within_limits_method(cm_pointing_device):
     cm = cm_pointing_device
     track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
 
@@ -123,3 +123,23 @@ def test_is_elevation_within_limits_method(tango_context, cm_pointing_device):
     )
     assert result is False
     assert track_table_calculator.elevation_limit is True
+    result = track_table_calculator._is_elevation_within_mechanical_limits(
+        95.0
+    )
+    assert result is False
+    assert track_table_calculator.elevation_limit is True
+
+
+def test_is_azimuth_within_limits_method(cm_pointing_device):
+    cm = cm_pointing_device
+    track_table_calculator = ProgramTrackTableCalculator(cm, cm.logger)
+
+    result = track_table_calculator._is_azimuth_within_mechanical_limits(300.0)
+    assert result is False
+    assert track_table_calculator.azimuth_limit is True
+
+    result = track_table_calculator._is_azimuth_within_mechanical_limits(
+        -300.0
+    )
+    assert result is False
+    assert track_table_calculator.azimuth_limit is True

@@ -46,3 +46,25 @@ def test_cm_abort(cm_without_er_lp, task_callback):
     task_status, message = cm_without_er_lp.abort(task_callback=task_callback)
     assert task_status == TaskStatus.IN_PROGRESS
     assert message == "Aborting tasks"
+
+
+def test_cm_abort_returns_immediately(
+    cm_without_er_lp,
+    task_callback,
+):
+    """
+    Verify abort returns immediately without blocking.
+
+    Validates NoWaitTaskExecutor integration.
+    """
+    start_time = time.monotonic()
+
+    task_status, message = cm_without_er_lp.abort(task_callback=task_callback)
+
+    elapsed = time.monotonic() - start_time
+
+    assert task_status == TaskStatus.IN_PROGRESS
+    assert message == "Aborting tasks"
+
+    # should not block waiting for executor shutdown
+    assert elapsed < 0.5

@@ -434,6 +434,13 @@ def test_calculate_ptt_applies_wrap_sector_to_azimuth(
         "_is_elevation_within_mechanical_limits",
         lambda el: True,
     )
+
+    monkeypatch.setattr(
+        trajectory_scan.track_table_calculator,
+        "_is_azimuth_within_mechanical_limits",
+        lambda az: True,
+    )
+
     trajectory_scan.track_table_scheduler = MagicMock()
 
     result = trajectory_scan.calculate_program_track_table(
