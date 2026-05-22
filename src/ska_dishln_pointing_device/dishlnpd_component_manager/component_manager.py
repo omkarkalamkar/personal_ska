@@ -5,7 +5,6 @@ pointing device component manager.
 from __future__ import annotations
 
 import json
-import re
 import sched
 import threading
 import time
@@ -109,12 +108,7 @@ class DishlnPointingDataComponentManager(TmcLeafNodeComponentManager):
             "Dish leaf node pointing device name is: %s",
             self.dishln_pointing_device_name,
         )
-        self.dish_id = re.findall(
-            "\\b(?:SKA|MKT)\\d{3}\\b",
-            self.dishln_pointing_device_name,
-            flags=re.IGNORECASE,
-        )[0]
-
+        self.dish_id = self.dishln_pointing_device_name.split("/")[-1].upper()
         self.current_mapping_scan_obj = None
         self.converter = AzElConverter(self)
         self.data_download_thread = threading.Thread(

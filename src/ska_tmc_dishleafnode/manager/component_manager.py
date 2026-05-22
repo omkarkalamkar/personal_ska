@@ -8,7 +8,6 @@ import datetime
 import json
 import os
 import queue
-import re
 import signal
 import threading
 import time
@@ -227,13 +226,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.adapter_timeout = adapter_timeout
         self.dish_dev_name = dish_dev_name
         self.dishln_pointing_dev_name = dishln_pointing_fqdn
-        self.dish_id = (
-            re.findall(
-                "\\b(?:SKA|MKT)\\d{3}\\b", dish_dev_name, flags=re.IGNORECASE
-            )[0]
-            if dish_dev_name
-            else None
-        )
+        self.dish_id = dish_dev_name.split("/")[-1].upper()
         self.dish_pointing_model_param: Dict[str, str] = {
             "band1pointingmodelparams": "",
             "band2pointingmodelparams": "",
@@ -377,6 +370,8 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         self.__wind_speed: float = 10.0
         self.__temperature: float = 30.0
         self.initialization_complete = threading.Event()
+        self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
+        self.command_completion_cond = threading.Condition()
         self.start_event_processing_threads()
         self.setup_event_subscription()
         self.kvalue_validation_thread.start()
@@ -404,9 +399,6 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
             _update_mean_operational_speed_callback,
             _update_mean_operational_diff_callback,
         )
-
-        self.__stow_status: StowStatus = StowStatus.DISH_NOT_IN_STOW
-        self.command_completion_cond = threading.Condition()
         # this is temporary variable
         # which can be utilised to expose failure in future.
 
@@ -2530,11 +2522,7 @@ class DishLNComponentManager(TmcLeafNodeComponentManager):
         Args:
             dish_master_fqdn (str): dish master
         """
-        self.dish_id = re.findall(
-            "\\b(?:SKA|MKT)\\d{3}\\b", dish_master_fqdn, flags=re.IGNORECASE
-        )[
-            0
-        ]  # station names in the layout json are in capital
+        self.dish_id = dish_master_fqdn.split("/")[-1].upper()
 
     def is_abort_allowed(self: DishLNComponentManager) -> bool:
         """
