@@ -8,47 +8,14 @@ These tests must not run in parallel (shared Tango device names).
 """
 
 import time
-from typing import Generator
 
 import pytest
 import tango
 from ska_tmc_common.dev_factory import DevFactory
-from tango.test_context import MultiDeviceTestContext
 
-from tests.conftest import get_integration_devices_to_load
 from tests.settings import DISH_LEAF_NODE_DEVICE, logger
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
-
-
-@pytest.fixture(scope="module")
-def tango_context(request) -> Generator:
-    """Start devices once; restarting between tests races on shared names."""
-    if request.config.getoption("--true-context"):
-        yield None
-        return
-
-    with MultiDeviceTestContext(
-        get_integration_devices_to_load(),
-        process=True,
-        timeout=60,
-    ) as context:
-        DevFactory._test_context = context
-        yield context
-
-
-@pytest.fixture(scope="module")
-def available_dish_leaf_node(tango_context, request) -> Generator[tango.DeviceProxy, None, None]:
-    """Wait once for dish manager availability after context startup."""
-    if request.config.getoption("--true-context"):
-        pytest.skip("requires test context")
-
-    time.sleep(3)
-    read_proxy = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE)
-    assert _wait_for_availability(read_proxy, True), (
-        "isSubsystemAvailable did not become True within timeout"
-    )
-    yield read_proxy
 
 
 def _wait_for_availability(
@@ -71,29 +38,37 @@ def _wait_for_availability(
     return False
 
 
-def test_is_subsystem_available_after_startup(
-    tango_context, available_dish_leaf_node
-) -> None:
+def test_is_subsystem_available_after_startup(tango_context) -> None:
     """DishLeafNode reports dish manager availability after startup."""
     logger.info("tango_context: %s", tango_context)
-    read_proxy = available_dish_leaf_node
+    dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
 
-    attr = read_proxy.read_attribute("isSubsystemAvailable")
+    assert _wait_for_availability(dish_leaf_node, True), (
+        "isSubsystemAvailable did not become True within timeout"
+    )
+
+    attr = dish_leaf_node.read_attribute("isSubsystemAvailable")
     assert attr.quality == tango.AttrQuality.ATTR_VALID
-    assert read_proxy.isSubsystemAvailable is True
+    assert dish_leaf_node.isSubsystemAvailable is True
 
 
-def test_subarray_assign_resources_read_pattern(available_dish_leaf_node) -> None:
+def test_subarray_assign_resources_read_pattern(tango_context) -> None:
     """Mirror TMC Subarray add_device_to_lp synchronous attribute read."""
+    dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+
+    assert _wait_for_availability(dish_leaf_node, True)
+
     availability = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE).isSubsystemAvailable
     assert availability is True
 
 
 def test_is_subsystem_available_subscription_read(
-    available_dish_leaf_node, group_callback
+    tango_context, group_callback
 ) -> None:
     """Subarray subscribes after startup; reads must still return True."""
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+    assert _wait_for_availability(dish_leaf_node, True)
+
     event_id = dish_leaf_node.subscribe_event(
         "isSubsystemAvailable",
         tango.EventType.CHANGE_EVENT,
@@ -102,6 +77,6 @@ def test_is_subsystem_available_subscription_read(
     try:
         time.sleep(0.5)
         assert tango.DeviceProxy(DISH_LEAF_NODE_DEVICE).isSubsystemAvailable is True
-        assert available_dish_leaf_node.isSubsystemAvailable is True
+        assert dish_leaf_node.isSubsystemAvailable is True
     finally:
         dish_leaf_node.unsubscribe_event(event_id)

@@ -286,7 +286,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
-        self.set_change_event("isSubsystemAvailable", True, False)
         self.init_completed()
         self._sync_subsystem_availability()
 
@@ -301,7 +300,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             except DeviceUnresponsive:
                 if attempt < timeout - 1:
                     time.sleep(1)
-        self._is_subsystem_available = False
+        if not self._is_subsystem_available:
+            self.logger.warning(
+                "Dish manager not reachable during init sync (%ss); "
+                "relying on liveliness probe for availability.",
+                timeout,
+            )
 
     def delete_device(self) -> None:
         # if the init is called more than once
