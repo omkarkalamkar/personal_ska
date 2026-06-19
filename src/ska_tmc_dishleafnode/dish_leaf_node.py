@@ -286,6 +286,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
+        self.set_change_event("isSubsystemAvailable", True, False)
         self.init_completed()
         self._sync_subsystem_availability()
 
