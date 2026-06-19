@@ -8,7 +8,7 @@ These tests must not run in parallel (shared Tango device names).
 """
 
 import time
-from typing import Generator
+from typing import Generator, NamedTuple
 
 import pytest
 import tango
@@ -20,6 +20,13 @@ from tests.conftest import get_integration_devices_to_load
 from tests.settings import DISH_LEAF_NODE_DEVICE, logger
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
+
+
+class Skb1306Availability(NamedTuple):
+    """Shared availability state for all tests in this module."""
+
+    group_callback: MockTangoEventCallbackGroup
+    read_proxy: tango.DeviceProxy
 
 
 @pytest.fixture(scope="module")
@@ -39,8 +46,8 @@ def tango_context(request) -> Generator:
 
 
 @pytest.fixture(scope="module")
-def availability_change_subscription(tango_context, request):
-    """Subscribe before availability becomes True to catch the transition."""
+def skb1306_availability(tango_context, request) -> Generator[Skb1306Availability, None, None]:
+    """Subscribe before startup completes; poll availability on a separate proxy."""
     if request.config.getoption("--true-context"):
         pytest.skip("requires test context")
 
@@ -48,15 +55,22 @@ def availability_change_subscription(tango_context, request):
         "isSubsystemAvailable",
         timeout=80,
     )
-    dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
-    event_id = dish_leaf_node.subscribe_event(
+    event_proxy = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+    event_id = event_proxy.subscribe_event(
         "isSubsystemAvailable",
         tango.EventType.CHANGE_EVENT,
         group_callback["isSubsystemAvailable"],
     )
     time.sleep(1)
-    yield dish_leaf_node, group_callback, event_id
-    dish_leaf_node.unsubscribe_event(event_id)
+
+    # Do not poll on the subscribed proxy; use a fresh proxy for reads.
+    read_proxy = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE)
+    assert _wait_for_availability(read_proxy, True), (
+        "isSubsystemAvailable did not become True within timeout"
+    )
+
+    yield Skb1306Availability(group_callback, read_proxy)
+    event_proxy.unsubscribe_event(event_id)
 
 
 def _wait_for_availability(
@@ -74,40 +88,27 @@ def _wait_for_availability(
     return False
 
 
-def test_is_subsystem_available_after_startup(tango_context) -> None:
+def test_is_subsystem_available_after_startup(
+    tango_context, skb1306_availability
+) -> None:
     """DishLeafNode reports dish manager availability after startup."""
     logger.info("tango_context: %s", tango_context)
-    dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+    read_proxy = skb1306_availability.read_proxy
 
-    assert _wait_for_availability(dish_leaf_node, True), (
-        "isSubsystemAvailable did not become True within timeout"
-    )
-
-    attr = dish_leaf_node.read_attribute("isSubsystemAvailable")
+    attr = read_proxy.read_attribute("isSubsystemAvailable")
     assert attr.quality == tango.AttrQuality.ATTR_VALID
-    assert dish_leaf_node.isSubsystemAvailable is True
+    assert read_proxy.isSubsystemAvailable is True
 
 
-def test_subarray_assign_resources_read_pattern(tango_context) -> None:
+def test_subarray_assign_resources_read_pattern(skb1306_availability) -> None:
     """Mirror TMC Subarray add_device_to_lp synchronous attribute read."""
-    dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
-
-    assert _wait_for_availability(dish_leaf_node, True)
-
     availability = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE).isSubsystemAvailable
     assert availability is True
 
 
-def test_is_subsystem_available_change_event(
-    tango_context, availability_change_subscription
-) -> None:
+def test_is_subsystem_available_change_event(skb1306_availability) -> None:
     """Subarray subscribes to isSubsystemAvailable change events."""
-    dish_leaf_node, group_callback, _event_id = availability_change_subscription
-
-    assert _wait_for_availability(dish_leaf_node, True), (
-        "isSubsystemAvailable did not become True within timeout"
-    )
-    group_callback["isSubsystemAvailable"].assert_change_event(
+    skb1306_availability.group_callback["isSubsystemAvailable"].assert_change_event(
         True,
         lookahead=10,
     )
