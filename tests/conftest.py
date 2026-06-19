@@ -184,6 +184,7 @@ def group_callback() -> MockTangoEventCallbackGroup:
         "longRunningCommandResult",
         "dishMode",
         "pointingState",
+        "isSubsystemAvailable",
         "kValueValidationResult",
         "sourceOffset",
         "kValue",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from threading import Event
 from typing import List, Tuple, Union
 
@@ -286,6 +287,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
+        self._sync_subsystem_availability()
+
+    def _sync_subsystem_availability(self) -> None:
+        """Publish dish manager reachability on the availability signal."""
+        available = False
+        for _ in range(self.DishAvailabilityCheckTimeout):
+            try:
+                self.component_manager.check_device_responsive()
+                available = True
+                break
+            except DeviceUnresponsive:
+                time.sleep(1)
+        self._is_subsystem_available = available
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -432,8 +446,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             last_pointing_data,
         )
 
-    def update_availablity_callback(self, availability):
-        """Change event callback for isSubsystemAvailable"""
+    def update_availablity_callback(self, availability: bool) -> None:
+        """Change event callback for isSubsystemAvailable."""
+        self.logger.info("Updating availability to %s", availability)
         self._is_subsystem_available = availability
 
     def update_track_table_errors_callback(self, value: list):
