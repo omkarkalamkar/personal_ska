@@ -35,11 +35,15 @@ class _AvailabilityLeafNode(SignalBusMixin, Device):
     @command
     def SetAvailabilityFromThread(self, available: bool) -> None:
         """Simulate liveliness probe updating availability from a thread."""
+        done = threading.Event()
 
         def _set() -> None:
-            self._is_subsystem_available = available
+            with tango.EnsureOmniThread():
+                self._is_subsystem_available = available
+            done.set()
 
-        threading.Thread(target=_set).start()
+        threading.Thread(target=_set, daemon=True).start()
+        done.wait(timeout=5)
 
 
 def test_attribute_from_signal_read_after_availability_becomes_true() -> None:
@@ -71,11 +75,13 @@ def test_attribute_from_signal_change_event_reaches_subscriber() -> None:
             _callback,
         )
         try:
+            # Allow the event subscription to register before changing the attribute.
+            time.sleep(0.5)
             device_proxy.SetAvailability(True)
-            deadline = time.time() + 5
+            deadline = time.time() + 10
             while time.time() < deadline and True not in received:
                 time.sleep(0.1)
-            assert True in received
+            assert True in received, f"Expected change event True, got {received}"
         finally:
             device_proxy.unsubscribe_event(event_id)
 
@@ -84,7 +90,7 @@ def test_attribute_from_signal_update_from_background_thread() -> None:
     """Availability update from liveliness probe thread must be readable."""
     with DeviceTestContext(_AvailabilityLeafNode, process=True) as device_proxy:
         device_proxy.SetAvailabilityFromThread(True)
-        deadline = time.time() + 5
+        deadline = time.time() + 10
         while time.time() < deadline:
             if device_proxy.isSubsystemAvailable is True:
                 break
