@@ -86,6 +86,7 @@ def devices_to_load():
                     "properties": {
                         "MidDishControl": DISH_MASTER_DEVICE,
                         "MidPointingDevice": DISHLN_POINTING_DEVICE,
+                        "DishAvailabilityCheckTimeout": 30,
                     },
                 },
             ],

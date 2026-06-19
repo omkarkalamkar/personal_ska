@@ -3,11 +3,14 @@
 import threading
 import time
 
+import pytest
 import tango
 from ska_tango_base.software_bus import Signal, SignalBusMixin, attribute_from_signal
 from tango import AttrWriteType
 from tango.server import Device, command
 from tango.test_context import DeviceTestContext
+
+pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
 
 
 class _AvailabilityLeafNode(SignalBusMixin, Device):

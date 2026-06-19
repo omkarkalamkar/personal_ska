@@ -291,15 +291,16 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def _sync_subsystem_availability(self) -> None:
         """Publish dish manager reachability on the availability signal."""
-        available = False
-        for _ in range(self.DishAvailabilityCheckTimeout):
+        timeout = int(self.DishAvailabilityCheckTimeout)
+        for attempt in range(timeout):
             try:
                 self.component_manager.check_device_responsive()
-                available = True
-                break
+                self._is_subsystem_available = True
+                return
             except DeviceUnresponsive:
-                time.sleep(1)
-        self._is_subsystem_available = available
+                if attempt < timeout - 1:
+                    time.sleep(1)
+        self._is_subsystem_available = False
 
     def delete_device(self) -> None:
         # if the init is called more than once

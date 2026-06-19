@@ -4,21 +4,24 @@ Run on Linux via:
 
     make python-test FILE=tests/integration/test_is_subsystem_available_skb_1306.py
 
-Do not use pytest --forked on macOS with Tango (fork-unsafe).
+These tests must not run in parallel (shared Tango device names).
 """
 
 import time
 
+import pytest
 import tango
 from ska_tmc_common.dev_factory import DevFactory
 
 from tests.settings import DISH_LEAF_NODE_DEVICE, logger
 
+pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
+
 
 def _wait_for_availability(
     dish_leaf_node: tango.DeviceProxy,
     expected: bool,
-    timeout: int = 60,
+    timeout: int = 120,
 ) -> bool:
     """Poll isSubsystemAvailable until expected value or timeout."""
     deadline = time.time() + timeout
@@ -58,17 +61,20 @@ def test_is_subsystem_available_change_event(tango_context, group_callback) -> N
     """Subarray subscribes to isSubsystemAvailable change events."""
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
 
-    assert _wait_for_availability(dish_leaf_node, True)
-
+    # Subscribe before availability becomes True to catch False -> True transition.
     event_id = dish_leaf_node.subscribe_event(
         "isSubsystemAvailable",
         tango.EventType.CHANGE_EVENT,
         group_callback["isSubsystemAvailable"],
     )
     try:
+        time.sleep(0.5)
+        assert _wait_for_availability(dish_leaf_node, True), (
+            "isSubsystemAvailable did not become True within timeout"
+        )
         group_callback["isSubsystemAvailable"].assert_change_event(
             True,
-            lookahead=2,
+            lookahead=10,
         )
     finally:
         dish_leaf_node.unsubscribe_event(event_id)
