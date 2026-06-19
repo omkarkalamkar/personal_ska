@@ -77,6 +77,11 @@ def dish_master_device():
 @pytest.fixture()
 def devices_to_load():
     """Returns helper state devices."""
+    return get_integration_devices_to_load()
+
+
+def get_integration_devices_to_load():
+    """Device configuration for MultiDeviceTestContext integration tests."""
     return (
         {
             "class": MidTmcLeafNodeDish,
