@@ -129,6 +129,11 @@ def test_without_init_sync_responsive_dish_still_reads_false() -> None:
     assert device._is_subsystem_available is False
 
     # After sync (our fix), the same device would become True.
+    device._publish_subsystem_availability = (
+        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
     MidTmcLeafNodeDish._sync_subsystem_availability(device)
     assert device._is_subsystem_available is True
 
@@ -266,6 +271,11 @@ def test_init_sync_prevents_stuck_false_read_when_dish_responsive() -> None:
     device.DishAvailabilityCheckTimeout = 1
     device._is_subsystem_available = False
     device.component_manager.check_device_responsive.return_value = None
+    device._publish_subsystem_availability = (
+        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     MidTmcLeafNodeDish._sync_subsystem_availability(device)
 

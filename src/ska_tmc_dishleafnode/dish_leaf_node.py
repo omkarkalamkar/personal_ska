@@ -277,7 +277,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         )
 
         for attribute_name in [
-            "isSubsystemAvailable",
             "sdpQueueConnectorFqdn",
             "lastPointingData",
             "kValue",
@@ -288,20 +287,20 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
-        # SKB-1306 doorbell-only experiment: no init sync; liveliness + events only.
+        self._sync_subsystem_availability()
 
     def _publish_subsystem_availability(self, available: bool) -> None:
         """Set availability signal and push Tango change/archive events."""
         if self._is_subsystem_available == available:
             return
         previous = self._is_subsystem_available
-        self._is_subsystem_available = available
         self.logger.info(
             "isSubsystemAvailable trace: published %s -> %s",
             previous,
             available,
         )
         with tango.EnsureOmniThread():
+            self._is_subsystem_available = available
             self.push_change_archive_events("isSubsystemAvailable", available)
 
     def _sync_subsystem_availability(self) -> None:
@@ -316,14 +315,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         for attempt in range(timeout):
             try:
                 self.component_manager.check_device_responsive()
-                previous = self._is_subsystem_available
-                self._is_subsystem_available = True
+                self._publish_subsystem_availability(True)
                 self.logger.info(
                     "isSubsystemAvailable trace: init sync set True on "
-                    "attempt %s/%s (previous=%s)",
+                    "attempt %s/%s",
                     attempt + 1,
                     timeout,
-                    previous,
                 )
                 return
             except DeviceUnresponsive as exc:

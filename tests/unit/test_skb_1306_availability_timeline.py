@@ -125,6 +125,11 @@ def test_timeline_with_init_sync_before_subarray_read() -> None:
     device.DishAvailabilityCheckTimeout = 1
     device._is_subsystem_available = False
     device.component_manager.check_device_responsive.return_value = None
+    device._publish_subsystem_availability = (
+        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     timeline.record("device", "startup_signal_default", device._is_subsystem_available)
     MidTmcLeafNodeDish._sync_subsystem_availability(device)
@@ -180,6 +185,11 @@ def test_production_logs_emit_trace_for_init_sync(caplog) -> None:
         DeviceUnresponsive("not yet"),
         None,
     ]
+    device._publish_subsystem_availability = (
+        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     MidTmcLeafNodeDish._sync_subsystem_availability(device)
 
