@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
 from threading import Event
 from typing import List, Tuple, Union
 
@@ -287,14 +286,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
-        for attempt in range(int(self.DishAvailabilityCheckTimeout)):
-            try:
-                self.component_manager.check_device_responsive()
-                self.update_availablity_callback(True)
-                break
-            except DeviceUnresponsive:
-                if attempt < int(self.DishAvailabilityCheckTimeout) - 1:
-                    time.sleep(1)
+        try:
+            self.component_manager.check_device_responsive()
+            self.update_availablity_callback(True)
+        except DeviceUnresponsive:
+            pass
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -441,13 +437,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             last_pointing_data,
         )
 
-    def update_availablity_callback(self, availability: bool) -> None:
-        """Change event callback for isSubsystemAvailable."""
-        if self._is_subsystem_available == availability:
-            return
-        with tango.EnsureOmniThread():
-            self._is_subsystem_available = availability
-            self.push_change_archive_events("isSubsystemAvailable", availability)
+    def update_availablity_callback(self, availability):
+        """Change event callback for isSubsystemAvailable"""
+        if self._is_subsystem_available != availability:
+            with tango.EnsureOmniThread():
+                self._is_subsystem_available = availability
+                self.push_change_archive_events(
+                    "isSubsystemAvailable", availability
+                )
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
