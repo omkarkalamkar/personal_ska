@@ -7,8 +7,8 @@ signal-based isSubsystemAvailable (release 0.45.0) before init sync:
    liveliness updates it — reads stay False (Devesh: "always False on SN").
 2. Subarray-style reads during Assign Resources can happen before liveliness
    sets True — a timing race even when liveliness would update later.
-3. The 0.45.0 signal callback does not call push_change_archive_events unlike
-   the pre-signal 0.45.1 implementation — event delivery differs from HM-903.
+3. Doorbell (_publish_subsystem_availability + push_change_archive_events) restores
+   explicit Tango notifications when liveliness updates the signal.
 
 Run:
 
@@ -149,10 +149,33 @@ def test_assign_resources_style_read_before_liveliness_is_false() -> None:
         assert device_proxy.isSubsystemAvailable is True
 
 
-def test_current_callback_does_not_push_change_archive_events() -> None:
-    """0.45.0 signal callback differs from HM-903: no explicit Tango event push."""
+def test_doorbell_callback_pushes_change_archive_events() -> None:
+    """SKB-1306 doorbell: liveliness path explicitly notifies subscribers."""
     device = MagicMock()
     device._is_subsystem_available = False
+    device._publish_subsystem_availability = (
+        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
+
+    MidTmcLeafNodeDish.update_availablity_callback(device, True)
+
+    assert device._is_subsystem_available is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
+
+
+def test_doorbell_callback_skips_push_when_value_unchanged() -> None:
+    """Doorbell only pushes when availability actually changes."""
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._publish_subsystem_availability = (
+        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     MidTmcLeafNodeDish.update_availablity_callback(device, True)
 
@@ -177,17 +200,6 @@ def test_presignal_callback_pushes_tango_events() -> None:
     device.push_archive_event.assert_called_once_with(
         "isSubsystemAvailable", True
     )
-
-
-def test_signal_callback_assigns_same_value_without_change_guard() -> None:
-    """0.45.0 assigns every time; 0.45.1 only updates and pushes when value changes."""
-    device = MagicMock()
-    device._is_subsystem_available = True
-
-    MidTmcLeafNodeDish.update_availablity_callback(device, True)
-
-    assert device._is_subsystem_available is True
-    device.push_change_archive_events.assert_not_called()
 
 
 def test_presignal_callback_skips_push_when_value_unchanged() -> None:

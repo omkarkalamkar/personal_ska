@@ -190,15 +190,20 @@ def test_production_logs_emit_trace_for_init_sync(caplog) -> None:
 
 
 def test_production_logs_emit_trace_for_liveliness_callback(caplog) -> None:
-    """Liveliness callback logs previous and new availability values."""
+    """Doorbell callback logs previous and new availability values."""
     caplog.set_level(logging.INFO)
     device = MagicMock()
     device._is_subsystem_available = False
     device.logger = logging.getLogger("test.dishln")
+    device._publish_subsystem_availability = (
+        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     MidTmcLeafNodeDish.update_availablity_callback(device, True)
     MidTmcLeafNodeDish.update_availablity_callback(device, False)
 
     messages = [record.message for record in caplog.records]
-    assert messages[0] == "isSubsystemAvailable trace: liveliness callback False -> True"
-    assert messages[1] == "isSubsystemAvailable trace: liveliness callback True -> False"
+    assert messages[0] == "isSubsystemAvailable trace: published False -> True"
+    assert messages[1] == "isSubsystemAvailable trace: published True -> False"
