@@ -1,14 +1,11 @@
-"""SKB-1306 failure-mode tests: why isSubsystemAvailable stayed False on SN.
+"""SKB-1306 failure-mode tests: isSubsystemAvailable on signal-based 0.45.0.
 
-These tests document and reproduce the production symptoms reported for
-signal-based isSubsystemAvailable (release 0.45.0) before init sync:
+Documents production symptoms and the minimal fix (0.45.1-style explicit push
+while keeping attribute_from_signal):
 
-1. The cached signal starts False and never changes if neither init sync nor
-   liveliness updates it — reads stay False (Devesh: "always False on SN").
-2. Subarray-style reads during Assign Resources can happen before liveliness
-   sets True — a timing race even when liveliness would update later.
-3. Doorbell (_publish_subsystem_availability + push_change_archive_events) restores
-   explicit Tango notifications when liveliness updates the signal.
+1. Signal starts False until liveliness updates it.
+2. Subarray can read False during Assign before liveliness runs.
+3. Explicit push_change_archive_events on callback restores Subarray events.
 
 Run:
 
@@ -108,34 +105,12 @@ class _PreSignalLeafNode(SignalBusMixin, Device):
                 self.push_archive_event("isSubsystemAvailable", available)
 
 
-def test_signal_starts_false_without_sync_or_liveliness() -> None:
-    """SN symptom: value never changes — signal stays at initial False."""
+def test_signal_starts_false_until_liveliness() -> None:
+    """SN symptom: value stays False until liveliness callback runs."""
     device = MagicMock()
     device._is_subsystem_available = False
 
-    # Dish manager is up, but neither init sync nor liveliness has run yet.
     assert device._is_subsystem_available is False
-
-
-def test_without_init_sync_responsive_dish_still_reads_false() -> None:
-    """0.45.0 without _sync: responsive dish manager but signal never updated."""
-    device = MagicMock()
-    device.DishAvailabilityCheckTimeout = 3
-    device._is_subsystem_available = False
-    device.component_manager.check_device_responsive.return_value = None
-
-    # 0.45.0 tag: init completed but _sync_subsystem_availability did not exist.
-    # Liveliness has not fired yet either.
-    assert device._is_subsystem_available is False
-
-    # After sync (our fix), the same device would become True.
-    device._publish_subsystem_availability = (
-        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
-    MidTmcLeafNodeDish._sync_subsystem_availability(device)
-    assert device._is_subsystem_available is True
 
 
 def test_assign_resources_style_read_before_liveliness_is_false() -> None:
@@ -154,15 +129,10 @@ def test_assign_resources_style_read_before_liveliness_is_false() -> None:
         assert device_proxy.isSubsystemAvailable is True
 
 
-def test_doorbell_callback_pushes_change_archive_events() -> None:
-    """SKB-1306 doorbell: liveliness path explicitly notifies subscribers."""
+def test_callback_pushes_change_archive_events() -> None:
+    """Minimal fix: signal assign + explicit push (0.45.1 pattern on signal)."""
     device = MagicMock()
     device._is_subsystem_available = False
-    device._publish_subsystem_availability = (
-        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
 
     MidTmcLeafNodeDish.update_availablity_callback(device, True)
 
@@ -172,15 +142,10 @@ def test_doorbell_callback_pushes_change_archive_events() -> None:
     )
 
 
-def test_doorbell_callback_skips_push_when_value_unchanged() -> None:
-    """Doorbell only pushes when availability actually changes."""
+def test_callback_skips_push_when_value_unchanged() -> None:
+    """Push only when availability actually changes."""
     device = MagicMock()
     device._is_subsystem_available = True
-    device._publish_subsystem_availability = (
-        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
 
     MidTmcLeafNodeDish.update_availablity_callback(device, True)
 
@@ -264,19 +229,3 @@ def test_sn_stuck_false_until_liveliness_no_early_true_event() -> None:
         finally:
             device_proxy.unsubscribe_event(event_id)
 
-
-def test_init_sync_prevents_stuck_false_read_when_dish_responsive() -> None:
-    """Our fix: sync sets True at init so early Subarray read is not stuck False."""
-    device = MagicMock()
-    device.DishAvailabilityCheckTimeout = 1
-    device._is_subsystem_available = False
-    device.component_manager.check_device_responsive.return_value = None
-    device._publish_subsystem_availability = (
-        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
-
-    MidTmcLeafNodeDish._sync_subsystem_availability(device)
-
-    assert device._is_subsystem_available is True

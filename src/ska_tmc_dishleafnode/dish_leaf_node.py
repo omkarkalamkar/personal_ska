@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
 from threading import Event
 from typing import List, Tuple, Union
 
@@ -287,60 +286,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
-        self._sync_subsystem_availability()
-
-    def _publish_subsystem_availability(self, available: bool) -> None:
-        """Set availability signal and push Tango change/archive events."""
-        if self._is_subsystem_available == available:
-            return
-        previous = self._is_subsystem_available
-        self.logger.info(
-            "isSubsystemAvailable trace: published %s -> %s",
-            previous,
-            available,
-        )
-        with tango.EnsureOmniThread():
-            self._is_subsystem_available = available
-            self.push_change_archive_events("isSubsystemAvailable", available)
-
-    def _sync_subsystem_availability(self) -> None:
-        """Publish dish manager reachability on the availability signal."""
-        timeout = int(self.DishAvailabilityCheckTimeout)
-        self.logger.info(
-            "isSubsystemAvailable trace: init sync started "
-            "(timeout=%ss, current=%s)",
-            timeout,
-            self._is_subsystem_available,
-        )
-        for attempt in range(timeout):
-            try:
-                self.component_manager.check_device_responsive()
-                self._publish_subsystem_availability(True)
-                self.logger.info(
-                    "isSubsystemAvailable trace: init sync set True on "
-                    "attempt %s/%s",
-                    attempt + 1,
-                    timeout,
-                )
-                return
-            except DeviceUnresponsive as exc:
-                self.logger.info(
-                    "isSubsystemAvailable trace: init sync attempt %s/%s "
-                    "dish unresponsive (%s)",
-                    attempt + 1,
-                    timeout,
-                    exc,
-                )
-                if attempt < timeout - 1:
-                    time.sleep(1)
-        if not self._is_subsystem_available:
-            self.logger.warning(
-                "isSubsystemAvailable trace: init sync finished without "
-                "setting True after %ss; relying on liveliness probe "
-                "(current=%s)",
-                timeout,
-                self._is_subsystem_available,
-            )
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -489,7 +434,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability: bool) -> None:
         """Change event callback for isSubsystemAvailable."""
-        self._publish_subsystem_availability(availability)
+        if self._is_subsystem_available == availability:
+            return
+        with tango.EnsureOmniThread():
+            self._is_subsystem_available = availability
+            self.push_change_archive_events("isSubsystemAvailable", availability)
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""

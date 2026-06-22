@@ -1,13 +1,4 @@
-"""Timeline diagnostics for isSubsystemAvailable: who changed it, who read it, when.
-
-These tests build a millisecond-ordered trace so you can see:
-- when the value was False / True
-- when liveliness (simulated) ran
-- when Subarray-style reads happened (before vs after)
-
-Production Dish Leaf Node logs use the same prefix for SN/PSI correlation:
-
-    grep 'isSubsystemAvailable trace' <dish-leaf-node-log>
+"""Timeline diagnostics for isSubsystemAvailable timing (SKB-1306).
 
 Run with timeline printed on failure:
 
@@ -16,19 +7,15 @@ Run with timeline printed on failure:
 
 from __future__ import annotations
 
-import logging
 import time
-from unittest.mock import MagicMock
 
 import pytest
 import tango
 from ska_tango_base.software_bus import Signal, SignalBusMixin, attribute_from_signal
-from ska_tmc_common.exceptions import DeviceUnresponsive
 from tango import AttrWriteType
 from tango.server import Device, command
 from tango.test_context import DeviceTestContext
 
-from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
 from tests.unit.skb_1306_availability_timeline import AvailabilityTimeline
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
@@ -118,31 +105,6 @@ def test_timeline_read_before_liveliness_shows_false_then_true() -> None:
     print("\n" + timeline.format())
 
 
-def test_timeline_with_init_sync_before_subarray_read() -> None:
-    """With init sync, Subarray read should see True before liveliness."""
-    timeline = AvailabilityTimeline()
-    device = MagicMock()
-    device.DishAvailabilityCheckTimeout = 1
-    device._is_subsystem_available = False
-    device.component_manager.check_device_responsive.return_value = None
-    device._publish_subsystem_availability = (
-        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
-
-    timeline.record("device", "startup_signal_default", device._is_subsystem_available)
-    MidTmcLeafNodeDish._sync_subsystem_availability(device)
-    timeline.record("init_sync", "set_true", device._is_subsystem_available)
-
-    # Subarray read after init — no liveliness needed.
-    timeline.record("subarray", "assign_resources_read", device._is_subsystem_available)
-
-    timeline.assert_order("device", "init_sync", "subarray")
-    assert timeline.entries[-1].value is True
-    print("\n" + timeline.format())
-
-
 def test_timeline_liveliness_false_then_true(capfd) -> None:
     """Trace dish down (False) then up (True) via liveliness callbacks."""
     timeline = AvailabilityTimeline()
@@ -172,48 +134,3 @@ def test_timeline_liveliness_false_then_true(capfd) -> None:
         proxy.unsubscribe_event(event_id)
 
     print("\n" + timeline.format())
-
-
-def test_production_logs_emit_trace_for_init_sync(caplog) -> None:
-    """Init sync writes grep-friendly trace lines to Dish Leaf Node logs."""
-    caplog.set_level(logging.INFO)
-    device = MagicMock()
-    device.DishAvailabilityCheckTimeout = 2
-    device._is_subsystem_available = False
-    device.logger = logging.getLogger("test.dishln")
-    device.component_manager.check_device_responsive.side_effect = [
-        DeviceUnresponsive("not yet"),
-        None,
-    ]
-    device._publish_subsystem_availability = (
-        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
-
-    MidTmcLeafNodeDish._sync_subsystem_availability(device)
-
-    messages = [record.message for record in caplog.records]
-    assert any("init sync started" in message for message in messages)
-    assert any("attempt 1/2 dish unresponsive" in message for message in messages)
-    assert any("init sync set True on attempt 2/2" in message for message in messages)
-
-
-def test_production_logs_emit_trace_for_liveliness_callback(caplog) -> None:
-    """Doorbell callback logs previous and new availability values."""
-    caplog.set_level(logging.INFO)
-    device = MagicMock()
-    device._is_subsystem_available = False
-    device.logger = logging.getLogger("test.dishln")
-    device._publish_subsystem_availability = (
-        MidTmcLeafNodeDish._publish_subsystem_availability.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
-
-    MidTmcLeafNodeDish.update_availablity_callback(device, True)
-    MidTmcLeafNodeDish.update_availablity_callback(device, False)
-
-    messages = [record.message for record in caplog.records]
-    assert messages[0] == "isSubsystemAvailable trace: published False -> True"
-    assert messages[1] == "isSubsystemAvailable trace: published True -> False"
