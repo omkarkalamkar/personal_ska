@@ -287,26 +287,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
-        self._sync_subsystem_availability()
-
-    def _set_subsystem_availability(self, available: bool) -> None:
-        """Update signal and push Tango events when availability changes."""
-        if self._is_subsystem_available == available:
-            return
-        with tango.EnsureOmniThread():
-            self._is_subsystem_available = available
-            self.push_change_archive_events("isSubsystemAvailable", available)
-
-    def _sync_subsystem_availability(self) -> None:
-        """Set availability True at startup when dish manager is responsive."""
-        timeout = int(self.DishAvailabilityCheckTimeout)
-        for attempt in range(timeout):
+        for attempt in range(int(self.DishAvailabilityCheckTimeout)):
             try:
                 self.component_manager.check_device_responsive()
-                self._set_subsystem_availability(True)
-                return
+                self.update_availablity_callback(True)
+                break
             except DeviceUnresponsive:
-                if attempt < timeout - 1:
+                if attempt < int(self.DishAvailabilityCheckTimeout) - 1:
                     time.sleep(1)
 
     def delete_device(self) -> None:
@@ -456,7 +443,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability: bool) -> None:
         """Change event callback for isSubsystemAvailable."""
-        self._set_subsystem_availability(availability)
+        if self._is_subsystem_available == availability:
+            return
+        with tango.EnsureOmniThread():
+            self._is_subsystem_available = availability
+            self.push_change_archive_events("isSubsystemAvailable", availability)
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""

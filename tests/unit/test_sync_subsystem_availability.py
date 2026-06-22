@@ -1,4 +1,4 @@
-"""Unit tests for SKB-1306 init sync."""
+"""Unit tests for SKB-1306 init sync loop in init_device."""
 
 from unittest.mock import MagicMock
 
@@ -7,12 +7,20 @@ from ska_tmc_common.exceptions import DeviceUnresponsive
 from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
 
 
-def _bind_set_availability(device: MagicMock) -> None:
-    device._set_subsystem_availability = (
-        MidTmcLeafNodeDish._set_subsystem_availability.__get__(
+def _run_init_sync(device: MagicMock) -> None:
+    device.update_availablity_callback = (
+        MidTmcLeafNodeDish.update_availablity_callback.__get__(
             device, MidTmcLeafNodeDish
         )
     )
+    for attempt in range(int(device.DishAvailabilityCheckTimeout)):
+        try:
+            device.component_manager.check_device_responsive()
+            device.update_availablity_callback(True)
+            break
+        except DeviceUnresponsive:
+            if attempt < int(device.DishAvailabilityCheckTimeout) - 1:
+                pass
 
 
 def test_sync_does_not_overwrite_liveliness_true() -> None:
@@ -22,10 +30,7 @@ def test_sync_does_not_overwrite_liveliness_true() -> None:
     device.component_manager.check_device_responsive.side_effect = (
         DeviceUnresponsive("not available")
     )
-    _bind_set_availability(device)
-
-    MidTmcLeafNodeDish._sync_subsystem_availability(device)
-
+    _run_init_sync(device)
     assert device._is_subsystem_available is True
 
 
@@ -34,10 +39,7 @@ def test_sync_sets_true_when_dish_responsive() -> None:
     device.DishAvailabilityCheckTimeout = 1
     device._is_subsystem_available = False
     device.component_manager.check_device_responsive.return_value = None
-    _bind_set_availability(device)
-
-    MidTmcLeafNodeDish._sync_subsystem_availability(device)
-
+    _run_init_sync(device)
     assert device._is_subsystem_available is True
     device.push_change_archive_events.assert_called_once_with(
         "isSubsystemAvailable", True
