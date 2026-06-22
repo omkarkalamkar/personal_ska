@@ -292,19 +292,42 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def _sync_subsystem_availability(self) -> None:
         """Publish dish manager reachability on the availability signal."""
         timeout = int(self.DishAvailabilityCheckTimeout)
+        self.logger.info(
+            "isSubsystemAvailable trace: init sync started "
+            "(timeout=%ss, current=%s)",
+            timeout,
+            self._is_subsystem_available,
+        )
         for attempt in range(timeout):
             try:
                 self.component_manager.check_device_responsive()
+                previous = self._is_subsystem_available
                 self._is_subsystem_available = True
+                self.logger.info(
+                    "isSubsystemAvailable trace: init sync set True on "
+                    "attempt %s/%s (previous=%s)",
+                    attempt + 1,
+                    timeout,
+                    previous,
+                )
                 return
-            except DeviceUnresponsive:
+            except DeviceUnresponsive as exc:
+                self.logger.info(
+                    "isSubsystemAvailable trace: init sync attempt %s/%s "
+                    "dish unresponsive (%s)",
+                    attempt + 1,
+                    timeout,
+                    exc,
+                )
                 if attempt < timeout - 1:
                     time.sleep(1)
         if not self._is_subsystem_available:
             self.logger.warning(
-                "Dish manager not reachable during init sync (%ss); "
-                "relying on liveliness probe for availability.",
+                "isSubsystemAvailable trace: init sync finished without "
+                "setting True after %ss; relying on liveliness probe "
+                "(current=%s)",
                 timeout,
+                self._is_subsystem_available,
             )
 
     def delete_device(self) -> None:
@@ -454,7 +477,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability: bool) -> None:
         """Change event callback for isSubsystemAvailable."""
-        self.logger.info("Updating availability to %s", availability)
+        previous = self._is_subsystem_available
+        self.logger.info(
+            "isSubsystemAvailable trace: liveliness callback %s -> %s",
+            previous,
+            availability,
+        )
         self._is_subsystem_available = availability
 
     def update_track_table_errors_callback(self, value: list):

@@ -14,6 +14,7 @@ import tango
 from ska_tmc_common.dev_factory import DevFactory
 
 from tests.settings import DISH_LEAF_NODE_DEVICE, logger
+from tests.unit.skb_1306_availability_timeline import AvailabilityTimeline
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
 
@@ -80,3 +81,38 @@ def test_is_subsystem_available_subscription_read(
         assert dish_leaf_node.isSubsystemAvailable is True
     finally:
         dish_leaf_node.unsubscribe_event(event_id)
+
+
+def test_availability_startup_timeline(tango_context) -> None:
+    """Poll during startup; log when first True read appears (Linux integration)."""
+    timeline = AvailabilityTimeline()
+    dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+
+    def _on_change_event(event: tango.EventData) -> None:
+        if event.err:
+            timeline.record("subarray", "change_event_error", None)
+        else:
+            timeline.record("subarray", "change_event", event.attr_value.value)
+
+    event_id = dish_leaf_node.subscribe_event(
+        "isSubsystemAvailable",
+        tango.EventType.CHANGE_EVENT,
+        _on_change_event,
+    )
+    try:
+        timeline.record("device", "context_ready", None)
+        for index in range(40):
+            try:
+                value = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE).isSubsystemAvailable
+                timeline.record("subarray", f"poll_read_{index}", value)
+                if value is True:
+                    break
+            except tango.DevFailed:
+                timeline.record("subarray", f"poll_read_{index}_failed", None)
+            time.sleep(0.25)
+    finally:
+        dish_leaf_node.unsubscribe_event(event_id)
+
+    logger.info("SKB-1306 startup timeline:\n%s", timeline.format())
+    true_reads = [entry for entry in timeline.entries if entry.value is True]
+    assert true_reads, f"Never read True during startup.\n{timeline.format()}"
