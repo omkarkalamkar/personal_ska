@@ -130,9 +130,14 @@ def test_assign_resources_style_read_before_liveliness_is_false() -> None:
 
 
 def test_callback_pushes_change_archive_events() -> None:
-    """Minimal fix: signal assign + explicit push (0.45.1 pattern on signal)."""
+    """Signal assign + explicit push (0.45.1 pattern on signal)."""
     device = MagicMock()
     device._is_subsystem_available = False
+    device._set_subsystem_availability = (
+        MidTmcLeafNodeDish._set_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     MidTmcLeafNodeDish.update_availablity_callback(device, True)
 
@@ -143,9 +148,13 @@ def test_callback_pushes_change_archive_events() -> None:
 
 
 def test_callback_skips_push_when_value_unchanged() -> None:
-    """Push only when availability actually changes."""
     device = MagicMock()
     device._is_subsystem_available = True
+    device._set_subsystem_availability = (
+        MidTmcLeafNodeDish._set_subsystem_availability.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     MidTmcLeafNodeDish.update_availablity_callback(device, True)
 
