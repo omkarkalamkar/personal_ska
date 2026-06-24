@@ -18,7 +18,6 @@ from typing import Generator
 
 import pytest
 import tango
-from ska_tango_testing.mock.tango import MockTangoEventCallbackGroup
 from ska_tmc_common.dev_factory import DevFactory
 from tango.test_context import MultiDeviceTestContext
 
@@ -154,15 +153,15 @@ def test_is_subsystem_available_subscription_read(tango_context) -> None:
     """Subarray subscribes after startup; reads must still return True."""
     assert _wait_for_availability(DISH_LEAF_NODE_DEVICE, True)
 
-    group_callback = MockTangoEventCallbackGroup(
-        "isSubsystemAvailable",
-        timeout=80,
-    )
-    event_proxy = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+    event_proxy = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE)
+
+    def _on_change_event(event: tango.EventData) -> None:
+        pass
+
     event_id = event_proxy.subscribe_event(
         "isSubsystemAvailable",
         tango.EventType.CHANGE_EVENT,
-        group_callback["isSubsystemAvailable"],
+        _on_change_event,
     )
     try:
         time.sleep(0.5)

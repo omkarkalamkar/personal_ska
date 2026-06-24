@@ -336,6 +336,18 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         if isinstance(cache, dict):
             cache["isSubsystemAvailable"] = available
 
+    def _clear_subsystem_availability_read_flag(self) -> None:
+        """Force reads through attribute_from_signal cache (PyTango 10.1+)."""
+        try:
+            attr = self.get_device_attr().get_attr_by_name("isSubsystemAvailable")
+            attr.set_value_flag(False)
+        except (AttributeError, tango.DevFailed):
+            pass
+
+    def _prepare_subsystem_availability_for_client_read(self) -> None:
+        self._repair_availability_from_signal()
+        self._clear_subsystem_availability_read_flag()
+
     def _publish_subsystem_availability(self, available: bool, *, reason: str) -> None:
         """Sync signal, attribute_from_signal cache, and Tango events."""
         previous = self._is_subsystem_available
@@ -347,6 +359,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             if previous != available:
                 self._is_subsystem_available = available
             self.push_change_archive_events("isSubsystemAvailable", available)
+            self._clear_subsystem_availability_read_flag()
         self._log_availability(
             "updated",
             value=available,
@@ -367,6 +380,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         with tango.EnsureOmniThread():
             self._sync_availability_attr_cache(signal_value)
             self.push_change_archive_events("isSubsystemAvailable", signal_value)
+            self._clear_subsystem_availability_read_flag()
         self._log_availability(
             "repaired stale read cache",
             value=signal_value,
@@ -392,7 +406,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def always_executed_hook(self) -> None:
         super().always_executed_hook()
-        self._repair_availability_from_signal()
+        self._prepare_subsystem_availability_for_client_read()
 
     def delete_device(self) -> None:
         # if the init is called more than once
