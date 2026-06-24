@@ -294,6 +294,15 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 try:
                     self.component_manager.check_device_responsive()
                     self._publish_subsystem_availability(True, reason="init_sync")
+                    try:
+                        self.shared_bus.wait_for_thread(timeout=5)
+                    except TimedOutError:
+                        self.logger.warning(
+                            "isSubsystemAvailable: signal bus drain timed out during init"
+                        )
+                    self._publish_subsystem_availability(
+                        True, reason="init_sync_finalize"
+                    )
                     break
                 except DeviceUnresponsive as exc:
                     self.logger.debug(
@@ -304,12 +313,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     )
                     if attempt < timeout - 1:
                         time.sleep(1)
-            try:
-                self.shared_bus.wait_for_thread(timeout=5)
-            except TimedOutError:
-                self.logger.warning(
-                    "isSubsystemAvailable: signal bus drain timed out during init"
-                )
 
     def _availability_ms_since_init(self) -> float:
         start = getattr(self, "_availability_init_mono", time.monotonic())
@@ -336,18 +339,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         if isinstance(cache, dict):
             cache["isSubsystemAvailable"] = available
 
-    def _clear_subsystem_availability_read_flag(self) -> None:
-        """Force reads through attribute_from_signal cache (PyTango 10.1+)."""
-        try:
-            attr = self.get_device_attr().get_attr_by_name("isSubsystemAvailable")
-            attr.set_value_flag(False)
-        except (AttributeError, tango.DevFailed):
-            pass
-
-    def _prepare_subsystem_availability_for_client_read(self) -> None:
-        self._repair_availability_from_signal()
-        self._clear_subsystem_availability_read_flag()
-
     def _publish_subsystem_availability(self, available: bool, *, reason: str) -> None:
         """Sync signal, attribute_from_signal cache, and Tango events."""
         previous = self._is_subsystem_available
@@ -359,7 +350,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             if previous != available:
                 self._is_subsystem_available = available
             self.push_change_archive_events("isSubsystemAvailable", available)
-            self._clear_subsystem_availability_read_flag()
         self._log_availability(
             "updated",
             value=available,
@@ -368,45 +358,25 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             cache_was=cached,
         )
 
-    def _repair_availability_from_signal(self) -> bool:
-        """Fix stale attribute_from_signal reads after async bus emissions."""
-        try:
-            signal_value = self._is_subsystem_available
-        except (AttributeError, RuntimeError):
-            return False
-        cached = self._get_availability_attr_cache()
-        if cached == signal_value:
-            return False
-        with tango.EnsureOmniThread():
-            self._sync_availability_attr_cache(signal_value)
-            self.push_change_archive_events("isSubsystemAvailable", signal_value)
-            self._clear_subsystem_availability_read_flag()
-        self._log_availability(
-            "repaired stale read cache",
-            value=signal_value,
-            cache_was=cached,
-        )
-        return True
+    @staticmethod
+    def _is_availability_signal(signal: str) -> bool:
+        return "is_subsystem_available" in signal.lower()
 
     def notify_emission(self, signal: str, value: Any) -> None:
+        """Drop stale bus values before attribute_from_signal auto-push."""
+        if self._is_availability_signal(signal):
+            try:
+                signal_value = self._is_subsystem_available
+            except (AttributeError, RuntimeError):
+                signal_value = None
+            if signal_value is not None and value != signal_value:
+                self._log_availability(
+                    "ignored stale bus emission",
+                    emitted=value,
+                    signal=signal_value,
+                )
+                return
         super().notify_emission(signal, value)
-        if "is_subsystem_available" not in signal.lower():
-            return
-        try:
-            signal_value = self._is_subsystem_available
-        except (AttributeError, RuntimeError):
-            return
-        if value != signal_value:
-            self._log_availability(
-                "ignored stale bus emission",
-                emitted=value,
-                signal=signal_value,
-            )
-        self._repair_availability_from_signal()
-
-    def always_executed_hook(self) -> None:
-        super().always_executed_hook()
-        self._prepare_subsystem_availability_for_client_read()
 
     def delete_device(self) -> None:
         # if the init is called more than once
