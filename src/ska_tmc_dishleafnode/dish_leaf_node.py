@@ -520,6 +520,14 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     availability,
                 )
                 self._is_subsystem_available = availability
+                if hasattr(self, "shared_bus"):
+                    self.shared_bus.wait_for_thread()
+                self.logger.info(
+                    "isSubsystemAvailable trace: t=+%.1fms signal_bus_flushed "
+                    "cache=%s",
+                    self._availability_trace_ms(),
+                    self._is_subsystem_available,
+                )
                 self.logger.info(
                     "isSubsystemAvailable trace: t=+%.1fms explicit_push start "
                     "value=%s",
