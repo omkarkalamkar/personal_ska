@@ -16,7 +16,7 @@ from ska_tango_base.long_running_commands import (
     LRCReqType,
     long_running_command,
 )
-from ska_tango_base.software_bus import Signal, attribute_from_signal
+from ska_tango_base.software_bus import Signal, TimedOutError, attribute_from_signal
 from ska_tango_base.type_hints import TaskCallbackType
 from ska_tmc_common import (
     CommandNotAllowed,
@@ -324,6 +324,24 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     )
                     if attempt < timeout - 1:
                         time.sleep(1)
+            try:
+                self.shared_bus.wait_for_thread(timeout=5)
+                self.logger.info(
+                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                    "bus drained signal=%s cache=%s",
+                    self._availability_trace_ms(),
+                    self._is_subsystem_available,
+                    getattr(self, "_SignalBusMixin__attr_values", {}).get(
+                        "isSubsystemAvailable"
+                    ),
+                )
+            except TimedOutError as exc:
+                self.logger.info(
+                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                    "bus_drain timed out (%s)",
+                    self._availability_trace_ms(),
+                    exc,
+                )
 
     def _availability_trace_ms(self) -> float:
         """Milliseconds since device init for correlation in logs."""
@@ -335,6 +353,39 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         cache = getattr(self, "_SignalBusMixin__attr_values", None)
         if isinstance(cache, dict):
             cache["isSubsystemAvailable"] = available
+
+    def _repair_availability_read_cache_from_signal(self) -> bool:
+        """Repair attribute_from_signal cache when bus on_emission desyncs."""
+        cache = getattr(self, "_SignalBusMixin__attr_values", None)
+        if not isinstance(cache, dict):
+            return False
+        try:
+            signal_value = self._is_subsystem_available
+        except (AttributeError, RuntimeError):
+            return False
+        cached = cache.get("isSubsystemAvailable")
+        if cached == signal_value:
+            return False
+        self.logger.info(
+            "isSubsystemAvailable trace: t=+%.1fms read_cache_repair "
+            "signal=%s cache=%s",
+            self._availability_trace_ms(),
+            signal_value,
+            cached,
+        )
+        cache["isSubsystemAvailable"] = signal_value
+        return True
+
+    def notify_emission(self, signal: str, value: Any) -> None:
+        """Re-sync read cache after signal-bus auto-push for isSubsystemAvailable."""
+        super().notify_emission(signal, value)
+        if "is_subsystem_available" in signal.lower():
+            self._repair_availability_read_cache_from_signal()
+
+    def always_executed_hook(self) -> None:
+        """Ensure reads see signal storage after the bus thread has caught up."""
+        super().always_executed_hook()
+        self._repair_availability_read_cache_from_signal()
 
     def delete_device(self) -> None:
         # if the init is called more than once

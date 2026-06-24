@@ -170,6 +170,32 @@ def test_callback_repairs_stale_read_cache_when_signal_already_true() -> None:
     )
 
 
+def test_read_cache_repair_aligns_cache_with_signal_storage() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    device._availability_trace_ms = lambda: 0.0
+
+    repaired = MidTmcLeafNodeDish._repair_availability_read_cache_from_signal(
+        device
+    )
+
+    assert repaired is True
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+
+
+def test_read_cache_repair_is_noop_when_cache_matches_signal() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+
+    repaired = MidTmcLeafNodeDish._repair_availability_read_cache_from_signal(
+        device
+    )
+
+    assert repaired is False
+
+
 def test_presignal_callback_pushes_tango_events() -> None:
     """Pre-signal implementation explicitly notified subscribers."""
     device = MagicMock()
