@@ -293,27 +293,36 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
-        try:
-            self.logger.info(
-                "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                "check_device_responsive start current=%s",
-                self._availability_trace_ms(),
-                self._is_subsystem_available,
-            )
-            self.component_manager.check_device_responsive()
-            self.logger.info(
-                "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                "dish responsive, callback(True)",
-                self._availability_trace_ms(),
-            )
-            self.update_availablity_callback(True)
-        except DeviceUnresponsive as exc:
-            self.logger.info(
-                "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                "dish unresponsive (%s), rely on liveliness",
-                self._availability_trace_ms(),
-                exc,
-            )
+        timeout = int(self.DishAvailabilityCheckTimeout)
+        for attempt in range(timeout):
+            try:
+                self.logger.info(
+                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                    "check_device_responsive attempt %s/%s current=%s",
+                    self._availability_trace_ms(),
+                    attempt + 1,
+                    timeout,
+                    self._is_subsystem_available,
+                )
+                self.component_manager.check_device_responsive()
+                self.logger.info(
+                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                    "dish responsive, callback(True)",
+                    self._availability_trace_ms(),
+                )
+                self.update_availablity_callback(True)
+                break
+            except DeviceUnresponsive as exc:
+                self.logger.info(
+                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                    "dish unresponsive attempt %s/%s (%s)",
+                    self._availability_trace_ms(),
+                    attempt + 1,
+                    timeout,
+                    exc,
+                )
+                if attempt < timeout - 1:
+                    time.sleep(1)
 
     def _availability_trace_ms(self) -> float:
         """Milliseconds since device init for correlation in logs."""

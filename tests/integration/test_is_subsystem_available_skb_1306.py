@@ -109,7 +109,9 @@ def test_availability_startup_timeline(tango_context) -> None:
     )
     try:
         timeline.record("device", "context_ready", None)
-        for index in range(40):
+        deadline = time.monotonic() + 120
+        index = 0
+        while time.monotonic() < deadline:
             try:
                 value = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE).isSubsystemAvailable
                 timeline.record("subarray", f"poll_read_{index}", value)
@@ -117,6 +119,7 @@ def test_availability_startup_timeline(tango_context) -> None:
                     break
             except tango.DevFailed:
                 timeline.record("subarray", f"poll_read_{index}_failed", None)
+            index += 1
             time.sleep(0.25)
     finally:
         dish_leaf_node.unsubscribe_event(event_id)
