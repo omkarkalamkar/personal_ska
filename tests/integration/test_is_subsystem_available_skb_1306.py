@@ -4,6 +4,14 @@ Run on Linux via:
 
     make python-test FILE=tests/integration/test_is_subsystem_available_skb_1306.py
 
+Correlate with Dish Leaf Node trace logs (same t=+ms origin at device init):
+
+    grep 'isSubsystemAvailable trace' <dish-leaf-node-log>
+
+Log sequence to compare with Subarray reads:
+  device_init → init_sync → callback → signal_emission → signal_auto_push_done
+  → explicit_push → subarray poll_read / change_event (from test timeline)
+
 These tests must not run in parallel (shared Tango device names).
 """
 
@@ -114,5 +122,8 @@ def test_availability_startup_timeline(tango_context) -> None:
         dish_leaf_node.unsubscribe_event(event_id)
 
     logger.info("SKB-1306 startup timeline:\n%s", timeline.format())
+    logger.info(
+        "Compare with dish log: grep 'isSubsystemAvailable trace' <dish-leaf-node-log>"
+    )
     true_reads = [entry for entry in timeline.entries if entry.value is True]
     assert true_reads, f"Never read True during startup.\n{timeline.format()}"

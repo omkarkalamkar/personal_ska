@@ -56,7 +56,44 @@ class AvailabilityTimeline:
                 f"+{entry.elapsed_ms:8.1f}ms  {entry.actor:22s}  "
                 f"{entry.action:32s}  {value}"
             )
+        lines.append("")
+        lines.append(self.summary())
         return "\n".join(lines)
+
+    def summary(self) -> str:
+        """One-line summary for sharing with the team."""
+        first_true_read = next(
+            (e for e in self.entries if e.action.endswith("_read") and e.value is True),
+            None,
+        )
+        first_false_read = next(
+            (e for e in self.entries if e.action.endswith("_read") and e.value is False),
+            None,
+        )
+        first_event = next(
+            (e for e in self.entries if e.action == "change_event"),
+            None,
+        )
+        parts = []
+        if first_false_read:
+            parts.append(
+                f"first False read +{first_false_read.elapsed_ms:.1f}ms "
+                f"({first_false_read.action})"
+            )
+        if first_true_read:
+            parts.append(
+                f"first True read +{first_true_read.elapsed_ms:.1f}ms "
+                f"({first_true_read.action})"
+            )
+        if first_event:
+            parts.append(
+                f"first change_event +{first_event.elapsed_ms:.1f}ms "
+                f"value={first_event.value}"
+            )
+        if first_true_read and first_event:
+            delta = first_event.elapsed_ms - first_true_read.elapsed_ms
+            parts.append(f"event vs first True read delta={delta:+.1f}ms")
+        return "Summary: " + ("; ".join(parts) if parts else "no reads/events recorded")
 
     def assert_order(self, *actors_in_order: str) -> None:
         """Assert actors appear in this order (not necessarily adjacent)."""
