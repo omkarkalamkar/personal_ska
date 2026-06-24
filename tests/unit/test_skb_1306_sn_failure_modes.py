@@ -175,6 +175,11 @@ def test_read_cache_repair_aligns_cache_with_signal_storage() -> None:
     device._is_subsystem_available = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
     device._availability_trace_ms = lambda: 0.0
+    device._sync_availability_attr_cache = (
+        MidTmcLeafNodeDish._sync_availability_attr_cache.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
 
     repaired = MidTmcLeafNodeDish._repair_availability_read_cache_from_signal(
         device
@@ -182,6 +187,9 @@ def test_read_cache_repair_aligns_cache_with_signal_storage() -> None:
 
     assert repaired is True
     assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
 
 
 def test_read_cache_repair_is_noop_when_cache_matches_signal() -> None:

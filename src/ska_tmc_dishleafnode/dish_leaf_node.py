@@ -355,7 +355,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             cache["isSubsystemAvailable"] = available
 
     def _repair_availability_read_cache_from_signal(self) -> bool:
-        """Repair attribute_from_signal cache when bus on_emission desyncs."""
+        """Repair read cache and Tango attr value when bus on_emission desyncs."""
         cache = getattr(self, "_SignalBusMixin__attr_values", None)
         if not isinstance(cache, dict):
             return False
@@ -373,13 +373,29 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             signal_value,
             cached,
         )
-        cache["isSubsystemAvailable"] = signal_value
+        with tango.EnsureOmniThread():
+            self._sync_availability_attr_cache(signal_value)
+            self.push_change_archive_events(
+                "isSubsystemAvailable", signal_value
+            )
         return True
 
     def notify_emission(self, signal: str, value: Any) -> None:
         """Re-sync read cache after signal-bus auto-push for isSubsystemAvailable."""
         super().notify_emission(signal, value)
         if "is_subsystem_available" in signal.lower():
+            try:
+                signal_value = self._is_subsystem_available
+            except (AttributeError, RuntimeError):
+                return
+            if value != signal_value:
+                self.logger.info(
+                    "isSubsystemAvailable trace: t=+%.1fms stale_bus_emission "
+                    "emitted=%s signal=%s",
+                    self._availability_trace_ms(),
+                    value,
+                    signal_value,
+                )
             self._repair_availability_read_cache_from_signal()
 
     def always_executed_hook(self) -> None:
