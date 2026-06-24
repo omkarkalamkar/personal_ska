@@ -45,6 +45,17 @@ def tango_context(request) -> Generator:
         yield context
 
 
+@pytest.fixture(scope="module", autouse=True)
+def wait_for_initial_availability(tango_context, request) -> None:
+    """Wait once after context startup before any test runs."""
+    if request.config.getoption("--true-context"):
+        return
+    time.sleep(2)
+    assert _wait_for_availability(DISH_LEAF_NODE_DEVICE, True, timeout=180), (
+        "isSubsystemAvailable did not become True after module startup"
+    )
+
+
 def _read_availability(device_name: str) -> bool | None:
     """Read isSubsystemAvailable from server; None if not valid yet."""
     try:
@@ -93,22 +104,17 @@ def _assert_availability_read(
 def test_is_subsystem_available_after_startup(tango_context) -> None:
     """DishLeafNode reports dish manager availability after startup."""
     logger.info("tango_context: %s", tango_context)
-
-    assert _wait_for_availability(DISH_LEAF_NODE_DEVICE, True), (
-        "isSubsystemAvailable did not become True within timeout"
-    )
     _assert_availability_read(DISH_LEAF_NODE_DEVICE, True)
 
 
 def test_subarray_assign_resources_read_pattern(tango_context) -> None:
     """Mirror TMC Subarray add_device_to_lp synchronous attribute read."""
-    assert _wait_for_availability(DISH_LEAF_NODE_DEVICE, True)
     _assert_availability_read(DISH_LEAF_NODE_DEVICE, True)
 
 
 def test_is_subsystem_available_subscription_read(tango_context) -> None:
     """Subarray subscribes after startup; reads must still return True."""
-    assert _wait_for_availability(DISH_LEAF_NODE_DEVICE, True)
+    _assert_availability_read(DISH_LEAF_NODE_DEVICE, True)
 
     group_callback = MockTangoEventCallbackGroup(
         "isSubsystemAvailable",
@@ -128,8 +134,20 @@ def test_is_subsystem_available_subscription_read(tango_context) -> None:
 
 
 def test_availability_startup_timeline(tango_context) -> None:
-    """Poll during startup; log when first True read appears (Linux integration)."""
+    """Log startup reads, then subscribe and confirm reads stay True."""
     timeline = AvailabilityTimeline()
+    timeline.record("device", "context_ready", None)
+
+    deadline = time.monotonic() + 30
+    index = 0
+    while time.monotonic() < deadline:
+        value = _read_availability(DISH_LEAF_NODE_DEVICE)
+        timeline.record("subarray", f"pre_subscribe_read_{index}", value)
+        if value is True:
+            break
+        index += 1
+        time.sleep(0.25)
+
     dish_leaf_node = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
 
     def _on_change_event(event: tango.EventData) -> None:
@@ -144,16 +162,9 @@ def test_availability_startup_timeline(tango_context) -> None:
         _on_change_event,
     )
     try:
-        timeline.record("device", "context_ready", None)
-        deadline = time.monotonic() + 120
-        index = 0
-        while time.monotonic() < deadline:
-            value = _read_availability(DISH_LEAF_NODE_DEVICE)
-            timeline.record("subarray", f"poll_read_{index}", value)
-            if value is True:
-                break
-            index += 1
-            time.sleep(0.25)
+        time.sleep(0.5)
+        post_value = _read_availability(DISH_LEAF_NODE_DEVICE)
+        timeline.record("subarray", "post_subscribe_read", post_value)
     finally:
         dish_leaf_node.unsubscribe_event(event_id)
 
@@ -162,4 +173,8 @@ def test_availability_startup_timeline(tango_context) -> None:
         "Compare with dish log: grep 'isSubsystemAvailable trace' <dish-leaf-node-log>"
     )
     true_reads = [entry for entry in timeline.entries if entry.value is True]
-    assert true_reads, f"Never read True during startup.\n{timeline.format()}"
+    assert true_reads, f"Never read True.\n{timeline.format()}"
+    assert any(
+        entry.action == "post_subscribe_read" and entry.value is True
+        for entry in timeline.entries
+    ), f"Read False after subscribe.\n{timeline.format()}"

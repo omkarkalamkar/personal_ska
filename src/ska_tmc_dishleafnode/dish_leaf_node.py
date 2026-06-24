@@ -292,6 +292,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         ]:
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
+        self.set_change_event("isSubsystemAvailable", True, False)
         self.init_completed()
         timeout = int(self.DishAvailabilityCheckTimeout)
         for attempt in range(timeout):
@@ -332,6 +333,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     @staticmethod
     def _is_availability_signal(signal: str) -> bool:
         return "is_subsystem_available" in signal.lower()
+
+    def _sync_availability_attr_cache(self, available: bool) -> None:
+        """Align attribute_from_signal read cache with the signal value."""
+        cache = getattr(self, "_SignalBusMixin__attr_values", None)
+        if isinstance(cache, dict):
+            cache["isSubsystemAvailable"] = available
 
     def notify_emission(self, signal: str, value: Any) -> None:
         """Log signal-bus emission before/after auto push for isSubsystemAvailable."""
@@ -521,7 +528,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 )
                 self._is_subsystem_available = availability
                 if hasattr(self, "shared_bus"):
-                    self.shared_bus.wait_for_thread()
+                    self.shared_bus.wait_for_thread(timeout=2.0)
+                self._sync_availability_attr_cache(availability)
                 self.logger.info(
                     "isSubsystemAvailable trace: t=+%.1fms signal_bus_flushed "
                     "cache=%s",
