@@ -105,27 +105,6 @@ def test_subarray_assign_resources_read_pattern(tango_context) -> None:
     _assert_availability_read(DISH_LEAF_NODE_DEVICE, True)
 
 
-def test_is_subsystem_available_subscription_read(tango_context) -> None:
-    """Subarray subscribes after startup; reads must still return True."""
-    assert _wait_for_availability(DISH_LEAF_NODE_DEVICE, True)
-
-    group_callback = MockTangoEventCallbackGroup(
-        "isSubsystemAvailable",
-        timeout=80,
-    )
-    event_proxy = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
-    event_id = event_proxy.subscribe_event(
-        "isSubsystemAvailable",
-        tango.EventType.CHANGE_EVENT,
-        group_callback["isSubsystemAvailable"],
-    )
-    try:
-        time.sleep(0.5)
-        _assert_availability_read(DISH_LEAF_NODE_DEVICE, True)
-    finally:
-        event_proxy.unsubscribe_event(event_id)
-
-
 def test_availability_startup_timeline(tango_context) -> None:
     """Log startup reads, then subscribe and confirm reads stay True."""
     timeline = AvailabilityTimeline()
@@ -169,3 +148,24 @@ def test_availability_startup_timeline(tango_context) -> None:
         entry.action == "post_subscribe_read" and entry.value is True
         for entry in timeline.entries
     ), f"Read False after subscribe.\n{timeline.format()}"
+
+
+def test_is_subsystem_available_subscription_read(tango_context) -> None:
+    """Subarray subscribes after startup; reads must still return True."""
+    assert _wait_for_availability(DISH_LEAF_NODE_DEVICE, True)
+
+    group_callback = MockTangoEventCallbackGroup(
+        "isSubsystemAvailable",
+        timeout=80,
+    )
+    event_proxy = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+    event_id = event_proxy.subscribe_event(
+        "isSubsystemAvailable",
+        tango.EventType.CHANGE_EVENT,
+        group_callback["isSubsystemAvailable"],
+    )
+    try:
+        time.sleep(0.5)
+        _assert_availability_read(DISH_LEAF_NODE_DEVICE, True)
+    finally:
+        event_proxy.unsubscribe_event(event_id)

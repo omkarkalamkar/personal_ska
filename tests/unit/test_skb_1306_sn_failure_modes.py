@@ -144,11 +144,30 @@ def test_callback_pushes_change_archive_events() -> None:
 def test_callback_skips_push_when_value_unchanged() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
 
     MidTmcLeafNodeDish.update_availablity_callback(device, True)
 
     assert device._is_subsystem_available is True
     device.push_change_archive_events.assert_not_called()
+
+
+def test_callback_repairs_stale_read_cache_when_signal_already_true() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    device._sync_availability_attr_cache = (
+        MidTmcLeafNodeDish._sync_availability_attr_cache.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
+
+    MidTmcLeafNodeDish.update_availablity_callback(device, True)
+
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
 
 
 def test_presignal_callback_pushes_tango_events() -> None:
