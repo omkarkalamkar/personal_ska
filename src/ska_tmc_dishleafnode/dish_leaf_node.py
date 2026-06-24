@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import time
-from threading import Event, current_thread
+from threading import Event
 from typing import Any, List, Tuple, Union
 
 import tango
@@ -264,12 +264,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def init_device(self: MidTmcLeafNodeDish):
         self._dishln_name = self.get_name()
         super().init_device()
-        self._availability_trace_start = time.monotonic()
-        self.logger.info(
-            "isSubsystemAvailable trace: t=+%.1fms device_init signal_default=%s",
-            self._availability_trace_ms(),
-            self._is_subsystem_available,
-        )
+        self._availability_init_mono = time.monotonic()
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -297,27 +292,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             timeout = int(self.DishAvailabilityCheckTimeout)
             for attempt in range(timeout):
                 try:
-                    self.logger.info(
-                        "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                        "check_device_responsive attempt %s/%s current=%s",
-                        self._availability_trace_ms(),
-                        attempt + 1,
-                        timeout,
-                        self._is_subsystem_available,
-                    )
                     self.component_manager.check_device_responsive()
-                    self.logger.info(
-                        "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                        "dish responsive, callback(True)",
-                        self._availability_trace_ms(),
-                    )
-                    self.update_availablity_callback(True)
+                    self._publish_subsystem_availability(True, reason="init_sync")
                     break
                 except DeviceUnresponsive as exc:
-                    self.logger.info(
-                        "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                        "dish unresponsive attempt %s/%s (%s)",
-                        self._availability_trace_ms(),
+                    self.logger.debug(
+                        "isSubsystemAvailable: init_sync waiting (%s/%s) %s",
                         attempt + 1,
                         timeout,
                         exc,
@@ -326,82 +306,93 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                         time.sleep(1)
             try:
                 self.shared_bus.wait_for_thread(timeout=5)
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                    "bus drained signal=%s cache=%s",
-                    self._availability_trace_ms(),
-                    self._is_subsystem_available,
-                    getattr(self, "_SignalBusMixin__attr_values", {}).get(
-                        "isSubsystemAvailable"
-                    ),
-                )
-            except TimedOutError as exc:
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                    "bus_drain timed out (%s)",
-                    self._availability_trace_ms(),
-                    exc,
+            except TimedOutError:
+                self.logger.warning(
+                    "isSubsystemAvailable: signal bus drain timed out during init"
                 )
 
-    def _availability_trace_ms(self) -> float:
-        """Milliseconds since device init for correlation in logs."""
-        start = getattr(self, "_availability_trace_start", time.monotonic())
+    def _availability_ms_since_init(self) -> float:
+        start = getattr(self, "_availability_init_mono", time.monotonic())
         return (time.monotonic() - start) * 1000
 
+    def _log_availability(self, event: str, **fields: Any) -> None:
+        """Structured availability log: grep 'isSubsystemAvailable:' in dish logs."""
+        parts = [
+            f"isSubsystemAvailable: {event}",
+            f"t=+{self._availability_ms_since_init():.0f}ms",
+        ]
+        for key, value in fields.items():
+            parts.append(f"{key}={value}")
+        self.logger.info(" ".join(parts))
+
+    def _get_availability_attr_cache(self) -> bool | None:
+        cache = getattr(self, "_SignalBusMixin__attr_values", None)
+        if isinstance(cache, dict):
+            return cache.get("isSubsystemAvailable")
+        return None
+
     def _sync_availability_attr_cache(self, available: bool) -> None:
-        """Align attribute_from_signal read cache with the signal value."""
         cache = getattr(self, "_SignalBusMixin__attr_values", None)
         if isinstance(cache, dict):
             cache["isSubsystemAvailable"] = available
 
-    def _repair_availability_read_cache_from_signal(self) -> bool:
-        """Repair read cache and Tango attr value when bus on_emission desyncs."""
-        cache = getattr(self, "_SignalBusMixin__attr_values", None)
-        if not isinstance(cache, dict):
-            return False
+    def _publish_subsystem_availability(self, available: bool, *, reason: str) -> None:
+        """Sync signal, attribute_from_signal cache, and Tango events."""
+        previous = self._is_subsystem_available
+        cached = self._get_availability_attr_cache()
+        if previous == available and cached == available:
+            return
+        with tango.EnsureOmniThread():
+            self._sync_availability_attr_cache(available)
+            if previous != available:
+                self._is_subsystem_available = available
+            self.push_change_archive_events("isSubsystemAvailable", available)
+        self._log_availability(
+            "updated",
+            value=available,
+            reason=reason,
+            previous=previous,
+            cache_was=cached,
+        )
+
+    def _repair_availability_from_signal(self) -> bool:
+        """Fix stale attribute_from_signal reads after async bus emissions."""
         try:
             signal_value = self._is_subsystem_available
         except (AttributeError, RuntimeError):
             return False
-        cached = cache.get("isSubsystemAvailable")
+        cached = self._get_availability_attr_cache()
         if cached == signal_value:
             return False
-        self.logger.info(
-            "isSubsystemAvailable trace: t=+%.1fms read_cache_repair "
-            "signal=%s cache=%s",
-            self._availability_trace_ms(),
-            signal_value,
-            cached,
-        )
         with tango.EnsureOmniThread():
             self._sync_availability_attr_cache(signal_value)
-            self.push_change_archive_events(
-                "isSubsystemAvailable", signal_value
-            )
+            self.push_change_archive_events("isSubsystemAvailable", signal_value)
+        self._log_availability(
+            "repaired stale read cache",
+            value=signal_value,
+            cache_was=cached,
+        )
         return True
 
     def notify_emission(self, signal: str, value: Any) -> None:
-        """Re-sync read cache after signal-bus auto-push for isSubsystemAvailable."""
         super().notify_emission(signal, value)
-        if "is_subsystem_available" in signal.lower():
-            try:
-                signal_value = self._is_subsystem_available
-            except (AttributeError, RuntimeError):
-                return
-            if value != signal_value:
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms stale_bus_emission "
-                    "emitted=%s signal=%s",
-                    self._availability_trace_ms(),
-                    value,
-                    signal_value,
-                )
-            self._repair_availability_read_cache_from_signal()
+        if "is_subsystem_available" not in signal.lower():
+            return
+        try:
+            signal_value = self._is_subsystem_available
+        except (AttributeError, RuntimeError):
+            return
+        if value != signal_value:
+            self._log_availability(
+                "ignored stale bus emission",
+                emitted=value,
+                signal=signal_value,
+            )
+        self._repair_availability_from_signal()
 
     def always_executed_hook(self) -> None:
-        """Ensure reads see signal storage after the bus thread has caught up."""
         super().always_executed_hook()
-        self._repair_availability_read_cache_from_signal()
+        self._repair_availability_from_signal()
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -550,67 +541,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        previous = self._is_subsystem_available
-        cache = getattr(self, "_SignalBusMixin__attr_values", None)
-        cached = (
-            cache.get("isSubsystemAvailable") if isinstance(cache, dict) else None
-        )
-        value_changed = previous != availability
-        cache_stale = cached != availability
-        self.logger.info(
-            "isSubsystemAvailable trace: t=+%.1fms callback entry "
-            "requested=%s signal=%s cache=%s changed=%s cache_stale=%s thread=%s",
-            self._availability_trace_ms(),
-            availability,
-            previous,
-            cached,
-            value_changed,
-            cache_stale,
-            current_thread().name,
-        )
-        if not value_changed and not cache_stale:
-            self.logger.info(
-                "isSubsystemAvailable trace: t=+%.1fms callback unchanged "
-                "value=%s",
-                self._availability_trace_ms(),
-                availability,
-            )
-            return
-
-        with tango.EnsureOmniThread():
-            self._sync_availability_attr_cache(availability)
-            if value_changed:
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms signal_assign "
-                    "before=%s after=%s",
-                    self._availability_trace_ms(),
-                    previous,
-                    availability,
-                )
-                self._is_subsystem_available = availability
-            else:
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms cache_repair_only "
-                    "signal=%s cache=%s",
-                    self._availability_trace_ms(),
-                    previous,
-                    cached,
-                )
-            self.logger.info(
-                "isSubsystemAvailable trace: t=+%.1fms explicit_push start "
-                "value=%s",
-                self._availability_trace_ms(),
-                availability,
-            )
-            self.push_change_archive_events(
-                "isSubsystemAvailable", availability
-            )
-            self.logger.info(
-                "isSubsystemAvailable trace: t=+%.1fms explicit_push done "
-                "value=%s",
-                self._availability_trace_ms(),
-                availability,
-            )
+        reason = "liveliness" if availability else "dish_unresponsive"
+        self._publish_subsystem_availability(availability, reason=reason)
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""

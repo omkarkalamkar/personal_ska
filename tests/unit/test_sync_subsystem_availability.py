@@ -7,12 +7,25 @@ from ska_tmc_common.exceptions import DeviceUnresponsive
 from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
 
 
-def _run_init_sync(device: MagicMock) -> None:
-    device.update_availablity_callback = (
-        MidTmcLeafNodeDish.update_availablity_callback.__get__(
-            device, MidTmcLeafNodeDish
+def _bind_availability_methods(device: MagicMock) -> None:
+    for name in (
+        "_get_availability_attr_cache",
+        "_sync_availability_attr_cache",
+        "_publish_subsystem_availability",
+        "_log_availability",
+        "update_availablity_callback",
+    ):
+        setattr(
+            device,
+            name,
+            getattr(MidTmcLeafNodeDish, name).__get__(device, MidTmcLeafNodeDish),
         )
-    )
+    device._availability_init_mono = 0.0
+    device._log_availability = lambda event, **fields: None
+
+
+def _run_init_sync(device: MagicMock) -> None:
+    _bind_availability_methods(device)
     timeout = int(device.DishAvailabilityCheckTimeout)
     for attempt in range(timeout):
         try:

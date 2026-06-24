@@ -29,6 +29,24 @@ from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
 
 
+def _bind_availability_methods(device: MagicMock) -> None:
+    for name in (
+        "_get_availability_attr_cache",
+        "_sync_availability_attr_cache",
+        "_publish_subsystem_availability",
+        "_repair_availability_from_signal",
+        "_log_availability",
+        "update_availablity_callback",
+    ):
+        setattr(
+            device,
+            name,
+            getattr(MidTmcLeafNodeDish, name).__get__(device, MidTmcLeafNodeDish),
+        )
+    device._availability_init_mono = 0.0
+    device._log_availability = lambda event, **fields: None
+
+
 def _subscribe_change_events(device_proxy: tango.DeviceProxy) -> tuple[int, list[bool]]:
     """Subscribe to isSubsystemAvailable change events; return id and buffer."""
     received: list[bool] = []
@@ -132,8 +150,9 @@ def test_assign_resources_style_read_before_liveliness_is_false() -> None:
 def test_callback_pushes_change_archive_events() -> None:
     device = MagicMock()
     device._is_subsystem_available = False
+    _bind_availability_methods(device)
 
-    MidTmcLeafNodeDish.update_availablity_callback(device, True)
+    device.update_availablity_callback(True)
 
     assert device._is_subsystem_available is True
     device.push_change_archive_events.assert_called_once_with(
@@ -145,8 +164,9 @@ def test_callback_skips_push_when_value_unchanged() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
 
-    MidTmcLeafNodeDish.update_availablity_callback(device, True)
+    device.update_availablity_callback(True)
 
     assert device._is_subsystem_available is True
     device.push_change_archive_events.assert_not_called()
@@ -156,13 +176,9 @@ def test_callback_repairs_stale_read_cache_when_signal_already_true() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
-    device._sync_availability_attr_cache = (
-        MidTmcLeafNodeDish._sync_availability_attr_cache.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
+    _bind_availability_methods(device)
 
-    MidTmcLeafNodeDish.update_availablity_callback(device, True)
+    device.update_availablity_callback(True)
 
     assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
     device.push_change_archive_events.assert_called_once_with(
@@ -174,16 +190,9 @@ def test_read_cache_repair_aligns_cache_with_signal_storage() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
-    device._availability_trace_ms = lambda: 0.0
-    device._sync_availability_attr_cache = (
-        MidTmcLeafNodeDish._sync_availability_attr_cache.__get__(
-            device, MidTmcLeafNodeDish
-        )
-    )
+    _bind_availability_methods(device)
 
-    repaired = MidTmcLeafNodeDish._repair_availability_read_cache_from_signal(
-        device
-    )
+    repaired = device._repair_availability_from_signal()
 
     assert repaired is True
     assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
@@ -196,10 +205,9 @@ def test_read_cache_repair_is_noop_when_cache_matches_signal() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
 
-    repaired = MidTmcLeafNodeDish._repair_availability_read_cache_from_signal(
-        device
-    )
+    repaired = device._repair_availability_from_signal()
 
     assert repaired is False
 
