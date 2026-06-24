@@ -294,36 +294,37 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_archive_event(attribute_name, True)
         self.set_change_event("isSubsystemAvailable", True, False)
         self.init_completed()
-        timeout = int(self.DishAvailabilityCheckTimeout)
-        for attempt in range(timeout):
-            try:
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                    "check_device_responsive attempt %s/%s current=%s",
-                    self._availability_trace_ms(),
-                    attempt + 1,
-                    timeout,
-                    self._is_subsystem_available,
-                )
-                self.component_manager.check_device_responsive()
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                    "dish responsive, callback(True)",
-                    self._availability_trace_ms(),
-                )
-                self.update_availablity_callback(True)
-                break
-            except DeviceUnresponsive as exc:
-                self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms init_sync "
-                    "dish unresponsive attempt %s/%s (%s)",
-                    self._availability_trace_ms(),
-                    attempt + 1,
-                    timeout,
-                    exc,
-                )
-                if attempt < timeout - 1:
-                    time.sleep(1)
+        with self.allow_internal_threads():
+            timeout = int(self.DishAvailabilityCheckTimeout)
+            for attempt in range(timeout):
+                try:
+                    self.logger.info(
+                        "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                        "check_device_responsive attempt %s/%s current=%s",
+                        self._availability_trace_ms(),
+                        attempt + 1,
+                        timeout,
+                        self._is_subsystem_available,
+                    )
+                    self.component_manager.check_device_responsive()
+                    self.logger.info(
+                        "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                        "dish responsive, callback(True)",
+                        self._availability_trace_ms(),
+                    )
+                    self.update_availablity_callback(True)
+                    break
+                except DeviceUnresponsive as exc:
+                    self.logger.info(
+                        "isSubsystemAvailable trace: t=+%.1fms init_sync "
+                        "dish unresponsive attempt %s/%s (%s)",
+                        self._availability_trace_ms(),
+                        attempt + 1,
+                        timeout,
+                        exc,
+                    )
+                    if attempt < timeout - 1:
+                        time.sleep(1)
 
     def _availability_trace_ms(self) -> float:
         """Milliseconds since device init for correlation in logs."""
@@ -527,14 +528,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     availability,
                 )
                 self._is_subsystem_available = availability
-                if hasattr(self, "shared_bus"):
-                    self.shared_bus.wait_for_thread(timeout=2.0)
                 self._sync_availability_attr_cache(availability)
                 self.logger.info(
-                    "isSubsystemAvailable trace: t=+%.1fms signal_bus_flushed "
-                    "cache=%s",
+                    "isSubsystemAvailable trace: t=+%.1fms attr_cache_synced "
+                    "value=%s",
                     self._availability_trace_ms(),
-                    self._is_subsystem_available,
+                    availability,
                 )
                 self.logger.info(
                     "isSubsystemAvailable trace: t=+%.1fms explicit_push start "
