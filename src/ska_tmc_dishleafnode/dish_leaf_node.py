@@ -298,6 +298,39 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     if attempt < timeout - 1:
                         time.sleep(1)
 
+    def _get_availability_attr_cache(self) -> bool | None:
+        cache = getattr(self, "_SignalBusMixin__attr_values", None)
+        if not isinstance(cache, dict):
+            return None
+        if "isSubsystemAvailable" not in cache:
+            return None
+        return cache["isSubsystemAvailable"]
+
+    def _sync_availability_attr_cache(self, availability: bool) -> None:
+        cache = getattr(self, "_SignalBusMixin__attr_values", None)
+        if isinstance(cache, dict):
+            cache["isSubsystemAvailable"] = availability
+
+    def _publish_subsystem_availability(self, availability: bool) -> None:
+        with tango.EnsureOmniThread():
+            self._sync_availability_attr_cache(availability)
+            self.push_change_archive_events(
+                "isSubsystemAvailable", availability
+            )
+
+    def _repair_subsystem_availability_cache_if_needed(self) -> None:
+        try:
+            availability = self._is_subsystem_available
+            if self._get_availability_attr_cache() != availability:
+                self._publish_subsystem_availability(availability)
+        except (AttributeError, RuntimeError):
+            pass
+
+    def always_executed_hook(self) -> None:
+        """Repair isSubsystemAvailable read cache after signal-bus catch-up."""
+        super().always_executed_hook()
+        self._repair_subsystem_availability_cache_if_needed()
+
     def notify_emission(self, signal: str, value: Any) -> None:
         """Drop stale bus emissions before attribute_from_signal auto-push."""
         if "is_subsystem_available" in signal.lower():
@@ -305,14 +338,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 if value != self._is_subsystem_available:
                     self.logger.info(
                         "isSubsystemAvailable: ignored stale bus emission "
-                        "emitted=%s signal=%s",
+                        "bus=%s signal=%s",
                         value,
                         self._is_subsystem_available,
+                    )
+                    self._publish_subsystem_availability(
+                        self._is_subsystem_available
                     )
                     return
             except (AttributeError, RuntimeError):
                 pass
         super().notify_emission(signal, value)
+        if "is_subsystem_available" in signal.lower():
+            self._repair_subsystem_availability_cache_if_needed()
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -463,10 +501,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Change event callback for isSubsystemAvailable"""
         if self._is_subsystem_available != availability:
             self._is_subsystem_available = availability
-            with tango.EnsureOmniThread():
-                self.push_change_archive_events(
-                    "isSubsystemAvailable", availability
-                )
+        if self._get_availability_attr_cache() != self._is_subsystem_available:
+            self._publish_subsystem_availability(self._is_subsystem_available)
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
