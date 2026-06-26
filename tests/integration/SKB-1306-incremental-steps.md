@@ -97,13 +97,9 @@ grep -A20 'timeline' probe-<name>.log
 
 **Fix:** keep `_startup_responsive_confirmed` across liveliness False; on stale cache verify `check_device_responsive` before re-publishing True.
 
-### step-3c — `324ca001` (skancra003) ✅
-- +7ms True through pre_subscribe
-- **+574ms post_subscribe_1 → True**
-- **+576ms between_subscribes → True**
-- **+1085ms post_subscribe_2 → True**
-
-**All probe phases True — SKB-1306 fix verified on integration probe.**
+### minimal fix — `346c794a` (skancra003) ✅
+- All phases **True** (startup, subscribe1, between, subscribe2)
+- Production diff: **~61 lines** in `dish_leaf_node.py` vs 0.45.0
 
 ---
 
