@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-import time
 from threading import Event
-from typing import Any, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import tango
 from numpy import isnan
@@ -16,7 +15,7 @@ from ska_tango_base.long_running_commands import (
     LRCReqType,
     long_running_command,
 )
-from ska_tango_base.software_bus import Signal, TimedOutError, attribute_from_signal
+from ska_tango_base.software_bus import Signal, attribute_from_signal
 from ska_tango_base.type_hints import TaskCallbackType
 from ska_tmc_common import (
     CommandNotAllowed,
@@ -264,7 +263,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def init_device(self: MidTmcLeafNodeDish):
         self._dishln_name = self.get_name()
         super().init_device()
-        self._availability_init_mono = time.monotonic()
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -288,95 +286,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
-        with self.allow_internal_threads():
-            timeout = int(self.DishAvailabilityCheckTimeout)
-            for attempt in range(timeout):
-                try:
-                    self.component_manager.check_device_responsive()
-                    self._publish_subsystem_availability(True, reason="init_sync")
-                    try:
-                        self.shared_bus.wait_for_thread(timeout=5)
-                    except TimedOutError:
-                        self.logger.warning(
-                            "isSubsystemAvailable: signal bus drain timed out during init"
-                        )
-                    self._publish_subsystem_availability(
-                        True, reason="init_sync_finalize"
-                    )
-                    break
-                except DeviceUnresponsive as exc:
-                    self.logger.debug(
-                        "isSubsystemAvailable: init_sync waiting (%s/%s) %s",
-                        attempt + 1,
-                        timeout,
-                        exc,
-                    )
-                    if attempt < timeout - 1:
-                        time.sleep(1)
-
-    def _availability_ms_since_init(self) -> float:
-        start = getattr(self, "_availability_init_mono", time.monotonic())
-        return (time.monotonic() - start) * 1000
-
-    def _log_availability(self, event: str, **fields: Any) -> None:
-        """Structured availability log: grep 'isSubsystemAvailable:' in dish logs."""
-        parts = [
-            f"isSubsystemAvailable: {event}",
-            f"t=+{self._availability_ms_since_init():.0f}ms",
-        ]
-        for key, value in fields.items():
-            parts.append(f"{key}={value}")
-        self.logger.info(" ".join(parts))
-
-    def _get_availability_attr_cache(self) -> bool | None:
-        cache = getattr(self, "_SignalBusMixin__attr_values", None)
-        if isinstance(cache, dict):
-            return cache.get("isSubsystemAvailable")
-        return None
-
-    def _sync_availability_attr_cache(self, available: bool) -> None:
-        cache = getattr(self, "_SignalBusMixin__attr_values", None)
-        if isinstance(cache, dict):
-            cache["isSubsystemAvailable"] = available
-
-    def _publish_subsystem_availability(self, available: bool, *, reason: str) -> None:
-        """Sync signal, attribute_from_signal cache, and Tango events."""
-        previous = self._is_subsystem_available
-        cached = self._get_availability_attr_cache()
-        if previous == available and cached == available:
-            return
-        with tango.EnsureOmniThread():
-            self._sync_availability_attr_cache(available)
-            if previous != available:
-                self._is_subsystem_available = available
-            self.push_change_archive_events("isSubsystemAvailable", available)
-        self._log_availability(
-            "updated",
-            value=available,
-            reason=reason,
-            previous=previous,
-            cache_was=cached,
-        )
-
-    @staticmethod
-    def _is_availability_signal(signal: str) -> bool:
-        return "is_subsystem_available" in signal.lower()
-
-    def notify_emission(self, signal: str, value: Any) -> None:
-        """Drop stale bus values before attribute_from_signal auto-push."""
-        if self._is_availability_signal(signal):
-            try:
-                signal_value = self._is_subsystem_available
-            except (AttributeError, RuntimeError):
-                signal_value = None
-            if signal_value is not None and value != signal_value:
-                self._log_availability(
-                    "ignored stale bus emission",
-                    emitted=value,
-                    signal=signal_value,
-                )
-                return
-        super().notify_emission(signal, value)
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -525,8 +434,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        reason = "liveliness" if availability else "dish_unresponsive"
-        self._publish_subsystem_availability(availability, reason=reason)
+        if self._is_subsystem_available != availability:
+            self._is_subsystem_available = availability
+            with tango.EnsureOmniThread():
+                self.push_change_archive_events(
+                    "isSubsystemAvailable", availability
+                )
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
