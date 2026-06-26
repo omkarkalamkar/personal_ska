@@ -299,13 +299,17 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                         time.sleep(1)
 
     def _repair_subsystem_availability_if_needed(self) -> None:
-        """Re-apply True after bus catch-up if the dish is still responsive."""
+        """Re-sync read cache after bus catch-up if the dish is still responsive."""
         try:
             cache = getattr(self, "_SignalBusMixin__attr_values", None)
             if isinstance(cache, dict) and cache.get("isSubsystemAvailable") is True:
                 return
             self.component_manager.check_device_responsive()
             self._is_subsystem_available = True
+            with tango.EnsureOmniThread():
+                if isinstance(cache, dict):
+                    cache["isSubsystemAvailable"] = True
+                self.push_change_archive_events("isSubsystemAvailable", True)
         except DeviceUnresponsive:
             pass
         except (AttributeError, RuntimeError):

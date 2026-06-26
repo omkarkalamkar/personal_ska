@@ -123,6 +123,10 @@ def test_repair_restores_true_when_cache_stale_and_dish_responsive() -> None:
     )
     device._repair_subsystem_availability_if_needed()
     assert device._is_subsystem_available is True
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
 
 
 def test_repair_skips_when_cache_already_true() -> None:
