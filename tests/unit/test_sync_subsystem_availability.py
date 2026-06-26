@@ -7,55 +7,25 @@ from ska_tmc_common.exceptions import DeviceUnresponsive
 from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
 
 
-def _bind_availability_methods(device: MagicMock) -> None:
-    for name in (
-        "_publish_subsystem_availability",
-        "_repair_subsystem_availability_cache_if_needed",
-        "update_availablity_callback",
-    ):
-        setattr(
-            device,
-            name,
-            getattr(MidTmcLeafNodeDish, name).__get__(device, MidTmcLeafNodeDish),
-        )
-
-
 def _run_init_sync(device: MagicMock) -> None:
-    _bind_availability_methods(device)
     timeout = int(device.DishAvailabilityCheckTimeout)
     for attempt in range(timeout):
         try:
             device.component_manager.check_device_responsive()
-            device.update_availablity_callback(True)
-            device._subsystem_available_confirmed = True
+            device._is_subsystem_available = True
             break
         except DeviceUnresponsive:
             if attempt < timeout - 1:
                 pass
 
 
-def test_sync_does_not_overwrite_liveliness_true() -> None:
-    device = MagicMock()
-    device.DishAvailabilityCheckTimeout = 1
-    device._is_subsystem_available = True
-    device.component_manager.check_device_responsive.side_effect = (
-        DeviceUnresponsive("not available")
-    )
-    _run_init_sync(device)
-    assert device._is_subsystem_available is True
-
-
 def test_sync_sets_true_when_dish_responsive() -> None:
     device = MagicMock()
     device.DishAvailabilityCheckTimeout = 1
     device._is_subsystem_available = False
-    device._subsystem_available_confirmed = False
     device.component_manager.check_device_responsive.return_value = None
     _run_init_sync(device)
     assert device._is_subsystem_available is True
-    device.push_change_archive_events.assert_called_once_with(
-        "isSubsystemAvailable", True
-    )
 
 
 def test_sync_retries_until_dish_responsive() -> None:

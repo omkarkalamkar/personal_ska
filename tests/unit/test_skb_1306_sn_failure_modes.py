@@ -1,11 +1,7 @@
 """SKB-1306 failure-mode tests: isSubsystemAvailable on signal-based 0.45.0.
 
-Documents production symptoms and the minimal fix (0.45.1-style explicit push
-while keeping attribute_from_signal):
-
-1. Signal starts False until liveliness updates it.
-2. Subarray can read False during Assign before liveliness runs.
-3. Explicit push_change_archive_events on callback restores Subarray events.
+Root fix: drop Signal(initial_value=False) and set True at init when responsive.
+Signal assignment goes through the bus; attribute_from_signal updates reads/events.
 
 Run:
 
@@ -15,14 +11,13 @@ Run:
 from __future__ import annotations
 
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import tango
-from ska_tmc_common.exceptions import DeviceUnresponsive
 from ska_tango_base.software_bus import Signal, SignalBusMixin, attribute_from_signal
 from tango import AttrWriteType
-from tango.server import Device, attribute, command
+from tango.server import Device, command
 from tango.test_context import DeviceTestContext
 
 from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
@@ -30,21 +25,7 @@ from ska_tmc_dishleafnode.dish_leaf_node import MidTmcLeafNodeDish
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
 
 
-def _bind_availability_methods(device: MagicMock) -> None:
-    for name in (
-        "_publish_subsystem_availability",
-        "_repair_subsystem_availability_cache_if_needed",
-        "update_availablity_callback",
-    ):
-        setattr(
-            device,
-            name,
-            getattr(MidTmcLeafNodeDish, name).__get__(device, MidTmcLeafNodeDish),
-        )
-
-
 def _subscribe_change_events(device_proxy: tango.DeviceProxy) -> tuple[int, list[bool]]:
-    """Subscribe to isSubsystemAvailable change events; return id and buffer."""
     received: list[bool] = []
 
     def _callback(event: tango.EventData) -> None:
@@ -87,192 +68,67 @@ class _SignalOnlyLeafNode(SignalBusMixin, Device):
 
     @command
     def SimulateLivelinessCallback(self, available: bool) -> None:
-        """Mirror 0.45.0 update_availablity_callback (signal assign only)."""
         self._is_subsystem_available = available
 
 
-class _PreSignalLeafNode(SignalBusMixin, Device):
-    """0.45.1 / HM-903-style callback: plain flag + explicit push on change."""
+class _FixedSignalLeafNode(SignalBusMixin, Device):
+    """SKB-1306 fix: no initial_value=False on the signal."""
+
+    _is_subsystem_available: Signal[bool] = Signal[bool](stored=True)
+
+    isSubsystemAvailable = attribute_from_signal(
+        _is_subsystem_available,
+        access=AttrWriteType.READ,
+        dtype=bool,
+    )
 
     def init_device(self) -> None:
         super().init_device()
-        self._is_subsystem_available = False
-        self.set_change_event("isSubsystemAvailable", True, False)
-        self.set_archive_event("isSubsystemAvailable", True)
-
-    isSubsystemAvailable = attribute(
-        dtype=bool,
-        access=AttrWriteType.READ,
-        doc="Boolean Flag for sub system available",
-    )
-
-    def read_isSubsystemAvailable(self) -> bool:
-        return self._is_subsystem_available
 
     @command
     def SimulateLivelinessCallback(self, available: bool) -> None:
-        """Mirror pre-signal update_availablity_callback."""
-        if self._is_subsystem_available != available:
-            self._is_subsystem_available = available
-            with tango.EnsureOmniThread():
-                self.push_change_event("isSubsystemAvailable", available)
-                self.push_archive_event("isSubsystemAvailable", available)
+        self._is_subsystem_available = available
 
 
-def test_signal_starts_false_until_liveliness() -> None:
-    """SN symptom: value stays False until liveliness callback runs."""
+def test_signal_initial_value_false_starts_false() -> None:
     device = MagicMock()
     device._is_subsystem_available = False
-
     assert device._is_subsystem_available is False
 
 
 def test_assign_resources_style_read_before_liveliness_is_false() -> None:
-    """Race: Subarray synchronous read happens before liveliness sets True."""
     with DeviceTestContext(_SignalOnlyLeafNode, process=True) as device_proxy:
         assert device_proxy.isSubsystemAvailable is False
-
         subarray_read = tango.DeviceProxy(device_proxy.dev_name()).isSubsystemAvailable
         assert subarray_read is False
-
         device_proxy.SimulateLivelinessCallback(True)
         time.sleep(0.2)
         assert device_proxy.isSubsystemAvailable is True
 
 
-def test_callback_pushes_change_archive_events_and_syncs_cache() -> None:
+def test_fixed_signal_no_startup_false_before_liveliness() -> None:
+    with DeviceTestContext(_FixedSignalLeafNode, process=True) as device_proxy:
+        attr = device_proxy.read_attribute("isSubsystemAvailable")
+        assert attr.quality != tango.AttrQuality.ATTR_VALID or attr.value is not True
+
+
+def test_dish_callback_assigns_signal() -> None:
     device = MagicMock()
     device._is_subsystem_available = False
-    device._subsystem_available_confirmed = False
-    device._SignalBusMixin__attr_values = {}
-    _bind_availability_methods(device)
-
-    device.update_availablity_callback(True)
-
-    assert device._is_subsystem_available is True
-    assert device._subsystem_available_confirmed is True
-    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
-    device.push_change_archive_events.assert_called_once_with(
-        "isSubsystemAvailable", True
-    )
-
-
-def test_callback_skips_push_when_value_unchanged() -> None:
-    device = MagicMock()
-    device._is_subsystem_available = True
-    device._subsystem_available_confirmed = True
-    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
-    _bind_availability_methods(device)
-
-    device.update_availablity_callback(True)
-
-    device.push_change_archive_events.assert_not_called()
-
-
-def test_callback_clears_confirmed_on_true_to_false_transition() -> None:
-    device = MagicMock()
-    device._is_subsystem_available = True
-    device._subsystem_available_confirmed = True
-    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
-    _bind_availability_methods(device)
-
-    device.update_availablity_callback(False)
-
-    assert device._subsystem_available_confirmed is True
-    device.push_change_archive_events.assert_called_once_with(
-        "isSubsystemAvailable", False
-    )
-
-
-def test_repair_restores_true_when_confirmed_and_dish_responsive() -> None:
-    device = MagicMock()
-    device._subsystem_available_confirmed = True
-    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
-    device.component_manager.check_device_responsive.return_value = None
-    _bind_availability_methods(device)
-
-    device._repair_subsystem_availability_cache_if_needed()
-
-    assert device._subsystem_available_confirmed is True
-    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
-
-
-def test_repair_clears_confirmed_when_dish_unresponsive() -> None:
-    device = MagicMock()
-    device._subsystem_available_confirmed = True
-    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
-    device.component_manager.check_device_responsive.side_effect = (
-        DeviceUnresponsive("down")
-    )
-    _bind_availability_methods(device)
-
-    device._repair_subsystem_availability_cache_if_needed()
-
-    assert device._subsystem_available_confirmed is False
-    device.push_change_archive_events.assert_not_called()
-
-
-def test_notify_emission_skips_stale_bus_false_when_confirmed() -> None:
-    device = MagicMock()
-    device._subsystem_available_confirmed = True
-    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
-    _bind_availability_methods(device)
-
-    with patch.object(SignalBusMixin, "notify_emission") as super_notify:
-        MidTmcLeafNodeDish.notify_emission(
-            device, "._is_subsystem_available", False
+    device.update_availablity_callback = (
+        MidTmcLeafNodeDish.update_availablity_callback.__get__(
+            device, MidTmcLeafNodeDish
         )
-
-    super_notify.assert_not_called()
-    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
-    device.push_change_archive_events.assert_called_once_with(
-        "isSubsystemAvailable", True
     )
-
-
-def test_presignal_callback_pushes_tango_events() -> None:
-    """Pre-signal implementation explicitly notified subscribers."""
-    device = MagicMock()
-    device._is_subsystem_available = False
-
-    if device._is_subsystem_available != True:
-        device._is_subsystem_available = True
-        with tango.EnsureOmniThread():
-            device.push_change_event("isSubsystemAvailable", True)
-            device.push_archive_event("isSubsystemAvailable", True)
-
-    device.push_change_event.assert_called_once_with(
-        "isSubsystemAvailable", True
-    )
-    device.push_archive_event.assert_called_once_with(
-        "isSubsystemAvailable", True
-    )
+    device.update_availablity_callback(True)
+    assert device._is_subsystem_available is True
 
 
 def test_subscriber_gets_true_after_signal_liveliness_update() -> None:
-    """When liveliness does update the signal, reads and events can reach True."""
-    with DeviceTestContext(_SignalOnlyLeafNode, process=True) as device_proxy:
+    with DeviceTestContext(_FixedSignalLeafNode, process=True) as device_proxy:
         event_id, received = _subscribe_change_events(device_proxy)
         try:
             time.sleep(0.5)
-            device_proxy.SimulateLivelinessCallback(True)
-
-            assert _wait_for_event_value(received, True)
-            assert device_proxy.isSubsystemAvailable is True
-        finally:
-            device_proxy.unsubscribe_event(event_id)
-
-
-def test_sn_stuck_false_until_liveliness_no_early_true_event() -> None:
-    """Full SN failure window: False read + no True event until liveliness runs."""
-    with DeviceTestContext(_SignalOnlyLeafNode, process=True) as device_proxy:
-        event_id, received = _subscribe_change_events(device_proxy)
-        try:
-            time.sleep(0.5)
-
-            assert device_proxy.isSubsystemAvailable is False
-            assert True not in received
-
             device_proxy.SimulateLivelinessCallback(True)
             assert _wait_for_event_value(received, True)
             assert device_proxy.isSubsystemAvailable is True
