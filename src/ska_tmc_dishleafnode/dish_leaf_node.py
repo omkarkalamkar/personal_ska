@@ -326,11 +326,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         except (AttributeError, RuntimeError):
             pass
 
-    def always_executed_hook(self) -> None:
-        """Repair isSubsystemAvailable read cache after signal-bus catch-up."""
-        super().always_executed_hook()
-        self._repair_subsystem_availability_cache_if_needed()
-
     def notify_emission(self, signal: str, value: Any) -> None:
         """Drop stale bus emissions before attribute_from_signal auto-push."""
         if "is_subsystem_available" in signal.lower():
@@ -349,8 +344,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             except (AttributeError, RuntimeError):
                 pass
         super().notify_emission(signal, value)
-        if "is_subsystem_available" in signal.lower():
-            self._repair_subsystem_availability_cache_if_needed()
 
     def delete_device(self) -> None:
         # if the init is called more than once
