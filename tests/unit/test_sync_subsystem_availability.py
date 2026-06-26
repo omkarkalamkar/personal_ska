@@ -12,7 +12,7 @@ def _bind_availability_methods(device: MagicMock) -> None:
         "_get_availability_attr_cache",
         "_sync_availability_attr_cache",
         "_publish_subsystem_availability",
-        "_log_availability",
+        "_repair_subsystem_availability_cache_if_needed",
         "update_availablity_callback",
     ):
         setattr(
@@ -20,8 +20,6 @@ def _bind_availability_methods(device: MagicMock) -> None:
             name,
             getattr(MidTmcLeafNodeDish, name).__get__(device, MidTmcLeafNodeDish),
         )
-    device._availability_init_mono = 0.0
-    device._log_availability = lambda event, **fields: None
 
 
 def _run_init_sync(device: MagicMock) -> None:

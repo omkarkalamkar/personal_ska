@@ -34,7 +34,7 @@ def _bind_availability_methods(device: MagicMock) -> None:
         "_get_availability_attr_cache",
         "_sync_availability_attr_cache",
         "_publish_subsystem_availability",
-        "_log_availability",
+        "_repair_subsystem_availability_cache_if_needed",
         "update_availablity_callback",
     ):
         setattr(
@@ -42,8 +42,6 @@ def _bind_availability_methods(device: MagicMock) -> None:
             name,
             getattr(MidTmcLeafNodeDish, name).__get__(device, MidTmcLeafNodeDish),
         )
-    device._availability_init_mono = 0.0
-    device._log_availability = lambda event, **fields: None
 
 
 def _subscribe_change_events(device_proxy: tango.DeviceProxy) -> tuple[int, list[bool]]:
@@ -188,7 +186,8 @@ def test_publish_repairs_stale_read_cache_when_signal_already_true() -> None:
 def test_notify_emission_skips_stale_bus_value() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
-    device._log_availability = lambda event, **fields: None
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    _bind_availability_methods(device)
 
     with patch.object(SignalBusMixin, "notify_emission") as super_notify:
         MidTmcLeafNodeDish.notify_emission(
@@ -196,6 +195,35 @@ def test_notify_emission_skips_stale_bus_value() -> None:
         )
 
     super_notify.assert_not_called()
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
+
+
+def test_repair_subsystem_availability_cache_if_needed() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    _bind_availability_methods(device)
+
+    device._repair_subsystem_availability_cache_if_needed()
+
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
+
+
+def test_repair_skips_when_cache_matches_signal() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
+
+    device._repair_subsystem_availability_cache_if_needed()
+
+    device.push_change_archive_events.assert_not_called()
 def test_presignal_callback_pushes_tango_events() -> None:
     """Pre-signal implementation explicitly notified subscribers."""
     device = MagicMock()
