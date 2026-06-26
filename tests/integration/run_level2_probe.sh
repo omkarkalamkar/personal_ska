@@ -11,8 +11,9 @@ cd "$ROOT"
 git fetch github --tags 2>/dev/null || true
 git checkout "$TAG" -- src/ska_tmc_dishleafnode/dish_leaf_node.py
 
-# Let MultiDeviceTestContext set TANGO_HOST for the sim (avoid stale host).
-unset TANGO_HOST
+# Do NOT unset TANGO_HOST — /etc/tangorc may have invalid "TANGO_HOST=:10000".
+# MultiDeviceTestContext overrides this for the sim process.
+export TANGO_HOST=127.0.0.1:10000
 
 LOG="probe-level2-${TAG}.log"
 poetry run pytest tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py \
