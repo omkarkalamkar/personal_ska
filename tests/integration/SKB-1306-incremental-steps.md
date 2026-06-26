@@ -43,13 +43,16 @@ grep -A20 'timeline' probe-<name>.log
 ### step-1 — `exp/step-1-callback-push-only`
 - All False 60s (callback never fired True at startup)
 
-### step-2b — `exp/step-2b-init-sync-and-push` (was tested before step-2a existed)
-- +3ms True, subscribe1 True, **subscribe2 False**
+### step-2a — `exp/step-2a-init-sync-only` (init only, **no** callback push)
+- +6ms True at startup — **init sync alone enough for early read**
+- +15ms pre_subscribe True
+- **+605ms post_subscribe_1 → False** — first subscribe breaks without push
+- subscribe2 False
 
-### step-2a — `exp/step-2a-init-sync-only`
-```
-(paste timeline here)
-```
+**Conclusion:** push in callback is required for subscribe/read stability (not for startup).
+
+### step-2b — `exp/step-2b-init-sync-and-push`
+- +3ms True, subscribe1 **True**, subscribe2 **False**
 
 ### step-3 — `exp/step-3-add-bus-block`
 ```
