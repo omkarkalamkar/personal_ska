@@ -19,6 +19,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import tango
+from ska_tmc_common.exceptions import DeviceUnresponsive
 from ska_tango_base.software_bus import Signal, SignalBusMixin, attribute_from_signal
 from tango import AttrWriteType
 from tango.server import Device, attribute, command
@@ -277,22 +278,22 @@ def test_callback_clears_suppress_when_becoming_unavailable() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
     device._suppress_stale_availability_false_bus = True
-    device._init_sync_confirmed_available = True
+    device._startup_responsive_confirmed = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
     _bind_availability_methods(device)
 
     device.update_availablity_callback(False)
 
     assert device._suppress_stale_availability_false_bus is False
-    assert device._init_sync_confirmed_available is False
+    assert device._startup_responsive_confirmed is True
     device.push_change_archive_events.assert_called_once_with(
         "isSubsystemAvailable", False
     )
 
 
-def test_should_block_stale_false_when_init_sync_latch_set() -> None:
+def test_should_block_stale_false_when_startup_responsive_confirmed() -> None:
     device = MagicMock()
-    device._init_sync_confirmed_available = True
+    device._startup_responsive_confirmed = True
     device._suppress_stale_availability_false_bus = False
     device._is_subsystem_available = False
     _bind_availability_methods(device)
@@ -300,9 +301,9 @@ def test_should_block_stale_false_when_init_sync_latch_set() -> None:
     assert device._should_block_stale_availability_false_bus() is True
 
 
-def test_notify_emission_blocks_stale_false_when_init_sync_latch_set() -> None:
+def test_notify_emission_blocks_stale_false_when_startup_responsive_confirmed() -> None:
     device = MagicMock()
-    device._init_sync_confirmed_available = True
+    device._startup_responsive_confirmed = True
     device._suppress_stale_availability_false_bus = False
     device._is_subsystem_available = False
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
@@ -318,6 +319,40 @@ def test_notify_emission_blocks_stale_false_when_init_sync_latch_set() -> None:
     device.push_change_archive_events.assert_called_once_with(
         "isSubsystemAvailable", True
     )
+
+
+def test_repair_restores_true_when_startup_confirmed_and_dish_responsive() -> None:
+    device = MagicMock()
+    device._startup_responsive_confirmed = True
+    device._suppress_stale_availability_false_bus = False
+    device._is_subsystem_available = False
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    device.component_manager.check_device_responsive.return_value = None
+    _bind_availability_methods(device)
+
+    device._repair_subsystem_availability_cache_if_needed()
+
+    assert device._startup_responsive_confirmed is True
+    assert device._suppress_stale_availability_false_bus is True
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
+
+
+def test_repair_clears_startup_flag_when_dish_unresponsive() -> None:
+    device = MagicMock()
+    device._startup_responsive_confirmed = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    device.component_manager.check_device_responsive.side_effect = (
+        DeviceUnresponsive("down")
+    )
+    _bind_availability_methods(device)
+
+    device._repair_subsystem_availability_cache_if_needed()
+
+    assert device._startup_responsive_confirmed is False
+    device.push_change_archive_events.assert_not_called()
 
 
 def test_notify_emission_blocks_stale_false_when_signal_true() -> None:

@@ -92,7 +92,12 @@ grep -A20 'timeline' probe-<name>.log
 
 **Fix:** `_init_sync_confirmed_available` latch after init sync; drain bus queue; only clear latch on True→False transition.
 
-### step-3c — re-run after init-sync latch
+### step-3c — `99293a7a` (skancra003)
+- subscribe1 **True**, between **True**, subscribe2 **False** (+1114ms)
+
+**Fix:** keep `_startup_responsive_confirmed` across liveliness False; on stale cache verify `check_device_responsive` before re-publishing True.
+
+### step-3c — re-run after responsive repair
 ```
 (paste timeline here)
 ```

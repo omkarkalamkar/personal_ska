@@ -265,7 +265,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._dishln_name = self.get_name()
         super().init_device()
         self._suppress_stale_availability_false_bus = False
-        self._init_sync_confirmed_available = False
+        self._startup_responsive_confirmed = False
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -295,7 +295,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 try:
                     self.component_manager.check_device_responsive()
                     self.update_availablity_callback(True)
-                    self._init_sync_confirmed_available = True
+                    self._startup_responsive_confirmed = True
                     self.shared_bus.wait_for_thread()
                     if self._get_availability_attr_cache() is not True:
                         self._publish_subsystem_availability(True)
@@ -326,7 +326,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def _should_block_stale_availability_false_bus(self) -> bool:
         try:
-            if self._init_sync_confirmed_available:
+            if self._startup_responsive_confirmed:
                 return True
             return (
                 self._suppress_stale_availability_false_bus
@@ -336,12 +336,23 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             return False
 
     def _repair_subsystem_availability_cache_if_needed(self) -> None:
-        """Re-sync read cache after True was established via callback."""
+        """Re-sync read cache when the dish is still responsive."""
         try:
+            if self._get_availability_attr_cache() is True:
+                return
+            if self._startup_responsive_confirmed:
+                try:
+                    self.component_manager.check_device_responsive()
+                except DeviceUnresponsive:
+                    self._startup_responsive_confirmed = False
+                    self._suppress_stale_availability_false_bus = False
+                    return
+                self._suppress_stale_availability_false_bus = True
+                self._publish_subsystem_availability(True)
+                return
             if not self._should_block_stale_availability_false_bus():
                 return
-            if self._get_availability_attr_cache() is not True:
-                self._publish_subsystem_availability(True)
+            self._publish_subsystem_availability(True)
         except (AttributeError, RuntimeError):
             pass
 
@@ -524,7 +535,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 self._publish_subsystem_availability(True)
         elif was_available:
             self._suppress_stale_availability_false_bus = False
-            self._init_sync_confirmed_available = False
             if self._get_availability_attr_cache() is not False:
                 self._publish_subsystem_availability(False)
 
