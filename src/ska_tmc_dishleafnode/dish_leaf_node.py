@@ -287,6 +287,16 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_archive_event(attribute_name, True)
         self.init_completed()
 
+    def _publish_subsystem_availability(self, availability: bool) -> None:
+        """Push Tango events and sync attribute_from_signal read cache."""
+        with tango.EnsureOmniThread():
+            cache = getattr(self, "_SignalBusMixin__attr_values", None)
+            if isinstance(cache, dict):
+                cache["isSubsystemAvailable"] = availability
+            self.push_change_archive_events(
+                "isSubsystemAvailable", availability
+            )
+
     def delete_device(self) -> None:
         # if the init is called more than once
         # I need to stop all threads
@@ -434,7 +444,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        self._is_subsystem_available = availability
+        if self._is_subsystem_available != availability:
+            self._is_subsystem_available = availability
+            self._publish_subsystem_availability(availability)
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
