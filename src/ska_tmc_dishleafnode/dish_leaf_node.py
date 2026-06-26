@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 from threading import Event
-from typing import Any, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import tango
 from numpy import isnan
@@ -298,22 +298,6 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     if attempt < timeout - 1:
                         time.sleep(1)
 
-    def notify_emission(self, signal: str, value: Any) -> None:
-        """Drop stale bus emissions before attribute_from_signal auto-push."""
-        if "is_subsystem_available" in signal.lower():
-            try:
-                if value != self._is_subsystem_available:
-                    self.logger.info(
-                        "isSubsystemAvailable: ignored stale bus emission "
-                        "emitted=%s signal=%s",
-                        value,
-                        self._is_subsystem_available,
-                    )
-                    return
-            except (AttributeError, RuntimeError):
-                pass
-        super().notify_emission(signal, value)
-
     def delete_device(self) -> None:
         # if the init is called more than once
         # I need to stop all threads
@@ -461,12 +445,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        if self._is_subsystem_available != availability:
-            self._is_subsystem_available = availability
-            with tango.EnsureOmniThread():
-                self.push_change_archive_events(
-                    "isSubsystemAvailable", availability
-                )
+        self._is_subsystem_available = availability
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
