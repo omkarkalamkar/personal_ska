@@ -1,6 +1,7 @@
 """Sim health gate for SKB-1306 level-2 probes.
 
-    export TANGO_HOST=127.0.0.1:10000
+MultiDeviceTestContext provides the DB — no live TANGO_HOST / DataBaseds needed:
+
     poetry run pytest tests/integration/test_skb_1306_sim_health.py -v -s -o addopts=""
 """
 
@@ -13,7 +14,7 @@ import time
 import pytest
 import tango
 
-from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE
+from tests.settings import DISH_MASTER_DEVICE
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
 pytest_plugins = ["tests.integration.skb_1306_fixtures"]
@@ -42,21 +43,16 @@ def test_sim_devices_reachable(
         dish_master.state(),
     )
     logger.info(
-        "SKB-1306 sim health: dish_ln ping=%s state=%s",
+        "SKB-1306 sim health: dish_ln ping=%s state=%s dev_name=%s",
         dish_proxy.ping(),
         dish_proxy.state(),
+        dish_proxy.dev_name(),
     )
 
-    db = tango.Database()
-    for name in (DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE):
-        info = db.get_device_info(name)
-        logger.info(
-            "SKB-1306 sim health: %s exported=%s server=%s",
-            name,
-            info.exported,
-            info.server,
-        )
-        assert info.exported, f"{name} not exported in test database"
+    # Do not use tango.Database() here — sim uses MultiDeviceTestContext's
+    # file DB on a dynamic port, not TANGO_HOST=127.0.0.1:10000.
+    assert dish_master.ping() > 0, "helper dish not responding"
+    assert dish_proxy.ping() > 0, "dish leaf node not responding"
 
 
 def test_sim_liveliness_promotes_availability(

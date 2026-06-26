@@ -100,19 +100,6 @@ def _log_sim_health(
     except tango.DevFailed as exc:
         logger.warning("SKB-1306 sim health: dish_master unreachable: %s", exc)
 
-    try:
-        db = tango.Database()
-        for name in (DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE):
-            info = db.get_device_info(name)
-            logger.warning(
-                "SKB-1306 sim health: %s exported=%s server=%s",
-                name,
-                info.exported,
-                info.server,
-            )
-    except tango.DevFailed as exc:
-        logger.warning("SKB-1306 sim health: database check failed: %s", exc)
-
 
 def test_probe_read_timeline_through_startup_and_two_subscribes(
     dish_proxy: tango.DeviceProxy,

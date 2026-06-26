@@ -37,12 +37,12 @@ if [[ "$TAG" == "0.45.0" ]] && ! grep -q 'attribute_from_signal' "$DLN"; then
   exit 1
 fi
 
-# Do NOT unset TANGO_HOST — /etc/tangorc may have invalid "TANGO_HOST=:10000".
-# MultiDeviceTestContext overrides this for the sim process.
-export TANGO_HOST=127.0.0.1:10000
+# Sim uses MultiDeviceTestContext (dynamic port + file DB). Do not point
+# TANGO_HOST at 127.0.0.1:10000 — there is no DataBaseds there on skancra.
+unset TANGO_HOST
 
 LOG="probe-level2-${TAG}.log"
-echo "=== dish_leaf_node from tag ${TAG}, TANGO_HOST=${TANGO_HOST} ===" | tee "$LOG"
+echo "=== dish_leaf_node from tag ${TAG} (sim / MultiDeviceTestContext) ===" | tee "$LOG"
 
 echo "=== sim connectivity ===" | tee -a "$LOG"
 if ! poetry run pytest tests/integration/test_skb_1306_sim_health.py::test_sim_devices_reachable \
@@ -73,7 +73,7 @@ grep -A25 'isSubsystemAvailable timeline' "$LOG" || true
 if grep -q 'never read True within 60s' "$LOG"; then
   echo ""
   echo "WARNING: sim never reached True — subscribe False is not SKB-1306 evidence."
-  echo "  - Confirm TANGO_HOST=127.0.0.1:10000 (not unset / not :10000 from tangorc)"
+  echo "  - Sim uses MultiDeviceTestContext; do not export TANGO_HOST=127.0.0.1:10000"
   echo "  - For 0.45.1 baseline, startup should be True within ~30s when sim is healthy"
   echo "  - Run: poetry run pytest tests/integration/test_is_subsystem_available_skb_1306.py::test_read_true_after_startup -v -s -o addopts=\"\""
   exit 1
