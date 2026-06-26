@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from threading import Event
 from typing import List, Tuple, Union
 
@@ -286,6 +287,27 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
+        with self.allow_internal_threads():
+            timeout = int(self.DishAvailabilityCheckTimeout)
+            for attempt in range(timeout):
+                try:
+                    self.component_manager.check_device_responsive()
+                    self.update_availablity_callback(True)
+                    self.shared_bus.wait_for_thread()
+                    break
+                except DeviceUnresponsive:
+                    if attempt < timeout - 1:
+                        time.sleep(1)
+
+    def _publish_subsystem_availability(self, availability: bool) -> None:
+        """Push Tango events and sync attribute_from_signal read cache."""
+        with tango.EnsureOmniThread():
+            cache = getattr(self, "_SignalBusMixin__attr_values", None)
+            if isinstance(cache, dict):
+                cache["isSubsystemAvailable"] = availability
+            self.push_change_archive_events(
+                "isSubsystemAvailable", availability
+            )
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -434,7 +456,9 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        self._is_subsystem_available = availability
+        if self._is_subsystem_available != availability:
+            self._is_subsystem_available = availability
+            self._publish_subsystem_availability(availability)
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
