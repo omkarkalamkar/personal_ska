@@ -14,8 +14,8 @@ Look for **first `True`** in the timeline (`startup_poll_N` or `post_subscribe_*
 | Step | Branch commit | Production change | Expected |
 |------|---------------|-------------------|----------|
 | 0 | `0.45.0` tag | None (signal assign only) | All False (confirmed) |
-| 1 | `skb-1306-fix` step-1 | Callback: signal + **explicit push** | True after liveliness? |
-| 2 | (next) | + **init sync** on startup | True early in `startup_poll_1`? |
+| 1 | `0059406b` | Callback: signal + **explicit push** | All False (liveliness alone not enough) |
+| 2 | `skb-1306-fix` step-2 | + **init sync** after `init_completed` | True in early `startup_poll_*`? |
 | 3 | (next) | + **stale bus block** in `notify_emission` | True stable after subscribe |
 
 ## Step 0 result (skancra003)
@@ -25,7 +25,11 @@ Look for **first `True`** in the timeline (`startup_poll_N` or `post_subscribe_*
 - `post_subscribe_1_read`, `post_subscribe_2_read` → False
 - **Never True in 60s**
 
-## Step 1 — record your result here
+## Step 1 result (skancra003)
+
+- All False for 60s — **callback push alone does not help** (nothing sets True at startup; liveliness path did not fix read in time)
+
+## Step 2 — record your result here
 
 ```
 first True at: startup_poll___ / never / post_subscribe___

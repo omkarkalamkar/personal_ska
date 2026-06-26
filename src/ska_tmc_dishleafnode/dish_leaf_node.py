@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from threading import Event
 from typing import List, Tuple, Union
 
@@ -286,6 +287,16 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.set_change_event(attribute_name, True, False)
             self.set_archive_event(attribute_name, True)
         self.init_completed()
+        with self.allow_internal_threads():
+            timeout = int(self.DishAvailabilityCheckTimeout)
+            for attempt in range(timeout):
+                try:
+                    self.component_manager.check_device_responsive()
+                    self.update_availablity_callback(True)
+                    break
+                except DeviceUnresponsive:
+                    if attempt < timeout - 1:
+                        time.sleep(1)
 
     def delete_device(self) -> None:
         # if the init is called more than once
