@@ -1,44 +1,65 @@
-# SKB-1306 incremental probe (run on skancra003)
+# SKB-1306 — one change at a time (isolated git branches)
 
-Base: tag **0.45.0** + diagnostic tests from `github/skb-1306-fix`.
-
-After each step, run:
+Each branch changes **only** what the name says. Same probe every time.
 
 ```bash
-poetry run pytest tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py -v -s -o addopts="" 2>&1 | tee probe-stepN.log
-grep -E 'SKB-1306 probe|timeline' probe-stepN.log
+cd ~/skb-1306/personal_ska
+git fetch github --tags
+
+# diagnostic tests (once)
+git checkout github/skb-1306-fix -- \
+  tests/integration/skb_1306_test_devices.py \
+  tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py \
+  tests/unit/skb_1306_availability_timeline.py
 ```
 
-Look for **first `True`** in the timeline (`startup_poll_N` or `post_subscribe_*`).
+## Run probe after each checkout
 
-| Step | Branch commit | Production change | Expected |
-|------|---------------|-------------------|----------|
-| 0 | `0.45.0` tag | None (signal assign only) | All False (confirmed) |
-| 1 | `0059406b` | Callback: signal + **explicit push** | All False (liveliness alone not enough) |
-| 2 | `90b376de` | + **init sync** | True by +5ms; **2nd subscribe → False** at +1079ms |
-| 3 | `skb-1306-fix` step-3 | + **stale bus block** in `notify_emission` | `post_subscribe_2_read` True? |
-| 3 | (next) | + **stale bus block** in `notify_emission` | True stable after subscribe |
-
-## Step 0 result (skancra003)
-
-- `immediate_after_context_start` → False
-- `startup_poll_1` … `startup_poll_60` → all False
-- `post_subscribe_1_read`, `post_subscribe_2_read` → False
-- **Never True in 60s**
-
-## Step 1 result (skancra003)
-
-- All False for 60s — **callback push alone does not help** (nothing sets True at startup; liveliness path did not fix read in time)
-
-## Step 2 result (skancra003)
-
-- `immediate_after_context_start` → **True** (+3ms) — init sync works
-- `startup_poll_1` → True
-- `post_subscribe_1_read` → True
-- `post_subscribe_2_read` → **False** — stale bus False on 2nd subscribe
-
-## Step 3 — record your result here
-
+```bash
+git checkout github/exp/step-XXXX   # see table below
+poetry run pytest tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py -v -s -o addopts="" 2>&1 | tee probe-<name>.log
+grep -A20 'timeline' probe-<name>.log
 ```
-first True at: startup_poll___ / never / post_subscribe___
+
+---
+
+## Experiment matrix (isolated)
+
+| Checkout | Callback | Init sync | Bus block | What you learn |
+|----------|----------|-----------|-----------|----------------|
+| `0.45.0` or `github/release-0.45.0` | signal only | no | no | Baseline — all False ✅ done |
+| `github/exp/step-1-callback-push-only` | signal + **push** | no | no | Push alone useless without True trigger ✅ done |
+| `github/exp/step-2a-init-sync-only` | signal only | **yes** | no | **Does init alone make read True?** ← run this |
+| `github/exp/step-2b-init-sync-and-push` | signal + push | yes | no | Both without bus block ✅ done |
+| `github/exp/step-3-add-bus-block` | signal + push | yes | **yes** | Full fix — 2nd subscribe should stay True |
+
+---
+
+## Results log (skancra003)
+
+### step-0 — `0.45.0`
+- All False 60s, both subscribes False
+
+### step-1 — `exp/step-1-callback-push-only`
+- All False 60s (callback never fired True at startup)
+
+### step-2b — `exp/step-2b-init-sync-and-push` (was tested before step-2a existed)
+- +3ms True, subscribe1 True, **subscribe2 False**
+
+### step-2a — `exp/step-2a-init-sync-only`
 ```
+(paste timeline here)
+```
+
+### step-3 — `exp/step-3-add-bus-block`
+```
+(paste timeline here)
+```
+
+---
+
+## Production diff summary (final = step-3)
+
+1. **Callback push** — liveliness + init sync path notifies Tango (0.45.1 idea, keep signal)
+2. **Init sync** — dish responsive at startup → True before Subarray Assign
+3. **Bus block** — ignore queued stale `False` after signal is `True`
