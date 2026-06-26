@@ -112,6 +112,31 @@ def test_fixed_signal_no_startup_false_before_liveliness() -> None:
         assert attr.quality != tango.AttrQuality.ATTR_VALID or attr.value is not True
 
 
+def test_repair_restores_true_when_cache_stale_and_dish_responsive() -> None:
+    device = MagicMock()
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    device.component_manager.check_device_responsive.return_value = None
+    device._repair_subsystem_availability_if_needed = (
+        MidTmcLeafNodeDish._repair_subsystem_availability_if_needed.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
+    device._repair_subsystem_availability_if_needed()
+    assert device._is_subsystem_available is True
+
+
+def test_repair_skips_when_cache_already_true() -> None:
+    device = MagicMock()
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    device._repair_subsystem_availability_if_needed = (
+        MidTmcLeafNodeDish._repair_subsystem_availability_if_needed.__get__(
+            device, MidTmcLeafNodeDish
+        )
+    )
+    device._repair_subsystem_availability_if_needed()
+    device.component_manager.check_device_responsive.assert_not_called()
+
+
 def test_dish_callback_assigns_signal() -> None:
     device = MagicMock()
     device._is_subsystem_available = False
