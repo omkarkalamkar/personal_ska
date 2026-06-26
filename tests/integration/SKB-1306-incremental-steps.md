@@ -15,7 +15,8 @@ Look for **first `True`** in the timeline (`startup_poll_N` or `post_subscribe_*
 |------|---------------|-------------------|----------|
 | 0 | `0.45.0` tag | None (signal assign only) | All False (confirmed) |
 | 1 | `0059406b` | Callback: signal + **explicit push** | All False (liveliness alone not enough) |
-| 2 | `skb-1306-fix` step-2 | + **init sync** after `init_completed` | True in early `startup_poll_*`? |
+| 2 | `90b376de` | + **init sync** | True by +5ms; **2nd subscribe → False** at +1079ms |
+| 3 | `skb-1306-fix` step-3 | + **stale bus block** in `notify_emission` | `post_subscribe_2_read` True? |
 | 3 | (next) | + **stale bus block** in `notify_emission` | True stable after subscribe |
 
 ## Step 0 result (skancra003)
@@ -29,7 +30,14 @@ Look for **first `True`** in the timeline (`startup_poll_N` or `post_subscribe_*
 
 - All False for 60s — **callback push alone does not help** (nothing sets True at startup; liveliness path did not fix read in time)
 
-## Step 2 — record your result here
+## Step 2 result (skancra003)
+
+- `immediate_after_context_start` → **True** (+3ms) — init sync works
+- `startup_poll_1` → True
+- `post_subscribe_1_read` → True
+- `post_subscribe_2_read` → **False** — stale bus False on 2nd subscribe
+
+## Step 3 — record your result here
 
 ```
 first True at: startup_poll___ / never / post_subscribe___

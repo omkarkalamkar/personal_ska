@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 from threading import Event
-from typing import List, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 import tango
 from numpy import isnan
@@ -297,6 +297,22 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 except DeviceUnresponsive:
                     if attempt < timeout - 1:
                         time.sleep(1)
+
+    def notify_emission(self, signal: str, value: Any) -> None:
+        """Drop stale bus emissions before attribute_from_signal auto-push."""
+        if "is_subsystem_available" in signal.lower():
+            try:
+                if value != self._is_subsystem_available:
+                    self.logger.info(
+                        "isSubsystemAvailable: ignored stale bus emission "
+                        "emitted=%s signal=%s",
+                        value,
+                        self._is_subsystem_available,
+                    )
+                    return
+            except (AttributeError, RuntimeError):
+                pass
+        super().notify_emission(signal, value)
 
     def delete_device(self) -> None:
         # if the init is called more than once
