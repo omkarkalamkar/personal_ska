@@ -277,14 +277,46 @@ def test_callback_clears_suppress_when_becoming_unavailable() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
     device._suppress_stale_availability_false_bus = True
+    device._init_sync_confirmed_available = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
     _bind_availability_methods(device)
 
     device.update_availablity_callback(False)
 
     assert device._suppress_stale_availability_false_bus is False
+    assert device._init_sync_confirmed_available is False
     device.push_change_archive_events.assert_called_once_with(
         "isSubsystemAvailable", False
+    )
+
+
+def test_should_block_stale_false_when_init_sync_latch_set() -> None:
+    device = MagicMock()
+    device._init_sync_confirmed_available = True
+    device._suppress_stale_availability_false_bus = False
+    device._is_subsystem_available = False
+    _bind_availability_methods(device)
+
+    assert device._should_block_stale_availability_false_bus() is True
+
+
+def test_notify_emission_blocks_stale_false_when_init_sync_latch_set() -> None:
+    device = MagicMock()
+    device._init_sync_confirmed_available = True
+    device._suppress_stale_availability_false_bus = False
+    device._is_subsystem_available = False
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    _bind_availability_methods(device)
+
+    with patch.object(SignalBusMixin, "notify_emission") as super_notify:
+        MidTmcLeafNodeDish.notify_emission(
+            device, "._is_subsystem_available", False
+        )
+
+    super_notify.assert_not_called()
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
     )
 
 

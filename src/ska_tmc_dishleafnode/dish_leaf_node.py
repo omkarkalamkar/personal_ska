@@ -265,6 +265,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         self._dishln_name = self.get_name()
         super().init_device()
         self._suppress_stale_availability_false_bus = False
+        self._init_sync_confirmed_available = False
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -294,6 +295,10 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 try:
                     self.component_manager.check_device_responsive()
                     self.update_availablity_callback(True)
+                    self._init_sync_confirmed_available = True
+                    self.shared_bus.wait_for_thread()
+                    if self._get_availability_attr_cache() is not True:
+                        self._publish_subsystem_availability(True)
                     break
                 except DeviceUnresponsive:
                     if attempt < timeout - 1:
@@ -321,9 +326,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def _should_block_stale_availability_false_bus(self) -> bool:
         try:
+            if self._init_sync_confirmed_available:
+                return True
             return (
                 self._suppress_stale_availability_false_bus
-                or self._is_subsystem_available is True
+                or bool(self._is_subsystem_available)
             )
         except (AttributeError, RuntimeError):
             return False
@@ -508,7 +515,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        was_available = self._is_subsystem_available is True
+        was_available = bool(self._is_subsystem_available)
         if self._is_subsystem_available != availability:
             self._is_subsystem_available = availability
         if availability:
@@ -517,6 +524,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 self._publish_subsystem_availability(True)
         elif was_available:
             self._suppress_stale_availability_false_bus = False
+            self._init_sync_confirmed_available = False
             if self._get_availability_attr_cache() is not False:
                 self._publish_subsystem_availability(False)
 

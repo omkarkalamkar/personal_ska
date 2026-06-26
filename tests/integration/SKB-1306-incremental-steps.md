@@ -87,7 +87,12 @@ grep -A20 'timeline' probe-<name>.log
 
 **Fix:** only clear suppress on True→False transition; block/repair when suppress **or** signal True.
 
-### step-3c — re-run after transition guard
+### step-3c — `8068b3c3` (skancra003)
+- subscribe1 still **False** — block cleared before subscribe when liveliness/signal both False
+
+**Fix:** `_init_sync_confirmed_available` latch after init sync; drain bus queue; only clear latch on True→False transition.
+
+### step-3c — re-run after init-sync latch
 ```
 (paste timeline here)
 ```
