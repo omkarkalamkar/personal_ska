@@ -264,6 +264,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def init_device(self: MidTmcLeafNodeDish):
         self._dishln_name = self.get_name()
         super().init_device()
+        self._subsystem_available_confirmed = False
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -294,6 +295,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     self.component_manager.check_device_responsive()
                     self.update_availablity_callback(True)
                     self.shared_bus.wait_for_thread()
+                    self._repair_subsystem_availability_cache_if_needed()
                     break
                 except DeviceUnresponsive:
                     if attempt < timeout - 1:
@@ -308,6 +310,25 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             self.push_change_archive_events(
                 "isSubsystemAvailable", availability
             )
+
+    def _repair_subsystem_availability_cache_if_needed(self) -> None:
+        """Re-sync read cache after bus catch-up if the dish is still responsive."""
+        try:
+            cache = getattr(self, "_SignalBusMixin__attr_values", None)
+            if isinstance(cache, dict) and cache.get("isSubsystemAvailable") is True:
+                return
+            if not self._subsystem_available_confirmed:
+                return
+            self.component_manager.check_device_responsive()
+            self._publish_subsystem_availability(True)
+        except DeviceUnresponsive:
+            self._subsystem_available_confirmed = False
+        except (AttributeError, RuntimeError):
+            pass
+
+    def always_executed_hook(self) -> None:
+        super().always_executed_hook()
+        self._repair_subsystem_availability_cache_if_needed()
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -459,6 +480,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         if self._is_subsystem_available != availability:
             self._is_subsystem_available = availability
             self._publish_subsystem_availability(availability)
+        if availability:
+            self._subsystem_available_confirmed = True
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
