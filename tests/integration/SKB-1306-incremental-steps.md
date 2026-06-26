@@ -97,16 +97,19 @@ grep -A20 'timeline' probe-<name>.log
 
 **Fix:** keep `_startup_responsive_confirmed` across liveliness False; on stale cache verify `check_device_responsive` before re-publishing True.
 
-### step-3c — re-run after responsive repair
-```
-(paste timeline here)
-```
+### step-3c — `324ca001` (skancra003) ✅
+- +7ms True through pre_subscribe
+- **+574ms post_subscribe_1 → True**
+- **+576ms between_subscribes → True**
+- **+1085ms post_subscribe_2 → True**
+
+**All probe phases True — SKB-1306 fix verified on integration probe.**
 
 ---
 
-## Production diff summary (final = step-3c)
+## Production diff summary (final = `324ca001` on `skb-1306-fix`)
 
-1. **Callback push** — liveliness + init sync path notifies Tango (0.45.1 idea, keep signal)
-2. **Init sync** — dish responsive at startup → True before Subarray Assign
-3. **Bus block + cache repair** — while availability is True, ignore queued stale bus `False`; sync `__attr_values` and re-push True
-4. **Hook repair** — after every client request (incl. subscribe), re-sync cache when suppress flag is set
+1. **Init sync** — `check_device_responsive()` → `callback(True)`; drain signal bus; set `_startup_responsive_confirmed`
+2. **Callback publish** — explicit `push_change_archive_events` + `__attr_values` sync (keep `attribute_from_signal`)
+3. **Bus block** — drop stale bus `False` while startup confirmed or suppress/signal True
+4. **Hook repair** — after each client request, if cache stale and dish still responsive → re-publish True
