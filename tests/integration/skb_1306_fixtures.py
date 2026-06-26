@@ -8,7 +8,10 @@ import pytest
 import tango
 from ska_tmc_common.dev_factory import DevFactory
 
-from tests.integration.skb_1306_test_devices import skb_1306_tango_context
+from tests.integration.skb_1306_test_devices import (
+    skb_1306_tango_context,
+    sync_tango_host_to_test_context,
+)
 from tests.settings import DISH_LEAF_NODE_DEVICE
 
 
@@ -20,6 +23,7 @@ def skb_1306_context(request) -> Generator:
         return
 
     with skb_1306_tango_context(timeout=60) as context:
+        sync_tango_host_to_test_context(context)
         DevFactory._test_context = context
         try:
             yield context

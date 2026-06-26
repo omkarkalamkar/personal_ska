@@ -44,23 +44,16 @@ unset TANGO_HOST
 LOG="probe-level2-${TAG}.log"
 echo "=== dish_leaf_node from tag ${TAG} (sim / MultiDeviceTestContext) ===" | tee "$LOG"
 
-echo "=== sim connectivity ===" | tee -a "$LOG"
-if ! poetry run pytest tests/integration/test_skb_1306_sim_health.py::test_sim_devices_reachable \
+echo "=== sim health (single pytest session) ===" | tee -a "$LOG"
+if ! poetry run pytest tests/integration/test_skb_1306_sim_health.py \
   -v -s -o addopts="" 2>&1 | tee -a "$LOG"; then
   echo ""
-  echo "Sim connectivity failed — helper dish / test DB not healthy. See $LOG"
+  echo "Sim health failed. See $LOG (connectivity or 0.45.1 liveliness gate)."
   exit 1
 fi
 
-if [[ "$TAG" == "0.45.1" ]]; then
-  echo "=== 0.45.1 liveliness gate (must read True) ===" | tee -a "$LOG"
-  if ! poetry run pytest \
-    tests/integration/test_skb_1306_sim_health.py::test_sim_liveliness_promotes_availability \
-    -v -s -o addopts="" 2>&1 | tee -a "$LOG"; then
-    echo ""
-    echo "0.45.1 never reached isSubsystemAvailable=True — sim/liveliness broken. See $LOG"
-    exit 1
-  fi
+if [[ "$TAG" != "0.45.1" ]]; then
+  echo "=== skipping 0.45.1-only liveliness gate for tag ${TAG} ===" | tee -a "$LOG"
 fi
 
 poetry run pytest tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py \
