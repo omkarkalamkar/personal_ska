@@ -1,21 +1,19 @@
 """Diagnostic probes for SKB-1306 on release 0.45.0 (no production fix required).
 
-Purpose: record what Subarray would *read* at each step. Use this on tag 0.45.0 to
-capture root-cause evidence before applying any fix.
+Records what Subarray would *read* at each step. The test always passes; read the log.
 
-Run on Linux (e.g. skancra003) against 0.45.0:
+On skancra003 (0.45.0 code + these test files only):
 
+    git fetch github --tags
     git checkout 0.45.0
-    git checkout skb-1306-fix -- \\
+    git checkout github/skb-1306-fix -- \\
+        tests/integration/skb_1306_test_devices.py \\
         tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py \\
-        tests/unit/skb_1306_availability_timeline.py
+        tests/unit/skb_1306_availability_timeline.py \\
+        tests/unit/test_is_subsystem_available_diagnostic_0450.py
     poetry run pytest \\
         tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py \\
         -v -s -o addopts=""
-
-The test always passes; read the printed timeline. Look for:
-  - first read False while dish is up
-  - read True then False again after subscribe (stuck read / bus replay)
 """
 
 from __future__ import annotations
@@ -26,10 +24,8 @@ from typing import Generator
 
 import pytest
 import tango
-from ska_tmc_common.dev_factory import DevFactory
-from tango.test_context import MultiDeviceTestContext
 
-from tests.conftest import get_integration_devices_to_load
+from tests.integration.skb_1306_test_devices import skb_1306_tango_context
 from tests.settings import DISH_LEAF_NODE_DEVICE
 from tests.unit.skb_1306_availability_timeline import AvailabilityTimeline
 
@@ -44,12 +40,7 @@ def tango_context(request) -> Generator:
         yield None
         return
 
-    with MultiDeviceTestContext(
-        get_integration_devices_to_load(),
-        process=True,
-        timeout=60,
-    ) as context:
-        DevFactory._test_context = context
+    with skb_1306_tango_context(timeout=60) as context:
         yield context
 
 
@@ -109,7 +100,7 @@ def test_probe_read_timeline_through_startup_and_two_subscribes(
         proxy1.unsubscribe_event(event_id_1)
 
     _probe(timeline, "between_subscribes")
-    proxy2 = DevFactory().get_device(DISH_LEAF_NODE_DEVICE)
+    proxy2 = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE)
     event_id_2 = proxy2.subscribe_event(
         "isSubsystemAvailable",
         tango.EventType.CHANGE_EVENT,

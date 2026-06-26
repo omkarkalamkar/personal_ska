@@ -15,9 +15,8 @@ from typing import Generator
 
 import pytest
 import tango
-from tango.test_context import MultiDeviceTestContext
 
-from tests.conftest import get_integration_devices_to_load
+from tests.integration.skb_1306_test_devices import skb_1306_tango_context
 from tests.settings import DISH_LEAF_NODE_DEVICE
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
@@ -29,11 +28,7 @@ def tango_context(request) -> Generator:
         yield None
         return
 
-    with MultiDeviceTestContext(
-        get_integration_devices_to_load(),
-        process=True,
-        timeout=60,
-    ) as context:
+    with skb_1306_tango_context(timeout=60) as context:
         yield context
 
 
