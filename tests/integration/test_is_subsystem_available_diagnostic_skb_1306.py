@@ -18,11 +18,13 @@ Records what Subarray would *read* at each step. The test always passes; read th
 from __future__ import annotations
 
 import logging
+import os
 import time
 
 import pytest
 import tango
 
+from tests.settings import DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE
 from tests.unit.skb_1306_availability_timeline import AvailabilityTimeline
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
@@ -67,8 +69,55 @@ def _probe(
     return value
 
 
+def _log_sim_health(
+    context,
+    dish_proxy: tango.DeviceProxy,
+) -> None:
+    """Log sim connectivity when liveliness never promoted availability."""
+    import ska_tmc_dishleafnode.dish_leaf_node as dish_mod
+
+    logger.warning(
+        "SKB-1306 sim health: dish_leaf_node=%s TANGO_HOST=%s",
+        dish_mod.__file__,
+        os.environ.get("TANGO_HOST"),
+    )
+    try:
+        logger.warning(
+            "SKB-1306 sim health: dish_ln ping=%s state=%s",
+            dish_proxy.ping(),
+            dish_proxy.state(),
+        )
+    except tango.DevFailed as exc:
+        logger.warning("SKB-1306 sim health: dish_ln unreachable: %s", exc)
+
+    try:
+        dish_master = context.get_device(DISH_MASTER_DEVICE)
+        logger.warning(
+            "SKB-1306 sim health: dish_master ping=%s state=%s",
+            dish_master.ping(),
+            dish_master.state(),
+        )
+    except tango.DevFailed as exc:
+        logger.warning("SKB-1306 sim health: dish_master unreachable: %s", exc)
+
+    try:
+        db = tango.Database()
+        for name in (DISH_LEAF_NODE_DEVICE, DISH_MASTER_DEVICE):
+            info = db.get_device_info(name)
+            logger.warning(
+                "SKB-1306 sim health: %s exported=%s server=%s",
+                name,
+                info.exported,
+                info.server,
+            )
+    except tango.DevFailed as exc:
+        logger.warning("SKB-1306 sim health: database check failed: %s", exc)
+
+
 def test_probe_read_timeline_through_startup_and_two_subscribes(
     dish_proxy: tango.DeviceProxy,
+    skb_1306_context,
+    request,
 ) -> None:
     """Record isSubsystemAvailable reads through startup and two subscribe cycles."""
     timeline = AvailabilityTimeline()
@@ -119,6 +168,11 @@ def test_probe_read_timeline_through_startup_and_two_subscribes(
         )
     else:
         logger.warning("SKB-1306 probe: never read True within 60s")
+        if (
+            not request.config.getoption("--true-context")
+            and skb_1306_context is not None
+        ):
+            _log_sim_health(skb_1306_context, dish_proxy)
 
     for label in ("post_subscribe_1_read", "post_subscribe_2_read"):
         entries = [e for e in timeline.entries if e.action == label]
