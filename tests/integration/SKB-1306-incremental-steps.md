@@ -107,9 +107,13 @@ grep -A20 'timeline' probe-<name>.log
 
 ---
 
-## Production diff summary (final = `324ca001` on `skb-1306-fix`)
+## Production diff summary (minimal fix on `skb-1306-fix`)
 
-1. **Init sync** — `check_device_responsive()` → `callback(True)`; drain signal bus; set `_startup_responsive_confirmed`
-2. **Callback publish** — explicit `push_change_archive_events` + `__attr_values` sync (keep `attribute_from_signal`)
-3. **Bus block** — drop stale bus `False` while startup confirmed or suppress/signal True
-4. **Hook repair** — after each client request, if cache stale and dish still responsive → re-publish True
+Three changes in `dish_leaf_node.py` (+ small hook repair for subscribe2):
+
+1. **Init sync** — `check_device_responsive()` → `callback(True)`; drain bus; confirm availability
+2. **`_publish_subsystem_availability`** — `push_change_archive_events` **and** sync `__attr_values`
+3. **`notify_emission`** — drop stale bus `False` while `_subsystem_available_confirmed`
+4. **`always_executed_hook`** — if cache stale and dish still responsive → re-publish True
+
+Root cause: `attribute_from_signal` reads `__attr_values`, updated only by the async bus — not by liveliness push alone. Startup `initial_value=False` keeps poisoning reads on subscribe.

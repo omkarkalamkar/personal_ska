@@ -264,8 +264,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def init_device(self: MidTmcLeafNodeDish):
         self._dishln_name = self.get_name()
         super().init_device()
-        self._suppress_stale_availability_false_bus = False
-        self._startup_responsive_confirmed = False
+        self._subsystem_available_confirmed = False
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -295,84 +294,48 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 try:
                     self.component_manager.check_device_responsive()
                     self.update_availablity_callback(True)
-                    self._startup_responsive_confirmed = True
+                    self._subsystem_available_confirmed = True
                     self.shared_bus.wait_for_thread()
-                    if self._get_availability_attr_cache() is not True:
-                        self._publish_subsystem_availability(True)
+                    self._publish_subsystem_availability(True)
                     break
                 except DeviceUnresponsive:
                     if attempt < timeout - 1:
                         time.sleep(1)
 
-    def _get_availability_attr_cache(self) -> bool | None:
-        cache = getattr(self, "_SignalBusMixin__attr_values", None)
-        if not isinstance(cache, dict):
-            return None
-        if "isSubsystemAvailable" not in cache:
-            return None
-        return cache["isSubsystemAvailable"]
-
-    def _sync_availability_attr_cache(self, availability: bool) -> None:
-        cache = getattr(self, "_SignalBusMixin__attr_values", None)
-        if isinstance(cache, dict):
-            cache["isSubsystemAvailable"] = availability
-
     def _publish_subsystem_availability(self, availability: bool) -> None:
+        """Push Tango events and sync attribute_from_signal read cache."""
         with tango.EnsureOmniThread():
-            self._sync_availability_attr_cache(availability)
+            cache = getattr(self, "_SignalBusMixin__attr_values", None)
+            if isinstance(cache, dict):
+                cache["isSubsystemAvailable"] = availability
             self.push_change_archive_events(
                 "isSubsystemAvailable", availability
             )
 
-    def _should_block_stale_availability_false_bus(self) -> bool:
-        try:
-            if self._startup_responsive_confirmed:
-                return True
-            return (
-                self._suppress_stale_availability_false_bus
-                or bool(self._is_subsystem_available)
-            )
-        except (AttributeError, RuntimeError):
-            return False
-
     def _repair_subsystem_availability_cache_if_needed(self) -> None:
-        """Re-sync read cache when the dish is still responsive."""
+        """Re-sync read cache after bus catch-up if the dish is still responsive."""
         try:
-            if self._get_availability_attr_cache() is True:
+            cache = getattr(self, "_SignalBusMixin__attr_values", None)
+            if isinstance(cache, dict) and cache.get("isSubsystemAvailable") is True:
                 return
-            if self._startup_responsive_confirmed:
-                try:
-                    self.component_manager.check_device_responsive()
-                except DeviceUnresponsive:
-                    self._startup_responsive_confirmed = False
-                    self._suppress_stale_availability_false_bus = False
-                    return
-                self._suppress_stale_availability_false_bus = True
-                self._publish_subsystem_availability(True)
+            if not self._subsystem_available_confirmed:
                 return
-            if not self._should_block_stale_availability_false_bus():
-                return
+            self.component_manager.check_device_responsive()
             self._publish_subsystem_availability(True)
+        except DeviceUnresponsive:
+            self._subsystem_available_confirmed = False
         except (AttributeError, RuntimeError):
             pass
 
     def always_executed_hook(self) -> None:
-        """Repair isSubsystemAvailable read cache after signal-bus catch-up."""
         super().always_executed_hook()
         self._repair_subsystem_availability_cache_if_needed()
 
     def notify_emission(self, signal: str, value: Any) -> None:
-        """Drop stale bus emissions before attribute_from_signal auto-push."""
+        """Drop stale startup False before attribute_from_signal auto-push."""
         if "is_subsystem_available" in signal.lower():
             try:
-                if value is False and self._should_block_stale_availability_false_bus():
-                    self.logger.info(
-                        "isSubsystemAvailable: ignored stale bus emission "
-                        "bus=%s suppress=%s signal=%s",
-                        value,
-                        self._suppress_stale_availability_false_bus,
-                        self._is_subsystem_available,
-                    )
+                if value is False and self._subsystem_available_confirmed:
                     self._publish_subsystem_availability(True)
                     return
             except (AttributeError, RuntimeError):
@@ -526,17 +489,11 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
-        was_available = bool(self._is_subsystem_available)
         if self._is_subsystem_available != availability:
             self._is_subsystem_available = availability
+            self._publish_subsystem_availability(availability)
         if availability:
-            self._suppress_stale_availability_false_bus = True
-            if self._get_availability_attr_cache() is not True:
-                self._publish_subsystem_availability(True)
-        elif was_available:
-            self._suppress_stale_availability_false_bus = False
-            if self._get_availability_attr_cache() is not False:
-                self._publish_subsystem_availability(False)
+            self._subsystem_available_confirmed = True
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
