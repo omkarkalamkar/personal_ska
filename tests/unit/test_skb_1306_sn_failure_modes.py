@@ -34,6 +34,7 @@ def _bind_availability_methods(device: MagicMock) -> None:
         "_get_availability_attr_cache",
         "_sync_availability_attr_cache",
         "_publish_subsystem_availability",
+        "_should_block_stale_availability_false_bus",
         "_repair_subsystem_availability_cache_if_needed",
         "update_availablity_callback",
     ):
@@ -259,6 +260,52 @@ def test_repair_promotes_true_when_suppress_set_despite_signal_false() -> None:
     )
 
 
+def test_callback_clears_suppress_only_on_true_to_false_transition() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = False
+    device._suppress_stale_availability_false_bus = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
+
+    device.update_availablity_callback(False)
+
+    assert device._suppress_stale_availability_false_bus is True
+    device.push_change_archive_events.assert_not_called()
+
+
+def test_callback_clears_suppress_when_becoming_unavailable() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._suppress_stale_availability_false_bus = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
+
+    device.update_availablity_callback(False)
+
+    assert device._suppress_stale_availability_false_bus is False
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", False
+    )
+
+
+def test_notify_emission_blocks_stale_false_when_signal_true() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = True
+    device._suppress_stale_availability_false_bus = False
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
+
+    with patch.object(SignalBusMixin, "notify_emission") as super_notify:
+        MidTmcLeafNodeDish.notify_emission(
+            device, "._is_subsystem_available", False
+        )
+
+    super_notify.assert_not_called()
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
+
+
 def test_notify_emission_blocks_stale_false_when_suppress_set() -> None:
     device = MagicMock()
     device._is_subsystem_available = False
@@ -275,6 +322,8 @@ def test_notify_emission_blocks_stale_false_when_suppress_set() -> None:
     device.push_change_archive_events.assert_called_once_with(
         "isSubsystemAvailable", True
     )
+
+
 def test_presignal_callback_pushes_tango_events() -> None:
     """Pre-signal implementation explicitly notified subscribers."""
     device = MagicMock()

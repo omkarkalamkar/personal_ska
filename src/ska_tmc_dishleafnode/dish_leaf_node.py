@@ -319,10 +319,19 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                 "isSubsystemAvailable", availability
             )
 
+    def _should_block_stale_availability_false_bus(self) -> bool:
+        try:
+            return (
+                self._suppress_stale_availability_false_bus
+                or self._is_subsystem_available is True
+            )
+        except (AttributeError, RuntimeError):
+            return False
+
     def _repair_subsystem_availability_cache_if_needed(self) -> None:
         """Re-sync read cache after True was established via callback."""
         try:
-            if not self._suppress_stale_availability_false_bus:
+            if not self._should_block_stale_availability_false_bus():
                 return
             if self._get_availability_attr_cache() is not True:
                 self._publish_subsystem_availability(True)
@@ -338,15 +347,13 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Drop stale bus emissions before attribute_from_signal auto-push."""
         if "is_subsystem_available" in signal.lower():
             try:
-                if (
-                    value is False
-                    and self._suppress_stale_availability_false_bus
-                ):
+                if value is False and self._should_block_stale_availability_false_bus():
                     self.logger.info(
                         "isSubsystemAvailable: ignored stale bus emission "
-                        "bus=%s suppress=%s",
+                        "bus=%s suppress=%s signal=%s",
                         value,
                         self._suppress_stale_availability_false_bus,
+                        self._is_subsystem_available,
                     )
                     self._publish_subsystem_availability(True)
                     return
@@ -501,11 +508,17 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
 
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
+        was_available = self._is_subsystem_available is True
         if self._is_subsystem_available != availability:
             self._is_subsystem_available = availability
-        self._suppress_stale_availability_false_bus = availability
-        if self._get_availability_attr_cache() != self._is_subsystem_available:
-            self._publish_subsystem_availability(self._is_subsystem_available)
+        if availability:
+            self._suppress_stale_availability_false_bus = True
+            if self._get_availability_attr_cache() is not True:
+                self._publish_subsystem_availability(True)
+        elif was_available:
+            self._suppress_stale_availability_false_bus = False
+            if self._get_availability_attr_cache() is not False:
+                self._publish_subsystem_availability(False)
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""

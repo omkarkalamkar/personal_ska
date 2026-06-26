@@ -82,7 +82,12 @@ grep -A20 'timeline' probe-<name>.log
 
 **Fix:** `_suppress_stale_availability_false_bus` set by callback; block/repair while flag True (cleared on liveliness False).
 
-### step-3c — re-run after suppress flag
+### step-3c — `7d00e931` (skancra003)
+- subscribe1 **False** — redundant liveliness `callback(False)` cleared suppress while signal storage still False
+
+**Fix:** only clear suppress on True→False transition; block/repair when suppress **or** signal True.
+
+### step-3c — re-run after transition guard
 ```
 (paste timeline here)
 ```

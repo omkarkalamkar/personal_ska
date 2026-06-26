@@ -12,6 +12,7 @@ def _bind_availability_methods(device: MagicMock) -> None:
         "_get_availability_attr_cache",
         "_sync_availability_attr_cache",
         "_publish_subsystem_availability",
+        "_should_block_stale_availability_false_bus",
         "_repair_subsystem_availability_cache_if_needed",
         "update_availablity_callback",
     ):
