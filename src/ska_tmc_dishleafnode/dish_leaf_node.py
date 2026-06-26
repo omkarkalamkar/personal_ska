@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 from threading import Event
-from typing import List, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 import tango
 from numpy import isnan
@@ -262,6 +262,7 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def init_device(self: MidTmcLeafNodeDish):
         self._dishln_name = self.get_name()
         super().init_device()
+        self._subsystem_available_confirmed = False
         self._build_state = f"""{release.name},{release.version},
         {release.description}"""
         self._version_id = release.version
@@ -293,10 +294,18 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
                     self._is_subsystem_available = True
                     self.shared_bus.wait_for_thread()
                     self._repair_subsystem_availability_if_needed()
+                    self._subsystem_available_confirmed = True
                     break
                 except DeviceUnresponsive:
                     if attempt < timeout - 1:
                         time.sleep(1)
+
+    def _sync_subsystem_availability_read_cache(self, availability: bool) -> None:
+        with tango.EnsureOmniThread():
+            cache = getattr(self, "_SignalBusMixin__attr_values", None)
+            if isinstance(cache, dict):
+                cache["isSubsystemAvailable"] = availability
+            self.push_change_archive_events("isSubsystemAvailable", availability)
 
     def _repair_subsystem_availability_if_needed(self) -> None:
         """Re-sync read cache after bus catch-up if the dish is still responsive."""
@@ -304,20 +313,33 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             cache = getattr(self, "_SignalBusMixin__attr_values", None)
             if isinstance(cache, dict) and cache.get("isSubsystemAvailable") is True:
                 return
+            if not self._subsystem_available_confirmed:
+                return
             self.component_manager.check_device_responsive()
             self._is_subsystem_available = True
-            with tango.EnsureOmniThread():
-                if isinstance(cache, dict):
-                    cache["isSubsystemAvailable"] = True
-                self.push_change_archive_events("isSubsystemAvailable", True)
+            self._sync_subsystem_availability_read_cache(True)
         except DeviceUnresponsive:
-            pass
+            self._subsystem_available_confirmed = False
         except (AttributeError, RuntimeError):
             pass
 
     def always_executed_hook(self) -> None:
         super().always_executed_hook()
         self._repair_subsystem_availability_if_needed()
+
+    def notify_emission(self, signal: str, value: Any) -> None:
+        """Drop stale bus False while the dish is still confirmed available."""
+        if "is_subsystem_available" in signal.lower() and value is False:
+            try:
+                if self._subsystem_available_confirmed:
+                    self.component_manager.check_device_responsive()
+                    self._sync_subsystem_availability_read_cache(True)
+                    return
+            except DeviceUnresponsive:
+                self._subsystem_available_confirmed = False
+            except (AttributeError, RuntimeError):
+                pass
+        super().notify_emission(signal, value)
 
     def delete_device(self) -> None:
         # if the init is called more than once
@@ -467,6 +489,8 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
     def update_availablity_callback(self, availability):
         """Change event callback for isSubsystemAvailable"""
         self._is_subsystem_available = availability
+        if availability:
+            self._subsystem_available_confirmed = True
 
     def update_track_table_errors_callback(self, value: list):
         """Push an event for the trackTableErrors attribute."""
