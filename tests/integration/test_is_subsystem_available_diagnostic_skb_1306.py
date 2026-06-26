@@ -2,62 +2,61 @@
 
 Records what Subarray would *read* at each step. The test always passes; read the log.
 
-On skancra003 (0.45.0 code + these test files only):
+**Simulator (no live Tango DB):**
 
-    git fetch github --tags
-    git checkout 0.45.0
-    git checkout github/skb-1306-fix -- \\
-        tests/integration/skb_1306_test_devices.py \\
-        tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py \\
-        tests/unit/skb_1306_availability_timeline.py \\
-        tests/unit/test_is_subsystem_available_diagnostic_0450.py
     poetry run pytest \\
         tests/integration/test_is_subsystem_available_diagnostic_skb_1306.py \\
         -v -s -o addopts=""
+
+**Live dish on skancra003 (--true-context needs working Tango DB + dish):**
+
+    export TANGO_HOST=localhost:10000
+    python3 -c "import tango; print(tango.Database().get_info())"
+    poetry run pytest ... --true-context
 """
 
 from __future__ import annotations
 
 import logging
 import time
-from typing import Generator
 
 import pytest
 import tango
 
-from tests.integration.skb_1306_test_devices import skb_1306_tango_context
-from tests.settings import DISH_LEAF_NODE_DEVICE
 from tests.unit.skb_1306_availability_timeline import AvailabilityTimeline
 
 pytestmark = pytest.mark.xdist_group(name="skb1306_is_subsystem_available")
+pytest_plugins = ["tests.integration.skb_1306_fixtures"]
 
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope="module")
-def tango_context(request) -> Generator:
-    if request.config.getoption("--true-context"):
-        yield None
-        return
-
-    with skb_1306_tango_context(timeout=60) as context:
-        yield context
-
-
-def _read_availability() -> bool | None:
+def _read_availability(proxy: tango.DeviceProxy) -> bool | None:
     try:
-        attr = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE).read_attribute(
-            "isSubsystemAvailable"
-        )
+        attr = proxy.read_attribute("isSubsystemAvailable")
         if attr.quality == tango.AttrQuality.ATTR_VALID:
             return attr.value
-    except tango.DevFailed:
-        pass
+        logger.warning(
+            "SKB-1306 probe: %s quality=%s value=%s",
+            proxy.dev_name(),
+            attr.quality,
+            attr.value,
+        )
+    except tango.DevFailed as exc:
+        logger.warning(
+            "SKB-1306 probe: cannot read %s.isSubsystemAvailable: %s",
+            proxy.dev_name(),
+            exc.args[0].desc if exc.args else exc,
+        )
     return None
 
 
-def _probe(timeline: AvailabilityTimeline, action: str) -> bool | None:
-    value = _read_availability()
+def _probe(
+    timeline: AvailabilityTimeline,
+    proxy: tango.DeviceProxy,
+    action: str,
+) -> bool | None:
+    value = _read_availability(proxy)
     timeline.record("client", action, value)
     logger.info(
         "SKB-1306 probe t=+%.0fms %s value=%s",
@@ -69,48 +68,47 @@ def _probe(timeline: AvailabilityTimeline, action: str) -> bool | None:
 
 
 def test_probe_read_timeline_through_startup_and_two_subscribes(
-    tango_context,
+    dish_proxy: tango.DeviceProxy,
 ) -> None:
     """Record isSubsystemAvailable reads through startup and two subscribe cycles."""
     timeline = AvailabilityTimeline()
-    _probe(timeline, "immediate_after_context_start")
+    _probe(timeline, dish_proxy, "immediate_after_context_start")
 
     first_true_ms: float | None = None
     deadline = time.time() + 60
     poll = 0
     while time.time() < deadline:
         poll += 1
-        value = _probe(timeline, f"startup_poll_{poll}")
+        value = _probe(timeline, dish_proxy, f"startup_poll_{poll}")
         if value is True and first_true_ms is None:
             first_true_ms = timeline.entries[-1].elapsed_ms
             break
         time.sleep(1)
 
-    _probe(timeline, "pre_subscribe_1")
-    proxy1 = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE)
-    event_id_1 = proxy1.subscribe_event(
+    _probe(timeline, dish_proxy, "pre_subscribe_1")
+    event_id_1 = dish_proxy.subscribe_event(
         "isSubsystemAvailable",
         tango.EventType.CHANGE_EVENT,
         lambda _event: None,
     )
     try:
         time.sleep(0.5)
-        _probe(timeline, "post_subscribe_1_read")
+        _probe(timeline, dish_proxy, "post_subscribe_1_read")
     finally:
-        proxy1.unsubscribe_event(event_id_1)
+        dish_proxy.unsubscribe_event(event_id_1)
 
-    _probe(timeline, "between_subscribes")
-    proxy2 = tango.DeviceProxy(DISH_LEAF_NODE_DEVICE)
-    event_id_2 = proxy2.subscribe_event(
+    _probe(timeline, dish_proxy, "between_subscribes")
+    fresh = tango.DeviceProxy(dish_proxy.dev_name())
+    event_id_2 = fresh.subscribe_event(
         "isSubsystemAvailable",
         tango.EventType.CHANGE_EVENT,
         lambda _event: None,
     )
     try:
         time.sleep(0.5)
-        _probe(timeline, "post_subscribe_2_read")
+        _probe(timeline, fresh, "post_subscribe_2_read")
     finally:
-        proxy2.unsubscribe_event(event_id_2)
+        fresh.unsubscribe_event(event_id_2)
 
     report = timeline.format()
     logger.info("SKB-1306 integration probe report:\n%s", report)

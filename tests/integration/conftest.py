@@ -8,8 +8,10 @@ from tests.settings import WEATHER_STATION_DEVICE, WEATHER_STATION_DEVICE2
 
 
 @pytest.fixture(autouse=True, scope="session")
-def set_weather_station_admin_mode():
+def set_weather_station_admin_mode(request):
     """Ensure DishLN and DishMaster start with matching KValue."""
+    if not request.config.getoption("--true-context"):
+        return
     try:
         dev_factory = DevFactory()
         for device in [WEATHER_STATION_DEVICE, WEATHER_STATION_DEVICE2]:

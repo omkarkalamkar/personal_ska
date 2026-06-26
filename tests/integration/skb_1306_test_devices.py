@@ -55,8 +55,10 @@ def skb_1306_devices_to_load() -> tuple:
 
 
 def skb_1306_tango_context(timeout: int = 60) -> MultiDeviceTestContext:
-    return MultiDeviceTestContext(
+    context = MultiDeviceTestContext(
         skb_1306_devices_to_load(),
         process=True,
         timeout=timeout,
     )
+    context.enable_test_context_tango_host_override = True
+    return context
