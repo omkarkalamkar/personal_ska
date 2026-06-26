@@ -186,6 +186,7 @@ def test_publish_repairs_stale_read_cache_when_signal_already_true() -> None:
 def test_notify_emission_skips_stale_bus_value() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
+    device._suppress_stale_availability_false_bus = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
     _bind_availability_methods(device)
 
@@ -204,6 +205,7 @@ def test_notify_emission_skips_stale_bus_value() -> None:
 def test_repair_subsystem_availability_cache_if_needed() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
+    device._suppress_stale_availability_false_bus = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
     _bind_availability_methods(device)
 
@@ -218,6 +220,7 @@ def test_repair_subsystem_availability_cache_if_needed() -> None:
 def test_repair_skips_when_cache_matches_signal() -> None:
     device = MagicMock()
     device._is_subsystem_available = True
+    device._suppress_stale_availability_false_bus = True
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
     _bind_availability_methods(device)
 
@@ -227,9 +230,10 @@ def test_repair_skips_when_cache_matches_signal() -> None:
 
 
 def test_repair_skips_when_signal_false_even_if_cache_true() -> None:
-    """Hook repair must not publish False when signal storage is False."""
+    """Hook repair must not run when availability was set False by liveliness."""
     device = MagicMock()
     device._is_subsystem_available = False
+    device._suppress_stale_availability_false_bus = False
     device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
     _bind_availability_methods(device)
 
@@ -237,6 +241,40 @@ def test_repair_skips_when_signal_false_even_if_cache_true() -> None:
 
     device.push_change_archive_events.assert_not_called()
     assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+
+
+def test_repair_promotes_true_when_suppress_set_despite_signal_false() -> None:
+    """Second subscribe can desync signal storage; suppress flag is authoritative."""
+    device = MagicMock()
+    device._is_subsystem_available = False
+    device._suppress_stale_availability_false_bus = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": False}
+    _bind_availability_methods(device)
+
+    device._repair_subsystem_availability_cache_if_needed()
+
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
+
+
+def test_notify_emission_blocks_stale_false_when_suppress_set() -> None:
+    device = MagicMock()
+    device._is_subsystem_available = False
+    device._suppress_stale_availability_false_bus = True
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
+
+    with patch.object(SignalBusMixin, "notify_emission") as super_notify:
+        MidTmcLeafNodeDish.notify_emission(
+            device, "._is_subsystem_available", False
+        )
+
+    super_notify.assert_not_called()
+    device.push_change_archive_events.assert_called_once_with(
+        "isSubsystemAvailable", True
+    )
 def test_presignal_callback_pushes_tango_events() -> None:
     """Pre-signal implementation explicitly notified subscribers."""
     device = MagicMock()

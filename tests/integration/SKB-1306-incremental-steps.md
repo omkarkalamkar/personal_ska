@@ -75,7 +75,14 @@ grep -A20 'timeline' probe-<name>.log
 
 **Fix:** repair/hook only promotes True (never sync False down); block only `bus=False` while `signal=True`.
 
-### step-3c — re-run after fix
+### step-3c — re-run after `230b0876` (skancra003)
+- subscribe1 **True**, between **True**, subscribe2 **False** (+1077ms)
+
+**Cause:** 2nd `wait_for_thread` replays queued `False` with matching signal storage; block only ran when `signal is True`.
+
+**Fix:** `_suppress_stale_availability_false_bus` set by callback; block/repair while flag True (cleared on liveliness False).
+
+### step-3c — re-run after suppress flag
 ```
 (paste timeline here)
 ```
@@ -86,5 +93,5 @@ grep -A20 'timeline' probe-<name>.log
 
 1. **Callback push** — liveliness + init sync path notifies Tango (0.45.1 idea, keep signal)
 2. **Init sync** — dish responsive at startup → True before Subarray Assign
-3. **Bus block + cache repair** — ignore queued stale `False`; sync `__attr_values` and re-push True
-4. **Hook repair** — after every client request (incl. subscribe), re-sync cache from signal storage
+3. **Bus block + cache repair** — while availability is True, ignore queued stale bus `False`; sync `__attr_values` and re-push True
+4. **Hook repair** — after every client request (incl. subscribe), re-sync cache when suppress flag is set
