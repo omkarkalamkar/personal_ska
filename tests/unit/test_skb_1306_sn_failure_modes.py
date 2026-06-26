@@ -224,6 +224,19 @@ def test_repair_skips_when_cache_matches_signal() -> None:
     device._repair_subsystem_availability_cache_if_needed()
 
     device.push_change_archive_events.assert_not_called()
+
+
+def test_repair_skips_when_signal_false_even_if_cache_true() -> None:
+    """Hook repair must not publish False when signal storage is False."""
+    device = MagicMock()
+    device._is_subsystem_available = False
+    device._SignalBusMixin__attr_values = {"isSubsystemAvailable": True}
+    _bind_availability_methods(device)
+
+    device._repair_subsystem_availability_cache_if_needed()
+
+    device.push_change_archive_events.assert_not_called()
+    assert device._SignalBusMixin__attr_values["isSubsystemAvailable"] is True
 def test_presignal_callback_pushes_tango_events() -> None:
     """Pre-signal implementation explicitly notified subscribers."""
     device = MagicMock()

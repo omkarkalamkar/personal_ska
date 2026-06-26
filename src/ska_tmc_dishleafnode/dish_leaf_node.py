@@ -319,10 +319,12 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
             )
 
     def _repair_subsystem_availability_cache_if_needed(self) -> None:
+        """Re-sync read cache when signal is True but __attr_values is stale."""
         try:
-            availability = self._is_subsystem_available
-            if self._get_availability_attr_cache() != availability:
-                self._publish_subsystem_availability(availability)
+            if self._is_subsystem_available is not True:
+                return
+            if self._get_availability_attr_cache() is not True:
+                self._publish_subsystem_availability(True)
         except (AttributeError, RuntimeError):
             pass
 
@@ -335,22 +337,18 @@ class MidTmcLeafNodeDish(TMCBaseLeafDevice):
         """Drop stale bus emissions before attribute_from_signal auto-push."""
         if "is_subsystem_available" in signal.lower():
             try:
-                if value != self._is_subsystem_available:
+                if value is False and self._is_subsystem_available is True:
                     self.logger.info(
                         "isSubsystemAvailable: ignored stale bus emission "
                         "bus=%s signal=%s",
                         value,
                         self._is_subsystem_available,
                     )
-                    self._publish_subsystem_availability(
-                        self._is_subsystem_available
-                    )
+                    self._publish_subsystem_availability(True)
                     return
             except (AttributeError, RuntimeError):
                 pass
         super().notify_emission(signal, value)
-        if "is_subsystem_available" in signal.lower():
-            self._repair_subsystem_availability_cache_if_needed()
 
     def delete_device(self) -> None:
         # if the init is called more than once

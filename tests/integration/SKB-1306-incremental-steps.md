@@ -69,7 +69,13 @@ grep -A20 'timeline' probe-<name>.log
 - between_subscribes True
 - **+1079ms post_subscribe_2 → False** (same as step-2b)
 
-### step-3c — `exp/step-3c-hook-repair`
+### step-3c — `exp/step-3c-hook-repair` (`b6c90241`, first run on skancra003)
+- +7ms True, pre_subscribe True
+- **+583ms post_subscribe_1 → False** (regression vs step-3b; hook published False when cache/signal desynced)
+
+**Fix:** repair/hook only promotes True (never sync False down); block only `bus=False` while `signal=True`.
+
+### step-3c — re-run after fix
 ```
 (paste timeline here)
 ```
